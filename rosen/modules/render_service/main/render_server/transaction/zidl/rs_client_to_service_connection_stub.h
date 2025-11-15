@@ -1,0 +1,62 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_STUB_H
+
+#include <unordered_set>
+#include <iremote_stub.h>
+#include <message_option.h>
+#include <message_parcel.h>
+
+#include "platform/ohos/rs_iclient_to_service_connection.h"
+#include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "ipc_security/rs_ipc_interface_code_security_manager.h"
+#include "transaction/rs_render_service_security_utils.h"
+
+namespace OHOS {
+namespace Rosen {
+class RSClientToServiceConnectionStub : public IRemoteStub<RSIClientToServiceConnection> {
+public:
+    RSClientToServiceConnectionStub() = default;
+    ~RSClientToServiceConnectionStub() noexcept = default;
+
+    int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override {};
+    void RunOnRemoteDiedCallback() override {};
+
+private:
+    static const RSInterfaceCodeSecurityManager securityManager_;
+
+    bool WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data);
+    bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
+    bool ReadAppInfo(AppInfo& info, MessageParcel& data);
+    bool ReadGameStateDataRs(GameStateData& info, MessageParcel& data);
+    bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
+    bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
+    bool ReadSurfaceCaptureAreaRect(Drawing::Rect& specifiedAreaRect, MessageParcel& data);
+    void SetQos();
+
+    virtual std::string GetBundleName(pid_t pid) { return {}; }
+
+    RSRenderServiceSecurityUtils securityUtils_;
+    std::unordered_set<int> tids_;
+    std::mutex mutex_;
+};
+} // namespace Rosen
+} // namespace OHOS
+
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_STUB_H

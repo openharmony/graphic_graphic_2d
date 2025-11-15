@@ -20,6 +20,7 @@
 #include <securec.h>
 
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "core/transaction/rs_interfaces.h"
@@ -53,7 +54,7 @@ const uint8_t DO_ADD_VIRTUAL_SCREEN_BLACK_LIST_002 = 17;
 const uint8_t DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST_002 = 18;
 const uint8_t TARGET_SIZE = 19;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -129,18 +130,18 @@ public:
 
 bool DoGetUniRenderEnabled002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     int pid = GetData<int>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->GetUniRenderEnabled();
-    client->GetMemoryGraphic(pid);
-    client->GetMemoryGraphics();
+    renderServiceClient->GetUniRenderEnabled();
+    renderServiceClient->GetMemoryGraphic(pid);
+    renderServiceClient->GetMemoryGraphics();
     return true;
 }
 
 bool DoCreateNode002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     RSDisplayNodeConfig displayNodeconfig = {
         .screenId = GetData<uint64_t>(),
         .isMirrored = GetData<bool>(),
@@ -148,33 +149,33 @@ bool DoCreateNode002()
         .isSync = GetData<bool>(),
     };
     NodeId nodeId = GetData<NodeId>();
-    client->CreateNode(displayNodeconfig, nodeId);
+    renderServiceClient->CreateNode(displayNodeconfig, nodeId);
 
     RSSurfaceRenderNodeConfig config = { .id = GetData<NodeId>(), .name = "fuzztest" };
-    client->CreateNode(config);
+    renderServiceClient->CreateNode(config);
     return true;
 }
 
 bool DoGetTotalAppMemSize002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     float cpuMemSize = GetData<int>();
     float gpuMemSize  = GetData<int>();
-    client->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
+    renderServiceClient->GetTotalAppMemSize(cpuMemSize, gpuMemSize);
     std::string name = GetStringFromData(STR_LEN);
     std::shared_ptr<OHOS::AppExecFwk::EventHandler> looper;
     uint64_t id = GetData<uint64_t>();
     NodeId windowNodeId = GetData<NodeId>();
-    client->CreateVSyncReceiver(name, looper, id, windowNodeId);
+    renderServiceClient->CreateVSyncReceiver(name, looper, id, windowNodeId);
     uint64_t surfaceId = GetData<uint64_t>();
     Rect srcRect = {0, 0, 100, 100};
-    client->CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+    renderServiceClient->CreatePixelMapFromSurfaceId(surfaceId, srcRect);
     return true;
 }
 
 bool DoTakeSurfaceCapture002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     uint64_t nodeId = GetData<uint64_t>();
     std::shared_ptr<SurfaceCaptureCallback> callback;
     RSSurfaceCaptureConfig captureConfig;
@@ -187,26 +188,27 @@ bool DoTakeSurfaceCapture002()
     captureConfig.isSync = GetData<bool>();
 
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->TakeSurfaceCapture(nodeId, callback, captureConfig);
+    renderPipelineClient->TakeSurfaceCapture(nodeId, callback, captureConfig);
     return true;
 }
 
 bool DoSetHwcNodeBounds002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     int64_t rsNodeId = GetData<int64_t>();
     float positionX = GetData<float>();
     float positionY = GetData<float>();
     float positionZ = GetData<float>();
     float positionW = GetData<float>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
+    renderPipelineClient->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 
 bool DoSetFocusAppInfo002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     int32_t pid = GetData<int32_t>();
     int32_t uid = GetData<int32_t>();
     std::string bundleName = GetStringFromData(STR_LEN);
@@ -220,11 +222,11 @@ bool DoSetFocusAppInfo002()
         .bundleName = bundleName,
         .abilityName = abilityName,
         .focusNodeId = focusNodeId};
-    client->SetFocusAppInfo(info);
-    client->GetDefaultScreenId();
-    client->GetActiveScreenId();
-    client->GetAllScreenIds();
-    client->GetAllScreenIds();
+    renderPipelineClient->SetFocusAppInfo(info);
+    renderServiceClient->GetDefaultScreenId();
+    renderServiceClient->GetActiveScreenId();
+    renderServiceClient->GetAllScreenIds();
+    renderServiceClient->GetAllScreenIds();
     std::string name = "name";
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
@@ -234,17 +236,17 @@ bool DoSetFocusAppInfo002()
     ScreenId mirrorId = GetData<ScreenId>();
     int32_t flags = GetData<int32_t>();
     std::vector<NodeId> whiteList;
-    client->CreateVirtualScreen(name, width, height, pSurface, mirrorId, flags, whiteList);
+    renderServiceClient->CreateVirtualScreen(name, width, height, pSurface, mirrorId, flags, whiteList);
     return true;
 }
 
 bool DoSetVirtualScreenBlackList002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     std::vector<NodeId> blackListVector;
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->SetVirtualScreenBlackList(id, blackListVector);
+    renderServiceClient->SetVirtualScreenBlackList(id, blackListVector);
     std::string name = GetStringFromData(STR_LEN);
     Media::InitializationOptions opts;
     opts.size.width = GetData<int32_t>();
@@ -256,15 +258,15 @@ bool DoSetVirtualScreenBlackList002()
     opts.editable = GetData<bool>();
     opts.useSourceIfMatch = GetData<bool>();
     std::shared_ptr<Media::PixelMap> watermark = Media::PixelMap::Create(opts);
-    client->SetWatermark(name, watermark);
+    renderServiceClient->SetWatermark(name, watermark);
     std::vector<NodeId> securityExemptionList;
-    client->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
+    renderServiceClient->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
     return true;
 }
 
 bool DoSetCastScreenEnableSkipWindow002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     ScreenId id = GetData<ScreenId>();
     bool enable = GetData<bool>();
@@ -276,20 +278,20 @@ bool DoSetCastScreenEnableSkipWindow002()
     int32_t sceneId = GetData<int32_t>();
     int32_t rate = GetData<int32_t>();
 
-    client->SetCastScreenEnableSkipWindow(id, enable);
-    client->SetVirtualScreenSurface(id, surface);
-    client->RemoveVirtualScreen(id);
-    client->SetScreenChangeCallback(cb);
-    client->SetScreenSwitchingNotifyCallback(switchingCb);
-    client->SetScreenActiveMode(id, modeId);
-    client->SetScreenRefreshRate(id, sceneId, rate);
-    client->SetRefreshRateMode(refreshRateMode);
+    renderServiceClient->SetCastScreenEnableSkipWindow(id, enable);
+    renderServiceClient->SetVirtualScreenSurface(id, surface);
+    renderServiceClient->RemoveVirtualScreen(id);
+    renderServiceClient->SetScreenChangeCallback(cb);
+    renderServiceClient->SetScreenSwitchingNotifyCallback(switchingCb);
+    renderServiceClient->SetScreenActiveMode(id, modeId);
+    renderServiceClient->SetScreenRefreshRate(id, sceneId, rate);
+    renderServiceClient->SetRefreshRateMode(refreshRateMode);
     return true;
 }
 
 bool DoSyncFrameRateRange002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     FrameRateLinkerId id = GetData<FrameRateLinkerId>();
     FrameRateRange range;
     int32_t animatorExpectedFrameRate = GetData<int32_t>();
@@ -300,23 +302,23 @@ bool DoSyncFrameRateRange002()
     uint32_t height = GetData<uint32_t>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    client->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
-    client->UnregisterFrameRateLinker(id);
-    client->GetScreenCurrentRefreshRate(screenId);
-    client->GetCurrentRefreshRateMode();
-    client->GetScreenSupportedRefreshRates(screenId);
-    client->GetShowRefreshRateEnabled();
-    client->SetShowRefreshRateEnabled(enabled, type);
-    client->GetRealtimeRefreshRate(screenId);
-    client->SetVirtualScreenResolution(screenId, width, height);
-    client->GetVirtualScreenResolution(screenId);
-    client->MarkPowerOffNeedProcessOneFrame();
+    renderServiceClient->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
+    renderServiceClient->UnregisterFrameRateLinker(id);
+    renderServiceClient->GetScreenCurrentRefreshRate(screenId);
+    renderServiceClient->GetCurrentRefreshRateMode();
+    renderServiceClient->GetScreenSupportedRefreshRates(screenId);
+    renderServiceClient->GetShowRefreshRateEnabled();
+    renderServiceClient->SetShowRefreshRateEnabled(enabled, type);
+    renderServiceClient->GetRealtimeRefreshRate(screenId);
+    renderServiceClient->SetVirtualScreenResolution(screenId, width, height);
+    renderServiceClient->GetVirtualScreenResolution(screenId);
+    renderServiceClient->MarkPowerOffNeedProcessOneFrame();
     return true;
 }
 
 bool DoDisablePowerOffRenderControl002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId screenId = GetData<ScreenId>();
     ScreenPowerStatus status = ScreenPowerStatus::INVALID_POWER_STATUS;
     NodeId id = GetData<ScreenId>();
@@ -325,22 +327,22 @@ bool DoDisablePowerOffRenderControl002()
     bool isFromRenderThread = GetData<bool>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    client->DisablePowerOffRenderControl(screenId);
-    client->SetScreenPowerStatus(screenId, status);
-    client->GetScreenActiveMode(screenId);
-    client->GetScreenSupportedModes(screenId);
-    client->GetScreenCapability(screenId);
-    client->GetScreenPowerStatus(screenId);
-    client->GetScreenData(screenId);
-    client->GetScreenBacklight(screenId);
-    client->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
-    client->RegisterBufferClearListener(id, bufferClearCallback);
+    renderServiceClient->DisablePowerOffRenderControl(screenId);
+    renderServiceClient->SetScreenPowerStatus(screenId, status);
+    renderServiceClient->GetScreenActiveMode(screenId);
+    renderServiceClient->GetScreenSupportedModes(screenId);
+    renderServiceClient->GetScreenCapability(screenId);
+    renderServiceClient->GetScreenPowerStatus(screenId);
+    renderServiceClient->GetScreenData(screenId);
+    renderServiceClient->GetScreenBacklight(screenId);
+    renderServiceClient->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
+    renderServiceClient->RegisterBufferClearListener(id, bufferClearCallback);
     return true;
 }
 
 bool DoGetScreenSupportedColorGamuts002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     std::vector<ScreenColorGamut> mode1;
     std::vector<ScreenHDRMetadataKey> keys;
@@ -352,21 +354,21 @@ bool DoGetScreenSupportedColorGamuts002()
     ScreenScaleMode scaleMode = ScreenScaleMode::FILL_MODE;
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    client->GetScreenSupportedColorGamuts(id, mode1);
-    client->GetScreenSupportedMetaDataKeys(id, keys);
-    client->SetScreenColorGamut(id, modeIdx);
-    client->GetScreenColorGamut(id, screenColorGamut);
-    client->SetScreenGamutMap(id, screenGamutMap);
-    client->GetScreenGamutMap(id, screenGamutMap);
-    client->SetScreenCorrection(id, screenRotation);
-    client->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
-    client->SetVirtualMirrorScreenScaleMode(id, scaleMode);
+    renderServiceClient->GetScreenSupportedColorGamuts(id, mode1);
+    renderServiceClient->GetScreenSupportedMetaDataKeys(id, keys);
+    renderServiceClient->SetScreenColorGamut(id, modeIdx);
+    renderServiceClient->GetScreenColorGamut(id, screenColorGamut);
+    renderServiceClient->SetScreenGamutMap(id, screenGamutMap);
+    renderServiceClient->GetScreenGamutMap(id, screenGamutMap);
+    renderServiceClient->SetScreenCorrection(id, screenRotation);
+    renderServiceClient->SetVirtualMirrorScreenCanvasRotation(id, canvasRotation);
+    renderServiceClient->SetVirtualMirrorScreenScaleMode(id, scaleMode);
     return true;
 }
 
 bool DoSetGlobalDarkColorMode002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     bool isDark = GetData<bool>();
     ScreenId screenId = GetData<ScreenId>();
     RSScreenHDRCapability screenHdrCapability;
@@ -378,22 +380,22 @@ bool DoSetGlobalDarkColorMode002()
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_FULL;
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    client->SetGlobalDarkColorMode(isDark);
-    client->GetScreenHDRCapability(screenId, screenHdrCapability);
-    client->SetPixelFormat(screenId, pixelFormat);
-    client->GetPixelFormat(screenId, pixelFormat);
-    client->SetScreenHDRFormat(screenId, modeIdx);
-    client->GetScreenHDRFormat(screenId, hdrFormat);
-    client->GetScreenSupportedHDRFormats(screenId, hdrFormats);
-    client->SetScreenColorSpace(screenId, colorSpace);
-    client->GetScreenColorSpace(screenId, colorSpace);
-    client->GetScreenSupportedColorSpaces(screenId, colorSpaces);
+    renderServiceClient->SetGlobalDarkColorMode(isDark);
+    renderServiceClient->GetScreenHDRCapability(screenId, screenHdrCapability);
+    renderServiceClient->SetPixelFormat(screenId, pixelFormat);
+    renderServiceClient->GetPixelFormat(screenId, pixelFormat);
+    renderServiceClient->SetScreenHDRFormat(screenId, modeIdx);
+    renderServiceClient->GetScreenHDRFormat(screenId, hdrFormat);
+    renderServiceClient->GetScreenSupportedHDRFormats(screenId, hdrFormats);
+    renderServiceClient->SetScreenColorSpace(screenId, colorSpace);
+    renderServiceClient->GetScreenColorSpace(screenId, colorSpace);
+    renderServiceClient->GetScreenSupportedColorSpaces(screenId, colorSpaces);
     return true;
 }
 
 bool DoGetScreenType002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId screenId = GetData<ScreenId>();
     RSScreenType screenType = RSScreenType::BUILT_IN_TYPE_SCREEN;
     Drawing::Bitmap bm;
@@ -406,23 +408,23 @@ bool DoGetScreenType002()
     uint32_t actualRefreshRate = GetData<uint32_t>();
     std::shared_ptr<Drawing::Typeface> typeface;
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->GetScreenType(screenId, screenType);
-    client->GetBitmap(nodeId, bm);
-    client->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
-    client->RegisterTypeface(typeface);
-    client->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
+    renderServiceClient->GetScreenType(screenId, screenType);
+    renderServiceClient->GetBitmap(nodeId, bm);
+    renderServiceClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
+    renderServiceClient->RegisterTypeface(typeface);
+    renderServiceClient->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
     if (typeface) {
-        client->UnRegisterTypeface(typeface->GetUniqueID());
+        renderServiceClient->UnRegisterTypeface(typeface->GetUniqueID());
     }
-    client->UnRegisterTypeface(GetData<uint32_t>());
-    client->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
-    client->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
+    renderServiceClient->UnRegisterTypeface(GetData<uint32_t>());
+    renderServiceClient->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
+    renderServiceClient->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
     return true;
 }
 
 bool DoRegisterOcclusionChangeCallback002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     OcclusionChangeCallback occlusionChangeCallback;
     SurfaceOcclusionChangeCallback surfaceOcclusionChangeCallback;
     NodeId nodeId = GetData<NodeId>();
@@ -436,20 +438,22 @@ bool DoRegisterOcclusionChangeCallback002()
     uint32_t height = GetData<uint32_t>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    client->RegisterOcclusionChangeCallback(occlusionChangeCallback);
-    client->RegisterSurfaceOcclusionChangeCallback(nodeId, surfaceOcclusionChangeCallback, partitionPoints);
-    client->UnRegisterSurfaceOcclusionChangeCallback(nodeId);
-    client->RegisterHgmConfigChangeCallback(hgmConfigChangeCallback);
-    client->RegisterHgmRefreshRateModeChangeCallback(hgmRefreshRateModeChangeCallback);
-    client->RegisterHgmRefreshRateUpdateCallback(hgmRefreshRateUpdateCallback);
-    client->SetSystemAnimatedScenes(systemAnimatedScenes, false);
-    client->ResizeVirtualScreen(screenId, width, height);
+    renderServiceClient->RegisterOcclusionChangeCallback(occlusionChangeCallback);
+    renderServiceClient->RegisterSurfaceOcclusionChangeCallback(
+        nodeId, surfaceOcclusionChangeCallback, partitionPoints);
+    renderServiceClient->UnRegisterSurfaceOcclusionChangeCallback(nodeId);
+    renderServiceClient->RegisterHgmConfigChangeCallback(hgmConfigChangeCallback);
+    renderServiceClient->RegisterHgmRefreshRateModeChangeCallback(hgmRefreshRateModeChangeCallback);
+    renderServiceClient->RegisterHgmRefreshRateUpdateCallback(hgmRefreshRateUpdateCallback);
+    renderServiceClient->SetSystemAnimatedScenes(systemAnimatedScenes, false);
+    renderServiceClient->ResizeVirtualScreen(screenId, width, height);
     return true;
 }
 
 bool DoSetHidePrivacyContent002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     OcclusionChangeCallback occlusionChangeCallback;
     SurfaceOcclusionChangeCallback surfaceOcclusionChangeCallback;
     NodeId nodeId = GetData<NodeId>();
@@ -460,56 +464,56 @@ bool DoSetHidePrivacyContent002()
     uint64_t userId = GetData<uint64_t>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
 
-    client->SetHidePrivacyContent(nodeId, needHidePrivacyContent);
-    client->GetActiveDirtyRegionInfo();
-    client->GetGlobalDirtyRegionInfo();
-    client->GetLayerComposeInfo();
-    client->GetHwcDisabledReasonInfo();
-    client->SetVmaCacheStatus(flag);
-    client->RegisterUIExtensionCallback(userId, uiExtensionCallback);
-    client->SetAncoForceDoDirect(direct);
+    renderServiceClient->SetHidePrivacyContent(nodeId, needHidePrivacyContent);
+    renderServiceClient->GetActiveDirtyRegionInfo();
+    renderServiceClient->GetGlobalDirtyRegionInfo();
+    renderServiceClient->GetLayerComposeInfo();
+    renderServiceClient->GetHwcDisabledReasonInfo();
+    renderServiceClient->SetVmaCacheStatus(flag);
+    renderServiceClient->RegisterUIExtensionCallback(userId, uiExtensionCallback);
+    renderPipelineClient->SetAncoForceDoDirect(direct);
     return true;
 }
 
 bool DoSetBehindWindowFilterEnabled002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     bool enabled = GetData<bool>();
-    client->SetBehindWindowFilterEnabled(enabled);
+    renderServiceClient->SetBehindWindowFilterEnabled(enabled);
     return true;
 }
 
 bool DoGetBehindWindowFilterEnabled002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     bool enabled = GetData<bool>();
-    client->GetBehindWindowFilterEnabled(enabled);
+    renderServiceClient->GetBehindWindowFilterEnabled(enabled);
     return true;
 }
 
 bool DoAddVirtualScreenBlackList002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     std::vector<NodeId> blackListVector;
     NodeId nodeId = GetData<ScreenId>();
     blackListVector.push_back(nodeId);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->AddVirtualScreenBlackList(id, blackListVector);
+    renderServiceClient->AddVirtualScreenBlackList(id, blackListVector);
     return true;
 }
 
 bool DoRemoveVirtualScreenBlackList002()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     std::vector<NodeId> blackListVector;
     NodeId nodeId = GetData<ScreenId>();
     blackListVector.push_back(nodeId);
     RSRenderServiceConnectHub::GetInstance()->Destroy();
-    client->RemoveVirtualScreenBlackList(id, blackListVector);
+    renderServiceClient->RemoveVirtualScreenBlackList(id, blackListVector);
     return true;
 }
 } // namespace Rosen

@@ -13,88 +13,50 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_CONNECTION_H
-#define RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_CONNECTION_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H
 
-#include <mutex>
-#include <unordered_set>
-#include <unordered_map>
-
-#include "hgm_config_callback_manager.h"
-#include "ipc_callbacks/buffer_available_callback.h"
-#include "ipc_callbacks/buffer_clear_callback.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "render_server/rs_render_service.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "transaction/rs_render_service_connection_stub.h"
-#include "vsync_distributor.h"
+#include "command/rs_node_showing_command.h"
+#include <iremote_proxy.h>
+#include <memory>
+#include <platform/ohos/rs_iclient_to_service_connection.h>
+#include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
-class HgmFrameRateManager;
-class RSRenderServiceConnection : public RSRenderServiceConnectionStub {
+class RSClientToServiceConnectionProxy : public IRemoteProxy<RSIClientToServiceConnection> {
 public:
-    RSRenderServiceConnection(
-        pid_t remotePid,
-        wptr<RSRenderService> renderService,
-        RSMainThread* mainThread,
-        sptr<RSScreenManager> screenManager,
-        sptr<IRemoteObject> token,
-        sptr<VSyncDistributor> distributor);
-    ~RSRenderServiceConnection() noexcept;
-    RSRenderServiceConnection(const RSRenderServiceConnection&) = delete;
-    RSRenderServiceConnection& operator=(const RSRenderServiceConnection&) = delete;
+    explicit RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl);
+    virtual ~RSClientToServiceConnectionProxy() noexcept = default;
 
-    sptr<IRemoteObject> GetToken() const
-    {
-        return token_;
-    }
-
-    void RemoveToken() override
-    {
-        token_ = nullptr;
-    }
-
-private:
-    void CleanVirtualScreens() noexcept;
-    void CleanRenderNodes() noexcept;
-    void CleanFrameRateLinkers() noexcept;
-    void CleanBrightnessInfoChangeCallbacks() noexcept;
-    void CleanAll(bool toDelete = false) noexcept;
-
-    // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
-    ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
-    ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
-    ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
+
     ErrCode GetUniRenderEnabled(bool& enable) override;
 
-    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool& success) override;
+    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& configg, bool& success) override;
+    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeIdg, bool& success) override;
     ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
         bool unobscured = false) override;
 
-    ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
-                                  const std::string& name,
-                                  const sptr<VSyncIConnectionToken>& token,
-                                  VSyncConnParam vsyncConnParam = {0, 0, false}) override;
+    virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
+                                          const std::string& name,
+                                          const sptr<VSyncIConnectionToken>& token,
+                                          VSyncConnParam vsyncConnParam = {0, 0, false}) override;
 
-    ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
-    float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
-
-    ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) override;
-
-    ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
+    ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid,
+        int32_t& repCode) override;
+    
+    ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
+        std::shared_ptr<Media::PixelMap> &pixelMap) override;
 
     ErrCode GetDefaultScreenId(uint64_t& screenId) override;
-
     ErrCode GetActiveScreenId(uint64_t& screenId) override;
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
+    // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
     ScreenId CreateVirtualScreen(
         const std::string &name,
         uint32_t width,
@@ -110,21 +72,30 @@ private:
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) override;
 
     ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
-
+    
     ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
+
+    ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
+
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
+        
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+        const std::vector<NodeId>& nodeIdList) override;
+        
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
 
-    int32_t SetScreenSecurityMask(ScreenId id,
-        std::shared_ptr<Media::PixelMap> securityMask) override;
+    int32_t SetScreenSecurityMask(ScreenId id, std::shared_ptr<Media::PixelMap> securityMask) override;
 
     int32_t SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect, bool supportRotation = false) override;
 
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable) override;
-    
-    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
 
+    int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface) override;
     void RemoveVirtualScreen(ScreenId id) override;
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -145,6 +116,8 @@ private:
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
 
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
+
+    bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
@@ -167,18 +140,18 @@ private:
 
     void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
 
-    uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
+    uint32_t GetRealtimeRefreshRate(ScreenId id) override;
 
     ErrCode GetRefreshInfo(pid_t pid, std::string& enable) override;
     ErrCode GetRefreshInfoToSP(NodeId id, std::string& enable) override;
 
-    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
-
-    int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
-
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) override;
+
+    int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
+
+    int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     ErrCode MarkPowerOffNeedProcessOneFrame() override;
 
@@ -190,40 +163,10 @@ private:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
-        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
-
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
-        NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
-
-    void TakeSelfSurfaceCapture(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
-
-    ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam) override;
-
-    ErrCode TakeSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
-        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
-
-    ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
-
-    void TakeUICaptureInRange(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
-
-    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-        float positionZ, float positionW) override;
-
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
-
-    void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
-
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
-    ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& info) override;
+    ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) override;
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id) override;
 
@@ -233,6 +176,9 @@ private:
 
     RSScreenData GetScreenData(ScreenId id) override;
 
+    ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic) override;
+    ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) override;
+    ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics) override;
     ErrCode GetScreenBacklight(uint64_t id, int32_t& level) override;
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
@@ -278,8 +224,6 @@ private:
 
     ErrCode SetScreenHDRFormat(ScreenId id, int32_t modeIdx, int32_t& resCode) override;
 
-    ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
-
     ErrCode GetScreenSupportedColorSpaces(
         ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces, int32_t& resCode) override;
 
@@ -296,8 +240,6 @@ private:
     int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
-    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
-
     ErrCode SetScreenSkipFrameInterval(uint64_t id, uint32_t skipFrameInterval, int32_t& resCode) override;
 
     ErrCode SetVirtualScreenRefreshRate(
@@ -305,9 +247,7 @@ private:
 
     ErrCode SetScreenActiveRect(ScreenId id, const Rect& activeRect, uint32_t& repCode) override;
 
-    void SetScreenOffset(ScreenId id, int32_t offsetX, int32_t offsetY) override;
-
-    void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
+    void SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY) override;
 
     ErrCode RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback, int32_t& repCode) override;
 
@@ -320,6 +260,7 @@ private:
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
+    ErrCode SetAppWindowNum(uint32_t num) override;
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;
@@ -327,44 +268,14 @@ private:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
-
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
-    ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
-
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
-        
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-        const std::vector<NodeId> &nodeIdList) override;
-        
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
-    
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     ErrCode ReportJankStats() override;
-
-    ErrCode ReportEventResponse(DataBaseRs info) override;
-
-    ErrCode ReportEventComplete(DataBaseRs info) override;
-
-    ErrCode ReportEventJankFrame(DataBaseRs info) override;
-
-    void ReportRsSceneJankStart(AppInfo info) override;
-
-    void ReportRsSceneJankEnd(AppInfo info) override;
-
-    ErrCode ReportGameStateData(GameStateData info) override;
-
-    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-        bool dynamicHardwareEnable) override;
-
-    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
 
     ErrCode NotifyLightFactorStatus(int32_t lightFactorStatus) override;
 
@@ -385,16 +296,36 @@ private:
 
     ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
 
-    void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
+    void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
     ErrCode NotifyHgmConfigEvent(const std::string &eventName, bool state) override;
 
     ErrCode NotifyXComponentExpectedFrameRate(const std::string& id, int32_t expectedFrameRate) override;
 
+    ErrCode ReportEventResponse(DataBaseRs info) override;
+
+    ErrCode ReportEventComplete(DataBaseRs info) override;
+
+    ErrCode ReportEventJankFrame(DataBaseRs info) override;
+
+    ErrCode ReportGameStateData(GameStateData info) override;
+    void ReportRsSceneJankStart(AppInfo info) override;
+
+    void ReportRsSceneJankEnd(AppInfo info) override;
+
+    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+        bool dynamicHardwareEnable) override;
+
+    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
+
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
-    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
+    void SetOnRemoteDiedCallback(const OnRemoteDiedCallback& callback) override;
 
+    void RunOnRemoteDiedCallback() override;
+
+    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
+    ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() override;
@@ -410,64 +341,36 @@ private:
     int32_t RegisterUIExtensionCallback(uint64_t userId, sptr<RSIUIExtensionCallback> callback,
         bool unobscured = false) override;
 
-#ifdef TP_FEATURE_ENABLE
-    ErrCode SetTpFeatureConfig(int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) override;
-#endif
-
-    void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
-    ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
-
-    ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
-
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
-
-    ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
-
-    ErrCode SetAncoForceDoDirect(bool direct, bool& res) override;
+    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
 
     void SetFreeMultiWindowStatus(bool enable) override;
 
-    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
-
-    ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
-
-    ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
-
-    void RegisterTransactionDataCallback(uint64_t token,
-        uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
-
-    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
-
-    ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-        sptr<RSISurfaceBufferCallback> callback) override;
-    ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid) override;
+    int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
+#ifdef TP_FEATURE_ENABLE
+    ErrCode SetTpFeatureConfig(int32_t feature, const char* config,
+        TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
+#endif
 
     ErrCode NotifyScreenSwitched() override;
-
-    ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-    ErrCode SetOverlayDisplayMode(int32_t mode) override;
-#endif
-
     ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
-
-    bool GetHighContrastTextState() override;
-
-    ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
-
-    ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
     ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;
 
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
+
+    bool GetHighContrastTextState() override;
+
+    ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
+
+    ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
     int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB) override;
 
@@ -477,64 +380,46 @@ private:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
 
-    void ClearUifirstCache(NodeId id) override;
+    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
 
-    std::string GetBundleName(pid_t pid) override;
+    ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
-    pid_t remotePid_;
-    wptr<RSRenderService> renderService_;
-    RSMainThread* mainThread_ = nullptr;
-#ifdef RS_ENABLE_GPU
-    RSUniRenderThread& renderThread_;
+    bool WriteSurfaceCaptureConfig(const RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
+
+    bool WriteSurfaceCaptureBlurParam(const RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);
+
+    bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
+private:
+    bool FillParcelWithTransactionData(
+        std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
+
+    void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
+
+    void WriteAppInfo(MessageParcel& data, MessageParcel& reply, MessageOption& option, AppInfo info);
+
+    void ReportGameStateDataRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, GameStateData info);
+
+    int32_t SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+
+    ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop) override;
+
+    ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh) override;
+
+    void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
+
+    void RemoveToken() override {};
+
+#ifdef RS_ENABLE_OVERLAY_DISPLAY
+    ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
-    sptr<RSScreenManager> screenManager_;
-    sptr<IRemoteObject> token_;
 
-    std::unordered_map<pid_t, std::string> pidToBundleName_;
-    mutable std::mutex pidToBundleMutex_;
+    static inline BrokerDelegator<RSClientToServiceConnectionProxy> delegator_;
 
-    class RSConnectionDeathRecipient : public IRemoteObject::DeathRecipient {
-    public:
-        explicit RSConnectionDeathRecipient(wptr<RSRenderServiceConnection> conn);
-        virtual ~RSConnectionDeathRecipient() = default;
-
-        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
-
-    private:
-        wptr<RSRenderServiceConnection> conn_;
-    };
-    friend class RSConnectionDeathRecipient;
-    sptr<RSConnectionDeathRecipient> connDeathRecipient_;
-
-    class RSApplicationRenderThreadDeathRecipient : public IRemoteObject::DeathRecipient {
-    public:
-        explicit RSApplicationRenderThreadDeathRecipient(wptr<RSRenderServiceConnection> conn);
-        virtual ~RSApplicationRenderThreadDeathRecipient() = default;
-
-        void OnRemoteDied(const wptr<IRemoteObject>& token) override;
-
-    private:
-        wptr<RSRenderServiceConnection> conn_;
-    };
-    friend class RSApplicationRenderThreadDeathRecipient;
-    sptr<RSApplicationRenderThreadDeathRecipient> applicationDeathRecipient_ = nullptr;
-
-    mutable std::mutex mutex_;
-    bool cleanDone_ = false;
-    const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
-    const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
-    
-    // save all virtual screenIds created by this connection.
-    std::unordered_set<ScreenId> virtualScreenIds_;
-    sptr<RSIScreenChangeCallback> screenChangeCallback_;
-    sptr<VSyncDistributor> appVSyncDistributor_;
-
-#ifdef RS_PROFILER_ENABLED
-    friend class RSProfiler;
-#endif
-    friend class RSRenderServiceStub;
+    pid_t pid_ = GetRealPid();
+    std::atomic<uint32_t> transactionDataIndex_ = 0;
+    OnRemoteDiedCallback OnRemoteDiedCallback_;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_CONNECTION_H
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_CLIENT_TO_SERVICE_CONNECTION_PROXY_H

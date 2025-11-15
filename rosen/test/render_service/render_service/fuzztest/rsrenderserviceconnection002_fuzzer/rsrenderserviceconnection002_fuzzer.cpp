@@ -31,14 +31,13 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 auto g_pid = getpid();
 auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
@@ -48,9 +47,9 @@ DVSyncFeatureParam dvsyncParam;
 auto generator = CreateVSyncGenerator();
 auto appVSyncController = new VSyncController(generator, 0);
 sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
-sptr<RSRenderServiceConnectionStub> rsConnStub_ = nullptr;
+sptr<RSClientToServiceConnectionStub> rsToServiceConnStub_ = nullptr;
 namespace {
 const uint8_t DO_CREATE_VIRTUAL_SCREEN = 0;
 const uint8_t DO_SET_VIRTUAL_SCREEN_RESOLUTION = 1;
@@ -68,7 +67,7 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_STATUS = 12;
 const uint8_t DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST = 13;
 const uint8_t TARGET_SIZE = 14;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -111,7 +110,8 @@ bool Init(const uint8_t* data, size_t size)
     DATA = data;
     g_size = size;
     g_pos = 0;
-    rsConnStub_ = new RSRenderServiceConnection(g_pid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+    rsToServiceConnStub_ =
+        new RSClientToServiceConnection(g_pid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
     return true;
 }
 } // namespace
@@ -162,7 +162,7 @@ void DoCreateVirtualScreen()
     dataParcel.WriteInt32(flags);
     dataParcel.WriteUInt64Vector(whiteList);
     dataParcel.RewindRead(0);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetVirtualScreenResolution()
@@ -170,7 +170,7 @@ void DoSetVirtualScreenResolution()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -187,7 +187,7 @@ void DoSetVirtualScreenResolution()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION);
-    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    rsToServiceConnStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenSurface()
@@ -195,7 +195,7 @@ void DoSetVirtualScreenSurface()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -211,7 +211,7 @@ void DoSetVirtualScreenSurface()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenBlackList()
@@ -226,7 +226,7 @@ void DoSetVirtualScreenBlackList()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -237,7 +237,7 @@ void DoSetVirtualScreenBlackList()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoAddVirtualScreenBlackList()
@@ -252,7 +252,7 @@ void DoAddVirtualScreenBlackList()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -263,7 +263,7 @@ void DoAddVirtualScreenBlackList()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoRemoveVirtualScreenBlackList()
@@ -278,7 +278,7 @@ void DoRemoveVirtualScreenBlackList()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -289,7 +289,7 @@ void DoRemoveVirtualScreenBlackList()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenSecurityExemptionList()
@@ -304,7 +304,7 @@ void DoSetVirtualScreenSecurityExemptionList()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -317,7 +317,7 @@ void DoSetVirtualScreenSecurityExemptionList()
 
     uint32_t code = static_cast<uint32_t>(
         RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoRemoveVirtualScreen()
@@ -327,9 +327,9 @@ void DoRemoveVirtualScreen()
     MessageParcel replyParcel;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN);
     ScreenId id = GetData<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetVirtualScreenResolution()
@@ -337,7 +337,7 @@ void DoGetVirtualScreenResolution()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -346,7 +346,7 @@ void DoGetVirtualScreenResolution()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoResizeVirtualScreen()
@@ -357,7 +357,7 @@ void DoResizeVirtualScreen()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -371,7 +371,7 @@ void DoResizeVirtualScreen()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN);
-    rsConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    rsToServiceConnStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenUsingStatus()
@@ -380,7 +380,7 @@ void DoSetVirtualScreenUsingStatus()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     if (!dataP.WriteBool(isVirtualScreenUsingStatus)) {
@@ -388,7 +388,7 @@ void DoSetVirtualScreenUsingStatus()
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_USING_STATUS);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenRefreshRate()
@@ -398,7 +398,7 @@ void DoSetVirtualScreenRefreshRate()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -409,7 +409,7 @@ void DoSetVirtualScreenRefreshRate()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_REFRESH_RATE);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenStatus()
@@ -419,7 +419,7 @@ void DoSetVirtualScreenStatus()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -431,10 +431,10 @@ void DoSetVirtualScreenStatus()
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_STATUS);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetVirtualScreenTypeBlackList()
@@ -449,7 +449,7 @@ void DoSetVirtualScreenTypeBlackList()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -460,7 +460,7 @@ void DoSetVirtualScreenTypeBlackList()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -468,17 +468,6 @@ void DoSetVirtualScreenTypeBlackList()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    auto newPid = getpid();
-    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
-        newPid,
-        nullptr,
-        mainThread,
-        screenManagerPtr,
-        nullptr,
-        nullptr
-    );
     return 0;
 }
 

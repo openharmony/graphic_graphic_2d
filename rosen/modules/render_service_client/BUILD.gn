@@ -168,6 +168,7 @@ template("render_service_client_source_set") {
       #transaction
       "core/transaction/rs_application_agent_impl.cpp",
       "core/transaction/rs_interfaces.cpp",
+      "core/transaction/rs_render_interface.cpp",
       "core/transaction/rs_render_thread_client.cpp",
       "core/transaction/rs_sync_transaction_controller.cpp",
       "core/transaction/rs_sync_transaction_handler.cpp",

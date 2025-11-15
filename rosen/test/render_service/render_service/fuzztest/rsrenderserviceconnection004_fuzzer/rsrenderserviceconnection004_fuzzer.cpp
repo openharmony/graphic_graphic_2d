@@ -31,9 +31,9 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
@@ -47,7 +47,7 @@ DVSyncFeatureParam dvsyncParam;
 auto generator = CreateVSyncGenerator();
 auto appVSyncController = new VSyncController(generator, 0);
 sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 
 namespace {
@@ -57,7 +57,7 @@ const uint8_t DO_REGISTER_POINTER_LUMINANCE_CALLBACK = 3;
 const uint8_t DO_UNREGISTER_POINTER_LUMINANCE_CALLBACK = 4;
 const uint8_t TARGET_SIZE = 4;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -125,7 +125,7 @@ void DoSetPointerColorInversionConfig()
     MessageParcel dataParcel;
     MessageParcel reply;
     MessageOption option;
-    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     float darkBuffer = GetData<float>();
@@ -137,7 +137,7 @@ void DoSetPointerColorInversionConfig()
     dataParcel.WriteInt64(interval);
     dataParcel.WriteInt32(rangeSize);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
-    connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 #endif
 }
 
@@ -147,13 +147,13 @@ void DoSetPointerColorInversionEnabled()
     MessageParcel dataParcel;
     MessageParcel reply;
     MessageOption option;
-    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     bool enable = GetData<bool>();
     dataParcel.WriteBool(enable);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED);
-    connectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 #endif
 }
 
@@ -169,12 +169,12 @@ void DoRegisterPointerLuminanceChangeCallback()
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIPointerLuminanceChangeCallback> rsIPointerLuminanceChangeCallback_ =
         iface_cast<RSIPointerLuminanceChangeCallback>(remoteObject);
-    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     dataParcel.WriteRemoteObject(rsIPointerLuminanceChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 #endif
 }
 
@@ -186,10 +186,10 @@ void DoUnRegisterPointerLuminanceChangeCallback()
     MessageParcel replyParcel;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
 
-    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 #endif
 }
 } // namespace Rosen
@@ -198,17 +198,6 @@ void DoUnRegisterPointerLuminanceChangeCallback()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    auto newPid = getpid();
-    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
-        newPid,
-        nullptr,
-        mainThread,
-        screenManagerPtr,
-        nullptr,
-        nullptr
-    );
     return 0;
 }
 

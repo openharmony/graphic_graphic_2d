@@ -25,6 +25,7 @@ ohos_fuzztest("RSRoundCornerDisplayFuzzTest") {
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service/core/feature/round_corner_display",
     "$graphic_2d_root/rosen/test/include",

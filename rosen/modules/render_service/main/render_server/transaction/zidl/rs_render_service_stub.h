@@ -23,7 +23,7 @@
 #include "platform/ohos/rs_irender_service.h"
 #include "platform/ohos/rs_irender_service_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
-#include "rs_render_service_security_utils.h"
+#include "transaction/rs_render_service_security_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,7 +33,8 @@ public:
     ~RSRenderServiceStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-    virtual sptr<RSIRenderServiceConnection> GetConnection(sptr<RSIConnectionToken>& token) = 0;
+    virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+        GetConnection(sptr<RSIConnectionToken>& token) = 0;
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
     RSRenderServiceSecurityUtils securityUtils_;

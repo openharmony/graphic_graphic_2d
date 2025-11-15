@@ -695,6 +695,7 @@ ohos_executable("snapshot_surface") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
@@ -722,6 +723,7 @@ ohos_executable("screen_info_demo") {
   include_dirs = [
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]

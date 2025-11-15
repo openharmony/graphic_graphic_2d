@@ -52,6 +52,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_client/core",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/render_service_base/include/platform/ohos/",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline/mock",

@@ -31,22 +31,21 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
 [[maybe_unused]] auto& rsRenderNodeGC = RSRenderNodeGC::Instance();
 [[maybe_unused]] auto& rsSurfaceBufferCallbackManager = RSSurfaceBufferCallbackManager::Instance();
 RSMainThread* mainThread_ = RSMainThread::Instance();
-sptr<RSRenderServiceConnectionStub> connectionStub_ = nullptr;
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 
 namespace {
 const uint8_t DO_SET_SCREEN_CHANGE_CALLBACK = 0;
@@ -69,7 +68,7 @@ const uint8_t DO_GET_REFRESH_INFO_TO_SP = 16;
 const uint8_t TARGET_SIZE = 17;
 const uint32_t WAIT_TASK_RUN_TIME_NS = 10000;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -142,10 +141,10 @@ void DoSetScreenChangeCallback()
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIScreenChangeCallback> rsIScreenChangeCallback_ = iface_cast<RSIScreenChangeCallback>(remoteObject);
 
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIScreenChangeCallback_->AsObject());
     dataParcel.RewindRead(0);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetScreenActiveMode()
@@ -157,10 +156,10 @@ void DoSetScreenActiveMode()
     MessageParcel replyParcel;
     ScreenId id = GetData<uint64_t>();
     uint32_t modeId = GetData<uint32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(modeId);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetScreenRefreshRate()
@@ -173,11 +172,11 @@ void DoSetScreenRefreshRate()
     uint64_t id = GetData<uint64_t>();
     int32_t sceneId = GetData<int32_t>();
     int32_t rate = GetData<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(sceneId);
     dataParcel.WriteInt32(rate);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetRefreshRateMode()
@@ -188,9 +187,9 @@ void DoSetRefreshRateMode()
     MessageParcel replyParcel;
 
     int32_t mode = GetData<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(mode);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void CreateVSyncConnection(uint64_t id)
@@ -211,7 +210,7 @@ void CreateVSyncConnection(uint64_t id)
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint64(windowNodeID);
     dataParcel.WriteBool(false);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void UnregisterFrameRateLinker(uint64_t id)
@@ -221,9 +220,9 @@ void UnregisterFrameRateLinker(uint64_t id)
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSyncFrameRateRange()
@@ -241,7 +240,7 @@ void DoSyncFrameRateRange()
     uint32_t type = GetData<uint32_t>();
     uint32_t componentScene = GetData<uint32_t>();
     int32_t animatorExpectedFrameRate = GetData<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteUint32(min);
     dataParcel.WriteUint32(max);
@@ -250,7 +249,7 @@ void DoSyncFrameRateRange()
     dataParcel.WriteUint32(componentScene);
     dataParcel.WriteInt32(animatorExpectedFrameRate);
 
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 
     usleep(OHOS::Rosen::WAIT_TASK_RUN_TIME_NS);
     CreateVSyncConnection(id);
@@ -259,7 +258,7 @@ void DoSyncFrameRateRange()
     MessageOption option2;
     MessageParcel dataParcel2;
     MessageParcel replyParcel2;
-    dataParcel2.WriteInterfaceToken(GetDescriptor());
+    dataParcel2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel2.WriteUint64(id);
     dataParcel2.WriteUint32(min);
     dataParcel2.WriteUint32(max);
@@ -268,7 +267,7 @@ void DoSyncFrameRateRange()
     dataParcel2.WriteUint32(componentScene);
     dataParcel2.WriteInt32(animatorExpectedFrameRate);
 
-    connectionStub_->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel2, replyParcel2, option2);
 
     usleep(OHOS::Rosen::WAIT_TASK_RUN_TIME_NS);
     UnregisterFrameRateLinker(id);
@@ -283,9 +282,9 @@ void DoUnregisterFrameRateLinker()
 
     uint32_t linkId = GetData<uint32_t>();
     uint64_t id = (static_cast<NodeId>(OHOS::Rosen::g_pid) << 32) + linkId;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenCurrentRefreshRate()
@@ -296,9 +295,9 @@ void DoGetScreenCurrentRefreshRate()
     MessageParcel replyParcel;
 
     uint64_t id = GetData<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetCurrentRefreshRateMode()
@@ -307,8 +306,8 @@ void DoGetCurrentRefreshRateMode()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenSupportedRefreshRates()
@@ -319,9 +318,9 @@ void DoGetScreenSupportedRefreshRates()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = GetData<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetShowRefreshRateEnabled()
@@ -331,8 +330,8 @@ void DoGetShowRefreshRateEnabled()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetShowRefreshRateEnabled()
@@ -344,10 +343,10 @@ void DoSetShowRefreshRateEnabled()
     MessageParcel replyParcel;
     bool enabled = GetData<bool>();
     int32_t type = GetData<int32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(enabled);
     dataParcel.WriteInt32(type);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRealtimeRefreshRate()
@@ -358,9 +357,9 @@ void DoGetRealtimeRefreshRate()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = GetData<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoFuzzer()
@@ -371,9 +370,9 @@ void DoGetRefreshInfoFuzzer()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     int32_t pid = GetData<int32_t>();
-    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(pid);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void CreateSurfaceNode()
@@ -391,7 +390,7 @@ void CreateSurfaceNode()
     dataParcel.WriteUint8(GetData<uint8_t>());
     dataParcel.WriteBool(GetData<bool>());
 
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoWithoutSurfaceName()
@@ -425,10 +424,10 @@ void DoRegisterHgmRefreshRateUpdateCallback()
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback = iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
-    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteBool(readRemoteObject);
     dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
@@ -445,11 +444,11 @@ void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> fpsUpdateCallback =
         iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(remoteObject);
-    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteInt32(dstPid);
     dataParcel.WriteBool(readRemoteObject);
     dataParcel.WriteRemoteObject(fpsUpdateCallback->AsObject());
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterHgmRefreshRateModeChangeCallback()
@@ -463,9 +462,9 @@ void DoRegisterHgmRefreshRateModeChangeCallback()
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIHgmConfigChangeCallback> rsIHgmConfigChangeCallback =
         iface_cast<RSIHgmConfigChangeCallback>(remoteObject);
-    dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteRemoteObject(rsIHgmConfigChangeCallback->AsObject());
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetRefreshInfoToSP()
@@ -476,9 +475,9 @@ void DoGetRefreshInfoToSP()
     MessageParcel replyParcel;
 
     uint64_t nodeId = GetData<uint64_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -499,8 +498,8 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::connectionStub_ =
-        new OHOS::Rosen::RSRenderServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
+    OHOS::Rosen::toServiceConnectionStub_ =
+        new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
             OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor);
     return 0;
 }

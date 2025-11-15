@@ -44,6 +44,7 @@ ohos_unittest("RSRenderClientRenderThreadTest") {
     "$graphic_2d_root/rosen/modules/frame_report/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_server",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]

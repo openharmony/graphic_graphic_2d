@@ -35,6 +35,7 @@
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -196,7 +197,7 @@ private:
 
 class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
 public:
-    explicit SurfaceBufferCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    explicit SurfaceBufferCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~SurfaceBufferCallbackDirector() noexcept override = default;
     void OnFinish(const FinishCallbackRet& ret) override
     {
@@ -209,7 +210,7 @@ public:
     }
 
 private:
-    RSRenderServiceClient* client_;
+    RSRenderPipelineClient* client_;
 };
 
 class CustomSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub {
@@ -279,7 +280,7 @@ class CustomScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallba
 
 class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:
-    explicit SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    explicit SurfaceCaptureCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
         Media::PixelMap* pixelmapHDR = nullptr) override
@@ -290,7 +291,7 @@ public:
     };
 
 private:
-    RSRenderServiceClient* client_;
+    RSRenderPipelineClient* client_;
 };
 
 class BrightnessInfoChangeCallbackDirector : public RSBrightnessInfoChangeCallbackStub {
@@ -311,7 +312,7 @@ private:
 
 class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
-    explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    explicit TransactionDataCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
@@ -320,7 +321,7 @@ public:
     }
 
 private:
-    RSRenderServiceClient* client_;
+    RSRenderPipelineClient* client_;
 };
 
 class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {

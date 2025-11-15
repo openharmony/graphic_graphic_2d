@@ -34,6 +34,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "render/rs_pixel_map_util.h"
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
@@ -390,12 +391,12 @@ void RSDividedUICapture::RSDividedUICaptureVisitor::ProcessSurfaceRenderNode(RSS
     }
     RS_LOGI("RSDividedUICaptureVisitor::ProcessSurfaceRenderNode nodeId is %{public}" PRIu64, node.GetId());
     std::shared_ptr<RSOffscreenRenderCallback> callback = std::make_shared<RSOffscreenRenderCallback>();
-    auto renderServiceClient = std::make_unique<RSRenderServiceClient>();
+    auto rsRenderPipelineClient = std::make_unique<RSRenderPipelineClient>();
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = scaleX_;
     captureConfig.scaleY = scaleY_;
     captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    renderServiceClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
+    rsRenderPipelineClient->TakeSurfaceCapture(node.GetId(), callback, captureConfig);
     std::shared_ptr<Media::PixelMap> pixelMap = callback->GetResult(MAX_WAIT_TIME);
     if (pixelMap == nullptr) {
         ROSEN_LOGE("RSDividedUICaptureVisitor::TakeLocalCapture failed to get pixelmap, return nullptr!");
