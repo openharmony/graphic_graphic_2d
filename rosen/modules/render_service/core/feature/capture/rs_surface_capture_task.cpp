@@ -35,7 +35,7 @@
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
-#include "transaction/rs_client_to_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"

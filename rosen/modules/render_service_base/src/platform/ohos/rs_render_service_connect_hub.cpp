@@ -102,7 +102,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
 RSRenderServiceConnectHub::GetRenderServiceConnection()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (conn_ != nullptr && renderConn_ && renderService_ != nullptr) {
+    if (conn_ != nullptr && renderConn_ != nullptr  && renderService_ != nullptr) {
         return {conn_, renderConn_};
     }
 

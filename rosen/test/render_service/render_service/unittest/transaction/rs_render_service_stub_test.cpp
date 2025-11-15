@@ -21,7 +21,7 @@
 #include "limit_number.h"
 #include "rs_irender_service.h"
 #include "render_server/rs_render_service.h"
-#include "transaction/zidl/rs_render_service_stub.h"
+#include "render_server/transaction/zidl/rs_render_service_stub.h"
 
 using namespace testing;
 using namespace testing::ext;

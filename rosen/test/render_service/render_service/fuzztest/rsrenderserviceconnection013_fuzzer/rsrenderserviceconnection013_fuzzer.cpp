@@ -34,9 +34,9 @@
 #include "securec.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "transaction/rs_client_to_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {

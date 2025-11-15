@@ -31,7 +31,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_profiler.h"
 #include "transaction/rs_client_to_render_connection.h"
-#include "transaction/rs_client_to_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
 #include "ge_render.h"

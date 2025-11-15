@@ -48,7 +48,7 @@
 #include "modifier_ng/geometry/rs_frame_render_modifier.h"
 #include "modifier_ng/geometry/rs_transform_render_modifier.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "transaction/rs_client_to_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_render_node.h"
