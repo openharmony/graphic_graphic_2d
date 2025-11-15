@@ -1702,7 +1702,7 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
     mgr.CheckRefreshRateChange(false, false, 120, false);
     EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
 
-    hgmCore.SetLtpoEnabled(true);
+    hgmCore.isLtpoMode_.store(true);
     hgmCore.SetSupportedMaxTE(360);
     mgr.CheckRefreshRateChange(false, true, 120, true);
     mgr.forceUpdateCallback_ = nullptr;

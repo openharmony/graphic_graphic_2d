@@ -114,26 +114,22 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
 
     RS_TRACE_NAME_FMT("HgmContext::PerformSetActiveMode setting active mode. rate: %d",
         hgmCore_.GetScreenCurrentRefreshRate(hgmCore_.GetActiveScreenId()));
-    for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
-        ScreenId id = mapIter->first;
-        int32_t modeId = mapIter->second;
-
-        auto supportedModes = screenManager->GetScreenSupportedModes(id);
-        for (auto mode : supportedModes) {
+    for (auto [screenId, modeId] : *modeMap) {
+        for (auto mode : screenManager->GetScreenSupportedModes(screenId)) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "HgmContext check modes w:%" PRId32", h:%" PRId32", rate:%" PRId32", id:%" PRId32"",
                 mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
         }
 
-        uint32_t ret = screenManager->SetScreenActiveMode(id, modeId);
-        if (id <= MAX_HAL_DISPLAY_ID) {
-            setRateRetryMap_.try_emplace(id, std::make_pair(false, 0));
-            UpdateRetrySetRateStatus(id, modeId, ret);
+        uint32_t ret = screenManager->SetScreenActiveMode(screenId, modeId);
+        if (screenId <= MAX_HAL_DISPLAY_ID) {
+            setRateRetryMap_.try_emplace(screenId, std::make_pair(false, 0));
+            UpdateRetrySetRateStatus(screenId, modeId, ret);
         } else {
-            RS_LOGD("UpdateRetrySetRateStatus fail, invalid ScreenId:%{public}" PRIu64, id);
+            RS_LOGD("UpdateRetrySetRateStatus fail, invalid ScreenId:%{public}" PRIu64, screenId);
         }
 
-        auto pendingPeriod = hgmCore_.GetIdealPeriod(hgmCore_.GetScreenCurrentRefreshRate(id));
+        auto pendingPeriod = hgmCore_.GetIdealPeriod(hgmCore_.GetScreenCurrentRefreshRate(screenId));
         int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
         if (auto hdiBackend = HdiBackend::GetInstance(); hdiBackend != nullptr) {
             hdiBackend->SetPendingMode(output, pendingPeriod, pendingTimestamp);

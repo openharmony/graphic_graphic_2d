@@ -202,7 +202,7 @@ HWTEST_F(RSRenderNodeTest2, ActivateDisplaySync, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.ActivateDisplaySync();
-    node.displaySync_ = std::make_shared<RSRenderDisplaySync>(id);
+    node.displaySync_ = std::make_unique<RSRenderDisplaySync>(id);
     node.ActivateDisplaySync();
     ASSERT_TRUE(true);
 }
@@ -217,7 +217,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateDisplaySyncRange, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     node.UpdateDisplaySyncRange();
-    node.displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node.displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
     node.UpdateDisplaySyncRange();
     ASSERT_TRUE(true);
 }
@@ -236,7 +236,7 @@ HWTEST_F(RSRenderNodeTest2, Animate, TestSize.Level1)
     bool isDisplaySyncEnabled = true;
     int64_t leftDelayTime = 0;
     node.Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
-    node.displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node.displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
     node.Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     auto context_shared = std::make_shared<RSContext>();
     std::weak_ptr<RSContext> context2 = context_shared;
