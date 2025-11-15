@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -104,6 +104,27 @@ void RectFuzzTest002(const uint8_t* data, size_t size)
     OH_Drawing_RectContains(rect, other, &isContains);
     OH_Drawing_RectContains(nullptr, other, &isContains);
     OH_Drawing_RectContains(rect, nullptr, &isContains);
+
+    bool isEmpty = false;
+    OH_Drawing_RectIsEmpty(nullptr, &isEmpty);
+    OH_Drawing_RectIsEmpty(rect, nullptr);
+    OH_Drawing_RectIsEmpty(rect, &isEmpty);
+
+    OH_Drawing_RectOffset(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_RectOffset(rect, GetObject<float>(), GetObject<float>());
+
+    OH_Drawing_RectOffsetTo(nullptr, GetObject<float>(), GetObject<float>());
+    OH_Drawing_RectOffsetTo(rect, GetObject<float>(), GetObject<float>());
+
+    OH_Drawing_RectSort(nullptr);
+    OH_Drawing_RectSort(rect);
+
+    OH_Drawing_RectUnion(nullptr, other);
+    OH_Drawing_RectUnion(rect, nullptr);
+    OH_Drawing_RectUnion(rect, other);
+
+    OH_Drawing_RectSetEmpty(nullptr);
+    OH_Drawing_RectSetEmpty(rect);
 
     OH_Drawing_RectDestroy(rect);
     OH_Drawing_RectDestroy(other);
