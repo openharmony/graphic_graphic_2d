@@ -17,7 +17,6 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_MATRIX_NAME = "L@ohos/graphics/drawing/drawing/Matrix;";
 constexpr int32_t NUMBER_ZREO = 0;
 constexpr int32_t MATRIX_SIZE = 9;
 

@@ -17,7 +17,6 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_PATH_NAME = "L@ohos/graphics/drawing/drawing/Path;";
 
 ani_status AniPath::AniInit(ani_env *env)
 {
