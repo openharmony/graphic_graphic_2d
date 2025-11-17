@@ -58,9 +58,7 @@ RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, bool isTextureExportNode, s
 
 RSCanvasNode::RSCanvasNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode,
     std::shared_ptr<RSUIContext> rsUIContext)
-    : RSNode(isRenderServiceNode, id, isTextureExportNode, rsUIContext)
-{
-}
+    : RSNode(isRenderServiceNode, id, isTextureExportNode, rsUIContext) {}
 
 RSCanvasNode::~RSCanvasNode()
 {
