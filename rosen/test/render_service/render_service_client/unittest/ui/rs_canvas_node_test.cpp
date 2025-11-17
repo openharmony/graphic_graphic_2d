@@ -3626,6 +3626,21 @@ HWTEST_F(RSCanvasNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConstructorWithNodeId
+ * @tc.desc: test constructor with node id
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasNodeTest, ConstructorWithNodeId, TestSize.Level1)
+{
+    NodeId id = static_cast<NodeId>(1);
+    bool isRenderServiceNode = true;
+    RSCanvasNode canvasNode(isRenderServiceNode, id);
+    EXPECT_EQ(canvasNode.IsRenderServiceNode(), isRenderServiceNode);
+    EXPECT_EQ(canvasNode.GetId(), id);
+}
+
+/**
  * @tc.name: GetBitmap001
  * @tc.desc: Test GetBitmap
  * @tc.type: FUNC
