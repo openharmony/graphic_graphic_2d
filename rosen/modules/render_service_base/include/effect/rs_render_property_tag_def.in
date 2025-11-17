@@ -327,4 +327,4 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationSeed, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, GradientX, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, GradientY, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Progress, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
