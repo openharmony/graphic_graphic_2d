@@ -23,14 +23,14 @@ using namespace OHOS::Rosen;
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    static AniCacheParam paramWidth = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d" };
-    ani_status ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramWidth, placeholderSpan.width);
+    ani_status ret = env->Object_CalMethod_Double(
+        obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d"), &placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
     }
-    static AniCacheParam paramHeight = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>height", ":d" };
-    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramHeight, placeholderSpan.height);
+    ret = env->Object_CalMethod_Double(
+        obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>height", ":d"), &placeholderSpan.height);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
@@ -50,8 +50,9 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
-    static AniCacheParam paramBaselineOffset = { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baselineOffset", ":d" };
-    ret = AniTextUtils::GetPropertyByCache_Double(env, obj, paramBaselineOffset, placeholderSpan.baselineOffset);
+    ret = env->Object_CalMethod_Double(obj,
+        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baselineOffset", ":d"),
+        &placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baselineOffset, ret %{public}d", ret);
         return ret;
