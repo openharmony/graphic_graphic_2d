@@ -65,8 +65,9 @@ const uint8_t DO_GET_SCREEN_GAMUT_MAP = 18;
 const uint8_t DO_GET_DISPLAY_IDENTIFICATION_DATA = 19;
 const uint8_t DO_RESIZE_VIRTUAL_SCREEN = 20;
 const uint8_t DO_CLEAN_VIRTUAL_SCREENS = 21;
-const uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
-const uint8_t TARGET_SIZE = 23;
+constexpr uint8_t DO_SET_ROG_SCREEN_RESOLUTION = 22;
+constexpr uint8_t DO_GET_ROG_SCREEN_RESOLUTION = 23;
+const uint8_t TARGET_SIZE = 24;
 } // namespace
 
 RSMainThread* g_mainThread = nullptr;
@@ -245,6 +246,18 @@ void DoSetRogScreenResolution(FuzzedDataProvider& fdp)
     dataP.WriteUint32(width);
     uint32_t height = fdp.ConsumeIntegral<uint32_t>();
     dataP.WriteUint32(height);
+    g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
+}
+
+void DoGetRogScreenResolution(FuzzedDataProvider& fdp)
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
+    MessageParcel dataP;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    uint64_t id = fdp.ConsumeIntegral<uint64_t>();
+    dataP.WriteUint64(id);
     g_toServiceConnectionStub->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -552,6 +565,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_SET_ROG_SCREEN_RESOLUTION:
             OHOS::Rosen::DoSetRogScreenResolution(fdp);
+            break;
+        case OHOS::Rosen::DO_GET_ROG_SCREEN_RESOLUTION:
+            OHOS::Rosen::DoGetRogScreenResolution(fdp);
             break;
         default:
             return -1;
