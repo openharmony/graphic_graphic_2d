@@ -275,16 +275,19 @@ std::chrono::time_point<high_resolution_clock> RSPerfMonitorReporter::StartRende
 }
 
 void RSPerfMonitorReporter::EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime,
-    NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes)
+    NodeId& nodeId, int updateTimes)
 {
 #ifdef ROSEN_OHOS
+    if (!IsOpenPerf()) {
+        return;
+    }
     auto endTime = high_resolution_clock::now();
     auto interval = std::chrono::duration_cast<microseconds>(endTime - startTime);
     bool needTrace = interval.count() > PRINT_SUBHEALTH_TRACE_INTERVAL;
     if (needTrace) {
         RS_TRACE_BEGIN("SubHealthEvent Rendergroup, updateCache interval:" + std::to_string(interval.count()));
     }
-    ProcessRendergroupSubhealth(nodeId, ctx, updateTimes, interval.count(), startTime);
+    ProcessRendergroupSubhealth(nodeId, updateTimes, interval.count(), startTime);
     if (needTrace) {
         RS_TRACE_END();
     }
@@ -294,6 +297,9 @@ void RSPerfMonitorReporter::EndRendergroupMonitor(std::chrono::time_point<high_r
 void RSPerfMonitorReporter::ClearRendergroupDataMap(NodeId& nodeId)
 {
 #ifdef ROSEN_OHOS
+    if (!IsOpenPerf()) {
+        return;
+    }
     {
         std::lock_guard<std::mutex> lock(drawingCacheTimeTakenMapMutex_);
         drawingCacheTimeTakenMap_.erase(nodeId);
@@ -309,8 +315,8 @@ void RSPerfMonitorReporter::ClearRendergroupDataMap(NodeId& nodeId)
 #endif
 }
 
-void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx,
-    int updateTimes, int interval, std::chrono::time_point<high_resolution_clock>& startTime)
+void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, int updateTimes, int interval,
+    std::chrono::time_point<high_resolution_clock>& startTime)
 {
 #ifdef ROSEN_OHOS
     {
@@ -325,13 +331,11 @@ void RSPerfMonitorReporter::ProcessRendergroupSubhealth(NodeId& nodeId, const st
         auto reportTime = high_resolution_clock::now();
         std::string bundleName = GetCurrentBundleName();
         std::string timeTaken = GetUpdateCacheTimeTaken(nodeId);
-        std::string nodeName = GetInstanceRootNodeName(nodeId, ctx);
-        RSBackgroundThread::Instance().PostTask([nodeId, nodeName, bundleName, updateTimes, timeTaken]() {
+        RSBackgroundThread::Instance().PostTask([nodeId, bundleName, updateTimes, timeTaken]() {
             RS_TRACE_NAME("RSPerfMonitorReporter::ProcessRendergroupSubhealth HiSysEventWrite in RSBackgroundThread");
             HiSysEventWrite(OHOS::HiviewDFX::HiSysEvent::Domain::GRAPHIC, RENDERGROUP_SUBHEALTH_EVENT_NAME,
                 OHOS::HiviewDFX::HiSysEvent::EventType::BEHAVIOR,
                 "NODE_ID", nodeId,
-                "NODE_NAME", nodeName,
                 "BUNDLE_NAME", bundleName,
                 "CONTINUOUS_UPDATE_CACHE_TIMES", updateTimes,
                 "UPDATE_CACHE_TIME_TAKEN", timeTaken);
@@ -433,25 +437,6 @@ std::string RSPerfMonitorReporter::GetUpdateCacheTimeTaken(NodeId& nodeId)
 #else
     return result;
 #endif
-}
-
-std::string RSPerfMonitorReporter::GetInstanceRootNodeName(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx)
-{
-    std::string nodeName = "invalid";
-    if (ctx == nullptr) {
-        RS_LOGE("RSPerfMonitorReporter::GetInstanceRootNodeName ctx is nullptr");
-        return nodeName;
-    }
-    auto renderNode = ctx->GetNodeMap().GetRenderNode(nodeId);
-    if (renderNode == nullptr) {
-        RS_LOGE("RSPerfMonitorReporter::GetInstanceRootNodeName renderNode is nullptr");
-        return nodeName;
-    }
-    auto instanceRootNode = RSRenderNode::ReinterpretCast<RSSurfaceRenderNode>(renderNode->GetInstanceRootNode());
-    if (instanceRootNode != nullptr && instanceRootNode->GetType() == RSRenderNodeType::SURFACE_NODE) {
-        nodeName = instanceRootNode->GetName();
-    }
-    return nodeName;
 }
 
 } // namespace Rosen

@@ -48,6 +48,8 @@ public:
 
     float GetGLMemorySize() const override;
 
+    float GetGLMemorySizeExcludeDMA() const override;
+
     std::shared_ptr<SkiaMemoryTracer> GetTraceMemoryDump() const;
 
 protected:

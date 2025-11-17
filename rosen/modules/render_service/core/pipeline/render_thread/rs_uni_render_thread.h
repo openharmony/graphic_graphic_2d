@@ -98,7 +98,7 @@ public:
     void SetClearMoment(ClearMemoryMoment moment);
     ClearMemoryMoment GetClearMoment() const;
     uint32_t GetRefreshRate() const;
-    void DumpMem(DfxString& log);
+    void DumpMem(DfxString& log, bool isLite = false);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     uint64_t GetFrameCount() const
     {
@@ -236,6 +236,12 @@ public:
     void DumpVkImageInfo(std::string &dumpString);
 
     void InitDrawOpOverCallback(Drawing::GPUContext* gpuContext);
+
+    void SetScreenPowerOnChanged(bool val);
+
+    bool GetSetScreenPowerOnChanged();
+
+    void CollectProcessNodeNum(int num);
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -302,6 +308,9 @@ private:
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+
+    std::atomic<bool> screenPowerOnChanged_ = false;
+    uint32_t totalProcessNodeNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

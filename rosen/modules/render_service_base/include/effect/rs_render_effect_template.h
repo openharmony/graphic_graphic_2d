@@ -36,6 +36,7 @@ class GEVisualEffectContainer;
 class GEVisualEffect;
 } // namespace Drawing
 class RSNGRenderMaskBase;
+class RSNGRenderShapeBase;
 
 class RSB_EXPORT RSNGRenderEffectHelper {
 public:
@@ -86,15 +87,16 @@ public:
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
             case RSNGEffectType::COLOR_GRADIENT_EFFECT: return "ColorGradientEffect";
-            case RSNGEffectType::SDF_UNION_OP_MASK: return "SDFUnionOpMask";
-            case RSNGEffectType::SDF_SMOOTH_UNION_OP_MASK: return "SDFSmoothUnionOpMask";
-            case RSNGEffectType::SDF_RRECT_MASK: return "SDFRRectMask";
+            case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
+            case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
+            case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
             case RSNGEffectType::GASIFY: return "Gasify";
             case RSNGEffectType::IMAGE_MASK: return "ImageMask";
             case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
+            case RSNGEffectType::FROSTED_GLASS: return "FrostedGlass";
             default:
                 return "UNKNOWN";
         }
@@ -124,6 +126,9 @@ private:
         const std::string& desc, std::shared_ptr<RSNGRenderMaskBase> value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, std::shared_ptr<RSNGRenderShapeBase> value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, const std::vector<Vector2f>& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
@@ -149,6 +154,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const Vector2f& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSNGRenderMaskBase> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSNGRenderShapeBase> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<Vector2f>& value);
 

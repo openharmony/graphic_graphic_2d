@@ -24,7 +24,8 @@ group("unittest") {
   deps = [
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
-    ":RSRenderServiceConnectionStubTest",
+    ":RSClientToServiceConnectionStubTest",
+    ":RSClientToRenderConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
   ]
@@ -32,7 +33,9 @@ group("unittest") {
 
 ###############################################################################
 config("pipeline_test") {
-  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service/core" ]
+  include_dirs = [ 
+    "$graphic_2d_root/rosen/modules/render_service/core",
+  ]
 }
 
 ## Build RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest
@@ -74,12 +77,37 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeAccessVerifierTest") {
   ]
 }
 
-## Build RSRenderServiceConnectionStubTest
-ohos_unittest("RSRenderServiceConnectionStubTest") {
+## Build RSClientToServiceConnectionStubTest
+ohos_unittest("RSClientToServiceConnectionStubTest") {
   module_out_path = module_output_path
   sources = [
     "../pipeline/mock/mock_hdi_device.cpp",
-    "rs_render_service_connection_stub_test.cpp",
+    "rs_client_to_service_connection_stub_test.cpp",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+  ]
+  external_deps = [
+    "googletest:gmock_main",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSClientToRenderConnectionStubTest
+ohos_unittest("RSClientToRenderConnectionStubTest") {
+  module_out_path = module_output_path
+  sources = [
+    "../pipeline/mock/mock_hdi_device.cpp",
+    "rs_client_to_render_connection_stub_test.cpp",
   ]
   deps = [
     ":rs_test_common",
@@ -128,6 +156,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/render_service/main",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",

@@ -35,6 +35,7 @@ using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseAllEGraphFunc = bool(*)(void*);
 using GPWaitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName);
+using GPQueryTaskFunc = int32_t(*)(void*, uint64_t, MHC_PatternTaskName);
 using GPGetGPUWaitEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
 using GPGetGPUNotifyEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
 using GPGPTaskSubmitFunc = void(*)(void*, uint64_t, MHC_TaskInfo*);
@@ -46,6 +47,7 @@ static GPRequstEGraphFunc g_GPRequestEGraph = nullptr;
 static GPReleaseEGraphFunc g_GPReleaseEGraph = nullptr;
 static GPReleaseAllEGraphFunc g_GPReleaseAll = nullptr;
 static GPWaitFunc g_GPWait = nullptr;
+static GPQueryTaskFunc g_GPQueryTask = nullptr;
 static GPGetGPUWaitEventFunc g_GPGetVulkanWaitEvent = nullptr;
 static GPGetGPUNotifyEventFunc g_GPGetVulkanNotifyEvent = nullptr;
 static GPGPTaskSubmitFunc g_GPTaskSubmit = nullptr;
@@ -86,6 +88,7 @@ RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
         g_GPReleaseEGraph = nullptr;
         g_GPReleaseAll = nullptr;
         g_GPWait = nullptr;
+        g_GPQueryTask = nullptr;
         g_GPGetVulkanWaitEvent = nullptr;
         g_GPGetVulkanNotifyEvent = nullptr;
         g_GPTaskSubmit = nullptr;
@@ -115,13 +118,16 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
     g_GPReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_eg"));
     g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_all"));
     g_GPWait = reinterpret_cast<GPWaitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_wait"));
+    g_GPQueryTask = reinterpret_cast<GPQueryTaskFunc>(dlsym(g_mhcHandle, "mhc_gp_query_task_error"));
     g_GPGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(
         dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_wait_event"));
     g_GPGetVulkanNotifyEvent = reinterpret_cast<GPGetGPUNotifyEventFunc>(
         dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_notify_event"));
     g_GPTaskSubmit = reinterpret_cast<GPGPTaskSubmitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_submit"));
-    if (!g_getGPInstance || !g_GPInit || !g_GPDestroy || !g_GPRequestEGraph || !g_GPReleaseEGraph || !g_GPWait\
-        || !g_GPGetVulkanWaitEvent || !g_GPGetVulkanNotifyEvent || !g_GPTaskSubmit || !g_GPReleaseAll) {
+
+    bool dlsymDone = g_getGPInstance && g_GPInit && g_GPDestroy && g_GPRequestEGraph && g_GPReleaseEGraph && g_GPWait &&
+        g_GPQueryTask && g_GPGetVulkanWaitEvent && g_GPGetVulkanNotifyEvent && g_GPTaskSubmit && g_GPReleaseAll;
+    if (!dlsymDone) {
         HPAE_LOGE("mhc_so dlsym error\n");
         dlclose(g_mhcHandle);
         g_mhcHandle = nullptr;
@@ -184,6 +190,21 @@ bool RSHpaeFfrtPatternManager::MHCWait(uint64_t frameId, MHC_PatternTaskName tas
 
     g_GPWait(g_instance, frameId, taskName);
     return true;
+}
+
+int32_t RSHpaeFfrtPatternManager::MHCQueryTask(uint64_t frameId, MHC_PatternTaskName taskName)
+{
+    if (!g_instance) {
+        HPAE_LOGW("mhc_so MHCQueryTask g_instance is nullptr");
+        return -1;
+    }
+
+    if (g_GPQueryTask == nullptr) {
+        HPAE_LOGW("mhc_so g_GPQueryTask is nullptr");
+        return -1;
+    }
+
+    return g_GPQueryTask(g_instance, frameId, taskName);
 }
 
 uint16_t RSHpaeFfrtPatternManager::MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHC_PatternTaskName taskName)

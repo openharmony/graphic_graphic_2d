@@ -54,6 +54,17 @@ void SplitString(const std::string& src, Container& dest, const char separator)
     }
     return;
 }
+
+template <typename T>
+std::string MergeToString(std::vector<T> srcVec)
+{
+    std::string dst;
+    for (const auto& src : srcVec) {
+        dst += std::to_string(src);
+        dst += ',';
+    }
+    return dst;
+}
 }
 }
 #endif

@@ -132,21 +132,23 @@ ohos_shared_library("librender_service") {
     "core/feature/hpae/rs_hpae_render_listener.cpp",
     "core/feature/hyper_graphic_manager/hgm_context.cpp",
     "core/feature/hyper_graphic_manager/hgm_hardware_utils.cpp",
+    "core/feature/hyper_graphic_manager/rp_frame_rate_policy.cpp",
+    "core/feature/hyper_graphic_manager/rp_hgm_xml_parser.cpp",
     "core/feature/hyper_graphic_manager/rs_vblank_idle_corrector.cpp",
     "core/feature/lpp/lpp_video_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_handler.cpp",
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
     "core/feature/param_manager/rs_param_manager.cpp",
+    "core/feature/special_layer/rs_special_layer_utils.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/watermark/rs_surface_watermark.cpp",
     "core/feature/window_keyframe/rs_window_keyframe_node_drawable.cpp",
     "core/feature/chipset_vsync/rs_chipset_vsync.cpp",
     "core/pipeline/hardware_thread/rs_realtime_refresh_rate_manager.cpp",
+    "core/pipeline/hwc/rs_hwc_context.cpp",
     "core/pipeline/hwc/rs_uni_hwc_visitor.cpp",
     "core/pipeline/main_thread/rs_main_thread.cpp",
-    "core/pipeline/main_thread/rs_render_service.cpp",
-    "core/pipeline/main_thread/rs_render_service_connection.cpp",
     "core/pipeline/main_thread/rs_render_service_listener.cpp",
     "core/pipeline/main_thread/rs_render_service_visitor.cpp",
     "core/pipeline/render_thread/rs_base_render_engine.cpp",
@@ -166,10 +168,15 @@ ohos_shared_library("librender_service") {
     "core/system/rs_system_parameters.cpp",
     "core/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
-    "core/transaction/rs_render_service_connection_stub.cpp",
     "core/transaction/rs_render_service_security_utils.cpp",
-    "core/transaction/rs_render_service_stub.cpp",
     "core/transaction/rs_unmarshal_thread.cpp",
+    "core/transaction/rs_client_to_render_connection.cpp",
+    "core/transaction/zidl/rs_client_to_render_connection_stub.cpp",
+    "main/render_server/rs_render_service.cpp",
+    "main/render_server/rs_render_service_agent.cpp",
+    "main/render_server/transaction/rs_client_to_service_connection.cpp",
+    "main/render_server/transaction/zidl/rs_client_to_service_connection_stub.cpp",
+    "main/render_server/transaction/zidl/rs_render_service_stub.cpp",
   ]
 
   #feature_cfg
@@ -336,6 +343,10 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser",
     "core/feature_cfg/xml_parser/performance_feature_parser",
     "core/round_corner_display",
+    "core/transaction",
+    "main",
+    "main/render_server",
+    "main/transaction",
     "$graphic_2d_root/rosen/include",
     "$graphic_2d_root/rosen/modules/2d_graphics",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
@@ -564,7 +575,7 @@ ohos_executable("render_service") {
       ubsan = true
     }
   }
-  sources = [ "core/main.cpp" ]
+  sources = [ "main/render_server/main.cpp" ]
 
   include_dirs = [
     "core",

@@ -108,6 +108,9 @@ HWTEST_F(HdiBackendSysTest, Repaint001, Function | MediumTest| Level3)
     auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &param, void* data) -> void {};
     ASSERT_EQ(hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
     hdiBackend_->Repaint(output_);
+
+    hdiBackend_->SetScreenPowerOnChanged(true);
+    hdiBackend_->Repaint(output_);
 }
 
 } // namespace

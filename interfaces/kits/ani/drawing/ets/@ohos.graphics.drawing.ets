@@ -233,6 +233,38 @@ namespace drawing {
   }
 
   /**
+   * Draw the way the vertices are connected
+   * @enum { int }
+   * @syscap SystemCapability.Graphics.Drawing
+   * @crossplatform
+   * @since 23 dynamic&static
+   */
+  export enum VertexMode {
+    /**
+     * Separate triangles. Every 3 vertices from a distinct triangle.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 23 dynamic&static
+     */
+     TRIANGLES_VERTEXMODE = 0,
+    /**
+     * Triangle strip. Consecutive triangles share an edge. Efficient for contiguous surfaces.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 23 dynamic&static
+     */
+     TRIANGLESSTRIP_VERTEXMODE = 1,
+    /**
+     * Triangle fan. All triangles share a common vertex. Ideal for circles/fans.
+     * Note: Not supported if portability subset disables it.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 23 dynamic&static
+     */
+     TRIANGLESFAN_VERTEXMODE = 2,
+  }
+
+  /**
    * Enumerates of operations when two paths are combined.
    * @enum { int }
    * @syscap SystemCapability.Graphics.Drawing
@@ -418,6 +450,26 @@ namespace drawing {
      */
     native drawPixelMapMesh(pixelmap: image.PixelMap, meshWidth: int, meshHeight: int,
       vertices: Array<double>, vertOffset: int, colors: Array<int>, colorOffset: int): void;
+
+    /**
+     * Used to draw a triangle mesh defined by an array of vertices.
+     * @param { VertexMode } vertexMode - Draw the way the vertices are connected.
+     * @param { int } vertexCount - The number of elements in the vertex array.
+     * @param { Array<common2D.Point> } positions - Array pointer that describes the vertex position.
+     * @param { Array<common2D.Point> | null } texs - Array pointer describing the texture space coordinates
+     *     corresponding to the vertex.
+     * @param { Array<int> | null } colors - Array pointer that describes the color corresponding to the vertices.
+     * @param { int } indexCount - Number of indices.
+     * @param { Array<int> | null } indices - Array pointer that describes the index corresponding to the vertex.
+     * @param { BlendMode } mode - Mixed Mode Enumeration.
+     * @throws { BusinessError } 25900001 - Parameter error. Possible causes: Incorrect parameter range.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @crossplatform
+     * @since 23 dynamic&static
+     */
+    native drawVertices(vertexMode: VertexMode, vertexCount: int, positions: Array<common2D.Point>,
+      texs: Array<common2D.Point> | null, colors: Array<int> | null, indexCount: int,
+      indices: Array<int> | null, mode: BlendMode): void;
 
     /**
      * Set pen to a canvas.

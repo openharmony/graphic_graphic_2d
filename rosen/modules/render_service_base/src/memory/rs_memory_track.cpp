@@ -16,11 +16,13 @@
 
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
+#include "platform/common/rs_hisysevent.h"
 #endif
 
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
+#include <fstream>
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -36,6 +38,8 @@ constexpr uint32_t MEM_SURNODE_STRING_LEN = 40;
 constexpr uint32_t MEM_FRAME_STRING_LEN = 35;
 constexpr uint32_t MEM_NODEID_STRING_LEN = 20;
 constexpr uint32_t NUM_OF_NODE_THRESHOLD = 40000;
+const std::string ASHMEM_INFO_PATH = "/proc/ashmem_process_info";
+const std::string DMABUF_INFO_PATH = "/proc/process_dmabuf_info";
 #ifdef RS_ENABLE_UNI_RENDER
 constexpr int KILL_PROCESS_TYPE = 301;
 #endif
@@ -566,8 +570,8 @@ void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
     if (pid == 0) {
         return;
     }
-
 #ifdef RS_ENABLE_UNI_RENDER
+    FdOverReport(pid, RSEventName::RENDER_MEMORY_OVER_WARNING, "");
     AAFwk::ExitReason killReason{AAFwk::Reason::REASON_RESOURCE_CONTROL, KILL_PROCESS_TYPE, reason};
     int32_t ret = (int32_t)AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
     if (ret == ERR_OK) {
@@ -576,6 +580,77 @@ void MemoryTrack::KillProcessByPid(const pid_t pid, const std::string& reason)
             fdNumOfPid_.erase(it);
         }
     }
+#endif
+}
+
+void MemoryTrack::FdOverReport(const pid_t pid, const std::string& reportName,
+    const std::string& hidumperReport)
+{
+#ifdef RS_ENABLE_UNI_RENDER
+    std::string ashmemInfo;
+    std::ifstream ashmemInfoFile;
+    ashmemInfoFile.open(ASHMEM_INFO_PATH);
+    if (ashmemInfoFile.is_open()) {
+        std::stringstream ashmemInfoStream;
+        ashmemInfoStream << ashmemInfoFile.rdbuf();
+        ashmemInfo = ashmemInfoStream.str();
+        ashmemInfoFile.close();
+    } else {
+        ashmemInfo = reportName;
+        RS_LOGE("MemoryTrack::FdOverReport can not open ashmemInfo");
+    }
+
+    std::string dmaBufInfo;
+    std::ifstream dmaBufInfoFile;
+    dmaBufInfoFile.open(DMABUF_INFO_PATH);
+    if (dmaBufInfoFile.is_open()) {
+        std::stringstream dmaBufInfoStream;
+        dmaBufInfoStream << dmaBufInfoFile.rdbuf();
+        dmaBufInfo = dmaBufInfoStream.str();
+        dmaBufInfoFile.close();
+    } else {
+        dmaBufInfo = reportName;
+        RS_LOGE("MemoryTrack::FdOverReport can not open dmaBufInfo");
+    }
+
+    std::string combinedInfo = "=== AshmemInfo ===\n" + ashmemInfo +
+        "\n\n=== DmaBufInfo ===\n" + dmaBufInfo;
+
+    std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
+    WriteInfoToFile(filePath, combinedInfo, hidumperReport);
+
+    RS_TRACE_NAME("MemoryTrack::FdOverReport HiSysEventWrite");
+
+    int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
+        "PID", pid,
+        "TYPE", "FD",
+        "FILEPATH", filePath);
+    RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
+        "pid[%{public}d]", ret, pid);
+#endif
+}
+
+void MemoryTrack::WriteInfoToFile(std::string& filePath, std::string& memInfo, const std::string& hidumperReport)
+{
+#ifdef RS_ENABLE_UNI_RENDER
+    std::ofstream tempFile(filePath);
+    if (tempFile.is_open()) {
+        tempFile << "\n******************************\n";
+        tempFile << memInfo;
+        tempFile << "\n************ endl ************\n";
+    } else {
+        RS_LOGE("MemoryTrack::file open fail!");
+    }
+    if (!hidumperReport.empty()) {
+        if (tempFile.is_open()) {
+            tempFile << "\n******************************\n";
+            tempFile << "LOGGER_RENDER_SERVICE_MEM\n";
+            tempFile << hidumperReport;
+        } else {
+            RS_LOGE("MemoryTrack::file open fail!");
+        }
+    }
+    tempFile.close();
 #endif
 }
 

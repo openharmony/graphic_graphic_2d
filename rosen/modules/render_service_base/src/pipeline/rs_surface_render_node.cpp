@@ -424,10 +424,8 @@ void RSSurfaceRenderNode::FindScreenId()
     }
 }
 
-void RSSurfaceRenderNode::OnTreeStateChanged()
+void RSSurfaceRenderNode::AfterTreeStatueChanged()
 {
-    NotifyTreeStateChange();
-    RSRenderNode::OnTreeStateChanged();
     if (!IsOnTheTree() && attachedInfo_.has_value()) {
         if (auto context = GetContext().lock()) {
             auto info = attachedInfo_;
@@ -435,12 +433,20 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
             RS_LOGI("retry attach to the tree Id:%{public}" PRIu64 " Name:%{public}s", GetId(), GetName().c_str());
             auto& nodeMap = context->GetNodeMap();
             bool isAttached = nodeMap.AttachToDisplay(
-                ReinterpretCastTo<RSSurfaceRenderNode>(), info->first, info->second);
+                std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()), info->first, info->second);
             if (isAttached) {
                 attachedInfo_ = info;
-                return;
             }
         }
+    }
+}
+
+void RSSurfaceRenderNode::OnTreeStateChanged()
+{
+    NotifyTreeStateChange();
+    RSRenderNode::OnTreeStateChanged();
+    if (!IsOnTheTree() && attachedInfo_.has_value()) {
+        return;
     }
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!IsOnTheTree()) {
@@ -3514,19 +3520,6 @@ void RSSurfaceRenderNode::SetAbilityState(RSSurfaceNodeAbilityState abilityState
 RSSurfaceNodeAbilityState RSSurfaceRenderNode::GetAbilityState() const
 {
     return abilityState_;
-}
-
-void RSSurfaceRenderNode::SetCaptureEnableUifirst(bool val)
-{
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (surfaceParams) {
-        surfaceParams->SetCaptureEnableUifirst(val);
-    }
-}
-
-std::mutex& RSSurfaceRenderNode::GetCaptureUiFirstMutex()
-{
-    return captureUiFirstMutex_;
 }
 
 bool RSSurfaceRenderNode::IsWaitUifirstFirstFrame() const

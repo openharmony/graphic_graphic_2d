@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "effect/rs_render_filter_base.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "property/rs_properties.h"
@@ -421,12 +422,19 @@ HWTEST_F(PropertiesTest, SetHDRUIBrightnessTest, TestSize.Level1)
     NodeId surfaceNodeId = 2; // surface node id
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     properties.backref_ = canvasNode;
+    auto stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    canvasNode->stagingRenderParams_ = std::move(stagingRenderParams);
     canvasNode->instanceRootNodeId_ = surfaceNodeId;
-    canvasNode->isOnTheTree_ = true;
+
+    canvasNode->isOnTheTree_ = false;
+    properties.SetHDRUIBrightness(1.0f);
+    EXPECT_EQ(properties.GetHDRUIBrightness(), 1.0f);
     float hdrBrightness = 2.0f; // hdr brightness
     properties.SetHDRUIBrightness(hdrBrightness);
     EXPECT_EQ(properties.GetHDRUIBrightness(), hdrBrightness);
 
+    canvasNode->isOnTheTree_ = true;
     properties.SetHDRUIBrightness(1.0f);
     EXPECT_EQ(properties.GetHDRUIBrightness(), 1.0f);
 }
@@ -1292,6 +1300,64 @@ HWTEST_F(PropertiesTest, PixelStretchUpdateFilterFlag001, TestSize.Level1)
     EXPECT_TRUE(properties.NeedFilter());
     EXPECT_TRUE(properties.NeedHwcFilter());
     EXPECT_TRUE(properties.DisableHWCForFilter());
+}
+
+/**
+ * @tc.name: SetMaterialFilter001
+ * @tc.desc: test SetMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetMaterialNGFilter(filter);
+    ASSERT_NE(properties.effect_->mtNGRenderFilter_, nullptr);
+    ASSERT_TRUE(properties.isDrawn_);
+    ASSERT_TRUE(properties.filterNeedUpdate_);
+    ASSERT_TRUE(properties.contentDirty_);
+}
+
+/**
+ * @tc.name: GetMaterialFilter001
+ * @tc.desc: test GetMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(filter, nullptr);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter001
+ * @tc.desc: test GenerateMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_EQ(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_EQ(properties.GetEffect().materialFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter002
+ * @tc.desc: test GenerateMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

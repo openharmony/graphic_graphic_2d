@@ -399,8 +399,8 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     const auto& targetModeInfo = supportedModes_[modeId];
-    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[%{public}dx%{public}d %{public}u],"
-        "CurMode:[%{public}dx%{public}d %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
+    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[(%{public}u x %{public}u) %{public}u],"
+        "CurMode:[(%{public}u x %{public}u) %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
         targetModeInfo.height, targetModeInfo.freshRate, phyWidth_, phyHeight_, activeRefreshRate_);
     resolutionChanging_.store(targetModeInfo.width != phyWidth_ || targetModeInfo.height != phyHeight_);
     int32_t hdiErr = hdiScreen_->SetScreenMode(static_cast<uint32_t>(selectModeId));
@@ -523,13 +523,27 @@ void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
 
     if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
         RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
+        return;
     }
     std::lock_guard<std::shared_mutex> lock(screenMutex_);
+    isRogResolution_ = true;
     width_ = width;
     height_ = height;
     RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
         " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",
         __func__, id_, width_, height_, phyWidth_, phyHeight_);
+}
+
+int32_t RSScreen::GetRogResolution(uint32_t& width, uint32_t& height)
+{
+    std::lock_guard<std::shared_mutex> lock(screenMutex_);
+    if (isRogResolution_) {
+        width = width_;
+        height = height_;
+        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
+        return StatusCode::SUCCESS;
+    }
+    return StatusCode::INVALID_ARGUMENTS;
 }
 
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)

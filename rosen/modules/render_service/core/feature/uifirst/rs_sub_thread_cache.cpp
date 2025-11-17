@@ -73,15 +73,6 @@ RsSubThreadCache::RsSubThreadCache()
     : syncUifirstDirtyManager_(std::make_shared<RSDirtyRegionManager>())
 {}
 
-bool RsSubThreadCache::BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface,
-    bool isNeedFP16)
-{
-    bool bufferFormatNeedUpdate = cacheSurface ? isNeedFP16 &&
-        cacheSurface->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16 : false;
-    RS_LOGD("BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
-    return bufferFormatNeedUpdate;
-}
-
 CacheProcessStatus RsSubThreadCache::GetCacheSurfaceProcessedStatus() const
 {
     return uiFirstParams.cacheProcessStatus_.load();

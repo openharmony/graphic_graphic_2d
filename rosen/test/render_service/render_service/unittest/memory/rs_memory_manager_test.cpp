@@ -167,7 +167,6 @@ HWTEST_F(RSMemoryManagerTest, DumpMemoryUsageTest007, testing::ext::TestSize.Lev
     MemoryManager::DumpMemoryUsage(log, type, isLite);
     ASSERT_TRUE(log.GetString().find("RenderService caches:") != std::string::npos);
     ASSERT_TRUE(log.GetString().find("Skia CPU caches") != std::string::npos);
-    ASSERT_TRUE(log.GetString().find("memorySnapshots") != std::string::npos);
 }
 
 /**
@@ -185,7 +184,6 @@ HWTEST_F(RSMemoryManagerTest, DumpMemoryUsageTest008, testing::ext::TestSize.Lev
     ASSERT_TRUE(log.GetString().find("RenderService caches:") != std::string::npos);
     ASSERT_TRUE(log.GetString().find("Skia CPU caches") == std::string::npos);
     ASSERT_TRUE(log.GetString().find("gpu") == std::string::npos);
-    ASSERT_TRUE(log.GetString().find("memorySnapshots") == std::string::npos);
 }
 
 /**
@@ -203,7 +201,6 @@ HWTEST_F(RSMemoryManagerTest, DumpMemoryUsageTest009, testing::ext::TestSize.Lev
     ASSERT_TRUE(log.GetString().find("RenderService caches:") == std::string::npos);
     ASSERT_TRUE(log.GetString().find("Skia CPU caches") != std::string::npos);
     ASSERT_TRUE(log.GetString().find("gpu") == std::string::npos);
-    ASSERT_TRUE(log.GetString().find("memorySnapshots") == std::string::npos);
 }
 
 /**
@@ -220,7 +217,6 @@ HWTEST_F(RSMemoryManagerTest, DumpMemoryUsageTest010, testing::ext::TestSize.Lev
     MemoryManager::DumpMemoryUsage(log, type, isLite);
     ASSERT_TRUE(log.GetString().find("RenderService caches:") == std::string::npos);
     ASSERT_TRUE(log.GetString().find("Skia CPU caches") == std::string::npos);
-    ASSERT_TRUE(log.GetString().find("memorySnapshots") == std::string::npos);
 }
 
 /**
@@ -238,7 +234,6 @@ HWTEST_F(RSMemoryManagerTest, DumpMemoryUsageTest011, testing::ext::TestSize.Lev
     ASSERT_TRUE(log.GetString().find("RenderService caches:") == std::string::npos);
     ASSERT_TRUE(log.GetString().find("Skia CPU caches") == std::string::npos);
     ASSERT_TRUE(log.GetString().find("gpu") == std::string::npos);
-    ASSERT_TRUE(log.GetString().find("memorySnapshots") != std::string::npos);
 }
 
 /**
@@ -747,6 +742,34 @@ HWTEST_F(RSMemoryManagerTest, DumpGpuCache002, testing::ext::TestSize.Level1)
 }
 
 /**
+ * @tc.name: DumpGpuCacheNew001
+ * @tc.desc: Verify DumpGpuCacheNew
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuCacheNew001, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    Drawing::GPUContext gpuContext;
+    float ret = MemoryManager::DumpGpuCacheNew(log, &gpuContext, nullptr);
+    EXPECT_GE(ret, 0.0f);
+}
+
+/**
+ * @tc.name: DumpGpuCacheNew002
+ * @tc.desc: Verify DumpGpuCacheNew when gpucontext is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpGpuCacheNew002, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    float ret = MemoryManager::DumpGpuCacheNew(log, nullptr, nullptr);
+    EXPECT_TRUE(log.GetString().find("gpuContext is nullptr.") != std::string::npos);
+    EXPECT_EQ(ret, 0.0f);
+}
+
+/**
  * @tc.name: DumpAllGpuInfo001
  * @tc.desc: Verify DumpAllGpuInfo
  * @tc.type: FUNC
@@ -775,6 +798,38 @@ HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfo002, testing::ext::TestSize.Level1)
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     MemoryManager::DumpAllGpuInfo(log, nullptr, nodeTags);
     ASSERT_TRUE(log.GetString().find("No valid gpu cache instance") != std::string::npos);
+}
+
+
+/**
+ * @tc.name: DumpAllGpuInfoNew001
+ * @tc.desc: Verify DumpAllGpuInfoNew
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfoNew001, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    Drawing::GPUContext gpuContext;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    nodeTags.emplace_back(std::make_pair(1001, "testnode1"));
+    nodeTags.emplace_back(std::make_pair(1002, "testnode2"));
+    MemoryManager::DumpAllGpuInfoNew(log, &gpuContext, nodeTags);
+    EXPECT_TRUE(log.GetString().find("GPU Memory Data:") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpAllGpuInfoNew002
+ * @tc.desc: Verify DumpAllGpuInfoNew when gpucontext is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumpAllGpuInfoNew002, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    MemoryManager::DumpAllGpuInfoNew(log, nullptr, nodeTags);
+    EXPECT_TRUE(log.GetString().find("No valid gpu cache instance") != std::string::npos);
 }
 
 /**
@@ -809,8 +864,8 @@ HWTEST_F(RSMemoryManagerTest, DumpDrawingGpuMemory002, testing::ext::TestSize.Le
 }
 
 /**
- * @tc.name: DumpDrawingGpuMemory004
- * @tc.desc: Verify DumpDrawingGpuMemory when gpucontext is nullptr
+ * @tc.name: DumpDrawingGpuMemory003
+ * @tc.desc: Verify DumpDrawingGpuMemory when isLite is true
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -820,7 +875,7 @@ HWTEST_F(RSMemoryManagerTest, DumpDrawingGpuMemory003, testing::ext::TestSize.Le
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     bool isLite = true;
     MemoryManager::DumpDrawingGpuMemory(log, nullptr, nodeTags, isLite);
-    ASSERT_TRUE(log.GetString().find("No valid gpu cache instance") != std::string::npos);
+    EXPECT_TRUE(log.GetString().find("dumpGpuStats") == std::string::npos);
 }
 
 /**

@@ -205,6 +205,10 @@ void BootCompileProgress::OnVsync()
     } else {
         LOGI("ota compile completed");
         compileRunner_->Stop();
+        if (rsSurfaceNode_) {
+            rsSurfaceNode_->DetachToDisplay(screenId_);
+            OHOS::Rosen::RSTransaction::FlushImplicitTransaction();
+        }
     }
 }
 
@@ -286,7 +290,7 @@ void BootCompileProgress::UpdateCompileProgress()
     if (!IsBmsBundleReady()) {
         int64_t now = GetSystemCurrentTime();
         if (endTimePredictMs_ < now) {
-            progress_ = ONE_HUNDRED_PERCENT;
+            progress_ = ONE_HUNDRED_PERCENT - 1;
             return;
         }
         if (!timeLimitSec_) {

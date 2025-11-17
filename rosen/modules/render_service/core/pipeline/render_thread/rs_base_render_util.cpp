@@ -45,6 +45,7 @@
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -1569,11 +1570,13 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     if (!transactionData) {
         RS_TRACE_NAME("UnMarsh RSTransactionData fail!");
         RS_LOGE("UnMarsh RSTransactionData fail!");
+        RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
         return nullptr;
     }
     lastSendingPid_ = transactionData->GetSendingPid();
     transactionData->ProfilerPushOffsets(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
+    RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
 }

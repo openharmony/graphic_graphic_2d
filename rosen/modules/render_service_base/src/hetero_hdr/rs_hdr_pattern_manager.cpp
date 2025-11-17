@@ -93,6 +93,7 @@ void RSHDRPatternManager::MHCDlClose()
         MHCDevice_->graphPatternGetVulkanNotifyEvent = nullptr;
         MHCLibFrameworkHandle_ = nullptr;
     }
+    isFinishDLOpen_ = false;
 #endif
 }
 

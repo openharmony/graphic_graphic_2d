@@ -134,6 +134,9 @@ struct NativeSurfaceInfo {
     }
 };
 
+bool IsYcbcrModelOrRangeNotEqual(OH_NativeBuffer *nativeBuffer, VkSamplerYcbcrModelConversion model,
+    VkSamplerYcbcrRange range);
+
 bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, NativeWindowBuffer* nativeWindowBuffer,
     NativeSurfaceInfo& nativeSurface, int width, int height, bool isProtected = false);
 

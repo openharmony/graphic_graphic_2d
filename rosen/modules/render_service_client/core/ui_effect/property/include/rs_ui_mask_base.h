@@ -90,23 +90,6 @@ DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
     ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
 );
 
-// SDF OP mask
-DECLARE_MASK(SDFUnionOpMask, SDF_UNION_OP_MASK,
-    ADD_PROPERTY_TAG(SDFUnionOpMask, MaskX),
-    ADD_PROPERTY_TAG(SDFUnionOpMask, MaskY)
-);
-
-DECLARE_MASK(SDFSmoothUnionOpMask, SDF_SMOOTH_UNION_OP_MASK,
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpMask, Spacing),
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskX),
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpMask, MaskY)
-);
-
-// SDF shape mask
-DECLARE_MASK(SDFRRectMask, SDF_RRECT_MASK,
-    ADD_PROPERTY_TAG(SDFRRectMask, RRect)
-);
-
 DECLARE_MASK(UseEffectMask, USE_EFFECT_MASK,
     ADD_PROPERTY_TAG(UseEffectMask, Image),
     ADD_PROPERTY_TAG(UseEffectMask, UseEffect)

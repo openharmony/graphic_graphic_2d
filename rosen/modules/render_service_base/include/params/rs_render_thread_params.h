@@ -72,7 +72,11 @@ public:
     virtual ~RSRenderThreadParams() = default;
 
     void SetSecurityDisplay(bool isSecurityDisplay);
-    bool IsSecurityDisplay() const;
+
+    bool IsSecurityDisplay() const
+    {
+        return isSecurityDisplay_;
+    }
 
     bool IsPartialRenderEnabled() const
     {
@@ -633,26 +637,14 @@ private:
     friend class RSDirtyRectsDfx;
 };
 
-class RSRenderThreadParamsManager {
+class RSB_EXPORT RSRenderThreadParamsManager final {
 public:
     RSRenderThreadParamsManager() = default;
     ~RSRenderThreadParamsManager() = default;
 
-    static RSRenderThreadParamsManager& Instance()
-    {
-        static RSRenderThreadParamsManager instance;
-        return instance;
-    }
-
-    inline void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams)
-    {
-        renderThreadParams_ = std::move(renderThreadParams);
-    }
-    inline const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const
-    {
-        return renderThreadParams_;
-    }
-
+    static RSRenderThreadParamsManager& Instance();
+    void SetRSRenderThreadParams(std::unique_ptr<RSRenderThreadParams>&& renderThreadParams);
+    const std::unique_ptr<RSRenderThreadParams>& GetRSRenderThreadParams() const;
 private:
     static inline thread_local std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr;
 };

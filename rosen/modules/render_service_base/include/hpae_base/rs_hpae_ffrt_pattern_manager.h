@@ -41,7 +41,8 @@ enum class MHC_PatternTaskName {
     BLUR_GPU1,
     BLUR_MAX
 };
-// end #include "rs_mhc.h"
+
+constexpr int32_t MHC_ERROR_HPAE_BLUR = 1;
 
 struct MHC_TaskInfo {
     MHC_PatternTaskName taskName;
@@ -110,6 +111,8 @@ public:
     bool MHCRequestEGraph(uint64_t frameId);
 
     bool MHCWait(uint64_t frameId, MHC_PatternTaskName taskName);
+
+    int32_t MHCQueryTask(uint64_t frameId, MHC_PatternTaskName taskName);
 
     uint16_t MHCGetVulkanTaskWaitEvent(uint64_t frameId, MHC_PatternTaskName taskName);
 
@@ -182,7 +185,7 @@ protected:
     uint64_t vsyncId_ = 0;
     uint64_t curFrameId_ = 0;
     uint64_t lastFrameId_ = 0;
-    static const int GRAPH_NUM = 5;
+    static const int GRAPH_NUM = 4;
 #ifdef RS_ENABLE_VK
     std::unordered_map<uint16_t, std::shared_ptr<VkSemaphore>> semaphoreMap_;
 #endif

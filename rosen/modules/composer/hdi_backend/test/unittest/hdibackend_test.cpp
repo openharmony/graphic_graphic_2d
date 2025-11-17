@@ -286,6 +286,23 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
     ret = HdiBackendTest::hdiBackend_->RegHwcEventCallback(func, nullptr);
     ASSERT_EQ(ret, ROSEN_ERROR_OK);
 }
+
+/*
+ * Function: SetScreenPowerOnChanged
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call SetScreenPowerOnChanged
+ *                  2. check ret
+ */
+HWTEST_F(HdiBackendTest, SetScreenPowerOnChangedTest, Function | MediumTest| Level3)
+{
+    hdiBackend_->SetScreenPowerOnChanged(true);
+    EXPECT_TRUE(hdiBackend_->screenPowerOnChanged_);
+
+    hdiBackend_->SetScreenPowerOnChanged(false);
+    EXPECT_FALSE(hdiBackend_->screenPowerOnChanged_);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

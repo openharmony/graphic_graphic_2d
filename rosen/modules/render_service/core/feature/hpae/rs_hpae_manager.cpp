@@ -247,7 +247,7 @@ bool RSHpaeManager::IsHpaeBlurNode(RSRenderNode& node, uint32_t phyWidth, uint32
 
     return false;
 }
-void RSHpaeManager::RegisterHpaeCallback(RSRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenNode)
+void RSHpaeManager::RegisterHpaeCallback(RSRenderNode& node, const std::shared_ptr<RSScreenRenderNode>& screenNode)
 {
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter == nullptr) {

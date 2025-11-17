@@ -310,6 +310,23 @@ GrVkYcbcrConversionInfo GetYcbcrInfo(VkNativeBufferFormatPropertiesOHOS& nbForma
     return ycbcrInfo;
 }
 
+bool IsYcbcrModelOrRangeNotEqual(OH_NativeBuffer* nativeBuffer, VkSamplerYcbcrModelConversion model,
+    VkSamplerYcbcrRange range)
+{
+    if (!nativeBuffer) {
+        ROSEN_LOGE("IsYcbcrModelOrRangeNotEqual: nativeBuffer is nullptr");
+        return false;
+    }
+    auto& vkContext = RsVulkanContext::GetSingleton();
+    VkDevice device = vkContext.GetDevice();
+    VkNativeBufferFormatPropertiesOHOS nbFormatProps;
+    VkNativeBufferPropertiesOHOS nbProps;
+    if (!GetNativeBufferFormatProperties(vkContext, device, nativeBuffer, &nbFormatProps, &nbProps)) {
+        return false;
+    }
+    return nbFormatProps.suggestedYcbcrModel != model || nbFormatProps.suggestedYcbcrRange != range;
+}
+
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height, bool isProtected)
 {

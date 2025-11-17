@@ -119,7 +119,6 @@ int32_t HWCParamParse::ParseFeatureMultiParamForApp(xmlNode& node, std::string& 
             return PARSE_NO_PARAM;
         }
     }
-    hwcParam_->MoveDataToHgmCore();
     return PARSE_EXEC_SUCCESS;
 }
 } // namespace OHOS::Rosen

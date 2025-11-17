@@ -84,6 +84,11 @@ float SkiaTraceMemoryDump::GetGLMemorySize() const
     return skiaMemoryTrace_->GetGLMemorySize();
 }
 
+float SkiaTraceMemoryDump::GetGLMemorySizeExcludeDMA() const
+{
+    return GetGLMemorySize();
+}
+
 std::shared_ptr<SkiaMemoryTracer> SkiaTraceMemoryDump::GetTraceMemoryDump() const
 {
     return skiaMemoryTrace_;

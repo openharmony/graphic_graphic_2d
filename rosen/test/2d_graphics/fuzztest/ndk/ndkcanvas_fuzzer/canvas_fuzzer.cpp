@@ -687,6 +687,80 @@ void CanvasFuzzTest016(const uint8_t* data, size_t size)
         str2 = nullptr;
     }
 }
+
+void PrepareTest018(OH_PixelmapNative* pixelMap, OH_Pixelmap_InitializationOptions* options,
+    size_t width, size_t height, std::unique_ptr<uint8_t[]>& colorData)
+{
+    OH_PixelmapInitializationOptions_Create(&options);
+    OH_PixelmapInitializationOptions_SetWidth(options, width);
+    OH_PixelmapInitializationOptions_SetHeight(options, height);
+    OH_PixelmapInitializationOptions_SetPixelFormat(options, WIDTH_FACTOR);
+    OH_PixelmapInitializationOptions_SetAlphaType(options, ENUM_RANGE_TWO);
+    size_t dataLength = width * height * WIDTH_FACTOR;
+    colorData = std::make_unique<uint8_t[]>(dataLength);
+    for (size_t i = 0; i < width * height; i++) {
+        colorData[i] = GetObject<uint8_t>();
+    }
+    OH_PixelmapNative_CreatePixelmap(colorData.get(), dataLength, options, &pixelMap);
+}
+
+void CanvasFuzzTest018(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    size_t width = GetObject<size_t>() % MAX_ARRAY_MAX;
+    size_t height = GetObject<size_t>() % MAX_ARRAY_MAX;
+    std::unique_ptr<uint8_t[]> colorData;
+    PrepareTest018(pixelMap, options, width, height, colorData);
+    OH_Drawing_PixelMap* drPixelMap = OH_Drawing_PixelMapGetFromOhPixelMapNative(pixelMap);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    uint32_t meshWidth = GetObject<uint32_t>() % width;
+    uint32_t meshHeight = GetObject<uint32_t>() % height;
+    uint32_t vertOffset = GetObject<uint32_t>() % MAX_ARRAY_MAX;
+    uint32_t colorsOffset = GetObject<uint32_t>() % MAX_ARRAY_MAX;
+    uint32_t verticesSize = ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2;
+    uint32_t colorsSize = (meshWidth + 1) * (meshHeight + 1) + colorsOffset;
+    float* vertices = new float[verticesSize];
+    for (size_t i = 0; i < verticesSize; i++) {
+        vertices[i] = std::fmod(GetObject<float>(), std::min(meshWidth, meshHeight));
+    }
+    uint32_t* colors = new uint32_t[colorsSize];
+    for (size_t i = 0; i < colorsSize; i++) {
+        colors[i] = GetObject<uint32_t>();
+    }
+    // test meshWidth = 0 and failed
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, 0, meshHeight, vertices, verticesSize, vertOffset,
+        colors, colorsSize, colorsOffset);
+    // test meshHeight = 0 and failed
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, meshWidth, 0, vertices, verticesSize, vertOffset,
+        colors, colorsSize, colorsOffset);
+    // test vertices is nullptr and failed
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, meshWidth, meshHeight, nullptr, verticesSize,
+        vertOffset, colors, colorsSize, colorsOffset);
+    // test verticesSize!= ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, meshWidth, meshHeight, vertices, 1, vertOffset,
+        colors, colorsSize, colorsOffset);
+    // test COLORS is nullptr, than it is success
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, meshWidth, meshHeight, vertices, verticesSize,
+        vertOffset, nullptr, colorsSize, colorsOffset);
+    // test colorsSize != (meshWidth + 1) * (meshHeight + 1) + colorsOffset, than it is false
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, meshWidth, meshHeight, vertices, verticesSize,
+        vertOffset, colors, 1, colorsOffset);
+    // test success
+    OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, meshWidth, meshHeight, vertices, verticesSize,
+        vertOffset, colors, colorsSize, colorsOffset);
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+    delete[] vertices;
+    delete[] colors;
+    OH_Drawing_CanvasDestroy(canvas);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -714,5 +788,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest015(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest016(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest017(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest018(data, size);
     return 0;
 }

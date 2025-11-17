@@ -92,6 +92,20 @@ HWTEST_F(VSyncDistributorTest, AddConnection002, Function | MediumTest| Level3)
 }
 
 /*
+* Function: AddConnection003
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call AddConnection
+ */
+HWTEST_F(VSyncDistributorTest, AddConnection003, Function | MediumTest| Level3)
+{
+    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
+    conn->proxyPid_ = 65537; // MAX PID = 65536
+    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->AddConnection(conn), VSYNC_ERROR_API_FAILED);
+}
+
+/*
 * Function: RemoveConnection001
 * Type: Function
 * Rank: Important(2)

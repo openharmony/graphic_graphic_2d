@@ -294,6 +294,10 @@ HWTEST_F(RSUniRenderThreadTest, Render001, TestSize.Level1)
     instance.vmaCacheCount_ = 1;
     instance.Render();
     ASSERT_EQ(instance.vmaCacheCount_, 0);
+
+    instance.SetScreenPowerOnChanged(true);
+    instance.Render();
+    EXPECT_FALSE(instance.screenPowerOnChanged_);
 }
 
 #ifdef RES_SCHED_ENABLE
@@ -892,5 +896,38 @@ HWTEST_F(RSUniRenderThreadTest, IsTaskQueueEmpty, TestSize.Level1)
         }
     }
     EXPECT_TRUE(instance.IsTaskQueueEmpty());
+}
+
+/**
+ * @tc.name: SetScreenPowerOnChanged
+ * @tc.desc: Test SetScreenPowerOnChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, SetScreenPowerOnChangedTest, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    instance.SetScreenPowerOnChanged(false);
+    EXPECT_FALSE(instance.GetSetScreenPowerOnChanged());
+
+    instance.SetScreenPowerOnChanged(true);
+    EXPECT_TRUE(instance.GetSetScreenPowerOnChanged());
+}
+
+
+/**
+ * @tc.name: CollectProcessNodeNum
+ * @tc.desc: Test CollectProcessNodeNum
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, CollectProcessNodeNumTest, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    EXPECT_EQ(instance.totalProcessNodeNum_, 0);
+
+    instance.CollectProcessNodeNum(10);
+    instance.Render();
+    EXPECT_EQ(instance.totalProcessNodeNum_, 0);
 }
 }

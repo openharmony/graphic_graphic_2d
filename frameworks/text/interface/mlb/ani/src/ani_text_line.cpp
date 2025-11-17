@@ -164,12 +164,6 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
     }
 
     std::vector<std::unique_ptr<Run>> runs = aniTextline->textLine_->GetGlyphRuns();
-    if (runs.empty()) {
-        TEXT_LOGE("Run is empty");
-        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-        return arrayObj;
-    }
-
     arrayObj = AniTextUtils::CreateAniArray(env, runs.size());
     ani_boolean isUndefined;
     env->Reference_IsUndefined(arrayObj, &isUndefined);

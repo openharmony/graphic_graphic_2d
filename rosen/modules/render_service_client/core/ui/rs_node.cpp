@@ -40,6 +40,7 @@
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ui_effect/property/include/rs_ui_shape_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -70,8 +71,8 @@
 #include "modifier_ng/appearance/rs_pixel_stretch_modifier.h"
 #include "modifier_ng/appearance/rs_point_light_modifier.h"
 #include "modifier_ng/appearance/rs_shadow_modifier.h"
+#include "modifier_ng/appearance/rs_material_filter_modifier.h"
 #include "modifier_ng/appearance/rs_use_effect_modifier.h"
-#include "modifier_ng/appearance/rs_union_modifier.h"
 #include "modifier_ng/appearance/rs_visibility_modifier.h"
 #include "modifier_ng/background/rs_background_color_modifier.h"
 #include "modifier_ng/background/rs_background_image_modifier.h"
@@ -2096,6 +2097,31 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
     SetForegroundNGFilter(headFilter);
 }
 
+void RSNode::SetUIMaterialFilter(const OHOS::Rosen::Filter* materialFilter)
+{
+    if (materialFilter == nullptr) {
+        ROSEN_LOGE("Failed to set materialFilter, materialFilter is null!");
+        return;
+    }
+    // To do: generate composed filter here.
+    std::shared_ptr<RSNGFilterBase> headFilter = nullptr;
+    auto& filterParas = materialFilter->GetAllPara();
+    for (const auto& filterPara : filterParas) {
+        if (filterPara == nullptr) {
+            continue;
+        }
+        if (auto curFilter = RSNGFilterBase::Create(filterPara)) {
+            if (headFilter) {
+                headFilter->Append(curFilter);
+            } else {
+                headFilter = curFilter; // init headFilter
+            }
+            continue;
+        }
+    }
+    SetMaterialNGFilter(headFilter);
+}
+
 void RSNode::SetHDRUIBrightness(float hdrUIBrightness)
 {
     SetPropertyNG<ModifierNG::RSHDRBrightnessModifier, &ModifierNG::RSHDRBrightnessModifier::SetHDRUIBrightness>(
@@ -2300,6 +2326,20 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
     }
     SetPropertyNG<ModifierNG::RSForegroundShaderModifier,
         &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
+}
+
+void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)
+{
+    if (!materialFilter) {
+        ROSEN_LOGW("RSNode::SetMaterialNGFilter filter is nullptr");
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_FILTER);
+        if (modifier != nullptr) {
+            modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_NG_FILTER);
+        }
+        return;
+    }
+    SetPropertyNG<ModifierNG::RSMaterialFilterModifier,
+        &ModifierNG::RSMaterialFilterModifier::SetMaterialNGFilter>(materialFilter);
 }
 
 void RSNode::SetFilter(const std::shared_ptr<RSFilter>& filter)
@@ -2598,22 +2638,22 @@ void RSNode::SetAlwaysSnapshot(bool enable)
 
 void RSNode::SetUseUnion(bool useUnion)
 {
-    SetPropertyNG<ModifierNG::RSUnionModifier, &ModifierNG::RSUnionModifier::SetUseUnion>(useUnion);
+    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetUseUnion>(useUnion);
 }
 
-void RSNode::SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask)
+void RSNode::SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape)
 {
-    if (!mask) {
+    if (!shape) {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::UNION);
-        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_MASK)) {
+        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::BOUNDS);
+        if (modifier == nullptr || !modifier->HasProperty(ModifierNG::RSPropertyType::SDF_SHAPE)) {
             return;
         }
-        modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_MASK);
+        modifier->DetachProperty(ModifierNG::RSPropertyType::SDF_SHAPE);
         return;
     }
-    SetPropertyNG<ModifierNG::RSUnionModifier, &ModifierNG::RSUnionModifier::SetSDFMask>(mask);
+    SetPropertyNG<ModifierNG::RSBoundsModifier, &ModifierNG::RSBoundsModifier::SetSDFShape>(shape);
 }
 
 void RSNode::SetUseShadowBatching(bool useShadowBatching)

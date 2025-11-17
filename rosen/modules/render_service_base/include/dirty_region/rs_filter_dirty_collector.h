@@ -107,6 +107,9 @@ public:
     {
         validOcclusionFilterCache_.clear();
     }
+    void AddPendingPurgeFilterRegion(const Occlusion::Region& region);
+    const Occlusion::Region& GetPendingPurgeFilterRegion() const;
+    void ClearPendingPurgeFilterRegion();
 private:
     // Main thread filters affected by below dirty (may invalidate cache).
     FilterDirtyRegionInfoList filtersWithBelowDirty_;
@@ -116,6 +119,8 @@ private:
     //Blur that does not affect the display but intersects with dirty region
     //Only used to increase the dirty region of the current frame
     Occlusion::Region pureCleanFilterDirtyRegion_;
+    // PendingPurge filter add to the current frame below dirty region
+    Occlusion::Region pendingPurgeFilterRegion_;
 
     // if filter cache valid for occlusion, dirty region collection can be skipped.
     static std::unordered_set<NodeId> validOcclusionFilterCache_;

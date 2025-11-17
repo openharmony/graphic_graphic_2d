@@ -340,6 +340,8 @@ private:
 
     void CheckFilterNeedEnableDebug(RSEffectRenderNode& node, bool hasEffectNodeInParent);
 
+    void UpdateFixedSize(RSLogicalDisplayRenderNode& node);
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 

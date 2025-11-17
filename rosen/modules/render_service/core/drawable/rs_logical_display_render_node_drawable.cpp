@@ -177,6 +177,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             HILOG_COMM_ERROR("RSLogicalDisplayRenderNodeDrawable::OnDraw processor init failed!");
             return;
         }
+        uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
         currentBlackList_ = screenManager->GetVirtualScreenBlackList(paramScreenId);
         RSUniRenderThread::Instance().SetBlackList(currentBlackList_);
         if (mirroredRenderParams) {
@@ -185,6 +186,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
                 WiredScreenProjection(*params, processor);
                 lastBlackList_ = currentBlackList_;
+                uniParam->SetSecurityDisplay(false);
                 return;
             }
             currentTypeBlackList_ = screenManager->GetVirtualScreenTypeBlackList(paramScreenId);
@@ -200,12 +202,15 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             RSUniRenderThread::Instance().SetWhiteList(screenInfo.whiteList);
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
-            uniParam->SetSecurityDisplay(params->IsSecurityDisplay());
             DrawExpandDisplay(*params);
             lastSecExemption_ = curSecExemption_;
-            uniParam->SetSecurityDisplay(false);
         }
+        uniParam->SetSecurityDisplay(false);
         lastBlackList_ = currentBlackList_;
+        RSUniRenderThread::Instance().SetBlackList({});
+        RSUniRenderThread::Instance().SetTypeBlackList({});
+        RSUniRenderThread::Instance().SetWhiteList({});
+        uniParam->SetSecExemption(false);
         return;
     }
 
@@ -336,7 +341,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         }
 
         RSRenderNodeDrawable::OnCapture(canvas);
-        DrawAdditionalContent(*paintFilterCanvas);
+        // paintFilterCanvas is offScreen create Canvas
+        DrawAdditionalContent(*paintFilterCanvas, RSUniRenderThread::GetCaptureParam().isMirror_);
     } else {
         canvas.Clear(Drawing::Color::COLOR_BLACK);
         DrawHardwareEnabledNodes(canvas, *params);
@@ -399,14 +405,14 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
     }
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
 {
     RS_TRACE_FUNC();
-    DrawWatermarkIfNeed(canvas);
+    DrawWatermarkIfNeed(canvas, isOffScreenCanvas);
     RSRefreshRateDfx(*this).OnDraw(canvas);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
 {
     if (!RSUniRenderThread::Instance().GetWatermarkFlag()) {
         return;
@@ -429,6 +435,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
     RS_TRACE_FUNC();
     canvas.Save();
     canvas.ResetMatrix();
+
+    Drawing::Matrix invertMatrix;
+    if (isOffScreenCanvas && params->GetMatrix().Invert(invertMatrix)) {
+        canvas.ConcatMatrix(invertMatrix);
+    }
 
     auto rotation = params->GetScreenRotation();
     auto screenCorrection = screenManager->GetScreenCorrection(params->GetScreenId());
@@ -1177,10 +1188,6 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
     rsDirtyRectsDfx.OnDrawVirtual(*curCanvas_);
-    RSUniRenderThread::Instance().SetBlackList({});
-    RSUniRenderThread::Instance().SetTypeBlackList({});
-    RSUniRenderThread::Instance().SetWhiteList({});
-    uniParam.SetSecExemption(false);
 }
 
 void RSLogicalDisplayRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params)
@@ -1620,7 +1627,7 @@ RSLogicalDisplayRenderNodeDrawable::AncestorParams RSLogicalDisplayRenderNodeDra
     }
     auto screenDrawable = std::static_pointer_cast<RSScreenRenderNodeDrawable>(
         displayParams->GetAncestorScreenDrawable().lock());
-    if (!screenDrawable) {
+    if (!screenDrawable || screenDrawable->GetNodeType() != RSRenderNodeType::SCREEN_NODE) {
         return { nullptr, nullptr };
     }
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());

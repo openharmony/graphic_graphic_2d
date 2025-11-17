@@ -16,6 +16,7 @@
 #include "effect/rs_render_effect_template.h"
 
 #include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #include "render/rs_path.h"
@@ -59,6 +60,14 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = value ? value->GenerateGEVisualEffect() : nullptr;
     std::shared_ptr<Drawing::GEShaderMask> geMask = geVisualEffect ? geVisualEffect->GenerateShaderMask() : nullptr;
     geFilter.SetParam(desc, geMask);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, std::shared_ptr<RSNGRenderShapeBase> value)
+{
+    std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = value ? value->GenerateGEVisualEffect() : nullptr;
+    std::shared_ptr<Drawing::GEShaderShape> geShap = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+    geFilter.SetParam(desc, geShap);
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
@@ -129,6 +138,16 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
 
     uint32_t maskHash = value->CalculateHash();
     hash = hashFunc_(&maskHash, sizeof(maskHash), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<RSNGRenderShapeBase> value)
+{
+    if (!value) {
+        return;
+    }
+
+    uint32_t shapeHash = value->CalculateHash();
+    hash = hashFunc_(&shapeHash, sizeof(shapeHash), hash);
 }
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std::vector<Vector2f>& value)

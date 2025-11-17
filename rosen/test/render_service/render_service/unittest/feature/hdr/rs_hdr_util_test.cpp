@@ -466,6 +466,20 @@ HWTEST_F(RSHdrUtilTest, LuminanceChangeSetDirtyTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: BufferFormatNeedUpdate
+ * @tc.desc: Test BufferFormatNeedUpdate
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSHdrUtilTest, BufferFormatNeedUpdateTest, TestSize.Level1)
+{
+    std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
+    ASSERT_NE(surface, nullptr);
+    EXPECT_TRUE(RSHdrUtil::BufferFormatNeedUpdate(surface, true));
+    EXPECT_FALSE(RSHdrUtil::BufferFormatNeedUpdate(surface, false));
+}
+
+/**
  * @tc.name: SetHDRParam
  * @tc.desc: Test SetHDRParam
  * @tc.type: FUNC

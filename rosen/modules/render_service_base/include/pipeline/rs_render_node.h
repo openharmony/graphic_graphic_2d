@@ -61,6 +61,7 @@ class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
+class RSCanvasDrawingRenderNode;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
 }
@@ -192,8 +193,7 @@ public:
     void SetParentSubTreeDirty();
     bool IsTreeStateChangeDirty() const;
     void SetTreeStateChangeDirty(bool val);
-    void SetParentTreeStateChangeDirty(bool isUpdateAllParentNode = false);
-    void SetChildrenTreeStateChangeDirty();
+    void SetParentTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
@@ -567,6 +567,7 @@ public:
 
     bool IsPureContainer() const;
     bool IsContentNode() const;
+    bool IsPureBackgroundColor() const;
     void SetDrawNodeType(DrawNodeType nodeType);
     DrawNodeType GetDrawNodeType() const;
 
@@ -645,6 +646,7 @@ public:
     void UpdateFilterCacheWithBackgroundDirty();
     virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, bool isForeground = false);
     virtual void UpdateFilterCacheWithSelfDirty();
+    void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, bool isForeground);
     bool IsBackgroundInAppOrNodeSelfDirty() const
     {
         return backgroundFilterInteractWithDirty_ || backgroundFilterRegionChanged_;
@@ -887,6 +889,17 @@ public:
     {
         isFirstLevelCrossNode_ = isFirstLevelCrossNode;
     }
+
+    void UpdateHDRStatus(HdrStatus hdrStatus, bool isAdd);
+
+    void ClearHDRVideoStatus();
+
+    HdrStatus GetHDRStatus() const;
+
+    void SetChildHasVisibleHDRContent(bool val);
+
+    bool ChildHasVisibleHDRContent() const;
+
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
     void SetEnableHdrEffect(bool enableHdrEffect);
@@ -975,6 +988,7 @@ public:
     bool GetNeedUseCmdlistDrawRegion();
     void ReleaseNodeMem();
     bool IsNodeMemClearEnable();
+    virtual void AfterTreeStatueChanged() {}
 
 protected:
     void ResetDirtyStatus();
@@ -994,7 +1008,7 @@ protected:
 
     static void DumpNodeType(RSRenderNodeType nodeType, std::string& out);
 
-    void DumpSubClassNode(std::string& out) const;
+    virtual void DumpSubClassNode(std::string& out) const;
     void DumpDrawCmdModifiers(std::string& out) const;
     void DumpModifiers(std::string& out) const;
 
@@ -1163,7 +1177,7 @@ private:
     // When an empty list is needed, use EmptyChildrenList instead.
     static const inline auto EmptyChildrenList = std::make_shared<const std::vector<std::shared_ptr<RSRenderNode>>>();
     ChildrenListSharedPtr fullChildrenList_ = EmptyChildrenList ;
-    std::shared_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
+    std::unique_ptr<RSRenderDisplaySync> displaySync_ = nullptr;
     std::shared_ptr<RectF> drawRegion_ = nullptr;
     std::shared_ptr<std::unordered_set<std::shared_ptr<RSRenderNode>>> stagingUECChildren_ =
         std::make_shared<std::unordered_set<std::shared_ptr<RSRenderNode>>>();
@@ -1209,6 +1223,7 @@ private:
     Drawing::Matrix oldAbsMatrix_;
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
     mutable std::unique_ptr<RSDrawable::Vec> drawableVec_;
+    bool released_ = false;
 #else
     mutable RSDrawable::Vec drawableVec_;
 #endif

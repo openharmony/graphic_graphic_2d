@@ -111,3 +111,21 @@ DECLARE_FILTER(Gasify, GASIFY,
     ADD_PROPERTY_TAG(Gasify, SourceImage),
     ADD_PROPERTY_TAG(Gasify, Mask)
 );
+
+DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
+    ADD_PROPERTY_TAG(FrostedGlass, BorderSize),
+    ADD_PROPERTY_TAG(FrostedGlass, BlurParams),
+    ADD_PROPERTY_TAG(FrostedGlass, CornerRadius),
+    ADD_PROPERTY_TAG(FrostedGlass, BorderWidth),
+    ADD_PROPERTY_TAG(FrostedGlass, Offset),
+    ADD_PROPERTY_TAG(FrostedGlass, DownSampleFactor),
+    ADD_PROPERTY_TAG(FrostedGlass, BgFactor),
+    ADD_PROPERTY_TAG(FrostedGlass, InnerShadowParams),
+    ADD_PROPERTY_TAG(FrostedGlass, SdParams),
+    ADD_PROPERTY_TAG(FrostedGlass, RefractOutPx),
+    ADD_PROPERTY_TAG(FrostedGlass, EnvParams),
+    ADD_PROPERTY_TAG(FrostedGlass, EdgeLightAngleParams),
+    ADD_PROPERTY_TAG(FrostedGlass, EdgeLightBlurParams),
+    ADD_PROPERTY_TAG(FrostedGlass, EdgeLightDirParams),
+    ADD_PROPERTY_TAG(FrostedGlass, HlParams)
+);

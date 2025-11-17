@@ -46,5 +46,17 @@ HWTEST_F(RSBoundsRenderModifierNGTypeTest, RSBoundsRenderModifierTest, TestSize.
 {
     RSBoundsRenderModifier modifier;
     EXPECT_EQ(modifier.GetType(), ModifierNG::RSModifierType::BOUNDS);
+    RSProperties properties;
+    properties.SetUseUnion(true);
+    properties.SetUnionSpacing(0.5f);
+    std::string dumpExistingUnion = properties.Dump();
+
+    modifier.ResetProperties(properties);
+    EXPECT_EQ(properties.GetUseUnion(), false);
+    EXPECT_EQ(properties.GetUnionSpacing(), 0.0f);
+    EXPECT_EQ(properties.GetSDFShape(), nullptr);
+
+    std::string dumpClearUnion = properties.Dump();
+    EXPECT_NE(dumpExistingUnion, dumpClearUnion);
 }
 } // namespace OHOS::Rosen

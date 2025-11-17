@@ -20,7 +20,6 @@
 #include <securec.h>
 
 #include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
-#include "transaction/rs_render_service_connection_stub.h"
 
 namespace OHOS {
 namespace Rosen {

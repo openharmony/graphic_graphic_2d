@@ -52,7 +52,7 @@ void RSApplicationAgentImpl::RegisterRSApplicationAgent()
     isRegistered = true;
 #ifdef ROSEN_OHOS
     RSRenderServiceConnectHub::SetOnConnectCallback(
-        [weakThis = wptr<RSApplicationAgentImpl>(this)](sptr<RSIRenderServiceConnection>& conn) {
+        [weakThis = wptr<RSApplicationAgentImpl>(this)](sptr<RSIClientToServiceConnection>& conn) {
             sptr<IApplicationAgent> appSptr = weakThis.promote();
             if (appSptr == nullptr) {
                 ROSEN_LOGE("RSApplicationAgentImpl::RegisterRSApplicationAgent appSptr is null");

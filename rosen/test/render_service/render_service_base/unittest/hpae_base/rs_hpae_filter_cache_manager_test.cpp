@@ -309,7 +309,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest, TestSize.Lev
     inputBuffer.canvas->surface_ = &surfaceIn;
     BufferHandle bufferHandleIn;
     inputBuffer.bufferHandle = &bufferHandleIn;
-    
+
     HpaeBufferInfo outputBuffer;
     auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
@@ -319,6 +319,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest, TestSize.Lev
     outputBuffer.bufferHandle = &bufferHandleOut;
 
     HianimationManager::GetInstance().OpenDevice();
+    HianimationManager::GetInstance().HianimationAlgoInit(100, 100, 1.0, 0);
     auto resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
     EXPECT_EQ(resultTask.taskPtr, reinterpret_cast<void*>(0x1234));
 }
@@ -338,7 +339,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.L
     inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
     BufferHandle bufferHandleIn;
     inputBuffer.bufferHandle = &bufferHandleIn;
-    
+
     HpaeBufferInfo outputBuffer;
     auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
@@ -387,7 +388,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GenerateHianimationTaskTest01, TestSize.L
     inputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasIn.get());
     resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
     EXPECT_EQ(resultTask.taskPtr, nullptr);
-    
+
     inputBuffer.bufferHandle = &bufferHandleIn;
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
     resultTask = hpaeCacheManager.GenerateHianimationTask(inputBuffer, outputBuffer, 10.0f, filter);
@@ -423,7 +424,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest, TestSize.Leve
     BufferHandle bufferHandleIn;
     inputBuffer.bufferHandle = &bufferHandleIn;
     hpaeCacheManager.inputBufferInfo_ = inputBuffer;
-    
+
     HpaeBufferInfo outputBuffer;
     auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
@@ -434,6 +435,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest, TestSize.Leve
     hpaeCacheManager.outputBufferInfo_ = outputBuffer;
 
     HianimationManager::GetInstance().OpenDevice();
+    HianimationManager::GetInstance().HianimationAlgoInit(100, 100, 1.0, 0);
     int ret = hpaeCacheManager.ProcessHianimationBlur(filter, 10.0f);
     EXPECT_EQ(ret, 0);
 }
@@ -455,7 +457,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ProcessHianimationBlurTest01, TestSize.Le
     inputBuffer.canvas->surface_ = &surfaceIn;
     BufferHandle bufferHandleIn;
     inputBuffer.bufferHandle = &bufferHandleIn;
-   
+
     HpaeBufferInfo outputBuffer;
     auto drawingCanvasOut = std::make_unique<Drawing::Canvas>(100, 100);
     outputBuffer.canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvasOut.get());
@@ -620,7 +622,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, GetBlurOutputTest01, TestSize.Level1)
     hpaeCacheManager.hpaeBlurOutputQueue_.push_back(itemIn);
     item = hpaeCacheManager.GetBlurOutput();
     EXPECT_NE(item.blurImage_, nullptr);
-    
+
     itemIn.blurImage_ = image;
     itemIn.surface_.reset();
     hpaeCacheManager.hpaeBlurOutputQueue_.clear();
@@ -646,7 +648,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, ResetFilterCacheTest, TestSize.Level1)
 {
     RSHpaeFilterCacheManager hpaeCacheManager;
     RectI srcRect(0, 0, 50, 50);
-    
+
     auto cachedSnapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     auto cachedFilteredSnapshot = std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     hpaeCacheManager.ResetFilterCache(cachedSnapshot, cachedFilteredSnapshot, srcRect);
@@ -808,7 +810,7 @@ HWTEST_F(RSHpaeFilterCacheManagerTest, BlurUsingFilteredSnapshotTest, TestSize.L
     hpaeCacheManager.hpaeBlurOutputQueue_.clear();
     ret  = hpaeCacheManager.BlurUsingFilteredSnapshot();
     EXPECT_EQ(ret, 0);
-   
+
     hpaeCacheManager.hpaeBlurOutputQueue_.push_back(hpaeOutputItem);
     ret  = hpaeCacheManager.BlurUsingFilteredSnapshot();
     EXPECT_EQ(ret, 0);

@@ -75,6 +75,23 @@ HWTEST_F(RSSurfaceFrameOhosVulkanTest, MakeFromNativeWindowBuffer001, TestSize.L
 }
 
 /**
+ * @tc.name: IsYcbcrModelOrRangeNotEqualTest
+ * @tc.desc: test results of IsYcbcrModelOrRangeNotEqual
+ * @tc.type:FUNC
+ * @tc.require: issueI9VVLE
+ */
+HWTEST_F(NativeBufferUtilsTest, IsYcbcrModelOrRangeNotEqualTest, TestSize.Level1)
+{
+    int32_t width = 1;
+    int32_t height = 1;
+    OH_NativeBuffer* nativeBufferPtr = nullptr;
+    VkSamplerYcbcrModelConversion model = VkSamplerYcbcrModelConversion::VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601;
+    VkSamplerYcbcrRange range = VkSamplerYcbcrRange::VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
+    auto ret = NativeBufferUtils::IsYcbcrModelOrRangeNotEqual(nativeBufferPtr, model, range);
+    EXPECT_EQ(ret, false);
+}
+
+/**
  * @tc.name: MakeBackendTextureFromNativeBuffer001
  * @tc.desc: test results of MakeBackendTextureFromNativeBuffer
  * @tc.type:FUNC

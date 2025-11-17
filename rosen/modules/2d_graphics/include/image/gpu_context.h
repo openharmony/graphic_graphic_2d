@@ -266,7 +266,8 @@ public:
      *                                provided callback function when gpu reset with device lost error.
      * @param LeashWindowCallback     callback function for skia recall
      */
-    void RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback);
+    void RegisterVulkanErrorCallback(
+        const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback);
 
     /**
      * @brief                       Purge unlocked resources in every frame

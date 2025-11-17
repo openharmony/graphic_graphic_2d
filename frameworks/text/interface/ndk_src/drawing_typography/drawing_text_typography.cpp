@@ -27,6 +27,7 @@
 #include "font_config.h"
 #include "font_parser.h"
 #include "font_utils.h"
+#include "ohos/init_data.h"
 #include "rosen_text/font_collection_mgr.h"
 #include "rosen_text/typography.h"
 #include "rosen_text/typography_create.h"
@@ -48,7 +49,7 @@ namespace {
 __attribute__((constructor)) void Init()
 {
 #ifndef _WIN32
-    u_setDataDirectory("/system/usr/ohos_icu");
+    SetHwIcuDirectory();
 #else
     u_setDataDirectory(".");
 #endif

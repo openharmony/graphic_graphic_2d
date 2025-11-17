@@ -52,7 +52,7 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     }
     foregroundPidAppMap_.clear();
     pidAppTypeMap_.clear();
-    CheckPackageInConfigList(pkgs_);
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
     std::unordered_set<pid_t> imageEnhancePidList = {};
     for (auto& param : pkgs_) {
         RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
@@ -444,54 +444,5 @@ void HgmMultiAppStrategy::CheckImageEnhanceList(
     }
 }
 
-// use in temporary scheme to check package name
-void HgmMultiAppStrategy::CheckPackageInConfigList(const std::vector<std::string>& pkgs)
-{
-    auto& rsCommonHook = RsCommonHook::Instance();
-    auto& hgmCore = HgmCore::Instance();
-    auto configData = hgmCore.GetPolicyConfigData();
-    if (configData == nullptr) {
-        return;
-    }
-    rsCommonHook.SetVideoSurfaceFlag(false);
-    rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(false);
-    rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(false);
-    rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(false);
-    std::unordered_map<std::string, std::string>& videoConfigFromHgm = configData->sourceTuningConfig_;
-    std::unordered_map<std::string, std::string>& solidLayerConfigFromHgm = configData->solidLayerConfig_;
-    std::unordered_map<std::string, std::string>& hwcVideoConfigFromHgm = configData->hwcSourceTuningConfig_;
-    std::unordered_map<std::string, std::string>& hwcSolidLayerConfigFromHgm = configData->hwcSolidLayerConfig_;
-    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
-    static bool unused = [&solidLayerConfigFromHgm, &hwcSolidLayerConfigFromHgm, &rsCommonHook]() {
-        rsCommonHook.SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
-        rsCommonHook.SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
-        return true;
-    }();
-    if (pkgs.size() > 1) {
-        return;
-    }
-    for (auto& param: pkgs) {
-        std::string pkgNameForCheck = param.substr(0, param.find(':'));
-        // 1 means crop source tuning
-        auto videoIter = videoConfigFromHgm.find(pkgNameForCheck);
-        auto hwcVideoIter = hwcVideoConfigFromHgm.find(pkgNameForCheck);
-        if ((videoIter != videoConfigFromHgm.end() && videoIter->second == "1") ||
-            (hwcVideoIter != hwcVideoConfigFromHgm.end() && hwcVideoIter->second == "1")) {
-            rsCommonHook.SetVideoSurfaceFlag(true);
-        // 2 means skip hardware disabled by hwc node and background alpha
-        } else if ((videoIter != videoConfigFromHgm.end() && videoIter->second == "2") ||
-                   (hwcVideoIter != hwcVideoConfigFromHgm.end() && hwcVideoIter->second == "2")) {
-            rsCommonHook.SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
-            rsCommonHook.SetHardwareEnabledByBackgroundAlphaFlag(true);
-        }
-        // 1 means enable dss by solid color layer
-        auto iter = solidLayerConfigFromHgm.find(pkgNameForCheck);
-        auto hwcIter = hwcSolidLayerConfigFromHgm.find(pkgNameForCheck);
-        if ((iter != solidLayerConfigFromHgm.end() && iter->second == "1") ||
-            (hwcIter != hwcSolidLayerConfigFromHgm.end() && hwcIter->second == "1")) {
-            rsCommonHook.SetIsWhiteListForSolidColorLayerFlag(true);
-        }
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

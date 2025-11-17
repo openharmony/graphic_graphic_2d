@@ -143,9 +143,25 @@ HWTEST_F(RSCanvasNodeCommandTest, UpdateRecording001, TestSize.Level1)
 
     drawCmds = std::make_shared<Drawing::DrawCmdList>();
     RSCanvasNodeCommandHelper::UpdateRecording(context, id, drawCmds, modifierType);
-    EXPECT_TRUE(drawCmds != nullptr);
+    EXPECT_TRUE(drawCmds == nullptr);
 }
 
+/**
+ * @tc.name: UpdateRecordingTest001
+ * @tc.desc: test results of UpdateRecordingTest001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSCanvasNodeCommandTest, UpdateRecordingTest001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = static_cast<NodeId>(1);
+    RSCanvasNodeCommandHelper::Create(context, id, true);
+    std::shared_ptr<Drawing::DrawCmdList> drawCmds = std::make_shared<Drawing::DrawCmdList>();
+    uint16_t modifierType = 1;
+    RSCanvasNodeCommandHelper::UpdateRecording(context, -102, drawCmds, modifierType);
+    EXPECT_TRUE(drawCmds != nullptr);
+}
 /**
  * @tc.name: ClearRecording001
  * @tc.desc: test results of ClearRecording

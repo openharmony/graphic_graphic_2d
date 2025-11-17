@@ -37,7 +37,8 @@
 #include "params/rs_screen_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "render/rs_typeface_cache.h"
 
@@ -75,6 +76,8 @@ const RSProfiler::CommandRegistry RSProfiler::COMMANDS = {
     { "rsrecord_metrics", RecordMetrics },
     { "rssurface_pid", DumpNodeSurface },
     { "rscon_print", DumpConnections },
+    { "rsreplay_vsyncid", PrintVsync},
+    { "rsreplay_time", PrintTime},
     { "save_rdc", SaveRdc },
     { "save_skp", SaveSkp },
     { "save_offscreen", SaveOffscreenSkp },

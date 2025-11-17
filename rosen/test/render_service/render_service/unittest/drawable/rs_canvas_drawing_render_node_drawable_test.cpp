@@ -14,7 +14,9 @@
  */
 
 #include "gtest/gtest.h"
+#include "common/rs_common_def.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "recording/draw_cmd_list.h"
@@ -36,7 +38,14 @@ public:
     static std::shared_ptr<RSCanvasDrawingRenderNodeDrawable> CreateDrawable();
 };
 
-void RSCanvasDrawingRenderNodeDrawableTest::SetUpTestCase() {}
+void RSCanvasDrawingRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN) {
+        RsVulkanContext::GetSingleton();
+    }
+#endif
+}
 void RSCanvasDrawingRenderNodeDrawableTest::TearDownTestCase() {}
 void RSCanvasDrawingRenderNodeDrawableTest::SetUp() {}
 void RSCanvasDrawingRenderNodeDrawableTest::TearDown() {}
@@ -178,7 +187,8 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, DrawRenderContentTest, TestSize.
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, TestSize.Level1)
 {
-    auto node = std::make_shared<RSRenderNode>(0);
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
@@ -186,6 +196,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
+
+    drawable->needDraw_ = true;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_FALSE(drawable->canvas_);
+    auto surface_ = std::make_shared<Drawing::Surface>();
+    drawable->curThreadInfo_.second(surface_);
+    ASSERT_TRUE(surface_);
 }
 
 /**
@@ -274,9 +292,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushForGLTest, TestSize.Level1)
     drawable->FlushForGL(width, height, context, nodeId, rscanvas);
     ASSERT_FALSE(drawable->recordingCanvas_);
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     drawable->curThreadInfo_.first = INVALID_NODEID;
     drawable->FlushForGL(width, height, context, nodeId, rscanvas);
     ASSERT_FALSE(drawable->backendTexture_.IsValid());
+#endif
 
     drawable->backendTexture_.isValid_ = true;
     drawable->FlushForGL(width, height, context, nodeId, rscanvas);
@@ -351,9 +371,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, FlushTest, TestSize.Level1)
     drawable->Flush(width, height, context, id, canvas);
     EXPECT_EQ(drawable->recordingCanvas_, nullptr);
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     drawable->curThreadInfo_.first = INVALID_NODEID;
     drawable->Flush(width, height, context, id, canvas);
     EXPECT_EQ(drawable->recordingCanvas_, nullptr);
+#endif
 
     drawable->recordingCanvas_ = std::make_unique<ExtendRecordingCanvas>(0, 0);
     drawable->Flush(width, height, context, id, canvas);
@@ -456,7 +478,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceTest001, TestSize.Le
     drawable->ResetSurface();
     EXPECT_EQ(drawable->recordingCanvas_, nullptr);
 
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     drawable->preThreadInfo_.second = [](std::shared_ptr<Drawing::Surface> surface) {};
+#endif
     drawable->surface_ = std::make_shared<Drawing::Surface>();
     drawable->ResetSurface();
     EXPECT_EQ(drawable->recordingCanvas_, nullptr);
@@ -517,7 +541,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, GetPixelmapTest, TestSize.Level1
     ASSERT_FALSE(res);
 
     auto rrect = std::make_shared<Drawing::Rect>(0.f, 0.f, 1.f, 1.f);
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     tid = drawable->preThreadInfo_.first;
+#else
+    tid = UNI_RENDER_THREAD_INDEX;
+#endif
     auto canvas = std::make_shared<Drawing::Canvas>();
     drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     res = drawable->GetPixelmap(pixelmap, rrect.get(), tid, drawCmdList);
@@ -723,27 +751,142 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceWithTextureTest, Tes
 
 /**
  * @tc.name: OnDraw001
- * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.desc: Test OnDraw while isn't security display
  * @tc.type: FUNC
- * @tc.require: issue19858
+ * @tc.require: issue20602
  */
 HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw001, TestSize.Level2)
 {
     auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
 
     auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetSecurityDisplay(false);
     RSUniRenderThread::Instance().Sync(std::move(params));
-    RSUniRenderThread::captureParam_.isMirror_ = true;
+    RSUniRenderThread::Instance().SetWhiteList({});
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    drawable->OnDraw(canvas);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw002
+ * @tc.desc: Test OnDraw while skip draw by white list
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw002, TestSize.Level2)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
     std::unordered_set<NodeId> whiteList = {drawable->nodeId_};
     RSUniRenderThread::Instance().SetWhiteList(whiteList);
 
-    Drawing::Canvas canvas;
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
     AutoSpecialLayerStateRecover whiteListRecover(INVALID_NODEID);
     ASSERT_TRUE(drawable->SkipDrawByWhiteList(canvas));
+    drawable->OnDraw(canvas);
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw003
+ * @tc.desc: Test OnDraw while list is empty
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw003, TestSize.Level2)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
+
+    auto params = std::make_unique<RSRenderThreadParams>();
+    params->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
+    drawable->OnDraw(canvas);
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw004
+ * @tc.desc: Test OnDraw while renderThreadParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, OnDraw004, TestSize.Level2)
+{
+    auto drawable = RSCanvasDrawingRenderNodeDrawableTest::CreateDrawable();
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_->shouldPaint_ = true;
+
+    RSUniRenderThread::Instance().Sync(nullptr);
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    ASSERT_FALSE(drawable->SkipDrawByWhiteList(canvas));
     drawable->OnDraw(canvas);
 
     // restore
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
 }
 #endif
+
+#if defined(RS_ENABLE_GPU) && defined(RS_ENABLE_PARALLEL_RENDER)
+/**
+ * @tc.name: CheckAndSetThreadIdx
+ * @tc.desc: Test If CheckAndSetThreadIdx Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CheckAndSetThreadIdxTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    ASSERT_EQ(drawable->CheckAndSetThreadIdx(), UNI_MAIN_THREAD_INDEX);
+    RSUniRenderThread::Instance().tid_ = gettid();
+    ASSERT_EQ(drawable->CheckAndSetThreadIdx(), UNI_RENDER_THREAD_INDEX);
+}
+#endif
+
+/**
+ * @tc.name: ResetSurfaceforPlayback
+ * @tc.desc: Test If ResetSurfaceforPlayback Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(0);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    uniRenderThread.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
+    drawable->ResetSurfaceforPlayback(10, 10);
+    ASSERT_EQ(drawable->canvas_, nullptr);
+    uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    drawable->ResetSurfaceforPlayback(10, 10);
+    ASSERT_NE(drawable->canvas_, nullptr);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    drawable->ResetSurfaceforPlayback(10, 10);
+}
 }

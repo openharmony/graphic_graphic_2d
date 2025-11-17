@@ -814,4 +814,64 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSDynamicLightUpDrawable002, TestSize.Lev
     drawFunc(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnGenerate001
+ * @tc.desc: Test OnGenerate
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnGenerate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    node.GetMutableRenderProperties().GetEffect().materialFilter_ = nullptr;
+    auto drawable = DrawableV2::RSMaterialFilterDrawable::OnGenerate(node);
+    ASSERT_EQ(drawable, nullptr);
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnGenerate002
+ * @tc.desc: Test OnGenerate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnGenerate002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSFilter> filter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    auto drawable = DrawableV2::RSMaterialFilterDrawable::OnGenerate(node);
+    ASSERT_NE(drawable, nullptr);
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnUpdate001
+ * @tc.desc: Test OnUpdate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    ASSERT_FALSE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnUpdate002
+ * @tc.desc: Test OnUpdate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSFilter> filter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    ASSERT_TRUE(drawable->OnUpdate(node));
+}
+
 } // namespace OHOS::Rosen

@@ -130,13 +130,13 @@ ohos_source_set("render_service_base_src") {
     "src/modifier_ng/appearance/rs_foreground_filter_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_hdr_brightness_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_mask_render_modifier.cpp",
+    "src/modifier_ng/appearance/rs_material_filter_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_outline_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_particle_effect_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_pixel_stretch_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_point_light_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_shadow_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_use_effect_render_modifier.cpp",
-    "src/modifier_ng/appearance/rs_union_render_modifier.cpp",
     "src/modifier_ng/appearance/rs_visibility_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_color_render_modifier.cpp",
     "src/modifier_ng/background/rs_background_image_render_modifier.cpp",
@@ -279,6 +279,7 @@ ohos_source_set("render_service_base_src") {
     "src/effect/rs_render_effect_template.cpp",
     "src/effect/rs_render_filter_base.cpp",
     "src/effect/rs_render_mask_base.cpp",
+    "src/effect/rs_render_shape_base.cpp",
     "src/effect/rs_render_shader_base.cpp",
 
     #hpae
@@ -343,6 +344,7 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_typeface_cache.cpp",
 
     #transaction
+    "src/transaction/rp_hgm_config_data.cpp",
     "src/transaction/rs_hgm_config_data.cpp",
     "src/transaction/rs_occlusion_data.cpp",
     "src/transaction/rs_self_drawing_node_rect_data.cpp",
@@ -481,6 +483,7 @@ ohos_source_set("render_service_base_src") {
       "src/pipeline/rs_screen_render_node.cpp",
 
       #transaction
+      "src/transaction/rp_hgm_config_data.cpp",
       "src/transaction/rs_hgm_config_data.cpp",
       "src/transaction/rs_occlusion_data.cpp",
 

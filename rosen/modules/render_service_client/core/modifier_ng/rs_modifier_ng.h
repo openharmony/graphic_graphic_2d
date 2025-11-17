@@ -24,6 +24,7 @@
 namespace OHOS::Rosen {
 class RSModifierExtractor;
 class RSNode;
+class RSCanvasDrawingNode;
 class RSPropertyBase;
 
 namespace ModifierNG {
@@ -152,6 +153,7 @@ private:
     friend class OHOS::Rosen::RSModifierExtractor;
     friend class OHOS::Rosen::RSModifierManager;
     friend class OHOS::Rosen::RSNode;
+    friend class OHOS::Rosen::RSCanvasDrawingNode;
     friend class OHOS::Rosen::RSPropertyBase;
 };
 } // namespace ModifierNG

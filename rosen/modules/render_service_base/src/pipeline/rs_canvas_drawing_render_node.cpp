@@ -54,6 +54,8 @@ constexpr uint32_t DRAWCMDLIST_COUNT_LIMIT = 300; // limit of the drawcmdlists.
 constexpr uint32_t DRAWCMDLIST_OPSIZE_TOTAL_COUNT_LIMIT = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_PER_FRAME = 10000;
 constexpr uint32_t OP_COUNT_LIMIT_FOR_CACHE = 200000;
+constexpr size_t DRAWCMDLIST_DUMP_LIMIT = 10; // limit of the DrawCmdListDump.
+constexpr size_t OP_DUMP_LIMIT_PER_CMD = 15; // limit of the DrawOpItemsDump.
 }
 RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
     NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
@@ -64,11 +66,6 @@ RSCanvasDrawingRenderNode::RSCanvasDrawingRenderNode(
 
 RSCanvasDrawingRenderNode::~RSCanvasDrawingRenderNode()
 {
-#if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-    if (preThreadInfo_.second && surface_) {
-        preThreadInfo_.second(std::move(surface_));
-    }
-#endif
     MemorySnapshot::Instance().RemoveCpuMemory(ExtractPid(GetId()), sizeof(*this) - sizeof(RSCanvasRenderNode));
 }
 
@@ -120,10 +117,6 @@ bool RSCanvasDrawingRenderNode::ResetSurfaceWithTexture(int width, int height, R
         }
     }
     canvas_->DrawImage(*sharedTexture, 0.f, 0.f, Drawing::SamplingOptions());
-    if (preThreadInfo_.second && preSurface) {
-        preThreadInfo_.second(std::move(preSurface));
-    }
-    preThreadInfo_ = curThreadInfo_;
     canvas_->SetMatrix(preMatrix);
     canvas_->Flush();
     return true;
@@ -139,23 +132,9 @@ void RSCanvasDrawingRenderNode::ProcessRenderContents(RSPaintFilterCanvas& canva
         return;
     }
 
-    if (IsNeedResetSurface()) {
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-        if (preThreadInfo_.second && surface_) {
-            preThreadInfo_.second(std::move(surface_));
-        }
-        preThreadInfo_ = curThreadInfo_;
-#endif
-        if (!ResetSurface(width, height, canvas)) {
-            return;
-        }
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    } else if ((isGpuSurface_) && (preThreadInfo_.first != curThreadInfo_.first)) {
-        if (!ResetSurfaceWithTexture(width, height, canvas)) {
-            return;
-        }
+    if (IsNeedResetSurface() && !ResetSurface(width, height, canvas)) {
+        return;
     }
-#endif
     if (!surface_) {
         return;
     }
@@ -343,7 +322,7 @@ uint32_t RSCanvasDrawingRenderNode::GetTid() const
     if (UNI_RENDER_THREAD_INDEX == drawingNodeRenderID) {
         return drawingNodeRenderID;
     }
-    return curThreadInfo_.first;
+    return UNI_MAIN_THREAD_INDEX;
 }
 
 Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap()
@@ -392,7 +371,7 @@ Drawing::Bitmap RSCanvasDrawingRenderNode::GetBitmap(const uint64_t tid)
 }
 
 bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
-    const uint64_t tid, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+    const uint64_t tid, Drawing::DrawCmdListPtr drawCmdList, Drawing::DrawCmdListPtr lastDrawCmdList)
 {
     std::lock_guard<std::mutex> lock(drawingMutex_);
     if (!pixelmap || !rect) {
@@ -460,6 +439,10 @@ bool RSCanvasDrawingRenderNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pix
     return false;
 #endif
     canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+    if ((GetIsTextureExportNode() || !RSUniRenderJudgement::IsUniRender()) && lastDrawCmdList != nullptr &&
+        !lastDrawCmdList->IsEmpty()) {
+        lastDrawCmdList->Playback(*canvas, rect);
+    }
     drawCmdList->Playback(*canvas, rect);
     auto pixelmapImage = surface->GetImageSnapshot();
     if (!pixelmapImage) {
@@ -525,6 +508,79 @@ CM_INLINE void RSCanvasDrawingRenderNode::ApplyModifiers()
     RSRenderNode::ApplyModifiers();
 }
 
+void RSCanvasDrawingRenderNode::DumpSubClassNode(std::string& out) const
+{
+    out += ", lastResetSurfaceTime: " + std::to_string(lastResetSurfaceTime_);
+    out += ", opCountAfterReset: " + std::to_string(opCountAfterReset_);
+    out += ", drawOpInfo: [";
+
+    for (auto it = cachedReversedOpTypes_.begin(); it != cachedReversedOpTypes_.end(); ++it) {
+        const auto& cachedReversedOpType = *it;
+        const auto& drawOpTypes = cachedReversedOpType.drawOpTypes;
+
+        out += "[";
+        out += std::to_string(cachedReversedOpType.width) + ",";
+        out += std::to_string(cachedReversedOpType.height) + ",";
+        auto opItemSize = cachedReversedOpType.opItemSize;
+        out += std::to_string(opItemSize) + "][";
+
+        if (opItemSize == 0) {
+            out += "],";
+            continue;
+        }
+        // Restore the original order of the drawOp
+        for (auto drawOpTypeIt = drawOpTypes.rbegin(); drawOpTypeIt != drawOpTypes.rend(); ++drawOpTypeIt) {
+            out += std::to_string(*drawOpTypeIt);
+            out += ",";
+        }
+        if (!drawOpTypes.empty()) {
+            out.pop_back();
+        }
+        out += "],";
+    }
+    if (!cachedReversedOpTypes_.empty()) {
+        out.pop_back();
+    }
+    out += "]";
+}
+
+void RSCanvasDrawingRenderNode::GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList, size_t opItemSize)
+{
+    // not nullptr when called by AddDirtyType
+    if (drawCmdList == nullptr) {
+        return;
+    }
+    auto cachedReversedOpTypesSize = cachedReversedOpTypes_.size();
+    RS_OPTIONAL_TRACE_NAME_FMT("RSCanvasDrawingRenderNode::GetDrawOpItemInfo, nodeId:[%" PRIu64 "] opItemSize:[%zu] "
+        "cachedReversedOpTypes_ size:[%zu]", GetId(), opItemSize, cachedReversedOpTypesSize);
+    if (cachedReversedOpTypesSize >= DRAWCMDLIST_DUMP_LIMIT) {
+        cachedReversedOpTypes_.pop_front();
+    }
+    auto& opInfo = cachedReversedOpTypes_.emplace_back();
+    opInfo.width = drawCmdList->GetWidth();
+    opInfo.height = drawCmdList->GetHeight();
+    opInfo.opItemSize = opItemSize;
+
+    size_t opItemDumpSize = opItemSize < OP_DUMP_LIMIT_PER_CMD ? opItemSize : OP_DUMP_LIMIT_PER_CMD;
+    if (opItemDumpSize == 0) {
+        return;
+    }
+    size_t index = 0;
+    opInfo.drawOpTypes.reserve(opItemDumpSize);
+    const auto& drawOpItems = drawCmdList->GetDrawOpItems();
+    for (auto itemIt = drawOpItems.rbegin(); itemIt != drawOpItems.rend(); ++itemIt) {
+        if (index >= opItemDumpSize) {
+            break;
+        }
+        const auto& item = *itemIt;
+        if (item == nullptr) {
+            continue;
+        }
+        opInfo.drawOpTypes.emplace_back(item->GetType());
+        ++index;
+    }
+}
+
 void RSCanvasDrawingRenderNode::CheckDrawCmdListSizeNG(ModifierNG::RSModifierType type)
 {
     auto& drawCmdLists = drawCmdListsNG_[type];
@@ -585,6 +641,8 @@ void RSCanvasDrawingRenderNode::AddDirtyType(ModifierNG::RSModifierType modifier
             continue;
         }
         auto opItemSize = drawCmdList->GetOpItemSize();
+        GetDrawOpItemInfo(drawCmdList, opItemSize);
+
         if (opCount > OP_COUNT_LIMIT_PER_FRAME) {
             outOfLimitCmdList_.emplace_back(drawCmdList);
             cachedOpCount_ += opItemSize;
@@ -706,9 +764,6 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
         cachedOpCount_ = 0;
     }
     std::lock_guard<std::mutex> lockTask(taskMutex_);
-    if (preThreadInfo_.second && surface_) {
-        preThreadInfo_.second(std::move(surface_));
-    }
     surface_ = nullptr;
     recordingCanvas_ = nullptr;
     GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;

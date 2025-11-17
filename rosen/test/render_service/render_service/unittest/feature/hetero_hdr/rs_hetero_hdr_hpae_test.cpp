@@ -208,6 +208,8 @@ HWTEST_F(RSHeteroHDRHpaeTest, BuildHpaeHDRTaskTest003, TestSize.Level1)
 HWTEST_F(RSHeteroHDRHpaeTest, RequestHpaeChannelTest, TestSize.Level1)
 {
     SingletonMockRSHeteroHDRHpae::Instance().mdcExistedStatus_.store(true);
+    auto requestChannelByCap0 = [](struct MDCDeviceT *dev, uint64_t needCaps) { return 0; };
+    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCap0;
     int32_t ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, 0);
 
@@ -220,6 +222,11 @@ HWTEST_F(RSHeteroHDRHpaeTest, RequestHpaeChannelTest, TestSize.Level1)
     SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapFalse;
     ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
     EXPECT_EQ(ret, -1);
+
+    auto requestChannelByCapFalse3 = [](struct MDCDeviceT *dev, uint64_t needCaps) { return -3; };
+    SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapFalse3;
+    ret = SingletonMockRSHeteroHDRHpae::Instance().RequestHpaeChannel(HdrStatus::HDR_VIDEO);
+    EXPECT_EQ(ret, -3);
 
     auto requestChannelByCapTrue = [](struct MDCDeviceT *dev, uint64_t needCaps) { return 1; };
     SingletonMockRSHeteroHDRHpae::Instance().mockMdcDev.requestChannelByCap = requestChannelByCapTrue;

@@ -287,6 +287,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
         SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
         UpdateScreenHDRNodeList(hasHdrPresent, GetScreenNodeId());
     }
+    UpdateHDRStatus(HdrStatus::HDR_PHOTO, hasHdrPresent);
     hasHdrPresent_ = hasHdrPresent;
 }
 

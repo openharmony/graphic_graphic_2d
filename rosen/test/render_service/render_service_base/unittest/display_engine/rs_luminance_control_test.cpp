@@ -55,6 +55,11 @@ public:
     MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));
     MOCK_METHOD(bool, IsBrightnessInfoChanged, (ScreenId screenId), (override));
     MOCK_METHOD(void, HandleGamutSpecialRender, (std::vector<ScreenColorGamut>& modes), (override));
+    MOCK_METHOD(uint32_t, ConvertScalerFromFloatToLevel, (float& scaler), (override, const));
+    MOCK_METHOD(float, ConvertScalerFromLevelToFloat, (uint32_t& level), (override, const));
+    using HdrToBrightnessScalerMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
+    MOCK_METHOD(void, SetCurDisplayHdrBrightnessScaler, (ScreenId screenId,
+        HdrToBrightnessScalerMap& curDisplayHdrBrightnessScaler), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -94,6 +99,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     ScreenId screenId{};
     uint32_t level{};
     std::vector<ScreenColorGamut> mode{};
+    std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>> displayHdrBrightnessScaler;
     auto& luminCtrl = RSLuminanceControl::Get();
     luminCtrl.Init();
     luminCtrl.initStatus_ = true;
@@ -103,6 +109,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.ForceCloseHdr(screenId, true);
     luminCtrl.GetBrightnessInfo(screenId);
     luminCtrl.HandleGamutSpecialRender(mode);
+    luminCtrl.SetCurDisplayHdrBrightnessScaler(screenId, displayHdrBrightnessScaler);
 
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
@@ -117,6 +124,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl001, TestSize.Level1)
     luminCtrl.SetHdrStatus(screenId, HdrStatus::HDR_PHOTO);
     luminCtrl.ForceCloseHdr(screenId, true);
     luminCtrl.GetBrightnessInfo(screenId);
+    luminCtrl.SetCurDisplayHdrBrightnessScaler(screenId, displayHdrBrightnessScaler);
     luminCtrl.HandleGamutSpecialRender(mode);
     
     ASSERT_NE((&luminCtrl), nullptr);
@@ -358,5 +366,37 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl016, TestSize.Level1)
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
     ASSERT_EQ(luminCtrl.IsBrightnessInfoChanged(0), false);
+}
+
+/**
+ * @tc.name: LuminanceControl017
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl017, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+    float scaler = 0.0f;
+    ASSERT_EQ(luminCtrl.ConvertScalerFromFloatToLevel(scaler), 0);
+}
+
+/**
+ * @tc.name: LuminanceControl018
+ * @tc.desc: Test LuminanceControl class members
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl018, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+    uint32_t level = 0;
+    ASSERT_EQ(luminCtrl.ConvertScalerFromLevelToFloat(level), 1.0f);
 }
 } // namespace OHOS::Rosen

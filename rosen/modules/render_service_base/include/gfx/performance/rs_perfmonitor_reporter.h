@@ -70,7 +70,7 @@ public:
 
     RSB_EXPORT std::chrono::time_point<high_resolution_clock> StartRendergroupMonitor();
     RSB_EXPORT void EndRendergroupMonitor(std::chrono::time_point<high_resolution_clock>& startTime,
-        NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes);
+        NodeId& nodeId, int updateTimes);
     // clear rendergroup data map
     RSB_EXPORT void ClearRendergroupDataMap(NodeId& nodeId);
 
@@ -85,14 +85,13 @@ protected:
     void ReportTexturePerfEvent();
 
     // for rendergroup subhealth
-    void ProcessRendergroupSubhealth(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx, int updateTimes,
+    void ProcessRendergroupSubhealth(NodeId& nodeId, int updateTimes,
         int interval, std::chrono::time_point<high_resolution_clock>& startTime);
     bool NeedReportSubHealth(NodeId& nodeId, int updateTimes,
         std::chrono::time_point<high_resolution_clock>& startTime);
     bool CheckAllDrawingCacheDurationTimeout(NodeId& nodeId);
     bool MeetReportFrequencyControl(NodeId& nodeId, std::chrono::time_point<high_resolution_clock>& startTime);
     std::string GetUpdateCacheTimeTaken(NodeId& nodeId);
-    std::string GetInstanceRootNodeName(NodeId& nodeId, const std::shared_ptr<RSContext>& ctx);
 
 private:
     std::map<std::string, std::vector<uint16_t>> statsBlur_;

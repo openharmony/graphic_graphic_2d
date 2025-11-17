@@ -56,6 +56,7 @@ constexpr int32_t VSYNC_CONNECTION_MAX_SIZE = 256;
 constexpr std::string_view URGENT_SELF_DRAWING = "UrgentSelfdrawing";
 constexpr int64_t MAX_SIZE_OF_DIGIT_NUM_FOR_PID = 8;
 constexpr uint32_t MAX_VSYNC_QUEUE_SIZE = 30;
+constexpr int32_t MAX_PID = 65536;
 }
 
 VSyncConnection::VSyncConnectionDeathRecipient::VSyncConnectionDeathRecipient(
@@ -467,6 +468,10 @@ VsyncError VSyncDistributor::AddConnection(const sptr<VSyncConnection>& connecti
     }
     std::lock_guard<std::mutex> locker(mutex_);
     int32_t proxyPid = connection->proxyPid_;
+    if (proxyPid < 0 || proxyPid > MAX_PID) {
+        VLOGE("invalid pid:[%{public}d]", proxyPid);
+        return VSYNC_ERROR_API_FAILED;
+    }
     if (connectionCounter_[proxyPid] > VSYNC_CONNECTION_MAX_SIZE) {
         VLOGE("You [%{public}d] have created too many vsync connection, please check!!!", proxyPid);
         return VSYNC_ERROR_API_FAILED;

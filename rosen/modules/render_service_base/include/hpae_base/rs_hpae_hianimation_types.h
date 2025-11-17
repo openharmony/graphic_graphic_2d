@@ -111,6 +111,8 @@ struct hianimation_algo_device_t {
         const struct HaeBlurEffectAttr *effectInfo);
 
     int32_t (* hianimationDestroyTask)(uint32_t taskId);
+
+    void (* hianimationDumpDebugInfo)(uint32_t taskId);
 };
 
 } // OHOS::Rosen

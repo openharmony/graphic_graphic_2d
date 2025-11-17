@@ -281,6 +281,7 @@ HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent001, TestSize.Level1)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
     node->context_ = context;
+    node->InitRenderParams();
     EXPECT_TRUE(node->GetContext().lock() != nullptr);
     NodeId surfaceNodeId = 2;
     SurfaceNodeCommandHelper::Create(*context, surfaceNodeId);
@@ -300,10 +301,12 @@ HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent001, TestSize.Level1)
 HWTEST_F(RSCanvasRenderNodeTest, SetHDRPresent002, TestSize.Level1)
 {
     NodeId nodeId = 0;
-    std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetHDRPresent(false);
-    EXPECT_FALSE(rsCanvasRenderNode.GetHDRPresent());
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->context_ = context;
+    node->InitRenderParams();
+    node->SetHDRPresent(false);
+    EXPECT_FALSE(node->GetHDRPresent());
 }
 
 /**

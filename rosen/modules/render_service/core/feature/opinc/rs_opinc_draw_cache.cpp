@@ -21,6 +21,7 @@
 #include "feature_cfg/feature_param/performance_feature/opinc_param.h"
 #include "feature/opinc/rs_opinc_manager.h"
 #include "params/rs_render_params.h"
+#include "platform/common/rs_log.h"
 #include "string_utils.h"
 namespace OHOS::Rosen::DrawableV2 {
 
@@ -248,6 +249,40 @@ bool RSOpincDrawCache::IsOpincNodeInScreenRect(RSRenderParams& params)
     return false;
 }
 
+void RSOpincDrawCache::AddOpincCacheMem(int64_t cacheMem)
+{
+    if (opCanCache_) {
+        RSOpincManager::Instance().AddOpincCacheMem(cacheMem);
+        isAdd_ = true;
+    }
+}
+
+void RSOpincDrawCache::ReduceOpincCacheMem(int64_t cacheMem)
+{
+    if (!isAdd_) {
+        return;
+    }
+    RSOpincManager::Instance().ReduceOpincCacheMem(cacheMem);
+    isAdd_ = false;
+}
+
+bool RSOpincDrawCache::IsOpincCacheMemExceedThreshold()
+{
+    if (!RSSystemProperties::GetOpincCacheMemThresholdEnabled()) {
+        return false;
+    }
+    int64_t cacheMem = RSOpincManager::Instance().GetOpincCacheMem();
+    int64_t cacheMemThreshold = static_cast<int64_t>(screenRectInfo_.GetWidth()) *
+        static_cast<int64_t>(screenRectInfo_.GetHeight()) * SCREEN_RATIO;
+    bool isExceed = cacheMem > cacheMemThreshold;
+    if (isExceed) {
+        RS_LOGD("Opinc CacheMemExceedThreshold, CacheCount:%{public}d, CacheMem:%{public}" PRId64
+            ", threshold:%{public}" PRId64, RSOpincManager::Instance().GetOpincCacheCount(),
+            cacheMem * COLOR_CHANNEL, cacheMemThreshold * COLOR_CHANNEL);
+    }
+    return isExceed;
+}
+
 void RSOpincDrawCache::AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& params, bool& isOpincDropNodeExt,
     int& opincRootTotalCount)
 {
@@ -269,7 +304,8 @@ void RSOpincDrawCache::AfterDrawCache(Drawing::Canvas& canvas, RSRenderParams& p
         }
     } else if (rootNodeStragyType_ == NodeStrategyType::OPINC_AUTOCACHE &&
         recordState_ == NodeRecordState::RECORD_CACHING) {
-        if ((opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!OpincGetCachedMark()) &&
+        if (!IsOpincCacheMemExceedThreshold() &&
+            (opincRootTotalCount < OPINC_ROOT_TOTAL_MAX) && (!OpincGetCachedMark()) &&
             IsOpincNodeInScreenRect(params)) {
             opincRootTotalCount++;
             isOpincMarkCached_ = true;

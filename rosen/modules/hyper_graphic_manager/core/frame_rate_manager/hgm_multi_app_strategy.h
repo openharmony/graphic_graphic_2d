@@ -85,8 +85,6 @@ public:
 
     static std::tuple<std::string, pid_t, int32_t> AnalyzePkgParam(const std::string& param);
 
-    // use in temporary scheme with background alpha
-    void CheckPackageInConfigList(const std::vector<std::string>& pkgs);
     void SetDisableSafeVoteValue(bool disableSafeVote) { disableSafeVote_ = disableSafeVote; }
 private:
     void UseStrategyNum();

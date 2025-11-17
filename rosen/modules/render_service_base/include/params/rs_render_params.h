@@ -168,6 +168,22 @@ public:
         return hdrBrightness_;
     }
 
+    void UpdateHDRStatus(HdrStatus hdrStatus, bool isAdd);
+
+    void ClearHDRVideoStatus();
+
+    HdrStatus GetHDRStatus() const
+    {
+        return hdrStatus_;
+    }
+
+    void SetChildHasVisibleHDRContent(bool val);
+
+    bool ChildHasVisibleHDRContent() const
+    {
+        return childHasVisibleHDRContent_;
+    }
+
     void SetNeedFilter(bool needFilter);
 
     inline bool NeedFilter() const
@@ -514,6 +530,8 @@ private:
     Gravity frameGravity_ = Gravity::CENTER;
     // default 1.0f means max available headroom
     float hdrBrightness_ = 1.0f;
+    HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
+    bool childHasVisibleHDRContent_ = false;
     bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;

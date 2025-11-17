@@ -40,6 +40,22 @@ void RSFilterDirtyCollector::Clear()
 {
     filtersWithBelowDirty_.clear();
     pureCleanFilters_.clear();
+    pendingPurgeFilterRegion_.Reset();
+}
+
+void RSFilterDirtyCollector::AddPendingPurgeFilterRegion(const Occlusion::Region& region)
+{
+    pendingPurgeFilterRegion_.OrSelf(region);
+}
+
+const Occlusion::Region& RSFilterDirtyCollector::GetPendingPurgeFilterRegion() const
+{
+    return pendingPurgeFilterRegion_;
+}
+
+void RSFilterDirtyCollector::ClearPendingPurgeFilterRegion()
+{
+    pendingPurgeFilterRegion_.Reset();
 }
 } // namespace Rosen
 } // namespace OHOS

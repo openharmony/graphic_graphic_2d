@@ -16,6 +16,7 @@
 #include <fstream>
 
 #include "font_collection.h"
+#include "font_collection_mgr.h"
 #include "gtest/gtest.h"
 #include "txt/platform.h"
 
@@ -531,6 +532,32 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest016, TestSi
     adaptFontCollection->EnableGlobalFontMgr();
     constexpr size_t targetSize = 3;
     EXPECT_EQ(adaptFontCollection->fontCollection_->GetFontManagersCount(), targetSize);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest017
+ * @tc.desc: test for max size in local font collection
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest017, TestSize.Level0)
+{
+    std::vector<uint8_t> sansData = GetFileData(sansFile_);
+    std::string familyNameSans = "Sans";
+    auto typeface = fontCollection_->LoadFont(familyNameSans, sansData.data(), sansData.size());
+    EXPECT_NE(typeface, nullptr);
+
+    auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
+    adaptFontCollection->enableGlobalFontMgr_ = true;
+
+    std::vector<uint8_t> mathData = GetFileData(mathFile_);
+    std::string mathNameSans = "Math";
+    typeface = fontCollection_->LoadFont(mathNameSans, mathData.data(), mathData.size());
+    EXPECT_NE(typeface, nullptr);
+
+    const size_t targetMaxSize = 10000;
+    FontCollectionMgr::GetInstance().SetLocalFontCollectionMaxSize(targetMaxSize);
+    typeface = fontCollection_->LoadFont(mathNameSans, mathData.data(), mathData.size());
+    EXPECT_EQ(typeface, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -73,6 +73,9 @@ int32_t MockHianimationDestroyTask(uint32_t taskId)
 {
     return HIANIMATION_SUCC;
 }
+void MockHianimationDumpDebugInfo(uint32_t taskId)
+{
+}
 
 void RSHpaeHianimationTest::SetUpTestCase()
 {
@@ -83,6 +86,7 @@ void RSHpaeHianimationTest::SetUpTestCase()
     mockHianimationDevice_->hianimationBuildTask = MockHianimationBuildTask;
     mockHianimationDevice_->hianimationSyncProcess = MockHianimationSyncProcess;
     mockHianimationDevice_->hianimationDestroyTask = MockHianimationDestroyTask;
+    mockHianimationDevice_->hianimationDumpDebugInfo = MockHianimationDumpDebugInfo;
 
     hpaeSwitch = OHOS::system::GetParameter("debug.graphic.hpae.blur.enabled", "0");
     hpaeAaeSwitch = OHOS::system::GetParameter("rosen.graphic.hpae.blur.aae.enabled", "0");
@@ -129,7 +133,12 @@ HWTEST_F(RSHpaeHianimationTest, HianimationInputCheckTest, TestSize.Level1)
     hianimationManager.hianimationDevice_ = mockHianimationDevice_;
     BlurImgParam imgInfo;
     HaeNoiseValue noisePara;
+
     bool ret = hianimationManager.HianimationInputCheck(&imgInfo, &noisePara);
+    EXPECT_FALSE(ret);
+
+    hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
+    ret = hianimationManager.HianimationInputCheck(&imgInfo, &noisePara);
     EXPECT_TRUE(ret);
 
     hianimationManager.hianimationDevice_ = nullptr;
@@ -151,6 +160,9 @@ HWTEST_F(RSHpaeHianimationTest, HianimationAlgoInitTest, TestSize.Level1)
     int32_t ret = hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
+    ret = hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
+    EXPECT_EQ(ret, HIANIMATION_SUCC);
+
     hianimationManager.hianimationDevice_ = nullptr;
     ret = hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
     EXPECT_EQ(ret, HIANIMATION_FAIL);
@@ -166,8 +178,12 @@ HWTEST_F(RSHpaeHianimationTest, HianimationAlgoDeInitTest, TestSize.Level1)
 {
     HianimationManager hianimationManager;
     hianimationManager.hianimationDevice_ = mockHianimationDevice_;
+    hianimationManager.HianimationAlgoInit(100, 100, 1.0, 0);
     hianimationManager.taskIdMap_.insert(0);
     int32_t ret = hianimationManager.HianimationAlgoDeInit();
+    EXPECT_EQ(ret, HIANIMATION_SUCC);
+
+    ret = hianimationManager.HianimationAlgoDeInit();
     EXPECT_EQ(ret, HIANIMATION_SUCC);
 
     hianimationManager.hianimationDevice_ = nullptr;

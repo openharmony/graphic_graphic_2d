@@ -318,9 +318,6 @@ public:
     RectT<T> rect_ = RectT<T>();
     Vector2f radius_[4] = { { 0, 0 } };
 
-    static constexpr size_t NUM_4 = 4;
-    static constexpr size_t RECT_SIZE = sizeof(T) * NUM_4;
-    static constexpr size_t RADIUS_SIZE = sizeof(radius_);
     RRectT() {}
     ~RRectT() = default;
 

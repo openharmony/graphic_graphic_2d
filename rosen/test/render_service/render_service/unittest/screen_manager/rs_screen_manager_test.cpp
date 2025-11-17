@@ -589,6 +589,29 @@ HWTEST_F(RSScreenManagerTest, QueryScreenInfo_002, TestSize.Level2)
 }
 
 /*
+ * @tc.name: GetScreenActiveRefreshRate_001
+ * @tc.desc: Test GetScreenActiveRefreshRate
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenActiveRefreshRate_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId id = 0;
+    impl::RSScreenManager& screenManagerImpl = static_cast<impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    ASSERT_NE(screenManagerImpl.screens_[id], nullptr);
+    screenManager->SetDefaultScreenId(id);
+    auto screen = screenManagerImpl.GetScreen(id);
+    ASSERT_NE(screen, nullptr);
+    screenManager->GetScreenActiveRefreshRate(id);
+ 
+    id = INVALID_SCREEN_ID;
+    screenManager->GetScreenActiveRefreshRate(id);
+}
+
+/*
  * @tc.name: GetProducerSurface_001
  * @tc.desc: Test GetProducerSurface
  * @tc.type: FUNC
@@ -1848,7 +1871,7 @@ HWTEST_F(RSScreenManagerTest, ResizeVirtualScreen_002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI981R9
  */
-HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
+HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_001, TestSize.Level2)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -1875,7 +1898,7 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
  * @tc.type: FUNC
  * @tc.require: issueI981R9
  */
-HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_003, TestSize.Level2)
+HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_002, TestSize.Level2)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
@@ -1894,6 +1917,55 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_003, TestSize.Level2)
         SetRogScreenResolution(id, VIRTUAL_SCREEN_WIDTH, VIRTUAL_SCREEN_HEIGHT)), SUCCESS);
     screenManager->RemoveVirtualScreen(id);
     usleep(SLEEP_TIME_US);
+}
+
+/*
+ * @tc.name: GetRogScreenResolution_001
+ * @tc.desc: Test GetRogScreenResolution, with INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetRogScreenResolution_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = INVALID_SCREEN_ID;
+    uint32_t width{0};
+    uint32_t height{0};
+    ASSERT_EQ(screenManager->GetRogScreenResolution(screenId, width, height), SCREEN_NOT_FOUND);
+}
+
+/*
+ * @tc.name: GetRogScreenResolution_002
+ * @tc.desc: Test GetRogScreenResolution, with mock HDI device
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetRogScreenResolution_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = mockScreenId_;
+    uint32_t width{0};
+    uint32_t height{0};
+    uint32_t setWidth{1920};
+    uint32_t setHeight{1080};
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+
+    ASSERT_NE(nullptr, hdiDeviceMock_);
+    ASSERT_NE(nullptr, rsScreen);
+    ASSERT_NE(nullptr, rsScreen->hdiScreen_);
+
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    screenManager->MockHdiScreenConnected(rsScreen);
+
+    // case 1: GetRogResolution without prior setup
+    ASSERT_EQ(screenManager->GetRogScreenResolution(screenId, width, height), StatusCode::INVALID_ARGUMENTS);
+
+    // case 2: GetRogResolution with prior setup
+    rsScreen->SetRogResolution(setWidth, setHeight);
+    ASSERT_EQ(screenManager->GetRogScreenResolution(screenId, width, height), StatusCode::SUCCESS);
 }
 
 /*

@@ -53,6 +53,7 @@ group("test") {
     "render_service/unittest/feature_cfg:unittest",
     "render_service/unittest/memory:unittest",
     "render_service/unittest/pipeline:unittest",
+    "render_service/unittest/render_server:unittest",
     "render_service/unittest/screen_manager:unittest",
     "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",

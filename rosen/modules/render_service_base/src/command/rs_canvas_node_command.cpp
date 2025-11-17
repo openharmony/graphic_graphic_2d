@@ -52,12 +52,13 @@ bool RSCanvasNodeCommandHelper::AddCmdToSingleFrameComposer(
 }
 
 void RSCanvasNodeCommandHelper::UpdateRecording(
-    RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType)
+    RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList>& srcDrawCmds, uint16_t modifierType)
 {
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
     if (node == nullptr) {
         return;
     }
+    auto drawCmds = std::move(srcDrawCmds);
     if (RSSystemProperties::GetSingleFrameComposerEnabled()) {
         if (AddCmdToSingleFrameComposer(node, drawCmds, modifierType)) {
             return;

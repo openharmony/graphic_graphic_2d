@@ -54,27 +54,6 @@ namespace Drawing {
     }
     return true;
 }
-
-[[maybe_unused]] static bool ConvertToString(const uint8_t* data, size_t len, std::string& fullNameString)
-{
-    if (data == nullptr || len == 0) {
-        return false;
-    }
-
-    size_t utf16Len = len / sizeof(char16_t);
-    std::unique_ptr<char16_t[]> utf16Str = std::make_unique<char16_t[]>(utf16Len);
-
-    errno_t ret = memcpy_s(utf16Str.get(), utf16Len * sizeof(char16_t), data, len);
-    if (ret != EOK) {
-        return false;
-    }
-
-    std::u16string utf16String(utf16Str.get(), utf16Len);
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-    fullNameString = converter.to_bytes(utf16String);
-
-    return true;
-}
 }
 }
 }

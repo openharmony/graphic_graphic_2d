@@ -66,9 +66,13 @@ private:
     static void DumpDrawingCpuMemory(DfxString& log);
     static void DumpGpuCache(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name);
+    static float DumpGpuCacheNew(DfxString& log, const Drawing::GPUContext* gpuContext,
+        Drawing::GPUResourceTag* tag);
     static void DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name, GpuPidInfo& info);
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
+        std::vector<std::pair<NodeId, std::string>>& nodeTags);
+    static void DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
     static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);

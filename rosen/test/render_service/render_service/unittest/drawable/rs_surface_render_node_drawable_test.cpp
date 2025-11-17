@@ -2008,6 +2008,36 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface010, TestSize.Level2)
 }
 
 /**
+ * @tc.name: CaptureSurface011
+ * @tc.desc: test CaptureSurface when UICapture is true or false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface011, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+
+    CaptureParam captureParam;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+    auto rsRenderThreadParams1 = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams1->isUIFirstDebugEnable_ = true;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceParams->SetGlobalPositionEnabled(true);
+    surfaceParams->SetUifirstUseStarting(0);
+    surfaceParams->SetWindowInfo(false, true, false);
+
+    surfaceParams->matrix_.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams1));
+    RSUniRenderThread::GetCaptureParam().isSingleSurface_ = true;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    canvas_->SetUICapture(true);
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+}
+
+/**
  * @tc.name: CheckIfSurfaceSkipInMirrorOrScreenshot007
  * @tc.desc: test CheckIfSurfaceSkipInMirrorOrScreenshot while renderThreadParams_ = nullptr
  * @tc.type: FUNC

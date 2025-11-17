@@ -431,6 +431,28 @@ HWTEST_F(RSRenderParamsTest, SetChildHasVisibleEffect_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetChildHasVisibleHDRContentTest001
+ * @tc.desc: Test function SetChildHasVisibleHDRContent
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetChildHasVisibleHDRContentTest001, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    bool val = true;
+    renderParams->SetChildHasVisibleEffect(val);
+    EXPECT_EQ(renderParams->ChildHasVisibleEffect(), val);
+    EXPECT_TRUE(renderParams->needSync_);
+    renderParams->needSync_ = false;
+
+    renderParams->SetChildHasVisibleEffect(val);
+    EXPECT_FALSE(renderParams->needSync_);
+}
+
+/**
  * @tc.name: GetNeedUpdateCache_001
  * @tc.desc: Test function GetNeedUpdateCache
  * @tc.type:FUNC
@@ -571,6 +593,30 @@ HWTEST_F(RSRenderParamsTest, SetHDRBrightnessTest, TestSize.Level2)
     renderParams->SetHDRBrightness(hdrBrightness);
     EXPECT_TRUE(renderParams->needSync_);
     EXPECT_EQ(renderParams->hdrBrightness_, hdrBrightness);
+}
+
+/**
+ * @tc.name: HDRStatusTest
+ * @tc.desc: Test function GetHDRStatus UpdateHDRStatus ClearHDRVideoStatus
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, HDRStatusTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    EXPECT_EQ(renderParams->GetHDRStatus(), HdrStatus::NO_HDR);
+    HdrStatus hdrStatus = HdrStatus::HDR_VIDEO;
+    renderParams->needSync_ = false;
+
+    renderParams->UpdateHDRStatus(hdrStatus, true);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_EQ(renderParams->GetHDRStatus(), hdrStatus);
+
+    renderParams->ClearHDRVideoStatus();
+    EXPECT_EQ(renderParams->GetHDRStatus(), HdrStatus::NO_HDR);
 }
 
 /**

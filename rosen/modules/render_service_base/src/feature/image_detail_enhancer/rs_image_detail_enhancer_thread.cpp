@@ -178,7 +178,7 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::ScaleByAAE(sptr<Sur
                 dstSurfaceBuffer->GetHeight());
             return dstImage;
         } else {
-            RS_LOGE("RSImageDetailEnhancerThread ScaleImageAsync Scaling Image with AAE failed!");
+            RS_LOGD("RSImageDetailEnhancerThread ScaleImageAsync Scaling Image with AAE failed!");
             return nullptr;
         }
     }
@@ -225,9 +225,9 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::ScaleByHDSampler(in
     newCanvas->AttachBrush(brush);
     auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     newCanvas->DrawImageRect(*srcImage, src, dst, sampling);
+    std::shared_ptr<Drawing::Image> dstImage = newSurface->GetImageSnapshot();
     newSurface->FlushAndSubmit(true);
     newCanvas->DetachBrush();
-    std::shared_ptr<Drawing::Image> dstImage = newSurface->GetImageSnapshot();
     if (dstImage == nullptr) {
         RS_LOGE("RSImageDetailEnhancerThread ScaleByHDSampler failed, dstImage is invalid!");
         return nullptr;

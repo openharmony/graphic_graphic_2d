@@ -1561,33 +1561,9 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003, TestSize.Level1)
     EXPECT_NE(child2, nullptr);
     child2->parent_ = child1;
 
-    child2->SetParentTreeStateChangeDirty(true);
+    child2->SetParentTreeStateChangeDirty();
     EXPECT_TRUE(child1->IsTreeStateChangeDirty());
     EXPECT_TRUE(parent->IsTreeStateChangeDirty());
-}
-
-/**
- * @tc.name: SetChildrenTreeStateChangeDirtyTest
- * @tc.desc: SetChildrenTreeStateChangeDirty test
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderNodeTest, SetChildrenTreeStateChangeDirtyTest, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(parent, nullptr);
-    std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
-    EXPECT_NE(child1, nullptr);
-    parent->AddChild(child1, -1);
-    child1->parent_ = parent;
-    std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
-    EXPECT_NE(child2, nullptr);
-    child2->SetTreeStateChangeDirty(true);
-    child2->parent_ = child1;
-    parent->AddChild(child1, -1);
-
-    parent->SetChildrenTreeStateChangeDirty();
-    EXPECT_TRUE(child2->IsTreeStateChangeDirty());
 }
 
 /**
@@ -2160,6 +2136,7 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeTreeTest007, TestSize.Level1)
     // SetIsOnTheTree test
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
 
     nodeTest->isOnTheTree_ = false;
     nodeTest->SetIsOnTheTree(false, 0, 1, 1, 1);
@@ -2799,6 +2776,8 @@ HWTEST_F(RSRenderNodeTest, UpdateRenderingTest021, TestSize.Level1)
     nodeTest->UpdateEffectRegion(region, false);
     nodeTest->renderProperties_.GetEffect().useEffect_ = true;
     nodeTest->UpdateEffectRegion(region, true);
+    nodeTest->renderProperties_.hasHarmonium_ = true;
+    nodeTest->UpdateEffectRegion(region, true);
 
 #ifndef MODIFIER_NG
     // GetModifier test
@@ -3269,6 +3248,36 @@ HWTEST_F(RSRenderNodeTest, GetIsFullChildrenListValid, TestSize.Level1)
     ASSERT_TRUE(renderNode->GetIsFullChildrenListValid());
     renderNode->isFullChildrenListValid_ = false;
     ASSERT_FALSE(renderNode->GetIsFullChildrenListValid());
+}
+
+/**
+ * @tc.name: IsPureBackgroundColor
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColorTest, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+    drawableVec.fill(nullptr);
+    bool result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = std::make_shared<DrawableTest>();
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = nullptr;
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = std::make_shared<DrawableTest>();
+    }
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_FALSE(result);
 }
 
 /**

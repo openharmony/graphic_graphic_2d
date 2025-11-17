@@ -16,6 +16,7 @@
 #define HGM_CONTEXT_H
 
 #include "hgm_frame_rate_manager.h"
+#include "rp_frame_rate_policy.h"
 #include "vsync_distributor.h"
 
 namespace OHOS {
@@ -29,7 +30,8 @@ public:
     void InitHgmTaskHandleThread(
         sptr<VSyncController> rsVSyncController, sptr<VSyncController> appVSyncController,
         sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor);
-    static int32_t FrameRateGetFunc(const RSPropertyUnit unit, float velocity, int32_t area, int32_t length);
+    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
     void ProcessHgmFrameRate(uint64_t timestamp, sptr<VSyncDistributor> rsVSyncDistributor, uint64_t vsyncId);
     FrameRateRange& GetRSCurrRangeRef()
     {
@@ -40,11 +42,29 @@ public:
     {
         return rsFrameRateLinker_;
     }
+
+    const std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>& GetConvertFrameRateFunc() const
+    {
+        return convertFrameRateFunc_;
+    }
+
 private:
+    void InitHgmUpdateCallback();
+
     FrameRateRange rsCurrRange_;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
     uint64_t currVsyncId_ = 0;
     uint64_t lastForceUpdateVsyncId_ = UINT64_MAX;
+
+    bool ltpoEnabled_ = false;
+    bool isDelayMode_ = false;
+    int32_t pipelineOffsetPulseNum_ = 0;
+
+    bool rpHgmConfigDataChange_ = false;
+    std::shared_ptr<RPHgmConfigData> rpHgmConfigData_ = nullptr;
+
+    RPFrameRatePolicy rpFrameRatePolicy_;
+    std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)> convertFrameRateFunc_ = nullptr;
 };
 } // namespace OHOS
 } // namespace Rosen

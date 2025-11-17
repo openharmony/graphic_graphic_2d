@@ -22,6 +22,7 @@
 #include "ge_visual_effect_container.h"
 
 #include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
 #include "render/rs_effect_luminance_manager.h"
 
@@ -84,7 +85,11 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::GASIFY, [] {
             return std::make_shared<RSNGRenderGasifyFilter>();
         }
-    }
+    },
+    {RSNGEffectType::FROSTED_GLASS, [] {
+            return std::make_shared<RSNGRenderFrostedGlassFilter>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)

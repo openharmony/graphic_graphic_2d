@@ -32,7 +32,8 @@ public:
     bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
     void UpdateEmitter(const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
-    void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields);
+    void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+        bool isIncrementalUpdate = true);
     void UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields);
     const std::vector<std::shared_ptr<RSRenderParticleEmitter>>& GetParticleEmitter() const
     {

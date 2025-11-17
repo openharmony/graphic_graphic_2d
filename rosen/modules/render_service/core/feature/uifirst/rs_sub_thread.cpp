@@ -20,6 +20,7 @@
 
 #include "drawable/rs_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/hdr/rs_hdr_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "GLES3/gl3.h"
@@ -68,6 +69,7 @@ pid_t RSSubThread::Start()
         if (grContext_ == nullptr) {
             return;
         }
+        RSMainThread::Instance()->InitVulkanErrorCallback(grContext_.get());
         grContext_->RegisterPostFunc([this](const std::function<void()>& task) {
             PostTask(task);
         });
@@ -292,7 +294,7 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     bool isScRGBEnable = RSSystemParameters::IsNeedScRGBForP3(rsSubThreadCache.GetTargetColorGamut()) &&
         RSUifirstManager::Instance().GetUiFirstSwitch();
     bool isNeedFP16 = isHdrSurface || isScRGBEnable;
-    bool bufferFormatNeedUpdate = rsSubThreadCache.BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
+    bool bufferFormatNeedUpdate = RSHdrUtil::BufferFormatNeedUpdate(cacheSurface, isNeedFP16);
     if (!cacheSurface || rsSubThreadCache.NeedInitCacheSurface(surfaceParams) || bufferFormatNeedUpdate) {
         DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func = &RSUniRenderUtil::ClearNodeCacheSurface;
         rsSubThreadCache.InitCacheSurface(grContext_.get(), nodeDrawable, func, threadIndex_, isNeedFP16);

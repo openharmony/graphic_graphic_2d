@@ -59,10 +59,7 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetExpectedRange, TestSize.Level1)
     EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
     frameRateLinker->SetExpectedRange(range);
     EXPECT_EQ(frameRateLinker->GetExpectedRange(), range);
-    auto cb = sptr<CustomFrameRateLinkerCallback>::MakeSptr();
-    EXPECT_NE(cb, nullptr);
     FrameRateRange range1(30, 120, 90); // 30、 120、 90Hz
-    frameRateLinker->expectedFpsChangeCallbacks_.try_emplace(0, cb);
     frameRateLinker->SetExpectedRange(range1);
 }
 

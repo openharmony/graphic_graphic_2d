@@ -80,7 +80,7 @@ ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message,
         ROSEN_LOGE("Failed to new err, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
-    status = env->Object_SetPropertyByName_Double(err, "code", static_cast<ani_int>(error));
+    status = env->Object_SetPropertyByName_Int(err, "code", static_cast<ani_int>(error));
     if (status != ANI_OK) {
         ROSEN_LOGE("Failed to set code, status:%{public}d", static_cast<int32_t>(status));
         return status;
@@ -260,6 +260,28 @@ ani_object CreateAniObject(ani_env* env, const char* className, const char* meth
     va_end(args);
 
     return aniObject;
+}
+
+bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
+{
+    ani_class pointClass;
+    env->FindClass("@ohos.graphics.common2D.common2D.Point", &pointClass);
+    ani_boolean isPointClass;
+    env->Object_InstanceOf(obj, pointClass, &isPointClass);
+    if (!isPointClass) {
+        ROSEN_LOGE("object is not a point obj");
+        return false;
+    }
+    ani_double x = 0.0;
+    ani_double y = 0.0;
+    if ((env->Object_GetPropertyByName_Double(obj, "x", &x) != ANI_OK) ||
+       (env->Object_GetPropertyByName_Double(obj, "y", &y) != ANI_OK)) {
+        ROSEN_LOGE("GetPointFromAniPointObj failed");
+        return false;
+    }
+    point.SetX(x);
+    point.SetY(y);
+    return true;
 }
 } // namespace Drawing
 } // namespace Rosen

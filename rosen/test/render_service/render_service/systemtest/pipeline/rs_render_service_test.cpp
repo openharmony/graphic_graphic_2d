@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "pipeline/main_thread/rs_render_service.h"
+#include "render_server/rs_render_service.h"
 
 using namespace testing;
 using namespace testing::ext;

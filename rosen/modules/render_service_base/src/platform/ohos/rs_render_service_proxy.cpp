@@ -28,11 +28,12 @@ namespace Rosen {
 
 RSRenderServiceProxy::RSRenderServiceProxy(const sptr<IRemoteObject>& impl) : IRemoteProxy<RSIRenderService>(impl) {}
 
-sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderServiceProxy::CreateConnection(
+    const sptr<RSIConnectionToken>& token)
 {
     if (token == nullptr) {
         ROSEN_LOGE("CreateConnection(): token is null.");
-        return nullptr;
+        return {nullptr, nullptr};
     }
 
     MessageParcel data;
@@ -41,35 +42,35 @@ sptr<RSIRenderServiceConnection> RSRenderServiceProxy::CreateConnection(const sp
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
         ROSEN_LOGE("CreateConnection(): WriteInterfaceToken failed.");
-        return nullptr;
+        return {nullptr, nullptr};
     }
     if (!data.WriteRemoteObject(token->AsObject())) {
         ROSEN_LOGE("CreateConnection(): WriteRemoteObject failed.");
-        return nullptr;
+        return {nullptr, nullptr};
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION);
     int32_t err = SendRequestRemote::SendRequest(Remote(), code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("CreateConnection(): SendRequest failed, err is %{public}d.", err);
-        return nullptr;
-    }
-    bool isReadRemoteObj{0};
-    if (!reply.ReadBool(isReadRemoteObj)) {
-        ROSEN_LOGE("CreateConnection Read isReadRemoteObj failed, connection is nullptr.");
-        return nullptr;
-    }
-    if (!isReadRemoteObj) {
-        ROSEN_LOGE("CreateConnection(): ReadBool failed, connection is nullptr.");
-        return nullptr;
-    }
-    auto remoteObj = reply.ReadRemoteObject();
-    if (remoteObj == nullptr || !remoteObj->IsProxyObject()) {
-        ROSEN_LOGE("CreateConnection(): Reply is not valid.");
-        return nullptr;
+        return {nullptr, nullptr};
     }
 
-    return iface_cast<RSIRenderServiceConnection>(remoteObj);
+    auto remoteServiceConnObj = reply.ReadRemoteObject();
+    if (remoteServiceConnObj == nullptr || !remoteServiceConnObj->IsProxyObject()) {
+        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");
+        return {nullptr, nullptr};
+    }
+    auto conn = iface_cast<RSIClientToServiceConnection>(remoteServiceConnObj);
+
+    auto remoteRenderConnObj = reply.ReadRemoteObject();
+    if (remoteRenderConnObj == nullptr || !remoteRenderConnObj->IsProxyObject()) {
+        ROSEN_LOGE("RSRenderServiceProxy::CreateConnection(): Reply is not valid.");
+        return {nullptr, nullptr};
+    }
+    auto renderConn = iface_cast<RSIClientToRenderConnection>(remoteRenderConnObj);
+
+    return {conn, renderConn};
 }
 
 bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)

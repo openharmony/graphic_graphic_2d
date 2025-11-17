@@ -47,6 +47,7 @@
 #include "feature_cfg/feature_param/extend_feature/mem_param.h"
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
+#include "render/rs_typeface_cache.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -112,9 +113,9 @@ void MemoryManager::DumpMemoryUsage(DfxString& log, std::string& type, bool isLi
         DumpDrawingCpuMemory(log);
     }
     if (type.empty() || type == MEM_GPU_TYPE) {
-        RSUniRenderThread::Instance().DumpMem(log);
+        RSUniRenderThread::Instance().DumpMem(log, isLite);
     }
-    if (type.empty() || type == MEM_SNAPSHOT) {
+    if ((type.empty() || type == MEM_SNAPSHOT) && !isLite) {
         DumpMemorySnapshot(log);
     }
 }
@@ -377,6 +378,7 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
         RSMainThread::Instance()->RenderServiceAllNodeDump(log);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
     }
+    RSTypefaceCache::Instance().Dump(log);
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
     memStat.DumpMemoryStatistics(&gpuTracer);
@@ -441,6 +443,27 @@ void MemoryManager::DumpGpuCache(
     log.AppendFormat("Total GPU memory usage:\n");
     gpuTracer.LogTotals(log);
 #endif
+}
+
+float MemoryManager::DumpGpuCacheNew(
+    DfxString& log, const Drawing::GPUContext* gpuContext, Drawing::GPUResourceTag* tag)
+{
+    if (!gpuContext) {
+        log.AppendFormat("gpuContext is nullptr.\n");
+        return 0.0f;
+    }
+    /* GPU */
+    float ret = 0.0f;
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    Drawing::TraceMemoryDump gpuTracer("category", true);
+    if (tag) {
+        gpuContext->DumpMemoryStatisticsByTag(&gpuTracer, *tag);
+    } else {
+        gpuContext->DumpMemoryStatistics(&gpuTracer);
+    }
+    ret = gpuTracer.GetGLMemorySizeExcludeDMA();
+#endif
+    return ret;
 }
 
 void MemoryManager::DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
@@ -512,6 +535,41 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
 #endif
 }
 
+static int32_t MemoryTrackerGetGLByPid(int32_t pid)
+{
+    return pid;
+}
+
+void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* gpuContext,
+    std::vector<std::pair<NodeId, std::string>>& nodeTags)
+{
+    if (!gpuContext) {
+        log.AppendFormat("No valid gpu cache instance.\n");
+        return;
+    }
+    std::unordered_map<pid_t, float> memoryMap;
+#if defined (RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    for (auto& nodeTag : nodeTags) {
+        pid_t pid = ExtractPid(nodeTag.first);
+        memoryMap[pid] = 0.0f;
+    }
+    log.AppendFormat("\n---------------\nGPU Memory Data:\n");
+    float totalMemoryKB = 0.0f;
+    int32_t rsMemory = MemoryTrackerGetGLByPid(getpid());
+    for (auto& [pid, memory] : memoryMap) {
+        Drawing::GPUResourceTag tag(pid, 0, 0, 0, "ReleaseUnlockGpuResource");
+        memory = DumpGpuCacheNew(log, gpuContext, &tag);
+        float memoryKB = memory / MEMUNIT_RATE;
+        totalMemoryKB += memoryKB;
+        if (memoryKB >= 0.1f) {
+            log.AppendFormat("pid: %d, gpu memory: %.2fKB\n", pid, memoryKB);
+        }
+    }
+    rsMemory -= static_cast<int32_t>(round(totalMemoryKB));
+    log.AppendFormat("Render Service GPU memory: %d KB\n", rsMemory);
+#endif
+}
+
 void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUContext* gpuContext,
     std::vector<std::pair<NodeId, std::string>>& nodeTags, bool isLite)
 {
@@ -532,26 +590,27 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
     // total
     DumpGpuCache(log, gpuContext, nullptr, gpuInfo);
     // Get memory of window by tag
-    if (!isLite) {
-        DumpAllGpuInfo(log, gpuContext, nodeTags);
-        for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE;
-            tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
-            std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
-            Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
-            DumpGpuCache(log, gpuContext, &tag, tagTypeName);
-        }
-        // cache limit
-        size_t cacheLimit = 0;
-        size_t cacheUsed = 0;
-        gpuContext->GetResourceCacheLimits(nullptr, &cacheLimit);
-        gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
-        log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
+    DumpAllGpuInfo(log, gpuContext, nodeTags);
+    DumpAllGpuInfoNew(log, gpuContext, nodeTags);
+    for (uint32_t tagtype = RSTagTracker::TAG_SAVELAYER_DRAW_NODE;
+        tagtype <= RSTagTracker::TAG_CAPTURE; tagtype++) {
+        std::string tagTypeName = RSTagTracker::TagType2String(static_cast<RSTagTracker::TAGTYPE>(tagtype));
+        Drawing::GPUResourceTag tag(0, 0, 0, tagtype, tagTypeName);
+        DumpGpuCache(log, gpuContext, &tag, tagTypeName);
+    }
+    // cache limit
+    size_t cacheLimit = 0;
+    size_t cacheUsed = 0;
+    gpuContext->GetResourceCacheLimits(nullptr, &cacheLimit);
+    gpuContext->GetResourceCacheUsage(nullptr, &cacheUsed);
+    log.AppendFormat("\ngpu limit = %zu ( used = %zu ):\n", cacheLimit, cacheUsed);
 
-        /* ShaderCache */
-        log.AppendFormat("\n---------------\nShader Caches:\n");
-        std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
-        log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
-        // gpu stat
+    /* ShaderCache */
+    log.AppendFormat("\n---------------\nShader Caches:\n");
+    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
+    // gpu stat
+    if (!isLite) {
         DumpGpuStats(log, gpuContext);
     }
 #endif
@@ -896,11 +955,12 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
 
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
         "PID", pid,
+        "TYPE", "GPU",
         "BUNDLE_NAME", info.bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(),
-        "GPU_PROCESS_INFO", filePath);
+        "FILEPATH", filePath);
     RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
         "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
         ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());

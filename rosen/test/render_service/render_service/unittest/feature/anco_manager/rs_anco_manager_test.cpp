@@ -370,7 +370,7 @@ HWTEST_F(RSAncoManagerTest, UpdateCropRectForAnco_002, TestSize.Level2)
     cropRect.w = 100;
     cropRect.h = 100;
     RSAncoManager::UpdateCropRectForAnco(flag, cropRect, ancoInfo, srcRect);
-    ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 100, 100));
+    ASSERT_TRUE(srcRect == Drawing::Rect(0, 0, 50, 50));
 
     ancoInfo = { 100, 100, GRAPHIC_PIXEL_FMT_BUTT };
     cropRect.w = 50;

@@ -264,7 +264,8 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
     RSTaskMessage::RSTask task = [this, output = output, layers = layers, param = param,
-        currentRate = currentRate, hasGameScene = hasGameScene]() {
+        currentRate = currentRate, hasGameScene = hasGameScene,
+        currentId = HgmCore::Instance().GetActiveScreenId()]() {
         PrintHiperfSurfaceLog("counter3", static_cast<uint64_t>(layers.size()));
         int64_t startTime = GetCurTimeCount();
         std::string surfaceName = GetSurfaceNameInLayers(layers);
@@ -300,16 +301,15 @@ void RSHardwareThread::CommitAndReleaseLayers(OutputPtr output, const std::vecto
                 screenManager->IsScreenPoweringOff(output->GetScreenId());
         }
 
-        bool shouldDropFrame = isScreenPowerOff || isScreenPoweringOff ||
-                               IsDropDirtyFrame(layers, output->GetScreenId());
-        if (!shouldDropFrame) {
+        bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers, output->GetScreenId());
+        if (!(shouldDropFrame || isScreenPowerOff)) {
             hgmHardwareUtils_.SwitchRefreshRate(output);
             AddRefreshRateCount(output);
         }
 
         if (RSSystemProperties::IsSuperFoldDisplay() && output->GetScreenId() == 0) {
             std::vector<LayerInfoPtr> reviseLayers = layers;
-            ChangeLayersForActiveRectOutside(reviseLayers, HgmCore::Instance().GetActiveScreenId());
+            ChangeLayersForActiveRectOutside(reviseLayers, currentId);
             LppVideoHandler::Instance().AddLppLayerId(reviseLayers);
             output->SetLayerInfo(reviseLayers);
         } else {

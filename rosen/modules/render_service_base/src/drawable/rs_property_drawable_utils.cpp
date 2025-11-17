@@ -399,12 +399,14 @@ void RSPropertyDrawableUtils::BeginForegroundFilter(RSPaintFilterCanvas& canvas,
         return;
     }
     auto offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+    offscreenCanvas->CopyConfigurationToOffscreenCanvas(canvas);
     canvas.StoreCanvas();
     canvas.ReplaceMainScreenData(offscreenSurface, offscreenCanvas);
     offscreenCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
     canvas.SavePCanvasList();
     canvas.RemoveAll();
     canvas.AddCanvas(offscreenCanvas.get());
+    canvas.SetEffectData(offscreenCanvas->GetEffectData());
 }
 
 void RSPropertyDrawableUtils::DrawForegroundFilter(RSPaintFilterCanvas& canvas,

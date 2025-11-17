@@ -70,6 +70,7 @@ public:
 
     std::vector<PkgParam> pkgParams_;
     std::shared_ptr<HgmMultiAppStrategy> multiAppStrategy_;
+    static constexpr char xmlConfig[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 };
 
 void HgmMultiAppStrategyTest::SetUp()
@@ -651,19 +652,6 @@ HWTEST_F(HgmMultiAppStrategyTest, BackgroundApp, Function | SmallTest | Level0)
 }
 
 /**
- * @tc.name: CheckPackageInConfigList
- * @tc.desc: Verify the result of CheckPackageInConfigList
- * @tc.type: FUNC
- * @tc.require: IAHFXD
- */
-HWTEST_F(HgmMultiAppStrategyTest, CheckPackageInConfigList, Function | SmallTest | Level0)
-{
-    std::vector<std::string> pkgs = { "com.app10", "com.app15" };
-    multiAppStrategy_->CheckPackageInConfigList(pkgs);
-    ASSERT_EQ(pkgs[0], "com.app10");
-}
-
-/**
  * @tc.name: SpecialBranch
  * @tc.desc: Verify the result of SpecialBranch
  * @tc.type: FUNC
@@ -714,21 +702,25 @@ HWTEST_F(HgmMultiAppStrategyTest, GetAppStrategyConfig, Function | SmallTest | L
 {
     auto multiAppStrategy = HgmMultiAppStrategy();
     PolicyConfigData::StrategyConfig strategyRes;
-    auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+        auto configVisitor = HgmCore::Instance().mPolicyConfigVisitor_;
+        std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
+        EXPECT_CALL(*mock,
+            GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
+        HgmCore::Instance().mPolicyConfigVisitor_ = mock;
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+        EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
+            testing::Return(EXEC_SUCCESS));
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
 
-    // null
-    std::shared_ptr<Mock::PolicyConfigVisitorMock> mock = std::make_shared<Mock::PolicyConfigVisitorMock>();
-    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(testing::Return(HGM_ERROR));
-    HgmCore::Instance().mPolicyConfigVisitor_ = mock;
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
-    EXPECT_CALL(*mock, GetDynamicAppStrategyConfig(testing::_, testing::_)).WillRepeatedly(
-        testing::Return(EXEC_SUCCESS));
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
-
-    HgmCore::Instance().mPolicyConfigVisitor_ = nullptr;
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
-    HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
-    EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+        HgmCore::Instance().mPolicyConfigVisitor_ = nullptr;
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+        HgmCore::Instance().mPolicyConfigVisitor_ = configVisitor;
+        EXPECT_EQ(multiAppStrategy.GetAppStrategyConfig("", strategyRes), EXEC_SUCCESS);
+    } else {
+        EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

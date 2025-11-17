@@ -238,7 +238,7 @@ namespace text {
     }
   }
 
-  enum FontWidth {
+  export enum FontWidth {
     ULTRA_CONDENSED = 1,
     EXTRA_CONDENSED = 2,
     CONDENSED = 3,
@@ -250,14 +250,14 @@ namespace text {
     ULTRA_EXPANDED = 9,
   }
 
-  enum TextHeightBehavior {
+  export enum TextHeightBehavior {
     ALL = 0x0,
     DISABLE_FIRST_ASCENT = 0x1,
     DISABLE_LAST_ASCENT = 0x2,
     DISABLE_ALL = 0x1 | 0x2,
   }
 
-  enum TextAlign {
+  export enum TextAlign {
     LEFT = 0,
     RIGHT = 1,
     CENTER = 2,
@@ -266,32 +266,32 @@ namespace text {
     END = 5,
   }
 
-  enum TextVerticalAlign {
+  export enum TextVerticalAlign {
     BASELINE = 0,
     BOTTOM = 1,
     CENTER = 2,
     TOP = 3
   }
 
-  enum TextDirection {
+  export enum TextDirection {
     RTL,
     LTR,
   }
 
-  enum BreakStrategy {
+  export enum BreakStrategy {
     GREEDY,
     HIGH_QUALITY,
     BALANCED,
   }
 
-  enum WordBreak {
+  export enum WordBreak {
     NORMAL,
     BREAK_ALL,
     BREAK_WORD,
     BREAK_HYPHEN,
   }
 
-  interface StrutStyle {
+  export interface StrutStyle {
     fontFamilies?: Array<string>;
     fontStyle?: FontStyle;
     fontWidth?: FontWidth;
@@ -305,7 +305,7 @@ namespace text {
     halfLeading?: boolean;
   }
 
-  interface TextTab {
+  export interface TextTab {
     alignment: TextAlign;
     location: double;
   }
@@ -325,7 +325,7 @@ namespace text {
     verticalAlign?: TextVerticalAlign;
   }
 
-  interface TextShadow {
+  export interface TextShadow {
     color?: common2D.Color;
     point?: common2D.Point;
     blurRadius?: double;
@@ -437,7 +437,7 @@ namespace text {
     }
   }
 
-  interface LineMetrics {
+  export interface LineMetrics {
     startIndex: int;
     endIndex: int;
     ascent: double;
@@ -985,24 +985,24 @@ namespace text {
     }
   }
 
-  enum TextBadgeType {
+  export enum TextBadgeType {
     TEXT_BADGE_NONE,
     TEXT_SUPERSCRIPT,
     TEXT_SUBSCRIPT,
   }
 
-  enum TextHighContrast {
+  export enum TextHighContrast {
     TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST,
     TEXT_APP_DISABLE_HIGH_CONTRAST,
     TEXT_APP_ENABLE_HIGH_CONTRAST,
   }
 
-  native function setTextHighContrast(action: TextHighContrast): void;
+  export native function setTextHighContrast(action: TextHighContrast): void;
 
-  enum TextUndefinedGlyphDisplay {
+  export enum TextUndefinedGlyphDisplay {
     USE_DEFAULT,
     USE_TOFU,
   }
 
-  native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
+  export native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
 }

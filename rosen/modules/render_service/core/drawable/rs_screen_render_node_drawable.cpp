@@ -151,6 +151,11 @@ RSScreenRenderNodeDrawable::RSScreenRenderNodeDrawable(std::shared_ptr<const RSR
       syncDirtyManager_(std::make_shared<RSDirtyRegionManager>(true))
 {}
 
+RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
+{
+    RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
+}
+
 RSRenderNodeDrawable::Ptr RSScreenRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
 {
     return new RSScreenRenderNodeDrawable(std::move(node));
@@ -249,40 +254,6 @@ static void ClipRegion(Drawing::Canvas& canvas, Drawing::Region& region, bool cl
     }
 }
 
-bool RSScreenRenderNodeDrawable::HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor)
-{
-    auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (!uniParam) {
-        RS_LOGE("RSScreenRenderNodeDrawable::HardCursorCreateLayer uniParam is null");
-        return false;
-    }
-    auto& hardCursorDrawables = uniParam->GetHardCursorDrawables();
-    if (hardCursorDrawables.empty()) {
-        return false;
-    }
-    auto iter = std::find_if(hardCursorDrawables.begin(), hardCursorDrawables.end(), [id = GetId()](const auto& node) {
-        return std::get<0>(node) == id;
-    });
-    if (iter == hardCursorDrawables.end()) {
-        return false;
-    }
-    auto& hardCursorDrawable = std::get<2>(*iter);
-    if (!hardCursorDrawable) {
-        return false;
-    }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(hardCursorDrawable->GetRenderParams().get());
-    if (!surfaceParams) {
-        RS_LOGE("RSScreenRenderNodeDrawable::HardCursorCreateLayer surfaceParams is null");
-        return false;
-    }
-    auto surfaceDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(hardCursorDrawable);
-    if (surfaceDrawable && surfaceParams->GetHardCursorStatus()) {
-        processor->CreateLayerForRenderThread(*surfaceDrawable);
-        return true;
-    }
-    return false;
-}
-
 void RSScreenRenderNodeDrawable::RenderOverDraw()
 {
     bool isEnabled = false;
@@ -368,9 +339,8 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
 #ifdef OHOS_PLATFORM
     RSJankStatsRenderFrameHelper::GetInstance().SetSkipJankAnimatorFrame(true);
 #endif
-    auto hardCursorDrawable = RSPointerWindowManager::Instance().GetHardCursorDrawable(GetId());
-    bool hasHardCursor = (hardCursorDrawable != nullptr);
-    bool hardCursorNeedCommit = (hasHardCursor != hardCursorLastCommitSuccess_);
+    bool hasHardCursor = RSPointerWindowManager::Instance().GetHardCursorDrawable(GetId()) != nullptr;
+    bool hardCursorNeedCommit = RSPointerWindowManager::Instance().GetHardCursorNeedCommit(GetId());
     auto forceCommitReason = uniParam->GetForceCommitReason();
     bool layersNeedCommit = IsForceCommit(forceCommitReason, params.GetNeedForceUpdateHwcNodes(), hasHardCursor);
     RS_TRACE_NAME_FMT("DisplayNode skip, forceCommitReason: %u, forceUpdateByHwcNodes %d, "
@@ -384,10 +354,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
         RS_LOGE("RSScreenRenderNodeDrawable::CheckScreenNodeSkip processor init failed");
         return false;
     }
-    hardCursorLastCommitSuccess_ = hasHardCursor;
-    if (hardCursorDrawable != nullptr) {
-        processor->CreateLayerForRenderThread(*hardCursorDrawable);
-    }
+    RSPointerWindowManager::Instance().HardCursorCreateLayer(processor, GetId());
     auto& hardwareDrawables =
         RSUniRenderThread::Instance().GetRSRenderThreadParams()->GetHardwareEnabledTypeDrawables();
     for (const auto& [screenNodeId, _, drawable] : hardwareDrawables) {
@@ -737,7 +704,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RSRenderNodeDrawable::OnDraw(*curCanvas_);
                 expandRenderFrame_->Flush();
                 processor->ProcessScreenSurfaceForRenderThread(*this);
-                HardCursorCreateLayer(processor);
+                RSPointerWindowManager::Instance().HardCursorCreateLayer(processor, GetId());
                 processor->PostProcess();
                 expandRenderFrame_ = nullptr;
                 return;
@@ -1033,7 +1000,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
     }
-    HardCursorCreateLayer(processor);
+    RSPointerWindowManager::Instance().HardCursorCreateLayer(processor, GetId());
     if (screenInfo.activeRect.IsEmpty() ||
         screenInfo.activeRect == RectI(0, 0, screenInfo.width, screenInfo.height) ||
         DirtyRegionParam::IsComposeDirtyRegionEnableInPartialDisplay()) {

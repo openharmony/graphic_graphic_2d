@@ -54,7 +54,7 @@ public:
     void InitHpaeBlurResource();
     void OnUniRenderStart(); // happens before prepare
     void OnSync(bool isHdrOn);
-    void RegisterHpaeCallback(RSRenderNode& node, std::shared_ptr<RSScreenRenderNode> screenNode);
+    void RegisterHpaeCallback(RSRenderNode& node, const std::shared_ptr<RSScreenRenderNode>& screenNode);
 
     // Functions @Process
     bool HasHpaeBlurNode() const;

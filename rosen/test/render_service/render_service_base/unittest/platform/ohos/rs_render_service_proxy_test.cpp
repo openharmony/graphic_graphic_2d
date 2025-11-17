@@ -63,8 +63,10 @@ void RSProxyTest::TearDown() {}
 HWTEST_F(RSProxyTest, CreateConnection_Test, TestSize.Level1)
 {
     ASSERT_NE(renderService, nullptr);
-    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(nullptr);
-    ASSERT_EQ(conn, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(nullptr);
+    ASSERT_EQ(connPair.first, nullptr);
+    ASSERT_EQ(connPair.second, nullptr);
 }
 
 /**
@@ -78,10 +80,12 @@ HWTEST_F(RSProxyTest, CreateConnection, TestSize.Level1)
     ASSERT_NE(renderService, nullptr);
     MessageParcel data;
     auto remoteObj = data.ReadRemoteObject();
-    sptr<RSIConnectionToken>  token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     ASSERT_NE(token, nullptr);
-    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token);
-    ASSERT_NE(conn, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(token);
+    ASSERT_NE(connPair.first, nullptr);
+    ASSERT_NE(connPair.second, nullptr);
 }
 
 /**

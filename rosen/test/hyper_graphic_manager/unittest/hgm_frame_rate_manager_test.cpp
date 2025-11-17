@@ -120,6 +120,8 @@ public:
     void SetUp();
     void TearDown();
     void InitHgmFrameRateManager(HgmFrameRateManager& frameRateMgr);
+
+    static constexpr char xmlConfig[] = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 };
 
 void HgmFrameRateMgrTest::SetUpTestCase()
@@ -332,22 +334,30 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.UpdateSoftVSync(true);
     frameRateMgr.currRefreshRate_.store(OLED_90_HZ);
     frameRateMgr.UpdateSoftVSync(true);
-    int64_t vsyncid = 0;
-    uint32_t rsRate = 0;
-    bool isUiDvsyncOn = false;
     frameRateMgr.pendingRefreshRate_ = nullptr;
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
     frameRateMgr.lastPendingConstraintRelativeTime_ = currTime;
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
-    ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_,
-        frameRateMgr.lastPendingConstraintRelativeTime_);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    ASSERT_EQ(hgmCore.pendingConstraintRelativeTime_, frameRateMgr.lastPendingConstraintRelativeTime_);
     uint32_t pendingRefreshRate = OLED_60_HZ;
     frameRateMgr.pendingRefreshRate_ = std::make_shared<uint32_t>(pendingRefreshRate);
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
     ASSERT_EQ(frameRateMgr.pendingConstraintRelativeTime_, 0);
     ASSERT_EQ(frameRateMgr.lastPendingRefreshRate_, OLED_60_HZ);
     frameRateMgr.pendingRefreshRate_ = nullptr;
-    frameRateMgr.ProcessPendingRefreshRate(currTime, vsyncid, rsRate, isUiDvsyncOn);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+
+    hgmCore.isLtpoMode_.store(true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
+    hgmCore.isLtpoMode_.store(false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, 0, true);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, false);
+    frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
+
     frameRateMgr.voterTouchEffective_ = true;
     std::string surfaceName = "surface0";
     size_t oldSize = frameRateMgr.surfaceData_.size();
@@ -365,18 +375,24 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallT
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
     PART("HgmConfigCallbackManagerTest") {
-        STEP("1. Callback is nullptr") {
-            sptr<CustomHgmCallback> cb1 = new CustomHgmCallback();
-            hccMgr->RegisterHgmRefreshRateModeChangeCallback(0, nullptr);
-            hccMgr->RegisterHgmRefreshRateModeChangeCallback(1, cb1);
-        }
-        STEP("2. Test SyncHgmConfigChangeCallback without callback") {
-            std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> emptyCallback;
-            std::swap(hccMgr->animDynamicCfgCallbacks_, emptyCallback);
-            ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), true);
-            hccMgr->SyncHgmConfigChangeCallback();
+        std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+        if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+            STEP("1. Callback is nullptr") {
+                sptr<CustomHgmCallback> cb1 = new CustomHgmCallback();
+                hccMgr->RegisterHgmRefreshRateModeChangeCallback(0, nullptr);
+                hccMgr->RegisterHgmRefreshRateModeChangeCallback(1, cb1);
+            }
+            STEP("2. Test SyncHgmConfigChangeCallback without callback") {
+                std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>> emptyCallback;
+                std::swap(hccMgr->animDynamicCfgCallbacks_, emptyCallback);
+                ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), true);
+                hccMgr->SyncHgmConfigChangeCallback();
+            }
+        } else {
+            EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
         }
     }
+    usleep(100000);
 }
 
 /**
@@ -388,50 +404,51 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest001, Function | SmallT
 HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallTest | Level0)
 {
     sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
-    PART("HgmConfigCallbackManagerTest") {
-        STEP("1. Test SyncCallback function with callback") {
-            sptr<CustomHgmCallback> cb = new CustomHgmCallback();
-            hccMgr->animDynamicCfgCallbacks_[0] = cb;
-            hccMgr->refreshRateModeCallbacks_[0] = cb;
-            hccMgr->SyncHgmConfigChangeCallback();
-            hccMgr->SyncRefreshRateModeChangeCallback(0);
-            hccMgr->RegisterHgmConfigChangeCallback(0, nullptr);
-            auto& hgmCore = HgmCore::Instance();
-            auto& configData = hgmCore.GetPolicyConfigData();
-            configData->pageNameList_.push_back("com.app10");
-            ScreenId id = 0;
-            int32_t mode = 0;
-            sptr<HgmScreen> screen = new HgmScreen(id, mode, screenSize);
-            hgmCore.screenList_.push_back(screen);
-            hccMgr->RegisterHgmConfigChangeCallback(pid, cb);
-            hccMgr->RegisterHgmRefreshRateUpdateCallback(0, nullptr);
-            hccMgr->RegisterHgmRefreshRateUpdateCallback(pid, cb);
-            hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
-            hccMgr->RegisterHgmRefreshRateUpdateCallback(0, nullptr);
-            hccMgr->RegisterHgmRefreshRateUpdateCallback(pid, cb);
-            hccMgr->SyncHgmConfigChangeCallback();
-            hccMgr->SyncRefreshRateModeChangeCallback(0);
-            hccMgr->refreshRateUpdateCallbacks_ = {
-                {0, nullptr},
-            };
-            hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
-            ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
-            hccMgr->UnRegisterHgmConfigChangeCallback(pid);
-            hccMgr->UnRegisterHgmConfigChangeCallback(0);
-            hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
-            hccMgr->SyncHgmConfigChangeCallback();
-            hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
-            hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
-            hccMgr->SyncHgmConfigChangeCallback();
-            hccMgr->refreshRateUpdateCallbacks_.clear();
-            hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
-            hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
-            std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap;
-            foregroundPidAppMap.try_emplace(pid, std::pair<int32_t, std::string>{ 0, "com.app10" });
-            hccMgr->SyncHgmConfigChangeCallback(foregroundPidAppMap);
-            ASSERT_EQ(hccMgr->pendingAnimDynamicCfgCallbacks_.find(pid) ==
-                hccMgr->pendingAnimDynamicCfgCallbacks_.end(), true);
-        }
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+        sptr<CustomHgmCallback> cb = new CustomHgmCallback();
+        hccMgr->animDynamicCfgCallbacks_[0] = cb;
+        hccMgr->refreshRateModeCallbacks_[0] = cb;
+        hccMgr->SyncHgmConfigChangeCallback();
+        hccMgr->SyncRefreshRateModeChangeCallback(0);
+        hccMgr->RegisterHgmConfigChangeCallback(0, nullptr);
+        auto& hgmCore = HgmCore::Instance();
+        auto& configData = hgmCore.GetPolicyConfigData();
+        configData->pageNameList_.push_back("com.app10");
+        ScreenId id = 0;
+        int32_t mode = 0;
+        sptr<HgmScreen> screen = new HgmScreen(id, mode, screenSize);
+        hgmCore.screenList_.push_back(screen);
+        hccMgr->RegisterHgmConfigChangeCallback(pid, cb);
+        hccMgr->RegisterHgmRefreshRateUpdateCallback(0, nullptr);
+        hccMgr->RegisterHgmRefreshRateUpdateCallback(pid, cb);
+        hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
+        hccMgr->RegisterHgmRefreshRateUpdateCallback(0, nullptr);
+        hccMgr->RegisterHgmRefreshRateUpdateCallback(pid, cb);
+        hccMgr->SyncHgmConfigChangeCallback();
+        hccMgr->SyncRefreshRateModeChangeCallback(0);
+        hccMgr->refreshRateUpdateCallbacks_ = {
+            {0, nullptr},
+        };
+        hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+        ASSERT_EQ(hccMgr->animDynamicCfgCallbacks_.empty(), false);
+        hccMgr->UnRegisterHgmConfigChangeCallback(pid);
+        hccMgr->UnRegisterHgmConfigChangeCallback(0);
+        hccMgr->animDynamicCfgCallbacks_.try_emplace(pid, cb);
+        hccMgr->SyncHgmConfigChangeCallback();
+        hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
+        hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+        hccMgr->SyncHgmConfigChangeCallback();
+        hccMgr->refreshRateUpdateCallbacks_.clear();
+        hccMgr->refreshRateUpdateCallbacks_.try_emplace(0, cb);
+        hccMgr->SyncRefreshRateUpdateCallback(OLED_60_HZ);
+        std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap;
+        foregroundPidAppMap.try_emplace(pid, std::pair<int32_t, std::string>{ 0, "com.app10" });
+        hccMgr->SyncHgmConfigChangeCallback(foregroundPidAppMap);
+        ASSERT_EQ(hccMgr->pendingAnimDynamicCfgCallbacks_.find(pid) ==
+            hccMgr->pendingAnimDynamicCfgCallbacks_.end(), true);
+    } else {
+        EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
     }
 }
 
@@ -465,48 +482,49 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallT
 
     auto temp = new MyCustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
     auto cb1 = iface_cast<RSIFrameRateLinkerExpectedFpsUpdateCallback>(temp);
-    for (const auto& expectedFrameRate : expectedFrameRates) {
-        PART("HgmConfigCallbackManagerTest") {
-            STEP("1. Test RegisterXComponentExpectedFrameRateCallback function with callback") {
-                xcomponentIdMap.try_emplace(idStr, expectedFrameRate);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
-                cbMap.try_emplace(listenerPid, cb);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid1, cbMap);
-                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
-                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
-                hccMgr->xcomponentExpectedFrameRate_.clear();
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
-                hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid1, xcomponentIdMap);
-                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
-                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
-                hccMgr->xcomponentExpectedFrameRate_.clear();
-                hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
-                hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
-                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
-            }
-            STEP("2. Test SyncXComponentExpectedFrameRateCallback function with callback") {
-                ASSERT_NE(cb1, nullptr);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
-                cbMap.clear();
-                cbMap.try_emplace(listenerPid, cb);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
-                hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
-                cbMap.clear();
-                cbMap.try_emplace(listenerPid, cb1);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
-                hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
-                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
-                hccMgr->xcomponentExpectedFrameRate_.clear();
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
-                cbMap.clear();
-                cbMap.try_emplace(listenerPid, cb1);
-                hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
-                hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
-                ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
-            }
+
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+        for (const auto& expectedFrameRate : expectedFrameRates) {
+            // 1. Test RegisterXComponentExpectedFrameRateCallback function with callback
+            xcomponentIdMap.try_emplace(idStr, expectedFrameRate);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            cbMap.try_emplace(listenerPid, cb);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid1, cbMap);
+            hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+            hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb);
+            hccMgr->xcomponentExpectedFrameRate_.clear();
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid1, xcomponentIdMap);
+            hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
+            ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            hccMgr->xcomponentExpectedFrameRate_.clear();
+            hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
+            hccMgr->RegisterXComponentExpectedFrameRateCallback(listenerPid, dstPid, cb1);
+            ASSERT_EQ(hccMgr->xcomponentExpectedFrameRateCallbacks_[dstPid][listenerPid], cb1);
+            // 2. Test SyncXComponentExpectedFrameRateCallback function with callback
+            ASSERT_NE(cb1, nullptr);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            cbMap.clear();
+            cbMap.try_emplace(listenerPid, cb);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            cbMap.clear();
+            cbMap.try_emplace(listenerPid, cb1);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+            ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
+            hccMgr->xcomponentExpectedFrameRate_.clear();
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
+            cbMap.clear();
+            cbMap.try_emplace(listenerPid, cb1);
+            hccMgr->xcomponentExpectedFrameRateCallbacks_.try_emplace(dstPid, cbMap);
+            hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
+            ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid][idStr], expectedFrameRate);
+
             ASSERT_EQ(fps_, expectedFrameRate);
             hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, invalidRate);
             hccMgr->SyncXComponentExpectedFrameRateCallback(0, idStr, invalidRate);
@@ -529,9 +547,12 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest003, Function | SmallT
             hccMgr->xcomponentExpectedFrameRate_.try_emplace(dstPid, xcomponentIdMap);
             hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
         }
+        hccMgr->UnRegisterHgmConfigChangeCallback(dstPid);
+        hccMgr->UnRegisterHgmConfigChangeCallback(dstPid1);
+    } else {
+        EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
     }
-    hccMgr->UnRegisterHgmConfigChangeCallback(dstPid);
-    hccMgr->UnRegisterHgmConfigChangeCallback(dstPid1);
+    hccMgr->xcomponentExpectedFrameRateCallbacks_.clear();
 }
 
 /**
@@ -761,20 +782,15 @@ HWTEST_F(HgmFrameRateMgrTest, HandleEventTest, Function | SmallTest | Level0)
     auto& hgm = HgmCore::Instance();
     mgr->DeliverRefreshRateVote({ "VOTER_GAMES", 120, 90, 0 }, true);
 
-    mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(RSPropertyUnit::PIXEL_POSITION), 100.f, 0, 0);
-    mgr->GetExpectedFrameRate(static_cast<RSPropertyUnit>(0xff), 100.f, 0, 0);
     if (hgm.mPolicyConfigData_ == nullptr) {
         return;
     }
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
-    mgr->GetPreferredFps("aaa", 100.f, 100.f, 100.f);
-    mgr->GetPreferredFps("aaa", 100.f, 0.f, 0.f);
 
     std::shared_ptr<PolicyConfigData> cachedPolicyConfigData = nullptr;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_EQ(hgm.mPolicyConfigData_, nullptr);
     ASSERT_EQ(nullptr, hgm.GetPolicyConfigData());
-    mgr->GetPreferredFps("aaa", 100.f, 0.f, 0.f);
 
     EventInfo eventInfo = { .eventName = "VOTER_GAMES", .eventStatus = false,
         .description = pkg0,
@@ -957,7 +973,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = [](bool idleTimerExpired, bool forceUpdate) { return; };
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
-    EXPECT_EQ(frameRateMgr->GetPreferredFps("aaa", errorVelocity, 0, 0), 0);
+    EXPECT_EQ(frameRateMgr->isNeedUpdateAppOffset_, false);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
     VSyncController* rsController;
     VSyncController* appController;
@@ -1686,13 +1702,68 @@ HWTEST_F(HgmFrameRateMgrTest, TestCheckRefreshRateChange, Function | SmallTest |
     mgr.CheckRefreshRateChange(false, false, 120, false);
     EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
 
-    hgmCore.SetLtpoEnabled(true);
+    hgmCore.isLtpoMode_.store(true);
     hgmCore.SetSupportedMaxTE(360);
     mgr.CheckRefreshRateChange(false, true, 120, true);
     mgr.forceUpdateCallback_ = nullptr;
     mgr.CheckRefreshRateChange(false, true, 120, true);
     mgr.CheckRefreshRateChange(false, true, 120, false);
     EXPECT_EQ(mgr.isNeedUpdateAppOffset_, false);
+}
+
+/**
+ * @tc.name: TestSetHgmConfigUpdateCallback
+ * @tc.desc: Verify the result of SetHgmConfigUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestSetHgmConfigUpdateCallback, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    auto hgmConfigUpdateCallbackTask = [](std::shared_ptr<RPHgmConfigData> configData,
+        bool ltpoEnabled, bool isDelayMode, int32_t pipelineOffsetPulseNum) {
+    };
+    mgr.SetHgmConfigUpdateCallback(hgmConfigUpdateCallbackTask);
+    EXPECT_NE(mgr.hgmConfigUpdateCallback_, nullptr);
+}
+
+/**
+ * @tc.name: TestSyncHgmConfigUpdateCallback
+ * @tc.desc: Verify the result of SyncHgmConfigUpdateCallback
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, TestSyncHgmConfigUpdateCallback, Function | SmallTest | Level2)
+{
+    HgmFrameRateManager mgr;
+    const auto id = mgr.curScreenStrategyId_;
+    const std::string mode = std::to_string(mgr.curRefreshRateMode_);
+    std::shared_ptr<PolicyConfigData> policyConfigData = std::move(HgmCore::Instance().mPolicyConfigData_);
+    HgmCore::Instance().mPolicyConfigData_ = nullptr;
+    mgr.SyncHgmConfigUpdateCallback();
+
+    std::shared_ptr<PolicyConfigData> data = std::make_shared<PolicyConfigData>();
+    HgmCore::Instance().mPolicyConfigData_ = data;
+    mgr.SyncHgmConfigUpdateCallback();
+
+    data->screenConfigs_[id] = {};
+    mgr.SyncHgmConfigUpdateCallback();
+
+    data->screenConfigs_[id][mode] = {};
+    mgr.SyncHgmConfigUpdateCallback();
+
+    EXPECT_EQ(HgmCore::Instance().mPolicyConfigData_->screenConfigs_[id][mode].animationDynamicSettings.size(), 0);
+    data->screenConfigs_[id][mode].smallSizeAnimationDynamicSettings["translate"]["1"] = { 0, 10, 60 };
+    data->screenConfigs_[id][mode].animationDynamicSettings["translate"]["1"] = { 0, 10, 72 };
+    EXPECT_EQ(HgmCore::Instance().mPolicyConfigData_->screenConfigs_[id][mode].animationDynamicSettings.size(), 1);
+    mgr.SyncHgmConfigUpdateCallback();
+
+    auto curScreenId = HgmCore::Instance().hgmFrameRateMgr_->GetCurScreenId();
+    HgmCore::Instance().hgmFrameRateMgr_->curScreenId_.store(INVALID_SCREEN_ID);
+    mgr.SyncHgmConfigUpdateCallback();
+
+    HgmCore::Instance().hgmFrameRateMgr_->curScreenId_.store(curScreenId);
+    HgmCore::Instance().mPolicyConfigData_ = std::move(policyConfigData);
 }
 } // namespace Rosen
 } // namespace OHOS

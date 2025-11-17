@@ -355,6 +355,9 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc(
         if (effectData != nullptr) {
             ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
                 effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
+            ptr->visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
+        } else {
+            ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
         }
         ptr->visualEffectContainer_->UpdateCornerRadius(ptr->cornerRadius_);
         geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
@@ -915,5 +918,34 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBl
     builder->SetUniform("dynamicLightUpDeg", degree * alpha);
     return builder->MakeBlender();
 }
+
+RSDrawable::Ptr RSMaterialFilterDrawable::OnGenerate(const RSRenderNode& node)
+{
+    auto& rsFilter = node.GetRenderProperties().GetMaterialFilter();
+    if (!rsFilter) {
+        return nullptr;
+    }
+
+    if (auto ret = std::make_shared<RSMaterialFilterDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
+{
+    stagingNodeId_ = node.GetId();
+    stagingNodeName_ = node.GetNodeName();
+    auto& rsFilter = node.GetRenderProperties().GetMaterialFilter();
+    if (!rsFilter) {
+        return false;
+    }
+    RecordFilterInfos(rsFilter);
+    needSync_ = true;
+    stagingFilter_ = rsFilter;
+    PostUpdate(node);
+    return true;
+}
+
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

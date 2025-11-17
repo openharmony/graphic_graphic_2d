@@ -90,6 +90,7 @@ public:
         GASIFY_SCALE_TWIST,
         GASIFY_BLUR,
         GASIFY,
+        FROSTED_GLASS,
     };
     FilterType GetFilterType() const
     {

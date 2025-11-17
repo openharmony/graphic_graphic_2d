@@ -721,7 +721,7 @@ void RSImplicitAnimator::CreateImplicitAnimation(const std::shared_ptr<RSNode>& 
         property->GetId(), animation->GetId(), params->GetType(), property->GetPropertyTypeNG(),
         startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
         animation->GetDuration(), protocol.GetRepeatCount(), protocol.GetInterfaceName(), target->GetFrameNodeId(),
-        target->GetFrameNodeTag(), target->GetType());
+        target->GetFrameNodeTag(), target->GetType(), animation->GetFrameRateRange());
 
     if (params->GetType() == ImplicitAnimationParamType::KEYFRAME) {
         // for keyframe animations, we don't add it to target now, we will add it later in
@@ -799,7 +799,7 @@ void RSImplicitAnimator::CreateImplicitAnimationWithInitialVelocity(const std::s
         property->GetId(), animation->GetId(), params->GetType(), property->GetPropertyTypeNG(),
         startValue->GetRenderProperty(), endValue->GetRenderProperty(), animation->GetStartDelay(),
         animation->GetDuration(), protocol.GetRepeatCount(), protocol.GetInterfaceName(), target->GetFrameNodeId(),
-        target->GetFrameNodeTag(), target->GetType());
+        target->GetFrameNodeTag(), target->GetType(), animation->GetFrameRateRange());
     target->AddAnimation(animation);
     implicitAnimations_.top().emplace_back(animation, target->GetId());
 }

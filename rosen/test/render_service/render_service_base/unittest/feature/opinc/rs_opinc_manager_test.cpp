@@ -24,6 +24,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+constexpr int64_t CACHE_MEM = 100;
 class RSOpincManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -137,6 +138,26 @@ HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag, Function | SmallTest
     rsCanvasRenderNode->childHasVisibleEffect_ = true;
     EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
     rsCanvasRenderNode->childHasVisibleEffect_ = false;
+    ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
+}
+
+/**
+ * @tc.name: OpincGetCanvasNodeSupportFlag1
+ * @tc.desc: Verify the OpincGetCanvasNodeSupportFlag function
+ * @tc.type: FUNC
+ * @tc.require: #IBQETW
+ */
+HWTEST_F(RSOpincManagerTest, OpincGetCanvasNodeSupportFlag1, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+
+    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
+
+    property.hasHarmonium_ = true;
+    EXPECT_FALSE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
+    property.hasHarmonium_ = false;
     ASSERT_TRUE(opincManager_.OpincGetCanvasNodeSupportFlag(*rsCanvasRenderNode));
 }
 
@@ -285,6 +306,25 @@ HWTEST_F(RSOpincManagerTest, GetUnsupportReason, Function | SmallTest | Level1)
 }
 
 /**
+ * @tc.name: GetUnsupportReason1
+ * @tc.desc: Verify the GetUnsupportReason function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, GetUnsupportReason1, Function | SmallTest | Level1)
+{
+    NodeId id = 0;
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+
+    auto& property = rsCanvasRenderNode->GetMutableRenderProperties();
+
+    property.hasHarmonium_ = true;
+    ASSERT_EQ(opincManager_.GetUnsupportReason(*rsCanvasRenderNode), OpincUnsupportType::HAS_HARMONIUM);
+    property.hasHarmonium_ = false;
+}
+
+/**
  * @tc.name: QuickGetNodeDebugInfo
  * @tc.desc: Verify the QuickGetNodeDebugInfo function
  * @tc.type: FUNC
@@ -296,5 +336,40 @@ HWTEST_F(RSOpincManagerTest, QuickGetNodeDebugInfo, Function | SmallTest | Level
     auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(id);
     ASSERT_NE(rsCanvasRenderNode, nullptr);
     ASSERT_NE(opincManager_.QuickGetNodeDebugInfo(*rsCanvasRenderNode), "");
+}
+
+/**
+ * @tc.name: AddOpincCacheMem
+ * @tc.desc: Verify the AddOpincCacheMem function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, AddOpincCacheMem, Function | SmallTest | Level1)
+{
+    int64_t cacheMem = opincManager_.GetOpincCacheMem();
+    int32_t cacheCount = opincManager_.GetOpincCacheCount();
+    opincManager_.AddOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(opincManager_.GetOpincCacheMem(), cacheMem + CACHE_MEM);
+    EXPECT_EQ(opincManager_.GetOpincCacheCount(), cacheCount + 1);
+}
+
+/**
+ * @tc.name: ReduceOpincCacheMem
+ * @tc.desc: Verify the ReduceOpincCacheMem function
+ * @tc.type: FUNC
+ * @tc.require: issueICP90U
+ */
+HWTEST_F(RSOpincManagerTest, ReduceOpincCacheMem, Function | SmallTest | Level1)
+{
+    int64_t cacheMem = opincManager_.GetOpincCacheMem();
+    int32_t cacheCount = opincManager_.GetOpincCacheCount();
+    opincManager_.AddOpincCacheMem(CACHE_MEM);
+    opincManager_.ReduceOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(opincManager_.GetOpincCacheMem(), cacheMem);
+    EXPECT_EQ(opincManager_.GetOpincCacheCount(), cacheCount);
+
+    cacheMem = opincManager_.GetOpincCacheMem();
+    opincManager_.ReduceOpincCacheMem(cacheMem + 1);
+    EXPECT_EQ(opincManager_.GetOpincCacheMem(), 0);
 }
 }

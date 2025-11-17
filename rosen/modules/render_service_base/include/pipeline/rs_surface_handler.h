@@ -43,6 +43,9 @@ public:
         ~SurfaceBufferEntry() noexcept
         {
             if (bufferDeleteCb_ != nullptr) {
+                if (buffer) {
+                    buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+                }
                 bufferDeleteCb_(seqNum);
             }
         }
@@ -60,10 +63,9 @@ public:
             if (buffer == nullptr) {
                 return;
             }
-            if (bufferDeleteCb_) {
-                if (!RSSystemProperties::IsUseVulkan() || needBufferDeleteCb) {
-                    bufferDeleteCb_(buffer->GetBufferId());
-                }
+            if (bufferDeleteCb_ && (!RSSystemProperties::IsUseVulkan() || needBufferDeleteCb)) {
+                buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+                bufferDeleteCb_(buffer->GetBufferId());
             }
             buffer = nullptr;
             acquireFence = SyncFence::InvalidFence();

@@ -23,7 +23,7 @@ ohos_unittest("RSRenderServiceBaseRSEffectTest") {
 
   sources = [
     "rs_render_shader_base_test.cpp",
-    "rs_render_mask_base_test.cpp"
+    "rs_render_shape_base_test.cpp"
   ]
 
   cflags = [

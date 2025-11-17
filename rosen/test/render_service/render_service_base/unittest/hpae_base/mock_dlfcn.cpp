@@ -62,6 +62,10 @@ void MockGPTaskSubmit(void* instance, uint64_t frameId, MHC_TaskInfo* taskInfo)
 {
     return;
 }
+int32_t MockQueryTaskErrorFunc(void* instance, uint64_t frameId, MHC_PatternTaskName taskName)
+{
+    return 0;
+}
 
 static constexpr int32_t HIANIMATION_SUCC_ = 0;
 static constexpr int32_t HIANIMATION_FAIL_ = -1;
@@ -99,6 +103,9 @@ int32_t MockHianimationDestroyTask_(uint32_t taskId)
 {
     return HIANIMATION_SUCC_;
 }
+void MockHianimationDumpDebugInfo_(uint32_t taskId)
+{
+}
 
 static hianimation_algo_device_t mockHianimationDevice;
 
@@ -110,6 +117,7 @@ hianimation_algo_device_t* MockGetHianimationDeviceFunc()
     mockHianimationDevice.hianimationBuildTask = MockHianimationBuildTask_;
     mockHianimationDevice.hianimationSyncProcess = MockHianimationSyncProcess_;
     mockHianimationDevice.hianimationDestroyTask = MockHianimationDestroyTask_;
+    mockHianimationDevice.hianimationDumpDebugInfo = MockHianimationDumpDebugInfo_;
     return &mockHianimationDevice;
 }
 
@@ -145,8 +153,8 @@ extern "C" void* dlsym(void* handle, const char* symbol)
     if (strcmp(symbol, "mhc_gp_task_submit") == 0) {
         return reinterpret_cast<void *>(MockGPTaskSubmit);
     }
-    if (strcmp(symbol, "GetHianimationDevice") == 0) {
-        return reinterpret_cast<void *>(MockGetHianimationDeviceFunc);
+    if (strcmp(symbol, "mhc_gp_query_task_error") == 0) {
+        return reinterpret_cast<void *>(MockQueryTaskErrorFunc);
     }
     return nullptr;
 }

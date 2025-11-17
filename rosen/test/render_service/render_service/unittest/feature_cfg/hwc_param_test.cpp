@@ -71,12 +71,11 @@ HWTEST_F(HwcParamTest, IsDisableHwcOnExpandScreen001, Function | SmallTest | Lev
  */
 HWTEST_F(HwcParamTest, SetSolidColorLayerForApp001, Function | SmallTest | Level1)
 {
-    HWCParam hwcParam;
     std::string appName = "TestApp";
     std::string val = "1";
-    hwcParam.SetSolidColorLayerForApp(appName, val);
-    auto it = hwcParam.solidColorLayerMap_.find(appName);
-    EXPECT_NE(it, hwcParam.solidColorLayerMap_.end());
+    HWCParam::SetSolidColorLayerForApp(appName, val);
+    auto it = HWCParam::GetSolidColorLayerMap().find(appName);
+    EXPECT_NE(it, HWCParam::GetSolidColorLayerMap().end());
     EXPECT_EQ(it->second, val);
 }
 
@@ -88,14 +87,13 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp001, Function | SmallTest | Level
  */
 HWTEST_F(HwcParamTest, SetSolidColorLayerForApp002, Function | SmallTest | Level1)
 {
-    HWCParam hwcParam;
     std::string appName = "TestApp";
     std::string initialVal = "0";
-    hwcParam.SetSolidColorLayerForApp(appName, initialVal);
+    HWCParam::SetSolidColorLayerForApp(appName, initialVal);
     std::string newVal = "1";
-    hwcParam.SetSolidColorLayerForApp(appName, newVal);
-    auto it = hwcParam.solidColorLayerMap_.find(appName);
-    EXPECT_NE(it, hwcParam.solidColorLayerMap_.end());
+    HWCParam::SetSolidColorLayerForApp(appName, newVal);
+    auto it = HWCParam::GetSolidColorLayerMap().find(appName);
+    EXPECT_NE(it, HWCParam::GetSolidColorLayerMap().end());
     EXPECT_EQ(it->second, newVal);
 }
 
@@ -107,12 +105,11 @@ HWTEST_F(HwcParamTest, SetSolidColorLayerForApp002, Function | SmallTest | Level
  */
 HWTEST_F(HwcParamTest, SetSourceTuningForApp001, Function | SmallTest | Level1)
 {
-    HWCParam hwcParam;
     std::string appName = "TestApp";
     std::string val = "1";
-    hwcParam.SetSourceTuningForApp(appName, val);
-    auto it = hwcParam.sourceTuningMap_.find(appName);
-    EXPECT_NE(it, hwcParam.sourceTuningMap_.end());
+    HWCParam::SetSourceTuningForApp(appName, val);
+    auto it = HWCParam::GetSourceTuningForAppMap().find(appName);
+    EXPECT_NE(it, HWCParam::GetSourceTuningForAppMap().end());
     EXPECT_EQ(it->second, val);
 }
 
@@ -124,15 +121,90 @@ HWTEST_F(HwcParamTest, SetSourceTuningForApp001, Function | SmallTest | Level1)
  */
 HWTEST_F(HwcParamTest, SetSourceTuningForApp002, Function | SmallTest | Level1)
 {
-    HWCParam hwcParam;
     std::string appName = "TestApp";
     std::string initialVal = "0";
-    hwcParam.SetSourceTuningForApp(appName, initialVal);
+    HWCParam::SetSourceTuningForApp(appName, initialVal);
     std::string newVal = "1";
-    hwcParam.SetSourceTuningForApp(appName, newVal);
-    auto it = hwcParam.sourceTuningMap_.find(appName);
-    EXPECT_NE(it, hwcParam.sourceTuningMap_.end());
+    HWCParam::SetSourceTuningForApp(appName, newVal);
+    auto it = HWCParam::GetSourceTuningForAppMap().find(appName);
+    EXPECT_NE(it, HWCParam::GetSourceTuningForAppMap().end());
     EXPECT_EQ(it->second, newVal);
+}
+
+/**
+ * @tc.name: GetSourceTuningForAppMap001
+ * @tc.desc: Verify the GetSourceTuningForAppMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSourceTuningForAppMap001, Function | SmallTest | Level1)
+{
+    std::string appName = "TestApp";
+    std::string val = "1";
+    HWCParam::SetSourceTuningForApp(appName, val);
+
+    auto& map = HWCParam::GetSourceTuningForAppMap();
+    EXPECT_NE(map.find(appName), map.end());
+    EXPECT_EQ(map.at(appName), val);
+}
+
+/**
+ * @tc.name: GetSolidColorLayerMap001
+ * @tc.desc: Verify the GetSolidColorLayerMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSolidColorLayerMap001, Function | SmallTest | Level1)
+{
+    std::string appName = "TestApp";
+    std::string val = "1";
+    HWCParam::SetSolidColorLayerForApp(appName, val);
+
+    auto& map = HWCParam::GetSolidColorLayerMap();
+    EXPECT_NE(map.find(appName), map.end());
+    EXPECT_EQ(map.at(appName), val);
+}
+
+/**
+ * @tc.name: GetSourceTuningForAppMap002
+ * @tc.desc: Verify the GetSourceTuningForAppMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSourceTuningForAppMap002, Function | SmallTest | Level1)
+{
+    std::string appName1 = "TestApp1";
+    std::string val1 = "1";
+    std::string appName2 = "TestApp2";
+    std::string val2 = "0";
+
+    HWCParam::SetSourceTuningForApp(appName1, val1);
+    HWCParam::SetSourceTuningForApp(appName2, val2);
+
+    auto& map = HWCParam::GetSourceTuningForAppMap();
+    EXPECT_EQ(map.at(appName1), val1);
+    EXPECT_EQ(map.at(appName2), val2);
+}
+
+/**
+ * @tc.name: GetSolidColorLayerMap002
+ * @tc.desc: Verify the GetSolidColorLayerMap function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HwcParamTest, GetSolidColorLayerMap002, Function | SmallTest | Level1)
+{
+    std::string appName1 = "TestApp1";
+    std::string val1 = "1";
+    std::string appName2 = "TestApp2";
+    std::string val2 = "0";
+
+    HWCParam::SetSolidColorLayerForApp(appName1, val1);
+    HWCParam::SetSolidColorLayerForApp(appName2, val2);
+
+    auto& map = HWCParam::GetSolidColorLayerMap();
+    EXPECT_EQ(map.at(appName1), val1);
+    EXPECT_EQ(map.at(appName2), val2);
 }
 
 /**

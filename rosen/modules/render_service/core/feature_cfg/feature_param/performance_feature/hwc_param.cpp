@@ -40,13 +40,14 @@ bool HWCParam::IsDisableHwcOnExpandScreen()
     return isDisableHwcOnExpandScreen_;
 }
 
-void HWCParam::MoveDataToHgmCore()
+const std::unordered_map<std::string, std::string>& HWCParam::GetSourceTuningForAppMap()
 {
-    HgmCore& hgmCore = HgmCore::Instance();
-    if (hgmCore.mPolicyConfigData_ != nullptr) {
-        hgmCore.mPolicyConfigData_->hwcSourceTuningConfig_ = sourceTuningMap_;
-        hgmCore.mPolicyConfigData_->hwcSolidLayerConfig_ = solidColorLayerMap_;
-    }
+    return sourceTuningMap_;
+}
+
+const std::unordered_map<std::string, std::string>& HWCParam::GetSolidColorLayerMap()
+{
+    return solidColorLayerMap_;
 }
 
 bool HWCParam::IsSolidLayerEnable()

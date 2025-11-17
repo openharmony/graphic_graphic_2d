@@ -26,7 +26,7 @@
 #include "ge_visual_effect_container.h"
 
 // rs
-#include "effect/rs_render_mask_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "render/rs_sdf_effect_filter.h"
 // rs helper func
 #include "platform/common/rs_log.h"
@@ -40,14 +40,14 @@
 
 namespace OHOS {
 namespace Rosen {
-RSSDFEffectFilter::RSSDFEffectFilter(std::shared_ptr<RSNGRenderMaskBase> SDFMask)
+RSSDFEffectFilter::RSSDFEffectFilter(std::shared_ptr<RSNGRenderShapeBase> SDFShape)
     : RSDrawingFilterOriginal(nullptr)
 {
     type_ = FilterType::SDF_EFFECT;
-    SDFMask_ = SDFMask;
+    SDFShape_ = SDFShape;
 
-    std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = SDFMask_ ? SDFMask_->GenerateGEVisualEffect() : nullptr;
-    std::shared_ptr<Drawing::GEShaderMask> geMask = geVisualEffect ? geVisualEffect->GenerateShaderMask() : nullptr;
+    std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = SDFShape_ ? SDFShape_->GenerateGEVisualEffect() : nullptr;
+    std::shared_ptr<Drawing::GEShaderShape> geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
     geFilter_ =
         std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_SDF, Drawing::DrawingPaintType::BRUSH);
     
@@ -62,9 +62,9 @@ RSSDFEffectFilter::RSSDFEffectFilter(std::shared_ptr<RSNGRenderMaskBase> SDFMask
     const auto hashFunc = SkOpts::hash;
 #endif
     hash_ = hashFunc(&type_, sizeof(type_), 0);
-    if (SDFMask_) {
-        auto maskHash = SDFMask_->CalculateHash();
-        hash_ = hashFunc(&maskHash, sizeof(maskHash), hash_);
+    if (SDFShape_) {
+        auto shapeHash = SDFShape_->CalculateHash();
+        hash_ = hashFunc(&shapeHash, sizeof(shapeHash), hash_);
     }
 }
 
@@ -152,7 +152,7 @@ void RSSDFEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared
         return;
     }
 
-    if (!SDFMask_) {
+    if (!SDFShape_) {
         return;
     }
 
@@ -175,15 +175,15 @@ void RSSDFEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared
 
 void RSSDFEffectFilter::OnSync()
 {
-    std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = SDFMask_ ? SDFMask_->GenerateGEVisualEffect() : nullptr;
-    std::shared_ptr<Drawing::GEShaderMask> geMask = geVisualEffect ? geVisualEffect->GenerateShaderMask() : nullptr;
-    geFilter_->SetParam(Drawing::GE_FILTER_SDF_MASK, geMask);
+    std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = SDFShape_ ? SDFShape_->GenerateGEVisualEffect() : nullptr;
+    std::shared_ptr<Drawing::GEShaderShape> geShape = geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+    geFilter_->SetParam(Drawing::GE_FILTER_SDF_SHAPE, geShape);
 
     if (HasBorder()) {
         Drawing::GESDFBorderParams border;
         border.color = GetBorderColor();
         border.width = GetBorderWidth();
-        geFilter_->SetParam(Drawing::GE_FILTER_SDF_MASK, border);
+        geFilter_->SetParam(Drawing::GE_FILTER_SDF_SHAPE, border);
     }
 
     if (HasShadow()) {
@@ -194,7 +194,7 @@ void RSSDFEffectFilter::OnSync()
         shadow.radius = GetShadowRadius();
         shadow.path = GetShadowPath();
         shadow.isFilled = GetShadowIsFill();
-        geFilter_->SetParam(Drawing::GE_FILTER_SDF_MASK, shadow);
+        geFilter_->SetParam(Drawing::GE_FILTER_SDF_SHAPE, shadow);
     }
 
     geContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();

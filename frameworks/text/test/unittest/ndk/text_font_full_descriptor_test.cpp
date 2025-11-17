@@ -77,7 +77,10 @@ class NdkFontFullDescriptorTest : public testing::Test {};
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest001, TestSize.Level0)
 {
-    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(nullptr, 0);
+    std::vector<char> content;
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(nullptr, 1);
+    EXPECT_EQ(fontFullDescArr, nullptr);
+    fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(content.data(), content.size());
     EXPECT_EQ(fontFullDescArr, nullptr);
     size_t num = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     EXPECT_EQ(num, 0);

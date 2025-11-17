@@ -43,10 +43,13 @@ using RSRenderAnimatablePropertyTag  = RenderPropertyTagBase<Name, RSRenderAnima
     using EffectName##PropName##RenderTag = RSRenderPropertyTag<Type, EffectName##PropName##Name>
 
 class RSNGRenderMaskBase; // forward declaration, impl in rs_render_mask_base.h
+class RSNGRenderShapeBase;
 #define MASK_PTR std::shared_ptr<RSNGRenderMaskBase>
+#define SHAPE_PTR std::shared_ptr<RSNGRenderShapeBase>
 #include "effect/rs_render_property_tag_def.in"
 
 #undef MASK_PTR
+#undef SHAPE_PTR
 #undef DECLARE_ANIMATABLE_PROPERTY_TAG
 #undef DECLARE_NONANIMATABLE_PROPERTY_TAG
 
@@ -88,11 +91,12 @@ enum class RSNGEffectType : int16_t {
     PIXEL_MAP_MASK,
     WAVE_GRADIENT_MASK,
     FRAME_GRADIENT_MASK,
-    SDF_UNION_OP_MASK,
-    SDF_SMOOTH_UNION_OP_MASK,
-    SDF_RRECT_MASK,
     IMAGE_MASK,
     USE_EFFECT_MASK,
+    // shape type
+    SDF_UNION_OP_SHAPE,
+    SDF_SMOOTH_UNION_OP_SHAPE,
+    SDF_RRECT_SHAPE,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     WAVY_RIPPLE_LIGHT,
@@ -107,7 +111,8 @@ enum class RSNGEffectType : int16_t {
     GRADIENT_FLOW_COLORS,
     GASIFY_SCALE_TWIST,
     GASIFY_BLUR,
-    GASIFY
+    GASIFY,
+    FROSTED_GLASS,
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

@@ -92,6 +92,9 @@ public:
     void RemovePictureRecord(const void* addr);
     uint32_t CountFdRecordOfPid(uint32_t pid);
     void KillProcessByPid(const pid_t pid, const std::string& reason);
+    void FdOverReport(const pid_t pid, const std::string& reportName,
+        const std::string& hidumperReport);
+    void WriteInfoToFile(std::string& filePath,  std::string& memInfo, const std::string& hidumperReport);
     void UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid);
     // count memory for hidumper
     MemoryGraphic CountRSMemory(const pid_t pid);

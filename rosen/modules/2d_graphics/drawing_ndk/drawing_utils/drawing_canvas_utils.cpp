@@ -20,6 +20,7 @@
 #include "pipeline/rs_recording_canvas.h"
 #include "pixel_map.h"
 #include "render/rs_pixel_map_util.h"
+#include "render/rs_pixel_map_shader.h"
 #include "utils/log.h"
 
 using namespace OHOS;
@@ -52,6 +53,122 @@ OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapNine(Drawing::Canvas* canva
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     canvas->DrawImageNine(image.get(), centerRectI, *dst, mode);
+#endif
+    return OH_DRAWING_SUCCESS;
+}
+
+namespace {
+void DrawPixelMapMeshBuilderProcess(std::shared_ptr<Media::PixelMap> pixelMap,
+    uint32_t meshWidth, uint32_t meshHeight, Drawing::Point* texsPoint, uint16_t* indices)
+{
+    const float height = static_cast<float>(pixelMap->GetHeight());
+    const float width = static_cast<float>(pixelMap->GetWidth());
+    const float dy = height / meshHeight;
+    const float dx = width / meshWidth;
+    Drawing::Point* texsPit = texsPoint;
+    float y = 0;
+    for (uint32_t i = 0; i <= meshWidth; i++) {
+        if (i == meshWidth) {
+            y = height;
+        }
+        float x = 0;
+        for (uint32_t j = 0; j < meshHeight; j++) {
+            texsPit->Set(x, y);
+            texsPit += 1;
+            x += dx;
+        }
+        texsPit->Set(width, y);
+        texsPit += 1;
+        y += dy;
+    }
+    uint16_t* dexIndices = indices;
+    int indexIndices = 0;
+    int indexSteps = 2;
+    for (uint32_t i = 0; i < meshWidth; i++) {
+        for (uint32_t j = 0; j < meshHeight; j++) {
+            *dexIndices++ = indexIndices;
+            *dexIndices++ = indexIndices + meshHeight + 1;
+            *dexIndices++ = indexIndices + meshHeight + indexSteps;
+            *dexIndices++ = indexIndices;
+            *dexIndices++ = indexIndices + meshHeight + indexSteps;
+            *dexIndices++ = indexIndices + 1;
+            indexIndices += 1;
+        }
+        indexIndices += 1;
+    }
+}
+}
+
+OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapMesh(Drawing::Canvas* canvas,
+    std::shared_ptr<Media::PixelMap> pixelMap, uint32_t meshWidth, uint32_t meshHeight, const float* vertices,
+    uint32_t verticesSize, uint32_t vertOffset, const uint32_t* colors, uint32_t colorsSize, uint32_t colorOffset)
+{
+#ifdef OHOS_PLATFORM
+    if (!canvas || !pixelMap || !vertices || meshWidth == 0 || meshHeight == 0) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    uint64_t tempVerticeSize =
+        ((static_cast<uint64_t>(meshWidth) + 1) * (static_cast<uint64_t>(meshHeight) + 1) + vertOffset) * 2;
+    if (tempVerticeSize != static_cast<uint64_t>(verticesSize)) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    const float* verticesMesh = verticesSize ? (vertices + vertOffset * 2) : nullptr;
+    if (!colors) {
+        return DrawPixelMapMeshInternal(canvas, pixelMap, meshWidth, meshHeight, verticesMesh, nullptr);
+    }
+    uint64_t tempColorsSize =
+        (static_cast<uint64_t>(meshWidth) + 1) * (static_cast<uint64_t>(meshHeight) + 1) + colorOffset;
+    if (tempColorsSize != static_cast<uint64_t>(colorsSize)) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    const uint32_t* colorsMesh = colors + colorOffset;
+    return DrawPixelMapMeshInternal(canvas, pixelMap, meshWidth, meshHeight, verticesMesh, colorsMesh);
+#endif
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapMeshInternal(Drawing::Canvas* canvas,
+    std::shared_ptr<Media::PixelMap> pixelMap, uint32_t meshWidth, uint32_t meshHeight, const float* vertices,
+    const uint32_t* colors)
+{
+#ifdef OHOS_PLATFORM
+    if (!canvas->GetMutableBrush().IsValid()) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    const int vertCounts = (meshWidth + 1) * (meshHeight + 1);
+    int32_t size = 6;
+    const int indexCount = meshWidth * meshHeight * size;
+    uint32_t flags = colors ?
+        Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG | Drawing::BuilderFlags::HAS_COLORS_BUILDER_FLAG :
+        Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG;
+    Drawing::Vertices::Builder builder(Drawing::VertexMode::TRIANGLES_VERTEXMODE, vertCounts, indexCount, flags);
+    if (memcpy_s(builder.Positions(), vertCounts * sizeof(Drawing::Point),
+        vertices, vertCounts * sizeof(Drawing::Point)) != 0) {
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
+    }
+    int32_t colorSize = 4;
+    if (colors != nullptr &&
+       (memcpy_s(builder.Colors(), vertCounts * colorSize, colors, vertCounts * colorSize) != 0)) {
+        return OH_DRAWING_ERROR_ALLOCATION_FAILED;
+    }
+    if (!builder.TexCoords() || !builder.Indices()) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    DrawPixelMapMeshBuilderProcess(pixelMap, meshWidth, meshHeight, builder.TexCoords(), builder.Indices());
+    if (canvas->GetDrawingType() != Drawing::DrawingType::RECORDING) {
+        std::shared_ptr<Drawing::Image> image = OHOS::Rosen::RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+        if (image == nullptr) {
+            return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+        }
+        auto shader = Drawing::ShaderEffect::CreateImageShader(*image,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix());
+        canvas->GetMutableBrush().SetShaderEffect(shader);
+    } else {
+        auto shader = Drawing::ShaderEffect::CreateExtendShader(std::make_shared<RSPixelMapShader>(pixelMap,
+            Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, Drawing::SamplingOptions(), Drawing::Matrix()));
+        canvas->GetMutableBrush().SetShaderEffect(shader);
+    }
+    canvas->DrawVertices(*builder.Detach(), Drawing::BlendMode::MODULATE);
 #endif
     return OH_DRAWING_SUCCESS;
 }

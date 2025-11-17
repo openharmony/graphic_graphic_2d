@@ -149,62 +149,6 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
     return nullptr;
 }
 
-bool RSRenderServiceClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
-    const Drawing::Rect& specifiedAreaRect)
-{
-    return false;
-}
-
-std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSRenderServiceClient::TakeSurfaceCaptureSoloNode(
-    NodeId id, const RSSurfaceCaptureConfig& captureConfig)
-{
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> result;
-    return result;
-}
-
-bool RSRenderServiceClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
-    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    const RSSurfaceCaptureBlurParam& blurParam)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::TakeSurfaceCaptureWithAllWindows(NodeId id,
-    std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    bool checkDrmAndSurfaceLock)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::FreezeScreen(NodeId id, bool isFreeze)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::TakeUICaptureInRange(
-    NodeId id, std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
-    float positionZ, float positionW)
-{
-    return false;
-}
-
-int32_t RSRenderServiceClient::SetFocusAppInfo(const FocusAppInfo& info)
-{
-    return false;
-}
-
 ScreenId RSRenderServiceClient::GetDefaultScreenId()
 {
     return 0;
@@ -326,6 +270,16 @@ std::string RSRenderServiceClient::GetRefreshInfo(pid_t pid)
 std::string RSRenderServiceClient::GetRefreshInfoToSP(NodeId id)
 {
     return "";
+}
+
+int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    return 0;
+}
+
+int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
+{
+    return RS_CONNECTION_ERROR;
 }
 
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -499,11 +453,6 @@ int32_t RSRenderServiceClient::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
     return {};
 }
 
-int32_t RSRenderServiceClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
-{
-    return {};
-}
-
 int32_t RSRenderServiceClient::GetScreenSupportedColorSpaces(
     ScreenId id, std::vector<GraphicCM_ColorSpaceType>& colorSpaces)
 {
@@ -536,12 +485,12 @@ bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelM
     return {};
 }
 
-bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
 {
     return {};
 }
 
-int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
+bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
     return {};
 }
@@ -598,10 +547,6 @@ uint32_t RSRenderServiceClient::SetScreenActiveRect(ScreenId id, const Rect& act
 }
 
 void RSRenderServiceClient::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY)
-{
-}
-
-void RSRenderServiceClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
 }
 
@@ -805,20 +750,10 @@ void RSRenderServiceClient::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
 }
 
-void RSRenderServiceClient::DropFrameByPid(const std::vector<int32_t> pidList)
-{
-}
-
 int32_t RSRenderServiceClient::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback,
     bool unobscured)
 {
     return {};
-}
-
-
-bool RSRenderServiceClient::SetAncoForceDoDirect(bool direct)
-{
-    return false;
 }
 
 bool RSRenderServiceClient::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
@@ -830,21 +765,6 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 {
 }
 
-bool RSRenderServiceClient::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
-    std::shared_ptr<SurfaceBufferCallback> callback)
-{
-    return false;
-}
-
-bool RSRenderServiceClient::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
-{
-    return false;
-}
-
-void RSRenderServiceClient::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
-{
-}
-
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
 }
@@ -853,21 +773,11 @@ void RSRenderServiceClient::SetForceRefresh(const std::string &nodeIdStr, bool i
 {
 }
 
-bool RSRenderServiceClient::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp,
-    std::function<void()> callback)
-{
-    return false;
-}
-
 void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
 }
 
 void RSRenderServiceClient::NotifyScreenSwitched()
-{
-}
-
-void RSRenderServiceClient::SetWindowContainer(NodeId nodeId, bool value)
 {
 }
 
@@ -912,10 +822,6 @@ bool RSRenderServiceClient::GetBehindWindowFilterEnabled(bool& enabled)
 int32_t RSRenderServiceClient::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 {
     return {};
-}
-
-void RSRenderServiceClient::ClearUifirstCache(NodeId id)
-{
 }
 
 void RSRenderServiceClient::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,

@@ -113,6 +113,7 @@
 #include "render/rs_pixel_map_util.h"
 #include "render/rs_typeface_cache.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "string_utils.h"
 #include "transaction/rs_transaction_metric_collector.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_unmarshal_thread.h"
@@ -166,6 +167,10 @@
 // HDRHeterogeneous
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 
+#ifdef RS_ENABLE_UNI_RENDER
+#include "ability_manager_client.h"
+#endif
+
 using namespace FRAME_TRACE;
 static const std::string RS_INTERVAL_NAME = "renderservice";
 
@@ -213,6 +218,7 @@ constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr uint32_t CAL_NODE_PREFERRED_FPS_LIMIT = 50;
 constexpr uint32_t EVENT_SET_HARDWARE_UTIL = 100004;
 constexpr uint32_t EVENT_NAME_MAX_LENGTH = 50;
+constexpr uint32_t EXT_INFO_MAX_LENGTH = 100;
 constexpr uint32_t HIGH_32BIT = 32;
 constexpr uint64_t PERIOD_MAX_OFFSET = 1000000; // 1ms
 constexpr uint64_t FASTCOMPOSE_OFFSET = 300000; // 300us
@@ -225,6 +231,7 @@ constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status"
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* ENABLE_DEBUG_FMT_TRACE = "sys.graphic.openTestModeTrace";
+constexpr const char* BUFFER_OVERFLOW = "Buffer Overflow";
 constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
@@ -451,7 +458,8 @@ void RSMainThread::TraverseCanvasDrawingNodes()
     }
 }
 
-void RSMainThread::Init()
+void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
+    const std::shared_ptr<AppExecFwk::EventHandler>& handler)
 {
     mainLoop_ = [&]() {
         RS_PROFILER_ON_FRAME_BEGIN(timestamp_);
@@ -609,8 +617,8 @@ void RSMainThread::Init()
     }
 
     RS_LOGI("thread init");
-    runner_ = AppExecFwk::EventRunner::Create(false);
-    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_ = runner;
+    handler_ = handler;
     uint32_t timeForWatchDog = WATCHDOG_TIMEVAL;
     int ret = HiviewDFX::Watchdog::GetInstance().AddThread("RenderService", handler_, timeForWatchDog);
     if (ret != 0) {
@@ -726,6 +734,10 @@ void RSMainThread::Init()
     RS_LOGI("HgmTaskHandleThread init");
     hgmContext_.InitHgmTaskHandleThread(
         rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
+    hwcContext_ = std::make_shared<RSHwcContext>(
+        HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
+    hgmContext_.InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),
+        context_->GetMutableUiFrameworkTypeTable());
     SubscribeAppState();
     PrintCurrentStatus();
     RS_LOGI("UpdateGpuContextCacheSize");
@@ -835,12 +847,13 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         RS_LOGE("InitVulkanErrorCallback gpuContext is nullptr");
         return;
     }
-    gpuContext->RegisterVulkanErrorCallback([this]() {
+    gpuContext->RegisterVulkanErrorCallback([this](const std::vector<pid_t>& pidsToKill, const std::string& reason,
+        bool needKillProcess) {
         RS_LOGE("FocusLeashWindowName:[%{public}s]", this->focusLeashWindowName_.c_str());
 
         char appWindowName[EVENT_NAME_MAX_LENGTH];
         char focusLeashWindowName[EVENT_NAME_MAX_LENGTH];
-        char extinfodefault[EVENT_NAME_MAX_LENGTH] = "ext_info_default";
+        char extInfo[EXT_INFO_MAX_LENGTH];
         auto cpyresult = strcpy_s(appWindowName, EVENT_NAME_MAX_LENGTH, appWindowName_.c_str());
         if (cpyresult != 0) {
             RS_LOGE("Copy appWindowName_ error, AppWindowName:%{public}s", appWindowName_.c_str());
@@ -848,6 +861,16 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         cpyresult = strcpy_s(focusLeashWindowName, EVENT_NAME_MAX_LENGTH, focusLeashWindowName_.c_str());
         if (cpyresult != 0) {
             RS_LOGE("Copy focusLeashWindowName error, focusLeashWindowName:%{public}s", focusLeashWindowName_.c_str());
+        }
+        const std::string pidsToKillDesc = MergeToString<pid_t>(pidsToKill);
+        RS_LOGE("ErrorPids:%{public}s NeedKill:%{public}d", pidsToKillDesc.c_str(), static_cast<int>(needKillProcess));
+        cpyresult = strcpy_s(extInfo, EXT_INFO_MAX_LENGTH, pidsToKillDesc.c_str());
+        if (cpyresult != 0) {
+            RS_LOGE("Copy extInfo error, extInfo:%{public}s", pidsToKillDesc.c_str());
+            cpyresult = strcpy_s(extInfo, EXT_INFO_MAX_LENGTH, BUFFER_OVERFLOW);
+            if (cpyresult != 0) {
+                RS_LOGE("Copy extInfo error, extInfo:%{public}s", BUFFER_OVERFLOW);
+            }
         }
 
         HiSysEventParam pPID = { .name = "PID", .t = HISYSEVENT_UINT32, .v = { .ui32 = appPid_ }, .arraySize = 0 };
@@ -864,7 +887,7 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
             .name = "LeashWindowName", .t = HISYSEVENT_STRING, .v = { .s = focusLeashWindowName }, .arraySize = 0
         };
         HiSysEventParam pExtInfo = {
-            .name = "ExtInfo", .t = HISYSEVENT_STRING, .v = { .s = extinfodefault }, .arraySize = 0
+            .name = "EXT_INFO", .t = HISYSEVENT_STRING, .v = { .s = extInfo }, .arraySize = 0
         };
         HiSysEventParam paramsHebcFault[] = { pPID, pAppNodeId, pAppNodeName, pLeashWindowId, pLeashWindowName,
             pExtInfo };
@@ -877,6 +900,21 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
         }
 
         RSUniRenderThread::Instance().ProcessVulkanErrorTreeDump();
+
+        if (!needKillProcess) {
+            return;
+        }
+#ifdef RS_ENABLE_UNI_RENDER
+        AAFwk::ExitReason killReason{AAFwk::Reason::REASON_UNKNOWN, reason};
+        for (const auto pid : pidsToKill) {
+            if (pid <= 0) {
+                continue;
+            }
+            auto result = AAFwk::AbilityManagerClient::GetInstance()->KillProcessWithReason(pid, killReason);
+            RS_LOGE("VulkanErrorCallback Kill Process, pid: %{public}d, killStatus: %{public}d, reason: %{public}s",
+                static_cast<int>(pid), static_cast<int>(result), reason.c_str());
+        }
+#endif
     });
 }
 
@@ -1736,7 +1774,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     requestNextVsyncTime_ = nextVsyncTime;
                 }
             }
-            surfaceNode->SetVideoHdrStatus(RSHdrUtil::CheckIsHdrSurface(*surfaceNode));
+            auto videoHdrStatus = RSHdrUtil::CheckIsHdrSurface(*surfaceNode);
+            surfaceNode->ClearHDRVideoStatus();
+            surfaceNode->UpdateHDRStatus(videoHdrStatus, true);
+            surfaceNode->SetVideoHdrStatus(videoHdrStatus);
             if (isColorTemperatureOn_ && surfaceNode->GetVideoHdrStatus() == HdrStatus::NO_HDR) {
                 surfaceNode->SetSdrHasMetadata(RSHdrUtil::CheckIsSurfaceWithMetadata(*surfaceNode));
             }
@@ -2214,25 +2255,6 @@ void RSMainThread::SetFrameIsRender(bool isRender)
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
-    const auto& nodeMap = context_->GetNodeMap();
-    auto node = nodeMap.GetRenderNode(id);
-    if (!node) {
-        RS_LOGE("RSMainThread::AddUiCaptureTask node nullptr, id: %{public}" PRIu64, id);
-    } else {
-        bool isNeedSetTreeStateChangeDirty = node && (node->IsDirty() || node->IsSubTreeDirty());
-        RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask isDirty:%d, subDirty:%d, isOnTheTree:%d",
-            node->IsDirty(), node->IsSubTreeDirty(), node->IsOnTheTree());
-        if (isNeedSetTreeStateChangeDirty) {
-            node->SetChildrenTreeStateChangeDirty();
-            node->SetParentTreeStateChangeDirty(true);
-            auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
-            if (surfaceNode) {
-                std::lock_guard<std::mutex> lock(surfaceNode->GetCaptureUiFirstMutex());
-                RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask Set UiFirst Disable");
-                surfaceNode->SetCaptureEnableUifirst(false);
-            }
-        }
-    }
     if (!IsRequestedNextVSync()) {
         RequestNextVSync();
     }
@@ -2456,6 +2478,11 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
 
     PrepareUiCaptureTasks(uniVisitor);
+    if (screenPowerOnChanged_) {
+        int nodeNum = context_ ? context_->GetNodeMap().GetSize() : 0;
+        RS_LOGI("RSMainThread Power On First Frame finish, node:%{public}d",
+                nodeNum);
+    }
     screenPowerOnChanged_ = false;
     forceUpdateUniRenderFlag_ = false;
     if (context_) {
@@ -3532,7 +3559,7 @@ void RSMainThread::Animate(uint64_t timestamp)
         }
         totalAnimationSize += node->animationManager_.GetAnimationsSize();
         node->animationManager_.SetRateDeciderEnable(
-            isRateDeciderEnabled, hgmContext_.FrameRateGetFunc);
+            isRateDeciderEnabled, hgmContext_.GetConvertFrameRateFunc());
         auto [hasRunningAnimation, nodeNeedRequestNextVsync, nodeCalculateAnimationValue] =
             node->Animate(timestamp, minLeftDelayTime, period, isDisplaySyncEnabled);
         if (!hasRunningAnimation) {
@@ -4290,9 +4317,10 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
     dumpString.append("ScreenResolution = " + std::to_string(maxScreenInfo.phyWidth) +
         "x" + std::to_string(maxScreenInfo.phyHeight) + "\n");
     dumpString.append(log.GetString());
-
-    RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
-    RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
+    if (!isLite) {
+        RSUniRenderThread::Instance().DumpVkImageInfo(dumpString);
+        RSHardwareThread::Instance().DumpVkImageInfo(dumpString);
+    }
 #else
     dumpString.append("No GPU in this device");
 #endif
@@ -4360,6 +4388,9 @@ bool RSMainThread::GetDirtyFlag()
 void RSMainThread::SetScreenPowerOnChanged(bool val)
 {
     screenPowerOnChanged_ = val;
+    if (isUniRender_) {
+        RSUniRenderThread::Instance().SetScreenPowerOnChanged(val);
+    }
 }
 
 bool RSMainThread::GetScreenPowerOnChanged() const
@@ -5387,6 +5418,8 @@ void RSMainThread::RSScreenNodeListener::OnScreenConnect(ScreenId id)
 {
     auto mainThread = RSMainThread::Instance();
     auto task = [context = mainThread->context_, id]() {
+        RS_TRACE_NAME_FMT("OnScreenConnect execute task ScreenId[%" PRIu64 "]", id);
+        RS_LOGI("OnScreenConnect execute task ScreenId[%{public}" PRIu64 "]", id);
         auto& nodeMap = context->GetMutableNodeMap();
         auto node = std::shared_ptr<RSScreenRenderNode>(new RSScreenRenderNode(GenerateUniqueNodeIdForRS(),
             id, context->weak_from_this()), RSRenderNodeGC::NodeDestructor);
@@ -5403,6 +5436,8 @@ void RSMainThread::RSScreenNodeListener::OnScreenConnect(ScreenId id)
         nodeMap.TraverseLogicalDisplayNodes(setOnTree);
     };
     if (mainThread->isRunning_) {
+        RS_TRACE_NAME_FMT("OnScreenConnect post task ScreenId[%" PRIu64 "]", id);
+        RS_LOGI("OnScreenConnect post task ScreenId[%{public}" PRIu64 "]", id);
         mainThread->PostTask(task);
     } else {
         task();
@@ -5504,6 +5539,29 @@ void RSMainThread::RegisterHwcEvent()
         });
     }
 #endif
+}
+
+bool RSMainThread::TransitionDataMutexLockIfNoCommands()
+{
+    transitionDataMutex_.lock();
+    for (auto& rsTransactionElem : cachedTransactionDataMap_) {
+        if (rsTransactionElem.second.size()) {
+            transitionDataMutex_.unlock();
+            return false;
+        }
+    }
+    for (auto& rsTransactionElem : effectiveTransactionDataIndexMap_) {
+        if (rsTransactionElem.second.second.size()) {
+            transitionDataMutex_.unlock();
+            return false;
+        }
+    }
+    return true;
+}
+
+void RSMainThread::TransitionDataMutexUnlock()
+{
+    transitionDataMutex_.unlock();
 }
 } // namespace Rosen
 } // namespace OHOS

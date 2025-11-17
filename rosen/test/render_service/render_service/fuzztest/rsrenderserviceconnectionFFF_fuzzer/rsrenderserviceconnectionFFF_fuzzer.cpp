@@ -30,15 +30,18 @@
 #include "message_parcel.h"
 #include "securec.h"
 
+#include "feature_cfg/feature_param/performance_feature/hwc_param.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 
 namespace OHOS {
 namespace Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
+
 auto g_pid = getpid();
 auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
@@ -49,7 +52,9 @@ DVSyncFeatureParam dvsyncParam;
 auto generator = CreateVSyncGenerator();
 auto appVSyncController = new VSyncController(generator, 0);
 sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
+    g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = new RSClientToRenderConnection(
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
 const uint8_t DO_NOTIFY_LIGHT_FACTOR_STATUS = 0;
@@ -65,7 +70,7 @@ const uint8_t DO_SET_BEHIND_WINDOW_FILTER_ENABLED = 9;
 const uint8_t TARGET_SIZE = 10;
 const uint16_t TASK_WAIT_MICROSECONDS = 50000;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -133,16 +138,16 @@ void DoNotifyLightFactorStatus()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteInt32(lightFactorStatus);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifyPackageEvent()
@@ -150,7 +155,7 @@ void DoNotifyPackageEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -159,10 +164,10 @@ void DoNotifyPackageEvent()
     dataP.WriteUint32(listSize);
     dataP.WriteString(package);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifyRefreshRateEvent()
@@ -170,7 +175,7 @@ void DoNotifyRefreshRateEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -186,10 +191,10 @@ void DoNotifyRefreshRateEvent()
     dataP.WriteString(description);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifyDynamicModeEvent()
@@ -197,17 +202,17 @@ void DoNotifyDynamicModeEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     bool enableDynamicMode = GetData<bool>();
     dataP.WriteBool(enableDynamicMode);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifySoftVsyncEvent()
@@ -215,7 +220,7 @@ void DoNotifySoftVsyncEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -225,10 +230,10 @@ void DoNotifySoftVsyncEvent()
     dataP.WriteUint32(pid);
     dataP.WriteUint32(rateDiscount);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifyAppStrategyConfigChangeEvent()
@@ -236,7 +241,7 @@ void DoNotifyAppStrategyConfigChangeEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -250,10 +255,10 @@ void DoNotifyAppStrategyConfigChangeEvent()
     dataP.WriteString(configValue);
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifyHgmConfigEvent()
@@ -261,7 +266,7 @@ void DoNotifyHgmConfigEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -270,10 +275,10 @@ void DoNotifyHgmConfigEvent()
     dataP.WriteString(eventName);
     dataP.WriteBool(state);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifyScreenSwitched()
@@ -281,15 +286,15 @@ void DoNotifyScreenSwitched()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
-    if (connectionStub_ == nullptr) {
+    if (toServiceConnectionStub_ == nullptr) {
         return;
     }
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoNotifySoftVsyncRateDiscountEvent()
@@ -303,11 +308,11 @@ void DoNotifySoftVsyncRateDiscountEvent()
     uint32_t pid = GetData<uint32_t>();
     std::string name = GetData<std::string>();
     uint32_t rateDiscount = GetData<uint32_t>();
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint32(pid);
     dataParcel.WriteString(name);
     dataParcel.WriteUint32(rateDiscount);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 
     if (!connServerApp_) {
         uint64_t pidApp = static_cast<uint64_t>(getpid());
@@ -320,11 +325,11 @@ void DoNotifySoftVsyncRateDiscountEvent()
     pid = getpid();
     name = "TestVsync";
     rateDiscount = 2U;
-    dataP.WriteInterfaceToken(GetDescriptor());
+    dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataP.WriteUint32(pid);
     dataP.WriteString(name);
     dataP.WriteUint32(rateDiscount);
-    connectionStub_->OnRemoteRequest(code, dataP, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, replyParcel, option);
 }
 
 void DoSetBehindWindowFilterEnabled()
@@ -335,7 +340,7 @@ void DoSetBehindWindowFilterEnabled()
     MessageParcel replyParcel;
     MessageOption option;
 
-    if (!dataParcel.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     bool enabled = GetData<bool>();
@@ -349,7 +354,7 @@ void DoSetBehindWindowFilterEnabled()
     NodeId childId = 10002;
     surfaceNode->childrenBlurBehindWindow_.emplace(childId);
 
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
     // prevent variables from being destructed before the task finishes execution.
     usleep(TASK_WAIT_MICROSECONDS);
     nodeMap.surfaceNodeMap_.erase(surfaceNodeId);
@@ -366,11 +371,11 @@ void DoSetLayerTopForHWC()
     bool isTop = GetData<bool>();
     uint32_t zOrder = GetData<uint32_t>();
  
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteBool(isTop);
     dataParcel.WriteUint32(zOrder);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -384,8 +389,10 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 
     auto newPid = getpid();
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();
+    mainThread->hwcContext_ = std::make_shared<OHOS::Rosen::RSHwcContext>(
+        OHOS::Rosen::HWCParam::GetSourceTuningForAppMap(), OHOS::Rosen::HWCParam::GetSolidColorLayerMap());
     auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
+    OHOS::Rosen::CONN = new OHOS::Rosen::RSClientToServiceConnection(
         newPid,
         nullptr,
         mainThread,

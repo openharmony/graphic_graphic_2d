@@ -31,6 +31,7 @@
 #include "text/font_types.h"
 #include "utils/region.h"
 #include "utils/sampling_options.h"
+#include "utils/vertices.h"
 
 #include "js_drawing_utils.h"
 
@@ -241,6 +242,12 @@ static const std::vector<struct JsEnumInt> g_pathiteratorVerb = {
     { "DONE", static_cast<int32_t>(PathVerb::DONE) },
 };
 
+static const std::vector<struct JsEnumInt> g_vertexMode = {
+    { "TRIANGLES_VERTEXMODE", static_cast<int32_t>(VertexMode::TRIANGLES_VERTEXMODE) },
+    { "TRIANGLESSTRIP_VERTEXMODE", static_cast<int32_t>(VertexMode::TRIANGLESSTRIP_VERTEXMODE) },
+    { "TRIANGLESFAN_VERTEXMODE", static_cast<int32_t>(VertexMode::TRIANGLEFAN_VERTEXMODE) },
+};
+
 static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_intEnumClassMap = {
     { "BlendMode", g_blendMode },
     { "TextEncoding", g_textEncoding },
@@ -266,6 +273,7 @@ static const std::map<std::string_view, const std::vector<struct JsEnumInt>&> g_
     { "ScaleToFit", g_scaleToFit },
     { "CornerPos", g_cornerPos },
     { "PathIteratorVerb", g_pathiteratorVerb },
+    { "VertexMode", g_vertexMode },
 };
 
 napi_value JsEnum::JsEnumIntInit(napi_env env, napi_value exports)

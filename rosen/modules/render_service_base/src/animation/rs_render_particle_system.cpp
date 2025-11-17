@@ -104,10 +104,42 @@ void RSRenderParticleSystem::UpdateNoiseField(const std::shared_ptr<ParticleNois
     particleNoiseFields_ = particleNoiseFields;
 }
 
-void RSRenderParticleSystem::UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields)
+void RSRenderParticleSystem::UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
+    bool isIncrementalUpdate)
 {
+    if (!isIncrementalUpdate) {
+        particleRippleFields_ = particleRippleFields;
+        return;
+    }
+
+    if (!particleRippleFields || !particleRippleFields_) {
+        particleRippleFields_ = particleRippleFields;
+        return;
+    }
+
+    auto& existingFields = particleRippleFields_->rippleFields_;
+    auto& newFields = particleRippleFields->rippleFields_;
+
+    for (size_t i = 0; i < newFields.size() && i < existingFields.size(); ++i) {
+        const auto& newField = newFields[i];
+        const auto& existingField = existingFields[i];
+
+        if (newField && existingField &&
+            newField->center_ == existingField->center_ &&
+            ROSEN_EQ(newField->amplitude_, existingField->amplitude_) &&
+            ROSEN_EQ(newField->wavelength_, existingField->wavelength_) &&
+            ROSEN_EQ(newField->waveSpeed_, existingField->waveSpeed_) &&
+            ROSEN_EQ(newField->attenuation_, existingField->attenuation_) &&
+            newField->regionShape_ == existingField->regionShape_ &&
+            newField->regionPosition_ == existingField->regionPosition_ &&
+            newField->regionSize_ == existingField->regionSize_) {
+            newField->lifeTime_ = existingField->lifeTime_;
+        }
+    }
+
     particleRippleFields_ = particleRippleFields;
 }
+
 void RSRenderParticleSystem::UpdateVelocityField(const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields)
 {
     particleVelocityFields_ = particleVelocityFields;

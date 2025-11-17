@@ -713,23 +713,6 @@ HWTEST_F(RSSubThreadCacheTest, DrawUIFirstDfx, TestSize.Level1)
 }
 
 /**
- * @tc.name: BufferFormatNeedUpdate
- * @tc.desc: Test BufferFormatNeedUpdate
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST_F(RSSubThreadCacheTest, BufferFormatNeedUpdateTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
-    ASSERT_NE(surface, nullptr);
-    RSPaintFilterCanvas paintFilterCanvas(surface.get());
-    surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
-    EXPECT_TRUE(surfaceDrawable_->GetRsSubThreadCache().BufferFormatNeedUpdate(surface, true));
-    EXPECT_FALSE(surfaceDrawable_->GetRsSubThreadCache().BufferFormatNeedUpdate(surface, false));
-}
-
-/**
  * @tc.name: DealWithUIFirstCache
  * @tc.desc: Test not use uifirst cache
  * @tc.type: FUNC

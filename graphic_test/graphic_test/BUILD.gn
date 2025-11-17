@@ -140,6 +140,7 @@ ohos_unittest("RSGraphicTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "selinux_adapter:librestorecon",
+    "image_framework:image_native",
   ]
 
   defines += gpu_defines

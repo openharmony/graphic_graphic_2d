@@ -52,6 +52,11 @@ float TraceMemoryDump::GetGLMemorySize() const
 {
     return impl_->GetGLMemorySize();
 }
+
+float TraceMemoryDump::GetGLMemorySizeExcludeDMA() const
+{
+    return impl_->GetGLMemorySizeExcludeDMA();
+}
 }
 }
 }

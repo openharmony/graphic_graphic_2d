@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 constexpr int TWO = 2;
+constexpr size_t CLEANUP_THRESHOLD = 500;
 
 RSPointLightManager* RSPointLightManager::Instance()
 {
@@ -65,6 +66,29 @@ void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNo
     NodeId nodeId = renderNode->GetId();
     illuminatedNodeMap_.erase(nodeId);
 }
+void RSPointLightManager::SetChildHasVisibleIlluminated(
+    const std::shared_ptr<RSRenderNode>& renderNode, bool hasVisbleIlluminated)
+{
+    if (!renderNode) {
+        return;
+    }
+    NodeId id = renderNode->GetId();
+    auto weak_ptr = renderNode->weak_from_this();
+    if (hasVisbleIlluminated) {
+        childHasVisbleIlluminatedNodeMap_[id] = weak_ptr;
+    } else {
+        childHasVisbleIlluminatedNodeMap_.erase(id);
+    }
+}
+bool RSPointLightManager::GetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
+{
+    if (!renderNode) {
+        return false;
+    }
+    NodeId id = renderNode->GetId();
+    auto it = childHasVisbleIlluminatedNodeMap_.find(id);
+    return it != childHasVisbleIlluminatedNodeMap_.end();
+}
 void RSPointLightManager::AddDirtyLightSource(std::weak_ptr<RSRenderNode> renderNode)
 {
     dirtyLightSourceList_.emplace_back(renderNode);
@@ -80,11 +104,6 @@ void RSPointLightManager::ClearDirtyList()
 }
 void RSPointLightManager::PrepareLight()
 {
-    for (auto &[_, weakPtr] : illuminatedNodeMap_) {
-        if (auto node = weakPtr.lock()) {
-            node->UpdatePointLightDirtySlot();
-        }
-    }
     if (lightSourceNodeMap_.empty() || illuminatedNodeMap_.empty()) {
         ClearDirtyList();
         return;
@@ -92,15 +111,25 @@ void RSPointLightManager::PrepareLight()
     if ((dirtyIlluminatedList_.empty() && dirtyLightSourceList_.empty())) {
         return;
     }
-    for (const auto& illuminatedWeakPtr : dirtyIlluminatedList_) {
-        auto illuminatedNodePtr = illuminatedWeakPtr.lock();
-        if (illuminatedNodePtr) {
-            illuminatedNodePtr->GetRenderProperties().GetIlluminated()->ClearLightSourcesAndPosMap();
+    for (auto& [_, weakPtr] : illuminatedNodeMap_) {
+        auto illuminatedNodePtr = weakPtr.lock();
+        if (!illuminatedNodePtr) {
+            continue;
+        }
+        auto illuminatedPtr = illuminatedNodePtr->GetRenderProperties().GetIlluminated();
+        if (illuminatedPtr && !illuminatedPtr->GetLightSourcesAndPosMap().empty()) {
+            lastFrameIlluminatedNodeSet_.insert(illuminatedNodePtr->GetId());
+            illuminatedPtr->ClearLightSourcesAndPosMap();
         }
     }
     PrepareLight(lightSourceNodeMap_, dirtyIlluminatedList_, false);
     PrepareLight(illuminatedNodeMap_, dirtyLightSourceList_, true);
     ClearDirtyList();
+    lastFrameIlluminatedNodeSet_.clear();
+    // clean up expired node
+    if (childHasVisbleIlluminatedNodeMap_.size() > CLEANUP_THRESHOLD) {
+        EraseIf(childHasVisbleIlluminatedNodeMap_, [](const auto& pair) -> bool { return pair.second.expired(); });
+    }
 }
 void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& map,
     std::vector<std::weak_ptr<RSRenderNode>>& dirtyList, bool isLightSourceDirty)
@@ -128,9 +157,15 @@ void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<
 void RSPointLightManager::CheckIlluminated(
     const std::shared_ptr<RSRenderNode>& lightSourceNode, const std::shared_ptr<RSRenderNode>& illuminatedNode)
 {
+    auto illuminatedRootNodeId = illuminatedNode->GetInstanceRootNodeId();
+    auto lightSourceRootNodeId = lightSourceNode->GetInstanceRootNodeId();
+    if (illuminatedRootNodeId != lightSourceRootNodeId) {
+        return;
+    }
     const auto& geoPtr = (illuminatedNode->GetRenderProperties().GetBoundsGeometry());
     auto lightSourcePtr = lightSourceNode->GetRenderProperties().GetLightSource();
-    if (!geoPtr || geoPtr->IsEmpty() || !lightSourcePtr) {
+    auto illuminatedPtr = illuminatedNode->GetRenderProperties().GetIlluminated();
+    if (!geoPtr || geoPtr->IsEmpty() || !lightSourcePtr || !illuminatedPtr) {
         return;
     }
     RectI illuminatedAbsRect = geoPtr->GetAbsRect();
@@ -147,11 +182,15 @@ void RSPointLightManager::CheckIlluminated(
     } else if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         inIlluminatedRange = illuminatedRange.Intersect(lightAbsPositionY, lightAbsPositionX);
     }
-    auto illuminatedRootNodeId = illuminatedNode->GetInstanceRootNodeId();
-    auto lightSourceRootNodeId = lightSourceNode->GetInstanceRootNodeId();
-    if (inIlluminatedRange && illuminatedRootNodeId == lightSourceRootNodeId) {
+
+    if (inIlluminatedRange && illuminatedPtr->GetLightSourcesAndPosMap().count(lightSourcePtr) == 0) {
         auto lightPos = CalculateLightPosForIlluminated(*lightSourcePtr, geoPtr->GetAbsRect());
-        illuminatedNode->GetRenderProperties().GetIlluminated()->AddLightSourcesAndPos(lightSourcePtr, lightPos);
+        illuminatedPtr->AddLightSourcesAndPos(lightSourcePtr, lightPos);
+        illuminatedNode->UpdatePointLightDirtySlot();
+        illuminatedNode->SetDirty();
+    }
+    // lastframe is illuminated but curframe not illuminated should be mark dirty
+    if (!inIlluminatedRange && lastFrameIlluminatedNodeSet_.count(illuminatedNode->GetId()) == 1) {
         illuminatedNode->SetDirty();
     }
 }

@@ -505,6 +505,28 @@ OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapNine(OH_Drawing_Canvas* cCanva
 #endif
 }
 
+OH_Drawing_ErrorCode OH_Drawing_CanvasDrawPixelMapMesh(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
+    uint32_t meshWidth, uint32_t meshHeight, const float* vertices, uint32_t verticesSize, uint32_t vertOffset,
+    const uint32_t* colors, uint32_t colorsSize, uint32_t colorOffset)
+{
+#ifdef OHOS_PLATFORM
+    Canvas* canvas = CastToCanvas(cCanvas);
+    if (canvas == nullptr || pixelMap == nullptr || vertices == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    std::shared_ptr<Media::PixelMap> p = OHOS::Rosen::GetPixelMapFromNativePixelMap(pixelMap);
+    OH_Drawing_ErrorCode errorCode = DrawingCanvasUtils::DrawPixelMapMesh(canvas, p, meshWidth, meshHeight,
+        vertices, verticesSize, vertOffset, colors, colorsSize, colorOffset);
+    auto iter = g_canvasMap.find(cCanvas);
+    if (iter != g_canvasMap.end() && iter->second != nullptr) {
+        iter->second->MarkDirty();
+    }
+    return errorCode;
+#else
+    return OH_DRAWING_SUCCESS;
+#endif
+}
+
 void OH_Drawing_CanvasDrawPixelMapRect(OH_Drawing_Canvas* cCanvas, OH_Drawing_PixelMap* pixelMap,
     const OH_Drawing_Rect* src, const OH_Drawing_Rect* dst, const OH_Drawing_SamplingOptions* cSampingOptions)
 {

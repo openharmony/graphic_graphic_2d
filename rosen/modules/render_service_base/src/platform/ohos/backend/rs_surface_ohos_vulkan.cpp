@@ -403,13 +403,17 @@ void RSSurfaceOhosVulkan::SubmitHapeTask(const uint64_t& curFrameId)
     taskHandleMap_[curFrameId] = hpaeTask.taskPtr;
     HPAE_LOGD("mhc_so: GP before aae submit, curFrameId: %{public}" PRIu64 ", "
         "taskId: %{public}u", curFrameId, hpaeTask.taskId);
-      
+
     void** taskHandleVec[3] = { &(taskHandleMap_[curFrameId]) }; // max count for multi-blur is 3
 
     auto hpaePostFunc = [curFrameId, taskId = hpaeTask.taskId, this] () {
         std::lock_guard<std::mutex> lock(taskHandleMapMutex_);
-        HPAE_LOGD("GP aae postfunc deinit[%u]", taskId);
-        HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
+        int32_t ret = HianimationManager::GetInstance().HianimationDestroyTaskAndNotify(taskId);
+        HPAE_LOGD("GP aae postfunc deinit[%u], retusn[%d]", taskId, ret);
+        if (UNLIKELY(ret == MHC_ERROR_HPAE_BLUR)) {
+            HPAE_LOGE("HPAE task error: %{public}d", ret);
+            HianimationManager::GetInstance().HianimationDumpDebugInfo(taskId);
+        }
         taskHandleMap_.erase(curFrameId);
     };
     RSHpaeFfrtPatternManager::Instance().MHCSubmitTask(curFrameId, MHC_PatternTaskName::BLUR_HPAE,
@@ -530,12 +534,12 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     RSTagTracker tagTracker(mSkContext, RSTagTracker::TAGTYPE::TAG_ACQUIRE_SURFACE);
 
     auto* callbackInfo = new RsVulkanInterface::CallbackSemaphoreInfo(vkContext, semaphore, -1);
- 
+
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
- 
+
     std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface.drawingSurface, frameIdVec);
-   
+
 #if defined(ROSEN_OHOS)
     RSHpaeScheduler::GetInstance().WaitBuildTask();
     uint64_t preFrameId = RSHpaeScheduler::GetInstance().GetHpaeFrameId();

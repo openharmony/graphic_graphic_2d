@@ -53,6 +53,8 @@ public:
 
     int32_t HianimationDestroyTask(uint32_t taskId);
 
+    void HianimationDumpDebugInfo(uint32_t taskId);
+
     bool HianimationInvalid();
 
     int32_t HianimationDestroyTaskAndNotify(uint32_t taskId);
@@ -76,6 +78,7 @@ private:
     std::condition_variable taskAvailableCv_;
 
     std::mutex algoInitMutex_;
+    bool algoInited_ = false;
     bool algoInitDone_ = true;
     std::condition_variable algoInitCv_;
 };

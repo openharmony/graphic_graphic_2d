@@ -40,6 +40,8 @@ public:
     virtual float GetGpuMemorySizeInMB() const = 0;
 
     virtual float GetGLMemorySize() const = 0;
+
+    virtual float GetGLMemorySizeExcludeDMA() const = 0;
 };
 }
 }

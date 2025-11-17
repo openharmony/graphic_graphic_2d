@@ -319,7 +319,8 @@ struct RSSurfaceCaptureConfig {
         return mainScreenRect == config.mainScreenRect &&
             specifiedAreaRect == config.specifiedAreaRect &&
             uiCaptureInRangeParam.endNodeId == config.uiCaptureInRangeParam.endNodeId &&
-            uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize;
+            uiCaptureInRangeParam.useBeginNodeSize == config.uiCaptureInRangeParam.useBeginNodeSize &&
+            blackList == config.blackList;
     }
 };
 

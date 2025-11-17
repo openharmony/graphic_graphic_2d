@@ -31,6 +31,8 @@
 #include "zlib.h"
 #include <parameters.h>
 
+#include "platform/drawing/rs_surface.h"
+
 namespace OHOS {
 static const int NUMBER_TWO = 2;
 static const int READ_SIZE = 8192;

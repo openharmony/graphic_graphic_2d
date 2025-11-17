@@ -94,7 +94,6 @@ napi_value MaskNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_STATIC_FUNCTION("createRadialGradientMask", CreateRadialGradientMask),
         DECLARE_NAPI_STATIC_FUNCTION("createPixelMapMask", CreatePixelMapMask),
         DECLARE_NAPI_STATIC_FUNCTION("createWaveGradientMask", CreateWaveGradientMask),
-        DECLARE_NAPI_STATIC_FUNCTION("createImageMask", CreateImageMask),
         DECLARE_NAPI_STATIC_FUNCTION("createUseEffectMask", CreateUseEffectMask),
     };
 
@@ -441,6 +440,9 @@ napi_value MaskNapi::CreatePixelMapMask(napi_env env, napi_callback_info info)
     napi_value argv[maxArgc];
     napi_value thisVar = nullptr;
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    if (status == napi_ok && realArgc == NUM_1) {
+        return CreateImageMask(env, info);
+    }
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && minArgc <= realArgc && realArgc <= maxArgc, nullptr,
         MASK_LOG_E("MaskNapi CreatePixelMapMask parsing input fail."));
     auto para = std::make_shared<PixelMapMaskPara>();

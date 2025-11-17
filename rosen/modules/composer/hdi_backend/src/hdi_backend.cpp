@@ -187,6 +187,11 @@ void HdiBackend::Repaint(const OutputPtr &output)
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
     }
 
+    if (screenPowerOnChanged_) {
+        HLOGI("Power On First Frame commit finish");
+        screenPowerOnChanged_ = false;
+    }
+
     if (skipState != GRAPHIC_DISPLAY_SUCCESS) {
         ret = output->UpdateLayerCompType();
         if (ret != GRAPHIC_DISPLAY_SUCCESS) {
@@ -405,6 +410,11 @@ RosenError HdiBackend::RegHwcEventCallback(RSHwcEventCallback func, void* data)
         return ROSEN_ERROR_API_FAILED;
     }
     return ROSEN_ERROR_OK;
+}
+
+void HdiBackend::SetScreenPowerOnChanged(bool flag)
+{
+    screenPowerOnChanged_ = flag;
 }
 } // namespace Rosen
 } // namespace OHOS

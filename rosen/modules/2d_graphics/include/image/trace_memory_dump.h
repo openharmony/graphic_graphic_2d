@@ -53,6 +53,8 @@ public:
 
     float GetGLMemorySize() const;
 
+    float GetGLMemorySizeExcludeDMA() const;
+
     template<typename T>
     T* GetImpl() const
     {

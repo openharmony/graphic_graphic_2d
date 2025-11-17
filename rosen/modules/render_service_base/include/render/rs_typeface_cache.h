@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <list>
+#include <unordered_set>
 #include "text/typeface.h"
 
 #include "memory/rs_dfx_string.h"
@@ -42,7 +43,7 @@ public:
       * Checks if the given hash exists in the cache already
       * provided by someone else. If so, increases ref count to reduce registration cost.
       */
-    bool HasTypeface(uint64_t globalUniqueId, uint32_t hash);
+    uint8_t HasTypeface(uint64_t globalUniqueId, uint32_t hash);
     void CacheDrawingTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface> typeface);
     std::shared_ptr<Drawing::Typeface> GetDrawingTypefaceCache(uint64_t globalUniqueId) const;
     std::shared_ptr<Drawing::Typeface> GetDrawingTypefaceCacheByHash(uint64_t globalId) const;
@@ -78,6 +79,7 @@ public:
         uint32_t refCount = 0;
     };
     void Dump() const;
+    void Dump(DfxString& log) const;
 
 private:
     bool AddIfFound(uint64_t uniqueId, uint32_t hash);
@@ -93,7 +95,7 @@ private:
 
     mutable std::mutex listMutex_;
     std::list<RSTypefaceRef> delayDestroyTypefaces_;
-    std::unordered_map<uint32_t, std::vector<uint64_t>> typefaceHashQueue_;
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>> typefaceHashQueue_;
 };
 } // namespace Rosen
 } // namespace OHOS

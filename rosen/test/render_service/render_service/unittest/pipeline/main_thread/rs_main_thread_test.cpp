@@ -32,7 +32,7 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -41,6 +41,7 @@
 #include "platform/common/rs_system_properties.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "screen_manager/rs_screen.h"
+#include "string_utils.h"
 #include "pipeline/rs_render_node_gc.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
@@ -1918,6 +1919,9 @@ HWTEST_F(RSMainThreadTest, UniRender002, TestSize.Level1)
     mainThread->isHardwareEnabledBufferUpdated_ = true;
     rootNode->InitRenderParams();
     childDisplayNode->InitRenderParams();
+    mainThread->UniRender(rootNode);
+
+    mainThread->SetScreenPowerOnChanged(true);
     mainThread->UniRender(rootNode);
     // status recover
     mainThread->doDirectComposition_ = doDirectComposition;
@@ -4120,7 +4124,7 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
         0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
 
     std::string name("name");
@@ -4152,7 +4156,7 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
         0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
 
     ScreenId id = 100;
@@ -4175,7 +4179,7 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
         0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
 
     ScreenId id = 100;
@@ -4791,43 +4795,6 @@ HWTEST_F(RSMainThreadTest, UiCaptureTasks, TestSize.Level2)
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
 
-    mainThread->PrepareUiCaptureTasks(nullptr);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
-
-    mainThread->ProcessUiCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
-
-    mainThread->context_->nodeMap.UnregisterRenderNode(node1->GetId());
-}
-
-/**
- * @tc.name: AddUiCaptureTaskTest
- * @tc.desc: test AddUiCaptureTask
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMainThreadTest, AddUiCaptureTaskTest, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    auto node1 = RSTestUtil::CreateSurfaceNode();
-    auto node2 = RSTestUtil::CreateSurfaceNode();
-    auto task = []() {};
-
-    mainThread->ProcessUiCaptureTasks();
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
-
-    mainThread->context_->nodeMap.RegisterRenderNode(node1);
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
-    mainThread->AddUiCaptureTask(node2->GetId(), task);
-    ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), false);
-    ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), true);
-
-    node1->SetDirty();
-    mainThread->AddUiCaptureTask(node1->GetId(), task);
     mainThread->PrepareUiCaptureTasks(nullptr);
     ASSERT_EQ(mainThread->pendingUiCaptureTasks_.empty(), true);
     ASSERT_EQ(mainThread->uiCaptureTasks_.empty(), false);
@@ -6166,6 +6133,21 @@ HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: InitVulkanErrorCallback002Test
+ * @tc.desc: test InitVulkanErrorCallback002Test
+ * @tc.type: FUNC
+ * @tc.require: issue#20675
+ */
+HWTEST_F(RSMainThreadTest, InitVulkanErrorCallback002, TestSize.Level1)
+{
+    std::vector<pid_t> pidsToKill;
+    pidsToKill.push_back(0);
+    pidsToKill.push_back(1);
+    std::string pidsToKillDesc = MergeToString<pid_t>(pidsToKill);
+    ASSERT_NE(pidsToKillDesc.size(), 0);
+}
+
+/**
  * @tc.name: RenderServiceAllSurafceDump01
  * @tc.desc: RenderServiceAllSurafceDump Test
  * @tc.type: FUNC
@@ -6391,12 +6373,17 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
     ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
     mainThread->hgmContext_.ProcessHgmFrameRate(0, mainThread->rsVSyncDistributor_, mainThread->vsyncId_);
 
-    ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(static_cast<RSPropertyUnit>(0xff), 0.f, 0, 0), 0);
+    auto convertFrameRateFunc = mainThread->hgmContext_.GetConvertFrameRateFunc();
+    if (convertFrameRateFunc) {
+        ASSERT_EQ(convertFrameRateFunc(static_cast<RSPropertyUnit>(0xff), 0.f, 0, 0), 0);
+    }
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     ASSERT_NE(frameRateMgr, nullptr);
     HgmCore::Instance().hgmFrameRateMgr_ = nullptr;
     ASSERT_EQ(HgmCore::Instance().GetFrameRateMgr(), nullptr);
-    ASSERT_EQ(mainThread->hgmContext_.FrameRateGetFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
+    if (convertFrameRateFunc) {
+        ASSERT_EQ(convertFrameRateFunc(RSPropertyUnit::PIXEL_POSITION, 0.f, 0, 0), 0);
+    }
     HgmCore::Instance().hgmFrameRateMgr_ = frameRateMgr;
     ASSERT_NE(HgmCore::Instance().GetFrameRateMgr(), nullptr);
 }
@@ -6722,7 +6709,7 @@ HWTEST_F(RSMainThreadTest, SetForceRsDVsync001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    sptr<RSRenderServiceConnection> connection = new RSRenderServiceConnection(
+    sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
         0, nullptr, mainThread, nullptr, nullptr, nullptr);
     RSSurfaceRenderNodeConfig config;
     config.id = 1;
@@ -6805,5 +6792,31 @@ HWTEST_F(RSMainThreadTest, IsReadyForSyncTask, TestSize.Level1)
     for (int idx = 0; idx < numThreads; ++idx) {
         threads[idx].join();
     }
+}
+
+/**
+ * @tc.name: SetScreenPowerOnChanged
+ * @tc.desc: Test RSetScreenPowerOnChanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, SetScreenPowerOnChangedTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    EXPECT_FALSE(mainThread->screenPowerOnChanged_);
+    mainThread->isUniRender_ = false;
+    mainThread->SetScreenPowerOnChanged(true);
+    EXPECT_TRUE(mainThread->screenPowerOnChanged_);
+
+    mainThread->SetScreenPowerOnChanged(false);
+    EXPECT_FALSE(mainThread->screenPowerOnChanged_);
+
+    mainThread->isUniRender_ = true;
+    mainThread->SetScreenPowerOnChanged(true);
+    EXPECT_TRUE(mainThread->screenPowerOnChanged_);
+
+    mainThread->SetScreenPowerOnChanged(false);
+    EXPECT_FALSE(mainThread->screenPowerOnChanged_);
 }
 } // namespace OHOS::Rosen

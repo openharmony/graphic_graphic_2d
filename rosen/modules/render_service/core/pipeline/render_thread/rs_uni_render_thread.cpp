@@ -389,10 +389,18 @@ void RSUniRenderThread::Render()
         }
     }
     Drawing::Canvas canvas;
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
     RSNodeStats::GetInstance().ClearNodeStats();
-    rootNodeDrawable_->OnDraw(canvas);
+    rootNodeDrawable_->OnDraw(paintFilterCanvas);
     RSNodeStats::GetInstance().ReportRSNodeLimitExceeded();
     PerfForBlurIfNeeded();
+
+    if (screenPowerOnChanged_) {
+        RS_LOGI("RSUniRenderThread Power On First Frame finish, processNode:%{public}d",
+                 totalProcessNodeNum_);
+        screenPowerOnChanged_ = false;
+    }
+    totalProcessNodeNum_ = 0;
 }
 
 void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks)
@@ -784,7 +792,7 @@ static void TrimMemGpuLimitType(Drawing::GPUContext* gpuContext, std::string& du
         + "==>" + FormatNumber(maxResourcesBytes) + "\n");
 }
 
-void RSUniRenderThread::DumpMem(DfxString& log)
+void RSUniRenderThread::DumpMem(DfxString& log, bool isLite)
 {
     std::vector<std::pair<NodeId, std::string>> nodeTags;
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
@@ -793,7 +801,7 @@ void RSUniRenderThread::DumpMem(DfxString& log)
         std::string name = node->GetName() + " " + std::to_string(ExtractPid(nodeId)) + " " + std::to_string(nodeId);
         nodeTags.push_back({nodeId, name});
     });
-    PostSyncTask([&log, &nodeTags, this]() {
+    PostSyncTask([&log, &nodeTags, this, isLite]() {
         if (!uniRenderEngine_) {
             return;
         }
@@ -802,7 +810,7 @@ void RSUniRenderThread::DumpMem(DfxString& log)
             return;
         }
         auto gpuContext = renderContext->GetDrGPUContext();
-        MemoryManager::DumpDrawingGpuMemory(log, gpuContext, nodeTags);
+        MemoryManager::DumpDrawingGpuMemory(log, gpuContext, nodeTags, isLite);
     });
 }
 
@@ -1215,6 +1223,21 @@ void RSUniRenderThread::DumpVkImageInfo(std::string &dumpString)
             engine->DumpVkImageInfo(dumpString);
         }
     });
+}
+
+void RSUniRenderThread::SetScreenPowerOnChanged(bool val)
+{
+    screenPowerOnChanged_ = val;
+}
+
+bool RSUniRenderThread::GetSetScreenPowerOnChanged()
+{
+    return screenPowerOnChanged_;
+}
+
+void RSUniRenderThread::CollectProcessNodeNum(int num)
+{
+    totalProcessNodeNum_ += num;
 }
 } // namespace Rosen
 } // namespace OHOS

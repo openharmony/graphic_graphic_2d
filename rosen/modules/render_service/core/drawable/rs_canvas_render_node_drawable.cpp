@@ -78,9 +78,6 @@ bool RSCanvasRenderNodeDrawable::IsUiRangeCaptureEndNode()
  */
 void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
-    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
-        return;
-    }
 #ifdef RS_ENABLE_GPU
     SetDrawSkipType(DrawSkipType::NONE);
     // Draw only when should paint is valid or when this node is the end node of the range ui-capture
@@ -114,6 +111,9 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         !params->HasUnobscuredUEC() && !params->GetDrawingCacheChanged());
     if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
+        return;
+    }
+    if (LIKELY(uniParam) && uniParam->IsSecurityDisplay() && RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
         return;
     }
 
@@ -178,7 +178,9 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             return;
         }
     }
-    if (RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
+
+    const auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
+    if (LIKELY(uniParam) && uniParam->IsSecurityDisplay() && RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
         return;
     }
     bool stopDrawForRangeCapture = (canvas.GetUICapture() &&

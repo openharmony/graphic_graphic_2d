@@ -49,7 +49,7 @@ void RSRenderFilterBaseTest::TearDown() {}
 HWTEST_F(RSRenderFilterBaseTest, UpdateVisualEffectParamImpl001, TestSize.Level1)
 {
     auto testEffect = std::make_shared<Drawing::GEVisualEffect>(
-        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::DISPLACEMENT_DISTORT));
+        RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::SDF_RRECT_SHAPE));
     EXPECT_NE(testEffect, nullptr);
 
     RectT<float> rect;

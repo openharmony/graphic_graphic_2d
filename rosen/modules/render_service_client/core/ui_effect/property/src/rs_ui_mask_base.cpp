@@ -53,18 +53,6 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGFrameGradientMask>();
         }
     },
-    {RSNGEffectType::SDF_UNION_OP_MASK, [] {
-            return std::make_shared<RSNGSDFUnionOpMask>();
-        }
-    },
-    {RSNGEffectType::SDF_SMOOTH_UNION_OP_MASK, [] {
-            return std::make_shared<RSNGSDFSmoothUnionOpMask>();
-        }
-    },
-    {RSNGEffectType::SDF_RRECT_MASK, [] {
-            return std::make_shared<RSNGSDFRRectMask>();
-        }
-    },
     {RSNGEffectType::IMAGE_MASK, [] {
             return std::make_shared<RSNGImageMask>();
         }

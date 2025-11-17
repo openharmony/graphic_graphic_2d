@@ -92,6 +92,10 @@ public:
     void ReleaseNodeMemNotOnTree();
     void SetAbilityState(pid_t pid, bool isBackground);
     void ReleaseNodeNotOnTree(pid_t pid);
+    void SetScbPid(pid_t pid)
+    {
+        scbPid_ = pid;
+    }
 
 private:
     GCLevel JudgeGCLevel(uint32_t remainBucketSize);
@@ -123,6 +127,7 @@ private:
     std::mutex nodeNotOnTreeMutex_;
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::weak_ptr<RSBaseRenderNode>>> notOnTreeNodeMap_;
     std::set<pid_t> backgroundPidSet_;
+    pid_t scbPid_;
 };
 } // namespace Rosen
 } // namespace OHOS

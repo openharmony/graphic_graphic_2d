@@ -676,15 +676,15 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenSize(
         if (firstBufferRotation == ScreenRotation::INVALID_SCREEN_ROTATION) {
             screenDrawable.SetFirstBufferRotation(curBufferRotation);
             RS_LOGI("RSUniRenderVirtualProcessor::%{public}s, set firstBufferRotation: %{public}d,"
-                "width: %{public}" PRIu32 ", height: %{public}" PRIu32, __func__, static_cast<int>(curBufferRotation),
+                "width: %{public}d, height: %{public}d", __func__, static_cast<int>(curBufferRotation),
                 renderFrameConfig_.width, renderFrameConfig_.height);
         } else if (CheckIfBufferSizeNeedChange(firstBufferRotation, curBufferRotation)) {
             std::swap(renderFrameConfig_.width, renderFrameConfig_.height);
             std::swap(virtualScreenInfo.width, virtualScreenInfo.height);
-            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}" PRIu32
-                ", height: %{public}" PRIu32, __func__, renderFrameConfig_.width, renderFrameConfig_.height);
+            RS_LOGD("RSUniRenderVirtualProcessor::%{public}s, swap buffer width and height, width: %{public}d, "
+                "height: %{public}d", __func__, renderFrameConfig_.width, renderFrameConfig_.height);
             RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: swap buffer width and height, "
-                "width: %" PRIu32 "height: %" PRIu32, __func__, renderFrameConfig_.width, renderFrameConfig_.height);
+                "width: %d, height: %d", __func__, renderFrameConfig_.width, renderFrameConfig_.height);
         }
     }
 

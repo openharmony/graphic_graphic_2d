@@ -84,6 +84,10 @@
 #define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel) RSProfiler::IsFirstFrameParcel(parcel)
 #define RS_PROFILER_KILL_PID(pid) RSProfiler::JobMarshallingKillPid(pid)
 #define RS_PROFILER_KILL_PID_END() RSProfiler::JobMarshallingKillPidEnd()
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber) \
+    RSProfiler::TransactionUnmarshallingStart(parcel, parcelNumber)
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber) \
+    RSProfiler::TransactionUnmarshallingEnd(parcel, parcelNumber)
 #define RS_PROFILER_RSLOGEOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::ERROR, format, argptr)
 #define RS_PROFILER_RSLOGWOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::WARNING, format, argptr)
 #define RS_PROFILER_RSLOGDOUTPUT(format, argptr) RSProfiler::RSLogOutput(RSProfilerLogType::WARNING, format, argptr)
@@ -97,8 +101,6 @@
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage) \
     RSProfiler::LogShaderCall(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() RSProfiler::IsRecordingMode()
-#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber) \
-    RSProfiler::TransactionUnmarshallingStart(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels) RSProfiler::AddAnimationNodeMetrics(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns) RSProfiler::AddAnimationStart(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns) RSProfiler::AddAnimationFinish(id, timestamp_ns)
@@ -148,6 +150,8 @@
 #define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel) false
 #define RS_PROFILER_KILL_PID(pid) RSProfiler::JobMarshallingKillPid(pid)
 #define RS_PROFILER_KILL_PID_END() RSProfiler::JobMarshallingKillPidEnd()
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber)
 #define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize)
 #define RS_PROFILER_RSLOGEOUTPUT(format, argptr)
 #define RS_PROFILER_RSLOGWOUTPUT(format, argptr)
@@ -161,7 +165,6 @@
 #define RS_PROFILER_ADD_MESA_BLUR_METRICS(area)
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() false
-#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns)
@@ -185,8 +188,10 @@ namespace OHOS::Rosen {
 
 class RSRenderService;
 class RSMainThread;
-class RSIRenderServiceConnection;
-class RSRenderServiceConnection;
+class RSIClientToServiceConnection;
+class RSClientToServiceConnection;
+class RSIClientToRenderConnection;
+class RSClientToRenderConnection;
 class RSTransactionData;
 class RSRenderNode;
 class RSProperties;
@@ -475,7 +480,7 @@ public:
     static void OnCreateConnection(pid_t pid);
 
     // see RenderServiceConnection::OnRemoteRequest
-    static uint64_t OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
     static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
 
@@ -500,9 +505,11 @@ public:
         return static_cast<T>(PatchPlainPid(parcel, static_cast<pid_t>(pid)));
     }
 
+    RSB_EXPORT static void TransactionUnmarshallingStart(const Parcel& parcel, uint32_t parcelNumber);
+    RSB_EXPORT static void TransactionUnmarshallingEnd(const Parcel& parcel, uint32_t parcelNumber);
+
     RSB_EXPORT static bool ProcessAddChild(RSRenderNode* parent, RSRenderNode::SharedPtr child, int index);
     RSB_EXPORT static void PatchCommand(const Parcel& parcel, RSCommand* command);
-    RSB_EXPORT static void TransactionUnmarshallingStart(const Parcel& parcel, uint32_t parcelNumber);
     RSB_EXPORT static void PushOffset(std::vector<uint32_t>& commandOffsets, uint32_t offset);
     RSB_EXPORT static void PushOffsets(
         const Parcel& parcel, uint32_t parcelNumber, std::vector<uint32_t>& commandOffsets);
@@ -587,6 +594,9 @@ public:
 
     RSB_EXPORT static void SetMarshalFirstFrameThreadFlag(bool flag);
     RSB_EXPORT static bool GetMarshalFirstFrameThreadFlag();
+
+    RSB_EXPORT static uint64_t GetParseTransactionDataStartCounter();
+    RSB_EXPORT static uint64_t GetParseTransactionDataEndCounter();
 
     RSB_EXPORT static void RsMetricClear();
     RSB_EXPORT static void RsMetricSet(std::string name, std::string value);
@@ -767,8 +777,8 @@ private:
     static void ResetAnimationStamp();
 
     static void CreateMockConnection(pid_t pid);
-    static RSRenderServiceConnection* GetConnection(pid_t pid);
-    static pid_t GetConnectionPid(RSIRenderServiceConnection* connection);
+    static RSClientToServiceConnection* GetConnection(pid_t pid);
+    static pid_t GetConnectionPid(RSIClientToServiceConnection* connection);
     static std::vector<pid_t> GetConnectionsPids();
 
     static std::shared_ptr<RSRenderNode> GetRenderNode(uint64_t id);
@@ -830,6 +840,8 @@ private:
     static void SaveSkpOnCapture(const ArgList& args);
     static void SaveSkpExtended(const ArgList& args);
     static void SaveRdc(const ArgList& args);
+    static void PrintVsync(const ArgList& args);
+    static void PrintTime(const ArgList& args);
     static void DrawingCanvasRedrawEnable(const ArgList& args);
     static void RenderNodeKeepDrawCmd(const ArgList& args);
     static void PlaybackSetSpeed(const ArgList& args);
@@ -906,7 +918,7 @@ private:
     RSB_EXPORT static std::unordered_map<AnimationId, int64_t> animationsTimes_;
 
     friend class TestTreeBuilder;
-    friend class RSRenderServiceConnection;
+    friend class RSClientToServiceConnection;
 
     static uint64_t GetRootNodeId();
 };

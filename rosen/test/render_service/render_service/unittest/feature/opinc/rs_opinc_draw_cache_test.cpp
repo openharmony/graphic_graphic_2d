@@ -24,6 +24,7 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 constexpr NodeId DEFAULT_ID = 0xFFFF;
+constexpr int64_t CACHE_MEM = 100;
 
 class RSOpincDrawCacheTest : public testing::Test {
 public:
@@ -430,6 +431,37 @@ HWTEST_F(RSOpincDrawCacheTest, AfterDrawCache, TestSize.Level1)
     opincDrawCache.isDrawAreaEnable_ = DrawAreaEnableState::DRAW_AREA_DISABLE;
     opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params, isOpincDropNodeExt, opincRootTotalCount);
     ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_DISABLE);
+
+    opincDrawCache.rootNodeStragyType_ = NodeStrategyType::OPINC_AUTOCACHE;
+    opincDrawCache.recordState_ = NodeRecordState::RECORD_CACHING;
+    int64_t cacheMem = static_cast<int64_t>(opincDrawCache.screenRectInfo_.GetWidth()) *
+        static_cast<int64_t>(opincDrawCache.screenRectInfo_.GetHeight()) * SCREEN_RATIO + 1;
+    RSOpincManager::Instance().AddOpincCacheMem(cacheMem);
+    EXPECT_EQ(opincDrawCache.IsOpincCacheMemExceedThreshold(), true);
+    opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CACHING);
+
+    RSOpincManager::Instance().ReduceOpincCacheMem(cacheMem);
+    EXPECT_EQ(opincDrawCache.IsOpincCacheMemExceedThreshold(), false);
+    opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CACHING);
+
+    opincRootTotalCount = 0;
+    opincDrawCache.isOpincMarkCached_ = true;
+    EXPECT_EQ(opincDrawCache.OpincGetCachedMark(), true);
+    opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CACHING);
+
+    opincDrawCache.isOpincMarkCached_ = false;
+    opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CACHING);
+
+    opincDrawCache.screenRectInfo_ = {0, 0, 100, 200};
+    RectI absRect = {10, 10, 100, 100};
+    params.SetAbsDrawRect(absRect);
+    EXPECT_EQ(opincDrawCache.IsOpincNodeInScreenRect(params), false);
+    opincDrawCache.AfterDrawCache(*canvasAlpha.get(), params, isOpincDropNodeExt, opincRootTotalCount);
+    ASSERT_TRUE(opincDrawCache.recordState_ == NodeRecordState::RECORD_CACHING);
 }
 
 /**
@@ -525,6 +557,67 @@ HWTEST_F(RSOpincDrawCacheTest, DrawOpincDisabledDfx, TestSize.Level1)
     RSRenderParams params(id);
     opincDrawCache.DrawOpincDisabledDfx(canvas, params);
     ASSERT_TRUE(opincDrawCache.GetOpListUnionArea().IsEmpty());
+}
+
+/**
+ * @tc.name: AddOpincCacheMem
+ * @tc.desc: Test AddOpincCacheMem
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, AddOpincCacheMem, TestSize.Level1)
+{
+    int64_t cacheMem = RSOpincManager::Instance().GetOpincCacheMem();
+    int32_t cacheCount = RSOpincManager::Instance().GetOpincCacheCount();
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+
+    opincDrawCache.isAdd_ = false;
+    opincDrawCache.opCanCache_ = false;
+    opincDrawCache.AddOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(RSOpincManager::Instance().GetOpincCacheMem(), cacheMem);
+    EXPECT_EQ(RSOpincManager::Instance().GetOpincCacheCount(), cacheCount);
+
+    opincDrawCache.opCanCache_ = true;
+    opincDrawCache.AddOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(RSOpincManager::Instance().GetOpincCacheMem(), cacheMem + CACHE_MEM);
+    EXPECT_EQ(RSOpincManager::Instance().GetOpincCacheCount(), cacheCount + 1);
+    EXPECT_EQ(opincDrawCache.isAdd_, true);
+}
+
+/**
+ * @tc.name: ReduceOpincCacheMem
+ * @tc.desc: Test ReduceOpincCacheMem
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, ReduceOpincCacheMem, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+
+    opincDrawCache.isAdd_ = false;
+    opincDrawCache.ReduceOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(opincDrawCache.isAdd_, false);
+
+    opincDrawCache.isAdd_ = true;
+    opincDrawCache.ReduceOpincCacheMem(CACHE_MEM);
+    EXPECT_EQ(opincDrawCache.isAdd_, false);
+}
+
+/**
+ * @tc.name: IsOpincCacheMemExceedThreshold
+ * @tc.desc: Test IsOpincCacheMemExceedThreshold
+ * @tc.type: FUNC
+ * @tc.require: issueIC87OJ
+ */
+HWTEST_F(RSOpincDrawCacheTest, IsOpincCacheMemExceedThreshold, TestSize.Level1)
+{
+    DrawableV2::RSOpincDrawCache opincDrawCache;
+    EXPECT_EQ(opincDrawCache.IsOpincCacheMemExceedThreshold(), false);
+    int64_t cacheMem = static_cast<int64_t>(opincDrawCache.screenRectInfo_.GetWidth()) *
+        static_cast<int64_t>(opincDrawCache.screenRectInfo_.GetHeight()) * SCREEN_RATIO + 1;
+    RSOpincManager::Instance().AddOpincCacheMem(cacheMem);
+    EXPECT_EQ(opincDrawCache.IsOpincCacheMemExceedThreshold(), true);
+    RSOpincManager::Instance().ReduceOpincCacheMem(cacheMem);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -44,7 +44,7 @@ class RSB_EXPORT RSCanvasNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
     static void UpdateRecording(
-        RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList> drawCmds, uint16_t modifierType);
+        RSContext& context, NodeId id, std::shared_ptr<Drawing::DrawCmdList>& srcDrawCmds, uint16_t modifierType);
     static void ClearRecording(RSContext& context, NodeId id);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetColorGamut(RSContext& context, NodeId nodeId, uint32_t colorGamut);

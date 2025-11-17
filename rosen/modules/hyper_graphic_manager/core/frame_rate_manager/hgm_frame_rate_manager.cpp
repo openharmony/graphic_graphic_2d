@@ -128,8 +128,9 @@ void HgmFrameRateManager::InitConfig()
     auto screenList = hgmCore.GetScreenIds();
     curScreenId_.store(screenList.empty() ? 0 : screenList.front());
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
-    isLtpo_ = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_.load()));
-    std::string curScreenName = "screen" + std::to_string(curScreenId_.load()) + "_" + (isLtpo_ ? "LTPO" : "LTPS");
+    isLtpo_.store(hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(curScreenId_.load())));
+    std::string curScreenName = "screen" + std::to_string(
+        curScreenId_.load()) + "_" + (isLtpo_.load() ? "LTPO" : "LTPS");
     auto configData = hgmCore.GetPolicyConfigData();
     if (configData != nullptr) {
         auto iter = configData->screenStrategyConfigs_.find(curScreenName);
@@ -139,6 +140,7 @@ void HgmFrameRateManager::InitConfig()
         if (curScreenStrategyId_.empty()) {
             curScreenStrategyId_ = "LTPO-DEFAULT";
         }
+        isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         auto configVisitor = hgmCore.GetPolicyConfigVisitor();
         if (configVisitor != nullptr) {
             configVisitor->ChangeScreen(curScreenStrategyId_);
@@ -174,11 +176,12 @@ void HgmFrameRateManager::RegisterCoreCallbacksAndInitController(sptr<VSyncContr
             appController->SetPhaseOffset(0);
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPO);
         } else {
+            auto& hgmCore = HgmCore::Instance();
             if (RSUniRenderJudgement::IsUniRender()) {
-                int64_t offset = HgmCore::Instance().IsDelayMode() ?
+                int64_t offset = hgmCore.IsDelayMode() ?
                     UNI_RENDER_VSYNC_OFFSET_DELAY_MODE : UNI_RENDER_VSYNC_OFFSET;
-                rsController->SetPhaseOffset(offset);
-                appController->SetPhaseOffset(offset);
+                rsController->SetPhaseOffset(hgmCore.GetRsPhaseOffset(offset));
+                appController->SetPhaseOffset(hgmCore.GetAppPhaseOffset(offset));
             }
             CreateVSyncGenerator()->SetVSyncMode(VSYNC_MODE_LTPS);
         }
@@ -304,8 +307,8 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
         }
     }
 
-    if (hgmCore.GetLtpoEnabled() && isLtpo_ && rsRate > OLED_10_HZ &&
-        isUiDvsyncOn && GetCurScreenStrategyId().find("LTPO") != std::string::npos) {
+    if (hgmCore.GetLtpoEnabled() && IsLtpo() && rsRate > OLED_10_HZ &&
+        isUiDvsyncOn && isLtpoScreenStrategyId_.load()) {
         hgmCore.SetPendingScreenRefreshRate(rsRate);
         RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
@@ -676,8 +679,8 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     uint32_t refreshRate = currRefreshRate_;
     std::vector<uint32_t> supportRefreshRateVec;
     bool stylusFlag = (isStylusWakeUp_ && !stylusVec_.empty());
-    if ((isLtpo_ && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
-        (!isLtpo_ && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
+    if ((isLtpo_.load() && isAmbientStatus_ == LightFactorStatus::NORMAL_LOW && isAmbientEffect_) ||
+        (!isLtpo_.load() && isAmbientEffect_ && isAmbientStatus_ != LightFactorStatus::HIGH_LEVEL)) {
         RS_TRACE_NAME_FMT("Replace supported refresh rates from config");
         if (CheckAncoVoterStatus()) {
             supportRefreshRateVec = ancoLowBrightVec_;
@@ -721,94 +724,6 @@ uint32_t HgmFrameRateManager::CalcRefreshRate(const ScreenId id, const FrameRate
     return refreshRate;
 }
 
-int32_t HgmFrameRateManager::GetExpectedFrameRate(const RSPropertyUnit unit, float velocityPx,
-    int32_t areaPx, int32_t lengthPx) const
-{
-    static const std::map<RSPropertyUnit, std::string> typeMap = {
-        {RSPropertyUnit::PIXEL_POSITION, "translate"},
-        {RSPropertyUnit::PIXEL_SIZE, "scale"},
-        {RSPropertyUnit::RATIO_SCALE, "scale"},
-        {RSPropertyUnit::ANGLE_ROTATION, "rotation"}
-    };
-    if (auto it = typeMap.find(unit); it != typeMap.end()) {
-        return GetPreferredFps(it->second, PixelToMM(velocityPx), SqrPixelToSqrMM(areaPx), PixelToMM(lengthPx));
-    }
-    return 0;
-}
-
-int32_t HgmFrameRateManager::GetPreferredFps(const std::string& type, float velocityMM,
-    float areaSqrMM, float lengthMM) const
-{
-    const auto curScreenStrategyId = curScreenStrategyId_;
-    const std::string settingMode = std::to_string(curRefreshRateMode_);
-    static bool isBeta = RSSystemProperties::GetVersionType() == "beta";
-    if (isBeta) {
-        RS_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, area: %f, length: %f, Id: %s, Mode: %s",
-            type.c_str(), velocityMM, areaSqrMM, lengthMM, curScreenStrategyId.c_str(), settingMode.c_str());
-    }
-    auto& configData = HgmCore::Instance().GetPolicyConfigData();
-    if (!configData) {
-        return 0;
-    }
-    if (ROSEN_EQ(velocityMM, 0.f)) {
-        return 0;
-    }
-    if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end() ||
-        configData->screenConfigs_[curScreenStrategyId].find(settingMode) ==
-        configData->screenConfigs_[curScreenStrategyId].end()) {
-        return 0;
-    }
-    auto& screenSetting = configData->screenConfigs_[curScreenStrategyId][settingMode];
-    auto matchFunc = [velocityMM](const auto& pair) {
-        return velocityMM >= pair.second.min && (velocityMM < pair.second.max || pair.second.max == -1);
-    };
-
-    // find result if it's small size animation
-    bool needCheck = screenSetting.smallSizeArea > 0 && screenSetting.smallSizeLength > 0;
-    bool matchArea = areaSqrMM > 0 && areaSqrMM < screenSetting.smallSizeArea;
-    bool matchLength = lengthMM > 0 && lengthMM < screenSetting.smallSizeLength;
-    if (needCheck && matchArea && matchLength &&
-        screenSetting.smallSizeAnimationDynamicSettings.find(type) !=
-        screenSetting.smallSizeAnimationDynamicSettings.end()) {
-        auto& config = screenSetting.smallSizeAnimationDynamicSettings[type];
-        auto iter = std::find_if(config.begin(), config.end(), matchFunc);
-        if (iter != config.end()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps (small size): type: %s, speed: %f, area: %f, length: %f,"
-                "rate: %d", type.c_str(), velocityMM, areaSqrMM, lengthMM, iter->second.preferredFps);
-            return iter->second.preferredFps;
-        }
-    }
-
-    // it's not a small size animation or current small size config don't cover it, find result in normal config
-    if (screenSetting.animationDynamicSettings.find(type) != screenSetting.animationDynamicSettings.end()) {
-        auto& config = screenSetting.animationDynamicSettings[type];
-        auto iter = std::find_if(config.begin(), config.end(), matchFunc);
-        if (iter != config.end()) {
-            RS_OPTIONAL_TRACE_NAME_FMT("GetPreferredFps: type: %s, speed: %f, area: %f, length: %f, rate: %d",
-                type.c_str(), velocityMM, areaSqrMM, lengthMM, iter->second.preferredFps);
-            return iter->second.preferredFps;
-        }
-    }
-    return 0;
-}
-
-template<typename T>
-float HgmFrameRateManager::PixelToMM(T pixel)
-{
-    auto& hgmCore = HgmCore::Instance();
-    sptr<HgmScreen> hgmScreen = hgmCore.GetScreen(hgmCore.GetActiveScreenId());
-    if (hgmScreen && hgmScreen->GetPpi() > 0.f) {
-        return pixel / hgmScreen->GetPpi() * INCH_2_MM;
-    }
-    return 0.f;
-}
-
-template<typename T>
-float HgmFrameRateManager::SqrPixelToSqrMM(T sqrPixel)
-{
-    return PixelToMM(PixelToMM(sqrPixel));
-}
-
 void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
 {
     // based on the light determine whether allowed to reduce the screen refresh rate to avoid screen flicker
@@ -822,7 +737,7 @@ void HgmFrameRateManager::HandleLightFactorStatus(pid_t pid, int32_t state)
     if (pid != DEFAULT_PID) {
         cleanPidCallback_[pid].insert(CleanPidCallbackType::LIGHT_FACTOR);
     }
-    multiAppStrategy_.SetScreenType(isLtpo_);
+    multiAppStrategy_.SetScreenType(isLtpo_.load());
     multiAppStrategy_.HandleLightFactorStatus(state);
     isAmbientStatus_ = state;
     MarkVoteChange();
@@ -992,6 +907,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    SyncHgmConfigUpdateCallback();
     UpdateAppSupportedState();  // sync app state config when RefreshRateMode changed
 }
 
@@ -1025,7 +941,7 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
     auto isLtpo = hgmScreenInfo.IsLtpoType(hgmScreenInfo.GetScreenType(id));
     std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
 
-    isLtpo_ = isLtpo;
+    isLtpo_.store(isLtpo);
     lastCurScreenId_.store(curScreenId_.load());
     curScreenId_.store(id);
     hgmCore.SetActiveScreenId(curScreenId_.load());
@@ -1074,6 +990,7 @@ void HgmFrameRateManager::HandleScreenFrameRate(std::string curScreenName)
     curScreenDefaultStrategyId_ = curScreenStrategyId_;
 
     curScreenStrategyId_ = GetCurScreenExtStrategyId();
+    isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
     configVisitor->ChangeScreen(curScreenStrategyId_);
     UpdateScreenFrameRate();
 }
@@ -1092,6 +1009,7 @@ void HgmFrameRateManager::HandleScreenExtStrategyChange(bool status, const std::
         HILOG_COMM_INFO("HgmFrameRateManager::HandleScreenExtStrategyChange type:%{public}s, status:%{public}d",
             curScreenStrategyId.c_str(), status);
         curScreenStrategyId_ = curScreenStrategyId;
+        isLtpoScreenStrategyId_.store(curScreenStrategyId_.find("LTPO") != std::string::npos);
         auto configVisitor = HgmCore::Instance().GetPolicyConfigVisitor();
         if (configVisitor != nullptr) {
             configVisitor->ChangeScreen(curScreenStrategyId_);
@@ -1159,9 +1077,10 @@ void HgmFrameRateManager::UpdateScreenFrameRate()
     hgmCore.SetLtpoConfig();
     MarkVoteChange();
     HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    SyncHgmConfigUpdateCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
-    if (curScreenStrategyId_.find("LTPO") == std::string::npos) {
+    if (!isLtpoScreenStrategyId_) {
         DeliverRefreshRateVote({"VOTER_LTPO"}, REMOVE_VOTE);
     }
 
@@ -1358,7 +1277,7 @@ void HgmFrameRateManager::ProcessAdaptiveSync(const std::string& voterName)
 
 bool HgmFrameRateManager::CheckAncoVoterStatus() const
 {
-    if (isAmbientStatus_ != LightFactorStatus::NORMAL_LOW || !isLtpo_ ||
+    if (isAmbientStatus_ != LightFactorStatus::NORMAL_LOW || !isLtpo_.load() ||
         !isAmbientEffect_ || ancoLowBrightVec_.empty()) {
         return false;
     }
@@ -1532,10 +1451,9 @@ void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::str
 
 void HgmFrameRateManager::SetChangeGeneratorRateValid(bool valid)
 {
-    if (changeGeneratorRateValid_ == valid) {
+    if (changeGeneratorRateValid_.exchange(valid) == valid) {
         return;
     }
-    changeGeneratorRateValid_ = valid;
     if (!valid) {
         changeGeneratorRateValidTimer_.Start();
     }
@@ -1660,6 +1578,62 @@ bool HgmFrameRateManager::SetVsyncRateDiscountLTPO(const std::vector<uint64_t>& 
         UpdateSoftVSync(false);
     });
     return true;
+}
+
+void HgmFrameRateManager::SetHgmConfigUpdateCallback(
+    std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback)
+{
+    hgmConfigUpdateCallback_ = std::move(hgmConfigUpdateCallback);
+    SyncHgmConfigUpdateCallback();
+}
+
+void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
+{
+    auto data = std::make_shared<RPHgmConfigData>();
+    auto& hgmCore = HgmCore::Instance();
+    auto configData = hgmCore.GetPolicyConfigData();
+    if (configData == nullptr) {
+        TriggerHgmConfigUpdateCallback(data,
+            hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
+        return;
+    }
+
+    auto& screenConfig = configData->screenConfigs_;
+    auto iter = screenConfig.find(curScreenStrategyId_);
+    if (iter == screenConfig.end()) {
+        TriggerHgmConfigUpdateCallback(data,
+            hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
+        return;
+    }
+    const std::string settingMode = std::to_string(curRefreshRateMode_);
+    auto modeIter = iter->second.find(settingMode);
+    if (modeIter == iter->second.end()) {
+        TriggerHgmConfigUpdateCallback(data,
+            hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
+        return;
+    }
+    auto& screenSetting = modeIter->second;
+    if (auto screen = hgmCore.GetActiveScreen()) {
+        data->SetPpi(screen->GetPpi());
+        data->SetXDpi(screen->GetXDpi());
+        data->SetYDpi(screen->GetYDpi());
+    }
+    data->SetSmallSizeArea(screenSetting.smallSizeArea);
+    data->SetSmallSizeLength(screenSetting.smallSizeLength);
+    for (auto& [animType, dynamicSetting] : screenSetting.smallSizeAnimationDynamicSettings) {
+        for (auto& [animName, dynamicConfig] : dynamicSetting) {
+            data->AddSmallSizeAnimDynamicItem({
+                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
+        }
+    }
+    for (auto& [animType, dynamicSetting] : screenSetting.animationDynamicSettings) {
+        for (auto& [animName, dynamicConfig] : dynamicSetting) {
+            data->AddAnimDynamicItem({
+                animType, animName, dynamicConfig.min, dynamicConfig.max, dynamicConfig.preferredFps});
+        }
+    }
+    TriggerHgmConfigUpdateCallback(data,
+        hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
 }
 } // namespace Rosen
 } // namespace OHOS

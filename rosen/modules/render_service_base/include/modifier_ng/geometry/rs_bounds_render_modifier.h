@@ -29,6 +29,7 @@ public:
     {
         return Type;
     };
+    static void ResetProperties(RSProperties& properties);
 
 private:
     static const LegacyPropertyApplierMap LegacyPropertyApplierMap_;

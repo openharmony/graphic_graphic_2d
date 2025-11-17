@@ -26,6 +26,7 @@ ohos_unittest("text_ndk_test") {
     "font_test.cpp",
     "register_font_test.cpp",
     "text_font_descriptor_test.cpp",
+    "text_font_full_descriptor_test.cpp",
     "text_global_test.cpp",
     "text_lineTypography_test.cpp",
     "text_line_test.cpp",

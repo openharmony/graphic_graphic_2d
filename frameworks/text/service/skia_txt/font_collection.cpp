@@ -20,6 +20,7 @@
 #endif
 #include "convert.h"
 #include "custom_symbol_config.h"
+#include "font_collection_mgr.h"
 #include "texgine/src/font_descriptor_mgr.h"
 #include "txt/platform.h"
 #include "text/typeface.h"
@@ -95,13 +96,35 @@ std::shared_ptr<Drawing::FontMgr> FontCollection::GetFontMgr()
     return dfmanager_;
 }
 
+bool FontCollection::CheckLocalFontCollectionSize(uint64_t size)
+{
+    if (!IsLocalFontCollection()) {
+        return true;
+    }
+    if (localRegisteredSizeCount_ + size <= FontCollectionMgr::GetInstance().GetLocalFontCollectionMaxSize()) {
+        return true;
+    }
+    return false;
+}
+
+void FontCollection::ChangeLocalFontCollectionSize(LocalActionType type, uint64_t size)
+{
+    if (!IsLocalFontCollection()) {
+        return;
+    }
+    if (type == LocalActionType::ADD) {
+        localRegisteredSizeCount_ += size;
+    } else {
+        localRegisteredSizeCount_ -= size;
+    }
+}
+
 RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
 {
     if (ta.GetTypeface() == nullptr || Drawing::Typeface::GetTypefaceRegisterCallBack() == nullptr) {
         return RegisterError::INVALID_INPUT;
     }
 
-    std::unique_lock<std::shared_mutex> lock(mutex_);
     if (typefaceSet_.count(ta)) {
         TEXT_LOGI_LIMIT3_MIN(
             "Find same typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(), ta.GetHash());
@@ -138,6 +161,11 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         TEXT_LOGE("Failed to load font %{public}s", familyName.c_str());
         return nullptr;
     }
+    std::unique_lock<std::shared_mutex> lock(mutex_);
+    if (!CheckLocalFontCollectionSize(typeface->GetSize())) {
+        TEXT_LOGE("Has exceeded the set max value");
+        return nullptr;
+    }
     TypefaceWithAlias ta(familyName, typeface);
     FontCallbackGuard cb(this, ta.GetAlias(), loadFontStartCallback_, loadFontFinishCallback_);
     RegisterError err = RegisterTypeface(ta);
@@ -149,6 +177,7 @@ std::shared_ptr<Drawing::Typeface> FontCollection::LoadFont(
         typeface = ta.GetTypeface();
         if (dfmanager_->LoadDynamicFont(familyName, typeface)) {
             FontDescriptorMgrInstance.CacheDynamicTypeface(typeface, ta.GetAlias());
+            ChangeLocalFontCollectionSize(LocalActionType::ADD, typeface->GetSize());
             fontCollection_->ClearFontFamilyCache();
         } else {
             typefaceSet_.erase(ta);
@@ -211,6 +240,7 @@ std::vector<std::shared_ptr<Drawing::Typeface>> FontCollection::LoadThemeFont(
 
     std::vector<std::shared_ptr<Drawing::Typeface>> res;
     size_t index = 0;
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     for (size_t i = 0; i < data.size(); i += 1) {
         std::string themeFamily = SPText::DefaultFamilyNameMgr::GetInstance().GenerateThemeFamilyName(index);
         auto face = CreateTypeface(familyName, data[i].first, data[i].second);
@@ -276,6 +306,7 @@ bool FontCollection::UnloadFont(const std::string& familyName)
             FontDescriptorMgrInstance.DeleteDynamicTypefaceFromCache(familyName);
             fontCollection_->RemoveCacheByUniqueId(it->GetTypeface()->GetUniqueID());
             cb.AddTypefaceUniqueId(it->GetTypeface()->GetUniqueID());
+            ChangeLocalFontCollectionSize(LocalActionType::DEL, it->GetTypeface()->GetSize());
             typefaceSet_.erase(it++);
         } else {
             ++it;

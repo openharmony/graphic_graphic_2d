@@ -224,6 +224,15 @@ private:
     float stagingDynamicLightUpRate_ = 0.0f;
     float stagingDynamicLightUpDeg_ = 0.0f;
 };
+
+class RSMaterialFilterDrawable : public RSFilterDrawable {
+public:
+    RSMaterialFilterDrawable() = default;
+    ~RSMaterialFilterDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& node) override;
+};
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_DRAWABLE_RS_PROPERTY_DRAWABLE_BACKGROUND_H

@@ -81,6 +81,7 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.bottom_) ||
+        !data.ReadUInt64Vector(&captureConfig.blackList) ||
         !data.ReadUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.ReadBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.left_) ||

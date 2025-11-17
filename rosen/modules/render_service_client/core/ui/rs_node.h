@@ -68,6 +68,7 @@ class RSUIContext;
 class RSNGFilterBase;
 class RSNGShaderBase;
 class RSNGMaskBase;
+class RSNGShapeBase;
 class Blender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
@@ -1129,6 +1130,13 @@ public:
     void SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter);
 
     /**
+     * @brief Sets the material filter for the UI.
+     *
+     * @param materialFilter Pointer to a Filter that defines the material filter effect.
+     */
+    void SetUIMaterialFilter(const OHOS::Rosen::Filter* materialFilter);
+
+    /**
      * @brief Sets the visual effect for the UI.
      *
      * @param visualEffect Pointer to a VisualEffect that defines the visual effect.
@@ -1183,6 +1191,13 @@ public:
      * @param filter Indicates the filter to be applied.
      */
     void SetFilter(const std::shared_ptr<RSFilter>& filter);
+
+    /**
+     * @brief Sets the material filter.
+     *
+     * @param materialFilter Indicates the material filter to be applied.
+     */
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter);
 
     /**
      * @brief Sets the parameters for linear gradient blur.
@@ -1543,11 +1558,11 @@ public:
     void SetUseUnion(bool useUnion);
 
     /**
-     * @brief Sets the SDF Mask.
+     * @brief Sets the SDF Shape.
      *
-     * @param mask SDF Mask (SDF Union OP mask, SDF Smooth Union OP Mask, SDF RRect Mask)
+     * @param shape SDF Shape (SDF Union OP Shape, SDF Smooth Union OP Shape, SDF RRect Shape)
      */
-    void SetSDFMask(const std::shared_ptr<RSNGMaskBase>& mask);
+    void SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape);
 
     // driven render was shelved, functions will be deleted soon [start]
     void MarkDrivenRender(bool flag) {}

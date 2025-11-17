@@ -61,6 +61,7 @@ public:
 
     virtual int32_t SetResolution(uint32_t width, uint32_t height) = 0;
     virtual void SetRogResolution(uint32_t width, uint32_t height) = 0;
+    virtual int32_t GetRogResolution(uint32_t& width, uint32_t& height) = 0;
     // render resolution
     virtual uint32_t Width() const = 0;
     virtual uint32_t Height() const = 0;
@@ -213,6 +214,7 @@ public:
 
     int32_t SetResolution(uint32_t width, uint32_t height) override;
     void SetRogResolution(uint32_t width, uint32_t height) override;
+    int32_t GetRogResolution(uint32_t& width, uint32_t& height) override;
     // render resolution
     uint32_t Width() const override;
     uint32_t Height() const override;
@@ -371,6 +373,7 @@ private:
     uint32_t phyWidth_ = 0;
     uint32_t phyHeight_ = 0;
     uint32_t activeRefreshRate_ = 0;
+    bool isRogResolution_ = false;
     bool isSamplingOn_ = false;
     float samplingTranslateX_ = 0.f;
     float samplingTranslateY_ = 0.f;

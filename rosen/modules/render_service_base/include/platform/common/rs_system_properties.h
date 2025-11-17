@@ -315,6 +315,7 @@ public:
     static bool GetAutoCacheDebugEnabled();
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
+    static bool GetOpincCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();
 

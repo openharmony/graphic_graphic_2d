@@ -45,6 +45,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
+#include "property/rs_point_light_manager.h"
 #include "screen_manager/rs_screen.h"
 #include "feature/occlusion_culling/rs_occlusion_handler.h"
 #include "feature/opinc/rs_opinc_manager.h"
@@ -3325,19 +3326,93 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo005, TestSize.Level2)
     node->InitRenderParams();
     parent->InitRenderParams();
     parent->AddChild(node);
+
     node->GetMutableRenderProperties().hasHarmonium_ = true;
+    node->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     rsUniRenderVisitor->CollectEffectInfo(*node);
     ASSERT_TRUE(parent->ChildHasVisibleEffect());
 
+    parent->SetChildHasVisibleEffect(false);
     node->GetMutableRenderProperties().hasHarmonium_ = false;
     node->SetChildHasVisibleEffect(true);
     rsUniRenderVisitor->CollectEffectInfo(*node);
     ASSERT_TRUE(parent->ChildHasVisibleEffect());
 
+    parent->SetChildHasVisibleEffect(false);
     node->GetMutableRenderProperties().hasHarmonium_ = false;
     node->SetChildHasVisibleEffect(false);
     rsUniRenderVisitor->CollectEffectInfo(*node);
     ASSERT_FALSE(parent->ChildHasVisibleEffect());
+}
+
+/**
+ * @tc.name: CollectEffectInfo006
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasHDRContent
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo006, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+
+    node->SetChildHasVisibleHDRContent(false);
+    node->UpdateHDRStatus(HdrStatus::HDR_PHOTO, true);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_TRUE(parent->ChildHasVisibleHDRContent());
+
+    node->SetChildHasVisibleHDRContent(true);
+    parent->SetChildHasVisibleHDRContent(false);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_TRUE(parent->ChildHasVisibleHDRContent());
+}
+
+/**
+ * @tc.name: CollectEffectInfo007
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, hasVisibleIlluminated
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo007, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::BORDER_CONTENT));
+    node->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(node, true);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_TRUE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(node, false);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    ASSERT_FALSE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
 }
 
 /*
@@ -5956,5 +6031,40 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNeedEnableDebug001, TestSize.Level2)
     config.surfaceWindowType = SurfaceWindowType::SCB_DESKTOP;
     rsUniRenderVisitor->curSurfaceNode_ = std::make_shared<RSSurfaceRenderNode>(config);
     rsUniRenderVisitor->CheckFilterNeedEnableDebug(node, false);
+}
+
+/*
+ * @tc.name: UpdateFixedSize
+ * @tc.desc: Test function UpdateFixedSize for display node
+ * @tc.type: FUNC
+ * @tc.require: issue20599
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateFixedSize, TestSize.Level2)
+{
+    auto visitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(visitor, nullptr);
+    NodeId id = 0;
+    RSDisplayNodeConfig displayConfig;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, displayConfig);
+    ASSERT_NE(node, nullptr);
+    node->InitRenderParams();
+    auto& geo = node->GetRenderProperties().GetBoundsGeometry();
+    ASSERT_NE(geo, nullptr);
+
+    float degree = 90;
+    geo->SetRotation(degree);
+    node->UpdateRotation();
+    RSMainThread::Instance()->systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
+    visitor->UpdateFixedSize(*node);
+    RSMainThread::Instance()->systemAnimatedScenes_ = SystemAnimatedScenes::SNAPSHOT_ROTATION;
+    visitor->UpdateFixedSize(*node);
+    degree = 1;
+    geo->SetRotation(degree);
+    node->UpdateRotation();
+    RSMainThread::Instance()->systemAnimatedScenes_ = SystemAnimatedScenes::OTHERS;
+    visitor->UpdateFixedSize(*node);
+    RSMainThread::Instance()->systemAnimatedScenes_ = SystemAnimatedScenes::SNAPSHOT_ROTATION;
+    visitor->UpdateFixedSize(*node);
+    EXPECT_EQ(node->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
 }
 } // OHOS::Rosen

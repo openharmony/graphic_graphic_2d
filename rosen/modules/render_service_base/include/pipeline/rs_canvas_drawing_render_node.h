@@ -52,13 +52,8 @@ public:
     Drawing::Bitmap GetBitmap(const uint64_t tid);
     std::shared_ptr<Drawing::Image> GetImage(const uint64_t tid);
     bool GetPixelmap(const std::shared_ptr<Media::PixelMap> pixelmap, const Drawing::Rect* rect,
-        const uint64_t tid = UINT32_MAX, std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr);
-
-    void SetSurfaceClearFunc(ThreadInfo threadInfo, pid_t threadId = 0)
-    {
-        curThreadInfo_ = threadInfo;
-        threadId_ = threadId;
-    }
+        const uint64_t tid = UINT32_MAX, Drawing::DrawCmdListPtr drawCmdList = nullptr,
+        Drawing::DrawCmdListPtr lastDrawCmdList = nullptr);
 
     uint32_t GetTid() const;
 
@@ -101,7 +96,6 @@ private:
     bool isPostPlaybacked_ = false;
     bool lastOverflowStatus_ = false;
     std::atomic<bool> isNeedProcess_ = false;
-    pid_t threadId_ = 0;
     // Used in uni render thread.
     uint32_t drawingNodeRenderID = UNI_MAIN_THREAD_INDEX;
     std::shared_ptr<Drawing::Surface> surface_;
@@ -109,8 +103,6 @@ private:
     std::shared_ptr<ExtendRecordingCanvas> recordingCanvas_;
     std::unique_ptr<RSPaintFilterCanvas> canvas_;
     std::mutex imageMutex_;
-    ThreadInfo curThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
-    ThreadInfo preThreadInfo_ = { UNI_MAIN_THREAD_INDEX, std::function<void(std::shared_ptr<Drawing::Surface>)>() };
     std::mutex taskMutex_;
     std::mutex drawCmdListsMutex_;
     std::map<ModifierNG::RSModifierType, ModifierCmdList> drawCmdListsNG_;
@@ -119,6 +111,18 @@ private:
 
     int64_t lastResetSurfaceTime_ = 0;
     size_t opCountAfterReset_ = 0;
+
+    struct CachedReversedOpInfo {
+        std::vector<uint32_t> drawOpTypes;
+        int32_t width = 0;
+        int32_t height = 0;
+        size_t opItemSize = 0;
+        CachedReversedOpInfo() : drawOpTypes{}, width(0), height(0), opItemSize(0) {}
+    };
+    std::deque<CachedReversedOpInfo> cachedReversedOpTypes_;
+    void DumpSubClassNode(std::string& out) const override;
+    void GetDrawOpItemInfo(const Drawing::DrawCmdListPtr& drawCmdList, size_t opItemSize);
+
 
     friend class RSCanvasDrawingNodeCommandHelper;
     friend class RSRenderNode;

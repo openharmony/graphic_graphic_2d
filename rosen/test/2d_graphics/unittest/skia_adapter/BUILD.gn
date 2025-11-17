@@ -76,7 +76,6 @@ if (!defined(graphic_2d_ext_feature_enable_ddgr) ||
       "c_utils:utils",
       "hilog:libhilog",
       "image_framework:image_native",
-      "jsoncpp:jsoncpp",
       "skia:skia_canvaskit",
     ]
     if (graphic_2d_feature_upgrade_skia) {

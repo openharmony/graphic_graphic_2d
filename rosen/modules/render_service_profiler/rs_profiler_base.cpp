@@ -98,6 +98,9 @@ static TextureRecordType g_textureRecordType = TextureRecordType::LZ4;
 static std::shared_ptr<ProfilerMarshallingJob> g_marshallingJob;
 static bool g_marshalFirstFrameThread = false;
 
+static std::atomic<uint64_t> g_counterParseTransactionDataStart = 0;
+static std::atomic<uint64_t> g_counterParseTransactionDataEnd = 0;
+
 constexpr size_t GetParcelMaxCapacity()
 {
     return PARCEL_MAX_CAPACITY;
@@ -1285,6 +1288,11 @@ std::string RSProfiler::GetParcelCommandList()
     return "";
 }
 
+void RSProfiler::TransactionUnmarshallingEnd(const Parcel& parcel, uint32_t parcelNumber)
+{
+    g_counterParseTransactionDataEnd++;
+}
+
 void RSProfiler::PushOffset(std::vector<uint32_t>& commandOffsets, uint32_t offset)
 {
     if (!IsEnabled()) {
@@ -1300,6 +1308,7 @@ void RSProfiler::TransactionUnmarshallingStart(const Parcel& parcel, uint32_t pa
     std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
     stream.write(reinterpret_cast<const char*>(&parcelNumber), sizeof(parcelNumber));
     SendRSLogBase(RSProfilerLogType::PARCEL_UNMARSHALLING_START, stream.str());
+    g_counterParseTransactionDataStart++;
 }
 
 void RSProfiler::PushOffsets(const Parcel& parcel, uint32_t parcelNumber, std::vector<uint32_t>& commandOffsets)
@@ -1361,6 +1370,9 @@ void RSProfiler::ExecuteCommand(const RSCommand* command)
     }
 
     g_commandExecuteCount++;
+    if (IsWriteMode()) {
+        MarshallingTouch(command->GetNodeId());
+    }
 }
 
 uint32_t RSProfiler::PerfTreeFlatten(const std::shared_ptr<RSRenderNode> node,
@@ -1791,6 +1803,16 @@ void RSProfiler::SetMarshalFirstFrameThreadFlag(bool flag)
 bool RSProfiler::GetMarshalFirstFrameThreadFlag()
 {
     return g_marshalFirstFrameThread;
+}
+
+uint64_t RSProfiler::GetParseTransactionDataStartCounter()
+{
+    return g_counterParseTransactionDataStart;
+}
+
+uint64_t RSProfiler::GetParseTransactionDataEndCounter()
+{
+    return g_counterParseTransactionDataEnd;
 }
 
 void RSProfiler::SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize)

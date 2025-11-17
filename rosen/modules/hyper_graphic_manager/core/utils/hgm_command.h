@@ -208,10 +208,6 @@ public:
     bool virtualDisplaySwitch_;
     // <"screen0_LTPO", "LTPO-DEFAULT">
     std::unordered_map<std::string, std::string> screenStrategyConfigs_;
-    std::unordered_map<std::string, std::string> sourceTuningConfig_;
-    std::unordered_map<std::string, std::string> solidLayerConfig_;
-    std::unordered_map<std::string, std::string> hwcSourceTuningConfig_;
-    std::unordered_map<std::string, std::string> hwcSolidLayerConfig_;
     // <"up_timeout_ms", 3000>
     std::unordered_map<std::string, std::string> timeoutStrategyConfig_;
     std::unordered_map<std::string, std::string> videoCallLayerConfig_;

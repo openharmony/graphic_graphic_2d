@@ -14,6 +14,7 @@
  */
 
 #include <iterator>
+#include <numeric>
 #include <unistd.h>
 #include "memory/rs_memory_snapshot.h"
 #include "render/rs_typeface_cache.h"
@@ -23,6 +24,9 @@
 #include "rs_trace.h"
 #include <sstream>
 #include <algorithm>
+#ifdef IS_OHOS
+#include <file_ex.h>
+#endif
 
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
@@ -74,32 +78,33 @@ bool RSTypefaceCache::AddIfFound(uint64_t uniqueId, uint32_t hash)
     return false;
 }
 
-bool RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
+uint8_t RSTypefaceCache::HasTypeface(uint64_t uniqueId, uint32_t hash)
 {
     std::lock_guard<std::mutex> lock(mapMutex_);
     if (typefaceHashCode_.find(uniqueId) != typefaceHashCode_.end()) {
         // this client has already registered this typeface
-        return true;
+        return Drawing::REGISTERED;
     }
 
     if (hash) {
         // check if someone else has already registered this typeface, add ref count and
         // mapping if so.
         if (AddIfFound(uniqueId, hash)) {
-            return true;
+            return Drawing::REGISTERED;
         }
 
         // check if someone else is about to register this typeface -> queue uid
-        std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash);
+        auto iterator = typefaceHashQueue_.find(hash);
         if (iterator != typefaceHashQueue_.end()) {
-            iterator->second.push_back(uniqueId);
-            return true;
+            iterator->second.insert(uniqueId);
+            RS_LOGD("TypefaceHashQueue find same hash:%{public}u, size:%{public}zu", hash, iterator->second.size());
+            return Drawing::REGISTERING;
         } else {
             typefaceHashQueue_[hash] = { uniqueId };
         }
     }
 
-    return false;
+    return Drawing::NO_REGISTER;
 }
 
 void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
@@ -150,33 +155,25 @@ void RSTypefaceCache::CacheDrawingTypeface(uint64_t uniqueId,
         MemorySnapshot::Instance().AddCpuMemory(pid, typeface->GetSize());
     }
     // register queued entries
-    std::unordered_map<uint32_t, std::vector<uint64_t>>::iterator iterator = typefaceHashQueue_.find(hash_value);
+    auto iterator = typefaceHashQueue_.find(hash_value);
     if (iterator != typefaceHashQueue_.end()) {
-        while (iterator->second.size()) {
-            uint64_t back = iterator->second.back();
-            if (back != uniqueId) {
-                AddIfFound(back, hash_value);
+        for (const uint64_t cacheId: iterator->second) {
+            if (cacheId != uniqueId) {
+                AddIfFound(cacheId, hash_value);
             }
-            iterator->second.pop_back();
         }
         typefaceHashQueue_.erase(iterator);
     }
 }
 
-static bool EmptyAfterErase(std::vector<uint64_t>& vec, size_t ix)
-{
-    vec.erase(vec.begin() + ix);
-    return vec.empty();
-}
-
-static void RemoveHashQueue(
-    std::unordered_map<uint32_t, std::vector<uint64_t>>& typefaceHashQueue, uint64_t globalUniqueId)
+void RemoveHashQueue(
+    std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& typefaceHashQueue, uint64_t globalUniqueId)
 {
     for (auto& ref : typefaceHashQueue) {
-        auto it = std::find(ref.second.begin(), ref.second.end(), globalUniqueId);
+        auto it = ref.second.find(globalUniqueId);
         if (it != ref.second.end()) {
-            size_t ix = std::distance(ref.second.begin(), it);
-            if (EmptyAfterErase(ref.second, ix)) {
+            ref.second.erase(it);
+            if (ref.second.empty()) {
                 typefaceHashQueue.erase(ref.first);
             }
             return;
@@ -258,24 +255,25 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::UpdateDrawingTypefaceRef(uin
     return nullptr;
 }
 
-static void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::vector<uint64_t>>& map)
+void PurgeMapWithPid(pid_t pid, std::unordered_map<uint32_t, std::unordered_set<uint64_t>>& map)
 {
     // go through queued items;
-    std::vector<size_t> removeList;
+    std::vector<uint32_t> removeList;
 
     for (auto& ref : map) {
-        size_t ix { 0 };
-        std::vector<uint64_t> uniqueIdVec = ref.second;
-        for (auto uid : uniqueIdVec) {
+        std::unordered_set<uint64_t>& uniqueIdSet = ref.second;
+        auto it = uniqueIdSet.begin();
+        while (it != uniqueIdSet.end()) {
+            uint64_t uid = *it;
             pid_t pidCache = static_cast<pid_t>(uid >> 32);
-            if (pid != pidCache) {
-                ix++;
-                continue;
+            if (pid == pidCache) {
+                it = uniqueIdSet.erase(it);
+            } else {
+                it++;
             }
-            if (EmptyAfterErase(ref.second, ix)) {
-                removeList.push_back(ref.first);
-                break;
-            }
+        }
+        if (uniqueIdSet.empty()) {
+            removeList.push_back(ref.first);
         }
     }
 
@@ -348,6 +346,73 @@ void RSTypefaceCache::Dump() const
         }
     }
     RS_LOGI("RSTypefaceCache Dump ]");
+}
+
+uint32_t CalcCustomFontPss()
+{
+    std::string s;
+#ifdef IS_OHOS
+    LoadStringFromFile("/proc/self/smaps", s);
+#endif
+    std::stringstream iss(s);
+    std::string line;
+    bool inCustomFont = false;
+    uint32_t pss = 0;
+
+    while (std::getline(iss, line)) {
+        if (line.find('-') != std::string::npos && line.find("dev/ashmem/") != std::string::npos) {
+            inCustomFont = (line.find("[custom font]") != std::string::npos);
+            continue;
+        }
+
+        if (inCustomFont && line.rfind("Pss:", 0) == 0) {
+            std::istringstream pssLine(line);
+            std::string key;
+            std::string unit;
+            uint32_t value = 0;
+            pssLine >> key >> value >> unit;
+            pss += value;
+            inCustomFont = false;
+        }
+    }
+
+    return pss;
+}
+
+void RSTypefaceCache::Dump(DfxString& log) const
+{
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    uint32_t totalMem = std::accumulate(typefaceHashMap_.begin(), typefaceHashMap_.end(), 0u,
+        [](uint32_t sum, const auto& item) { return sum + std::get<0>(item.second)->GetSize(); });
+    constexpr double KB = 1024.0;
+    constexpr double MB = KB * KB;
+    log.AppendFormat("------------------------------------\n");
+    log.AppendFormat("RSTypefaceCache Dump:\nTotal: %.2fKB, %.2fMB\n",
+        static_cast<double>(totalMem) / KB, static_cast<double>(totalMem) / MB);
+    double pssMem = static_cast<double>(CalcCustomFontPss());
+    log.AppendFormat("Pss:   %.2fKB %.2fMB\n", pssMem, pssMem / KB);
+    log.AppendFormat("%-6s %-16s %-4s %-26s %-10s %-10s\n",
+        "pid", "hash_value", "ref", "familyname", "size(B)", "size(MB)");
+    std::set<std::pair<int, uint64_t>> processedPairs;
+    for (auto co : typefaceHashCode_) {
+        auto iter = typefaceHashMap_.find(co.second);
+        if (iter == typefaceHashMap_.end()) {
+            continue;
+        }
+        auto [typeface, ref] = iter->second;
+
+        int pid = GetTypefacePid(co.first);
+        uint64_t hash = co.second;
+        const std::string& family = typeface->GetFamilyName();
+        double sizeMB = static_cast<double>(typeface->GetSize()) / MB;
+        
+        std::pair<int, uint64_t> currentPair = {pid, hash};
+        if (processedPairs.find(currentPair) == processedPairs.end()) {
+            log.AppendFormat("%-6d %-16" PRIu64 " %-4u %-26s %-10u %-10.2f\n",
+                pid, hash, ref, family.c_str(), typeface->GetSize(), sizeMB);
+            processedPairs.insert(currentPair);
+        }
+    }
 }
 
 void RSTypefaceCache::ReplaySerialize(std::stringstream& ss)

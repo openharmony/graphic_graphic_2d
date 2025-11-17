@@ -36,6 +36,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.bottom_) ||
+        !data.WriteUInt64Vector(captureConfig.blackList) ||
         !data.WriteUint64(captureConfig.uiCaptureInRangeParam.endNodeId) ||
         !data.WriteBool(captureConfig.uiCaptureInRangeParam.useBeginNodeSize) ||
         !data.WriteFloat(captureConfig.specifiedAreaRect.left_) ||

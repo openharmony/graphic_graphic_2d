@@ -67,7 +67,6 @@ public:
     CacheProcessStatus GetCacheSurfaceProcessedStatus() const;
 
     // UIFirst
-    bool BufferFormatNeedUpdate(std::shared_ptr<Drawing::Surface> cacheSurface, bool isNeedFP16);
     void UpdateCompletedCacheSurface();
     void ClearCacheSurfaceInThread();
     void ClearCacheSurfaceOnly();

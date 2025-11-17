@@ -181,10 +181,7 @@ public:
         return postHgmTaskFlag_.exchange(value);
     }
 
-    bool GetLtpoEnabled() const
-    {
-        return ltpoEnabled_ && (maxTE_ == CreateVSyncGenerator()->GetVSyncMaxRefreshRate());
-    }
+    bool GetLtpoEnabled() const { return isLtpoMode_.load(); }
 
     bool GetAdaptiveSyncEnabled() const
     {
@@ -238,6 +235,8 @@ public:
         return pipelineOffsetPulseNum_ * pulse;
     }
 
+    int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
+
     uint32_t GetSupportedMaxTE() const
     {
         return maxTE_;
@@ -267,7 +266,6 @@ public:
 
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate, bool shouldSendCallback = true);
-    static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -291,8 +289,8 @@ public:
 
     // for LTPO
     void SetLtpoConfig();
-    void SetScreenConstraintConfig();
-    void SetPerformanceConfig();
+    void SetScreenConstraintConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
+    void SetPerformanceConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
     void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);
@@ -319,6 +317,16 @@ public:
     bool IsDelayMode() const
     {
         return isDelayMode_;
+    }
+
+    int64_t GetRsPhaseOffset(const int64_t orgValue) const
+    {
+        return isVsyncOffsetCustomized_.load() ? rsPhaseOffset_.load() : orgValue;
+    }
+
+    int64_t GetAppPhaseOffset(const int64_t orgValue) const
+    {
+        return isVsyncOffsetCustomized_.load() ? appPhaseOffset_.load() : orgValue;
     }
 
     void SetMultiSelfOwnedScreenEnable(bool multiSelfOwnedScreenEnable)
@@ -385,6 +393,7 @@ private:
     std::atomic<uint64_t> fastComposeTimeStampDiff_{ 0 };
     bool isDelayMode_ = true;
     bool ltpoEnabled_ = false;
+    std::atomic<bool> isLtpoMode_{ false };
     uint32_t maxTE_ = 0;
     uint32_t alignRate_ = 0;
     int64_t idealPipelineOffset_ = 0;
@@ -400,6 +409,9 @@ private:
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
     HgmHfbcConfig hfbcConfig_;
+    std::atomic<int64_t> rsPhaseOffset_{ 0 };
+    std::atomic<int64_t> appPhaseOffset_{ 0 };
+    std::atomic<bool> isVsyncOffsetCustomized_{ false };
 
     friend class HWCParam;
 };

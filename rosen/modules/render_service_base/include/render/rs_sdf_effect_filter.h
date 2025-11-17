@@ -29,7 +29,7 @@ class GERender;
 
 namespace OHOS {
 namespace Rosen {
-class RSNGRenderMaskBase;
+class RSNGRenderShapeBase;
 namespace Drawing {
     class GEVisualEffectContainer;
     class GEVisualEffect;
@@ -44,7 +44,7 @@ struct SDFEffectParam {
 
 class RSB_EXPORT RSSDFEffectFilter : public RSDrawingFilterOriginal {
 public:
-    RSSDFEffectFilter(std::shared_ptr<RSNGRenderMaskBase> SDFMask);
+    RSSDFEffectFilter(std::shared_ptr<RSNGRenderShapeBase> SDFShape);
     RSSDFEffectFilter(const RSSDFEffectFilter&) = delete;
     RSSDFEffectFilter operator=(const RSSDFEffectFilter&) = delete;
     ~RSSDFEffectFilter() override;
@@ -78,7 +78,7 @@ public:
     [[nodiscard]] bool HasShadow() const;
 
 private:
-    std::shared_ptr<RSNGRenderMaskBase> SDFMask_;
+    std::shared_ptr<RSNGRenderShapeBase> SDFShape_;
     std::shared_ptr<Drawing::GEVisualEffect> geFilter_;
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_;
     std::shared_ptr<GraphicsEffectEngine::GERender> geRender_;

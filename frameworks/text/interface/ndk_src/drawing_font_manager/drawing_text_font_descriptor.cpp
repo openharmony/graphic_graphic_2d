@@ -30,6 +30,25 @@ inline T1* ConvertToOriginalText(T2* ptr)
     return reinterpret_cast<T1*>(ptr);
 }
 
+[[maybe_unused]] static bool ConvertToString(const uint8_t* data, size_t len, std::string& fullNameString)
+{
+    if (data == nullptr || len == 0) {
+        return false;
+    }
+
+    size_t utf16Len = len / sizeof(char16_t);
+    std::unique_ptr<char16_t[]> utf16Str = std::make_unique<char16_t[]>(utf16Len);
+
+    errno_t ret = memcpy_s(utf16Str.get(), utf16Len * sizeof(char16_t), data, len);
+    if (ret != EOK) {
+        return false;
+    }
+
+    std::u16string utf16String(utf16Str.get(), utf16Len);
+    fullNameString = OHOS::Str16ToStr8(utf16String);
+    return !fullNameString.empty();
+}
+
 OH_Drawing_FontDescriptor* OH_Drawing_MatchFontDescriptors(OH_Drawing_FontDescriptor* desc, size_t* num)
 {
     if (desc == nullptr || num == nullptr) {
@@ -101,6 +120,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_GetFontDescriptorByFullName(const OH_Drawi
     using namespace OHOS::Rosen::Drawing;
     std::string fullNameString;
     if (!ConvertToString(fullName->strData, fullName->strLen, fullNameString)) {
+        TEXT_LOGE("Failed to convert string to utf8");
         return nullptr;
     }
     std::shared_ptr<TextEngine::FontParser::FontDescriptor> result = nullptr;

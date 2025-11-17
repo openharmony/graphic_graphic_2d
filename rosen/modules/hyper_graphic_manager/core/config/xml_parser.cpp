@@ -163,10 +163,6 @@ int32_t XMLParser::ParseSubSequentParams(xmlNode& node, std::string& paraName)
         setResult = ParseScreenConfig(node);
     } else if (paraName == "rs_video_frame_rate_vote_config") {
         setResult = ParseVideoFrameVoteConfig(node);
-    } else if (paraName == "source_tuning_for_yuv420") {
-        setResult = ParseSimplex(node, mParsedData_->sourceTuningConfig_);
-    } else if (paraName == "rs_solid_color_layer_config") {
-        setResult = ParseSimplex(node, mParsedData_->solidLayerConfig_);
     } else if (paraName == "timeout_strategy_config") {
         setResult = ParseSimplex(node, mParsedData_->timeoutStrategyConfig_);
     } else if (paraName == "video_call_layer_config") {
