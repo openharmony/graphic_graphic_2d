@@ -84,21 +84,19 @@ void ContextBase::GetCbInfo(napi_env envi, napi_callback_info info, NapiCbInfoPa
 NapiTextResult NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
     NapiAsyncExecute execute, NapiAsyncComplete complete)
 {
-    TEXT_ERROR_CHECK(contextBase, return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Context is null");
+    TEXT_ERROR_CHECK(contextBase, return NapiTextResult::Invalid(), "Context is null");
     contextBase->execute = std::move(execute);
     contextBase->complete = std::move(complete);
     napi_value promise = nullptr;
     napi_status stat = napi_invalid_arg;
     if (contextBase->callbackRef == nullptr) {
         stat = napi_create_promise(contextBase->env, &contextBase->deferred, &promise);
-        NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR,
-            return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to create promise, stat:%d",
-            static_cast<int>(stat));
+        NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return NapiTextResult::Invalid(),
+            "Failed to create promise, stat:%d", static_cast<int>(stat));
     } else {
         stat = napi_get_undefined(contextBase->env, &promise);
-        NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR,
-            return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get undefined, stat:%d",
-            static_cast<int>(stat));
+        NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR, return NapiTextResult::Invalid(),
+            "Failed to get undefined, stat:%d", static_cast<int>(stat));
     }
 
     napi_value resource = nullptr;

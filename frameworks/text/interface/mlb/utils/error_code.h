@@ -16,7 +16,6 @@
 #ifndef MLB_ERROR_CODE_H
 #define MLB_ERROR_CODE_H
 
-#include <js_native_api_types.h>
 #include <string>
 #include <unordered_map>
 
@@ -62,17 +61,22 @@ struct TextResult {
 
     std::string ToString() const
     {
-        return ERROR_MESSAGES.at(errorCode) + " " + detailedInfo;
+        return ERROR_MESSAGES.at(errorCode) + ": " + detailedInfo;
     }
 
-    static TextResult Success(T r = nullptr)
+    constexpr static TextResult Success(T r = nullptr)
     {
         return TextResult(true, ERROR_NONE, "", r);
     }
 
-    static TextResult Error(TextErrorCode code, const std::string& detail = "", T value = nullptr)
+    constexpr static TextResult Error(TextErrorCode code, const std::string& detail = "", T value = nullptr)
     {
         return TextResult(false, code, detail, value);
+    }
+
+    constexpr static TextResult Invalid(const std::string& detail = "", T value = nullptr)
+    {
+        return TextResult(false, ERROR_INVALID_PARAM, detail, value);
     }
 };
 } // namespace OHOS::MLB

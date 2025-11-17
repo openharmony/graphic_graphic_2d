@@ -265,7 +265,7 @@ NapiTextResult JsFontCollection::LoadFontFromPath(
 {
     if (fontcollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
 
     char tmpPath[PATH_MAX] = { 0 };
@@ -310,22 +310,22 @@ NapiTextResult JsFontCollection::OnLoadFont(napi_env env, napi_callback_info inf
     napi_value argv[ARGC_THREE] = { nullptr };
     if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_TWO) {
         TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
     if (argv[0] == nullptr || argv[1] == nullptr) {
         TEXT_LOGE("Invalid argument");
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
     std::string familyName;
     std::string familySrc;
     if (!ConvertFromJsValue(env, argv[0], familyName)) {
         TEXT_LOGE("Failed to convert family name");
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
         TEXT_LOGE("Failed to check local instance, familyName %{public}s", familyName.c_str());
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
     uint32_t index = 0;
     ConvertFromJsValue(env, argv[ARGC_TWO], index);
@@ -352,7 +352,7 @@ NapiTextResult JsFontCollection::OnLoadFont(napi_env env, napi_callback_info inf
         return ProcessResource(resourceInfo, pathCB, fileCB);
     }
 
-    return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+    return NapiTextResult::Invalid();
 }
 
 napi_value JsFontCollection::ClearCaches(napi_env env, napi_callback_info info)
@@ -372,7 +372,7 @@ NapiTextResult JsFontCollection::OnClearCaches(napi_env env, napi_callback_info 
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
         TEXT_LOGE("Failed to check local instance");
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
     fontcollection_->ClearCaches();
     return NapiTextResult::Success(NapiGetUndefined(env));
@@ -389,17 +389,16 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
     TEXT_ERROR_CHECK(context != nullptr, return, "Context is null");
     auto* fontCollection = reinterpret_cast<JsFontCollection*>(context->native);
     NAPI_CHECK_ARGS_WITH_STATEMENT(context, fontCollection != nullptr, napi_generic_failure,
-        TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+        TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Invalid(),
         "FontCollection is null");
 
     NAPI_CHECK_ARGS_WITH_STATEMENT(context, fontCollection->fontcollection_ != nullptr, napi_generic_failure,
-        TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+        TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Invalid(),
         "Inner fontcollection is null");
     NAPI_CHECK_ARGS_WITH_STATEMENT(context,
         FontCollectionMgr::GetInstance().CheckInstanceIsValid(
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(context->env)), fontCollection->fontcollection_),
-        napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return,
-        context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+        napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Invalid(),
         "Failed to check local instance, familyName " + context->familyName);
 
     if (!context->filePath.empty()) {
@@ -442,15 +441,12 @@ NapiTextResult JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_inf
     auto inputParser = [env, context](size_t argc, napi_value* argv) {
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, context->status == napi_ok, napi_invalid_arg,
-            TextErrorCode::ERROR_INVALID_PARAM, return,
-            context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+            TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Invalid(),
             "Status error, status=" + std::to_string(context->status));
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, argc >= ARGC_TWO, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
-            return, context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
-            "Argc is invalid " + std::to_string(argc));
+            return, context->result = NapiTextResult::Invalid(), "Argc is invalid " + std::to_string(argc));
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
-            TextErrorCode::ERROR_INVALID_PARAM, return,
-            context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+            TextErrorCode::ERROR_INVALID_PARAM, return, context->result = NapiTextResult::Invalid(),
             "FamilyName is invalid " + context->familyName);
         ConvertFromJsValue(env, argv[ARGC_TWO], context->index);
         GetFilePathResource(env, argv, context);
@@ -537,7 +533,7 @@ NapiTextResult JsFontCollection::OnUnloadFont(napi_env env, napi_callback_info i
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
         TEXT_LOGE("Failed to check local instance, familyName %{public}s", familyName.c_str());
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+        return NapiTextResult::Invalid();
     }
 
     fontcollection_->UnloadFont(familyName);

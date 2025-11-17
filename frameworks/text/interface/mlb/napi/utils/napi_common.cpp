@@ -1064,26 +1064,25 @@ NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(
     std::function<NapiTextResult(const void*, size_t)> fileCB)
 {
     auto resourceManager = GetResourceManager(info.bundleName, info.moduleName);
-    TEXT_ERROR_CHECK(resourceManager != nullptr, return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+    TEXT_ERROR_CHECK(resourceManager != nullptr, return NapiTextResult::Invalid(),
         "Failed to get resourceManager, resourceManager is nullptr");
 
     if (info.type == static_cast<int32_t>(ResourceType::STRING)) {
         std::string rPath;
         TEXT_ERROR_CHECK(resourceManager->GetStringById(info.resId, rPath) == Global::Resource::RState::SUCCESS,
-            return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get string by id");
+            return NapiTextResult::Invalid(), "Failed to get string by id");
         return pathCB(rPath);
     } else if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
         size_t dataLen = 0;
         std::unique_ptr<uint8_t[]> rawData;
-        TEXT_ERROR_CHECK(
-            !info.params.empty(), return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get info params");
+        TEXT_ERROR_CHECK(!info.params.empty(), return NapiTextResult::Invalid(), "Failed to get info params");
         TEXT_ERROR_CHECK(
             resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData) == Global::Resource::RState::SUCCESS,
-            return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get raw file");
+            return NapiTextResult::Invalid(), "Failed to get raw file");
         return fileCB(rawData.get(), dataLen);
     }
     TEXT_LOGE("Invalid resource type %{public}d", info.type);
-    return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM);
+    return NapiTextResult::Invalid();
 }
 
 bool SplitAbsolutePath(std::string& absolutePath)
