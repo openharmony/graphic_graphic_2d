@@ -182,6 +182,8 @@ public:
     virtual ~RSNGRenderEffectBase() = default;
     virtual RSNGEffectType GetType() const = 0;
     virtual bool Marshalling(Parcel& parcel) const = 0;
+    virtual bool SetValue(const std::shared<Derived>& other, RSRenderNode& node,
+        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Detach() = 0;
     virtual void Dump(std::string& out) const = 0;
@@ -202,6 +204,18 @@ public:
     }
 
 protected:
+    inline void SetNextEffect(const std::shared_ptr<Derived>& effect, RSRenderNode& node,
+        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier)
+    {
+        if (nextEffect_) {
+            nextEffect_->Detach();
+        }
+        nextEffect_ = effect;
+        if (nextEffect_) {
+            nextEffect_->Attach(node, modifier);
+        }
+    }
+
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 
     virtual void DumpProperties(std::string& out) const {}
@@ -319,6 +333,27 @@ public:
         return RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN);
     }
 
+    bool SetValue(const std::shared<Derived>& other, RSRenderNode& node,
+        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
+    {
+        if (other == nullptr || GetType() != other->GetType()) {
+            return false;
+        }
+
+        auto otherDown = std::static_pointer_cast<RSNGRenderEffectTemplate>(other);
+        auto& otherProps = otherDown->GetProperties();
+        std::apply([&otherProps](const auto&... args) {
+                (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);
+            },
+            properties_);
+
+        auto& otherNextEffect = otherDown->nextEffect_;
+        if (!Base::nextEffect_ || !Base::nextEffect_->SetValue(otherNextEffect, node, modifier)) {
+            Base::SetNextEffect(otherNextEffect, node, modifier);
+        }
+        return true;
+    }
+
     void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
     {
         RS_OPTIONAL_TRACE_FMT("RSNGRenderEffectTemplate::Attach, Type:%s",
@@ -381,6 +416,11 @@ public:
         if (Base::nextEffect_) {
             Base::nextEffect_->CalculateHashInner(hash);
         }
+    }
+
+    const std::tuple<PropertyTags...>& GetProperties() const
+    {
+        return properties_;
     }
 
 protected:

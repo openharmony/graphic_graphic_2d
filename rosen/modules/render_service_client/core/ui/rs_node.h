@@ -1947,6 +1947,57 @@ protected:
             lazyLoadCommandTypes_.end();
     }
 
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void RSNode::SetPropertyNG(T value)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
+        // Create corresponding modifier if not exist
+        if (modifier == nullptr) {
+            modifier = std::make_shared<ModifierType>();
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+            modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
+            AddModifier(modifier);
+        } else {
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+            NotifyPageNodeChanged();
+        }
+    }
+
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     * @param animatable The property is animatable or not.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void RSNode::SetPropertyNG(T value, bool animatable)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
+        // Create corresponding modifier if not exist
+        if (modifier == nullptr) {
+            modifier = std::make_shared<ModifierType>();
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+            modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
+            AddModifier(modifier);
+        } else {
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+            NotifyPageNodeChanged();
+        }
+    }
+
 private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
@@ -1963,29 +2014,6 @@ private:
     void SetParent(WeakPtr parent);
     void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
-
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param value The value to assign to the property.
-     */
-    template<typename ModifierType, auto Setter, typename T>
-    void SetPropertyNG(T value);
-
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param value The value to assign to the property.
-     * @param animatable The property is animatable or not.
-     */
-    template<typename ModifierType, auto Setter, typename T>
-    void SetPropertyNG(T value, bool animatable);
 
     /**
      * @brief Sets a UIFilter property value for a specific modifier.

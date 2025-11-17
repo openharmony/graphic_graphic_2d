@@ -57,6 +57,7 @@ public:
     void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override;
     void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void QuickPrepareUnionRenderNode(RSUnionRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
 
     void PrepareChildren(RSRenderNode& node) override {};
@@ -301,6 +302,8 @@ private:
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);
 
+    void CollectUnionInfo(RSRenderNode& node);
+
     void UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& node);
     void UpdateVirtualDisplaySecurityExemption(
         RSLogicalDisplayRenderNode& node, RSLogicalDisplayRenderNode& mirrorNode);
@@ -360,6 +363,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSDirtyRegionManager> curScreenDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
+    std::shared_ptr<RSUnionRenderNode> curUnionNode_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
