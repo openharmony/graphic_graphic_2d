@@ -17,6 +17,8 @@
 
 #include <cstdint>
 
+#include "ani.h"
+#include "utils/error_code.h"
 namespace OHOS::Text::ANI {
 /**
  * define namespace
@@ -110,5 +112,7 @@ enum class TextErrorCode : int32_t {
     ERROR_ABNORMAL_PARAM_VALUE = 18600001, // the value do not change. It is defined on color manager system
     ERROR_NO_MEMORY = 8800100,             // no memory
 };
+
+using AniTextResult = MLB::TextResult<ani_object>;
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_COMMON_H

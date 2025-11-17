@@ -222,32 +222,39 @@ ani_status AniTextUtils::AniToStdStringUtf16(ani_env* env, const ani_string& str
     return ANI_OK;
 }
 
-bool AniTextUtils::ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data)
+AniTextResult AniTextUtils::ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data)
 {
     char realPath[PATH_MAX] = {0};
     if (realpath(filePath.c_str(), realPath) == nullptr) {
         TEXT_LOGE("Invalid filePath %{public}s", filePath.c_str());
-        return false;
+        return AniTextResult::Error(MLB::ERROR_FILE_NOT_EXIST);
     }
 
     std::ifstream file(realPath);
     if (!file.is_open()) {
         TEXT_LOGE("Failed to open file:%{public}s", filePath.c_str());
-        return false;
+        return AniTextResult::Error(MLB::ERROR_FILE_OPEN_FAILED);
     }
     file.seekg(0, std::ios::end);
+    if (file.fail()) {
+        return AniTextResult::Error(MLB::ERROR_FILE_SEEK_FAILED);
+    }
     int length = file.tellg();
     if (length == -1) {
         TEXT_LOGE("Failed to get file length:%{public}s", filePath.c_str());
         file.close();
+        return AniTextResult::Error(MLB::ERROR_FILE_SIZE_FAILED);
         return false;
     }
     dataLen = static_cast<size_t>(length);
     data = std::make_unique<uint8_t[]>(dataLen);
     file.seekg(0, std::ios::beg);
     file.read(reinterpret_cast<char*>(data.get()), dataLen);
+    if (file.fail()) {
+        return AniTextResult::Error(MLB::ERROR_FILE_READ_FAILED);
+    }
     file.close();
-    return true;
+    return AniTextResult::Success();
 }
 
 bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)

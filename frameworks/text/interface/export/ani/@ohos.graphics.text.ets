@@ -64,11 +64,25 @@ namespace text {
     native static getGlobalInstance(): FontCollection;
     native static getLocalInstance(): FontCollection;
     native loadFontSync(name: string, path: Resource | string): void;
+    native loadFontSyncWithCheck(name: string, path: Resource | string, index?: int): void;
     async loadFont(name: string, path: string | Resource): Promise<void> {
       await new Promise<void>((resolve, reject) => {
         try {
           taskpool.execute((): void => {
             this.loadFontSync(name, path);
+          }).then(() => {
+            resolve(undefined);
+          })
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
+    }
+    async loadFontWithCheck(name: string, path: Resource | string, index?: int): Promise<void> {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          taskpool.execute((): void => {
+            this.loadFontSyncWithCheck(name, path, index);
           }).then(() => {
             resolve(undefined);
           })
