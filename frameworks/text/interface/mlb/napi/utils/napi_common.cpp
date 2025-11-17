@@ -1075,7 +1075,8 @@ NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(
     } else if (info.type == static_cast<int32_t>(ResourceType::RAWFILE)) {
         size_t dataLen = 0;
         std::unique_ptr<uint8_t[]> rawData;
-        TEXT_ERROR_CHECK(!info.params.empty(), return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get info params");
+        TEXT_ERROR_CHECK(
+            !info.params.empty(), return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get info params");
         TEXT_ERROR_CHECK(
             resourceManager->GetRawFileFromHap(info.params[0], dataLen, rawData) == Global::Resource::RState::SUCCESS,
             return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Failed to get raw file");

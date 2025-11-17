@@ -24,14 +24,11 @@
 #include "utils/napi_common.h"
 
 namespace OHOS::Rosen {
-namespace {
 struct FontArgumentsConcreteContext : public FontPathResourceContext {
     std::string familyName;
     NapiTextResult result;
     uint32_t index { 0 };
 };
-} // namespace
-
 class JsFontCollection final {
 public:
     JsFontCollection();

@@ -109,19 +109,15 @@ NapiTextResult NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBas
     stat = napi_create_async_work(
         contextBase->env, nullptr, resource,
         [](napi_env env, void* data) {
-            TEXT_ERROR_CHECK(data, return, "Data is null");
-            sptr<ContextBase> contextBase(static_cast<ContextBase*>(data));
-            if (contextBase && contextBase->execute && contextBase->status == napi_ok) {
-                contextBase->execute();
-            }
-        },
-        [](napi_env env, napi_status status, void* data) {
-            TEXT_ERROR_CHECK(data, return, "Data is null");
             sptr<ContextBase> contextBase(static_cast<ContextBase*>(data));
             TEXT_ERROR_CHECK(contextBase, return, "Context is null");
-            if ((status != napi_ok) && (contextBase->status == napi_ok)) {
-                contextBase->status = status;
-            }
+            TEXT_ERROR_CHECK(contextBase->execute && contextBase->status == napi_ok, return, "Execute is null");
+            contextBase->execute();
+        },
+        [](napi_env env, napi_status status, void* data) {
+            sptr<ContextBase> contextBase(static_cast<ContextBase*>(data));
+            TEXT_ERROR_CHECK(contextBase, return, "Context is null");
+            contextBase->status = (contextBase->status == napi_ok) ? status : contextBase->status;
             if (contextBase->complete) {
                 contextBase->complete(contextBase->output);
             }

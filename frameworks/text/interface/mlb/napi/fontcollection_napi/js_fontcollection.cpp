@@ -400,7 +400,7 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
             static_cast<uint64_t>(reinterpret_cast<uintptr_t>(context->env)), fontCollection->fontcollection_),
         napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return,
         context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
-        "Failed to check local instance, familyName %{public}s", context->familyName.c_str());
+        "Failed to check local instance, familyName " + context->familyName);
 
     if (!context->filePath.empty()) {
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, SplitAbsolutePath(context->filePath), napi_invalid_arg,
@@ -443,14 +443,15 @@ NapiTextResult JsFontCollection::OnLoadFontAsync(napi_env env, napi_callback_inf
         TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is null");
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, context->status == napi_ok, napi_invalid_arg,
             TextErrorCode::ERROR_INVALID_PARAM, return,
-            context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Status error, status=%d",
-            static_cast<int>(context->status));
+            context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+            "Status error, status=" + std::to_string(context->status));
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, argc >= ARGC_TWO, napi_invalid_arg, TextErrorCode::ERROR_INVALID_PARAM,
-            return, context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "Argc is invalid %zu", argc);
+            return, context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+            "Argc is invalid " + std::to_string(argc));
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, ConvertFromJsValue(env, argv[0], context->familyName), napi_invalid_arg,
             TextErrorCode::ERROR_INVALID_PARAM, return,
-            context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM), "FamilyName is invalid %s",
-            context->familyName.c_str());
+            context->result = NapiTextResult::Error(MLB::ERROR_INVALID_PARAM),
+            "FamilyName is invalid " + context->familyName);
         ConvertFromJsValue(env, argv[ARGC_TWO], context->index);
         GetFilePathResource(env, argv, context);
     };
