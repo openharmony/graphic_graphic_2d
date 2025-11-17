@@ -25,7 +25,7 @@ ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
     ani_env* env, const OHOS::Rosen::IndexAndAffinity indexAndAffinity, ani_object& aniObj)
 {
     static std::string sign = "iE{" + std::string(ANI_ENUM_AFFINITY) + "}:";
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POSITION_WITH_AFFINITY, sign.c_str(),
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_POSITION_WITH_AFFINITY), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_POSITION_WITH_AFFINITY, "<ctor>", sign.c_str()),
         ani_int(indexAndAffinity.index),
         AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity)));
     return ANI_OK;

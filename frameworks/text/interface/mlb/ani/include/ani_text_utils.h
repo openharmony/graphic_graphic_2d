@@ -35,7 +35,7 @@ public:
     static ani_object CreateAniUndefined(ani_env* env);
     static bool IsUndefined(ani_env* env, ani_ref ref);
     template <typename... Args>
-    static ani_object CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params);
+    static ani_object CreateAniObject(ani_env* env, const ani_class cls, const ani_method ctor, Args... params);
     static ani_object CreateAniArray(ani_env* env, size_t size);
     template <typename T, typename Converter>
     static ani_object CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size, Converter convert);
@@ -52,69 +52,44 @@ public:
     static bool ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 
-    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const AniCacheParam& param, ani_ref& ref);
+    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, ani_ref ref);
     static ani_status ReadOptionalDoubleField(
-        ani_env* env, ani_object obj, const AniCacheParam& param, double& value);
-    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const AniCacheParam& param, int& value);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, double& value);
+    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, int& value);
     static ani_status ReadOptionalStringField(
-        ani_env* env, ani_object obj, const AniCacheParam& param, std::string& str);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::string& str);
     static ani_status ReadOptionalU16StringField(
-        ani_env* env, ani_object obj, const AniCacheParam& param, std::u16string& str);
-    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const AniCacheParam& param, bool& value);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::u16string& str);
+    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, bool& value);
     template <typename EnumType>
     static ani_status ReadOptionalEnumField(
-        ani_env* env, ani_object obj, const AniCacheParam& param, EnumType& value);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value);
     template <typename EnumType>
-    static ani_status ReadEnumField(ani_env* env, ani_object obj, const AniCacheParam& param, EnumType& value);
+    static ani_status ReadEnumField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value);
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
-        ani_env* env, ani_object obj, const AniCacheParam& param, std::vector<T>& array, Converter convert);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::vector<T>& array, Converter convert);
     template <typename T, typename Converter>
     static ani_status ReadArrayField(
-        ani_env* env, ani_object obj, const AniCacheParam& param, std::vector<T>& array, Converter convert);
-    static ani_status FindNamespaceWithCache(ani_env* env, const char* nsName, ani_namespace& ns);
-    static ani_status FindClassWithCache(ani_env* env, const char* clsName, ani_class& cls);
-    static ani_status FindMethodWithCache(ani_env* env, const AniCacheParam& param, ani_method& method);
-    static ani_status FindFunctionWithCache(
-        ani_env* env, const AniCacheParam& param, ani_namespace ns, ani_function& function);
-    static ani_status Object_InstanceOf(ani_env* env, ani_object obj, const char* clsName, ani_boolean* result);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::vector<T>& array, Converter convert);
 
-    static ani_status GetPropertyByCache_Ref(ani_env* env, ani_object obj, const AniCacheParam& param, ani_ref& ref);
-    static ani_status GetPropertyByCache_Double(
-        ani_env* env, ani_object obj, const AniCacheParam& param, ani_double& value);
-    static ani_status GetPropertyByCache_Int(
-        ani_env* env, ani_object obj, const AniCacheParam& param, ani_int& value);
-    static ani_status GetPropertyByCache_Long(
-        ani_env* env, ani_object obj, const AniCacheParam& param, ani_long& value);
-    static ani_status GetPropertyByCache_Bool(
-        ani_env* env, ani_object obj, const AniCacheParam& param, bool& value);
     static ani_status GetPropertyByCache_String(
-        ani_env* env, ani_object obj, const AniCacheParam& param, std::string& value);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::string& value);
     static ani_status GetPropertyByCache_U16String(
-        ani_env* env, ani_object obj, const AniCacheParam& param, std::u16string& value);
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::u16string& value);
 };
 
 template <typename... Args>
-ani_object AniTextUtils::CreateAniObject(ani_env* env, const std::string& name, const char* signature, Args... params)
+ani_object AniTextUtils::CreateAniObject(ani_env* env, const ani_class cls, const ani_method ctor, Args... params)
 {
-    ani_class cls = nullptr;
-    if (FindClassWithCache(env, name.c_str(), cls) != ANI_OK) {
-        TEXT_LOGE("Failed to found %{public}s", name.c_str());
-        return CreateAniUndefined(env);
-    }
-
-    ani_method ctor = nullptr;
-    AniCacheParam param = { name.c_str(), "<ctor>", signature };
-    ani_status ret = FindMethodWithCache(env, param, ctor);
-
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find method %{public}s, ret %{public}d", param.GetCacheKey(), ret);
+    if (cls == nullptr || ctor == nullptr) {
+        TEXT_LOGE("Class or constructor is null");
         return CreateAniUndefined(env);
     }
 
     ani_object obj = {};
     if (env->Object_New(cls, ctor, &obj, params...) != ANI_OK) {
-        TEXT_LOGE("Failed to create object %{public}s", name.c_str());
+        TEXT_LOGE("Failed to create object");
         return CreateAniUndefined(env);
     }
     return obj;
@@ -156,10 +131,10 @@ T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const char* name
 };
 
 template <typename EnumType>
-ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, const AniCacheParam& param, EnumType& value)
+ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_int index = 0;
         result = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ref), &index);
@@ -171,10 +146,10 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
 };
 
 template <typename EnumType>
-ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const AniCacheParam& param, EnumType& value)
+ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::GetPropertyByCache_Ref(env, obj, param, ref);
+    ani_status result = env->Object_CallMethod_Ref(obj, getPropertyMethod, &ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_int index = 0;
         result = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ref), &index);
@@ -187,12 +162,12 @@ ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const AniCa
 
 template <typename T, typename Converter>
 ani_status AniTextUtils::ReadOptionalArrayField(
-    ani_env* env, ani_object obj, const AniCacheParam& param, std::vector<T>& array, Converter convert)
+    ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::vector<T>& array, Converter convert)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::ReadOptionalField(env, obj, param, ref);
+    ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result != ANI_OK || ref == nullptr) {
-        TEXT_LOGE("Failed to read optional field %{public}s, ret: %{public}d", param.GetCacheKey(), result);
+        TEXT_LOGE("Failed to read optional field, ret: %{public}d", result);
         return result;
     }
 
@@ -200,7 +175,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
     ani_size length;
     result = env->Array_GetLength(arrayObj, &length);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to get length of %{public}s, ret: %{public}d", param.GetCacheKey(), result);
+        TEXT_LOGE("Failed to get length of array, ret: %{public}d", result);
         return result;
     }
 
@@ -208,8 +183,7 @@ ani_status AniTextUtils::ReadOptionalArrayField(
         ani_ref entryRef = nullptr;
         result = env->Array_Get(arrayObj, i, &entryRef);
         if (result != ANI_OK || entryRef == nullptr) {
-            TEXT_LOGE("Failed to get array object of %{public}s, ret: %{public}d",
-                param.GetCacheKey(), result);
+            TEXT_LOGE("Failed to get array object, ret: %{public}d", result);
             continue;
         }
         array.emplace_back(convert(env, entryRef));
@@ -219,12 +193,12 @@ ani_status AniTextUtils::ReadOptionalArrayField(
 
 template <typename T, typename Converter>
 ani_status AniTextUtils::ReadArrayField(
-    ani_env* env, ani_object obj, const AniCacheParam& param, std::vector<T>& array, Converter convert)
+    ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::vector<T>& array, Converter convert)
 {
     ani_ref ref = nullptr;
-    ani_status result = AniTextUtils::GetPropertyByCache_Ref(env, obj, param, ref);
+    ani_status result = env->Object_CallMethod_Ref(obj, getPropertyMethod, &ref);
     if (result != ANI_OK || ref == nullptr) {
-        TEXT_LOGE("Failed to get field %{public}s, ret: %{public}d", param.GetCacheKey(), result);
+        TEXT_LOGE("Failed to get field, ret: %{public}d", result);
         return result;
     }
 
@@ -232,7 +206,7 @@ ani_status AniTextUtils::ReadArrayField(
     ani_size length;
     result = env->Array_GetLength(arrayObj, &length);
     if (result != ANI_OK) {
-        TEXT_LOGE("Failed to get length of %{public}s, ret: %{public}d", param.GetCacheKey(), result);
+        TEXT_LOGE("Failed to get length of array, ret: %{public}d", result);
         return result;
     }
 
@@ -240,8 +214,7 @@ ani_status AniTextUtils::ReadArrayField(
         ani_ref entryRef = nullptr;
         result = env->Array_Get(arrayObj, i, &entryRef);
         if (result != ANI_OK || entryRef == nullptr) {
-            TEXT_LOGE("Failed to get array object of %{public}s, ret: %{public}d",
-                param.GetCacheKey(), result);
+            TEXT_LOGE("Failed to get array object, ret: %{public}d", result);
             continue;
         }
         array.emplace_back(convert(env, entryRef));

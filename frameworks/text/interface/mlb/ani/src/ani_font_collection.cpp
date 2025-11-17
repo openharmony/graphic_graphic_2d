@@ -75,13 +75,12 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_FONT_COLLECTION, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
-        return ret;
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_FONT_COLLECTION);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_FONT_COLLECTION);
+        return ANI_NOT_FOUND;
     }
-
+    
     std::array methods = {
         ani_native_function{"constructorNative", ":", reinterpret_cast<void*>(Constructor)},
         ani_native_function{"loadFontSync", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync)},
@@ -133,7 +132,7 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
     AniFontCollection* aniFontCollection = new AniFontCollection();
     aniFontCollection->fontCollection_ = FontCollection::Create();
     ani_object obj = AniTextUtils::CreateAniObject(
-        env, ANI_CLASS_FONT_COLLECTION, "l:", reinterpret_cast<ani_long>(aniFontCollection));
+        env, ANI_FIND_CLASS(env, ANI_CLASS_FONT_COLLECTION), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_COLLECTION, "<ctor>", "l:"), reinterpret_cast<ani_long>(aniFontCollection));
     if (AniTextUtils::IsUndefined(env, obj)) {
         TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
@@ -156,10 +155,9 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
 
-    ani_class stringClass = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, "std.core.String", stringClass);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to found std.core.String, ret %{public}d", ret);
+    ani_class stringClass = ANI_FIND_CLASS(env, ANI_STRING);
+    if (stringClass == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_STRING);
         return;
     }
 
@@ -171,10 +169,9 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
 
-    ani_class resourceClass = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, "global.resource.Resource", resourceClass);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to found global.resource.Resource, ret %{public}d", ret);
+    ani_class resourceClass = ANI_FIND_CLASS(env, ANI_GLOBAL_RESOURCE);
+    if (resourceClass == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_GLOBAL_RESOURCE);
         return;
     }
     ani_boolean isResource = false;
@@ -203,15 +200,15 @@ std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
 ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
 {
     return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
-        JsFontCollection* jsFontcollection = reinterpret_cast<JsFontCollection*>(unwrapResult);
-        if (jsFontcollection == nullptr) {
-            TEXT_LOGE("Null jsFontcollection");
+        JsFontCollection* jsFontCollection = reinterpret_cast<JsFontCollection*>(unwrapResult);
+        if (jsFontCollection == nullptr) {
+            TEXT_LOGE("Null jsFontCollection");
             return AniTextUtils::CreateAniUndefined(env);
         }
         AniFontCollection* aniFontCollection = new AniFontCollection();
-        aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
+        aniFontCollection->fontCollection_ = jsFontCollection->GetFontCollection();
         ani_object staticObj = AniTextUtils::CreateAniObject(
-            env, ANI_CLASS_FONT_COLLECTION, "l:", reinterpret_cast<ani_long>(aniFontCollection));
+            env, ANI_FIND_CLASS(env, ANI_CLASS_FONT_COLLECTION), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_COLLECTION, "<ctor>", "l:"), reinterpret_cast<ani_long>(aniFontCollection));
         if (AniTextUtils::IsUndefined(env, staticObj)) {
             TEXT_LOGE("Failed to create ani font collection obj");
             delete aniFontCollection;

@@ -99,11 +99,10 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_PARAGRAPH_BUILDER, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to  find class, ret %{public}d", ret);
-        return ret;
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH_BUILDER);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_PARAGRAPH_BUILDER);
+        return ANI_NOT_FOUND;
     }
 
     std::array methods = {
@@ -233,7 +232,7 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINE_TYPESET, ":");
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_LINE_TYPESET), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_LINE_TYPESET, "<ctor>", ":"));
     AniLineTypeset* aniLineTypeSet = new AniLineTypeset(std::move(lineTypography));
     ani_status ret = env->Object_CallMethodByName_Void(
         lineTypographyObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniLineTypeSet));
@@ -269,7 +268,7 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
             TEXT_LOGE("Null jsParagraphBuilder");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH_BUILDER, ":");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH_BUILDER), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, "<ctor>", ":"));
         std::shared_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
         if (typographyCreatePtr == nullptr) {
             TEXT_LOGE("Failed to get typographyCreate");

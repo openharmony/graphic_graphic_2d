@@ -82,11 +82,10 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_RUN, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_RUN);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_RUN);
+        return ANI_NOT_FOUND;
     }
 
     std::vector<ani_native_function> methods = InitMethods(env);
@@ -118,7 +117,7 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     }
     AniRun* aniRun = new AniRun();
     aniRun->run_ = std::shared_ptr<Rosen::Run>(run);
-    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
+    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_RUN), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_RUN, "<ctor>", ":"));
     ani_status ret = env->Object_CallMethodByName_Void(
         runObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
     if (ret != ANI_OK) {
@@ -347,7 +346,7 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
     }
 
     Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
-    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":");
+    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_FONT), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT, "<ctor>", ":"));
     ani_status ret = env->Object_SetFieldByName_Long(
         fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
@@ -490,7 +489,7 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
             TEXT_LOGE("Null jsRun");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_RUN), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_RUN, "<ctor>", ":"));
         std::shared_ptr<Rosen::Run> runPtr = jsRun->GetRun();
         if (runPtr == nullptr) {
             TEXT_LOGE("Failed to get run");

@@ -23,7 +23,7 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, "iiddddddidC{std.core.Map}:",
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_LINEMETRICS), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC{std.core.Map}:"),
         ani_int(lineMetrics.startIndex),
         ani_int(lineMetrics.endIndex),
         ani_double(lineMetrics.ascender),

@@ -23,34 +23,29 @@ using namespace OHOS::Rosen;
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_status ret = env->Object_CalMethod_Double(
+    ani_status ret = env->Object_CallMethod_Double(
         obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d"), &placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_CalMethod_Double(
+    ret = env->Object_CallMethod_Double(
         obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>height", ":d"), &placeholderSpan.height);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
     }
-
-    static AniCacheParam paramAlign =
-        { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT) };
-    ret = AniTextUtils::ReadEnumField(env, obj, paramAlign, placeholderSpan.alignment);
+    ret = AniTextUtils::ReadEnumField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT)), placeholderSpan.alignment);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
-    static AniCacheParam paramBaseline =
-        { ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE) };
-    ret = AniTextUtils::ReadEnumField(env, obj, paramBaseline, placeholderSpan.baseline);
+    ret = AniTextUtils::ReadEnumField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)), placeholderSpan.baseline);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_CalMethod_Double(obj,
+    ret = env->Object_CallMethod_Double(obj,
         ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baselineOffset", ":d"),
         &placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {

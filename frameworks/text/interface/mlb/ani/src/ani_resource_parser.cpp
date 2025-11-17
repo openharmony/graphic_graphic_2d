@@ -33,20 +33,18 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    static AniCacheParam paramId = { ANI_GLOBAL_RESOURCE, "<get>id", ":l" };
-    AniTextUtils::GetPropertyByCache_Long(env, obj, paramId, aniId);
-    static AniCacheParam paramBundleName = { ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING) };
-    AniTextUtils::GetPropertyByCache_Ref(env, obj, paramBundleName, aniBundleName);
-    static AniCacheParam paramModuleName = { ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING) };
-    AniTextUtils::GetPropertyByCache_Ref(env, obj, paramModuleName, aniModuleName);
-    static AniCacheParam paramsName = { ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY) };
-    AniTextUtils::ReadOptionalArrayField(env, obj, paramsName, result.params, [](ani_env* env, ani_ref ref) {
+    env->Object_CallMethod_Long(
+        obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>id", ":l"), &aniId);
+    env->Object_CallMethod_Ref(
+        obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)), &aniBundleName);
+    env->Object_CallMethod_Ref(
+        obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)), &aniModuleName);
+    AniTextUtils::ReadOptionalArrayField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)), result.params, [](ani_env* env, ani_ref ref) {
         std::string utf8Str;
         AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
         return utf8Str;
     });
-    static AniCacheParam typeParam = { ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT) };
-    AniTextUtils::ReadOptionalIntField(env, obj, typeParam, aniType);
+    AniTextUtils::ReadOptionalIntField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)), aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);

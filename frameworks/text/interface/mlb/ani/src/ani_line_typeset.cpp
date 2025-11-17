@@ -41,11 +41,10 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_LINE_TYPESET, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_LINE_TYPESET);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_LINE_TYPESET);
+        return ANI_NOT_FOUND;
     }
     std::string createLineSignature = "ii:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
     std::array methods = {

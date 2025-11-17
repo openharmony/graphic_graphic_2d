@@ -56,11 +56,10 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_TEXT_LINE, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_TEXT_LINE);
+        return ANI_NOT_FOUND;
     }
 
     std::array methods = {
@@ -111,7 +110,7 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     }
     AniTextLine* aniTextLine = new AniTextLine();
     aniTextLine->textLine_ = std::shared_ptr<Rosen::TextLineBase>(textLine);
-    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":");
+    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, "<ctor>", ":"));
     ani_status ret = env->Object_CallMethodByName_Void(
         textLineObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
     if (ret != ANI_OK) {
@@ -416,7 +415,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
             TEXT_LOGE("Null jsTextLine");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_LINE, ":");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, "<ctor>", ":"));
         std::shared_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
         if (textLineBase == nullptr) {
             TEXT_LOGE("Failed to get textLineBase");

@@ -65,7 +65,7 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
         return AniTextUtils::CreateAniUndefined(env);
     }
     AniParagraph* aniParagraph = new AniParagraph();
-    ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":");
+    ani_object paragraphObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<ctor>", ":"));
     aniParagraph->typography_ = std::shared_ptr<OHOS::Rosen::Typography>(typography);
     ani_status ret = env->Object_CallMethodByName_Void(
         paragraphObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraph));
@@ -122,11 +122,10 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_PARAGRAPH, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_PARAGRAPH);
+        return ANI_NOT_FOUND;
     }
     std::vector<ani_native_function> methods = InitMethods(env);
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -569,7 +568,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
             TEXT_LOGE("Null jsParagraph");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_PARAGRAPH, ":");
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<ctor>", ":")));
         std::shared_ptr<Typography> typographyPtr = jsParagraph->GetParagraph();
         if (typographyPtr == nullptr) {
             TEXT_LOGE("Failed to get typography");
