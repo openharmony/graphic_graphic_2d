@@ -19,7 +19,6 @@
 
 #include "command/rs_command_templates.h"
 #include "common/rs_macros.h"
-#include "modifier/rs_modifier_type.h"
 
 namespace OHOS {
 namespace Rosen {
