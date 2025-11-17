@@ -141,8 +141,6 @@ RegisterError FontCollection::RegisterTypeface(TypefaceWithAlias& ta)
     if (fd == -1) {
         TEXT_LOGE("Failed to register typeface %{public}s", ta.GetAlias().c_str());
         return RegisterError::REGISTER_FAILED;
-    } else if (fd >= 0 && fd != ta.GetTypeface()->GetFd()) {
-        ta.UpdateTypefaceAshmem(fd, ta.GetTypeface()->GetSize());
     }
 
     TEXT_LOGI("Succeed in registering typeface, family name: %{public}s, hash: %{public}u", ta.GetAlias().c_str(),
@@ -213,13 +211,13 @@ LoadSymbolErrorCode FontCollection::LoadSymbolJson(const std::string& familyName
 std::shared_ptr<Drawing::Typeface> FontCollection::CreateTypeface(
     const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index)
 {
-    uint32_t hash = Drawing::Typeface::CalculateHash(data, datalen);
+    uint32_t hash = Drawing::Typeface::CalculateHash(data, datalen, index);
     auto typeface = TypefaceMap::GetTypeface(hash);
     if (typeface != nullptr) {
         TEXT_LOGI("Find same typeface local, family name: %{public}s", typeface->GetFamilyName().c_str());
         return typeface;
     }
-    return Drawing::Typeface::MakeFromAshmem(data, datalen, hash, familyName);
+    return Drawing::Typeface::MakeFromAshmem(data, datalen, hash, familyName, index);
 }
 
 std::shared_ptr<Drawing::Typeface> FontCollection::LoadThemeFont(
@@ -371,25 +369,6 @@ const std::string& TypefaceWithAlias::GetAlias() const
 bool TypefaceWithAlias::operator==(const TypefaceWithAlias& other) const
 {
     return other.alias_ == this->alias_ && other.GetHash() == this->GetHash();
-}
-
-void TypefaceWithAlias::UpdateTypefaceAshmem(int32_t fd, uint32_t size)
-{
-    if (typeface_ == nullptr) {
-        return;
-    }
-#ifdef ENABLE_OHOS_ENHANCE
-    auto ashmem = std::make_unique<Ashmem>(fd, size);
-    bool mapResult = ashmem->MapReadOnlyAshmem();
-    const void* ptr = ashmem->ReadFromAshmem(size, 0);
-    if (!mapResult || ptr == nullptr) {
-        TEXT_LOGE("Failed to update ashmem: %{public}d -> %{public}d", typeface_->GetFd(), fd);
-        return;
-    }
-    auto stream = std::make_unique<Drawing::MemoryStream>(
-        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
-    typeface_->UpdateStream(std::move(stream));
-#endif
 }
 } // namespace AdapterTxt
 

@@ -2288,8 +2288,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             uint64_t id{0};
             int32_t fd{-1};
             uint32_t size{0};
+            uint32_t index{0};
             int32_t needUpdate{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(size)) {
+            if (!data.ReadUint64(id) || !data.ReadUint32(size) || !data.ReadUint32(index)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -2303,7 +2304,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             // safe check
             if (IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, id);
-                result = RegisterTypeface(id, size, fd, needUpdate);
+                result = RegisterTypeface(id, size, fd, needUpdate, index);
             } else {
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);

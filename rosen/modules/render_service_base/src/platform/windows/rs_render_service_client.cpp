@@ -490,7 +490,7 @@ int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, in
     return {};
 }
 
-bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
+int32_t RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index)
 {
     return {};
 }

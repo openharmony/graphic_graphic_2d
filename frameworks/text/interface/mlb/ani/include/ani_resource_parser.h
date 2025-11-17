@@ -34,7 +34,8 @@ struct AniResource {
 class AniResourceParser final {
 public:
     static AniResource ParseResource(ani_env* env, ani_object obj);
-    static AniTextResult ResolveResource(const AniResource& resource, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
+    static AniTextResult ResolveResource(
+        const AniResource& resource, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_RESOURCE_H

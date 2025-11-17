@@ -37,7 +37,6 @@ public:
     uint32_t GetHash() const;
     const std::string& GetAlias() const;
     const std::shared_ptr<Drawing::Typeface>& GetTypeface() const;
-    void UpdateTypefaceAshmem(int32_t fd, uint32_t size);
     bool operator==(const TypefaceWithAlias& other) const;
 
     struct Hasher {

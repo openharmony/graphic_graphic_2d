@@ -79,17 +79,9 @@ namespace text {
       });
     }
     async loadFontWithCheck(name: string, path: Resource | string, index?: int): Promise<void> {
-      await new Promise<void>((resolve, reject) => {
-        try {
-          taskpool.execute((): void => {
-            this.loadFontSyncWithCheck(name, path, index);
-          }).then(() => {
-            resolve(undefined);
-          })
-        } catch (err) {
-          reject(err as BusinessError);
-        }
-      });
+      return taskpool.execute((): void => {
+        this.loadFontSyncWithCheck(name, path, index);
+      }) as Promise<void>;
     }
     native unloadFontSync(name: string): void;
     async unloadFont(name: string): Promise<void> {

@@ -61,7 +61,7 @@ struct TextResult {
 
     std::string ToString() const
     {
-        return ERROR_MESSAGES.at(errorCode) + ": " + detailedInfo;
+        return ERROR_MESSAGES.at(errorCode) + (!detailedInfo.empty() ? ": " : "") + detailedInfo;
     }
 
     constexpr static TextResult Success(T r = nullptr)

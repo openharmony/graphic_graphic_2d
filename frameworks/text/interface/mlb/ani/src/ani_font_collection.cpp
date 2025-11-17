@@ -99,11 +99,13 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
     }
 
     std::array methods = {
-        ani_native_function{"constructorNative", ":", reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"loadFontSync", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync)},
-        ani_native_function{"loadFontSyncWithCheck", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync)},
-        ani_native_function{"unloadFontSync", UNLOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(UnloadFontSync)},
-        ani_native_function{"clearCaches", ":", reinterpret_cast<void*>(ClearCaches)},
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "loadFontSync", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync) },
+        ani_native_function {
+            "unloadFontSync", UNLOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(UnloadFontSync) },
+        ani_native_function { "clearCaches", ":", reinterpret_cast<void*>(ClearCaches) },
+        ani_native_function { "loadFontSyncWithCheck", LOAD_FONT_SYNC_WITH_CHECK_SIGN.c_str(),
+            reinterpret_cast<void*>(LoadFontSyncWithCheck) },
     };
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {

@@ -44,9 +44,9 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
         const FontArguments& fontArguments);
-    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0, uint32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromAshmem(
-        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name);
+        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index = 0);
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(TypefaceRegisterCallback func);
@@ -155,17 +155,20 @@ public:
      * @brief   Calculate hash for this typeface.
      * @return  hash
      */
-    static uint32_t CalculateHash(const uint8_t* data, size_t size);
+    static uint32_t CalculateHash(const uint8_t* data, size_t size, uint32_t index = 0);
 
     /**
      * @brief   Update stream for this typeface.
      */
     void UpdateStream(std::unique_ptr<MemoryStream> stream);
+
+    uint32_t GetIndex() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     static TypefaceRegisterCallback registerTypefaceCallBack_;
     static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_;
     uint32_t size_ = 0;
+    uint32_t index_ = 0;
 };
 } // namespace Drawing
 } // namespace Rosen
