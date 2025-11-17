@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,15 +13,25 @@
  * limitations under the License.
  */
 
-#include "rs_surface_frame_ohos.h"
+#ifndef RENDER_CONTEXT_VK_H
+#define RENDER_CONTEXT_VK_H
 
-#include "platform/common/rs_log.h"
+#include "render_context/render_context.h"
 
 namespace OHOS {
 namespace Rosen {
-void RSSurfaceFrameOhos::SetRenderContext(std::shared_ptr<RenderContext> context)
-{
-    renderContext_ = context;
-}
+class RenderContextVK : public RenderContext {
+
+public:
+    RenderContextVK() = default;
+    ~RenderContextVK() override;
+
+    bool Init() override;
+    bool AbandonContext() override;
+    std::string GetShaderCacheSize() const override;
+    std::string CleanAllShaderCache() const override;
+    bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext) override;
+};
 } // namespace Rosen
 } // namespace OHOS
+#endif

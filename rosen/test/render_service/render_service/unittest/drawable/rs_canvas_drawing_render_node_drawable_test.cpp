@@ -879,7 +879,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    uniRenderThread.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
+    uniRenderThread.uniRenderEngine_->renderContext_ = RenderContext::Create();
     drawable->ResetSurfaceforPlayback(10, 10);
     ASSERT_EQ(drawable->canvas_, nullptr);
     uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();

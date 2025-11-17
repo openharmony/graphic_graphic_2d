@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,8 +34,8 @@ public:
         return producer_;
     }
 
-    virtual RenderContext* GetRenderContext() override;
-    virtual void SetRenderContext(RenderContext* context) override;
+    virtual std::shared_ptr<RenderContext> GetRenderContext() override;
+    virtual void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     virtual void SetColorSpace(GraphicColorGamut colorSpace) override;
     virtual GraphicColorGamut GetColorSpace() const override;
     virtual uint32_t GetQueueSize() const override;
@@ -47,7 +47,7 @@ public:
     virtual void SetTimeOut(int32_t timeOut);
 protected:
     sptr<Surface> producer_;
-    RenderContext* context_ = nullptr;
+    std::shared_ptr<RenderContext> context_ = nullptr;
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     int32_t pixelFormat_ = GRAPHIC_PIXEL_FMT_RGBA_8888;
     uint64_t bufferUsage_ = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;

@@ -30,7 +30,13 @@ group("unittest") {
 ohos_unittest("RenderContextTest") {
   module_out_path = module_output_path
   public_configs = [ ":render_context_public_config" ]
-  sources = [ "render_context_test.cpp" ]
+  sources = [
+    "render_context_test.cpp",
+    "render_context_gl_test.cpp",
+    ]
+  if (graphic_2d_feature_enable_vulkan) {
+    sources += [ "render_context_vk_test.cpp" ]
+  }
   deps = [
     ":render_context",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
@@ -39,8 +45,10 @@ ohos_unittest("RenderContextTest") {
   if (defined(use_rosen_drawing) && use_rosen_drawing) {
     defines = [ "USE_ROSEN_DRAWING" ]
   }
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src"
+  ]
 
   external_deps = [
     "c_utils:utils",

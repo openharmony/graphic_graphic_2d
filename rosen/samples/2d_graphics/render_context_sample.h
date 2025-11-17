@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,6 +23,7 @@
 #include "hdi_layer_info.h"
 #include "hdi_output.h"
 #include "hdi_screen.h"
+#include "render_context/new_render_context/render_context_gl.h"
 #include "render_context/render_context.h"
 #include <unordered_map>
 
@@ -60,7 +61,7 @@ private:
     std::shared_ptr<HdiOutput> output_ = nullptr;
     struct NativeWindow* nwindow = nullptr;
 
-    RenderContext* renderContext = nullptr;
+    std::shared_ptr<RenderContextGL> renderContext = nullptr;
     EGLSurface eglSurface = EGL_NO_SURFACE;
 
     std::unordered_map<uint64_t, sptr<SurfaceBuffer>> prevBufferMap_;

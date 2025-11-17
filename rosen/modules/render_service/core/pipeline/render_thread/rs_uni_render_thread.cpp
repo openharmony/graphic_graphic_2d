@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -758,14 +758,14 @@ static void TrimMemEmptyType(Drawing::GPUContext* gpuContext)
     SkGraphics::PurgeAllCaches();
     gpuContext->FreeGpuResources();
     gpuContext->PurgeUnlockedResources(true);
-    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
     rendercontext->CleanAllShaderCache();
     gpuContext->FlushAndSubmit(true);
 }
 
 static void TrimMemShaderType()
 {
-    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
     rendercontext->CleanAllShaderCache();
 }
 

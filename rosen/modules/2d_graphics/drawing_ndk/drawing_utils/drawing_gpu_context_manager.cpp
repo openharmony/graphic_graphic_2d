@@ -28,10 +28,10 @@ namespace Rosen {
 DrawingGpuContextManager::DrawingGpuContextManager()
 {
     if (Drawing::SystemProperties::IsUseGl()) {
-        renderContext_ = std::make_shared<RenderContext>();
+        renderContext_ = std::static_pointer_cast<RenderContextGL>(RenderContext::Create());
     }
 }
-std::shared_ptr<RenderContext> DrawingGpuContextManager::GetRenderContext()
+std::shared_ptr<RenderContextGL> DrawingGpuContextManager::GetRenderContext()
 {
     return renderContext_;
 }
@@ -52,7 +52,7 @@ std::shared_ptr<Drawing::GPUContext> DrawingGpuContextManager::CreateDrawingCont
             return nullptr;
         }
 
-        renderContext_->InitializeEglContext();
+        renderContext_->Init();
         renderContext_->SetUpGpuContext();
         context = renderContext_->GetSharedDrGPUContext();
     }

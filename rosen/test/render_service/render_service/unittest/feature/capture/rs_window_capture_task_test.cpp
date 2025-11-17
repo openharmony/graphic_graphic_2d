@@ -111,7 +111,7 @@ public:
 
     static RSInterfaces* rsInterfaces_;
     static RSRenderInterface* rsRenderInterfaces_;
-    static RenderContext* renderContext_;
+    static std::shared_ptr<RenderContext> renderContext_;
     static RSDisplayNodeConfig defaultConfig_;
     static RSDisplayNodeConfig mirrorConfig_;
     static std::shared_ptr<RSSurfaceNode> surfaceNode_;
@@ -119,7 +119,7 @@ public:
 };
 RSInterfaces* RSWindowCaptureTaskTest::rsInterfaces_ = nullptr;
 RSRenderInterface* RSWindowCaptureTaskTest::rsRenderInterfaces_ = nullptr;
-RenderContext* RSWindowCaptureTaskTest::renderContext_ = nullptr;
+std::shared_ptr<RenderContext> RSWindowCaptureTaskTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSWindowCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
 RSDisplayNodeConfig RSWindowCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSSurfaceNode> RSWindowCaptureTaskTest::surfaceNode_ = nullptr;
@@ -210,8 +210,8 @@ void RSWindowCaptureTaskTest::InitRenderContext()
     }
     if (renderContext_ == nullptr) {
         HiLog::Info(LOG_LABEL, "%s: init renderContext_", __func__);
-        renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
-        renderContext_->InitializeEglContext();
+        renderContext_ = RenderContext::Create();
+        renderContext_->Init();
     }
 #endif // ACE_ENABLE_GL
 }

@@ -695,7 +695,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
 #if defined(RS_ENABLE_UNI_RENDER)
     RS_LOGI("InitRenderContext");
     /* move to render thread ? */
-    RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext().get());
+    RSBackgroundThread::Instance().InitRenderContext(GetRenderEngine()->GetRenderContext());
 #endif
 #ifdef RS_ENABLE_GPU
     RSRcdRenderManager::InitInstance();

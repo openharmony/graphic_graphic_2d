@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@ using namespace std;
 
 namespace OHOS::Rosen {
 #ifdef RS_ENABLE_GPU
-    RenderContext* rc_ = nullptr;
+    std::shared_ptr<RenderContext> rc_ = nullptr;
 #endif
 constexpr int SURFACE_NODE_SIZE = 100;
 
@@ -274,10 +274,10 @@ private:
 #ifdef RS_ENABLE_GPU
         cout << "RS_ENABLE_GPU is true. \n";
         cout << "Init RenderContext start. \n";
-            rc_ = RenderContextFactory::GetInstance().CreateEngine();
+            rc_ = RenderContext::Create();
             if (rc_) {
                 cout << "Init RenderContext success.\n";
-                rc_->InitializeEglContext();
+                rc_->Init();
             } else {
                 cout << "Init RenderContext failed, RenderContext is nullptr.\n";
             }
