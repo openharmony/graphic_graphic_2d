@@ -47,8 +47,12 @@ RSCanvasNode::SharedPtr RSCanvasNode::Create(
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId(), isTextureExportNode);
-    node->AddCommand(command, node->IsRenderServiceNode());
+    if (RSSystemProperties::GetRenderNodeLazyLoadEnabled()) {
+        node->lazyLoad_ = true;
+    } else {
+        std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(node->GetId(), isTextureExportNode);
+        node->AddCommand(command, node->IsRenderServiceNode());
+    }
     node->SetUIContextToken();
     return node;
 }
@@ -67,6 +71,12 @@ RSCanvasNode::~RSCanvasNode()
         RSModifiersDraw::RemoveSurfaceByNodeId(GetId(), true);
     }
 #endif
+}
+
+void RSCanvasNode::CreateRenderNode() const
+{
+    std::unique_ptr<RSCommand> command = std::make_unique<RSCanvasNodeCreate>(GetId(), IsTextureExportNode());
+    AddCommand(command, IsRenderServiceNode());
 }
 
 void RSCanvasNode::SetHDRPresent(bool hdrPresent)

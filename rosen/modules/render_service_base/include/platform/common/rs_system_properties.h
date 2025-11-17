@@ -184,6 +184,7 @@ public:
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
+    static bool GetRenderNodeLazyLoadEnabled();
     static StencilPixelOcclusionCullingType GetStencilPixelOcclusionCullingEnabled();
     static float GetClipRectThreshold();
     static bool GetAllSurfaceVisibleDebugEnabled();
