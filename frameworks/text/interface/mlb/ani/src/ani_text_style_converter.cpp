@@ -290,9 +290,9 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_STYLE), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_STYLE, "<ctor>", sign.c_str()),
         AniTextStyleConverter::ParseDecorationToAni(env, textStyle),
         aniColorObj,
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(textStyle.fontWeight)),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_STYLE, static_cast<int>(textStyle.fontStyle)),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_BASELINE, static_cast<int>(textStyle.baseline)),
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_FONT_WEIGHT), static_cast<int>(textStyle.fontWeight)),
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_FONT_STYLE), static_cast<int>(textStyle.fontStyle)),
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_TEXT_BASELINE), static_cast<int>(textStyle.baseline)),
         AniTextUtils::CreateAniArrayAndInitData(env, textStyle.fontFamilies, textStyle.fontFamilies.size(),
             [](ani_env* env, const std::string& item) { return AniTextUtils::CreateAniStringObj(env, item); }),
         textStyle.fontSize,
@@ -302,7 +302,7 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
         textStyle.halfLeading,
         textStyle.heightOnly,
         AniTextUtils::CreateAniStringObj(env, textStyle.ellipsis),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_ELLIPSIS_MODE, static_cast<int>(textStyle.ellipsisModal)),
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_ELLIPSIS_MODE), static_cast<int>(textStyle.ellipsisModal)),
         AniTextUtils::CreateAniStringObj(env, textStyle.locale),
         textStyle.baseLineShift,
         ParseFontFeaturesToAni(env, textStyle.fontFeatures),
@@ -356,9 +356,9 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
         std::string(ANI_INTERFACE_COLOR) + "}E{" + std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "}d:";
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_DECORATION), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_DECORATION, "<ctor>", sign.c_str()),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE, static_cast<int>(textStyle.decoration)),
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_TEXT_DECORATION_TYPE), static_cast<int>(textStyle.decoration)),
         aniColorObj,
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE, static_cast<int>(textStyle.decorationStyle)),
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_TEXT_DECORATION_STYLE), static_cast<int>(textStyle.decorationStyle)),
         textStyle.decorationThicknessScale);
     return aniObj;
 }

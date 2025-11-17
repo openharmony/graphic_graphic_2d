@@ -56,7 +56,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     }
 
     ani_string aniMsg = AniTextUtils::CreateAniStringObj(env, message);
-    status = env->Object_New(aniClass, aniCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
+    ani_status status = env->Object_New(aniClass, aniCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to new err, status %{public}d", static_cast<int32_t>(status));
         return status;
@@ -114,19 +114,8 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
     return AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_MAP), ANI_CLASS_FIND_METHOD(env, ANI_MAP, "<ctor>", ":"));
 }
 
-ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index)
+ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType, ani_size index)
 {
-    ani_enum enumType = nullptr;
-    bool found = AniCacheManager::Instance().FindEnum(enum_descriptor, enumType);
-    if (!found) {
-        ani_status ret = env->FindEnum(enum_descriptor, &enumType);
-        if (ret == ANI_OK) {
-            AniCacheManager::Instance().InsertEnum(env, enum_descriptor, enumType);
-        } else {
-            TEXT_LOGE("Failed to find enum, %{public}s, ret %{public}d", enum_descriptor, ret);
-            return nullptr;
-        }
-    }
     ani_enum_item enumItem;
     env->Enum_GetEnumItemByIndex(enumType, index, &enumItem);
     return enumItem;
@@ -259,7 +248,7 @@ ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const a
 {
     ani_status ret = env->Object_CallMethod_Ref(obj, getPropertyMethod, &ref);
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to get property %{public}s, ret %{public}d", param.GetCacheKey(), ret);
+        TEXT_LOGE("Failed to get property, ret %{public}d", ret);
         return ret;
     }
     ani_boolean isUndefined;

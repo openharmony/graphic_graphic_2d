@@ -40,7 +40,7 @@ public:
     template <typename T, typename Converter>
     static ani_object CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size, Converter convert);
     static ani_object CreateAniMap(ani_env* env);
-    static ani_enum_item CreateAniEnum(ani_env* env, const char* enum_descriptor, ani_size index);
+    static ani_enum_item CreateAniEnum(ani_env* env, const ani_enum enumType, ani_size index);
     static ani_object CreateAniDoubleObj(ani_env* env, double val);
     static ani_object CreateAniIntObj(ani_env* env, int val);
     static ani_object CreateAniBooleanObj(ani_env* env, bool val);

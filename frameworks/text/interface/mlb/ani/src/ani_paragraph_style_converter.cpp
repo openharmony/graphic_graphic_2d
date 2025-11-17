@@ -74,7 +74,6 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     AniTextUtils::ReadOptionalEnumField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_STRUT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)), paragraphStyle->lineStyleFontStyle);
     AniTextUtils::ReadOptionalEnumField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_STRUT_STYLE, "<get>fontWidth", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WIDTH)), paragraphStyle->lineStyleFontWidth);
     AniTextUtils::ReadOptionalEnumField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_STRUT_STYLE, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT)), paragraphStyle->lineStyleFontWeight);
-    AniTextUtils::ReadOptionalEnumField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_STRUT_STYLE, "<get>lineHeight", ANI_WRAP_RETURN_E(ANI_ENUM_LINE_HEIGHT)), paragraphStyle->lineStyleLineHeight);
 
     AniTextUtils::ReadOptionalDoubleField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_STRUT_STYLE, "<get>fontSize", ANI_WRAP_RETURN_C(ANI_DOUBLE)), paragraphStyle->lineStyleFontSize);
     AniTextUtils::ReadOptionalDoubleField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_STRUT_STYLE, "<get>height", ANI_WRAP_RETURN_C(ANI_DOUBLE)), paragraphStyle->lineStyleHeightScale);
