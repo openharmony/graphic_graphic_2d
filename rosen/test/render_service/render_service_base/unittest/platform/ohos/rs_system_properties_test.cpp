@@ -256,6 +256,17 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetRenderNodeLazyLoadEnabled
+ * @tc.desc: Test GetRenderNodeLazyLoadEnabled default return
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSSystemPropertiesTest, GetRenderNodeLazyLoadEnabled, TestSize.Level1)
+{
+    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), true);
+}
+
+/**
  * @tc.name: GetVirtualDirtyEnabled
  * @tc.desc: GetVirtualDirtyEnabled Test
  * @tc.type: FUNC

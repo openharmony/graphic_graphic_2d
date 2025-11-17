@@ -225,6 +225,9 @@ protected:
     RSCanvasNode(const RSCanvasNode&&) = delete;
     RSCanvasNode& operator=(const RSCanvasNode&) = delete;
     RSCanvasNode& operator=(const RSCanvasNode&&) = delete;
+
+    void CreateRenderNode() const override;
+
     BoundsChangedCallback boundsChangedCallback_;
 
 private:
