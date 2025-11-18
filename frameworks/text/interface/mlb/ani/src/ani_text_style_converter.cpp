@@ -82,18 +82,18 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
         ANIClassFindMethod(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)),
         textStyle.color);
 
-    AniTextUtils::ReadEnumField(env, objR,
+    AniTextUtils::ReadEnumField(env, objR, ANI_ENUM_FONT_WEIGHT,
         ANIClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT)),
         textStyle.fontWeight);
-    AniTextUtils::ReadEnumField(env, objR,
+    AniTextUtils::ReadEnumField(env, objR, ANI_ENUM_FONT_STYLE,
         ANIClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)),
         textStyle.fontStyle);
     if (textStyle.fontStyle == FontStyle::OBLIQUE) {
         textStyle.fontStyle = FontStyle::ITALIC;
     }
-    AniTextUtils::ReadEnumField(env, objR,
+    AniTextUtils::ReadEnumField(env, objR, ANI_ENUM_TEXT_BASELINE,
         ANIClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)),
         textStyle.baseline);
@@ -125,7 +125,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     AniTextUtils::GetPropertyByCache_U16String(env, objR,
         ANIClassFindMethod(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>ellipsis", ANI_WRAP_RETURN_C(ANI_STRING)),
         textStyle.ellipsis);
-    AniTextUtils::ReadEnumField(env, objR,
+    AniTextUtils::ReadEnumField(env, objR, ANI_ENUM_ELLIPSIS_MODE,
         ANIClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>ellipsisMode", ANI_WRAP_RETURN_E(ANI_ENUM_ELLIPSIS_MODE)),
         textStyle.ellipsisModal);

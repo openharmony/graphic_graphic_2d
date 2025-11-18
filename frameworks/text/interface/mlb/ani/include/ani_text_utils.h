@@ -22,6 +22,7 @@
 
 #include "ani_cache_manager.h"
 #include "ani_common.h"
+#include "ani_enum.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -67,7 +68,7 @@ public:
     static ani_status ReadOptionalEnumField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value);
     template <typename EnumType>
-    static ani_status ReadEnumField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value);
+    static ani_status ReadEnumField(ani_env* env, ani_object obj, const char* enumName, const ani_method getPropertyMethod, EnumType& value);
     template <typename T, typename Converter>
     static ani_status ReadOptionalArrayField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::vector<T>& array, Converter convert);
@@ -150,15 +151,15 @@ ani_status AniTextUtils::ReadOptionalEnumField(
 
 template <typename EnumType>
 ani_status AniTextUtils::ReadEnumField(
-    ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
+    ani_env* env, ani_object obj, const char* enumName, const ani_method getPropertyMethod, EnumType& value)
 {
     ani_ref ref = nullptr;
     ani_status result = env->Object_CallMethod_Ref(obj, getPropertyMethod, &ref);
     if (result == ANI_OK && ref != nullptr) {
-        ani_int index = 0;
-        result = env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(ref), &index);
+        ani_size index = 0;
+        result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK) {
-            value = static_cast<EnumType>(index);
+            value = static_cast<EnumType>(getEnumValue(enumName, index));
         }
     }
     return result;
