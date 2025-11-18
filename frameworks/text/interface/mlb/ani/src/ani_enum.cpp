@@ -16,12 +16,17 @@
 #include "ani_enum.h"
 
 #include <map>
-#include <string_view>
+#include <vector>
 
 #include "ani_common.h"
+#include "font_parser.h"
+#include "text_global_config.h"
 #include "typography_types.h"
+#include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
+using namespace OHOS::Rosen;
+
 static const std::vector<uint32_t> TEXT_ALIGN = {
     static_cast<uint32_t>(TextAlign::LEFT),
     static_cast<uint32_t>(TextAlign::RIGHT),
@@ -178,12 +183,12 @@ static const std::map<std::string_view, const std::vector<uint32_t>&> INT_ENUM_C
     { ANI_ENUM_TEXT_DECORATION_STYLE, TEXT_DECORATION_STYLE },
     { ANI_ENUM_FONT_WEIGHT, FONT_WEIGHT },
     { ANI_ENUM_FONT_STYLE, FONT_STYLE },
-    { ANI_ENUM_TEXT_BASE_LINE, TEXT_BASE_LINE },
+    { ANI_ENUM_TEXT_BASELINE, TEXT_BASE_LINE },
     { ANI_ENUM_TEXT_DIRECTION, TEXT_DIRECTION },
     { ANI_ENUM_WORD_BREAK, WORD_BREAK_TYPE },
     { ANI_ENUM_BREAK_STRATEGY, BREAK_STRATEGY },
     { ANI_ENUM_ELLIPSIS_MODE, ELLIPSIS_MODAL },
-    { ANI_ENUM_TEXT_DECORATION, TEXT_DECORATION },
+    { ANI_ENUM_TEXT_DECORATION_TYPE, TEXT_DECORATION },
     { ANI_ENUM_PLACEHOLDER_ALIGNMENT, PLACEHOLDER_ALIGNMENT },
     { ANI_ENUM_RECT_WIDTH_STYLE, RECT_WIDTH_STYLE },
     { ANI_ENUM_RECT_HEIGHT_STYLE, RECT_HEIGHT_STYLE },
@@ -191,10 +196,10 @@ static const std::map<std::string_view, const std::vector<uint32_t>&> INT_ENUM_C
     { ANI_ENUM_FONT_WIDTH, FONTWIDTH },
     { ANI_ENUM_TEXT_HEIGHT_BEHAVIOR, TEXTHEIGHTBEHAVIOR },
     { ANI_ENUM_SYSTEM_FONT_TYPE, SYSTEM_FONT_TYPE },
-    { ANI_ENUM_TEXT_HIGH_CONTRAST, TEXT_HIGH_CONTRAST },
-    { ANI_ENUM_TEXT_BADGE_TYPE, TEXT_BADGE_TYPE },
-    { ANI_ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY, TEXT_UNDEFINED_GLYPH_DISPLAY },
-    { ANI_ENUM_TEXT_VERTICAL_ALIGN, TEXT_VERTICAL_ALIGN },
+    // { ANI_ENUM_TEXT_HIGH_CONTRAST, TEXT_HIGH_CONTRAST },
+    // { ANI_ENUM_TEXT_BADGE_TYPE, TEXT_BADGE_TYPE },
+    // { ANI_ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY, TEXT_UNDEFINED_GLYPH_DISPLAY },
+    // { ANI_ENUM_TEXT_VERTICAL_ALIGN, TEXT_VERTICAL_ALIGN },
 };
 
 uint32_t getEnumValue(std::string_view enumName, size_t enumIndex)

@@ -16,6 +16,8 @@
 #ifndef OHOS_TEXT_ANI_ENUM_H
 #define OHOS_TEXT_ANI_ENUM_H
 
+#include <string_view>
+
 namespace OHOS::Text::ANI {
 uint32_t getEnumValue(std::string_view enumName, size_t enumIndex);
 size_t getEnumIndex(std::string_view enumName, uint32_t enumValue);

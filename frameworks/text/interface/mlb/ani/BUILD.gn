@@ -31,6 +31,7 @@ config("text_config") {
     "$rosen_text_root/interface/mlb/ani/include",
     "$rosen_text_root/interface/export/rosen_text",
     "$rosen_text_root/service/texgine/src",
+    "$graphic_2d_root/frameworks/text/service/global_config",
     "$graphic_2d_root/interfaces/kits/ani/drawing",
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
@@ -41,6 +42,7 @@ ohos_shared_library("text_engine_ani") {
   shlib_type = "ani"
   branch_protector_ret = "pac_ret"
   sources = [
+    "./src/ani_cache_manager.cpp",
     "./src/ani_enum.cpp",
     "./src/ani_font_collection.cpp",
     "./src/ani_fontdescriptor.cpp",
