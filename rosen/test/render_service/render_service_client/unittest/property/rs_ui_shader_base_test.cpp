@@ -82,7 +82,7 @@ HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreate003, TestSize.Level1)
 HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateCircleFlowlight, TestSize.Level1)
 {
     auto shader = RSNGShaderBase::Create(RSNGEffectType::CIRCLE_FLOWLIGHT);
-    EXPECT_NE(shader, nullptr);
+    ASSERT_NE(shader, nullptr);
     EXPECT_EQ(shader->GetType(), RSNGEffectType::CIRCLE_FLOWLIGHT);
 }
 
