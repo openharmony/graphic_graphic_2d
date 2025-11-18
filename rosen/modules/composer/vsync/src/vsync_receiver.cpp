@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cinttypes>
 #include "vsync_receiver.h"
 #include <memory>
 #include <mutex>
@@ -247,7 +248,8 @@ VsyncError VSyncReceiver::GetVSyncPeriodAndLastTimeStamp(int64_t &period, int64_
         period = periodShared;
         timeStamp = timeStampShared;
     }
-    RS_TRACE_NAME_FMT("VSyncReceiver:period:%ld timeStamp:%ld isThreadShared:%d", period, timeStamp, isThreadShared);
+    RS_TRACE_NAME_FMT("VSyncReceiver:period:%" PRId64 " timeStamp:%" PRId64 " isThreadShared:%d",
+        period, timeStamp, isThreadShared);
     return VSYNC_ERROR_OK;
 }
 
