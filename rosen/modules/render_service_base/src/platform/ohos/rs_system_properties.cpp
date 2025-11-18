@@ -1739,5 +1739,13 @@ bool RSSystemProperties::GetRSNodeExceedKillEnabled()
     static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
     return isPhone;
 }
+
+bool RSSystemProperties::GetScaleImageAsyncEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
 } // namespace Rosen
 } // namespace OHOS

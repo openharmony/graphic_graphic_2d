@@ -385,6 +385,7 @@ public:
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
+    static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
 
     static bool GetBootCompleted();
