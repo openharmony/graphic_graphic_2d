@@ -1244,5 +1244,6 @@ HWTEST_F(RSServiceClientTest, SurfaceWatermarkTest01, TestSize.Level1)
     rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
     RSRenderServiceConnectHub::Init();
 }
+
 } // namespace Rosen
 } // namespace OHOS
