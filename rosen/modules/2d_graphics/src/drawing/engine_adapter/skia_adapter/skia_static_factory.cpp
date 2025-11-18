@@ -120,7 +120,7 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuCont
 }
 
 std::shared_ptr<Image> SkiaStaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
-    std::shared_ptr<ColorSpace>& colorSpace)
+    const std::shared_ptr<ColorSpace>& colorSpace)
 {
     return SkiaImage::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
 }
