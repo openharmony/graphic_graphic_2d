@@ -27,13 +27,13 @@ ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj
 {
     ani_int startTmp = 0;
     ani_status ret =
-        env->Object_CallMethod_Int(obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_RANGE, "<get>start", ":i"), &startTmp);
+        env->Object_CallMethod_Int(obj, ANIClassFindMethod(env, ANI_INTERFACE_RANGE, "<get>start", ":i"), &startTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     ani_int endTmp = 0;
-    ret = env->Object_CallMethod_Int(obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_RANGE, "<get>end", ":i"), &endTmp);
+    ret = env->Object_CallMethod_Int(obj, ANIClassFindMethod(env, ANI_INTERFACE_RANGE, "<get>end", ":i"), &endTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
@@ -82,18 +82,18 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
     static std::string sign =
         "C{" + std::string(ANI_INTERFACE_RECT) + "}C{" + std::string(ANI_ENUM_TEXT_DIRECTION) + "}:";
 
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_BOX),
-        ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_BOX, "<ctor>", sign.c_str()), rectObj,
+    aniObj = AniTextUtils::CreateAniObject(env, ANIFindClass(env, ANI_CLASS_TEXT_BOX),
+        ANIClassFindMethod(env, ANI_CLASS_TEXT_BOX, "<ctor>", sign.c_str()), rectObj,
         AniTextUtils::CreateAniEnum(
-            env, ANI_FIND_ENUM(env, ANI_ENUM_TEXT_DIRECTION), static_cast<int>(textRect.direction)));
+            env, ANIFindEnum(env, ANI_ENUM_TEXT_DIRECTION), static_cast<int>(textRect.direction)));
     return ANI_OK;
 }
 
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_RANGE),
-        ANI_CLASS_FIND_METHOD(env, ANI_CLASS_RANGE, "<ctor>", "ii:"), ani_int(boundary.leftIndex),
+    aniObj = AniTextUtils::CreateAniObject(env, ANIFindClass(env, ANI_CLASS_RANGE),
+        ANIClassFindMethod(env, ANI_CLASS_RANGE, "<ctor>", "ii:"), ani_int(boundary.leftIndex),
         ani_int(boundary.rightIndex));
     return ANI_OK;
 }

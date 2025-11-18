@@ -33,22 +33,22 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    env->Object_CallMethod_Long(obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>id", ":l"), &aniId);
+    env->Object_CallMethod_Long(obj, ANIClassFindMethod(env, ANI_GLOBAL_RESOURCE, "<get>id", ":l"), &aniId);
     env->Object_CallMethod_Ref(obj,
-        ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)),
+        ANIClassFindMethod(env, ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)),
         &aniBundleName);
     env->Object_CallMethod_Ref(obj,
-        ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)),
+        ANIClassFindMethod(env, ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)),
         &aniModuleName);
     AniTextUtils::ReadOptionalArrayField(env, obj,
-        ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)), result.params,
+        ANIClassFindMethod(env, ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)), result.params,
         [](ani_env* env, ani_ref ref) {
             std::string utf8Str;
             AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
             return utf8Str;
         });
     AniTextUtils::ReadOptionalIntField(
-        env, obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)), aniType);
+        env, obj, ANIClassFindMethod(env, ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)), aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);

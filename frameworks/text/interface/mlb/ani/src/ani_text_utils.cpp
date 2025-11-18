@@ -43,14 +43,14 @@ ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCod
 
 ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
 {
-    ani_class aniClass = ANI_FIND_CLASS(env, ANI_BUSINESS_ERROR);
+    ani_class aniClass = ANIFindClass(env, ANI_BUSINESS_ERROR);
     if (aniClass == nullptr) {
         TEXT_LOGE("Failed to find class: %{public}s", ANI_BUSINESS_ERROR);
         return ANI_NOT_FOUND;
     }
 
     ani_method aniCtor =
-        ANI_CLASS_FIND_METHOD(env, ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:");
+        ANIClassFindMethod(env, ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:");
     if (aniCtor == nullptr) {
         TEXT_LOGE("Failed to find ctor: %{public}s", ANI_BUSINESS_ERROR);
         return ANI_NOT_FOUND;
@@ -90,13 +90,13 @@ bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
 
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
-    ani_class arrayCls = ANI_FIND_CLASS(env, ANI_ARRAY);
+    ani_class arrayCls = ANIFindClass(env, ANI_ARRAY);
     if (arrayCls == nullptr) {
         TEXT_LOGE("Failed to find class: %{public}s", ANI_ARRAY);
         return CreateAniUndefined(env);
     }
 
-    ani_method arrayCtor = ANI_CLASS_FIND_METHOD(env, ANI_ARRAY, "<ctor>", "i:");
+    ani_method arrayCtor = ANIClassFindMethod(env, ANI_ARRAY, "<ctor>", "i:");
     if (arrayCtor == nullptr) {
         TEXT_LOGE("Failed to find ctor: %{public}s", ANI_ARRAY);
         return CreateAniUndefined(env);
@@ -113,7 +113,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
     return AniTextUtils::CreateAniObject(
-        env, ANI_FIND_CLASS(env, ANI_MAP), ANI_CLASS_FIND_METHOD(env, ANI_MAP, "<ctor>", ":"));
+        env, ANIFindClass(env, ANI_MAP), ANIClassFindMethod(env, ANI_MAP, "<ctor>", ":"));
 }
 
 ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType, ani_size index)
@@ -126,19 +126,19 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType,
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
     return AniTextUtils::CreateAniObject(
-        env, ANI_FIND_CLASS(env, ANI_DOUBLE), ANI_CLASS_FIND_METHOD(env, ANI_DOUBLE, "<ctor>", "d:"), val);
+        env, ANIFindClass(env, ANI_DOUBLE), ANIClassFindMethod(env, ANI_DOUBLE, "<ctor>", "d:"), val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
 {
     return AniTextUtils::CreateAniObject(
-        env, ANI_FIND_CLASS(env, ANI_INT), ANI_CLASS_FIND_METHOD(env, ANI_INT, "<ctor>", "i:"), val);
+        env, ANIFindClass(env, ANI_INT), ANIClassFindMethod(env, ANI_INT, "<ctor>", "i:"), val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
     return AniTextUtils::CreateAniObject(
-        env, ANI_FIND_CLASS(env, ANI_BOOLEAN), ANI_CLASS_FIND_METHOD(env, ANI_BOOLEAN, "<ctor>", "z:"), val);
+        env, ANIFindClass(env, ANI_BOOLEAN), ANIClassFindMethod(env, ANI_BOOLEAN, "<ctor>", "z:"), val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::string& str)

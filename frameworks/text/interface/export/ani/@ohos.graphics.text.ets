@@ -354,9 +354,9 @@ namespace text {
         textDecoration: TextDecorationType.NONE,
         color: ({ alpha: 0, red: 0, green: 0, blue: 0 }) as common2D.Color,
         decorationStyle: TextDecorationStyle.SOLID,
-        decorationThicknessScale: 0
+        decorationThicknessScale: 1
       }) as Decoration,
-      color: textStyle.color ?? ({ alpha: 0, red: 0, green: 0, blue: 0 }) as common2D.Color,
+      color: textStyle.color ?? ({ alpha: 255, red: 255, green: 255, blue: 255 }) as common2D.Color,
       fontWeight: textStyle.fontWeight ?? FontWeight.W400,
       fontStyle: textStyle.fontStyle ?? FontStyle.NORMAL,
       baseline: textStyle.baseline ?? TextBaseline.ALPHABETIC,
