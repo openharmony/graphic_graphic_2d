@@ -726,23 +726,23 @@ ani_object AniPath::PathTransferStatic(
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniPath::PathTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniPath::PathTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsPath = reinterpret_cast<JsPath*>(unwrapResult);
     if (jsPath->GetPathPtr() == nullptr) {
         ROSEN_LOGE("AniPath::PathTransferStatic jsPath is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniPath = new AniPath(jsPath->GetPathPtr());
     if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniPath::PathTransferStatic failed create aniPath");
         delete aniPath;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return output;
 }

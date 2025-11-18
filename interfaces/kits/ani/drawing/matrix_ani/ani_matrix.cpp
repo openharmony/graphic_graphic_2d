@@ -579,23 +579,23 @@ ani_object AniMatrix::MatrixTransferStatic(
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniMatrix::MatrixTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsMatrix = reinterpret_cast<JsMatrix*>(unwrapResult);
     if (jsMatrix->GetMatrix() == nullptr) {
         ROSEN_LOGE("AniMatrix::MatrixTransferStatic jsMatrix is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniMatrix = new AniMatrix(jsMatrix->GetMatrix());
     if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniMatrix))) {
         ROSEN_LOGE("AniMatrix::MatrixTransferStatic failed create aniMatrix");
         delete aniMatrix;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return output;
 }

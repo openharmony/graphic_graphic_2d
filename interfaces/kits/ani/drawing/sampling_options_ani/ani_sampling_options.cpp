@@ -97,23 +97,23 @@ ani_object AniSamplingOptions::SamplingOptionsTransferStatic(
     bool success = arkts_esvalue_unwrap(env, input, &unwrapResult);
     if (!success) {
         ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed to unwrap");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     if (unwrapResult == nullptr) {
         ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic unwrapResult is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     auto jsSamplingOptions = reinterpret_cast<JsSamplingOptions*>(unwrapResult);
     if (jsSamplingOptions->GetSamplingOptions() == nullptr) {
         ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic jsSamplingOptions is null");
-        return nullptr;
+        return CreateAniUndefined(env);
     }
 
     auto aniSamplingOptions = new AniSamplingOptions(jsSamplingOptions->GetSamplingOptions());
     if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniSamplingOptions))) {
         ROSEN_LOGE("AniSamplingOptions::SamplingOptionsTransferStatic failed create aniSamplingOptions");
         delete aniSamplingOptions;
-        return nullptr;
+        return CreateAniUndefined(env);
     }
     return output;
 }

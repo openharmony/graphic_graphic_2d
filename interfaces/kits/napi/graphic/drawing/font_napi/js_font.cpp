@@ -68,6 +68,7 @@ static napi_property_descriptor properties[] = {
     DECLARE_NAPI_FUNCTION("getTextPath", JsFont::CreatePathForText),
     DECLARE_NAPI_FUNCTION("setThemeFontFollowed", JsFont::SetThemeFontFollowed),
     DECLARE_NAPI_FUNCTION("isThemeFontFollowed", JsFont::IsThemeFontFollowed),
+    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsFont::FontTransferDynamic),
 };
 
 bool JsFont::CreateConstructor(napi_env env)
@@ -1050,11 +1051,6 @@ napi_value JsFont::OnCreatePathForGlyph(napi_env env, napi_callback_info info)
     return JsPath::CreateJsPath(env, path);
 }
 
-std::shared_ptr<Font> JsFont::GetFont()
-{
-    return m_font;
-}
-
 void JsFont::SetFont(std::shared_ptr<Font> font)
 {
     m_font = font;
@@ -1122,6 +1118,42 @@ napi_value JsFont::OnIsThemeFontFollowed(napi_env env, napi_callback_info info)
 
     bool followed = m_font->IsThemeFontFollowed();
     return CreateJsValue(env, followed);
+}
+
+napi_value JsFont::FontTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv;
+    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_number) {
+        return nullptr;
+    }
+
+    int64_t addr = 0;
+    napi_get_value_int64(env, argv, &addr);
+    std::shared_ptr<Font> font = *reinterpret_cast<std::shared_ptr<Font>*>(addr);
+    if (font == nullptr) {
+        return nullptr;
+    }
+
+    napi_value jsThis = CreateFont(env, info);
+    if (jsThis == nullptr) {
+        return nullptr;
+    }
+   
+    JsFont* jsFont = new JsFont(font);
+    napi_status status = napi_wrap_async_finalizer(env, jsThis, jsFont, JsFont::Destructor, nullptr, nullptr, 0);
+    if (status != napi_ok) {
+        delete jsFont;
+        ROSEN_LOGE("Failed to wrap native instance, status: %{public}d", static_cast<int>(status));
+        return nullptr;
+    }
+    return jsThis;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

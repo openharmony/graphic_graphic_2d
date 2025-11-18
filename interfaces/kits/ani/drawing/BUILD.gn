@@ -156,6 +156,8 @@ ohos_shared_library("drawing_ani") {
     "canvas_ani/ani_canvas.cpp",
     "color_filter_ani/ani_color_filter.cpp",
     "font_ani/ani_font.cpp",
+    "text_blob_ani/ani_text_blob.cpp",
+    "tool_ani/ani_tool.cpp",
     "lattice_ani/ani_lattice.cpp",
     "matrix_ani/ani_matrix.cpp",
     "path_ani/ani_path.cpp",
