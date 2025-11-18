@@ -43,7 +43,7 @@ const std::string PUSH_STYLE_SIGN = "C{" + std::string(ANI_INTERFACE_TEXT_STYLE)
 const std::string BUILD_STYLE_SIGN = ":C{" + std::string(ANI_CLASS_PARAGRAPH) + "}";
 const std::string ADD_PLACEHOLDER_SIGN = "C{" + std::string(ANI_INTERFACE_PLACEHOLDER_SPAN) + "}:";
 const std::string BUILD_LINE_TYPE_SET_SIGN = ":C{" + std::string(ANI_CLASS_LINE_TYPESET) + "}";
-}
+} // namespace
 
 void AniParagraphBuilder::Constructor(
     ani_env* env, ani_object object, ani_object paragraphStyle, ani_object fontCollection)
@@ -56,7 +56,8 @@ void AniParagraphBuilder::Constructor(
         return;
     }
 
-    AniFontCollection* aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, fontCollection, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_COLLECTION, GET_NATIVE, ":l"));
+    AniFontCollection* aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
+        env, fontCollection, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_COLLECTION, GET_NATIVE, ":l"));
     if (aniFontCollection == nullptr) {
         TEXT_LOGE("FontCollection is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -79,8 +80,8 @@ void AniParagraphBuilder::Constructor(
 
     AniParagraphBuilder* paragraphBuilder = new AniParagraphBuilder();
     paragraphBuilder->typographyCreate_ = std::move(typographyCreateNative);
-    ani_status ret = env->Object_CallMethodByName_Void(
-        object, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(paragraphBuilder));
+    ani_status ret =
+        env->Object_CallMethodByName_Void(object, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(paragraphBuilder));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani TypographyCreate obj");
         delete paragraphBuilder;
@@ -140,7 +141,8 @@ ani_status AniParagraphBuilder::AniInit(ani_vm* vm, uint32_t* result)
 
 void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object textStyle)
 {
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("ParagraphBuilder is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -155,7 +157,8 @@ void AniParagraphBuilder::PushStyle(ani_env* env, ani_object object, ani_object 
 
 void AniParagraphBuilder::PopStyle(ani_env* env, ani_object object)
 {
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("ParagraphBuilder is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -173,7 +176,8 @@ void AniParagraphBuilder::AddText(ani_env* env, ani_object object, ani_string te
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Fail get utf16.");
         return;
     }
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -184,7 +188,8 @@ void AniParagraphBuilder::AddText(ani_env* env, ani_object object, ani_string te
 
 void AniParagraphBuilder::AddPlaceholder(ani_env* env, ani_object object, ani_object placeholderSpan)
 {
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("ParagraphBuilder is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -200,7 +205,8 @@ void AniParagraphBuilder::AddPlaceholder(ani_env* env, ani_object object, ani_ob
 
 ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
 {
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -219,7 +225,8 @@ ani_object AniParagraphBuilder::Build(ani_env* env, ani_object object)
 
 ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object)
 {
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -232,7 +239,8 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_LINE_TYPESET), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_LINE_TYPESET, "<ctor>", ":"));
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_LINE_TYPESET),
+        ANI_CLASS_FIND_METHOD(env, ANI_CLASS_LINE_TYPESET, "<ctor>", ":"));
     AniLineTypeset* aniLineTypeSet = new AniLineTypeset(std::move(lineTypography));
     ani_status ret = env->Object_CallMethodByName_Void(
         lineTypographyObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniLineTypeSet));
@@ -247,7 +255,8 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
 
 void AniParagraphBuilder::AddSymbol(ani_env* env, ani_object object, ani_int symbolId)
 {
-    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
+    AniParagraphBuilder* paragraphBuilder = AniTextUtils::GetNativeFromObj<AniParagraphBuilder>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, GET_NATIVE, ":l"));
     if (paragraphBuilder == nullptr || paragraphBuilder->typographyCreate_ == nullptr) {
         TEXT_LOGE("TypographyCreate is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -268,7 +277,8 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
             TEXT_LOGE("Null jsParagraphBuilder");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH_BUILDER), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, "<ctor>", ":"));
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH_BUILDER),
+            ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH_BUILDER, "<ctor>", ":"));
         std::shared_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
         if (typographyCreatePtr == nullptr) {
             TEXT_LOGE("Failed to get typographyCreate");
@@ -290,8 +300,8 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
 
 ani_object AniParagraphBuilder::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
-    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+    return AniTransferUtils::TransferDynamic(
+        aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
             objValue = JsParagraphBuilder::CreateTransferObj(napiEnv, objValue);
             napi_value dynamicObj = nullptr;
             napi_status status = JsParagraphBuilder::CreateTypographyCreate(napiEnv, objValue, &dynamicObj);

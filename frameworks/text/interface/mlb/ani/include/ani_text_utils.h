@@ -55,12 +55,14 @@ public:
     static ani_status ReadOptionalField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, double& value);
-    static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, int& value);
+    static ani_status ReadOptionalIntField(
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, int& value);
     static ani_status ReadOptionalStringField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::string& str);
     static ani_status ReadOptionalU16StringField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, std::u16string& str);
-    static ani_status ReadOptionalBoolField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, bool& value);
+    static ani_status ReadOptionalBoolField(
+        ani_env* env, ani_object obj, const ani_method getPropertyMethod, bool& value);
     template <typename EnumType>
     static ani_status ReadOptionalEnumField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value);
@@ -131,7 +133,8 @@ T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const ani_method
 };
 
 template <typename EnumType>
-ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
+ani_status AniTextUtils::ReadOptionalEnumField(
+    ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
@@ -146,7 +149,8 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
 };
 
 template <typename EnumType>
-ani_status AniTextUtils::ReadEnumField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
+ani_status AniTextUtils::ReadEnumField(
+    ani_env* env, ani_object obj, const ani_method getPropertyMethod, EnumType& value)
 {
     ani_ref ref = nullptr;
     ani_status result = env->Object_CallMethod_Ref(obj, getPropertyMethod, &ref);

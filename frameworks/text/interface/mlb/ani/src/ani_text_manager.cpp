@@ -90,7 +90,7 @@ static void Clean(ani_env* env, ani_object object)
         TEXT_LOGE("Failed to clean, undefined ptrAddr, className %{public}s", className.c_str());
         return;
     }
-   
+
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
         {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},

@@ -33,18 +33,22 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    env->Object_CallMethod_Long(
-        obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>id", ":l"), &aniId);
-    env->Object_CallMethod_Ref(
-        obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)), &aniBundleName);
-    env->Object_CallMethod_Ref(
-        obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)), &aniModuleName);
-    AniTextUtils::ReadOptionalArrayField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)), result.params, [](ani_env* env, ani_ref ref) {
-        std::string utf8Str;
-        AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
-        return utf8Str;
-    });
-    AniTextUtils::ReadOptionalIntField(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)), aniType);
+    env->Object_CallMethod_Long(obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>id", ":l"), &aniId);
+    env->Object_CallMethod_Ref(obj,
+        ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)),
+        &aniBundleName);
+    env->Object_CallMethod_Ref(obj,
+        ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)),
+        &aniModuleName);
+    AniTextUtils::ReadOptionalArrayField(env, obj,
+        ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)), result.params,
+        [](ani_env* env, ani_ref ref) {
+            std::string utf8Str;
+            AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
+            return utf8Str;
+        });
+    AniTextUtils::ReadOptionalIntField(
+        env, obj, ANI_CLASS_FIND_METHOD(env, ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)), aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
@@ -75,15 +79,15 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
 
     if (resource.type == RESOURCE_STRING) {
         std::string rPath;
-        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath) !=
-            Global::Resource::RState::SUCCESS) {
+        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath)
+            != Global::Resource::RState::SUCCESS) {
             return false;
         }
         return AniTextUtils::SplitAbsoluteFontPath(rPath) && AniTextUtils::ReadFile(rPath, dataLen, data);
     } else if (resource.type == RESOURCE_RAWFILE) {
         TEXT_ERROR_CHECK(!resource.params.empty(), return false, "Failed to get raw file path");
-        return resourceManager->GetRawFileFromHap(resource.params[0], dataLen, data) ==
-               Global::Resource::RState::SUCCESS;
+        return resourceManager->GetRawFileFromHap(resource.params[0], dataLen, data)
+               == Global::Resource::RState::SUCCESS;
     }
 
     TEXT_LOGE("Unsupported resource type");

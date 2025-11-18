@@ -63,18 +63,18 @@ public:
         return static_cast<ani_class>(__calc.get_ref());                                                               \
     }())
 
-#define ANI_FIND_ENUM(env, descriptor)                                                                                \
+#define ANI_FIND_ENUM(env, descriptor)                                                                                 \
     ([&] {                                                                                                             \
-        static calc __calc(env, [&]() -> ani_enum {                                                                   \
-            ani_enum enumObj;                                                                                             \
-            ani_status status = env->FindEnum(descriptor, &enumObj);                                                      \
+        static calc __calc(env, [&]() -> ani_enum {                                                                    \
+            ani_enum enumObj;                                                                                          \
+            ani_status status = env->FindEnum(descriptor, &enumObj);                                                   \
             if (status != ANI_OK) {                                                                                    \
-                TEXT_LOGE("Failed to find enum: %{public}s, status %{public}d", descriptor, status);                  \
+                TEXT_LOGE("Failed to find enum: %{public}s, status %{public}d", descriptor, status);                   \
                 return nullptr;                                                                                        \
             }                                                                                                          \
             return enumObj;                                                                                            \
         }());                                                                                                          \
-        return static_cast<ani_enum>(__calc.get_ref());                                                               \
+        return static_cast<ani_enum>(__calc.get_ref());                                                                \
     }())
 
 #define ANI_CLASS_FIND_METHOD(env, descriptor, name, signature)                                                        \

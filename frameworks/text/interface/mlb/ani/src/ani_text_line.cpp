@@ -18,6 +18,7 @@
 #include <memory>
 #include <vector>
 
+#include "SkPoint.h"
 #include "ani_common.h"
 #include "ani_drawing_utils.h"
 #include "ani_run.h"
@@ -26,7 +27,6 @@
 #include "ani_transfer_util.h"
 #include "ani_typographic_bounds_converter.h"
 #include "canvas_ani/ani_canvas.h"
-#include "SkPoint.h"
 #include "text_line_base.h"
 #include "text_line_napi/js_text_line.h"
 #include "typography.h"
@@ -45,7 +45,7 @@ const std::string CREATE_TRUNCATED_LINE_SIGN =
 const std::string GET_TYPOGRAPHIC_BOUNDS_SIGN = ":C{" + std::string(ANI_INTERFACE_TYPOGRAPHIC_BOUNDS) + "}";
 const std::string GET_IMAGE_BOUNDS_SIGN = ":C{" + std::string(ANI_INTERFACE_RECT) + "}";
 const std::string GET_STRING_INDEX_FOR_POSITION_SIGN = "C{" + std::string(ANI_INTERFACE_POINT) + "}:i";
-}
+} // namespace
 
 ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
 {
@@ -69,8 +69,8 @@ ani_status AniTextLine::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"paint", PAINT_SIGN.c_str(), reinterpret_cast<void*>(Paint)},
         ani_native_function{
             "createTruncatedLine", CREATE_TRUNCATED_LINE_SIGN.c_str(), reinterpret_cast<void*>(CreateTruncatedLine)},
-        ani_native_function{"getTypographicBounds", GET_TYPOGRAPHIC_BOUNDS_SIGN.c_str(),
-            reinterpret_cast<void*>(GetTypographicBounds)},
+        ani_native_function{
+            "getTypographicBounds", GET_TYPOGRAPHIC_BOUNDS_SIGN.c_str(), reinterpret_cast<void*>(GetTypographicBounds)},
         ani_native_function{"getImageBounds", GET_IMAGE_BOUNDS_SIGN.c_str(), reinterpret_cast<void*>(GetImageBounds)},
         ani_native_function{"getTrailingSpaceWidth", ":d", reinterpret_cast<void*>(GetTrailingSpaceWidth)},
         ani_native_function{"getStringIndexForPosition", GET_STRING_INDEX_FOR_POSITION_SIGN.c_str(),
@@ -110,9 +110,10 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     }
     AniTextLine* aniTextLine = new AniTextLine();
     aniTextLine->textLine_ = std::shared_ptr<Rosen::TextLineBase>(textLine);
-    ani_object textLineObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, "<ctor>", ":"));
-    ani_status ret = env->Object_CallMethodByName_Void(
-        textLineObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
+    ani_object textLineObj = AniTextUtils::CreateAniObject(
+        env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, "<ctor>", ":"));
+    ani_status ret =
+        env->Object_CallMethodByName_Void(textLineObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set textLine, ani_status %{public}d", ret);
         delete aniTextLine;
@@ -124,7 +125,8 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
 
 ani_int AniTextLine::GetGlyphCount(ani_env* env, ani_object object)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -135,7 +137,8 @@ ani_int AniTextLine::GetGlyphCount(ani_env* env, ani_object object)
 
 ani_object AniTextLine::GetTextRange(ani_env* env, ani_object object)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -155,7 +158,8 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
 
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -176,7 +180,7 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
         TEXT_LOGE("Failed to create arrayObject");
         return arrayObj;
     }
-    
+
     ani_size index = 0;
     for (auto& run : runs) {
         if (run == nullptr) {
@@ -204,13 +208,15 @@ ani_object AniTextLine::GetGlyphRuns(ani_env* env, ani_object object)
 
 void AniTextLine::Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_CANVAS, GET_NATIVE, ":l"));
+    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(
+        env, canvas, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_CANVAS, GET_NATIVE, ":l"));
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Failed to get canvas");
         return;
@@ -222,7 +228,8 @@ void AniTextLine::Paint(ani_env* env, ani_object object, ani_object canvas, ani_
 ani_object AniTextLine::CreateTruncatedLine(
     ani_env* env, ani_object object, ani_double width, ani_object ellipsisMode, ani_object ellipsis)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -261,7 +268,8 @@ ani_object AniTextLine::CreateTruncatedLine(
 
 ani_object AniTextLine::GetTypographicBounds(ani_env* env, ani_object object)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -284,7 +292,8 @@ ani_object AniTextLine::GetTypographicBounds(ani_env* env, ani_object object)
 
 ani_object AniTextLine::GetImageBounds(ani_env* env, ani_object object)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -302,7 +311,8 @@ ani_object AniTextLine::GetImageBounds(ani_env* env, ani_object object)
 
 ani_double AniTextLine::GetTrailingSpaceWidth(ani_env* env, ani_object object)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -314,7 +324,8 @@ ani_double AniTextLine::GetTrailingSpaceWidth(ani_env* env, ani_object object)
 
 ani_int AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object object, ani_object point)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -329,7 +340,8 @@ ani_int AniTextLine::GetStringIndexForPosition(ani_env* env, ani_object object, 
 
 ani_double AniTextLine::GetOffsetForStringIndex(ani_env* env, ani_object object, ani_int index)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -371,7 +383,8 @@ static bool CaretOffsetsCallBack(
 
 void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_object object, ani_fn_object callback)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -397,7 +410,8 @@ void AniTextLine::EnumerateCaretOffsets(ani_env* env, [[maybe_unused]] ani_objec
 ani_double AniTextLine::GetAlignmentOffset(
     ani_env* env, ani_object object, ani_double alignmentFactor, ani_double alignmentWidth)
 {
-    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
+    AniTextLine* aniTextline = AniTextUtils::GetNativeFromObj<AniTextLine>(
+        env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, GET_NATIVE, ":l"));
     if (aniTextline == nullptr || aniTextline->textLine_ == nullptr) {
         TEXT_LOGE("Text line is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -415,7 +429,8 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
             TEXT_LOGE("Null jsTextLine");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, "<ctor>", ":"));
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_LINE),
+            ANI_CLASS_FIND_METHOD(env, ANI_CLASS_TEXT_LINE, "<ctor>", ":"));
         std::shared_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
         if (textLineBase == nullptr) {
             TEXT_LOGE("Failed to get textLineBase");
@@ -423,8 +438,8 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
         }
         AniTextLine* aniTextLine = new AniTextLine();
         aniTextLine->textLine_ = textLineBase;
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
+        ani_status ret =
+            env->Object_CallMethodByName_Void(staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani textLineBase obj, ret %{public}d", ret);
             delete aniTextLine;
@@ -437,8 +452,8 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
 
 ani_object AniTextLine::NativeTransferDynamic(ani_env* aniEnv, ani_class cls, ani_long nativeObj)
 {
-    return AniTransferUtils::TransferDynamic(aniEnv, nativeObj,
-        [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
+    return AniTransferUtils::TransferDynamic(
+        aniEnv, nativeObj, [](napi_env napiEnv, ani_long nativeObj, napi_value objValue) {
             napi_value dynamicObj = JsTextLine::CreateTextLine(napiEnv);
             if (!dynamicObj) {
                 TEXT_LOGE("Failed to create run");

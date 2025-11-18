@@ -15,10 +15,10 @@
 
 #include "ani_transfer_util.h"
 
+#include "ani_text_utils.h"
 #include "interop_js/hybridgref.h"
 #include "interop_js/hybridgref_ani.h"
 #include "interop_js/hybridgref_napi.h"
-#include "ani_text_utils.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -85,5 +85,5 @@ ani_object AniTransferUtils::TransferDynamic(
     }
     return result;
 }
-    
+
 } // namespace OHOS::Text::ANI
