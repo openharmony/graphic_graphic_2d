@@ -568,7 +568,7 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
             TEXT_LOGE("Null jsParagraph");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<ctor>", ":")));
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_PARAGRAPH), ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<ctor>", ":"));
         std::shared_ptr<Typography> typographyPtr = jsParagraph->GetParagraph();
         if (typographyPtr == nullptr) {
             TEXT_LOGE("Failed to get typography");

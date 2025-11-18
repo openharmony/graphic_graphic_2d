@@ -102,10 +102,13 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     env->Object_CallMethod_Double(
         objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>heightScale", ":d"), &textStyle.heightScale);
     textStyle.heightScale = textStyle.heightScale < 0 ? 0 : textStyle.heightScale;
-    env->Object_CallMethod_Boolean(
-        objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>halfLeading", ":z"), &textStyle.halfLeading);
-    env->Object_CallMethod_Boolean(
-        objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>heightOnly", ":z"), &textStyle.heightOnly);
+    ani_boolean tempBool;
+    status = env->Object_CallMethod_Boolean(
+        objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>halfLeading", ":z"), &tempBool);
+    textStyle.halfLeading = (status == ANI_OK && tempBool);
+    status = env->Object_CallMethod_Boolean(
+        objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>heightOnly", ":z"), &tempBool);
+    textStyle.heightOnly = (status == ANI_OK && tempBool);
     AniTextUtils::GetPropertyByCache_U16String(env, objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>ellipsis", ANI_WRAP_RETURN_C(ANI_STRING)), textStyle.ellipsis);
     AniTextUtils::ReadEnumField(env, objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>ellipsisMode", ANI_WRAP_RETURN_E(ANI_ENUM_ELLIPSIS_MODE)), textStyle.ellipsisModal);
     AniTextUtils::GetPropertyByCache_String(env, objR,  ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>locale", ANI_WRAP_RETURN_C(ANI_STRING)), textStyle.locale);
@@ -116,7 +119,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     ParseFontVariationToNative(env, objR, textStyle.fontVariations);
 
     ani_ref backgroundRectRef = nullptr;
-    status = env->Object_CallMethod_Ref(obj, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>backgroundRect", ANI_WRAP_RETURN_C(ANI_INTERFACE_RECT_STYLE)), &backgroundRectRef);
+    status = env->Object_CallMethod_Ref(objR, ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>backgroundRect", ANI_WRAP_RETURN_C(ANI_INTERFACE_RECT_STYLE)), &backgroundRectRef);
     if (status == ANI_OK && backgroundRectRef != nullptr) {
         ParseRectStyleToNative(env, reinterpret_cast<ani_object>(backgroundRectRef), textStyle.backgroundRect);
     }

@@ -52,7 +52,7 @@ public:
     static bool ReadFile(const std::string& filePath, size_t& dataLen, std::unique_ptr<uint8_t[]>& data);
     static bool SplitAbsoluteFontPath(std::string& absolutePath);
 
-    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, ani_ref ref);
+    static ani_status ReadOptionalField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, ani_ref& ref);
     static ani_status ReadOptionalDoubleField(
         ani_env* env, ani_object obj, const ani_method getPropertyMethod, double& value);
     static ani_status ReadOptionalIntField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, int& value);

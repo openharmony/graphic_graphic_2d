@@ -244,7 +244,7 @@ bool AniTextUtils::SplitAbsoluteFontPath(std::string& absolutePath)
     return false;
 }
 
-ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, ani_ref ref)
+ani_status AniTextUtils::ReadOptionalField(ani_env* env, ani_object obj, const ani_method getPropertyMethod, ani_ref& ref)
 {
     ani_status ret = env->Object_CallMethod_Ref(obj, getPropertyMethod, &ref);
     if (ret != ANI_OK) {
