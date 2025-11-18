@@ -150,7 +150,7 @@ ani_status AniParagraph::AniInit(ani_vm* vm, uint32_t* result)
 
 void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -161,13 +161,13 @@ void AniParagraph::LayoutSync(ani_env* env, ani_object object, ani_double width)
 
 void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_CANVAS, "<get>nativeObj", ":l"));
+    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_CANVAS, GET_NATIVE, ":l"));
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
@@ -179,19 +179,19 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
 void AniParagraph::PaintOnPath(
     ani_env* env, ani_object object, ani_object canvas, ani_object path, ani_double hOffset, ani_double vOffset)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_CANVAS, "<get>nativeObj", ":l"));
+    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_CANVAS, GET_NATIVE, ":l"));
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
         return;
     }
-    Drawing::AniPath* aniPath = AniTextUtils::GetNativeFromObj<Drawing::AniPath>(env, path, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PATH, "<get>nativeObj", ":l"));
+    Drawing::AniPath* aniPath = AniTextUtils::GetNativeFromObj<Drawing::AniPath>(env, path, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PATH, GET_NATIVE, ":l"));
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         TEXT_LOGE("Path is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
@@ -202,7 +202,7 @@ void AniParagraph::PaintOnPath(
 
 ani_double AniParagraph::GetMaxWidth(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -213,7 +213,7 @@ ani_double AniParagraph::GetMaxWidth(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetHeight(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -224,7 +224,7 @@ ani_double AniParagraph::GetHeight(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -235,7 +235,7 @@ ani_double AniParagraph::GetLongestLine(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetLongestLineWithIndent(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -246,7 +246,7 @@ ani_double AniParagraph::GetLongestLineWithIndent(ani_env* env, ani_object objec
 
 ani_double AniParagraph::GetMinIntrinsicWidth(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -257,7 +257,7 @@ ani_double AniParagraph::GetMinIntrinsicWidth(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetMaxIntrinsicWidth(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -268,7 +268,7 @@ ani_double AniParagraph::GetMaxIntrinsicWidth(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetAlphabeticBaseline(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -279,7 +279,7 @@ ani_double AniParagraph::GetAlphabeticBaseline(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetIdeographicBaseline(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -291,7 +291,7 @@ ani_double AniParagraph::GetIdeographicBaseline(ani_env* env, ani_object object)
 ani_object AniParagraph::GetRectsForRange(
     ani_env* env, ani_object object, ani_object range, ani_object widthStyle, ani_object heightStyle)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -341,7 +341,7 @@ ani_object AniParagraph::GetRectsForRange(
 
 ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         return ThrowErrorAndReturnUndefined(env);
@@ -376,7 +376,7 @@ ani_object AniParagraph::GetRectsForPlaceholders(ani_env* env, ani_object object
 
 ani_object AniParagraph::GetGlyphPositionAtCoordinate(ani_env* env, ani_object object, ani_double x, ani_double y)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         return ThrowErrorAndReturnUndefined(env);
@@ -394,7 +394,7 @@ ani_object AniParagraph::GetGlyphPositionAtCoordinate(ani_env* env, ani_object o
 
 ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_int offset)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         return ThrowErrorAndReturnUndefined(env);
@@ -411,7 +411,7 @@ ani_object AniParagraph::GetWordBoundary(ani_env* env, ani_object object, ani_in
 
 ani_int AniParagraph::GetLineCount(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -422,7 +422,7 @@ ani_int AniParagraph::GetLineCount(ani_env* env, ani_object object)
 
 ani_double AniParagraph::GetLineHeight(ani_env* env, ani_object object, ani_int line)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -433,7 +433,7 @@ ani_double AniParagraph::GetLineHeight(ani_env* env, ani_object object, ani_int 
 
 ani_double AniParagraph::GetLineWidth(ani_env* env, ani_object object, ani_int line)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -445,7 +445,7 @@ ani_double AniParagraph::GetLineWidth(ani_env* env, ani_object object, ani_int l
 
 ani_boolean AniParagraph::DidExceedMaxLines(ani_env* env, ani_object object)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -458,7 +458,7 @@ ani_boolean AniParagraph::DidExceedMaxLines(ani_env* env, ani_object object)
 ani_object AniParagraph::GetActualTextRange(
     ani_env* env, ani_object object, ani_int lineNumber, ani_boolean includeSpaces)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         return ThrowErrorAndReturnUndefined(env);
@@ -476,7 +476,7 @@ ani_object AniParagraph::GetActualTextRange(
 ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -518,7 +518,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
 ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 {
     ani_object arrayObj = AniTextUtils::CreateAniUndefined(env);
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -547,7 +547,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
 
 ani_object AniParagraph::GetLineMetricsAt(ani_env* env, ani_object object, ani_int lineNumber)
 {
-    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, "<get>nativeObj", ":l"));
+    AniParagraph* aniParagraph = AniTextUtils::GetNativeFromObj<AniParagraph>(env, object, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_PARAGRAPH, GET_NATIVE, ":l"));
     if (aniParagraph == nullptr || aniParagraph->typography_ == nullptr) {
         TEXT_LOGE("Paragraph is null");
         return ThrowErrorAndReturnUndefined(env);

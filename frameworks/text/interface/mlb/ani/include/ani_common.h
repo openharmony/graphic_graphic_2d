@@ -38,6 +38,7 @@ constexpr const char* ANI_NAMESPACE_TEXT = "@ohos.graphics.text.text";
  */
 constexpr const char* NATIVE_OBJ = "nativeObj";
 constexpr const char* BIND_NATIVE = "bindNative";
+constexpr const char* GET_NATIVE = "getNative";
 constexpr const char* ANI_DOUBLE = "std.core.Double";
 constexpr const char* ANI_INT = "std.core.Int";
 constexpr const char* ANI_BOOLEAN = "std.core.Boolean";
