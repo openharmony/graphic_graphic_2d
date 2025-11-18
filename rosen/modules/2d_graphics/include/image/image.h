@@ -305,7 +305,8 @@ public:
      * @param memory      A pointer of pixelmap memory.
      * @return            A shared pointer to Image.
      */
-    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+        const std::shared_ptr<ColorSpace>& colorSpace = nullptr);
 
     /**
      * @brief             Create Image from Bitmap. Image is uploaded to GPU back-end using context.
