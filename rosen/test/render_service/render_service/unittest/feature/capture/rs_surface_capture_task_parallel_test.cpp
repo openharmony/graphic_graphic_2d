@@ -701,7 +701,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     ASSERT_NE(drawable, nullptr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::make_unique<RSRenderThreadParams>());
     auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     ASSERT_NE(uniParams, nullptr);
     bool secExemption = uniParams == nullptr ? false : uniParams->GetSecExemption();

@@ -1751,7 +1751,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CheckDirtyRefreshTest004, TestS
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredDisplayDrawable_, nullptr);
 
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(nullptr);
     displayDrawable_->CheckDirtyRefresh(CompositeType::UNI_RENDER_COMPOSITE, false);
     EXPECT_EQ(RSUniRenderThread::Instance().GetRSRenderThreadParams(), nullptr);
 }
