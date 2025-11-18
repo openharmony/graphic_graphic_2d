@@ -149,7 +149,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
     if (ret != ANI_OK) {
         return;
     }
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_COLLECTION, "<get>nativeObj", ":l"));
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
@@ -184,7 +184,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
 
 void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 {
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj, ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_COLLECTION, "<get>nativeObj", ":l"));
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return;

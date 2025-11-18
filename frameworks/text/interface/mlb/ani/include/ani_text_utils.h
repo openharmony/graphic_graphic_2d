@@ -30,7 +30,7 @@ public:
     static ani_status ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message);
     static ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err);
     template <typename T>
-    static T* GetNativeFromObj(ani_env* env, ani_object obj, const char* name = NATIVE_OBJ);
+    static T* GetNativeFromObj(ani_env* env, ani_object obj, const ani_method getNativeMethod);
 
     static ani_object CreateAniUndefined(ani_env* env);
     static bool IsUndefined(ani_env* env, ani_ref ref);
@@ -114,11 +114,11 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
 }
 
 template <typename T>
-T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const char* name)
+T* AniTextUtils::GetNativeFromObj(ani_env* env, ani_object obj, const ani_method getNativeMethod)
 {
     ani_status ret;
     ani_long nativeObj{};
-    if ((ret = env->Object_GetFieldByName_Long(obj, name, &nativeObj)) != ANI_OK) {
+    if ((ret = env->Object_CallMethod_Long(obj, getNativeMethod, &nativeObj)) != ANI_OK) {
         TEXT_LOGE("Failed to get native obj, ret %{public}d", ret);
         return nullptr;
     }
