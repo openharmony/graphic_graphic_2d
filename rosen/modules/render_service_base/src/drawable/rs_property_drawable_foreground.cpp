@@ -22,6 +22,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -585,12 +586,34 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
-    const std::shared_ptr<RSSDFEffectFilter> sdfEffectFilter = properties.GetSDFEffectFilter();
-    if (sdfEffectFilter && border->GetStyle() == BorderStyle::SOLID) {
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape && border->GetStyle() == BorderStyle::SOLID) {
+        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
+        std::shared_ptr<Drawing::GEShaderShape> geShape =
+            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
+            Drawing::GE_SHADER_SDF_BORDER, Drawing::DrawingPaintType::BRUSH);
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_SHAPE, geShape);
+        Drawing::GESDFBorderParams borderParam;
         auto borderColor = border->GetColor();
-        Drawing::Color color(
+        borderParam.color = Drawing::Color(
             borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
-        sdfEffectFilter->SetBorder(color, border->GetWidth());
+        borderParam.width = border->GetWidth();
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_BORDER, borderParam);
+        std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ =
+            std::make_shared<Drawing::GEVisualEffectContainer>();
+        geContainer_->AddToChainedFilter(geFilter);
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        bool isZero = isOutline ? border->GetRadiusFour().IsZero() : properties.GetCornerRadius().IsZero();
+        Drawing::Rect rect;
+        if (isZero) {
+            rect = RSPropertyDrawableUtils::Rect2DrawingRect(isOutline ?
+                properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect());
+        } else {
+            rect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+                RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline)).GetRect();
+        }
+        geRender->DrawShaderEffect(canvas, *geContainer_, rect);
         return;
     }
     Drawing::Brush brush;
