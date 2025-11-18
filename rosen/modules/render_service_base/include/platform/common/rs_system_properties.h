@@ -380,6 +380,7 @@ public:
     static bool GetCompositeLayerEnabled();
     static bool GetEarlyZEnable();
     static bool GetAIBarOptEnabled();
+    static bool GetAIBarDirectCompositeFullEnabled();
     static bool GetRSMemoryInfoManagerParam();
     static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();

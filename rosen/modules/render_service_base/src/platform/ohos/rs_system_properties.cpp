@@ -1676,6 +1676,12 @@ bool RSSystemProperties::GetAIBarOptEnabled()
     return isAIBarOptEnabled;
 }
 
+bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
+{
+    static bool enabled = system::GetIntParameter("persist.rosen.aibarfulldirectcomp.enabled", 0) != 0;
+    return enabled;
+}
+
 bool RSSystemProperties::GetRSMemoryInfoManagerParam()
 {
     return false;

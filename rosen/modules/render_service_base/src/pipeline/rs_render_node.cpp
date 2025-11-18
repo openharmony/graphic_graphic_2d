@@ -2368,6 +2368,24 @@ bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 return false;
 }
 
+bool RSRenderNode::ForceReduceAIBarCacheInterval()
+{
+#ifdef RS_ENABLE_GPU
+    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+        ROSEN_LOGD("ForceReduceAIBarCacheInterval: blur is disabled or filter cache is disabled.");
+        return false;
+    }
+
+    auto filterDrawable = GetFilterDrawable(false); // AIBar filter is only background filter
+    if (filterDrawable == nullptr) {
+        return false;
+    }
+    return filterDrawable->ForceReduceAIBarCacheInterval();
+#else
+    return false;
+#endif
+}
+
 const RectI RSRenderNode::GetFilterCachedRegion() const
 {
     return lastFilterRegion_;

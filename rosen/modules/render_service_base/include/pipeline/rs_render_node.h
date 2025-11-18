@@ -84,6 +84,7 @@ struct CurFrameInfoDetail {
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
     using WeakPtr = std::weak_ptr<RSRenderNode>;
+    using WeakPtrSet = std::set<WeakPtr, std::owner_less<WeakPtr>>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
     using ModifierNGContainer = std::vector<std::shared_ptr<ModifierNG::RSRenderModifier>>;
     using ModifiersNGMap = std::map<ModifierNG::RSModifierType, ModifierNGContainer>;
@@ -661,6 +662,8 @@ public:
     bool IsFilterCacheValid() const;
     bool IsAIBarFilter() const;
     bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const;
+    // Return true if the cache interval of aibar has been successfully reduced; otherwise, return false.
+    bool ForceReduceAIBarCacheInterval();
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 
