@@ -71,7 +71,7 @@ std::vector<Vector2f> bordersizeParams = {
     Vector2f{200.0f, 100.0f},
     Vector2f{1200.0f, 2000.0f},
     Vector2f{5000.0f, 100.0f},
-    Vector2f{200.0f, 5000f},
+    Vector2f{200.0f, 5000.0f},
     Vector2f{200.0f, -200.0f},
     Vector2f{-200.0f, -100.0f},
 };
@@ -104,7 +104,7 @@ std::vector<float> borderwidthParams = {
     -2.9f,
     100.0f,
     200.0f,
-    -1f,
+    -1.0f,
     std::numeric_limits<float>::infinity(),
     100000.0f,
 };
@@ -113,7 +113,7 @@ std::vector<float> offsetParams = {
     0.0f,
     1.88f,
     200.0f,
-    -1f,
+    -1.0f,
     std::numeric_limits<float>::infinity(),
 };
 
@@ -134,8 +134,8 @@ std::vector<float> bgfactorParams = {
 };
 
 std::vector<Vector3f> innershadowparamsParams = {
-    Vector3f{1f, 2.0f, 4.62f},
-    Vector3f{-101f, 2.0f, 4.62f},
+    Vector3f{1.0f, 2.0f, 4.62f},
+    Vector3f{-101.0f, 2.0f, 4.62f},
     Vector3f{0.02f, 2.0f, 4.62f},
     Vector3f{-0.02f, 0.0f, 4.62f},
     Vector3f{-0.02f, 2.0f, 0.0f},
