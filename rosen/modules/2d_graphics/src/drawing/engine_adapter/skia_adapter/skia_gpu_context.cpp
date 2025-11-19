@@ -622,6 +622,10 @@ void SkiaGPUContext::VmaDefragment()
         grContext_->vmaDefragment();
     }
 }
+
+void SkiaGPUContext::SetParam(const std::string& name, const std::string& value)
+{}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

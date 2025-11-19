@@ -745,6 +745,19 @@ HWTEST_F(GpuContextTest, NewDumpMemoryStatisticsByTagTest, TestSize.Level1)
     gpuContext->NewDumpMemoryStatisticsByTag(&traceMemoryDump, tag);
     gpuContext->NewDumpMemoryStatisticsByTag(nullptr, tag);
 }
+
+/**
+ * @tc.name: SetParamTest
+ * @tc.desc: Test for SetParam
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(GpuContextTest, SetParamTest, TestSize.Level1)
+{
+    auto gpuContext = std::make_unique<GPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    gpuContext->SetParam("name", "value");
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
