@@ -30,6 +30,7 @@ public:
     static bool IsFreeMultiWindowEnable();
     static int GetUIFirstEnableWindowThreshold();
     static int GetUIFirstType();
+    static int GetClearCacheThreshold();
 
 protected:
     static void SetUIFirstEnable(bool isEnable);
@@ -38,6 +39,7 @@ protected:
     static void SetFreeMultiWindowEnable(bool isFreeMultiWindowEnable);
     static void SetUIFirstEnableWindowThreshold(int uiFirstEnableWindowThreshold);
     static void SetUIFirstType(int uiFirstType);
+    static void SetClearCacheThreshold(int threshold);
 
 private:
     inline static bool isUIFirstEnable_ = true;
@@ -46,6 +48,7 @@ private:
     inline static bool isFreeMultiWindowEnable_ = false;
     inline static int uiFirstEnableWindowThreshold_ = 0;
     inline static int uiFirstType_ = 1;
+    inline static int clearCacheThreshold_ = 0;
 
     friend class UIFirstParamParse;
 };

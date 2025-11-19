@@ -278,6 +278,7 @@ public:
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetUIFirstBehindWindowFilterEnabled();
+    static bool GetUIFirstAutoClearCacheEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();

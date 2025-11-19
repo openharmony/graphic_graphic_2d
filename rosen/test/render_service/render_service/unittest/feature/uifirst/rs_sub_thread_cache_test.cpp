@@ -1262,4 +1262,22 @@ HWTEST_F(RSSubThreadCacheTest, GetSubAppNodeIdTest, TestSize.Level1)
     NodeId nodeId1 = subCache.GetSubAppNodeId(surfaceDrawable.get());
     ASSERT_EQ(nodeId1, 102);
 }
+
+/**
+ * @tc.name: CacheReuseCountTest
+ * @tc.desc: Test uifirst cache reuse count
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSSubThreadCacheTest, CacheReuseCountTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.ResetCacheReuseCount();
+    subCache.AddCacheReuseCount();
+    subCache.AddCacheReuseCount();
+    ASSERT_EQ(subCache.GetCacheReuseCount(), 2);
+
+    subCache.ResetCacheReuseCount();
+    ASSERT_EQ(subCache.GetCacheReuseCount(), 0);
+}
 }

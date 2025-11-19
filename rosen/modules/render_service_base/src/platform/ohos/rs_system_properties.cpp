@@ -942,7 +942,15 @@ bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
- 
+
+bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.auto.clearcache.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetHeterogeneousHDREnabled()
 {
     static bool flag =
