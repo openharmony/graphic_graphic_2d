@@ -56,8 +56,7 @@ void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visit
 
 void RSUnionRenderNode::UpdateVisibleUnionChildren(RSRenderNode& childNode)
 {
-    if ((childNode.GetRenderProperties().GetUseUnion() || childNode.GetRenderProperties().GetSDFShape() != nullptr) &&
-        !childNode.GetOldDirtyInSurface().IsEmpty()) {
+    if (childNode.GetRenderProperties().GetUseUnion() && !childNode.GetOldDirtyInSurface().IsEmpty()) {
         visibleUnionChildren_.emplace(childNode.GetId());
     }
 }

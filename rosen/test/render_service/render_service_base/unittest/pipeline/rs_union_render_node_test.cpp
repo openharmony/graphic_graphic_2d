@@ -729,7 +729,6 @@ HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren001, TestSize.Level1)
     auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
 
     child1->renderProperties_.useUnion_ = true;
-    child1->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     child1->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
 
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
@@ -750,12 +749,11 @@ HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren002, TestSize.Level1)
     auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
 
     child1->renderProperties_.useUnion_ = false;
-    child1->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     child1->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
 
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
     unionNode->UpdateVisibleUnionChildren(*child1);
-    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }
 
 /**
@@ -771,12 +769,11 @@ HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren003, TestSize.Level1)
     auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
 
     child1->renderProperties_.useUnion_ = true;
-    child1->renderProperties_.renderSDFShape_ = nullptr;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    child1->oldDirtyInSurface_ = RectI(0, 0, 0, 0);
 
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
     unionNode->UpdateVisibleUnionChildren(*child1);
-    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }
 
 /**
@@ -792,49 +789,6 @@ HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren004, TestSize.Level1)
     auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
 
     child1->renderProperties_.useUnion_ = false;
-    child1->renderProperties_.renderSDFShape_ = nullptr;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
-
-    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
-    unionNode->UpdateVisibleUnionChildren(*child1);
-    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
-}
-
-/**
- * @tc.name: UpdateVisibleUnionChildren005
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
- */
-HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren005, TestSize.Level1)
-{
-    auto sContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
-    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
-
-    child1->renderProperties_.useUnion_ = true;
-    child1->renderProperties_.renderSDFShape_ = nullptr;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 0, 0);
-
-    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
-    unionNode->UpdateVisibleUnionChildren(*child1);
-    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
-}
-
-/**
- * @tc.name: UpdateVisibleUnionChildren006
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
- */
-HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren006, TestSize.Level1)
-{
-    auto sContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
-    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
-
-    child1->renderProperties_.useUnion_ = false;
-    child1->renderProperties_.renderSDFShape_ = nullptr;
     child1->oldDirtyInSurface_ = RectI(0, 0, 0, 0);
 
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
