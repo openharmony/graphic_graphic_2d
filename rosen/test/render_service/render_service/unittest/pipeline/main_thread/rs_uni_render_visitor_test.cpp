@@ -43,6 +43,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/rs_union_render_node.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "property/rs_point_light_manager.h"
