@@ -303,6 +303,7 @@ public:
      * @param gpuContext  GPU context.
      * @param info        YUV Info.
      * @param memory      A pointer of pixelmap memory.
+     * @param colorSpace  Range of colors, may be nullptr.
      * @return            A shared pointer to Image.
      */
     static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
