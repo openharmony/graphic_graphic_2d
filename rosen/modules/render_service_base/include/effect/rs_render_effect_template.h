@@ -98,6 +98,7 @@ public:
             case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             case RSNGEffectType::FROSTED_GLASS: return "FrostedGlass";
             case RSNGEffectType::CIRCLE_FLOWLIGHT: return "CircleFlowlight";
+            case RSNGEffectType::GRID_WARP: return "GridWarp";
             default:
                 return "UNKNOWN";
         }
