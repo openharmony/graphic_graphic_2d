@@ -30,8 +30,8 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
         if (runMetrics.textStyle != nullptr) {
             static std::string sign =
                 "C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}C{" + std::string(ANI_INTERFACE_FONT_METRICS) + "}:";
-            ani_object aniObj = AniTextUtils::CreateAniObject(env, ANIFindClass(env, ANI_CLASS_RUNMETRICS),
-                ANIClassFindMethod(env, ANI_CLASS_RUNMETRICS, "<ctor>", sign.c_str()),
+            ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_RUNMETRICS),
+                ANI_CLASS_FIND_METHOD(env, ANI_CLASS_RUNMETRICS, "<ctor>", sign.c_str()),
                 AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
                 OHOS::Rosen::Drawing::CreateAniFontMetrics(env, runMetrics.fontMetrics));
             ani_status status = env->Object_CallMethodByName_Ref(mapAniObj, "set", "YY:C{std.core.Map}", &mapRef,

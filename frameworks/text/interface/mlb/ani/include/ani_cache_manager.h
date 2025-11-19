@@ -17,17 +17,102 @@
 #define OHOS_TEXT_ANI_CACHE_MANAGER_H
 
 #include <ani.h>
+#include <memory>
+#include <shared_mutex>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+
+#include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
+class AniCacher {
+protected:
+    ani_ref ref;
 
-ani_namespace ANIFindNamespace(ani_env* env, const char* descriptor);
+public:
+    AniCacher(ani_env* env, ani_ref val) { env->GlobalReference_Create(val, &ref); }
+    ani_ref get_ref() { return ref; }
+};
 
-ani_class ANIFindClass(ani_env* env, const char* descriptor);
+#define ANI_FIND_NAMESPACE(env, descriptor)                                                                            \
+    ([&] {                                                                                                             \
+        static AniCacher aniCacher(env, [&]() -> ani_namespace {                                                               \
+            ani_namespace ns;                                                                                          \
+            ani_status status = env->FindNamespace(descriptor, &ns);                                                   \
+            if (status != ANI_OK) {                                                                                    \
+                TEXT_LOGE("Failed to find namespace: %{public}s, status %{public}d", descriptor, status);              \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            return ns;                                                                                                 \
+        }());                                                                                                          \
+        return static_cast<ani_namespace>(aniCacher.get_ref());                                                           \
+    }())
 
-ani_enum ANIFindEnum(ani_env* env, const char* descriptor);
+#define ANI_FIND_CLASS(env, descriptor)                                                                                \
+    ([&] {                                                                                                             \
+        static AniCacher aniCacher(env, [&]() -> ani_class {                                                                   \
+            ani_class cls;                                                                                             \
+            ani_status status = env->FindClass(descriptor, &cls);                                                      \
+            if (status != ANI_OK) {                                                                                    \
+                TEXT_LOGE("Failed to find class: %{public}s, status %{public}d", descriptor, status);                  \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            return cls;                                                                                                \
+        }());                                                                                                          \
+        return static_cast<ani_class>(aniCacher.get_ref());                                                               \
+    }())
 
-ani_method ANIClassFindMethod(ani_env* env, const char* descriptor, const char* name, const char* signature);
+#define ANI_FIND_ENUM(env, descriptor)                                                                                 \
+    ([&] {                                                                                                             \
+        static AniCacher aniCacher(env, [&]() -> ani_enum {                                                                    \
+            ani_enum enumObj;                                                                                          \
+            ani_status status = env->FindEnum(descriptor, &enumObj);                                                   \
+            if (status != ANI_OK) {                                                                                    \
+                TEXT_LOGE("Failed to find enum: %{public}s, status %{public}d", descriptor, status);                   \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            return enumObj;                                                                                            \
+        }());                                                                                                          \
+        return static_cast<ani_enum>(aniCacher.get_ref());                                                                \
+    }())
 
-ani_function ANINamespaceFindFunction(ani_env* env, const char* descriptor, const char* name, const char* signature);
+#define ANI_CLASS_FIND_METHOD(env, descriptor, name, signature)                                                        \
+    ([&] {                                                                                                             \
+        static ani_method __method = [&]() -> ani_method {                                                             \
+            ani_class cls = ANI_FIND_CLASS(env, descriptor);                                                           \
+            if (cls == nullptr) {                                                                                      \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            ani_method method;                                                                                         \
+            ani_status status = env->Class_FindMethod(cls, name, signature, &method);                                  \
+            if (status != ANI_OK) {                                                                                    \
+                TEXT_LOGE("Failed to find method: %{public}s::%{public}s::%{public}s, status %{public}d", descriptor,  \
+                    name, signature, status);                                                                          \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            return method;                                                                                             \
+        }();                                                                                                           \
+        return __method;                                                                                               \
+    }())
+
+#define ANI_NAMESPACE_FIND_FUNCTION(env, descriptor, name, signature)                                                  \
+    ([&] {                                                                                                             \
+        static ani_function __function = [&]() -> ani_function {                                                       \
+            ani_namespace ns = ANI_FIND_NAMESPACE(env, descriptor);                                                    \
+            if (ns == nullptr) {                                                                                       \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            ani_function function;                                                                                     \
+            ani_status status = env->Namespace_FindFunction(ns, name, signature, &function);                           \
+            if (status != ANI_OK) {                                                                                    \
+                TEXT_LOGE("Failed to find function: %{public}s::%{public}s::%{public}s, status %{public}d",            \
+                    descriptor, name, signature, status);                                                              \
+                return nullptr;                                                                                        \
+            }                                                                                                          \
+            return function;                                                                                           \
+        }();                                                                                                           \
+        return __function;                                                                                             \
+    }())
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_CACHE_MANAGER_H
