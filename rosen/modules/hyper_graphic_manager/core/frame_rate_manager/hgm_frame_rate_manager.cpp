@@ -1420,21 +1420,23 @@ bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
     bool isOtherSelfNodeOnTree = false;
     std::string gameNodeName = GetGameNodeName();
     nodeMap.TraverseSurfaceNodes(
-        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
+        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree, &nodeMap]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
             if (surfaceNode->IsOnTheTree() &&
                 surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+                auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                    nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
                 if (gameNodeName == surfaceNode->GetName()) {
                     isGameSelfNodeOnTree = true;
-                } else {
+                } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
                     isOtherSelfNodeOnTree = true;
                 }
             }
         });
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other node no tree: %d",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other visible node on tree: %d",
                       isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
     isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
     return isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;
