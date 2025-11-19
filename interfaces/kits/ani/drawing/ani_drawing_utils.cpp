@@ -76,7 +76,7 @@ ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16str
     ani_size strSize;
     ani_status status = env->String_GetUTF16Size(str, &strSize);
     if (status != ANI_OK) {
-        ROSEN_LOGE("Failed to get utf16 str size");
+        ROSEN_LOGE("Failed to get utf16 str size, status:%{public}d", static_cast<int32_t>(status));
         return status;
     }
 
@@ -87,7 +87,7 @@ ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16str
     ani_size bytesWritten = 0;
     status = env->String_GetUTF16(str, utf16Buffer, strSize, &bytesWritten);
     if (status != ANI_OK) {
-        ROSEN_LOGE("Failed to get utf16 str");
+        ROSEN_LOGE("Failed to get utf16 str, status: %{public}d", static_cast<int>(status));
         return status;
     }
     utf16Buffer[bytesWritten] = '\0';

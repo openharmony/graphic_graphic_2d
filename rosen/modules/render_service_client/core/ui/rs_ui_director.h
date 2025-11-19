@@ -386,6 +386,7 @@ private:
     std::weak_ptr<RSRootNode> rootNode_;
     bool dvsyncUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
+    bool skipDestroyUIContext_ = false;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

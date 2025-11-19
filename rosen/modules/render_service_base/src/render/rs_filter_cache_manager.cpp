@@ -516,17 +516,24 @@ void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
         return;
     }
     if (stagingIsAIBarInteractWithHWC_) {
-        if (cacheUpdateInterval_ > 0) {
-            cacheUpdateInterval_--;
-            pendingPurge_ = true;
-        }
+        ReduceCacheUpdateInterval();
     } else {
-        if ((stagingFilterInteractWithDirty_ || stagingRotationChanged_) && cacheUpdateInterval_ > 0) {
-            cacheUpdateInterval_--;
-            pendingPurge_ = true;
+        if (stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
+            ReduceCacheUpdateInterval();
         }
     }
     stagingIsAIBarInteractWithHWC_ = false;
+}
+
+bool RSFilterCacheManager::ReduceCacheUpdateInterval()
+{
+    if (cacheUpdateInterval_ <= 0) {
+        return false;
+    }
+
+    cacheUpdateInterval_--;
+    pendingPurge_ = true;
+    return true;
 }
 
 bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)

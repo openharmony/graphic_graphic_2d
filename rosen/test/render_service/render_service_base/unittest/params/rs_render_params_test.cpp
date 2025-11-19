@@ -470,6 +470,25 @@ HWTEST_F(RSRenderParamsTest, GetNeedUpdateCache_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetForceDisableNodeGroupTest
+ * @tc.desc: Test function SetForceDisableNodeGroup
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetForceDisableNodeGroupTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->IsForceDisableNodeGroup());
+    renderParams->SetForceDisableNodeGroup(true);
+    EXPECT_TRUE(renderParams->IsForceDisableNodeGroup());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
  * @tc.name: SetDrawingCacheIncludeProperty_001
  * @tc.desc: Test function SetDrawingCacheIncludeProperty
  * @tc.type:FUNC

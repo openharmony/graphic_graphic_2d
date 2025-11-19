@@ -186,13 +186,13 @@ VSyncGenerator::~VSyncGenerator()
 void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTimeStamp,
     int64_t occurReferenceTime, bool isWakeup)
 {
-    SCOPED_DEBUG_TRACE_FMT("occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
+    SCOPED_DEBUG_TRACE_FMT("occurTimestamp:%" PRId64 ", nextTimeStamp:%" PRId64, occurTimestamp, nextTimeStamp);
     std::vector<Listener> listeners;
     uint32_t vsyncMaxRefreshRate = 360;
+    int64_t newOccurTimestamp = SystemTime();
     {
         std::unique_lock<std::mutex> locker(mutex_);
         vsyncMaxRefreshRate = vsyncMaxRefreshRate_;
-        int64_t newOccurTimestamp = SystemTime();
         if (isWakeup) {
             UpdateWakeupDelay(newOccurTimestamp, nextTimeStamp);
         }
@@ -203,10 +203,10 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
         }
         expectTimeFlag_ = false;
     }
-    RS_TRACE_NAME_FMT("GenerateVsyncCount:%lu, period:%ld, currRefreshRate_:%u, vsyncMode_:%d",
-        listeners.size(), periodRecord_, currRefreshRate_, vsyncMode_);
+    RS_TRACE_NAME_FMT("GenerateVsyncCount:%lu, period:%" PRId64 ", currRefreshRate:%u, vsyncMode:%d, now:%" PRId64,
+        listeners.size(), periodRecord_, currRefreshRate_, vsyncMode_, newOccurTimestamp);
     for (uint32_t i = 0; i < listeners.size(); i++) {
-        RS_TRACE_NAME_FMT("listener phase is %ld", listeners[i].phase_);
+        RS_TRACE_NAME_FMT("listener phase is %" PRId64, listeners[i].phase_);
         if (listeners[i].callback_ != nullptr) {
             listeners[i].callback_->OnVSyncEvent(listeners[i].lastTime_,
                 periodRecord_, currRefreshRate_, vsyncMode_, vsyncMaxRefreshRate);
@@ -276,7 +276,8 @@ void VSyncGenerator::WaitForTimeout(int64_t occurTimestamp, int64_t nextTimeStam
     bool isWakeup = false;
     if (occurTimestamp < nextTimeStamp) {
         if (nextTimeStamp - occurTimestamp > periodRecord_ * 3 / 2) { // 3/2 means no more than 1.5 period
-            RS_TRACE_NAME_FMT("WaitForTimeout occurTimestamp:%ld, nextTimeStamp:%ld", occurTimestamp, nextTimeStamp);
+            RS_TRACE_NAME_FMT("WaitForTimeout occurTimestamp:%" PRId64 ", nextTimeStamp:%" PRId64,
+                occurTimestamp, nextTimeStamp);
         }
         std::unique_lock<std::mutex> lck(waitForTimeoutMtx_);
         nextTimeStamp_ = nextTimeStamp;
@@ -414,8 +415,8 @@ void VSyncGenerator::ComputeDVSyncListenerTimeStamp(const Listener& listener, in
     if (dvsyncPeriodRecord_ != 0 && listener.callback_ != nullptr) {
         t = ComputeDVSyncListenerNextVSyncTimeStamp(listener, now, occurDvsyncReferenceTime_, dvsyncPeriodRecord_);
         nextVSyncTime = t < nextVSyncTime? t : nextVSyncTime;
-        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%ld, dvsyncPeriod:%ld, dvsyncReferenceTime:%ld",
-            t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_);
+        RS_TRACE_NAME_FMT("DVSync::UiDVSync ComputeNextVSyncTimeStamp t:%" PRId64 ", dvsyncPeriod:%" PRId64 ", "
+            " dvsyncReferenceTime:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_);
     }
 #endif
 }
@@ -465,8 +466,8 @@ int64_t VSyncGenerator::CollectDVSyncListener(const Listener &listener, int64_t 
 #if defined(RS_ENABLE_DVSYNC_2)
             DVSync::Instance().SetToCurrentPeriod();
 #endif
-            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%ld, dvsyncPeriod:%ld, "
-                "dvsyncReferenceTime:%ld", t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_);
+            RS_TRACE_NAME_FMT("DVSync::UiDVSync CollectDVSyncListener t:%" PRId64 ", dvsyncPeriod:%" PRId64 ""
+                ", dvsyncReferenceTime:%" PRId64, t, dvsyncPeriodRecord_, occurDvsyncReferenceTime_);
         }
     }
     return t;
@@ -500,8 +501,8 @@ int64_t VSyncGenerator::ComputeDVSyncListenerNextVSyncTimeStamp(const Listener &
     nextTime += referenceTime;
     int64_t threshold = static_cast<int64_t>(DVSYNC_PERIOD_MIN_INTERVAL * static_cast<double>(period));
     if (nextTime - listener.lastTime_ < threshold) {
-        RS_TRACE_NAME_FMT("VSyncGenerator::ComputeDVSyncListenerNextVSyncTimeStamp "
-            "add one more period:%ld, threshold:%ld", period, threshold);
+        RS_TRACE_NAME_FMT("VSyncGenerator::ComputeDVSyncListenerNextVSyncTimeStamp add one more period:%" PRId64 ","
+            " threshold:%" PRId64, period, threshold);
         nextTime += period;
     }
     nextTime -= wakeupDelay_;
@@ -563,7 +564,7 @@ bool VSyncGenerator::UpdateChangeDataLocked(int64_t now, int64_t referenceTime, 
 
     // change referenceTime
     if (expectNextVsyncTime_ > 0) {
-        RS_TRACE_NAME_FMT("UpdateChangeDataLocked, expectNextVsyncTime_:%ld", expectNextVsyncTime_);
+        RS_TRACE_NAME_FMT("UpdateChangeDataLocked, expectNextVsyncTime_:%" PRId64, expectNextVsyncTime_);
         nextVSyncTime = expectNextVsyncTime_;
         expectNextVsyncTime_ = 0;
         referenceTime_ = nextVSyncTime;
@@ -659,8 +660,8 @@ int64_t VSyncGenerator::ComputeListenerNextVSyncTimeStamp(const Listener& listen
     // 3 / 5 just empirical value
     if (((vsyncMode_ == VSYNC_MODE_LTPS) && (nextTime - listener.lastTime_ < (3 * periodRecord_ / 5))) ||
         ((vsyncMode_ == VSYNC_MODE_LTPO) && (nextTime - listener.lastTime_ < threshold))) {
-        RS_TRACE_NAME_FMT("ComputeListenerNextVSyncTimeStamp add one more period:%ld, threshold:%ld",
-            periodRecord_, threshold);
+        RS_TRACE_NAME_FMT("ComputeListenerNextVSyncTimeStamp add one more period:%" PRId64 ",threshold:%" PRId64 ", "
+            "lastTime:%" PRId64, periodRecord_, threshold, listener.lastTime_);
         nextTime += periodRecord_;
     }
 
@@ -707,7 +708,7 @@ VsyncError VSyncGenerator::UpdatePeriodLocked(int64_t period)
         if ((refreshRate != 0) && ((currRefreshRate_ == refreshRate) || currRefreshRate_ == 0)) {
             period_ = period;
         } else {
-            RS_TRACE_NAME_FMT("update period failed, refreshRate:%u, currRefreshRate_:%d",
+            RS_TRACE_NAME_FMT("update period failed, refreshRate:%u, currRefreshRate:%u",
                 refreshRate, currRefreshRate_);
             VLOGE("update period failed, refreshRate:%{public}u, currRefreshRate_:%{public}u, period:" VPUBI64,
                                     refreshRate, currRefreshRate_, period);
@@ -730,6 +731,8 @@ VsyncError VSyncGenerator::UpdateReferenceTimeLocked(int64_t referenceTime)
     } else {
         referenceTime_ = referenceTime;
     }
+    RS_TRACE_NAME_FMT("UpdateReferenceTimeLocked realReferenceTime:%" PRId64 ", pulse:%" PRId64,
+        referenceTime_, pulse_);
     return VSYNC_ERROR_OK;
 }
 
@@ -760,8 +763,8 @@ void VSyncGenerator::SubScribeSystemAbility()
 VsyncError VSyncGenerator::UpdateMode(int64_t period, int64_t phase, int64_t referenceTime)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    RS_TRACE_NAME_FMT("UpdateMode, period:%" PRId64 ", phase:%" PRId64 ", referenceTime:%" PRId64
-        ", referenceTimeOffsetPulseNum:%d", period, phase, referenceTime, referenceTimeOffsetPulseNum_);
+    RS_TRACE_NAME_FMT("UpdateMode, period:%" PRId64 ", phase:%" PRId64 ", referenceTime:%" PRId64 ", "
+        " referenceTimeOffsetPulseNum:%d", period, phase, referenceTime, referenceTimeOffsetPulseNum_);
     if (period < 0 || referenceTime < 0) {
         VLOGE("wrong parameter, period:" VPUBI64 ", referenceTime:" VPUBI64, period, referenceTime);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
@@ -784,8 +787,8 @@ bool VSyncGenerator::NeedPreexecuteAndUpdateTs(
     if (period_ - offset > PERIOD_CHECK_THRESHOLD) {
         timestamp = now;
         period = period_;
-        RS_TRACE_NAME_FMT("NeedPreexecuteAndUpdateTs, new referenceTime:%ld, timestamp:%ld, period:%ld,",
-            referenceTime_, timestamp, period);
+        RS_TRACE_NAME_FMT("NeedPreexecuteAndUpdateTs, new referenceTime:%" PRId64 ",timestamp:%" PRId64 ", "
+            "period:%" PRId64, referenceTime_, timestamp, period);
         return true;
     }
     return false;
@@ -878,13 +881,14 @@ VsyncError VSyncGenerator::SetExpectNextVsyncTimeInternal(int64_t expectNextVsyn
         }
     }
     if (expectTime == 0 || expectTime - now > 100000000) { // 100ms == 100000000ns
-        RS_TRACE_NAME_FMT("SetExpectNextVsyncTime Failed, expectTime:%ld, now:%ld, expectNextVsyncTime:%ld,"
-            " referenceTime_:%ld", expectTime, now, expectNextVsyncTime, referenceTime_);
+        RS_TRACE_NAME_FMT("SetExpectNextVsyncTime Failed, expectTime:%" PRId64 ", now:%" PRId64 ", "
+            "expectNextVsyncTime:%" PRId64 ", referenceTime:%" PRId64,
+            expectTime, now, expectNextVsyncTime, referenceTime_);
         return VSYNC_ERROR_INVALID_ARGUMENTS;
     }
     expectNextVsyncTime_ = expectTime;
-    RS_TRACE_NAME_FMT("expectNextVsyncTime:%ld, expectNextVsyncTime_:%ld, diff:%ld", expectNextVsyncTime,
-        expectNextVsyncTime_, (expectNextVsyncTime_ - expectNextVsyncTime));
+    RS_TRACE_NAME_FMT("expectNextVsyncTime:%" PRId64 ", expectNextVsyncTime:%" PRId64 ", diff:%" PRId64,
+        expectNextVsyncTime, expectNextVsyncTime_, (expectNextVsyncTime_ - expectNextVsyncTime));
     return VSYNC_ERROR_OK;
 }
 
@@ -897,12 +901,12 @@ VsyncError VSyncGenerator::ChangeGeneratorRefreshRateModel(const ListenerRefresh
     if (rsVSyncDistributor_ != nullptr) {
         rsVsyncCount = rsVSyncDistributor_->GetVsyncCount();
     }
-    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, expectNextVsyncTime:%ld",
+    RS_TRACE_NAME_FMT("ChangeGeneratorRefreshRateModel:%u, phaseByPulseNum:%d, expectNextVsyncTime:%" PRId64,
         generatorRefreshRate, listenerPhaseOffset.phaseByPulseNum, expectNextVsyncTime);
     for (std::pair<uint64_t, uint32_t> rateVec : listenerRefreshRates.refreshRates) {
         uint64_t linkerId = rateVec.first;
         uint32_t refreshrate = rateVec.second;
-        RS_TRACE_NAME_FMT("linkerId:%lu, refreshrate:%u", linkerId, refreshrate);
+        RS_TRACE_NAME_FMT("linkerId:%" PRIu64 ", refreshrate:%u", linkerId, refreshrate);
     }
     std::lock_guard<std::mutex> locker(mutex_);
     if ((vsyncMode_ != VSYNC_MODE_LTPO) && (pendingVsyncMode_ != VSYNC_MODE_LTPO)) {
@@ -1055,8 +1059,9 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
             // if software period not changed, and hardwareVsyncInterval,
             // and software period is not the same, accumulate counter
             periodCheckCounter_++;
-            RS_TRACE_NAME_FMT("CounterAccumulated, lastPeriod_:%ld, period_:%ld, hardwareVsyncInterval:%ld,"
-                " periodCheckCounter_:%d", lastPeriod_, period_, hardwareVsyncInterval, periodCheckCounter_);
+            RS_TRACE_NAME_FMT("CounterAccumulated, lastPeriod:%" PRId64 ", period:%" PRId64 ", "
+                "hardwareVsyncInterval:%" PRId64 ", periodCheckCounter:%d", lastPeriod_,
+                period_, hardwareVsyncInterval, periodCheckCounter_);
         }
     } else {
         // if period changed, record this period as lastPeriod_ and clear periodCheckCounter_
@@ -1066,9 +1071,10 @@ void VSyncGenerator::PeriodCheckLocked(int64_t hardwareVsyncInterval)
     }
     // exit frameRateChanging status when the frame rate is inconsistent for 10 consecutive times.
     if (periodCheckCounter_ > 10) {
-        RS_TRACE_NAME_FMT("samePeriodCounter ERROR, period_:%ld, hardwareVsyncInterval:%ld, pendingReferenceTime_:%ld"
-            ", referenceTime_:%ld, referenceTimeDiff:%ld", period_, hardwareVsyncInterval, pendingReferenceTime_,
-            referenceTime_, abs(pendingReferenceTime_ - referenceTime_));
+        RS_TRACE_NAME_FMT("samePeriodCounter ERROR, period_:%" PRId64 ", hardwareVsyncInterval:%" PRId64 ""
+            ",pendingReferenceTime_:%" PRId64 ", referenceTime_:%" PRId64 ", referenceTimeDiff:%" PRId64,
+            period_, hardwareVsyncInterval, pendingReferenceTime_, referenceTime_,
+            abs(pendingReferenceTime_ - referenceTime_));
         VLOGE("samePeriodCounter ERROR, period_:" VPUBI64 ", hardwareVsyncInterval:" VPUBI64
             ", pendingReferenceTime_:" VPUBI64 ", referenceTime_:" VPUBI64 ", referenceTimeDiff:" VPUBI64,
             period_, hardwareVsyncInterval, pendingReferenceTime_, referenceTime_,
@@ -1094,8 +1100,8 @@ void VSyncGenerator::CalculateReferenceTimeOffsetPulseNumLocked(int64_t referenc
     } else {
         referenceTimeOffsetPulseNum_ = std::max(actualOffsetPulseNum, defaultReferenceTimeOffsetPulseNum_);
     }
-    RS_TRACE_NAME_FMT("UpdateMode, referenceTime:%ld, actualOffsetPulseNum:%d, referenceTimeOffsetPulseNum_:%d"
-        ", startRefresh_:%d, period:%ld", referenceTime, actualOffsetPulseNum, referenceTimeOffsetPulseNum_,
+    RS_TRACE_NAME_FMT("UpdateMode, referenceTime:%" PRId64 ", actualOffsetPulseNum:%d, referenceTimeOffsetPulseNum:%d"
+        ", startRefresh:%d, period:%" PRId64, referenceTime, actualOffsetPulseNum, referenceTimeOffsetPulseNum_,
         startRefresh_, pendingPeriod_);
 }
 
@@ -1135,14 +1141,14 @@ VsyncError VSyncGenerator::CheckAndUpdateReferenceTime(int64_t hardwareVsyncInte
         if (pendingPeriodRefreshRate != 0) {
             uint32_t periodPulseNum = vsyncMaxRefreshRate_ / pendingPeriodRefreshRate;
             vsyncOffset_ = (referenceTimeOffsetPulseNum_ % static_cast<int32_t>(periodPulseNum)) * pulse_;
-            RS_TRACE_NAME_FMT("vsyncOffset_:%ld", vsyncOffset_);
+            RS_TRACE_NAME_FMT("vsyncOffset:%" PRId64, vsyncOffset_);
         }
         // 120hz, 90hz, 60hz
         if (((periodRefreshRate == 120) || (periodRefreshRate == 90)) && (pendingPeriodRefreshRate == 60)) {
             needNotify = false;
         }
         if ((periodRefreshRate != 0) && (periodRefreshRate == pendingPeriodRefreshRate)) {
-            RS_TRACE_NAME_FMT("period not changed, period:%ld", period_);
+            RS_TRACE_NAME_FMT("period not changed, period:%" PRId64, period_);
             needNotify = false;
         } else {
             UpdatePeriodLocked(pendingPeriod_);

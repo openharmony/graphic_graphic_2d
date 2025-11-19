@@ -306,6 +306,23 @@ HWTEST_F(RSPropertyDrawableTest, CheckAndUpdateAIBarCacheStatusTest009, TestSize
 }
 
 /**
+ * @tc.name: ForceReduceAIBarCacheIntervalTest
+ * @tc.desc: class RSFilterDrawable ForceReduceAIBarCacheInterval test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableTest, ForceReduceAIBarCacheInterval, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    EXPECT_NE(filterDrawable, nullptr);
+    EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
+
+    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval());
+}
+
+/**
  * @tc.name: RSFilterDrawableTest010
  * @tc.desc: CreateDrawFunc
  * @tc.type:FUNC

@@ -106,10 +106,6 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGFrostedGlassFilter>();
         }
     },
-    {RSNGEffectType::GRID_WARP, [] {
-            return std::make_shared<RSNGGridWarpFilter>();
-        }
-    },
 };
 
 namespace {

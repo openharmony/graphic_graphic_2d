@@ -1220,5 +1220,19 @@ HWTEST_F(RSSystemPropertiesTest, GetSupportScreenFreezeEnabledTest, TestSize.Lev
 {
     EXPECT_TRUE(RSSystemProperties::GetSupportScreenFreezeEnabled());
 }
+
+/**
+ * @tc.name: GetScaleImageAsyncEnabled
+ * @tc.desc: GetScaleImageAsyncEnabledTest
+ * @tc.type: FUNC
+ * @tc.require: issuesICQ74B
+ */
+HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
+{
+    auto ret = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
+    EXPECT_TRUE(RSSystemProperties::GetScaleImageAsyncEnabled());
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", ret);
+}
 } // namespace Rosen
 } // namespace OHOS

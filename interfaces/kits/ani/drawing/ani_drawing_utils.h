@@ -52,7 +52,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
 enum class DrawingErrorCode : int32_t {
     OK = 0,
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system

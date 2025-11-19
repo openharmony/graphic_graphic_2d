@@ -1727,7 +1727,8 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
     // card node only enabled uifirst on phone
     if (RSUifirstManager::Instance().GetUiFirstMode() != UiFirstModeType::SINGLE_WINDOW_MODE ||
         node.GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
-        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos) {
+        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos ||
+        node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
         return false;
     }
     bool isWhiteListCard = RSUifirstManager::Instance().NodeIsInCardWhiteList(node);

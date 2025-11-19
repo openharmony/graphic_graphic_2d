@@ -2929,6 +2929,11 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
     node.name_ = "TestNode";
     EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
 
+    // force disable
+    node.name_ = "ArkTSCardNode";
+    node.SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE_CARD);
+    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
+
     uifirstManager_.entryViewNodeId_ = 1;
     uifirstManager_.negativeScreenNodeId_ = 1;
     node.instanceRootNodeId_ = 1;
@@ -2936,8 +2941,8 @@ HWTEST_F(RSUifirstManagerTest, IsArkTsCardCache, TestSize.Level1)
 
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
     node.nodeType_ = RSSurfaceNodeType::ABILITY_COMPONENT_NODE;
-    node.name_ = "ArkTSCardNode";
-    EXPECT_FALSE(RSUifirstManager::IsArkTsCardCache(node, true));
+    node.SetUIFirstSwitch(RSUIFirstSwitch::NONE);
+    EXPECT_TRUE(RSUifirstManager::IsArkTsCardCache(node, true));
 }
 
 /**
