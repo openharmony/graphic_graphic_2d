@@ -21,6 +21,7 @@
 #include "ani_common.h"
 #include "font_parser.h"
 #include "text_global_config.h"
+#include "typography_create.h"
 #include "typography_types.h"
 #include "utils/text_log.h"
 
