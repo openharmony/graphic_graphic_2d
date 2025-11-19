@@ -899,6 +899,8 @@ public:
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
 
+    void OnSDFShapeChange();
+
 private:
 struct CommonEffectParams {
     bool isAttractionValid_ = false;

@@ -2525,16 +2525,16 @@ HWTEST_F(RSRenderNodeTest2, ResortChildrenTest02, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDrawableBehindWindowTest
- * @tc.desc: UpdateDrawableBehindWindowTest
+ * @tc.name: UpdateDrawableAfterPostPrepareTest
+ * @tc.desc: UpdateDrawableAfterPostPrepareTest
  * @tc.type: FUNC
  * @tc.require: issueIBDI0L
  */
-HWTEST_F(RSRenderNodeTest2, UpdateDrawableBehindWindowTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, UpdateDrawableAfterPostPrepareTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
-    node->UpdateDrawableBehindWindow();
+    node->UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BACKGROUND_FILTER);
     EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::BACKGROUND_FILTER) != 0);
 }
 

@@ -946,40 +946,6 @@ void RSNode::NotifyPageNodeChanged() const
 }
 
 template<typename ModifierType, auto Setter, typename T>
-void RSNode::SetPropertyNG(T value)
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
-    // Create corresponding modifier if not exist
-    if (modifier == nullptr) {
-        modifier = std::make_shared<ModifierType>();
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
-        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
-        AddModifier(modifier);
-    } else {
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
-        NotifyPageNodeChanged();
-    }
-}
-
-template<typename ModifierType, auto Setter, typename T>
-void RSNode::SetPropertyNG(T value, bool animatable)
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
-    // Create corresponding modifier if not exist
-    if (modifier == nullptr) {
-        modifier = std::make_shared<ModifierType>();
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
-        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
-        AddModifier(modifier);
-    } else {
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
-        NotifyPageNodeChanged();
-    }
-}
-
-template<typename ModifierType, auto Setter, typename T>
 void RSNode::SetUIFilterPropertyNG(T value)
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);

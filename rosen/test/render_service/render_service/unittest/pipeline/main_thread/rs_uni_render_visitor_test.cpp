@@ -43,6 +43,7 @@
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
+#include "pipeline/rs_union_render_node.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "property/rs_point_light_manager.h"
@@ -6042,4 +6043,218 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateFixedSize, TestSize.Level2)
     visitor->UpdateFixedSize(*node);
     EXPECT_EQ(node->GetCompositeType(), CompositeType::HARDWARE_COMPOSITE);
 }
+
+/**
+ * @tc.name: QuickPrepareUnionRenderNode001
+ * @tc.desc: Test QuickPrepareUnionRenderNode, dirtyManager = nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curSurfaceNode_ = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = nullptr;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    ASSERT_EQ(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+}
+
+/**
+ * @tc.name: QuickPrepareUnionRenderNode002
+ * @tc.desc: Test QuickPrepareUnionRenderNode, dirtyManager != nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    EXPECT_NE(dirtyManager, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*node);
+    ASSERT_NE(rsUniRenderVisitor->curSurfaceDirtyManager_, nullptr);
+}
+
+/**
+ * @tc.name: QuickPrepareChildren001
+ * @tc.desc: Test QuickPrepareChildren ResetVisibleUnionChildren branch
+ * @tc.type: FUNC
+ * @tc.require: issueIB7GLO
+ */
+HWTEST_F(RSUniRenderVisitorTest, QuickPrepareChildren001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    EXPECT_NE(dirtyManager, nullptr);
+    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    node->InitRenderParams();
+    rsUniRenderVisitor->QuickPrepareChildren(*node);
+}
+
+/**
+ * @tc.name: CollectUnionInfo001
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = unionNode;
+
+    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    node->shouldPaint_ = true;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo002
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = unionNode;
+
+    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.renderSDFShape_ = nullptr;
+    node->shouldPaint_ = true;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo003
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = unionNode;
+
+    node->renderProperties_.useUnion_ = false;
+    node->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    node->shouldPaint_ = true;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo004
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = unionNode;
+
+    node->renderProperties_.useUnion_ = false;
+    node->renderProperties_.renderSDFShape_ = nullptr;
+    node->shouldPaint_ = true;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo005
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo005, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = unionNode;
+
+    node->renderProperties_.useUnion_ = false;
+    node->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    node->shouldPaint_ = true;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo006
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ * @tc.require: issueIAG8BF
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo006, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = unionNode;
+
+    node->renderProperties_.useUnion_ = true;
+    node->renderProperties_.renderSDFShape_ = nullptr;
+    node->shouldPaint_ = false;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
+}
+
 } // OHOS::Rosen

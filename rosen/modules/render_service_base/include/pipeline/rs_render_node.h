@@ -934,7 +934,7 @@ public:
 
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
-    void UpdateDrawableBehindWindow();
+    void UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType type);
     virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
