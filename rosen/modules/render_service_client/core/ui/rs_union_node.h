@@ -62,7 +62,7 @@ public:
 
     /**
      * @brief Creates a shared pointer to an RSUnionNode.
-     * 
+     *
      * @param isRenderServiceNode Indicates whether the node is a render service node. Defaults to false.
      * @param isTextureExportNode Indicates whether the node is a texture export node. Defaults to false.
      * @param rsUIContext A shared pointer to an RSUIContext object. Defaults to nullptr.
