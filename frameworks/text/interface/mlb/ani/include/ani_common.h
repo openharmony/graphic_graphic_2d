@@ -18,17 +18,8 @@
 #include <cstdint>
 
 namespace OHOS::Text::ANI {
-#define ANI_WRAP_RETURN_C(name)                                                                                        \
-    ([]() -> const char* {                                                                                             \
-        static const std::string wrapped = ":C{" + std::string(name) + "}";                                            \
-        return wrapped.c_str();                                                                                        \
-    }())
-
-#define ANI_WRAP_RETURN_E(name)                                                                                        \
-    ([]() -> const char* {                                                                                             \
-        static const std::string wrapped = ":E{" + std::string(name) + "}";                                            \
-        return wrapped.c_str();                                                                                        \
-    }())
+#define ANI_WRAP_RETURN_C(name) ((":C{" + std::string(name) + "}").c_str())
+#define ANI_WRAP_RETURN_E(name) ((":E{" + std::string(name) + "}").c_str())
 
 /**
  * define namespace
