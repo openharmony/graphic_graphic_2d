@@ -29,7 +29,8 @@ ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
         ANI_CLASS_FIND_METHOD(env, ANI_CLASS_POSITION_WITH_AFFINITY, "<ctor>", sign.c_str()),
         ani_int(indexAndAffinity.index),
         AniTextUtils::CreateAniEnum(
-            env, ANI_FIND_ENUM(env, ANI_ENUM_AFFINITY), static_cast<int>(indexAndAffinity.affinity)));
+            env, ANI_FIND_ENUM(env, ANI_ENUM_AFFINITY),
+            getEnumIndex(ENUM_AFFINITY, static_cast<uint32_t>(indexAndAffinity.affinity))));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

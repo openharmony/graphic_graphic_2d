@@ -17,9 +17,35 @@
 #define OHOS_TEXT_ANI_ENUM_H
 
 #include <string_view>
+#include <vector>
+#include <unordered_map>
 
 namespace OHOS::Text::ANI {
-uint32_t getEnumValue(std::string_view enumName, size_t enumIndex);
-size_t getEnumIndex(std::string_view enumName, uint32_t enumValue);
+static const std::unordered_map<std::string_view, const std::vector<uint32_t>&> INT_ENUM_CLASS_MAP;
+static const std::vector<uint32_t> ENUM_TEXT_ALIGN;
+static const std::vector<uint32_t> ENUM_TEXT_DECORATION;
+static const std::vector<uint32_t> ENUM_TEXT_DECORATION_STYLE;
+static const std::vector<uint32_t> ENUM_FONT_WEIGHT;
+static const std::vector<uint32_t> ENUM_FONT_STYLE;
+static const std::vector<uint32_t> ENUM_TEXT_BASE_LINE;
+static const std::vector<uint32_t> ENUM_TEXT_DIRECTION;
+static const std::vector<uint32_t> ENUM_WORD_BREAK_TYPE;
+static const std::vector<uint32_t> ENUM_BREAK_STRATEGY;
+static const std::vector<uint32_t> ENUM_ELLIPSIS_MODAL;
+static const std::vector<uint32_t> ENUM_PLACEHOLDER_ALIGNMENT;
+static const std::vector<uint32_t> ENUM_RECT_WIDTH_STYLE;
+static const std::vector<uint32_t> ENUM_RECT_HEIGHT_STYLE;
+static const std::vector<uint32_t> ENUM_AFFINITY;
+static const std::vector<uint32_t> ENUM_FONTWIDTH;
+static const std::vector<uint32_t> ENUM_TEXTHEIGHTBEHAVIOR;
+static const std::vector<uint32_t> ENUM_SYSTEM_FONT_TYPE;
+static const std::vector<uint32_t> ENUM_TEXT_HIGH_CONTRAST;
+static const std::vector<uint32_t> ENUM_TEXT_BADGE_TYPE;
+static const std::vector<uint32_t> ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY;
+static const std::vector<uint32_t> ENUM_TEXT_VERTICAL_ALIGN;
+
+uint32_t getEnumValue(const std::string_view& enumName, size_t enumIndex);
+size_t getEnumIndex(const std::string_view& enumName, uint32_t enumValue);
+size_t getEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue);
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_ENUM_H
