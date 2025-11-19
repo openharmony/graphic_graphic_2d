@@ -47,7 +47,7 @@ public:
 
     /**
      * @brief Get the type of the RSNode.
-     * 
+     *
      * @return The type of the RSNode.
      */
     RSUINodeType GetType() const override

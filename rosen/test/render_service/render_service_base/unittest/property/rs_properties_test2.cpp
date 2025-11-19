@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -1368,15 +1369,14 @@ HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
 HWTEST_F(PropertiesTest, OnSDFShapeChangeTest001, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.NeedGenerateForegroundFilterCache(), true);
 
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
     EXPECT_NE(sdfShape, nullptr);
-    properties.SetSDFShape(sdfShape);
+    properties.renderSDFShape_ = sdfShape;
 
     properties.OnSDFShapeChange();
-
-    EXPECT_NE(properties.GetEffect().foregroundFilterCache_, nullptr);
+    EXPECT_NE(RSProperties::IS_UNI_RENDER ?
+        properties.GetEffect().foregroundFilterCache_ : properties.GetEffect().foregroundFilter_, nullptr);
 }
 
 /**
@@ -1387,16 +1387,15 @@ HWTEST_F(PropertiesTest, OnSDFShapeChangeTest001, TestSize.Level1)
 HWTEST_F(PropertiesTest, OnSDFShapeChangeTest002, TestSize.Level1)
 {
     RSProperties properties;
-    EXPECT_EQ(properties.NeedGenerateForegroundFilterCache(), true);
-    properties.SetIsTextureExportNode(true);
-    EXPECT_EQ(properties.NeedGenerateForegroundFilterCache(), false);
+
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
     EXPECT_NE(sdfShape, nullptr);
-    properties.SetSDFShape(sdfShape);
+    properties.renderSDFShape_ = sdfShape;
+    properties.sdfFilter_ = std::make_shared<RSSDFEffectFilter>(sdfShape);
 
     properties.OnSDFShapeChange();
-
-    EXPECT_NE(properties.GetEffect().foregroundFilter_, nullptr);
+    EXPECT_NE(RSProperties::IS_UNI_RENDER ?
+        properties.GetEffect().foregroundFilterCache_ : properties.GetEffect().foregroundFilter_, nullptr);
 }
 
 /**

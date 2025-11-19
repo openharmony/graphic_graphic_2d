@@ -92,12 +92,14 @@ private:
             }
             Drawing::Matrix childRelativeMatrix;
             if (!GetChildRelativeMatrixToUnionNode(childRelativeMatrix, child)) {
-                RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] GetRelativeMatrix fail", childId);
+                RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] GetRelativeMatrix fail",
+                    childId);
                 continue;
             }
             auto childShape = GetOrCreateChildSDFShape(childRelativeMatrix, child);
             if (!childShape) {
-                RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] GetChildSDFShape fail", childId);
+                RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] GetChildSDFShape fail",
+                    childId);
                 continue;
             }
             if (shapeQueue.empty()) {

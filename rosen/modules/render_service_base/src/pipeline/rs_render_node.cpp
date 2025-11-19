@@ -1260,6 +1260,10 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
             out += "LOGICAL_DISPLAY_NODE";
             break;
         }
+        case RSRenderNodeType::UNION_NODE: {
+            out += "UNION_NODE";
+            break;
+        }
         default: {
             out += "UNKNOWN_NODE";
             break;
