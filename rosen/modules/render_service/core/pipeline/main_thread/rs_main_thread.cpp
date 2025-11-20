@@ -3454,6 +3454,11 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     SetVsyncInfo(timestamp);
 #endif
     ProcessScreenHotPlugEvents();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    // Cleanup unconsumed pre-allocated Canvas buffers at frame end
+    // This prevents pendingBufferMap from growing unbounded
+    context_->CleanupUnconsumedPendingBuffers();
+#endif
     RSJankStatsOnVsyncEnd(onVsyncStartTime, onVsyncStartTimeSteady, onVsyncStartTimeSteadyFloat);
 }
 

@@ -19,7 +19,7 @@
 #include "params/rs_render_params.h"
 
 namespace OHOS::Rosen {
-class RSCanvasDrawingRenderParams : public RSRenderParams {
+class RSB_EXPORT RSCanvasDrawingRenderParams : public RSRenderParams {
 public:
     explicit RSCanvasDrawingRenderParams(NodeId id);
     ~RSCanvasDrawingRenderParams() override = default;

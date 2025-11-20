@@ -31,6 +31,11 @@
 
 #include "pixel_map.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include <mutex>
+#include "surface_buffer.h"
+#endif
+
 #include "ui/rs_canvas_node.h"
 
 class SkCanvas;
@@ -109,6 +114,24 @@ public:
      */
     bool ResetSurface(int width, int height);
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    /**
+     * @brief Callback invoked when the SurfaceBuffer for this Canvas node has been created or changed.
+     *
+     * This is called by the global Canvas callback router when RS notifies the app
+     * that a new SurfaceBuffer is available for this node. The buffer is stored with a resetSurfaceIndex
+     * for version control - only buffers with newer resetSurfaceIndexes are accepted.
+     *
+     * This unified buffer storage handles both:
+     * 1. Pre-allocated buffers from async ResetSurface tasks
+     * 2. Buffers sent by RS via this callback
+     *
+     * @param buffer The SurfaceBuffer containing DMA memory to be held by the app.
+     *               Ignored if resetSurfaceIndex is stale (older than previously set buffer).
+     */
+    void OnSurfaceBufferChanged(sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
+
 protected:
     RSCanvasDrawingNode(
         bool isRenderServiceNode, bool isTextureExportNode = false, std::shared_ptr<RSUIContext> rsUIContext = nullptr);
@@ -121,14 +144,42 @@ protected:
      * @brief Creates a render node for exporting texture with a switch mechanism.
      */
     void CreateRenderNodeForTextureExportSwitch() override;
+
+    void SetIsOnTheTree(bool onTheTree) override;
+
 private:
     /**
      * @brief Registers the node in the node map.
      */
     void RegisterNodeMap() override;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static uint32_t GenerateResetSurfaceIndex();
+
+    static void PreAllocateDMABuffer(
+        std::weak_ptr<RSCanvasDrawingNode> weakNode, NodeId nodeId, int width, int height, uint32_t resetSurfaceIndex);
+
+    bool isNeverOnTree_ = true;
+
+    // Canvas SurfaceBuffer management for memory attribution
+    // This buffer contains DMA memory that RS and app both hold, causing memory to be counted to app process.
+    //
+    // Unified buffer storage supporting both:
+    // 1. Pre-allocated DMA buffer from async ResetSurface task
+    // 2. DMA buffer received from RS via OnSurfaceBufferChanged callback
+    //
+    // resetSurfaceIndex-based versioning ensures newer buffers override older ones:
+    // - Pre-allocation task: allocates and submits with resetSurfaceIndex
+    // - RS callback: may send buffer with different resetSurfaceIndex
+    // - Only the buffer with the latest resetSurfaceIndex is kept
+    sptr<SurfaceBuffer> canvasSurfaceBuffer_ = nullptr;
+
+    mutable std::mutex surfaceBufferMutex_;
+
+    uint32_t resetSurfaceIndex_ = 0;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS
-
 /** @} */
 #endif // RENDER_SERVICE_CLIENT_CORE_UI_RS_CANVAS_DRAWING_NODE_H

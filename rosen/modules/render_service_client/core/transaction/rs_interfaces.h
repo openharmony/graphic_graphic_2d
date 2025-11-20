@@ -221,6 +221,23 @@ public:
      */
     int32_t SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback);
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    /**
+     * @brief Register Canvas SurfaceBuffer callback for memory attribution.
+     * @param callback is the Canvas SurfaceBuffer callback.
+     */
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    /**
+     * @brief Submit Canvas pre-allocated buffer to RS.
+     * @param nodeId is the canvas node id.
+     * @param buffer is the pre-allocated DMA buffer.
+     * @param resetSurfaceIndex is the index of ResetSurface.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
+
     /**
      * @brief Get brightness info by screenId.
      * @param screenId is screen id.

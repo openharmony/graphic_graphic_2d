@@ -1933,7 +1933,7 @@ protected:
      *
      * @param flag true if the node is on the tree; false otherwise.
      */
-    void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag);
 
     bool IsCreateNodeCommand(const RSCommand& command) const
     {

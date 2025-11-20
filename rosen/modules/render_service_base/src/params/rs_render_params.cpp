@@ -395,6 +395,7 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
     target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
+    target->canvasDrawingResetSurfaceIndex_ = canvasDrawingResetSurfaceIndex_.load();
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
     }
@@ -417,6 +418,15 @@ bool RSRenderParams::IsRepaintBoundary() const
 void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
 {
     isRepaintBoundary_ = isRepaintBoundary;
+}
+
+void RSRenderParams::SetCanvasDrawingResetSurfaceIndex(uint32_t index)
+{
+    if (index == canvasDrawingResetSurfaceIndex_) {
+        return;
+    }
+    canvasDrawingResetSurfaceIndex_ = index;
+    needSync_ = true;
 }
 
 void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)

@@ -522,4 +522,52 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
     EXPECT_TRUE(bundleName.empty());
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: RegisterCanvasCallbackAndCleanTest
+ * @tc.desc: Test RegisterCanvasCallback and CleanCanvasCallbacks functions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    pid_t testPid = 12345;
+    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+        testPid, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    // Test RegisterCanvasCallback with valid callback
+    sptr<RSICanvasSurfaceBufferCallback> mockCallback = nullptr;
+    // Since we cannot create a concrete implementation easily in the test,
+    // we test with nullptr first to verify the function executes without crash
+    int32_t result = rsRenderServiceConnection->RegisterCanvasCallback(mockCallback);
+    EXPECT_EQ(result, ERR_OK);
+
+    // Test CleanCanvasCallbacks
+    // This should clean up the registered callback for the remote pid
+    rsRenderServiceConnection->CleanCanvasCallbacks();
+
+    // Verify cleanup was successful by checking that re-registering works
+    result = rsRenderServiceConnection->RegisterCanvasCallback(mockCallback);
+    EXPECT_EQ(result, ERR_OK);
+
+    // Test error handling when mainThread is nullptr
+    sptr<RSIConnectionToken> token2 = new IRemoteStub<RSIConnectionToken>();
+    auto rsRenderServiceConnectionWithNullThread = new RSRenderServiceConnection(
+        testPid, nullptr, nullptr, CreateOrGetScreenManager(), token2->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnectionWithNullThread, nullptr);
+
+    // Test RegisterCanvasCallback with nullptr mainThread - should return INVALID_ARGUMENTS
+    result = rsRenderServiceConnectionWithNullThread->RegisterCanvasCallback(mockCallback);
+    EXPECT_EQ(result, INVALID_ARGUMENTS);
+
+    // Test CleanCanvasCallbacks with nullptr mainThread - should return early without crash
+    rsRenderServiceConnectionWithNullThread->CleanCanvasCallbacks();
+    // No assertion needed - just verify it doesn't crash
+}
+#endif
 } // namespace OHOS::Rosen

@@ -273,6 +273,27 @@ int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChange
     return renderServiceClient_->SetBrightnessInfoChangeCallback(callback);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSInterfaces::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    // Canvas callback memory attribution only works in unified render mode
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        return;
+    }
+    renderServiceClient_->RegisterCanvasCallback(callback);
+}
+
+int32_t RSInterfaces::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    // Canvas pre-allocated buffer only works in unified render mode
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        return INVALID_ARGUMENTS;
+    }
+    return renderServiceClient_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+}
+#endif
+
 int32_t RSInterfaces::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
     return renderServiceClient_->GetBrightnessInfo(screenId, brightnessInfo);

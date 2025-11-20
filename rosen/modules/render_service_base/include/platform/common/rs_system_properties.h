@@ -398,6 +398,10 @@ public:
 
     static bool GetRSNodeExceedKillEnabled();
 
+    static bool GetCanvasDrawingNodeDmaEnabled();
+    static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
+    static bool GetCanvasDrawingNodeRenderDmaEnabled();
+
 private:
     RSSystemProperties() = default;
 

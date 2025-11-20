@@ -28,6 +28,9 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "platform/ohos/backend/surface_buffer_utils.h"
+#endif
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 #ifdef RS_PROFILER_ENABLED
@@ -36,9 +39,14 @@
 
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
-    constexpr int EDGE_WIDTH_LIMIT = 1000;
-    constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
-}
+constexpr int EDGE_WIDTH_LIMIT = 1000;
+constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+const bool DMA_ENABLED = RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodeDmaEnabled();
+const bool RENDER_DMA_ENABLED =
+    RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled();
+#endif
+} // namespace
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;
 
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -738,7 +746,15 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_));
+        auto pid = ExtractPid(nodeId_);
+        bool dmaTextureCreated = false;
+#ifdef ROSEN_OHOS
+        dmaTextureCreated = CreateDmaBackendTexture(pid, width, height);
+#endif
+        // Create DMA BackendTexture fail or DMA not enabled
+        if (!dmaTextureCreated) {
+            backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, pid);
+        }
         if (!backendTexture_.IsValid()) {
             surface_ = nullptr;
             recordingCanvas_ = nullptr;
@@ -756,7 +772,54 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
     }
     return true;
 }
-#endif
+
+#ifdef ROSEN_OHOS
+bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int width, int height)
+{
+    if (!DMA_ENABLED) {
+        return false;
+    }
+
+    const auto& params = GetRenderParams();
+    auto resetSurfaceIndex = params != nullptr ? params->GetCanvasDrawingResetSurfaceIndex() : 0;
+    if (resetSurfaceIndex == 0) {
+        return false;
+    }
+
+    bool willNotify = false;
+    auto& context = RSMainThread::Instance()->GetContext();
+    // Step 1: Check Pending Buffer
+    auto surfaceBuffer = context.GetPendingBuffer(nodeId_, resetSurfaceIndex, true);
+    dmaAllocationCount_.fetch_add(1, std::memory_order_relaxed);
+    if (surfaceBuffer == nullptr) {
+        dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+        if (RENDER_DMA_ENABLED) {
+            // Step 2: Create DMA SurfaceBuffer if no pending buffer
+            surfaceBuffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid, width, height);
+        }
+        willNotify = true;
+    }
+
+    bool dmaTextureCreated = false;
+    if (surfaceBuffer != nullptr) {
+        // Step 3: Convert to BackendTexture
+        backendTexture_ = SurfaceBufferUtils::ConvertSurfaceBufferToBackendTexture(surfaceBuffer);
+        dmaTextureCreated = backendTexture_.IsValid();
+    }
+    if (!dmaTextureCreated) {
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK: Create DMA BackendTexture fail, "
+                "width=%{public}d, height=%{public}d, null surfaceBuffer: %{public}d",
+            width, height, surfaceBuffer == nullptr);
+    }
+    if (willNotify) {
+        // Step 4: Notify application to hold SurfaceBuffer
+        context.NotifyCanvasSurfaceBufferChanged(
+            nodeId_, dmaTextureCreated ? surfaceBuffer : nullptr, resetSurfaceIndex);
+    }
+    return dmaTextureCreated;
+}
+#endif // ROSEN_OHOS
+#endif // RS_ENABLE_VK
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas)
 {
@@ -793,6 +856,12 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
             NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
         REAL_ALLOC_CONFIG_SET_STATUS(false);
         if (!surface_) {
+#ifdef ROSEN_OHOS
+            if (DMA_ENABLED && params != nullptr) {
+                RSMainThread::Instance()->GetContext().NotifyCanvasSurfaceBufferChanged(
+                    nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+            }
+#endif
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
             if (!surface_) {
@@ -925,6 +994,13 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
         NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
     REAL_ALLOC_CONFIG_SET_STATUS(false);
     if (!surface_) {
+#ifdef ROSEN_OHOS
+        const auto& params = GetRenderParams();
+        if (DMA_ENABLED && params != nullptr) {
+            RSMainThread::Instance()->GetContext().NotifyCanvasSurfaceBufferChanged(
+                nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+        }
+#endif
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
         if (!surface_) {
@@ -1140,4 +1216,11 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRegionForDfx(Drawing::Canvas& canvas
     canvas.DetachPen();
 }
 
+void RSCanvasDrawingRenderNodeDrawable::DumpSubDrawableTree(std::string& out) const
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    out += ", dmaAllocationCount:" + std::to_string(dmaAllocationCount_.load());
+    out += ", dmaFallbackCount:" + std::to_string(dmaFallbackCount_.load());
+#endif
+}
 } // namespace OHOS::Rosen::DrawableV2

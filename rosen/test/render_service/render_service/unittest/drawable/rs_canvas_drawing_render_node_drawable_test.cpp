@@ -16,9 +16,12 @@
 #include "gtest/gtest.h"
 #include "common/rs_common_def.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
+#include "params/rs_canvas_drawing_render_params.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
+#include "platform/ohos/backend/surface_buffer_utils.h"
 #include "recording/draw_cmd_list.h"
 
 using namespace testing;
@@ -72,6 +75,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateCanvasDrawingRenderNodeDra
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(nodeId, rsContext->weak_from_this());
     auto drawable = RSCanvasDrawingRenderNodeDrawable::OnGenerate(canvasDrawingNode);
     ASSERT_NE(drawable, nullptr);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    std::string info;
+    drawable->DumpSubDrawableTree(info);
+    ASSERT_EQ(info, ", dmaAllocationCount:0, dmaFallbackCount:0");
+#endif
 }
 
 #ifdef RS_ENABLE_VK
@@ -889,10 +897,65 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
     drawable->ResetSurfaceforPlayback(10, 10);
     ASSERT_EQ(drawable->canvas_, nullptr);
     uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(1);
     drawable->ResetSurfaceforPlayback(10, 10);
     ASSERT_NE(drawable->canvas_, nullptr);
     auto canvas = std::make_shared<Drawing::Canvas>();
     drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     drawable->ResetSurfaceforPlayback(10, 10);
+    ASSERT_NE(drawable->surface_, nullptr);
+
+    auto node2 = std::make_shared<RSRenderNode>(1);
+    auto drawable2 = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node2));
+    drawable2->ResetSurfaceforPlayback(10, 10);
+    ASSERT_NE(drawable2->canvas_, nullptr);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: CreateDmaBackendTexture
+ * @tc.desc: Test If CreateDmaBackendTexture Can Run
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest, TestSize.Level1)
+{
+    RSContext& context = RSMainThread::Instance()->GetContext();
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
+    auto ret = drawable->CreateDmaBackendTexture(1, 100, 100);
+    ASSERT_EQ(ret, false);
+    drawable->renderParams_ = std::make_unique<RSCanvasDrawingRenderParams>(1);
+    drawable->renderParams_->SetCanvasDrawingResetSurfaceIndex(1);
+    ret = drawable->CreateDmaBackendTexture(1, 100, 100);
+    ASSERT_EQ(ret, false);
+    ret = drawable->CreateDmaBackendTexture(1, 100, 100);
+    ASSERT_EQ(ret, false);
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    context.pendingBufferMap_.clear();
+    context.GetMutableNodeMap().RegisterRenderNode(node1);
+    node1->stagingRenderParams_->canvasDrawingResetSurfaceIndex_ = 1;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    context.AddPendingBuffer(1, buffer, 1);
+    ret = drawable->CreateDmaBackendTexture(1, 100, 100);
+    ASSERT_EQ(ret, false);
+    context.pendingBufferMap_.clear();
+    buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
+    ASSERT_NE(buffer, nullptr);
+    context.AddPendingBuffer(1, buffer, 1);
+    ret = drawable->CreateDmaBackendTexture(1, 100, 100);
+    ASSERT_EQ(ret, true);
+    drawable->backendTexture_ = {};
+    ret = drawable->ReleaseSurfaceVk(100, 100);
+    ASSERT_EQ(ret, true);
+    Drawing::Canvas drawingCanvas;
+    drawingCanvas.gpuContext_ = std::make_shared<Drawing::GPUContext>();
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvas.SetRecordingState(false);
+    ret = drawable->ResetSurfaceForVK(10000, 10000, canvas);
+    ASSERT_EQ(ret, true);
+    drawable->renderParams_ = nullptr;
+    ret = drawable->ResetSurfaceForVK(10000, 10000, canvas);
+    ASSERT_EQ(ret, true);
+}
+#endif
 }

@@ -13,21 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef SAFUZZ_RS_CANVAS_DRAWING_NODE_COMMAND_UTILS_H
-#define SAFUZZ_RS_CANVAS_DRAWING_NODE_COMMAND_UTILS_H
+#ifndef RENDER_SERVICE_BASE_IPC_CALLBACKS_RS_ICANVAS_SURFACE_BUFFER_CALLBACK_IPC_INTERFACE_CODE_H
+#define RENDER_SERVICE_BASE_IPC_CALLBACKS_RS_ICANVAS_SURFACE_BUFFER_CALLBACK_IPC_INTERFACE_CODE_H
 
-#include "command/rs_canvas_drawing_node_command.h"
-
-#include "command/rs_command_utils.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSCanvasDrawingNodeCommandUtils {
-public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSCanvasDrawingNodeCreate, Uint64, Bool);
-    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSCanvasDrawingNodeResetSurface, Uint64, Int32, Int32, Uint32);
+enum class RSICanvasSurfaceBufferCallbackInterfaceCode : CodeUnderlyingType {
+    ON_CANVAS_SURFACE_BUFFER_CHANGED,
 };
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // SAFUZZ_RS_CANVAS_DRAWING_NODE_COMMAND_UTILS_H
+#endif // ROSEN_OHOS && RS_ENABLE_VK
+#endif // RENDER_SERVICE_BASE_IPC_CALLBACKS_RS_ICANVAS_SURFACE_BUFFER_CALLBACK_IPC_INTERFACE_CODE_H

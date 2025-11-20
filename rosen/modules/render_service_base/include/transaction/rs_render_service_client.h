@@ -35,6 +35,9 @@
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
 #endif
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
+#endif
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
 #include "ipc_callbacks/surface_capture_callback.h"
@@ -407,6 +410,12 @@ public:
     void SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
 
     void SetFreeMultiWindowStatus(bool enable);
 

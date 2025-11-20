@@ -335,6 +335,14 @@ public:
         return canvasDrawingNodeSurfaceChanged_;
     }
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
+
+    uint32_t GetCanvasDrawingResetSurfaceIndex() const
+    {
+        return canvasDrawingResetSurfaceIndex_;
+    }
+
+    void SetCanvasDrawingResetSurfaceIndex(uint32_t index);
+
     SurfaceParam GetCanvasDrawingSurfaceParams()
     {
         return surfaceParams_;
@@ -572,6 +580,7 @@ private:
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
+    std::atomic_uint32_t canvasDrawingResetSurfaceIndex_ = 0;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;

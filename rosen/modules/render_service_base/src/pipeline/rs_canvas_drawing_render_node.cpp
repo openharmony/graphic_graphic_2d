@@ -756,7 +756,7 @@ void RSCanvasDrawingRenderNode::ClearOp()
     drawCmdListsNG_.clear();
 }
 
-void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
+void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t resetSurfaceIndex)
 {
     {
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
@@ -777,9 +777,15 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height)
     stagingRenderParams_->SetCanvasDrawingSurfaceChanged(true);
     stagingRenderParams_->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
+    stagingRenderParams_->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
     lastResetSurfaceTime_ = std::chrono::time_point_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now()).time_since_epoch().count();
     opCountAfterReset_ = 0;
+}
+
+uint32_t RSCanvasDrawingRenderNode::GetResetSurfaceIndex() const
+{
+    return stagingRenderParams_ != nullptr ? stagingRenderParams_->GetCanvasDrawingResetSurfaceIndex() : 0;
 }
 
 const std::map<ModifierNG::RSModifierType, ModifierCmdList>& RSCanvasDrawingRenderNode::GetDrawCmdListsNG() const

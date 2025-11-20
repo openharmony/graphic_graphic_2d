@@ -77,6 +77,9 @@ public:
         return RSRenderNodeDrawableType::CANVAS_DRAWING_NODE_DRAWABLE;
     }
 
+protected:
+    void DumpSubDrawableTree(std::string& out) const override;
+
 private:
     explicit RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::CANVAS_DRAWING_NODE, OnGenerate>;
@@ -91,7 +94,16 @@ private:
     void DrawRegionForDfx(Drawing::Canvas& canvas, const Drawing::Rect& bounds);
 #ifdef RS_ENABLE_VK
     bool ReleaseSurfaceVK(int width, int height);
-#endif
+
+#ifdef ROSEN_OHOS
+    bool CreateDmaBackendTexture(pid_t pid, int width, int height);
+
+    // DMA allocation statistics counter
+    std::atomic<uint32_t> dmaAllocationCount_ = 0;
+    // DMA fallback statistics counter
+    std::atomic<uint32_t> dmaFallbackCount_ = 0;
+#endif // ROSEN_OHOS
+#endif // RS_ENABLE_VK
     bool ResetSurfaceforPlayback(int width, int height);
     bool GetCurrentContext(std::shared_ptr<Drawing::GPUContext>& grContext);
     bool IsNeedResetSurface() const;
