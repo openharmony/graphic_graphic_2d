@@ -218,6 +218,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
+    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsCanvas::CanvasTransferDynamic),
 };
 
 napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
@@ -2001,7 +2002,7 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_ONE) + " type.");
         }
-        drawingBrushPtr = jsBrush->GetBrush();
+        drawingBrushPtr = jsBrush->GetBrush().get();
     }
     ret = m_canvas->GetSaveCount();
     SaveLayerOps saveLayerOps = SaveLayerOps(drawingRectPtr, drawingBrushPtr);
@@ -2611,6 +2612,56 @@ napi_value JsCanvas::OnResetMatrix(napi_env env, napi_callback_info info)
     }
     m_canvas->ResetMatrix();
     return nullptr;
+}
+
+napi_value JsCanvas::CanvasTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 3;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_THREE) {
+        return nullptr;
+    }
+    int64_t canvasAddr = 0;
+    if (napi_get_value_int64(env, argv[ARGC_ZERO], &canvasAddr) != napi_ok) {
+        return nullptr;
+    }
+    Canvas* canvas = reinterpret_cast<Canvas*>(canvasAddr);
+    if (canvas == nullptr) {
+        return nullptr;
+    }
+    bool owned = false;
+    if (napi_get_value_bool(env, argv[ARGC_TWO], &owned) != napi_ok) {
+        return nullptr;
+    }
+#ifdef ROSEN_OHOS
+    int64_t pixelMapAddr = 0;
+    if (napi_get_value_int64(env, argv[ARGC_ONE], &pixelMapAddr) != napi_ok) {
+        return nullptr;
+    }
+    std::shared_ptr<Media::PixelMap> pixelMap = *reinterpret_cast<std::shared_ptr<Media::PixelMap>*>(pixelMapAddr);
+    if (pixelMap == nullptr) {
+        return nullptr;
+    }
+#endif
+    JsCanvas* jsCanvas = new JsCanvas(canvas, owned);
+#ifdef ROSEN_OHOS
+    jsCanvas->mPixelMap_ = pixelMap;
+#endif
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        delete jsCanvas;
+        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Create canvas object failed!");
+        return nullptr;
+    }
+    napi_status status = napi_wrap(env, result, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsCanvas;
+        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Failed to wrap native instance");
+        return nullptr;
+    }
+    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    return result;
 }
 
 } // namespace Drawing

@@ -335,7 +335,12 @@ bool ConvertFromAniPointsArray(ani_env* env, ani_object aniPointArray, Drawing::
 bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d)
 {
     ani_class point3dClass;
-    env->FindClass("@ohos.graphics.common2D.common2D.Point3d", &point3dClass);
+    ani_status status = env->FindClass("@ohos.graphics.common2D.common2D.Point3d", &point3dClass);
+    if (status != ANI_OK) {
+        ROSEN_LOGE("[ANI] can't find class @ohos.graphics.common2D.common2D.Point3d, status = %{public}d",
+            static_cast<int>(status));
+        return false;
+    }
     ani_boolean isPoint3dClass;
     env->Object_InstanceOf(obj, point3dClass, &isPoint3dClass);
     if (!isPoint3dClass) {

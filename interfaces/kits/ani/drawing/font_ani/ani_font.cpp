@@ -689,14 +689,16 @@ ani_enum_item AniFont::GetHinting(ani_env* env, ani_object obj)
 
     ani_enum type;
     if (ANI_OK != env->FindEnum(ANI_FONT_HINTING_NAME, &type)) {
-        ROSEN_LOGE("AniFont::GetHinting FindEnum for FontHinting failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Find enum for FontHinting failed.");
         return {};
     }
 
     std::string itemName = GetFontHintingItemName(hinting);
     ani_enum_item enumItem;
     if (ANI_OK != env->Enum_GetEnumItemByName(type, itemName.c_str(), &enumItem)) {
-        ROSEN_LOGE("AniFont::GetHinting Enum_GetEnumItemByName for FontHinting failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "Failed to obtain the FontHinting enumeration.");
         return {};
     }
 
@@ -714,14 +716,14 @@ ani_enum_item AniFont::GetEdging(ani_env* env, ani_object obj)
 
     ani_enum type;
     if (ANI_OK != env->FindEnum(ANI_FONT_EDGING_NAME, &type)) {
-        ROSEN_LOGE("AniFont::GetEdging FindEnum for FontEdging failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Find enum for FontEdging failed.");
         return {};
     }
 
     std::string itemName = GetFontEdgingItemName(edging);
     ani_enum_item enumItem;
     if (ANI_OK != env->Enum_GetEnumItemByName(type, itemName.c_str(), &enumItem)) {
-        ROSEN_LOGE("AniFont::GetEdging Enum_GetEnumItemByName for FontEdging failed");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to obtain the FontEdging enumeration.");
         return {};
     }
 
