@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -1358,6 +1359,59 @@ HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
     ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
     properties.GenerateMaterialFilter();
     ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
+}
+
+/**
+ * @tc.name: OnSDFShapeChangeTest001
+ * @tc.desc: test OnSDFShapeChangeTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, OnSDFShapeChangeTest001, TestSize.Level1)
+{
+    RSProperties properties;
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    properties.renderSDFShape_ = sdfShape;
+
+    properties.OnSDFShapeChange();
+    EXPECT_NE(RSProperties::IS_UNI_RENDER ?
+        properties.GetEffect().foregroundFilterCache_ : properties.GetEffect().foregroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: OnSDFShapeChangeTest002
+ * @tc.desc: test OnSDFShapeChangeTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, OnSDFShapeChangeTest002, TestSize.Level1)
+{
+    RSProperties properties;
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    properties.renderSDFShape_ = sdfShape;
+    properties.sdfFilter_ = std::make_shared<RSSDFEffectFilter>(sdfShape);
+
+    properties.OnSDFShapeChange();
+    EXPECT_NE(RSProperties::IS_UNI_RENDER ?
+        properties.GetEffect().foregroundFilterCache_ : properties.GetEffect().foregroundFilter_, nullptr);
+}
+
+/**
+ * @tc.name: OnSDFShapeChangeTest003
+ * @tc.desc: test OnSDFShapeChangeTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, OnSDFShapeChangeTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetSDFShape(nullptr);
+
+    properties.OnSDFShapeChange();
+
+    EXPECT_EQ(properties.GetEffect().foregroundFilter_, nullptr);
+    EXPECT_EQ(properties.GetEffect().foregroundFilterCache_, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

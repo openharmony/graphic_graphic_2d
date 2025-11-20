@@ -170,3 +170,17 @@ DECLARE_SHADER(GradientFlowColors, GRADIENT_FLOW_COLORS,
     ADD_PROPERTY_TAG(GradientFlowColors, EffectAlpha),
     ADD_PROPERTY_TAG(GradientFlowColors, Progress)
 );
+
+DECLARE_SHADER(CircleFlowlight, CIRCLE_FLOWLIGHT,
+    ADD_PROPERTY_TAG(CircleFlowlight, Color0),
+    ADD_PROPERTY_TAG(CircleFlowlight, Color1),
+    ADD_PROPERTY_TAG(CircleFlowlight, Color2),
+    ADD_PROPERTY_TAG(CircleFlowlight, Color3),
+    ADD_PROPERTY_TAG(CircleFlowlight, RotationFrequency),
+    ADD_PROPERTY_TAG(CircleFlowlight, RotationAmplitude),
+    ADD_PROPERTY_TAG(CircleFlowlight, RotationSeed),
+    ADD_PROPERTY_TAG(CircleFlowlight, GradientX),
+    ADD_PROPERTY_TAG(CircleFlowlight, GradientY),
+    ADD_PROPERTY_TAG(CircleFlowlight, Progress),
+    ADD_PROPERTY_TAG(CircleFlowlight, Mask)
+);

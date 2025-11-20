@@ -474,6 +474,11 @@ public:
 
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
 
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
+    {
+        return aibarNodes_;
+    }
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -807,6 +812,9 @@ private:
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
+
+    // for aibar
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet> aibarNodes_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {

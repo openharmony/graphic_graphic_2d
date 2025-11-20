@@ -96,8 +96,8 @@ public:
 #ifdef ACE_ENABLE_GL
         if (renderContext_ == nullptr) {
             HiLog::Info(LOG_LABEL, "%s: init renderContext_", __func__);
-            renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
-            renderContext_->InitializeEglContext();
+            renderContext_ = RenderContext::Create();
+            renderContext_->Init();
         }
 #endif // ACE_ENABLE_GL
     }
@@ -160,7 +160,7 @@ public:
 
     static RSInterfaces* rsInterfaces_;
     static RSRenderInterface* rsRenderInterfaces_;
-    static RenderContext* renderContext_;
+    static std::shared_ptr<RenderContext> renderContext_;
     static RSDisplayNodeConfig mirrorConfig_;
     static std::shared_ptr<RSDisplayNode> displayNode_;
 
@@ -170,7 +170,7 @@ public:
 };
 RSInterfaces* RSUiCaptureSoloTaskParallelTest::rsInterfaces_ = nullptr;
 RSRenderInterface* RSUiCaptureSoloTaskParallelTest::rsRenderInterfaces_ = nullptr;
-RenderContext* RSUiCaptureSoloTaskParallelTest::renderContext_ = nullptr;
+std::shared_ptr<RenderContext> RSUiCaptureSoloTaskParallelTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSUiCaptureSoloTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSDisplayNode> RSUiCaptureSoloTaskParallelTest::displayNode_ = nullptr;
 

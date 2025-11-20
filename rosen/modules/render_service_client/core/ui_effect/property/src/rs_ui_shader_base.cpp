@@ -67,7 +67,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGGradientFlowColors>();
         }
     },
-
+    {RSNGEffectType::CIRCLE_FLOWLIGHT, [] {
+            return std::make_shared<RSNGCircleFlowlight>();
+        }
+    },
 };
 
 namespace {

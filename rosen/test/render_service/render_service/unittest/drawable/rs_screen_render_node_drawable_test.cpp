@@ -484,7 +484,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest003, TestSize.Level1)
     // when realTid == RSUniRenderThread::Instance().GetTId()
     RSUniRenderThread::Instance().tid_ = realTid;
     auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     screenDrawable_->OnDraw(canvas);
@@ -722,7 +722,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest013, TestSize.Level1)
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
 
     auto renderEngine = std::make_shared<RSRenderEngine>();
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     renderEngine->renderContext_ = renderContext;
     RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
     RSUniRenderThread::Instance().uniRenderEngine_->Init();

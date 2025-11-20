@@ -51,10 +51,7 @@
 namespace OHOS {
 namespace Rosen {
 
-static constexpr int64_t PROTECTEDBUFFERSIZE = 2;
 static constexpr uint16_t FFRTEVENTLEN = 2;
-// framebuffer max size, 3 buffers used for drm, 3 buffers used for other
-static constexpr int MAXFRAMEBUFFERSIZE = 6;
 
 RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurfaceOhos(producer)
 {
@@ -69,7 +66,7 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
         mSurfaceMap.clear();
     }
     mSurfaceList.clear();
-    protectedSurfaceBufferList_.clear();
+    ReleasePreAllocateBuffer();
     DestoryNativeWindow(mNativeWindow);
     mNativeWindow = nullptr;
     if (mReservedFlushFd != -1) {
@@ -86,7 +83,7 @@ void RSSurfaceOhosVulkan::SetNativeWindowInfo(int32_t width, int32_t height, boo
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        protectedSurfaceBufferList_.clear();
+        ReleasePreAllocateBuffer();
     }
     NativeWindowHandleOpt(mNativeWindow, SET_FORMAT, pixelFormat_);
 #ifdef RS_ENABLE_AFBC
@@ -169,20 +166,14 @@ bool RSSurfaceOhosVulkan::PreAllocateProtectedBuffer(int32_t width, int32_t heig
         mNativeWindow = CreateNativeWindowFromSurface(&producer_);
         ROSEN_LOGD("PreAllocateProtectedBuffer: create native window");
     }
-    if (producer_ != nullptr) {
-        producer_->SetQueueSize(MAXFRAMEBUFFERSIZE);
+    if (RequestNativeWindowBuffer(&mPreAllocateProtectedBuffer, width, height, mProtectedFenceFd, true, true) !=
+        OHOS::GSERROR_OK) {
+        mPreAllocateProtectedBuffer = nullptr;
+        mProtectedFenceFd = -1;
+        RS_TRACE_NAME("PreAllocateProtectedBuffer failed.");
+        return true;
     }
-    for (int num = 0; num < PROTECTEDBUFFERSIZE; num++) {
-        NativeWindowBuffer* nativeWindowBuffer = nullptr;
-        int fenceFd = -1;
-        if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, true, true) != OHOS::GSERROR_OK) {
-            RS_TRACE_NAME("PreAllocateProtectedBuffer failed.");
-            continue;
-        }
-        RS_TRACE_NAME("PreAllocateProtectedBuffer protectedSurfaceBufferList_ push back.");
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
-        protectedSurfaceBufferList_.emplace_back(std::make_pair(nativeWindowBuffer, fenceFd));
-    }
+    RS_TRACE_NAME("PreAllocateProtectedBuffer success.");
     return true;
 }
 
@@ -239,6 +230,9 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         ROSEN_LOGE("RSSurfaceOhosVulkan: skia context is nullptr");
         return nullptr;
     }
+    if (!isProtected) {
+        ReleasePreAllocateBuffer();
+    }
 
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     int fenceFd = -1;
@@ -252,13 +246,14 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         mSurfaceList.emplace_back(nativeWindowBuffer);
         hpaeSurfaceBufferList_.pop_front();
     } else {
-        std::lock_guard<std::mutex> lock(protectedSurfaceBufferListMutex_);
-        if (isProtected && !protectedSurfaceBufferList_.empty()) {
-            RS_TRACE_NAME_FMT("protectedSurfaceBufferList_ size = %lu", protectedSurfaceBufferList_.size());
-            nativeWindowBuffer = protectedSurfaceBufferList_.front().first;
-            fenceFd = protectedSurfaceBufferList_.front().second;
+        bool isUsingPreAllocateProtectedBuffer= isProtected && mPreAllocateProtectedBuffer && (mProtectedFenceFd != -1);
+        if (isUsingPreAllocateProtectedBuffer) {
+            RS_TRACE_NAME_FMT("use protectedSurfaceBuffer");
+            nativeWindowBuffer = mPreAllocateProtectedBuffer;
+            fenceFd = mProtectedFenceFd;
             mSurfaceList.emplace_back(nativeWindowBuffer);
-            protectedSurfaceBufferList_.pop_front();
+            mPreAllocateProtectedBuffer = nullptr;
+            mProtectedFenceFd = -1;
         } else {
             if (RequestNativeWindowBuffer(&nativeWindowBuffer, width, height, fenceFd, useAFBC, isProtected) !=
                 OHOS::GSERROR_OK) {
@@ -639,7 +634,7 @@ void RSSurfaceOhosVulkan::SetColorSpace(GraphicColorGamut colorSpace)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        protectedSurfaceBufferList_.clear();
+        ReleasePreAllocateBuffer();
     }
 }
 
@@ -656,7 +651,7 @@ void RSSurfaceOhosVulkan::SetSurfacePixelFormat(int32_t pixelFormat)
         }
         mSurfaceMap.clear();
         mSurfaceList.clear();
-        protectedSurfaceBufferList_.clear();
+        ReleasePreAllocateBuffer();
     }
     pixelFormat_ = pixelFormat;
 }
@@ -686,6 +681,17 @@ int RSSurfaceOhosVulkan::DupReservedFlushFd()
         return ::dup(mReservedFlushFd);
     }
     return -1;
+}
+
+void RSSurfaceOhosVulkan::ReleasePreAllocateBuffer()
+{
+    if (mPreAllocateProtectedBuffer == nullptr) {
+        return;
+    }
+    NativeWindowCancelBuffer(mNativeWindow, mPreAllocateProtectedBuffer);
+    mPreAllocateProtectedBuffer = nullptr;
+    mProtectedFenceFd = -1;
+    NativeWindowCleanCache(mNativeWindow);
 }
 } // namespace Rosen
 } // namespace OHOS

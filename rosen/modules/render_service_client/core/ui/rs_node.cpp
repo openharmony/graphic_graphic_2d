@@ -49,6 +49,7 @@
 #include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_render_particle_animation.h"
 #include "command/rs_base_node_command.h"
+#include "command/rs_canvas_node_command.h"
 #include "command/rs_node_command.h"
 #include "common/rs_color.h"
 #include "common/rs_common_def.h"
@@ -149,6 +150,17 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 
 std::once_flag flag_;
 } // namespace
+
+const std::set<std::pair<uint16_t, uint16_t>> RSNode::createNodeCommandTypes_{
+    {RSCommandType::CANVAS_NODE, RSCanvasNodeCommandType::CANVAS_NODE_CREATE}
+};
+
+const std::set<std::pair<uint16_t, uint16_t>> RSNode::lazyLoadCommandTypes_{
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY},
+    {RSCommandType::BASE_NODE, RSNodeCommandType::SET_UICONTEXT_TOKEN},
+    {RSCommandType::RS_NODE, RSNodeCommandType::SET_NODE_NAME},
+    {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY}
+};
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
     bool isOnTheTree)
@@ -928,44 +940,10 @@ void RSNode::SetNeedCallbackNodeChange(bool needCallback)
 }
 
 // Notifies UI observer about page node modifications.
-void RSNode::NotifyPageNodeChanged()
+void RSNode::NotifyPageNodeChanged() const
 {
     if (isNeedCallbackNodeChange_ && propertyNodeChangeCallback_) {
         propertyNodeChangeCallback_();
-    }
-}
-
-template<typename ModifierType, auto Setter, typename T>
-void RSNode::SetPropertyNG(T value)
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
-    // Create corresponding modifier if not exist
-    if (modifier == nullptr) {
-        modifier = std::make_shared<ModifierType>();
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
-        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
-        AddModifier(modifier);
-    } else {
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
-        NotifyPageNodeChanged();
-    }
-}
-
-template<typename ModifierType, auto Setter, typename T>
-void RSNode::SetPropertyNG(T value, bool animatable)
-{
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-    auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
-    // Create corresponding modifier if not exist
-    if (modifier == nullptr) {
-        modifier = std::make_shared<ModifierType>();
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
-        modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
-        AddModifier(modifier);
-    } else {
-        (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
-        NotifyPageNodeChanged();
     }
 }
 
@@ -2948,6 +2926,38 @@ void RSNode::ClearAllModifiers()
     properties_.clear();
 }
 
+void RSNode::LoadRenderNodeIfNeed() const
+{
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    if (!lazyLoad_) {
+        return;
+    }
+    CreateRenderNode();
+    lazyLoad_ = false;
+
+    for (auto& command : lazyLoadCommands_) {
+        AddCommandInner(command.command_, command.isRenderServiceCommand_, command.followType_, command.nodeId_);
+    }
+    lazyLoadCommands_.clear();
+
+    for (auto [_, modifier] : modifiersNG_) {
+        if (modifier == nullptr) {
+            continue;
+        }
+        if (modifier->IsCustom()) {
+            std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
+        }
+        std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+        AddCommandInner(command, IsRenderServiceNode(), GetFollowType(), id_);
+        if (NeedForcedSendToRemote()) {
+            std::unique_ptr<RSCommand> cmdForRemote =
+                std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+            AddCommandInner(cmdForRemote, true, GetFollowType(), id_);
+        }
+    }
+    NotifyPageNodeChanged();
+}
+
 void RSNode::DoFlushModifier()
 {
     std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
@@ -3035,6 +3045,15 @@ void RSNode::SetMotionPathOptionToProperty(
         return;
     }
     property->SetMotionPathOption(motionPathOption_);
+}
+
+std::shared_ptr<RSNode> RSNode::GetNodeInMap(NodeId id) const
+{
+    if (rsUIContext_ != nullptr) {
+        return rsUIContext_->GetMutableNodeMap().GetNode(id);
+    } else {
+        return RSNodeMap::MutableInstance().GetNode(id);
+    }
 }
 
 bool RSNode::CheckMultiThreadAccess(const std::string& func) const
@@ -3576,7 +3595,17 @@ void RSNode::AddChild(SharedPtr child, int index)
     if (frameNodeId_ < 0) {
         child->SetDrawNode();
     }
-    NodeId childId = child->GetId();
+    child->LoadRenderNodeIfNeed();
+    if (SharedPtr childInMap = GetNodeInMap(child->GetId())) {
+        if (childInMap != child) {
+            childInMap->LoadRenderNodeIfNeed();
+        }
+    }
+    AddChildInner(child, index);
+}
+
+void RSNode::AddChildInner(SharedPtr child, int index)
+{
     if (child->parent_.lock()) {
         child->RemoveFromTree();
     }
@@ -3593,7 +3622,7 @@ void RSNode::AddChild(SharedPtr child, int index)
     child->OnAddChildren();
     child->MarkDirty(NodeDirtyType::APPEARANCE, true);
     // construct command using child's GetHierarchyCommandNodeId(), not GetId()
-    childId = child->GetHierarchyCommandNodeId();
+    auto childId = child->GetHierarchyCommandNodeId();
     std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
 
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
@@ -4036,6 +4065,7 @@ std::string RSNode::DumpNode(int depth) const
         ss << std::to_string(child.lock() ? child.lock()->GetId() : -1) << " ";
     }
     ss << "]";
+    ss << " lazyLoad[" << std::to_string(lazyLoad_) << "]";
 
     if (!animations_.empty()) {
         ss << " animation:" << std::to_string(animations_.size());
@@ -4085,7 +4115,7 @@ void RSNode::SetInstanceId(int32_t instanceId)
     }
 }
 
-bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
+bool RSNode::AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
     FollowType followType, NodeId nodeId) const
 {
     auto transaction = GetRSTransaction();
@@ -4100,6 +4130,24 @@ bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServic
         transactionProxy->AddCommand(command, isRenderServiceCommand, followType, nodeId);
     }
     return true;
+}
+
+bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
+    FollowType followType, NodeId nodeId) const
+{
+    if (!IsCreateNodeCommand(*command)) {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        if (lazyLoad_) {
+            constexpr size_t maxLazyCommandSize{std::numeric_limits<uint8_t>::max()};
+            if (IsLazyLoadCommand(*command) && lazyLoadCommands_.size() < maxLazyCommandSize) {
+                lazyLoadCommands_.emplace_back(std::move(command), isRenderServiceCommand, followType, nodeId);
+                return true;
+            } else {
+                LoadRenderNodeIfNeed();
+            }
+        }
+    }
+    return AddCommandInner(command, isRenderServiceCommand, followType, nodeId);
 }
 
 void RSNode::SetUIContextToken()
@@ -4158,6 +4206,9 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
+        if (lazyLoad_) {
+            return;
+        }
     }
     if (modifier->IsCustom()) {
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();

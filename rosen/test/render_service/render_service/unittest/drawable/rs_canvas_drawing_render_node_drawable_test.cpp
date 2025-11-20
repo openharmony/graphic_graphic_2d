@@ -193,7 +193,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 
-    drawable->renderParams_ = std::make_unique<RSRenderParams>(0);
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
 
@@ -201,6 +201,12 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, PlaybackInCorrespondThreadTest, 
     drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
     drawable->PostPlaybackInCorrespondThread();
     ASSERT_FALSE(drawable->canvas_);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    drawable->canvas_ = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    drawable->PostPlaybackInCorrespondThread();
+    ASSERT_TRUE(drawable->canvas_);
+
     auto surface_ = std::make_shared<Drawing::Surface>();
     drawable->curThreadInfo_.second(surface_);
     ASSERT_TRUE(surface_);
@@ -879,7 +885,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, ResetSurfaceforPlaybackTest, Tes
     auto drawable = std::make_shared<RSCanvasDrawingRenderNodeDrawable>(std::move(node));
     RSUniRenderThread& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
-    uniRenderThread.uniRenderEngine_->renderContext_ = std::make_shared<RenderContext>();
+    uniRenderThread.uniRenderEngine_->renderContext_ = RenderContext::Create();
     drawable->ResetSurfaceforPlayback(10, 10);
     ASSERT_EQ(drawable->canvas_, nullptr);
     uniRenderThread.uniRenderEngine_->renderContext_->drGPUContext_ = std::make_shared<Drawing::GPUContext>();

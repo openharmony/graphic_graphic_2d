@@ -1307,6 +1307,27 @@ bool DoSetRogScreenResolution()
     return true;
 }
 
+bool DoGetRogScreenResolution()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        return false;
+    }
+    uint64_t id = GetData<uint64_t>();
+    if (!data.WriteUint64(id)) {
+        return false;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
+    if (rsToServiceConnStub_ == nullptr) {
+        return false;
+    }
+    rsToServiceConnStub_->OnRemoteRequest(code, data, reply, option);
+    return true;
+}
+
 bool DoSetPhysicalScreenResolution()
 {
     MessageParcel data;
@@ -3759,6 +3780,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetVirtualScreenSurface();
     OHOS::Rosen::DoSetPhysicalScreenResolution();
     OHOS::Rosen::DoSetRogScreenResolution();
+    OHOS::Rosen::DoGetRogScreenResolution();
     OHOS::Rosen::DoSetVirtualScreenResolution();
     OHOS::Rosen::DoGetVirtualScreenResolution();
     OHOS::Rosen::DoSetVirtualScreenStatus();

@@ -982,6 +982,31 @@ HWTEST_F(RSRenderNodeTest2, CheckAndUpdateAIBarCacheStatus, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ForceReduceAIBarCacheInterval
+ * @tc.desc: test function RSRenderNode::ForceReduceAIBarCacheInterval
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, ForceReduceAIBarCacheInterval, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+#ifdef RS_ENABLE_GPU
+    RSProperties::filterCacheEnabled_ = false;
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+
+    RSProperties::filterCacheEnabled_ = true;
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = drawable;
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+#else
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+#endif
+}
+
+/**
  * @tc.name: GetFilterCachedRegionAndHasBlurFilter
  * @tc.desc: test
  * @tc.type: FUNC
@@ -2516,16 +2541,16 @@ HWTEST_F(RSRenderNodeTest2, ResortChildrenTest02, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDrawableBehindWindowTest
- * @tc.desc: UpdateDrawableBehindWindowTest
+ * @tc.name: UpdateDrawableAfterPostPrepareTest
+ * @tc.desc: UpdateDrawableAfterPostPrepareTest
  * @tc.type: FUNC
  * @tc.require: issueIBDI0L
  */
-HWTEST_F(RSRenderNodeTest2, UpdateDrawableBehindWindowTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, UpdateDrawableAfterPostPrepareTest, TestSize.Level1)
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
-    node->UpdateDrawableBehindWindow();
+    node->UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BACKGROUND_FILTER);
     EXPECT_TRUE(node->dirtySlots_.count(RSDrawableSlot::BACKGROUND_FILTER) != 0);
 }
 

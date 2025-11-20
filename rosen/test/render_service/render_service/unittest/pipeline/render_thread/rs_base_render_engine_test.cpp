@@ -86,7 +86,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ResetCurrentContextTest, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->ResetCurrentContext();
     ASSERT_EQ(renderEngine->renderContext_, nullptr);
-    renderEngine->renderContext_ = std::make_shared<RenderContext>();
+    renderEngine->renderContext_ = RenderContext::Create();
     renderEngine->ResetCurrentContext();
     ASSERT_NE(renderEngine->renderContext_, nullptr);
 }
@@ -660,7 +660,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DumpVkImageInfoTest, TestSize.Level1)
     string dumpString = "dumpString";
 #ifdef RS_ENABLE_VK
     renderEngine->DumpVkImageInfo(dumpString);
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     renderEngine->Init();
     renderEngine->DumpVkImageInfo(dumpString);
 #endif

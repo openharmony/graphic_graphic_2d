@@ -522,8 +522,10 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         lastCanvasMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirrorParams->GetMatrix();
     }
+    std::string screenName = curScreenParams->GetScreenInfo().name;
     if (!RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(curScreenDrawable) &&
-        !curScreenDrawable.GetAccumulateDirtyInSkipFrame() && !needRefresh) {
+        !curScreenDrawable.GetAccumulateDirtyInSkipFrame() && !needRefresh &&
+        screenName.find("fromAnco") == std::string::npos) {
         virtualProcesser->SetDisplaySkipInMirror(true);
         return mappedDamageRegion.GetRegionRectIs();
     }

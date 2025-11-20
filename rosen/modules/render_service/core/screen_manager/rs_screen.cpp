@@ -1614,6 +1614,7 @@ ScreenInfo RSScreen::GetScreenInfo() const
         info.activeRect = activeRect_;
         info.maskRect = maskRect_;
         info.reviseRect = reviseRect_;
+        info.name = name_;
     }
 
     info.pixelFormat = pixelFormat_;

@@ -939,7 +939,6 @@ std::shared_ptr<Drawing::Image> RSRenderNodeDrawable::GetImageAlias(
     if (!backendTexture.IsValid()) {
         return nullptr;
     }
-    canvas->Flush();
     auto imageInfo = surface->GetImageInfo();
     Drawing::BitmapFormat bitmapFormat = Drawing::BitmapFormat { imageInfo.GetColorType(), imageInfo.GetAlphaType() };
     auto image = std::make_shared<Drawing::Image>();

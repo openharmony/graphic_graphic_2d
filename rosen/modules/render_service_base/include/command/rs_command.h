@@ -48,8 +48,8 @@ enum RSCommandType : uint16_t {
     RS_NODE_SYNCHRONOUS_READ_PROPERTY = 10,
     RS_NODE_SYNCHRONOUS_GET_VALUE_FRACTION = 11,
     FRAME_RATE_LINKER = 12,
-
-    WINDOW_KEYFRAME_NODE = 13,
+    UNION_NODE = 13,
+    WINDOW_KEYFRAME_NODE = 14,
 };
 
 enum RSCommandPermissionType : uint16_t {

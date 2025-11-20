@@ -71,7 +71,7 @@ shared_ptr<RSCanvasDrawingNode> canvasDrawingNode;
 shared_ptr<RSNode> myLittleRootNode;
 
 #ifdef RS_ENABLE_GPU
-    RenderContext* rc_ = nullptr;
+    std::shared_ptr<RenderContext> rc_ = nullptr;
 #endif
 
 bool WriteToPng(const string &fileName, const WriteToPngParam &param)
@@ -126,10 +126,10 @@ void RenderContextInit()
 #ifdef RS_ENABLE_GPU
     cout << "RS_ENABLE_GPU is true" << endl;
     cout << "Init RenderContext start" << endl;
-    rc_ = RenderContextFactory::GetInstance().CreateEngine();
+    rc_ = RenderContext::Create();
     if (rc_) {
         cout << "Init RenderContext success" << endl;
-        rc_->InitializeEglContext();
+        rc_->Init();
     } else {
         cout << "Init RenderContext failed, RenderContext is nullptr" << endl;
     }

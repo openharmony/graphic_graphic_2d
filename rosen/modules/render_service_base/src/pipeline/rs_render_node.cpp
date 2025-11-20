@@ -1261,10 +1261,12 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
             out += "LOGICAL_DISPLAY_NODE";
             break;
         }
-        case RSRenderNodeType::WINDOW_KEYFRAME_NODE: {
-            out += "WINDOW_KEYFRAME_NODE";
+        case RSRenderNodeType::UNION_NODE: {
+            out += "UNION_NODE";
             break;
         }
+        case RSRenderNodeType::WINDOW_KEYFRAME_NODE: {
+            out += "WINDOW_KEYFRAME_NODE";
         default: {
             out += "UNKNOWN_NODE";
             break;
@@ -2368,6 +2370,24 @@ bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
     return filterDrawable->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 #endif
 return false;
+}
+
+bool RSRenderNode::ForceReduceAIBarCacheInterval()
+{
+#ifdef RS_ENABLE_GPU
+    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+        ROSEN_LOGD("ForceReduceAIBarCacheInterval: blur is disabled or filter cache is disabled.");
+        return false;
+    }
+
+    auto filterDrawable = GetFilterDrawable(false); // AIBar filter is only background filter
+    if (filterDrawable == nullptr) {
+        return false;
+    }
+    return filterDrawable->ForceReduceAIBarCacheInterval();
+#else
+    return false;
+#endif
 }
 
 const RectI RSRenderNode::GetFilterCachedRegion() const
@@ -3876,6 +3896,20 @@ bool RSRenderNode::GetDrawingCacheChanged() const
     return false;
 #endif
 }
+void RSRenderNode::SetForceDisableNodeGroup(bool forceDisable)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetForceDisableNodeGroup(forceDisable);
+#endif
+}
+bool RSRenderNode::IsForceDisableNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsForceDisableNodeGroup();
+#else
+    return false;
+#endif
+}
 void RSRenderNode::SetGeoUpdateDelay(bool val)
 {
     geoUpdateDelay_ = geoUpdateDelay_ || val;
@@ -4542,19 +4576,19 @@ void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
     }
 }
 
-void RSRenderNode::UpdateDrawableBehindWindow()
+void RSRenderNode::UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType type)
 {
-    AddDirtyType(ModifierNG::RSModifierType::BACKGROUND_FILTER);
+    AddDirtyType(type);
     SetContentDirty();
 #ifdef RS_ENABLE_GPU
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, GetDrawableVec(__func__));
     if (dirtySlots.empty()) {
-        RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow dirtySlots is empty");
+        RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare dirtySlots is empty");
         return;
     }
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, GetDrawableVec(__func__), dirtySlots);
     RSDrawable::FuzeDrawableSlots(*this, GetDrawableVec(__func__));
-    RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow drawableChanged:%{public}d", drawableChanged);
+    RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged) {
         RSDrawable::UpdateSaveRestore(*this, GetDrawableVec(__func__), drawableVecStatus_);
         UpdateDisplayList();
@@ -4862,7 +4896,15 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
-    if (IsUifirstArkTsCardNode()) {
+    if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
+        SetForceDisableNodeGroup(true);
+        auto parentNode = GetParent().lock();
+        if (parentNode) {
+            parentNode->SetForceDisableNodeGroup(true);
+        }
+    }
+    if (IsUifirstArkTsCardNode() || IsForceDisableNodeGroup()) {
         // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {

@@ -155,6 +155,7 @@ group("test") {
     "render_service_base/unittest/feature:unittest",
     "render_service_base/unittest/gfx:unittest",
     "render_service_base/unittest/hwc:unittest",
+    "render_service_base/unittest/info_collection:unittest",
     "render_service_base/unittest/ipc_callbacks:unittest",
     "render_service_base/unittest/effect:unittest",
     "render_service_base/unittest/memory:unittest",

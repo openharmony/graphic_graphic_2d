@@ -523,6 +523,25 @@ sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(int width, int heig
     surfaceBuffer->Alloc(bufConfig);
     return surfaceBuffer;
 }
+
+void DetailEnhancerUtils::SavePixelmapToFile(Drawing::Bitmap& bitmap, const std::string& dst)
+{
+    int32_t w = bitmap.GetWidth();
+    int32_t h = bitmap.GetHeight();
+    int32_t rowStride = bitmap.GetRowBytes();
+    int32_t totalSize = rowStride * h;
+    std::string localTime = CommonTools::GetLocalTime();
+    std::string fileName = dst + localTime + "_w" + std::to_string(w) + "_h" + std::to_string(h) +
+        "_stride" + std::to_string(rowStride) + ".dat";
+    std::ofstream outfile(fileName, std::fstream::out);
+    if (!outfile.is_open()) {
+        RS_LOGE("SavePixelmapToFile write error, path=%{public}s", fileName.c_str());
+        return;
+    }
+    outfile.write(reinterpret_cast<const char*>(bitmap.GetPixels()), totalSize);
+    outfile.close();
+    RS_LOGI("SavePixelmapToFile write success, path=%{public}s", fileName.c_str());
+}
 #endif
 } // OHOS
 } // Rosen

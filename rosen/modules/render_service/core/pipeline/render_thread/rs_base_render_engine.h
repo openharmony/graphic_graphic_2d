@@ -254,11 +254,11 @@ public:
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
     {
-        return skContext_;
-    }
-    const std::shared_ptr<Drawing::GPUContext> GetCaptureSkContext() const
-    {
-        return captureSkContext_;
+        if (renderContext_ != nullptr) {
+            return renderContext_->GetSharedDrGPUContext();
+        } else {
+            return nullptr;
+        }
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
@@ -278,10 +278,6 @@ private:
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
-    std::shared_ptr<Drawing::GPUContext> captureSkContext_ = nullptr;
-#endif
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESSING_ENGINE

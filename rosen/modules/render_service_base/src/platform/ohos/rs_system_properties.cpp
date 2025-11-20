@@ -303,6 +303,12 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
 }
 
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
+    return enabled;
+}
+
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "-1");
@@ -936,7 +942,15 @@ bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
- 
+
+bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.auto.clearcache.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetHeterogeneousHDREnabled()
 {
     static bool flag =
@@ -1670,6 +1684,12 @@ bool RSSystemProperties::GetAIBarOptEnabled()
     return isAIBarOptEnabled;
 }
 
+bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
+{
+    static bool enabled = system::GetIntParameter("persist.rosen.aibarfulldirectcomp.enabled", 0) != 0;
+    return enabled;
+}
+
 bool RSSystemProperties::GetRSMemoryInfoManagerParam()
 {
     return false;
@@ -1732,6 +1752,14 @@ bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
     return isPhone;
+}
+
+bool RSSystemProperties::GetScaleImageAsyncEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS

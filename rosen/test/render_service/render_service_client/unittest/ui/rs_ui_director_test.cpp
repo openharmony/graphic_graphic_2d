@@ -436,6 +436,45 @@ HWTEST_F(RSUIDirectorTest, DestroyTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DestroyTest002
+ * @tc.desc: skipDestroyUIContext_ is false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, DestroyTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
+
+    {
+        std::shared_ptr<RSUIDirector> childDirector = RSUIDirector::Create();
+        childDirector->Init(true, true, uiContext);
+        childDirector->skipDestroyUIContext_ = false;
+    }
+    ASSERT_EQ(RSUIContextManager::Instance().GetRSUIContext(uiContext->GetToken()), nullptr);
+}
+
+/**
+ * @tc.name: DestroyTest003
+ * @tc.desc: skipDestroyUIContext_ is true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIDirectorTest, DestroyTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    director->Init(true, true);
+    auto uiContext = director->GetRSUIContext();
+    ASSERT_NE(uiContext, nullptr);
+
+    {
+        std::shared_ptr<RSUIDirector> childDirector = RSUIDirector::Create();
+        childDirector->Init(true, true, uiContext);
+    }
+    ASSERT_NE(RSUIContextManager::Instance().GetRSUIContext(uiContext->GetToken()), nullptr);
+}
+
+/**
  * @tc.name: SetRootTest
  * @tc.desc:
  * @tc.type:FUNC

@@ -344,7 +344,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateTest, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager;
-    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
 #ifdef RS_ENABLE_VK
     imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);

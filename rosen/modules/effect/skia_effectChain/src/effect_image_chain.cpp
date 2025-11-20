@@ -343,8 +343,8 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
 
 #ifdef RS_ENABLE_GPU
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        renderContext_ = std::make_shared<RenderContext>();
-        renderContext_->InitializeEglContext();
+        renderContext_ = RenderContext::Create();
+        renderContext_->Init();
         renderContext_->SetUpGpuContext();
         gpuContext_ = renderContext_->GetSharedDrGPUContext();
     }

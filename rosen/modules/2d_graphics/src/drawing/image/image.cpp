@@ -71,9 +71,10 @@ ScaleImageResult Image::ScaleImage(const std::shared_ptr<Image>& srcImage, const
 }
 
 #ifdef RS_ENABLE_GPU
-std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+std::shared_ptr<Image> Image::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+    const std::shared_ptr<ColorSpace>& colorSpace)
 {
-    return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+    return StaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
 }
 
 bool Image::BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha)

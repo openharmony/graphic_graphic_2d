@@ -20,6 +20,7 @@
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 #include "transaction/rs_transaction.h"
 
 #include "skia_adapter/skia_canvas.h"
@@ -65,7 +66,7 @@ private:
     uint32_t width_ = 0;
     uint32_t height_ = 0;
     std::shared_ptr<RSSurfaceNode> surfaceNode_;
-    std::shared_ptr<RenderContext> renderContext_;
+    std::shared_ptr<RenderContextGL> renderContext_;
     OHNativeWindow* nativeWindow_ = nullptr;
     EGLSurface eglSurface_ = EGL_NO_SURFACE;
 
