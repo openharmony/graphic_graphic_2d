@@ -2147,4 +2147,50 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkStub001, Test
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: RegisterCanvasCallbackTest001
+ * @tc.desc: Test REGISTER_CANVAS_CALLBACK with various scenarios
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterCanvasCallbackTest001, TestSize.Level1)
+{
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
+
+    // Scenario 1: Cannot read enableReadRemoteObject - should fail with ERR_INVALID_DATA
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    int res = toServiceConnectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    // Scenario 2: enableReadRemoteObject = false, callback will be nullptr
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data2.WriteBool(false);
+    res = toServiceConnectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+
+    // Scenario 3: enableReadRemoteObject = true with valid callback
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data3.WriteBool(true);
+    sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
+    data3.WriteRemoteObject(callback->AsObject());
+    res = toServiceConnectionStub_->OnRemoteRequest(code, data3, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+
+    // Scenario 4: reply write fails - should fail with ERR_INVALID_REPLY
+    MessageParcel data4;
+    MessageParcel reply4;
+    data4.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor());
+    data4.WriteBool(false);
+    reply4.writable_ = false;
+    reply4.data_ = nullptr;
+    res = toServiceConnectionStub_->OnRemoteRequest(code, data4, reply4, option);
+    ASSERT_EQ(res, ERR_INVALID_REPLY);
+}
+#endif
 } // namespace OHOS::Rosen

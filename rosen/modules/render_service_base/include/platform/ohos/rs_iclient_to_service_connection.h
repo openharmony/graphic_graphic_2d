@@ -39,6 +39,9 @@
 #include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
+#endif
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
@@ -161,6 +164,13 @@ public:
     virtual int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) = 0;
 
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    virtual int32_t RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) = 0;
+
+    virtual int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
+#endif
 
     virtual uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) = 0;
 

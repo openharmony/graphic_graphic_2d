@@ -61,6 +61,9 @@ private:
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks() noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacks() noexcept;
+#endif
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -143,6 +146,13 @@ private:
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
 
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    int32_t RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+
+    int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
+#endif
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 

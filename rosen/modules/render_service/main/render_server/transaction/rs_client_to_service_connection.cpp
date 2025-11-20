@@ -230,6 +230,9 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
             connection->CleanBrightnessInfoChangeCallbacks();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+            connection->CleanCanvasCallbacks();
+#endif
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
@@ -1049,6 +1052,41 @@ int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, Bright
     brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
     return StatusCode::SUCCESS;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSClientToServiceConnection::CleanCanvasCallbacks() noexcept
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto& context = mainThread_->GetContext();
+    context.RegisterCanvasCallback(remotePid_, nullptr);
+}
+
+int32_t RSClientToServiceConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    auto& context = mainThread_->GetContext();
+    context.RegisterCanvasCallback(remotePid_, callback);
+    return ERR_OK;
+}
+
+int32_t RSClientToServiceConnection::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    auto task = [this, nodeId, buffer, resetSurfaceIndex]() {
+        auto& context = mainThread_->GetContext();
+        context.AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
+        return SUCCESS;
+    };
+    return mainThread_->ScheduleTask(task).get();
+}
+#endif
 
 uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {

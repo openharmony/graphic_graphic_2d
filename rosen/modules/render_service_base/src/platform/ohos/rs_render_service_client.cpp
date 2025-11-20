@@ -1988,13 +1988,13 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderServiceClient::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    auto connection = RSRenderServiceConnectHub::GetRenderService();
-    if (connection == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::RegisterCanvasCallback connection is nullptr!");
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::RegisterCanvasCallback clientToService is nullptr!");
         return;
     }
 
-    int32_t ret = connection->RegisterCanvasCallback(callback);
+    int32_t ret = clientToService->RegisterCanvasCallback(callback);
     if (ret != ERR_OK) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterCanvasCallback failed, ret=%{public}d", ret);
     }
@@ -2003,12 +2003,12 @@ void RSRenderServiceClient::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCa
 int32_t RSRenderServiceClient::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    auto connection = RSRenderServiceConnectHub::GetRenderService();
-    if (connection == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SubmitCanvasPreAllocatedBuffer connection is nullptr!");
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SubmitCanvasPreAllocatedBuffer clientToService is nullptr!");
         return RENDER_SERVICE_NULL;
     }
-    return connection->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    return clientToService->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
 

@@ -119,6 +119,13 @@ public:
 
     bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    int32_t RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+
+    int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
+#endif
+
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;

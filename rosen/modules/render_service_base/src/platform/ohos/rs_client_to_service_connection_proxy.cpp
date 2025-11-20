@@ -5648,5 +5648,93 @@ ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const st
 {
     return ERR_INVALID_VALUE;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+int32_t RSClientToServiceConnectionProxy::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RegisterCanvasCallback: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (callback) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(callback->AsObject())) {
+            ROSEN_LOGE("RegisterCanvasCallback: WriteBool[T] OR WriteRemoteObject[CB] err");
+            return WRITE_PARCEL_ERR;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("RegisterCanvasCallback: WriteBool [false] err.");
+            return WRITE_PARCEL_ERR;
+        }
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RegisterCanvasCallback: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    int32_t result = 0;
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RegisterCanvasCallback: Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+int32_t RSClientToServiceConnectionProxy::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    if (!data.WriteUint64(nodeId)) {
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteUint64 nodeId err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    if (!data.WriteUint32(resetSurfaceIndex)) {
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteInt64 resetSurfaceIndex err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    if (buffer) {
+        if (!data.WriteBool(true)) {
+            ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteBool[true] err.");
+            return WRITE_PARCEL_ERR;
+        }
+        GSError gsRet = buffer->WriteToMessageParcel(data);
+        if (gsRet != GSERROR_OK) {
+            ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteToMessageParcel err, ret=%{public}d.", gsRet);
+            return WRITE_PARCEL_ERR;
+        }
+    } else if (!data.WriteBool(false)) {
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteBool[false] err.");
+        return WRITE_PARCEL_ERR;
+    }
+
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+
+    return SUCCESS;
+}
+#endif // ROSEN_OHOS && RS_ENABLE_VK
 } // namespace Rosen
 } // namespace OHOS
