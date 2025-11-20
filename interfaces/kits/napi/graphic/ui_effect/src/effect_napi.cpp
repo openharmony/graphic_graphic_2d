@@ -601,12 +601,12 @@ bool ParseHarmoniumSelectablePara(napi_env env, napi_value jsObject, HarmoniumEf
         parseTimes++;
     }
 
-    if (ParseJsVec3Value(env, jsObject, "posRGB", tmpVector3)) {
+    if (ParseJsVec3Value(env, jsObject, "posRgb", tmpVector3)) {
         para->SetPosRGB(tmpVector3);
         parseTimes++;
     }
 
-    if (ParseJsVec3Value(env, jsObject, "negRGB", tmpVector3)) {
+    if (ParseJsVec3Value(env, jsObject, "negRgb", tmpVector3)) {
         para->SetNegRGB(tmpVector3);
         parseTimes++;
     }
