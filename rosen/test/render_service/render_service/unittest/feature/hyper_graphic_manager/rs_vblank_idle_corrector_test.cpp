@@ -45,7 +45,7 @@ HWTEST_F(RSVBlankIdleCorrectorTest, SetScreenVBlankIdle001, TestSize.Level1)
     auto rsVBlankIdleCorrector = std::make_shared<RSVBlankIdleCorrector>();
     ASSERT_NE(nullptr, rsVBlankIdleCorrector);
     // device id is 0
-    rsVBlankIdleCorrector->SetScreenVBlankIdle(0);
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
     sleep(1); // wait 1s for processing data
     rsVBlankIdleCorrector = nullptr;
 }

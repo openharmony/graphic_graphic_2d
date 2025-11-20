@@ -31,7 +31,7 @@ public:
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
     static inline std::shared_ptr<HdiOutput> output_ = nullptr;
     static inline std::shared_ptr<MockSys::HdiLayerContext> hdiLayerTemp_ = nullptr;
-    static inline std::vector<LayerInfoPtr> layerInfos_ = {};
+    static inline std::vector<RSLayerPtr> layerInfos_ = {};
     static inline std::vector<std::string> paramKey_{};
 };
 

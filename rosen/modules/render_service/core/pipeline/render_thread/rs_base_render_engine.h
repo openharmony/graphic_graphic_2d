@@ -182,7 +182,7 @@ public:
 
     // [PLANNING]: this is a work-around for the lack of colorgamut conversion and yuv support in GPU.
     // We should remove this function in someday.
-    static bool NeedForceCPU(const std::vector<LayerInfoPtr>& layers);
+    static bool NeedForceCPU(const std::vector<RSLayerPtr>& layers);
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
@@ -213,10 +213,10 @@ public:
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
         BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
         const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
 #else
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
         const ScreenInfo& screenInfo = {}) = 0;
 #endif
 

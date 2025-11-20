@@ -273,9 +273,9 @@ HWTEST_F(LppVideoHandlerTest, JudgeRequestVsyncForLpp003, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, AddLppLayerId001, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    LayerInfoPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetSurface(nullptr);
     layers.emplace_back(ptr);
@@ -297,9 +297,9 @@ HWTEST_F(LppVideoHandlerTest, AddLppLayerId001, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, AddLppLayerId002, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    LayerInfoPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
     ASSERT_NE(ptr, nullptr);
     auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
@@ -326,9 +326,9 @@ HWTEST_F(LppVideoHandlerTest, AddLppLayerId002, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, AddLppLayerId003, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    LayerInfoPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetTunnelLayerId(1);
     ptr->SetTunnelLayerProperty(LPP_LAYER_PROPERTY);
@@ -351,9 +351,9 @@ HWTEST_F(LppVideoHandlerTest, AddLppLayerId003, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, RemoveLayerId001, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    LayerInfoPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetSurface(nullptr);
     layers.emplace_back(ptr);
@@ -375,9 +375,9 @@ HWTEST_F(LppVideoHandlerTest, RemoveLayerId001, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, RemoveLayerId002, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    LayerInfoPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
     ASSERT_NE(ptr, nullptr);
     auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
@@ -404,9 +404,9 @@ HWTEST_F(LppVideoHandlerTest, RemoveLayerId002, TestSize.Level1)
  */
 HWTEST_F(LppVideoHandlerTest, RemoveLayerId003, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    LayerInfoPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetTunnelLayerId(1);
     ptr->SetTunnelLayerProperty(LPP_LAYER_PROPERTY);

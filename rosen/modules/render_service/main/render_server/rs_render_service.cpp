@@ -47,13 +47,13 @@
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
 #include "graphic_feature_param_manager.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "rs_render_composer_manager.h"
+#include "system/rs_system_parameters.h"
 
 #include "text/font_mgr.h"
 
@@ -121,19 +121,16 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
 #endif
-    screenManager_ = CreateOrGetScreenManager();
-    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        // screenManager initializtion executes in RSHHardwareThread under UNI_RENDER mode
-        if (screenManager_ == nullptr || !screenManager_->Init()) {
-            RS_LOGE("CreateOrGetScreenManager fail.");
-            return false;
-        }
-    } else {
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSUniRenderThread::Instance().Start();
-        RSHardwareThread::Instance().Start();
         RegisterRcdMsg();
 #endif
+    }
+    screenManager_ = CreateOrGetScreenManager();
+    if (screenManager_ == nullptr || !screenManager_->Init()) {
+        RS_LOGE("CreateOrGetScreenManager or init fail.");
+        return false;
     }
 
     auto generator = CreateVSyncGenerator();
@@ -419,8 +416,7 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) c
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
+        RSRenderComposerManager::GetInstance().FpsDump(dumpString, layerName);
 #endif
     } else {
         mainThread_->ScheduleTask(
@@ -458,10 +454,7 @@ void RSRenderService::ClearFps(std::string& dumpString, std::string& layerName) 
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &layerName]() {
-                return screenManager_->ClearFpsDump(dumpString, layerName);
-            }).wait();
+        RSRenderComposerManager::GetInstance().ClearFpsDump(dumpString, layerName);
 #endif
     } else {
         mainThread_->ScheduleTask(
@@ -492,7 +485,7 @@ void RSRenderService::DumpRefreshRateCounts(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- RefreshRateCounts: \n");
 #ifdef RS_ENABLE_GPU
-    RSHardwareThread::Instance().RefreshRateCounts(dumpString);
+    RSRenderComposerManager::GetInstance().RefreshRateCounts(dumpString);
 #endif
 }
 
@@ -501,7 +494,7 @@ void RSRenderService::DumpClearRefreshRateCounts(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- ClearRefreshRateCounts: \n");
 #ifdef RS_ENABLE_GPU
-    RSHardwareThread::Instance().ClearRefreshRateCounts(dumpString);
+    RSRenderComposerManager::GetInstance().ClearRefreshRateCounts(dumpString);
 #endif
 }
 
@@ -518,8 +511,7 @@ void RSRenderService::WindowHitchsDump(
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
+            RSRenderComposerManager::GetInstance().HitchsDump(dumpString, layerArg);
 #endif
         } else {
             mainThread_->ScheduleTask(
@@ -767,9 +759,7 @@ void RSRenderService::RegisterRSGfxFuncs()
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance()
-                .ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); })
-                .wait();
+            screenManager_->DisplayDump(dumpString);
 #endif
         } else {
             mainThread_->ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
@@ -984,11 +974,7 @@ void RSRenderService::RegisterBufferFuncs()
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask([this]() {
-                RS_TRACE_NAME("RSRenderService dump current frame buffer in HardwareThread");
-                RS_LOGD("dump current frame buffer in HardwareThread");
-                return screenManager_->DumpCurrentFrameLayers();
-            }).wait();
+            RSRenderComposerManager::GetInstance().DumpCurrentFrameLayers();
 #endif
         } else {
             mainThread_->ScheduleTask([this]() {

@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-#ifndef HDI_BACKEND_HDI_LAYER_H
-#define HDI_BACKEND_HDI_LAYER_H
+#ifndef RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_LAYER_H
+#define RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_LAYER_H
 
 #include <array>
-#include <stdint.h>
+#include <cstdint>
 #include <surface.h>
 #include "hdi_device.h"
 #include "hdi_layer_info.h"
-
+#include "rs_layer.h"
 
 namespace OHOS {
 namespace Rosen {
 
-using LayerInfoPtr = std::shared_ptr<HdiLayerInfo>;
+using RSLayerPtr = std::shared_ptr<RSLayer>;
 struct FPSInfo {
     int64_t presentTime;
     std::vector<std::string> windowsName;
@@ -42,32 +42,33 @@ public:
     /* output create and set layer info */
     static std::shared_ptr<HdiLayer> CreateHdiLayer(uint32_t screenId);
 
-    bool Init(const LayerInfoPtr &layerInfo);
-    void MergeWithFramebufferFence(const sptr<SyncFence> &fbAcquireFence);
-    void MergeWithLayerFence(const sptr<SyncFence> &layerReleaseFence);
+    bool Init(const std::shared_ptr<RSLayer>& rsLayer);
+    void MergeWithFramebufferFence(const sptr<SyncFence>& fbAcquireFence);
+    void MergeWithLayerFence(const sptr<SyncFence>& layerReleaseFence);
     void UpdateCompositionType(GraphicCompositionType type);
 
-    const LayerInfoPtr GetLayerInfo();
+    std::shared_ptr<RSLayer> GetRSLayer();
     void SetLayerStatus(bool inUsing);
     bool GetLayerStatus() const;
-    void UpdateLayerInfo(const LayerInfoPtr &layerInfo);
+    void UpdateRSLayer(const std::shared_ptr<RSLayer>& rsLayer);
     int32_t SetHdiLayerInfo(bool isActiveRectSwitching = false);
     uint32_t GetLayerId() const;
     bool RecordPresentTime(int64_t timestamp);
     void RecordMergedPresentTime(int64_t timestamp); // used for uni render layer
-    void Dump(std::string &result);
-    void DumpMergedResult(std::string &result);  // used for uni render layer
+    void Dump(std::string& result);
+    void DumpMergedResult(std::string& result);  // used for uni render layer
     void ClearDump();
 
-    void SetReleaseFence(const sptr<SyncFence> &layerReleaseFence);
+    void SetReleaseFence(const sptr<SyncFence>& layerReleaseFence);
     sptr<SyncFence> GetReleaseFence() const;
-    void SavePrevLayerInfo();
-    void DumpByName(std::string windowName, std::string &result);
-    void SelectHitchsInfo(std::string windowName, std::string &result);
+    void SavePrevRSLayer();
+    void DumpByName(std::string windowName, std::string& result);
+    void SelectHitchsInfo(std::string windowName, std::string& result);
 
     /* only used for mock tests */
     int32_t SetHdiDeviceMock(HdiDevice* hdiDeviceMock);
     void ClearBufferCache();
+
 private:
     // layer buffer & fence
     class LayerBufferInfo : public RefBase {
@@ -88,8 +89,8 @@ private:
     bool isInUsing_ = false;
     sptr<LayerBufferInfo> currBufferInfo_ = nullptr;
     sptr<SurfaceBuffer> prevSbuffer_ = nullptr;
-    LayerInfoPtr layerInfo_ = nullptr;
-    LayerInfoPtr prevLayerInfo_ = nullptr;
+    std::shared_ptr<RSLayer> rsLayer_ = nullptr;
+    std::shared_ptr<RSLayer> prevRSLayer_ = nullptr;
     GraphicPresentTimestampType supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
     HdiDevice *device_ = nullptr;
     bool doLayerInfoCompare_ = false;
@@ -100,7 +101,7 @@ private:
     sptr<SurfaceBuffer> currBuffer_ = nullptr;
     bool bufferCleared_ = false;
 
-    int32_t CreateLayer(const LayerInfoPtr &layerInfo);
+    int32_t CreateLayer(const std::shared_ptr<RSLayer> &rsLayer);
     void CloseLayer();
     int32_t SetLayerAlpha();
     int32_t SetLayerSize();
@@ -118,7 +119,7 @@ private:
     int32_t SetLayerColorDataSpace();
     int32_t SetLayerMetaData();
     int32_t SetLayerMetaDataSet();
-    sptr<SyncFence> Merge(const sptr<SyncFence> &fence1, const sptr<SyncFence> &fence2);
+    sptr<SyncFence> Merge(const sptr<SyncFence>& fence1, const sptr<SyncFence>& fence2);
     int32_t SetLayerTunnelHandle();
     int32_t SetTunnelLayerId();
     int32_t SetTunnelLayerProperty();
@@ -141,4 +142,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // HDI_BACKEND_HDI_LAYER_H
+#endif // RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_LAYER_H

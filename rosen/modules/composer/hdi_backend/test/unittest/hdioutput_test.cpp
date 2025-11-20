@@ -317,9 +317,9 @@ HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
 */
 HWTEST_F(HdiOutputTest, DumpHitchs, Function | MediumTest | Level1)
 {
-    std::vector<LayerInfoPtr> layerInfos;
+    std::vector<RSLayerPtr> layerInfos;
     for (size_t i = 0; i < 3; i++) {
-        LayerInfoPtr layerInfo_ = std::make_shared<HdiLayerInfo>();
+        RSLayerPtr layerInfo_ = std::make_shared<HdiLayerInfo>();
         layerInfo_->SetIsMaskLayer(true);
         layerInfos.emplace_back(layerInfo_);
     }
@@ -455,7 +455,7 @@ HWTEST_F(HdiOutputTest, RecordCompositionTime001, Function | MediumTest | Level1
 HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
-    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr layerInfo = std::make_shared<HdiLayerInfo>();
     bool res = hdiOutput->CheckIfDoArsrPre(nullptr);
     EXPECT_FALSE(res);
 
@@ -485,7 +485,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
 HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1)
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
-    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr layerInfo = std::make_shared<HdiLayerInfo>();
     layerInfo->cSurface_ = IConsumerSurface::Create("xcomponentIdSurface");
     bool res = hdiOutput->CheckIfDoArsrPreForVm(layerInfo);
     EXPECT_FALSE(res);
@@ -585,7 +585,7 @@ HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
     surfaceIdMap.clear();
     uint64_t id = 0;
     LayerPtr layer = std::make_shared<HdiLayer>(id);
-    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr layerInfo = std::make_shared<HdiLayerInfo>();
     layer->layerInfo_ = layerInfo;
     layer->layerInfo_->cSurface_ = nullptr;
     surfaceIdMap[id] = layer;
@@ -665,7 +665,7 @@ HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer001, Function | MediumTest | Level1)
     hdiOutput->ReleaseSurfaceBuffer(releaseFence);
     EXPECT_EQ(releaseFence, nullptr);
 
-    LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr layerInfo = std::make_shared<HdiLayerInfo>();
     layer->layerInfo_ = layerInfo;
     layer->layerInfo_->cSurface_ = nullptr;
     hdiOutput->ReleaseSurfaceBuffer(releaseFence);
@@ -724,7 +724,7 @@ HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Le
 {
     std::shared_ptr<HdiOutput> output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
-    LayerInfoPtr layerInfo = nullptr;
+    RSLayerPtr layerInfo = nullptr;
     output->ANCOTransactionOnComplete(layerInfo, nullptr);
     layerInfo = std::make_shared<HdiLayerInfo>();
     output->ANCOTransactionOnComplete(layerInfo, nullptr);
@@ -749,9 +749,9 @@ HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Le
  */
 HWTEST_F(HdiOutputTest, CreateLayerFailed, Function | MediumTest | Level1)
 {
-    std::vector<LayerInfoPtr> layerInfos;
+    std::vector<RSLayerPtr> layerInfos;
     for (size_t i = 0; i < 3; i++) {
-        LayerInfoPtr layerInfo = std::make_shared<HdiLayerInfo>();
+        RSLayerPtr layerInfo = std::make_shared<HdiLayerInfo>();
         layerInfos.emplace_back(layerInfo);
         layerInfo->SetSurface(nullptr);
         EXPECT_EQ(HdiOutputTest::hdiOutput_->CreateLayerLocked(INT_MAX, layerInfo), GRAPHIC_DISPLAY_FAILURE);

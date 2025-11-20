@@ -30,18 +30,21 @@
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "drawable/rs_surface_render_node_drawable.h"
-#include "feature/dirty/rs_uni_dirty_compute_util.h"
-#include "params/rs_screen_render_params.h"
-#include "params/rs_surface_render_params.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "feature/anco_manager/rs_anco_manager.h"
-#include "platform/common/rs_log.h"
+#include "feature/dirty/rs_uni_dirty_compute_util.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA
 #include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
 #include "feature/hwc/hpae_offline/rs_hpae_offline_util.h"
+#include "info_collection/rs_layer_compose_collection.h"
+#include "params/rs_screen_render_params.h"
+#include "params/rs_surface_render_params.h"
+#include "platform/common/rs_log.h"
+#include "rs_render_composer_manager.h"
+#include "rs_surface_layer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +68,12 @@ bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
+
+    // Initialize composerClient
+    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
+    if (composerClient_ == nullptr) {
+        return false;
+    }
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_);
 }
 
@@ -78,6 +87,12 @@ bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDra
     // so we do not need to handle rotation in composer adapter any more,
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
+
+    // Initialize composerClient
+    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
+    if (composerClient_ == nullptr) {
+        return false;
+    }
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_);
 }
 
@@ -91,7 +106,8 @@ bool RSUniRenderProcessor::UpdateMirrorInfo(DrawableV2::RSLogicalDisplayRenderNo
 
 void RSUniRenderProcessor::PostProcess()
 {
-    uniComposerAdapter_->CommitLayers(layers_);
+    uniComposerAdapter_->CommitLayers();
+    LayerComposeCollection::GetInstance().UpdateUniformOrOfflineComposeFrameNumberForDFX(layers_.size());
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
@@ -108,8 +124,11 @@ void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfac
     const Rect& dirtyRect = offlineResult ? offlineResult->damageRect : params.GetBufferDamage();
     auto preBuffer = offlineResult ? offlineResult->preBuffer : params.GetPreBuffer();
     auto acquireFence = offlineResult ? offlineResult->acquireFence : params.GetAcquireFence();
-    LayerInfoPtr layer = GetLayerInfo(
+    RSLayerPtr layer = GetLayerInfo(
         params, buffer, preBuffer, consumer, acquireFence, offlineResult);
+    if (layer == nullptr) {
+        return;
+    }
     layer->SetSdrNit(params.GetSdrNit());
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
@@ -178,9 +197,12 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     auto preBuffer = offlineResult ? offlineResult->preBuffer : params.GetPreBuffer();
     auto acquireFence = offlineResult ? offlineResult->acquireFence : params.GetAcquireFence();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceDrawable.GetConsumerOnDraw();
-    LayerInfoPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
+    RSLayerPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
         consumer, acquireFence, offlineResult);
-    layer->SetNodeId(surfaceDrawable.GetId());
+    if (layer == nullptr) {
+        return;
+    }
+    layer->SetNodeId(surfaceDrawable.GetId());  // node id only for dfx
     auto& renderParams = static_cast<RSSurfaceRenderParams&>(params);
     layer->SetSdrNit(renderParams.GetSdrNit());
     layer->SetDisplayNit(renderParams.GetDisplayNit());
@@ -195,12 +217,17 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     params.SetLayerCreated(true);
 }
 
-void RSUniRenderProcessor::CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params)
+void RSUniRenderProcessor::CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params)
 {
     // color can be APP Node color or XCOM color
     auto color = params.GetSolidLayerColor();
     if (!params.GetIsHwcEnabledBySolidLayer()) {
-        auto solidColorLayer = HdiLayerInfo::CreateHdiLayerInfo();
+        auto solidColorLayer = RSSurfaceLayer::CreateLayer(composerClient_);
+        if (solidColorLayer == nullptr) {
+            RS_LOGE("RSUniRenderProcessor::CreateSolidColorLayer failed to create layer");
+            return;
+        }
+        solidColorLayer->SetNodeId(params.GetId());
         solidColorLayer->CopyLayerInfo(layer);
         if (layer->GetZorder() > 0) {
             solidColorLayer->SetZorder(layer->GetZorder() - 1);
@@ -253,11 +280,16 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
     return forceClientForDRM;
 }
 
-LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
+RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderProcessor::GetLayerInfo failed to create layer");
+        return nullptr;
+    }
+    layer->SetNodeId(params.GetId());  // node id only for dfx
     auto layerInfo = params.layerInfo_;
     if (params.GetHwcGlobalPositionEnabled()) {
         // dst and matrix transform to screen position
@@ -462,10 +494,10 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
         return;
     }
     if (node.GetFingerprint()) {
-        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
         RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
-        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
     auto drawable = node.GetRenderDrawable();
@@ -491,10 +523,10 @@ void RSUniRenderProcessor::ProcessScreenSurfaceForRenderThread(
         return;
     }
     if (params->GetFingerprint()) {
-        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_HBM_SYNC);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
         RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
-        layer->SetLayerMaskInfo(HdiLayerInfo::LayerMask::LAYER_MASK_NORMAL);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
     auto surfaceHandler = screenDrawable.GetRSSurfaceHandlerOnDraw();
@@ -515,7 +547,7 @@ void RSUniRenderProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     layers_.emplace_back(layer);
 }
 
-void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer)
+void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer)
 {
     if (!layer || !params.GetTunnelLayerId()) {
         return;
@@ -526,7 +558,7 @@ void RSUniRenderProcessor::HandleTunnelLayerParameters(RSSurfaceRenderParams& pa
 }
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-std::vector<LayerInfoPtr> RSUniRenderProcessor::GetLayers() const
+std::vector<RSLayerPtr> RSUniRenderProcessor::GetLayers() const
 {
     return layers_;
 }

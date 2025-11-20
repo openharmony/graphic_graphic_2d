@@ -30,7 +30,7 @@ public:
     static void TearDownTestCase();
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
-    static inline std::vector<LayerInfoPtr> layerInfos_;
+    static inline std::vector<RSLayerPtr> layerInfos_;
     static inline std::shared_ptr<HdiLayerContext> hdiLayerTemp_;
     static inline std::vector<std::string> paramKey_{};
 };
@@ -126,7 +126,7 @@ HWTEST_F(HdiOutputSysTest, UpdateInfosAfterCommit001, Function | MediumTest| Lev
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence001, Function | MediumTest| Level3)
 {
-    std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    std::map<RSLayerPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 }
 
@@ -277,7 +277,7 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Level3)
 {
-    std::map<LayerInfoPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    std::map<RSLayerPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 
     res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();

@@ -76,10 +76,10 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 }
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
     const ScreenInfo& screenInfo, GraphicColorGamut colorGamut)
 #else
-void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
     const ScreenInfo& screenInfo)
 #endif
 {
@@ -155,7 +155,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
     LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
 }
 
-void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
     const ScreenInfo& screenInfo)
 {
     const auto& dstRect = layer->GetLayerSize();
@@ -207,7 +207,7 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const L
     canvas.ClipRect(clipRect, Drawing::ClipOp::INTERSECT, false);
 }
 
-void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+void RSUniRenderEngine::DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
     BufferDrawParam& params)
 {
     RS_LOGD_IF(DEBUG_COMPOSER, "RSUniRenderEngine::DrawHdiLayerWithParams: matrix=[%{public}.2f, %{public}.2f, "

@@ -22,6 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderComposerClient;
 class RSUniRenderProcessor : public RSProcessor {
 public:
     static inline constexpr RSProcessorType Type = RSProcessorType::UNIRENDER_PROCESSOR;
@@ -42,7 +43,7 @@ public:
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    std::vector<LayerInfoPtr> GetLayers() const;
+    std::vector<RSLayerPtr> GetLayers() const;
 #endif
 
     // called by render thread
@@ -59,14 +60,15 @@ public:
 
 private:
     bool GetForceClientForDRM(RSSurfaceRenderParams& params);
-    LayerInfoPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
+    RSLayerPtr GetLayerInfo(RSSurfaceRenderParams& params, sptr<SurfaceBuffer>& buffer,
         sptr<SurfaceBuffer>& prebuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr);
-    void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
-    void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer);
+    void CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params);
+    void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer);
     void ScaleLayerIfNeeded(RSLayerInfo& layerInfo);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
-    std::vector<LayerInfoPtr> layers_;
+    std::vector<RSLayerPtr> layers_;
+    std::shared_ptr<RSRenderComposerClient> composerClient_;
 };
 } // namespace Rosen
 } // namespace OHOS

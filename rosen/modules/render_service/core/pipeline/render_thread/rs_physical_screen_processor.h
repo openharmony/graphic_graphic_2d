@@ -39,13 +39,13 @@ public:
     void ProcessRcdSurface(RSRcdSurfaceRenderNode& node) override;
     void PostProcess() override;
 private:
-    void Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers);
+    void Redraw(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers);
     uint32_t GetLayerLevel(uint32_t layerLevel) const;
     void ClosePerf(uint32_t layerLevel);
     void RequestPerf(uint32_t layerLevel);
 
     std::unique_ptr<RSComposerAdapter> composerAdapter_ = nullptr;
-    std::vector<LayerInfoPtr> layers_;
+    std::vector<RSLayerPtr> layers_;
 };
 } // namespace Rosen
 } // namespace OHOS

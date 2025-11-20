@@ -27,7 +27,7 @@ namespace OHOS::Rosen {
 class RSTvMetadataManager {
 public:
     static RSTvMetadataManager& Instance();
-    static void CopyFromLayersToSurface(const std::vector<LayerInfoPtr>& layers,
+    static void CopyFromLayersToSurface(const std::vector<RSLayerPtr>& layers,
         std::shared_ptr<RSSurfaceOhos>& surface);
 
     void RecordAndCombineMetadata(const TvPQMetadata& metadata);
@@ -35,7 +35,7 @@ public:
     void Reset();
     void ResetDpPixelFormat();
     TvPQMetadata GetMetadata() const;
-    static void CombineMetadataForAllLayers(const std::vector<LayerInfoPtr>& layers);
+    static void CombineMetadataForAllLayers(const std::vector<RSLayerPtr>& layers);
     void UpdateTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     static bool IsSdpInfoAppId(const std::string& bundleName);

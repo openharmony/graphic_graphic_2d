@@ -192,7 +192,7 @@ HWTEST_F(HdiBackendTest, OnPrepareComplete001, Function | MediumTest| Level3)
     OutputPtr output = HdiOutput::CreateHdiOutput(0);
     ASSERT_NE(output, nullptr);
 
-    std::vector<LayerInfoPtr> newLayerInfos;
+    std::vector<RSLayerPtr> newLayerInfos;
     for (size_t i = 0; i < 3; i++) {
         newLayerInfos.emplace_back(nullptr);
     }

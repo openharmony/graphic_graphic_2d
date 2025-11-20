@@ -130,8 +130,8 @@ namespace OHOS {
         // test
         OutputPtr outputptr = HdiOutput::CreateHdiOutput(screenId);
         outputptr->Init();
-        std::vector<LayerInfoPtr> layerInfos;
-        LayerInfoPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
+        std::vector<RSLayerPtr> layerInfos;
+        RSLayerPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
         sptr<IConsumerSurface> cSurface = IConsumerSurface::Create();
         layerInfoptr->SetSurface(cSurface);
         layerInfos.push_back(layerInfoptr);

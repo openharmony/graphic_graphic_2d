@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef HDI_BACKEND_HDI_OUTPUT_H
-#define HDI_BACKEND_HDI_OUTPUT_H
+#ifndef RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_OUTPUT_H
+#define RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_OUTPUT_H
 
 #include <array>
 #include <list>
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 #include <unordered_map>
 
@@ -31,26 +31,30 @@
 
 namespace OHOS {
 namespace Rosen {
-
-using LayerPtr = std::shared_ptr<HdiLayer>;
-
 // dump layer
 struct LayerDumpInfo {
     uint64_t nodeId;
     uint64_t surfaceId;
-    LayerPtr layer;
+    std::shared_ptr<HdiLayer> hdiLayer;
 };
+
+struct PrepareCompleteParam {
+    bool needFlushFramebuffer = false;
+    std::vector<std::shared_ptr<RSLayer>> layers;
+};
+using OnPrepareCompleteFunc = std::function<void(sptr<Surface>& surface,
+                                                 const PrepareCompleteParam &param, void* data)>;
 
 class HdiOutput {
 public:
-    HdiOutput(uint32_t screenId);
+    explicit HdiOutput(uint32_t screenId);
     virtual ~HdiOutput();
 
     static constexpr uint32_t COMPOSITION_RECORDS_NUM = HdiLayer::FRAME_RECORDS_NUM;
 
     /* for RS begin */
-    void SetLayerInfo(const std::vector<LayerInfoPtr> &layerInfos);
-    void SetOutputDamages(const std::vector<GraphicIRect> &outputDamages);
+    void SetRSLayers(const std::vector<std::shared_ptr<RSLayer>>& rsLayers);
+    void SetOutputDamages(const std::vector<GraphicIRect>& outputDamages);
     uint32_t GetScreenId() const;
     // only used when composer_host dead
     void ResetDevice()
@@ -65,16 +69,16 @@ public:
 
     static std::shared_ptr<HdiOutput> CreateHdiOutput(uint32_t screenId);
     RosenError Init();
-    void GetLayerInfos(std::vector<LayerInfoPtr>& layerInfos);
-    void GetComposeClientLayers(std::vector<LayerPtr>& clientLayers);
+    void GetRSLayers(std::vector<std::shared_ptr<RSLayer>>& rsLayers);
+    void GetComposeClientLayers(std::vector<std::shared_ptr<HdiLayer>>& clientLayers);
     const std::vector<GraphicIRect>& GetOutputDamages();
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
-    void Dump(std::string &result) const;
+    void Dump(std::string& result) const;
     void DumpCurrentFrameLayers() const;
-    void DumpFps(std::string &result, const std::string &arg) const;
-    void DumpHitchs(std::string &result, const std::string &arg) const;
-    void ClearFpsDump(std::string &result, const std::string &arg);
+    void DumpFps(std::string& result, const std::string& arg) const;
+    void DumpHitchs(std::string& result, const std::string& arg) const;
+    void ClearFpsDump(std::string& result, const std::string& arg);
     GSError ClearFrameBuffer();
 
     RosenError InitDevice();
@@ -82,13 +86,12 @@ public:
     RosenError SetHdiOutputDevice(HdiDevice* device);
     int32_t PreProcessLayersComp();
     int32_t UpdateLayerCompType();
-    int32_t FlushScreen(std::vector<LayerPtr> &compClientLayers);
-    int32_t SetScreenClientInfo(const FrameBufferEntry &fbEntry);
-    int32_t Commit(sptr<SyncFence> &fbFence);
-    int32_t CommitAndGetReleaseFence(sptr<SyncFence> &fbFence, int32_t &skipState, bool &needFlush, bool isValidated);
+    int32_t FlushScreen(std::vector<std::shared_ptr<HdiLayer>>& compClientLayers);
+    int32_t Commit(sptr<SyncFence>& fbFence);
+    int32_t CommitAndGetReleaseFence(sptr<SyncFence>& fbFence, int32_t& skipState, bool& needFlush, bool isValidated);
     int32_t UpdateInfosAfterCommit(sptr<SyncFence> fbFence);
     int32_t ReleaseFramebuffer(const sptr<SyncFence>& releaseFence);
-    std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFence();
+    std::unordered_map<std::shared_ptr<RSLayer>, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
@@ -106,13 +109,14 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
     void SetActiveRectSwitchStatus(bool flag);
+    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& layerInfo,
+        const sptr<SyncFence>& previousReleaseFence);
 
-    void ANCOTransactionOnComplete(const LayerInfoPtr& layerInfo, const sptr<SyncFence>& previousReleaseFence);
+    void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }
+    RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
+    void Repaint();
+    void SetScreenPowerOnChanged(bool flag);
 
-    void SetMaskLayer(const LayerPtr& maskLayer)
-    {
-        maskLayer_ = maskLayer;
-    }
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
@@ -127,14 +131,14 @@ private:
     std::array<int64_t, COMPOSITION_RECORDS_NUM> compositionTimeRecords_ = {};
     uint32_t compTimeRcdIndex_ = 0;
     sptr<HdiFramebufferSurface> fbSurface_ = nullptr;
-    std::list<LayerPtr> layersTobeRelease_;
+    std::list<std::shared_ptr<HdiLayer>> layersTobeRelease_;
 
     // layerId -- layer ptr
-    std::unordered_map<uint32_t, LayerPtr> layerIdMap_;
+    std::unordered_map<uint32_t, std::shared_ptr<HdiLayer>> layerIdMap_;
     // surface unique id -- layer ptr
-    std::unordered_map<uint64_t, LayerPtr> surfaceIdMap_;
+    std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> surfaceIdMap_;
     // solidLayer unique id -- layer ptr
-    std::unordered_map<uint64_t, LayerPtr> solidSurfaceIdMap_;
+    std::unordered_map<uint64_t, std::shared_ptr<HdiLayer>> solidSurfaceIdMap_;
     uint32_t screenId_;
     std::vector<GraphicIRect> outputDamages_;
     bool directClientCompositionEnabled_ = true;
@@ -153,31 +157,39 @@ private:
     // Protected framebuffer is allocated in advance
     std::atomic<bool> isProtectedBufferAllocated_ = false;
 
-    LayerPtr maskLayer_ = nullptr;
+    std::shared_ptr<HdiLayer> maskLayer_ = nullptr;
 
-    int32_t CreateLayerLocked(uint64_t surfaceId, const LayerInfoPtr &layerInfo);
+    int32_t CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer> &rsLayer);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
-    void ReorderLayerInfoLocked(std::vector<LayerDumpInfo> &dumpLayerInfos) const;
-    void UpdatePrevLayerInfoLocked();
+    void ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfos) const;
+    void UpdatePrevRSLayerLocked();
     void ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence);
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);
 
     // DISPLAY ENGINE
-    bool CheckIfDoArsrPre(const LayerInfoPtr &layerInfo);
-    bool CheckIfDoArsrPreForVm(const LayerInfoPtr &layerInfo);
+    bool CheckIfDoArsrPre(const std::shared_ptr<RSLayer>& rsLayer);
+    bool CheckIfDoArsrPreForVm(const std::shared_ptr<RSLayer>& rsLayer);
     bool CheckSupportArsrPreMetadata();
     bool CheckSupportCopybitMetadata();
 
     void ClearBufferCache();
-    std::map<LayerInfoPtr, sptr<SyncFence>> GetLayersReleaseFenceLocked();
+    std::unordered_map<std::shared_ptr<RSLayer>, sptr<SyncFence>> GetLayersReleaseFenceLocked();
+
+    void ReorderRSLayers(std::vector<std::shared_ptr<RSLayer>>& newRSLayer);
+    void OnPrepareComplete(bool needFlush, std::vector<std::shared_ptr<RSLayer>>& newRSLayer);
+    int32_t PrepareCompleteIfNeed(bool needFlush);
 
     bool isActiveRectSwitching_ = false;
-    void DirtyRegions(uint32_t solidLayerCount, const LayerInfoPtr &layerInfo);
+    void DirtyRegions(uint32_t solidLayerCount, const std::shared_ptr<RSLayer>& rsLayer);
+
+    OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
+    void* onPrepareCompleteCbData_ = nullptr;
+    bool screenPowerOnChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // HDI_BACKEND_HDI_OUTPUT_H
+#endif // RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_OUTPUT_H

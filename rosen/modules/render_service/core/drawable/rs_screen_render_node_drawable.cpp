@@ -153,6 +153,9 @@ RSScreenRenderNodeDrawable::RSScreenRenderNodeDrawable(std::shared_ptr<const RSR
 
 RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
 {
+    auto params = static_cast<RSScreenRenderParams*>(GetRenderParams().get());
+    auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
+    RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
     RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
 }
 
@@ -373,7 +376,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
     }
-    if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
+    if (!RSRenderComposerManager::GetInstance().WaitComposerTaskExecute(params.GetScreenId())) {
         RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);
@@ -977,7 +980,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
-    if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
+    if (!RSRenderComposerManager::GetInstance().WaitComposerTaskExecute(screenInfo.id)) {
         RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute");
     }
 

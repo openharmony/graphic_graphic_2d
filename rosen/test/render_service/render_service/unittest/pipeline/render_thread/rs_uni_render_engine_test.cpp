@@ -112,17 +112,17 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     }
     ASSERT_NE(canvas, nullptr);
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     if (!RSSystemProperties::IsUseVulkan()) {
         layers.emplace_back(nullptr);
     }
-    LayerInfoPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
 
-    LayerInfoPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
 
-    LayerInfoPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("layer3");
     layer3->SetSurface(cSurface);
@@ -166,7 +166,7 @@ HWTEST_F(RSUniRenderEngineTest, DrawHdiLayerWithParams001, TestSize.Level1)
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.release());
     }
     ASSERT_NE(canvas, nullptr);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     BufferDrawParam param;
     param.useCPU = false;
     if (RSSystemProperties::IsUseVulkan()) {

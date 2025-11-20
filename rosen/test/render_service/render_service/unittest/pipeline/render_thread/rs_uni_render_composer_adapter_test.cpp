@@ -311,7 +311,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     ScreenId screenId = 0;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
-    LayerInfoPtr layer1 = composerAdapter_->CreateLayer(*rsScreenNode);
+    RSLayerPtr layer1 = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_EQ(layer1, nullptr);
 
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode);
@@ -326,7 +326,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0);
     surfaceHandler->SetAvailableBufferCount(0);
     screenDrawable->surfaceCreated_ = true;
-    LayerInfoPtr layer2 = composerAdapter_->CreateLayer(*rsScreenNode);
+    RSLayerPtr layer2 = composerAdapter_->CreateLayer(*rsScreenNode);
     ASSERT_EQ(layer2->GetNodeId(), id);
 }
 
@@ -471,7 +471,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayerTest, TestSize.Le
     auto buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetUniRenderFlag(true);
     composerAdapter_->SetMetaDataInfoToLayer(layer, info.buffer, surfaceHandler->GetConsumer());
     if (buffer) {

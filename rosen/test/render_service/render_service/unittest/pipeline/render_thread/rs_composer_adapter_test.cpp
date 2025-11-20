@@ -457,10 +457,10 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp001, Function | SmallTest |
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    layer->IsSupportedPresentTimestamp_ = false;
+    layer->isSupportedPresentTimestamp_ = false;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
 }
 
@@ -479,10 +479,10 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp002, Function | SmallTest |
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
-    layer->IsSupportedPresentTimestamp_ = true;
+    layer->isSupportedPresentTimestamp_ = true;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
 }
 
@@ -498,11 +498,11 @@ HWTEST_F(RSComposerAdapterTest, LayerPresentTimestamp003, Function | SmallTest |
     uint32_t height = 1080;
     CreateComposerAdapterWithScreenInfo(
         width, height, ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     ASSERT_NE(layer, nullptr);
     sptr<IConsumerSurface> consumer = IConsumerSurface::Create("test");
     ASSERT_NE(consumer, nullptr);
-    layer->IsSupportedPresentTimestamp_ = true;
+    layer->isSupportedPresentTimestamp_ = true;
     composerAdapter_->LayerPresentTimestamp(layer, consumer);
 }
 

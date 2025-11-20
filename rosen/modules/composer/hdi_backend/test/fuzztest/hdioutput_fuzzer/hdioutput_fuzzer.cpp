@@ -83,8 +83,8 @@ namespace OHOS {
 
         // test
         std::shared_ptr<HdiOutput> hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-        std::vector<LayerInfoPtr> layerInfos;
-        LayerInfoPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
+        std::vector<RSLayerPtr> layerInfos;
+        RSLayerPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
         layerInfos.push_back(layerInfoptr);
         hdiOutput->SetLayerInfo(layerInfos);
         std::vector<GraphicIRect> outputDamages;

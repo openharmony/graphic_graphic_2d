@@ -233,6 +233,23 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
   ]
 
+  #composer
+  sources += [
+    "composer/composer_base/connection/rs_render_to_composer_connection.cpp",
+    "composer/composer_base/layer_backend/hdi_backend.cpp",
+    "composer/composer_base/layer_backend/hdi_layer.cpp",
+    "composer/composer_base/layer_backend/hdi_output.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_agent.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_context.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_manager.cpp",
+    "composer/composer_base/pipeline/rs_render_composer.cpp",
+    "composer/composer_base/transaction/rs_layer_transaction_data.cpp",
+    "composer/composer_base/transaction/rs_layer_transaction_handler.cpp",
+    "composer/composer_client/layer/rs_surface_layer.cpp",
+    "composer/composer_client/pipeline/rs_layer_context.cpp",
+    "composer/composer_client/pipeline/rs_render_composer_client.cpp",
+  ]
+
   #blurPredict
   sources += [
     "$rosen_root/modules/frame_load/src/rs_frame_blur_predict.cpp",
@@ -281,7 +298,6 @@ ohos_shared_library("librender_service") {
       "core/feature/uifirst/rs_uifirst_frame_rate_control.cpp",
       "core/feature/uifirst/rs_uifirst_manager.cpp",
       "core/memory/rs_memory_manager.cpp",
-      "core/pipeline/hardware_thread/rs_hardware_thread.cpp",
       "core/pipeline/main_thread/rs_uni_render_listener.cpp",
       "core/pipeline/main_thread/rs_uni_render_visitor.cpp",
       "core/pipeline/render_thread/rs_draw_frame.cpp",
@@ -368,6 +384,15 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/ressched/include",
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/utils/socketpair/export",
+    # composer file begin
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    # composer file end
   ]
 
   public_deps += [
@@ -584,6 +609,11 @@ ohos_executable("render_service") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
   ]
 
   deps = [

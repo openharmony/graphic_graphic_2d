@@ -32,7 +32,7 @@ public:
     static void TearDownTestCase();
 
     static inline std::shared_ptr<HdiLayer> hdiLayer_;
-    static inline LayerInfoPtr layerInfo_;
+    static inline RSLayerPtr layerInfo_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
     static inline std::vector<std::string> paramKey_{};
 };
@@ -431,8 +431,8 @@ HWTEST_F(HdiLayerTest, SetPerFrameParameters005, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, SetLayerBuffer, Function | MediumTest| Level1)
 {
     auto hdiLayer = HdiLayer::CreateHdiLayer(0);
-    LayerInfoPtr prevLayerInfo = HdiLayerInfo::CreateHdiLayerInfo();
-    LayerInfoPtr layerInfo = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr prevLayerInfo = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layerInfo = HdiLayerInfo::CreateHdiLayerInfo();
     sptr<SurfaceBuffer> newBuffer = new SurfaceBufferImpl();
     sptr<SyncFence> newFence = new SyncFence(2);
     prevLayerInfo->SetBuffer(newBuffer, newFence);

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef HDI_BACKEND_HDI_BACKEND_H
-#define HDI_BACKEND_HDI_BACKEND_H
+#ifndef RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_BACKEND_H
+#define RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_BACKEND_H
 
 #include <functional>
 #include <unordered_map>
@@ -22,7 +22,6 @@
 
 #include "hdi_device.h"
 #include "hdi_screen.h"
-#include "hdi_layer.h"
 #include "hdi_output.h"
 #include "graphic_error.h"
 #include "surface_type.h"
@@ -32,16 +31,8 @@ namespace Rosen {
 
 using OutputPtr = std::shared_ptr<HdiOutput>;
 
-struct PrepareCompleteParam {
-    bool needFlushFramebuffer;
-    std::vector<LayerInfoPtr> layers;
-    uint32_t screenId;
-};
-
-using OnScreenHotplugFunc = std::function<void(OutputPtr &output, bool connected, void* data)>;
+using OnScreenHotplugFunc = std::function<void(OutputPtr& output, bool connected, void* data)>;
 using OnScreenRefreshFunc = std::function<void(uint32_t deviceId, void* data)>;
-using OnPrepareCompleteFunc = std::function<void(sptr<Surface>& surface,
-                                                 const struct PrepareCompleteParam &param, void* data)>;
 
 class HdiBackend {
 public:
@@ -49,10 +40,8 @@ public:
     static HdiBackend* GetInstance();
     RosenError RegScreenHotplug(OnScreenHotplugFunc func, void* data);
     RosenError RegScreenRefresh(OnScreenRefreshFunc func, void* data);
-    RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
     RosenError RegHwcDeadListener(OnHwcDeadCallback func, void* data);
     RosenError RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, void* data);
-    void Repaint(const OutputPtr &output);
     void ResetDevice();
     /* for RS end */
 
@@ -60,11 +49,10 @@ public:
     RosenError SetHdiBackendDevice(HdiDevice* device);
     void StartSample(const OutputPtr &output);
     /* set a temporary period used only for VSyncSampler::GetHardwarePeriod interface */
-    void SetPendingMode(const OutputPtr &output, int64_t period, int64_t timestamp);
-    void SetVsyncSamplerEnabled(const OutputPtr &output, bool enabled);
-    bool GetVsyncSamplerEnabled(const OutputPtr &output);
+    void SetPendingMode(const OutputPtr& output, int64_t period, int64_t timestamp);
+    void SetVsyncSamplerEnabled(const OutputPtr& output, bool enabled);
+    bool GetVsyncSamplerEnabled(const OutputPtr& output);
     RosenError RegHwcEventCallback(RSHwcEventCallback func, void* data);
-    void SetScreenPowerOnChanged(bool flag);
 
 private:
     HdiBackend() = default;
@@ -78,25 +66,19 @@ private:
     HdiDevice *device_ = nullptr;
     void* onHotPlugCbData_ = nullptr;
     void* onRefreshCbData_ = nullptr;
-    void* onPrepareCompleteCbData_ = nullptr;
     OnScreenHotplugFunc onScreenHotplugCb_ = nullptr;
     OnScreenRefreshFunc onScreenRefreshCb_ = nullptr;
-    OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     std::unordered_map<uint32_t, OutputPtr> outputs_;
 
-    static void OnHdiBackendHotPlugEvent(uint32_t deviceId, bool connected, void *data);
-    static void OnHdiBackendRefreshEvent(uint32_t deviceId, void *data);
+    static void OnHdiBackendHotPlugEvent(uint32_t deviceId, bool connected, void* data);
+    static void OnHdiBackendRefreshEvent(uint32_t deviceId, void* data);
     RosenError InitDevice();
     void OnHdiBackendConnected(uint32_t screenId, bool connected);
     void CreateHdiOutput(uint32_t screenId);
     void OnScreenHotplug(uint32_t screenId, bool connected);
     void OnScreenRefresh(uint32_t deviceId);
-    void ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos);
-    void OnPrepareComplete(bool needFlush, const OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos);
-    int32_t PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush);
-    bool screenPowerOnChanged_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // HDI_BACKEND_HDI_BACKEND_H
+#endif // RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_BACKEND_H

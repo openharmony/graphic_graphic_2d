@@ -408,8 +408,10 @@ void RSSurfaceRenderNode::CollectSelfDrawingChild(
 void RSSurfaceRenderNode::FindScreenId()
 {
     // The results found across screen windows are inaccurate
+    if (screenId_ != INVALID_SCREEN_ID) {
+        return;
+    }
     auto nodeTemp = GetParent().lock();
-    screenId_ = -1;
     while (nodeTemp != nullptr) {
         if (nodeTemp->GetId() == 0) {
             break;
@@ -417,6 +419,10 @@ void RSSurfaceRenderNode::FindScreenId()
         if (nodeTemp->GetType() == RSRenderNodeType::SCREEN_NODE) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(nodeTemp);
             screenId_ = displayNode->GetScreenId();
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+            if (surfaceParams != nullptr) {
+                surfaceParams->SetScreenId(screenId_);
+            }
             break;
         }
         nodeTemp = nodeTemp->GetParent().lock();
@@ -2860,6 +2866,10 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
+    if (!onTree) {
+        screenId_ = INVALID_SCREEN_ID;
+    }
+
 #ifdef RS_MEMORY_INFO_MANAGER
     RSMemoryInfoManager::SetSurfaceMemoryInfo(onTree, GetRSSurfaceHandler());
 #endif

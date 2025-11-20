@@ -110,7 +110,7 @@ void RSBaseRenderEngine::ResetCurrentContext()
 #endif
 }
 
-bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
+bool RSBaseRenderEngine::NeedForceCPU(const std::vector<RSLayerPtr>& layers)
 {
     bool forceCPU = false;
     for (const auto& layer: layers) {
@@ -640,7 +640,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         params.brightnessRatio, params.hasMetadata);
 #endif
 
-    RSMainThread::GPUCompositonCacheGuard guard;
     VideoInfo videoInfo;
     auto image = CreateImageFromBuffer(canvas, params, videoInfo);
     if (image == nullptr) {

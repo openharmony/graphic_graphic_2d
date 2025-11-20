@@ -15,11 +15,8 @@
 
 #include "hdi_backend.h"
 #include "hdi_log.h"
-
-#include <scoped_bytrace.h>
-#include "surface_buffer.h"
 #include "hitrace_meter.h"
-#include "sync_fence_tracker.h"
+#include "surface_buffer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -79,19 +76,6 @@ RosenError HdiBackend::RegScreenRefresh(OnScreenRefreshFunc func, void* data)
     return ROSEN_ERROR_OK;
 }
 
-RosenError HdiBackend::RegPrepareComplete(OnPrepareCompleteFunc func, void* data)
-{
-    if (func == nullptr) {
-        HLOGE("OnPrepareCompleteFunc is null");
-        return ROSEN_ERROR_INVALID_ARGUMENTS;
-    }
-
-    onPrepareCompleteCb_ = func;
-    onPrepareCompleteCbData_ = data;
-
-    return ROSEN_ERROR_OK;
-}
-
 RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
 {
     if (func == nullptr) {
@@ -134,96 +118,13 @@ RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, vo
     return ROSEN_ERROR_OK;
 }
 
-void HdiBackend::SetPendingMode(const OutputPtr &output, int64_t period, int64_t timestamp)
+void HdiBackend::SetPendingMode(const OutputPtr& output, int64_t period, int64_t timestamp)
 {
     if (output == nullptr) {
         HLOGE("output is nullptr.");
         return;
     }
     output->SetPendingMode(period, timestamp);
-}
-
-int32_t HdiBackend::PrepareCompleteIfNeed(const OutputPtr &output, bool needFlush)
-{
-    std::vector<LayerPtr> compClientLayers;
-    output->GetComposeClientLayers(compClientLayers);
-    std::vector<LayerInfoPtr> newLayerInfos;
-    output->GetLayerInfos(newLayerInfos);
-
-    if (compClientLayers.size() > 0) {
-        needFlush = true;
-        HLOGD("Need flush framebuffer, client composition layer num is %{public}zu", compClientLayers.size());
-    }
-
-    OnPrepareComplete(needFlush, output, newLayerInfos);
-    if (needFlush) {
-        return output->FlushScreen(compClientLayers);
-    }
-    return GRAPHIC_DISPLAY_SUCCESS;
-}
-
-void HdiBackend::Repaint(const OutputPtr &output)
-{
-    ScopedBytrace bytrace(__func__);
-    HLOGD("%{public}s: start", __func__);
-
-    if (output == nullptr) {
-        HLOGE("output is nullptr.");
-        return;
-    }
-
-    bool needFlush = false;
-    int32_t skipState = INT32_MAX;
-    int32_t ret = output->PreProcessLayersComp();
-    output->SetActiveRectSwitchStatus(false);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("PreProcessLayersComp failed, ret is %{public}d", ret);
-        return;
-    }
-
-    sptr<SyncFence> fbFence = SyncFence::InvalidFence();
-    ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);
-    }
-
-    if (screenPowerOnChanged_) {
-        HLOGI("Power On First Frame commit finish");
-        screenPowerOnChanged_ = false;
-    }
-
-    if (skipState != GRAPHIC_DISPLAY_SUCCESS) {
-        ret = output->UpdateLayerCompType();
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            return;
-        }
-        ret = PrepareCompleteIfNeed(output, needFlush);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            return;
-        }
-        skipState = INT32_MAX;
-        ret = output->CommitAndGetReleaseFence(fbFence, skipState, needFlush, true);
-        HLOGD("%{public}s: ValidateDisplay", __func__);
-        if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-            HLOGE("second commit failed, ret is %{public}d", ret);
-        }
-    }
-
-    if (IsTagEnabled(HITRACE_TAG_GRAPHIC_AGP)) {
-        static SyncFenceTracker presentFenceThread("Present Fence");
-        presentFenceThread.TrackFence(fbFence);
-    }
-
-    ret = output->UpdateInfosAfterCommit(fbFence);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        return;
-    }
-
-    ret = output->ReleaseFramebuffer(fbFence);
-    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
-        return;
-    }
-    HLOGD("%{public}s: end", __func__);
 }
 
 void HdiBackend::StartSample(const OutputPtr &output)
@@ -235,7 +136,7 @@ void HdiBackend::StartSample(const OutputPtr &output)
     output->StartVSyncSampler(true); // force resample
 }
  
-void HdiBackend::SetVsyncSamplerEnabled(const OutputPtr &output, bool enabled)
+void HdiBackend::SetVsyncSamplerEnabled(const OutputPtr& output, bool enabled)
 {
     if (output == nullptr) {
         HLOGE("output is nullptr.");
@@ -244,7 +145,7 @@ void HdiBackend::SetVsyncSamplerEnabled(const OutputPtr &output, bool enabled)
     output->SetVsyncSamplerEnabled(enabled);
 }
 
-bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr &output)
+bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr& output)
 {
     if (output == nullptr) {
         HLOGE("output is nullptr.");
@@ -265,38 +166,7 @@ void HdiBackend::ResetDevice()
     outputs_.clear();
 }
 
-void HdiBackend::OnPrepareComplete(bool needFlush, const OutputPtr &output, std::vector<LayerInfoPtr> &newLayerInfos)
-{
-    if (needFlush) {
-        ReorderLayerInfo(newLayerInfos);
-    }
-
-    struct PrepareCompleteParam param = {
-        .needFlushFramebuffer = needFlush,
-        .layers = newLayerInfos,
-        .screenId = output->GetScreenId(),
-    };
-
-    auto fbSurface = output->GetFrameBufferSurface();
-    if (onPrepareCompleteCb_ != nullptr) {
-        onPrepareCompleteCb_(fbSurface, param, onPrepareCompleteCbData_);
-    }
-}
-
-static inline bool Cmp(const LayerInfoPtr &layer1, const LayerInfoPtr &layer2)
-{
-    if (layer1 == nullptr || layer2 == nullptr) {
-        return false;
-    }
-    return layer1->GetZorder() < layer2->GetZorder();
-}
-
-void HdiBackend::ReorderLayerInfo(std::vector<LayerInfoPtr> &newLayerInfos)
-{
-    std::sort(newLayerInfos.begin(), newLayerInfos.end(), Cmp);
-}
-
-void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void *data)
+void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void* data)
 {
     HLOGI("HotPlugEvent, screenId is %{public}u, connected is %{public}u", screenId, connected);
     HdiBackend *hdiBackend = nullptr;
@@ -309,7 +179,7 @@ void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, voi
     hdiBackend->OnHdiBackendConnected(screenId, connected);
 }
 
-void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void *data)
+void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void* data)
 {
     HdiBackend *hdiBackend = nullptr;
     if (data != nullptr) {
@@ -410,11 +280,6 @@ RosenError HdiBackend::RegHwcEventCallback(RSHwcEventCallback func, void* data)
         return ROSEN_ERROR_API_FAILED;
     }
     return ROSEN_ERROR_OK;
-}
-
-void HdiBackend::SetScreenPowerOnChanged(bool flag)
-{
-    screenPowerOnChanged_ = flag;
 }
 } // namespace Rosen
 } // namespace OHOS

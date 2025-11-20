@@ -33,7 +33,7 @@ public:
 void HdiLayerSysTest::SetUpTestCase()
 {
     hdiLayer_ = HdiLayer::CreateHdiLayer(0);
-    LayerInfoPtr layerInfo;
+    RSLayerPtr layerInfo;
     hdiLayer_->Init(layerInfo);
     hdiLayer_->UpdateLayerInfo(layerInfo);
 }

@@ -167,15 +167,15 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
     } else {
         canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
     }
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(nullptr);
-    LayerInfoPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layers.emplace_back(layer1);
-    LayerInfoPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
     layers.emplace_back(layer2);
-    LayerInfoPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();

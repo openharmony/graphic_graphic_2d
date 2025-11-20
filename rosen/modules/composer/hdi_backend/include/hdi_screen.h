@@ -21,7 +21,6 @@
 #include <refbase.h>
 #include <mutex>
 
-#include "hdi_layer.h"
 #include "hdi_device.h"
 
 namespace OHOS {
