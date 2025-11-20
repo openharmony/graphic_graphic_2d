@@ -26,6 +26,7 @@
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
 #include "animation/rs_animation_trace_utils.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -135,6 +136,7 @@ bool RSTransactionData::Marshalling(Parcel& parcel) const
                 RS_OPTIONAL_TRACE_NAME_TESTMODE("RSTransactionData::Marshalling nodeId:%ld type:%s",
                     command->GetNodeId(), command->PrintType().c_str());
             }
+            GpuDirtyRegionCollection::GetInstance().AddCommandNumberForDFX();
 #ifndef ROSEN_TRACE_DISABLE
             RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(
                 TRACE_LEVEL_THREE, "RSTransactionData::Marshalling type:%s", command->PrintType().c_str());

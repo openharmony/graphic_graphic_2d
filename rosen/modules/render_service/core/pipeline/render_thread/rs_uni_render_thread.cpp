@@ -451,6 +451,7 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
                 }
                 auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
                     RSHardwareThread::Instance().releaseFence_ : acquireFence);
+                GpuDirtyRegionCollection::GetInstance().AddConsumeBufferNumberForDFX();
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }

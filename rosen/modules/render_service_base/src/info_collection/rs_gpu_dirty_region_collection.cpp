@@ -69,6 +69,24 @@ void GpuDirtyRegionCollection::AddSkipProcessFramesNumberForDFX(pid_t sendingPid
     ++sendingPidWhenDisplayNodeSkipMap_[sendingPid];
 }
 
+void GpuDirtyRegionCollection::AddCommandNumberForDFX()
+{
+    std::lock_guard<std::mutex> lock(globalMtx_);
+    ++globalDirtyRegionInfo_.commandCount;
+}
+
+void GpuDirtyRegionCollection::AddConsumeBufferNumberForDFX()
+{
+    std::lock_guard<std::mutex> lock(globalMtx_);
+    ++globalDirtyRegionInfo_.consumeBufferSize;
+}
+
+void GpuDirtyRegionCollection::AddFrameAnimationNumberForDFX()
+{
+    std::lock_guard<std::mutex> lock(globalMtx_);
+    ++globalDirtyRegionInfo_.frameAnimationCount;
+}
+
 std::vector<ActiveDirtyRegionInfo> GpuDirtyRegionCollection::GetActiveDirtyRegionInfo() const
 {
     std::lock_guard<std::mutex> lock(activeMtx_);
@@ -93,6 +111,9 @@ GlobalDirtyRegionInfo GpuDirtyRegionCollection::GetGlobalDirtyRegionInfo() const
         globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip = GetMostSendingPidWhenDisplayNodeSkip();
     }
     globalDirtyRegionInfo.skipProcessFramesNumber = globalDirtyRegionInfo_.skipProcessFramesNumber;
+    globalDirtyRegionInfo.commandCount = globalDirtyRegionInfo_.commandCount;
+    globalDirtyRegionInfo.consumeBufferSize = globalDirtyRegionInfo_.consumeBufferSize;
+    globalDirtyRegionInfo.frameAnimationCount = globalDirtyRegionInfo_.frameAnimationCount;
     return globalDirtyRegionInfo;
 }
 
