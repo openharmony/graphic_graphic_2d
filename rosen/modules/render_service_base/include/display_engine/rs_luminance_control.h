@@ -93,7 +93,7 @@ public:
     virtual bool IsHdrPictureOn() = 0;
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
-    virtual bool IsCloseHardwareHdr() const = 0;
+    virtual bool IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) = 0;
     virtual bool IsScreenNoHeadroom(ScreenId) const = 0;
     virtual double GetMaxScaler(ScreenId screenId) const = 0;
     virtual BrightnessInfo GetBrightnessInfo(ScreenId screenId) = 0;
@@ -134,12 +134,12 @@ public:
     RSB_EXPORT bool IsHdrPictureOn();
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
-    RSB_EXPORT bool IsCloseHardwareHdr();
     RSB_EXPORT bool IsScreenNoHeadroom(ScreenId screenId) const;
     RSB_EXPORT double GetMaxScaler(ScreenId screenId) const;
     RSB_EXPORT BrightnessInfo GetBrightnessInfo(ScreenId screenId);
     RSB_EXPORT bool IsBrightnessInfoChanged(ScreenId screenId);
     RSB_EXPORT void HandleGamutSpecialRender(std::vector<ScreenColorGamut>& modes);
+    RSB_EXPORT bool IsHardwareHdrDisabled(bool checkBrightnessRatio = false, ScreenId screenId = 0) const;
     RSB_EXPORT uint32_t ConvertScalerFromFloatToLevel(float& scaler) const;
     RSB_EXPORT float ConvertScalerFromLevelToFloat(uint32_t& level) const;
     RSB_EXPORT void SetCurDisplayHdrBrightnessScaler(ScreenId screenId,

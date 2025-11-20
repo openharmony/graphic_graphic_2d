@@ -624,6 +624,7 @@ ohos_unittest("RSUniRenderVisitorTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "main_thread/rs_uni_render_visitor_test.cpp",
     "mock/mock_matrix.cpp",
+    "mock/mock_rs_luminance_control.cpp",
   ]
   deps = [
     ":rs_test_common",
@@ -733,7 +734,10 @@ ohos_unittest("RSHardwareThreadTest") {
 ## Build RSMainThreadTest
 ohos_unittest("RSMainThreadTest") {
   module_out_path = module_output_path
-  sources = [ "main_thread/rs_main_thread_test.cpp" ]
+  sources = [
+    "main_thread/rs_main_thread_test.cpp",
+    "mock/mock_rs_luminance_control.cpp"
+  ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
