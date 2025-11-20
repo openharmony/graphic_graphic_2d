@@ -3350,12 +3350,7 @@ void RSMainThread::ProcessScreenHotPlugEvents()
     }
 #ifdef RS_ENABLE_GPU
     if (!screenManager_->TrySimpleProcessHotPlugEvents()) {
-        auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-        if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-            screenManager_->ProcessScreenHotPlugEvents(true);
-        } else {
-            PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
-        }
+        PostTask([=]() { screenManager_->ProcessScreenHotPlugEvents(); });
     }
 #endif
 }
