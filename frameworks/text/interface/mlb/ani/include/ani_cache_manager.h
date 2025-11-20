@@ -17,11 +17,6 @@
 #define OHOS_TEXT_ANI_CACHE_MANAGER_H
 
 #include <ani.h>
-#include <memory>
-#include <shared_mutex>
-#include <string>
-#include <string_view>
-#include <unordered_map>
 
 #include "utils/text_log.h"
 

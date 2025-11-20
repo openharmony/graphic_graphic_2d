@@ -146,7 +146,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontFamily),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontSubfamily),
         AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_FONT_WEIGHT),
-            getEnumIndex(ENUM_FONT_WEIGHT, static_cast<uint32_t>(iter->second))),
+            getEnumIndex(AniTextEnum::ENUM_FONT_WEIGHT, static_cast<uint32_t>(iter->second))),
         ani_int(fontDesc->width), ani_int(fontDesc->italic), ani_boolean(fontDesc->monoSpace),
         ani_boolean(fontDesc->symbolic));
 

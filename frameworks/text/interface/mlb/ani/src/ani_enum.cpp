@@ -15,7 +15,6 @@
 
 #include "ani_enum.h"
 
-#include "ani_common.h"
 #include "font_parser.h"
 #include "text_global_config.h"
 #include "typography_create.h"
@@ -25,31 +24,7 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
-const std::unordered_map<std::string_view, const std::vector<uint32_t>&> INT_ENUM_CLASS_MAP = {
-    { ANI_ENUM_TEXT_ALIGN, ENUM_TEXT_ALIGN },
-    { ANI_ENUM_TEXT_DECORATION_STYLE, ENUM_TEXT_DECORATION_STYLE },
-    { ANI_ENUM_FONT_WEIGHT, ENUM_FONT_WEIGHT },
-    { ANI_ENUM_FONT_STYLE, ENUM_FONT_STYLE },
-    { ANI_ENUM_TEXT_BASELINE, ENUM_TEXT_BASE_LINE },
-    { ANI_ENUM_TEXT_DIRECTION, ENUM_TEXT_DIRECTION },
-    { ANI_ENUM_WORD_BREAK, ENUM_WORD_BREAK_TYPE },
-    { ANI_ENUM_BREAK_STRATEGY, ENUM_BREAK_STRATEGY },
-    { ANI_ENUM_ELLIPSIS_MODE, ENUM_ELLIPSIS_MODAL },
-    { ANI_ENUM_TEXT_DECORATION_TYPE, ENUM_TEXT_DECORATION },
-    { ANI_ENUM_PLACEHOLDER_ALIGNMENT, ENUM_PLACEHOLDER_ALIGNMENT },
-    { ANI_ENUM_RECT_WIDTH_STYLE, ENUM_RECT_WIDTH_STYLE },
-    { ANI_ENUM_RECT_HEIGHT_STYLE, ENUM_RECT_HEIGHT_STYLE },
-    { ANI_ENUM_AFFINITY, ENUM_AFFINITY },
-    { ANI_ENUM_FONT_WIDTH, ENUM_FONTWIDTH },
-    { ANI_ENUM_TEXT_HEIGHT_BEHAVIOR, ENUM_TEXTHEIGHTBEHAVIOR },
-    { ANI_ENUM_SYSTEM_FONT_TYPE, ENUM_SYSTEM_FONT_TYPE },
-    // { ANI_ENUM_TEXT_HIGH_CONTRAST, ENUM_TEXT_HIGH_CONTRAST },
-    // { ANI_ENUM_TEXT_BADGE_TYPE, ENUM_TEXT_BADGE_TYPE },
-    // { ANI_ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY, ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY },
-    // { ANI_ENUM_TEXT_VERTICAL_ALIGN, ENUM_TEXT_VERTICAL_ALIGN },
-};
-
-const std::vector<uint32_t> ENUM_TEXT_ALIGN = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_ALIGN = {
     static_cast<uint32_t>(TextAlign::LEFT),
     static_cast<uint32_t>(TextAlign::RIGHT),
     static_cast<uint32_t>(TextAlign::CENTER),
@@ -58,7 +33,7 @@ const std::vector<uint32_t> ENUM_TEXT_ALIGN = {
     static_cast<uint32_t>(TextAlign::END),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_DECORATION = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_DECORATION = {
     static_cast<uint32_t>(TextDecoration::NONE),
     static_cast<uint32_t>(TextDecoration::UNDERLINE),
     static_cast<uint32_t>(TextDecoration::OVERLINE),
@@ -66,7 +41,7 @@ const std::vector<uint32_t> ENUM_TEXT_DECORATION = {
 };
 
 
-const std::vector<uint32_t> ENUM_TEXT_DECORATION_STYLE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_DECORATION_STYLE = {
     static_cast<uint32_t>(TextDecorationStyle::SOLID),
     static_cast<uint32_t>(TextDecorationStyle::DOUBLE),
     static_cast<uint32_t>(TextDecorationStyle::DOTTED),
@@ -74,7 +49,7 @@ const std::vector<uint32_t> ENUM_TEXT_DECORATION_STYLE = {
     static_cast<uint32_t>(TextDecorationStyle::WAVY),
 };
 
-const std::vector<uint32_t> ENUM_FONT_WEIGHT = {
+const std::vector<uint32_t> AniTextEnum::ENUM_FONT_WEIGHT = {
     static_cast<uint32_t>(FontWeight::W100),
     static_cast<uint32_t>(FontWeight::W200),
     static_cast<uint32_t>(FontWeight::W300),
@@ -86,42 +61,42 @@ const std::vector<uint32_t> ENUM_FONT_WEIGHT = {
     static_cast<uint32_t>(FontWeight::W900),
 };
 
-const std::vector<uint32_t> ENUM_FONT_STYLE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_FONT_STYLE = {
     static_cast<uint32_t>(FontStyle::NORMAL),
     static_cast<uint32_t>(FontStyle::ITALIC),
     static_cast<uint32_t>(FontStyle::OBLIQUE),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_BASE_LINE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_BASE_LINE = {
     static_cast<uint32_t>(TextBaseline::ALPHABETIC),
     static_cast<uint32_t>(TextBaseline::IDEOGRAPHIC),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_DIRECTION = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_DIRECTION = {
     static_cast<uint32_t>(TextDirection::RTL),
     static_cast<uint32_t>(TextDirection::LTR),
 };
 
-const std::vector<uint32_t> ENUM_WORD_BREAK_TYPE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_WORD_BREAK_TYPE = {
     static_cast<uint32_t>(WordBreakType::NORMAL),
     static_cast<uint32_t>(WordBreakType::BREAK_ALL),
     static_cast<uint32_t>(WordBreakType::BREAK_WORD),
     static_cast<uint32_t>(WordBreakType::BREAK_HYPHEN),
 };
 
-const std::vector<uint32_t> ENUM_BREAK_STRATEGY = {
+const std::vector<uint32_t> AniTextEnum::ENUM_BREAK_STRATEGY = {
     static_cast<uint32_t>(BreakStrategy::GREEDY),
     static_cast<uint32_t>(BreakStrategy::HIGH_QUALITY),
     static_cast<uint32_t>(BreakStrategy::BALANCED),
 };
 
-const std::vector<uint32_t> ENUM_ELLIPSIS_MODAL = {
+const std::vector<uint32_t> AniTextEnum::ENUM_ELLIPSIS_MODAL = {
     static_cast<uint32_t>(EllipsisModal::HEAD),
     static_cast<uint32_t>(EllipsisModal::MIDDLE),
     static_cast<uint32_t>(EllipsisModal::TAIL),
 };
 
-const std::vector<uint32_t> ENUM_PLACEHOLDER_ALIGNMENT = {
+const std::vector<uint32_t> AniTextEnum::ENUM_PLACEHOLDER_ALIGNMENT = {
     static_cast<uint32_t>(PlaceholderVerticalAlignment::OFFSET_AT_BASELINE),
     static_cast<uint32_t>(PlaceholderVerticalAlignment::ABOVE_BASELINE),
     static_cast<uint32_t>(PlaceholderVerticalAlignment::BELOW_BASELINE),
@@ -131,12 +106,12 @@ const std::vector<uint32_t> ENUM_PLACEHOLDER_ALIGNMENT = {
     static_cast<uint32_t>(PlaceholderVerticalAlignment::FOLLOW_PARAGRAPH),
 };
 
-const std::vector<uint32_t> ENUM_RECT_WIDTH_STYLE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_RECT_WIDTH_STYLE = {
     static_cast<uint32_t>(TextRectWidthStyle::TIGHT),
     static_cast<uint32_t>(TextRectWidthStyle::MAX),
 };
 
-const std::vector<uint32_t> ENUM_RECT_HEIGHT_STYLE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_RECT_HEIGHT_STYLE = {
     static_cast<uint32_t>(TextRectHeightStyle::TIGHT),
     static_cast<uint32_t>(TextRectHeightStyle::COVER_TOP_AND_BOTTOM),
     static_cast<uint32_t>(TextRectHeightStyle::COVER_HALF_TOP_AND_BOTTOM),
@@ -145,12 +120,12 @@ const std::vector<uint32_t> ENUM_RECT_HEIGHT_STYLE = {
     static_cast<uint32_t>(TextRectHeightStyle::FOLLOW_BY_STRUT),
 };
 
-const std::vector<uint32_t> ENUM_AFFINITY = {
+const std::vector<uint32_t> AniTextEnum::ENUM_AFFINITY = {
     static_cast<uint32_t>(Affinity::PREV),
     static_cast<uint32_t>(Affinity::NEXT),
 };
 
-const std::vector<uint32_t> ENUM_FONTWIDTH = {
+const std::vector<uint32_t> AniTextEnum::ENUM_FONTWIDTH = {
     static_cast<uint32_t>(FontWidth::ULTRA_CONDENSED),
     static_cast<uint32_t>(FontWidth::EXTRA_CONDENSED),
     static_cast<uint32_t>(FontWidth::CONDENSED),
@@ -162,14 +137,14 @@ const std::vector<uint32_t> ENUM_FONTWIDTH = {
     static_cast<uint32_t>(FontWidth::ULTRA_EXPANDED),
 };
 
-const std::vector<uint32_t> ENUM_TEXTHEIGHTBEHAVIOR = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXTHEIGHTBEHAVIOR = {
     static_cast<uint32_t>(TextHeightBehavior::ALL),
     static_cast<uint32_t>(TextHeightBehavior::DISABLE_FIRST_ASCENT),
     static_cast<uint32_t>(TextHeightBehavior::DISABLE_LAST_ASCENT),
     static_cast<uint32_t>(TextHeightBehavior::DISABLE_ALL),
 };
 
-const std::vector<uint32_t> ENUM_SYSTEM_FONT_TYPE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_SYSTEM_FONT_TYPE = {
     static_cast<uint32_t>(TextEngine::FontParser::SystemFontType::ALL),
     static_cast<uint32_t>(TextEngine::FontParser::SystemFontType::GENERIC),
     static_cast<uint32_t>(TextEngine::FontParser::SystemFontType::STYLISH),
@@ -177,51 +152,29 @@ const std::vector<uint32_t> ENUM_SYSTEM_FONT_TYPE = {
     static_cast<uint32_t>(TextEngine::FontParser::SystemFontType::CUSTOMIZED),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_HIGH_CONTRAST = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_HIGH_CONTRAST = {
     static_cast<uint32_t>(SrvText::TextHighContrast::TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST),
     static_cast<uint32_t>(SrvText::TextHighContrast::TEXT_APP_DISABLE_HIGH_CONTRAST),
     static_cast<uint32_t>(SrvText::TextHighContrast::TEXT_APP_ENABLE_HIGH_CONTRAST),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_BADGE_TYPE = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_BADGE_TYPE = {
     static_cast<uint32_t>(TextBadgeType::BADGE_NONE),
     static_cast<uint32_t>(TextBadgeType::SUPERSCRIPT),
     static_cast<uint32_t>(TextBadgeType::SUBSCRIPT),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY = {
     static_cast<uint32_t>(SrvText::TextUndefinedGlyphDisplay::UNDEFINED_GLYPH_USE_DEFAULT),
     static_cast<uint32_t>(SrvText::TextUndefinedGlyphDisplay::UNDEFINED_GLYPH_USE_TOFU),
 };
 
-const std::vector<uint32_t> ENUM_TEXT_VERTICAL_ALIGN = {
+const std::vector<uint32_t> AniTextEnum::ENUM_TEXT_VERTICAL_ALIGN = {
     static_cast<uint32_t>(TextVerticalAlign::BASELINE),
     static_cast<uint32_t>(TextVerticalAlign::BOTTOM),
     static_cast<uint32_t>(TextVerticalAlign::CENTER),
     static_cast<uint32_t>(TextVerticalAlign::TOP),
 };
-
-uint32_t getEnumValue(const std::string_view& enumName, size_t enumIndex)
-{
-    auto it = INT_ENUM_CLASS_MAP.find(enumName);
-    if (it != INT_ENUM_CLASS_MAP.end() && enumIndex < it->second.size()) {
-        return it->second[enumIndex];
-    }
-    return 0;
-}
-
-size_t getEnumIndex(const std::string_view& enumName, uint32_t enumValue)
-{
-    auto it = INT_ENUM_CLASS_MAP.find(enumName);
-    if (it != INT_ENUM_CLASS_MAP.end()) {
-        const auto& values = it->second;
-        auto pos = std::find(values.begin(), values.end(), enumValue);
-        if (pos != values.end()) {
-            return static_cast<size_t>(std::distance(values.begin(), pos));
-        }
-    }
-    return -1;
-}
 
 size_t getEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue)
 {
