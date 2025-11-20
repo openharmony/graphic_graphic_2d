@@ -157,6 +157,7 @@ napi_value ColorPickerNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("getReverseColor", GetReverseColor),
         DECLARE_NAPI_FUNCTION("getTopProportionColors", GetTopProportionColors),
         DECLARE_NAPI_FUNCTION("getTopProportionColorsAndPercentage", GetTopProportionColorsAndPercentage),
+        DECLARE_NAPI_FUNCTION("getAlphaZeroTransparentProportion", GetAlphaZeroTransparentProportion),
     };
 
     napi_property_descriptor static_prop[] = {
@@ -1128,6 +1129,33 @@ napi_value ColorPickerNapi::ShadeDegree(napi_env env, napi_callback_info info)
         EFFECT_LOG_E("ERR_EFFECT_INVALID_VALUE: ColorPickerNapi::ShadeDegree get degree fail");
     }
     return result;
+}
+
+napi_value ColorPickerNapi::GetAlphaZeroTransparentProportion(napi_env env, napi_callback_info info)
+{
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argValue[NUM_1] = {0};
+    size_t argCount = 1;
+    EFFECT_JS_ARGS(env, info, status, argCount, argValue, thisVar);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetAlphaZeroTransparentProportion parsing input fail"));
+
+    ColorPickerNapi *thisColorPicker = nullptr;
+
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&thisColorPicker));
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisColorPicker != nullptr &&
+        thisColorPicker->nativeColorPicker_ != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetTopProportionColors unwrap native ColorPicker fail"));
+
+    double percentage = thisColorPicker->nativeColorPicker_->GetAlphaZeroTransparentProportion();
+
+    napi_value percentageValue = nullptr;
+    status = napi_create_double(env, percentage, &percentageValue);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && percentageValue != nullptr, nullptr,
+        EFFECT_LOG_E("ColorPickerNapi GetFullyTransparentProportion create map fail"));
+
+    return percentageValue;
 }
 
 ImageType ColorPickerNapi::ParserArgumentType(napi_env env, napi_value argv)
