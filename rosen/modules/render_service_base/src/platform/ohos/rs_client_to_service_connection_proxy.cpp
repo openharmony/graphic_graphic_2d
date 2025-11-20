@@ -5707,7 +5707,7 @@ int32_t RSClientToServiceConnectionProxy::SubmitCanvasPreAllocatedBuffer(
     }
 
     if (!data.WriteUint32(resetSurfaceIndex)) {
-        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteInt64 resetSurfaceIndex err.");
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteUint32 resetSurfaceIndex err.");
         return WRITE_PARCEL_ERR;
     }
 

@@ -2161,12 +2161,12 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkStub001, Test
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
- * @tc.name: RegisterCanvasCallbackTest001
+ * @tc.name: RegisterCanvasCallbackTest
  * @tc.desc: Test REGISTER_CANVAS_CALLBACK with various scenarios
  * @tc.type: FUNC
  * @tc.require: issue
  */
-HWTEST_F(RSClientToServiceConnectionStubTest, RegisterCanvasCallbackTest001, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterCanvasCallbackTest, TestSize.Level1)
 {
     MessageParcel reply;
     MessageOption option;

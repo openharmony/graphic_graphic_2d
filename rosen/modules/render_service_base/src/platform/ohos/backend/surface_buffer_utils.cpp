@@ -36,7 +36,6 @@ constexpr int DMA_BUF_BASE = 'b';
 const char* DMA_BUF_NAME = "canvas";
 
 // DMA buffer ioctl commands
-#define DMA_BUF_SET_NAME_A _IOW(DMA_BUF_BASE, 1, __u32)
 #define DMA_BUF_SET_LEAK_TYPE _IOW(DMA_BUF_BASE, 5, const char*)
 } // namespace
 
@@ -101,7 +100,7 @@ void SurfaceBufferUtils::SetCanvasSurfaceBufferName(sptr<SurfaceBuffer> buffer, 
 
     // Format: WIDTHxHEIGHT_pid (e.g., 1920x1080_1234)
     std::string bufferName = std::to_string(width) + "x" + std::to_string(height) + "_" + std::to_string(pid);
-    int ret = TEMP_FAILURE_RETRY(ioctl(fd, DMA_BUF_SET_NAME_A, bufferName.c_str()));
+    int ret = TEMP_FAILURE_RETRY(ioctl(fd, DMA_BUF_SET_LEAK_TYPE, bufferName.c_str()));
     if (ret != 0) {
         RS_LOGE("SetCanvasSurfaceBufferName: Failed to set DMA buffer name, fd=%{public}d, width=%{public}d, "
             "height=%{public}d, pid=%{public}d", fd, width, height, pid);

@@ -49,6 +49,7 @@ void RSCanvasSurfaceBufferCallbackProxy::OnCanvasSurfaceBufferChanged(
 
     if (!data.WriteUint32(resetSurfaceIndex)) {
         ROSEN_LOGE("OnCanvasSurfaceBufferChanged write resetSurfaceIndex failed, nodeId=%{public}" PRIu64, nodeId);
+        return;
     }
 
     if (buffer != nullptr) {
