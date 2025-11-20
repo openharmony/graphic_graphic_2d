@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "hwc_param.h"
 #include "rs_uni_hwc_visitor.h"
 
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
@@ -921,6 +920,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
             const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
             for (auto& hwcNode : hwcNodes) {
                 auto hwcNodePtr = hwcNode.lock();
+                if (!hwcNodePtr) {
+                    continue;
+                }
                 CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, filterZOrder);
             }
         }
@@ -931,6 +933,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
         }
         for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr) {
+                continue;
+            }
             CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, filterZOrder);
         }
     }
