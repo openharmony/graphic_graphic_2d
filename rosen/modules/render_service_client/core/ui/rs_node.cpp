@@ -2323,6 +2323,7 @@ void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& material
 {
     if (!materialFilter) {
         ROSEN_LOGW("RSNode::SetMaterialNGFilter filter is nullptr");
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_FILTER);
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_NG_FILTER);
@@ -3996,6 +3997,7 @@ void RSNode::DumpTree(int depth, std::string& out) const
 
 void RSNode::DumpModifiers(std::string& out) const
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::string modifierInfo;
     const auto& modifiers = modifiersNG_;
     for (const auto& [id, modifier] : modifiers) {
@@ -4226,11 +4228,16 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
     if (modifier->IsCustom()) {
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+
+    std::shared_ptr<ModifierNG::RSRenderModifier> renderModifier = nullptr;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        renderModifier = modifier->CreateRenderModifier();
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, renderModifier);
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+        std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSAddModifierNG>(id_, renderModifier);
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
 }
@@ -4245,8 +4252,8 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
             return;
         }
         modifiersNG_.erase(modifier->GetId());
+        modifier->OnDetach(); // Detach properties of modifier here
     }
-    modifier->OnDetach(); // Detach properties of modifier here
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRemoveModifierNG>(id_, modifier->GetType(), modifier->GetId());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
