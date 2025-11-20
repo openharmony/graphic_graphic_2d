@@ -45,6 +45,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
      [] {
          return std::make_shared<RSNGColorGradientFilter>();
      }},
+    {RSNGEffectType::FROSTED_GLASS,
+     [] {
+         return std::make_shared<RSNGFrostedGlassFilter>();
+     }},
 };
 
 // Default values
