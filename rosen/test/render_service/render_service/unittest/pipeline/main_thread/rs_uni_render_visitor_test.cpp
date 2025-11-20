@@ -6126,7 +6126,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo001, TestSize.Level2)
     rsUniRenderVisitor->curUnionNode_ = unionNode;
 
     node->renderProperties_.useUnion_ = true;
-    node->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
     node->shouldPaint_ = true;
     rsUniRenderVisitor->CollectUnionInfo(*node);
     ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
@@ -6150,11 +6149,10 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo002, TestSize.Level2)
     node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
     rsUniRenderVisitor->curUnionNode_ = unionNode;
 
-    node->renderProperties_.useUnion_ = true;
-    node->renderProperties_.renderSDFShape_ = nullptr;
+    node->renderProperties_.useUnion_ = false;
     node->shouldPaint_ = true;
     rsUniRenderVisitor->CollectUnionInfo(*node);
-    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }
 
 /**
@@ -6175,11 +6173,10 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo003, TestSize.Level2)
     node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
     rsUniRenderVisitor->curUnionNode_ = unionNode;
 
-    node->renderProperties_.useUnion_ = false;
-    node->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
-    node->shouldPaint_ = true;
+    node->renderProperties_.useUnion_ = true;
+    node->shouldPaint_ = false;
     rsUniRenderVisitor->CollectUnionInfo(*node);
-    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }
 
 /**
@@ -6201,57 +6198,6 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo004, TestSize.Level2)
     rsUniRenderVisitor->curUnionNode_ = unionNode;
 
     node->renderProperties_.useUnion_ = false;
-    node->renderProperties_.renderSDFShape_ = nullptr;
-    node->shouldPaint_ = true;
-    rsUniRenderVisitor->CollectUnionInfo(*node);
-    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
-}
-
-/**
- * @tc.name: CollectUnionInfo005
- * @tc.desc: Test CollectUnionInfo
- * @tc.type: FUNC
- * @tc.require: issueIAG8BF
- */
-HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo005, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
-    NodeId id1 = 2;
-    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
-    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
-    rsUniRenderVisitor->curUnionNode_ = unionNode;
-
-    node->renderProperties_.useUnion_ = false;
-    node->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
-    node->shouldPaint_ = true;
-    rsUniRenderVisitor->CollectUnionInfo(*node);
-    ASSERT_FALSE(unionNode->visibleUnionChildren_.empty());
-}
-
-/**
- * @tc.name: CollectUnionInfo006
- * @tc.desc: Test CollectUnionInfo
- * @tc.type: FUNC
- * @tc.require: issueIAG8BF
- */
-HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo006, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
-    NodeId id1 = 2;
-    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
-    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
-    rsUniRenderVisitor->curUnionNode_ = unionNode;
-
-    node->renderProperties_.useUnion_ = true;
-    node->renderProperties_.renderSDFShape_ = nullptr;
     node->shouldPaint_ = false;
     rsUniRenderVisitor->CollectUnionInfo(*node);
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());

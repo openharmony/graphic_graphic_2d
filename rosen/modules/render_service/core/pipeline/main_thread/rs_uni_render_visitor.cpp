@@ -3071,8 +3071,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
 {
-    if ((node.GetRenderProperties().GetUseUnion() || node.GetRenderProperties().GetSDFShape() != nullptr) &&
-        node.ShouldPaint()) {
+    if (node.GetRenderProperties().GetUseUnion() && node.ShouldPaint()) {
         curUnionNode_->UpdateVisibleUnionChildren(node);
     }
 }

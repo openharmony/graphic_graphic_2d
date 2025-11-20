@@ -144,6 +144,7 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::ROOT_NODE,           "RootNode"},
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
+    {RSUINodeType::UNION_NODE,          "UnionNode"},
 };
 
 std::once_flag flag_;
