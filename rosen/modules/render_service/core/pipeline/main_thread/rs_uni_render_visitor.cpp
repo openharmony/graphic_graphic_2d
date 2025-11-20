@@ -1354,11 +1354,6 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node)
     // used in subtree, add node into parallel list
     node.UpdateSubTreeParallelNodes();
 #endif
-    // [Attention] Only used in PC window resize scene now
-    NodeId linedRootNodeId = node.GetLinkedRootNodeId();
-    if (UNLIKELY(linedRootNodeId != INVALID_NODEID)) {
-        windowKeyFrameNodeInf_.UpdateLinkedNodeId(node.GetId(), linedRootNodeId);
-    }
 
     globalShouldPaint_ = preGlobalShouldPaint;
 
