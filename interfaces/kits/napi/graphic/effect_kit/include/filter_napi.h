@@ -25,7 +25,6 @@
 namespace OHOS {
 namespace Rosen {
 enum class DrawingError;
-static std::mutex getPixelMapAsyncExecuteMutex_;
 static std::mutex getPixelMapAsyncCompleteMutex_;
 class FilterNapi {
 public:
