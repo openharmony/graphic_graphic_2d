@@ -1131,11 +1131,15 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
     const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
     auto imageCount = particleVector.GetParticleImageCount();
-    auto imageVector = particleVector.GetParticleImageVector();
-    auto particleDrawable = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
-    if (particleDrawable != nullptr) {
-        particleDrawable->Draw(canvas, bounds);
+    auto& imageVector = particleVector.GetParticleImageVector();
+
+    if (cachedDrawable_ == nullptr) {
+        cachedDrawable_ = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
+    } else {
+        cachedDrawable_->UpdateData(particles, imageVector, imageCount);
     }
+
+    cachedDrawable_->Draw(canvas, bounds);
     return true;
 }
 } // namespace DrawableV2
