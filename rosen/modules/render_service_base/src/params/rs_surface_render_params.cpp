@@ -435,11 +435,6 @@ bool RSSurfaceRenderParams::GetHwcGlobalPositionEnabled() const
     return isHwcGlobalPositionEnabled_;
 }
 
-bool RSSurfaceRenderParams::IsHardwareEnabledTopSurface() const
-{
-    return rsSurfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorStatus();
-}
-
 void RSSurfaceRenderParams::SetHwcCrossNode(bool isCrossNode)
 {
     isHwcCrossNode_ = isCrossNode;

@@ -386,8 +386,6 @@ public:
     void SetHwcGlobalPositionEnabled(bool isEnabled);
     bool GetHwcGlobalPositionEnabled() const;
 
-    bool IsHardwareEnabledTopSurface() const;
-
     void SetHwcCrossNode(bool isCrossNode);
     bool IsHwcCrossNode() const;
 

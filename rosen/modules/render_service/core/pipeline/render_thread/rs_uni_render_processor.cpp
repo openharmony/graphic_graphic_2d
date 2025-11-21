@@ -288,7 +288,7 @@ LayerInfoPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, s
     alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
     GraphicIRect dstRect = layerInfo.dstRect;
-    if (!params.IsHardwareEnabledTopSurface()) {
+    if (layerInfo.layerType != GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
         auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
         auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
         dstRect = { static_cast<int32_t>(std::floor(layerInfo.dstRect.x * rogWidthRatio)),
