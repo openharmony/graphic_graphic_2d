@@ -145,7 +145,7 @@ ani_status AniTextUtils::ReadOptionalEnumField(ani_env* env, ani_object obj, con
     if (result == ANI_OK && ref != nullptr) {
         ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
-        if (result == ANI_OK) {
+        if (result == ANI_OK && index < enumValues.size()) {
             value = static_cast<EnumType>(enumValues[index]);
         }
     }

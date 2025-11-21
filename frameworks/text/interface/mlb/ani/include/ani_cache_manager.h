@@ -45,15 +45,6 @@ struct CacheKeyHash {
     }
 };
 
-static AniRefCache g_nsCache;
-static AniRefCache g_classCache;
-static AniRefCache g_enumCache;
-
-static std::unordered_map<CacheKey, ani_method, CacheKeyHash> g_methodCache;
-static std::unordered_map<CacheKey, ani_function, CacheKeyHash> g_functionCache;
-static std::shared_mutex g_methodMutex;
-static std::shared_mutex g_functionMutex;
-
 ani_namespace AniFindNamespace(ani_env* env, const char* descriptor);
 
 ani_class AniFindClass(ani_env* env, const char* descriptor);

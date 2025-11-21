@@ -297,7 +297,7 @@ void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object ob
             }
 
             ani_int valueInt;
-            env->Object_CallMethod_Int(obj, AniClassFindMethod(env, FONT_FEATURE_VALUE_KEY), &valueInt);
+            ret = env->Object_CallMethod_Int(obj, AniClassFindMethod(env, FONT_FEATURE_VALUE_KEY), &valueInt);
             if (ret != ANI_OK) {
                 TEXT_LOGE("Failed to get value, ret %{public}d", ret);
                 return "";

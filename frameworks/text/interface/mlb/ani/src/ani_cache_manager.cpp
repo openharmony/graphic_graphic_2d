@@ -18,12 +18,23 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
+namespace {
+AniRefCache g_nsCache;
+AniRefCache g_classCache;
+AniRefCache g_enumCache;
+
+std::unordered_map<CacheKey, ani_method, CacheKeyHash> g_methodCache;
+std::unordered_map<CacheKey, ani_function, CacheKeyHash> g_functionCache;
+std::shared_mutex g_methodMutex;
+std::shared_mutex g_functionMutex;
+}
+
 ani_ref ToGlobalRef(ani_env* env, ani_ref local)
 {
     ani_ref global = nullptr;
     ani_status status = env->GlobalReference_Create(local, &global);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to create global reference");
+        TEXT_LOGE("Failed to create global reference, status %{public}d", status);
     }
     return global;
 }
@@ -46,8 +57,10 @@ ani_namespace AniFindNamespace(ani_env* env, const char* descriptor)
 
     ani_ref global = ToGlobalRef(env, ns);
     {
-        std::unique_lock<std::shared_mutex> lock(g_nsCache.mtx);
-        g_nsCache.store.emplace(descriptor, global);
+        if (global != nullptr) {
+            std::unique_lock<std::shared_mutex> lock(g_nsCache.mtx);
+            g_nsCache.store.emplace(descriptor, global);
+        }
     }
     return ns;
 }
@@ -71,8 +84,10 @@ ani_class AniFindClass(ani_env* env, const char* descriptor)
 
     ani_ref global = ToGlobalRef(env, cls);
     {
-        std::unique_lock<std::shared_mutex> lock(g_classCache.mtx);
-        g_classCache.store.emplace(descriptor, global);
+        if (global != nullptr) {
+            std::unique_lock<std::shared_mutex> lock(g_classCache.mtx);
+            g_classCache.store.emplace(descriptor, global);
+        }
     }
     return cls;
 }
@@ -96,8 +111,10 @@ ani_enum AniFindEnum(ani_env* env, const char* descriptor)
 
     ani_ref global = ToGlobalRef(env, en);
     {
-        std::unique_lock<std::shared_mutex> lock(g_enumCache.mtx);
-        g_enumCache.store.emplace(descriptor, global);
+        if (global != nullptr) {
+            std::unique_lock<std::shared_mutex> lock(g_enumCache.mtx);
+            g_enumCache.store.emplace(descriptor, global);
+        }
     }
     return en;
 }
