@@ -386,10 +386,7 @@ public:
     void SetHwcGlobalPositionEnabled(bool isEnabled);
     bool GetHwcGlobalPositionEnabled() const;
 
-    bool IsHardwareEnabledTopSurface() const
-    {
-        return rsSurfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE && RSSystemProperties::GetHardCursorStatus();
-    }
+    bool IsHardwareEnabledTopSurface() const;
 
     void SetHwcCrossNode(bool isCrossNode);
     bool IsHwcCrossNode() const;
