@@ -6722,12 +6722,12 @@ HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
 
     // add nullptr
     RSRenderNode::WeakPtr nullNode;
-    mainThread->aibarNodes_[0].insert(nullNode);
+    mainThread->aibarNodes_[childNode->GetScreenId()].insert(nullNode);
     EXPECT_TRUE(mainThread->DoDirectComposition(rootNode, false));
 
     // add not aibar node
     auto node = std::make_shared<RSRenderNode>(100, mainThread->context_);
-    mainThread->aibarNodes_[0].insert(node);
+    mainThread->aibarNodes_[childNode->GetScreenId()].insert(node);
     EXPECT_FALSE(mainThread->DoDirectComposition(rootNode, false));
 }
 

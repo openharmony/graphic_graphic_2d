@@ -2590,8 +2590,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     auto screenId = screenNode->GetScreenId();
     // check just before CreateProcessor, otherwise the cache interval will be reduced twice
-    if (auto& nodeSet = aibarNodes_[screenId];
-        !nodeSet.empty() && CheckReduceIntervalForAIBarNodesIfNeeded(nodeSet)) {
+    if (auto nodeSetIter = aibarNodes_.find(screenId);
+        nodeSetIter != aibarNodes_.end() && CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second)) {
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by aibar need update cache");
         return false;
     }
