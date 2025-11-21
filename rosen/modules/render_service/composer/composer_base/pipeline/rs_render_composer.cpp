@@ -126,6 +126,7 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
     RS_LOGI("StartComposerThread screenId:%{public}" PRIu64, screenId_);
     auto screenManager = CreateOrGetScreenManager();
     if (!screenManager) {
+        RS_LOGE("Get screen manager failed screenId:%{public}" PRIu64, screenId_);
         return;
     }
     auto screenInfo = screenManager->QueryScreenInfo(screenId_);

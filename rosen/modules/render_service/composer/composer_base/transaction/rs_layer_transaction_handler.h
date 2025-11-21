@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_COMPOSER_BASE_TRANSACTION_RS_LAYER_TRANSACTION_HANDLER_H
 #define RENDER_SERVICE_COMPOSER_BASE_TRANSACTION_RS_LAYER_TRANSACTION_HANDLER_H
 
-#include <event_handler.h>
 #include <memory>
 #include <queue>
 #include <stack>

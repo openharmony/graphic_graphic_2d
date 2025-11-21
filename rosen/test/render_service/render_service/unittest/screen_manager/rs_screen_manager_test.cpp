@@ -100,7 +100,7 @@ void RSScreenManagerTest::TearDownTestCase()
         }
     }
     RSRenderComposerManager::GetInstance().rsRenderComposerMap_.clear();
-    usleep(200);
+    usleep(200); // 200 : sleep time
 }
 void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
