@@ -635,6 +635,8 @@ public:
         return isHwcGlobalPositionEnabled_;
     }
 
+    void SetHardwareEnabledTopSurface(bool isEnabled);
+
     void SetHwcCrossNode(bool isCrossNode);
     bool IsHwcCrossNode() const;
 
@@ -1790,6 +1792,7 @@ private:
     bool specialLayerChanged_ = false;
     bool isGlobalPositionEnabled_ = false;
     bool isHwcGlobalPositionEnabled_ = false;
+    bool isHardwareEnabledTopSurface_ = false;
     bool isHwcCrossNode_ = false;
     bool hasFingerprint_ = false;
     // hdr video

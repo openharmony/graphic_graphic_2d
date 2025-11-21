@@ -880,6 +880,21 @@ void RSSurfaceRenderNode::SetHwcGlobalPositionEnabled(bool isEnabled)
     isHwcGlobalPositionEnabled_ = isEnabled;
 }
 
+void RSSurfaceRenderNode::SetHardwareEnabledTopSurface(bool isEnabled)
+{
+    if (isHardwareEnabledTopSurface_ == isEnabled) {
+        return;
+    }
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetHardwareEnabledTopSurface(isEnabled);
+    AddToPendingSyncList();
+
+    isHardwareEnabledTopSurface_ = isEnabled;
+}
+
 void RSSurfaceRenderNode::SetHwcCrossNode(bool isHwcCrossNode)
 {
     if (isHwcCrossNode_ == isHwcCrossNode) {

@@ -386,6 +386,9 @@ public:
     void SetHwcGlobalPositionEnabled(bool isEnabled);
     bool GetHwcGlobalPositionEnabled() const;
 
+    void SetHardwareEnabledTopSurface(bool isEnabled);
+    bool IsHardwareEnabledTopSurface() const;
+
     void SetHwcCrossNode(bool isCrossNode);
     bool IsHwcCrossNode() const;
 
@@ -882,6 +885,7 @@ private:
     bool isForceDisableClipHoleForDRM_ = false;
 
     bool isHwcGlobalPositionEnabled_ = false;
+    bool isHardwareEnabledTopSurface_ = false;
     bool isHwcCrossNode_ = false;
 
     Drawing::Matrix totalMatrix_;

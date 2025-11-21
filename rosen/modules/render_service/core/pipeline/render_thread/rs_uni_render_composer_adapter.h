@@ -48,6 +48,7 @@ public:
     void CommitLayers(const std::vector<LayerInfoPtr>& layers);
     void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
+    ScreenInfo& GetScreenInfo() { return screenInfo_; }
 
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;

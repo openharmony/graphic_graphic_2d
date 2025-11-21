@@ -64,7 +64,6 @@ private:
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr);
     void CreateSolidColorLayer(LayerInfoPtr layer, RSSurfaceRenderParams& params);
     void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, LayerInfoPtr& layer);
-    void ScaleLayerIfNeeded(RSLayerInfo& layerInfo);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
     std::vector<LayerInfoPtr> layers_;
 };

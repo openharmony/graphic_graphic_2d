@@ -435,6 +435,15 @@ bool RSSurfaceRenderParams::GetHwcGlobalPositionEnabled() const
     return isHwcGlobalPositionEnabled_;
 }
 
+void RSSurfaceRenderParams::SetHardwareEnabledTopSurface(bool isEnabled)
+{
+    isHardwareEnabledTopSurface_ = isEnabled;
+}
+bool RSSurfaceRenderParams::IsHardwareEnabledTopSurface() const
+{
+    return isHardwareEnabledTopSurface_;
+}
+
 void RSSurfaceRenderParams::SetHwcCrossNode(bool isCrossNode)
 {
     isHwcCrossNode_ = isCrossNode;
