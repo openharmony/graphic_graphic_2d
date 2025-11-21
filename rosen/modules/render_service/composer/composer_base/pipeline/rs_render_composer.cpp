@@ -32,8 +32,8 @@
 #include "parameters.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "rs_frame_report.h"
-#include "rs_trace.h"
 #include "rs_surface_layer.h"
+#include "rs_trace.h"
 #include "vsync_sampler.h"
 
 #include "common/rs_exception_check.h"
