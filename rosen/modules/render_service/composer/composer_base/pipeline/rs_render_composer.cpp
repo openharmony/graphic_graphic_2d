@@ -318,7 +318,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
             screenManager->IsScreenPoweringOff(screenId_);
     }
 
-    bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers, output->GetScreenId());
+    bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers);
     if (!(shouldDropFrame || isScreenPowerOff)) {
         hgmHardwareUtils_.SwitchRefreshRate(hdiOutput_);
         AddRefreshRateCount();

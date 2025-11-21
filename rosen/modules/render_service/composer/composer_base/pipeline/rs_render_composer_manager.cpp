@@ -23,9 +23,6 @@
 #define LOG_TAG "ComposerManager"
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr uint32_t COMPOSER_THREAD_MAX_SIZE = 10;
-}
 RSRenderComposerManager& RSRenderComposerManager::GetInstance()
 {
     static RSRenderComposerManager instance;
@@ -47,10 +44,6 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
         std::lock_guard<std::mutex> lock(mutex_);
         auto iter = rsRenderComposerMap_.find(screenId);
         if (iter == rsRenderComposerMap_.end()) {
-            if (rsRenderComposerMap_.size() > COMPOSER_THREAD_MAX_SIZE) {
-                RS_LOGE("Render composer thread over max size");
-                return;
-            }
             renderComposer = std::make_shared<RSRenderComposer>(output);
             auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
             sptr<RSRenderToComposerConnection> composerConnection =
