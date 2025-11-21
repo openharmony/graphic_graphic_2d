@@ -34,6 +34,7 @@ namespace {
 const std::string LOCAL_PATH = "/system/etc/SwitchOffList/";
 const std::string CLOUD_PATH = "/data/service/el1/public/update/param_service/install/system/etc/SwitchOffList/";
 const std::string TARGET_SWITCH = "disable_ddgr_5_1_1_a"; // the switch to disable DDGR
+const std::string SUBTREE_SWITCH = "disable_subtree_6_0_a"; // the switch to disable Subtree
 constexpr int32_t VERSION_LEN = 4; // the number of digits extracted from the fixed format string "x.x.x.x"
 const std::string RECEIVE_UPDATE_PERMISSION = "ohos.permission.RECEIVE_UPDATE_MESSAGE"; // permission to get message
 const std::string CONFIG_UPDATED_ACTION = "usual.event.DUE_SA_CFG_UPDATED"; // common event of parameter update
@@ -71,6 +72,29 @@ bool RSParamManager::IsCloudDisableDDGR()
         }
     }
     RS_LOGE("RSParamManager::IsCloudDisableDDGR: Failed to find switch %{public}s.", TARGET_SWITCH.c_str());
+    inputFile.close();
+    return false;
+}
+
+bool RSParamManager::IsCloudDisableSubtree()
+{
+    std::string filePath = GetHigherVersionPath() + "switch_off_list";
+    std::ifstream inputFile(filePath);
+    if (!inputFile.is_open()) {
+        RS_LOGE("RSParamManager::IsCloudDisableSubtree: Can not open the file.");
+        return false;
+    }
+    std::string line;
+    while (std::getline(inputFile, line)) {
+        Trim(line);
+        if (line == SUBTREE_SWITCH) {
+            RS_LOGI("RSParamManager::IsCloudDisableSubtree: Succeed to find switch %{public}s.",
+                SUBTREE_SWITCH.c_str());
+            inputFile.close();
+            return true;
+        }
+    }
+    RS_LOGE("RSParamManager::IsCloudDisableSubtree: Failed to find switch %{public}s.", SUBTREE_SWITCH.c_str());
     inputFile.close();
     return false;
 }
@@ -226,6 +250,18 @@ void RSParamManager::HandleParamUpdate(const AAFwk::Want &want)
     if (!setParamResult) {
         RS_LOGE("RSParamManager::HandleParamUpdate: Failed to set parameter 'debug.graphic.cloudpushrestart'");
         return;
+    }
+    if (IsCloudDisableSubtree()) {
+        // "1" indicates succeed to find the switch to disable Subtree, while "0" means it was not.
+        setParamResult = system::SetParameter("persist.rosen.subtree.disabled", "1");
+        if (!setParamResult) {
+            RS_LOGE("RSParamManager::HandleParamUpdate: Failed to set subtree cloudpush parameter to 1'");
+        }
+    } else {
+        setParamResult = system::SetParameter("persist.rosen.subtree.disabled", "0");
+        if (!setParamResult) {
+            RS_LOGE("RSParamManager::HandleParamUpdate: Failed to set subtree cloudpush parameter to 0'");
+        }
     }
     if (IsCloudDisableDDGR()) {
         // "1" indicates succeed to find the switch to disable DDGR, while "0" means it was not.
