@@ -4967,15 +4967,6 @@ void RSProperties::UpdateForegroundFilter()
         CreateHDRUIBrightnessFilter();
     } else if (GetForegroundNGFilter()) {
         ComposeNGRenderFilter(GetEffect().foregroundFilter_, GetForegroundNGFilter());
-    } else if (renderSDFShape_) {
-        if (!sdfFilter_) {
-            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
-        }
-        if (IS_UNI_RENDER) {
-            GetEffect().foregroundFilterCache_ = sdfFilter_;
-        } else {
-            GetEffect().foregroundFilter_ = sdfFilter_;
-        }
     }
 }
 
@@ -5175,18 +5166,6 @@ void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape
 std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
 {
     return renderSDFShape_;
-}
-
-const std::shared_ptr<RSSDFEffectFilter> RSProperties::GetSDFEffectFilter() const
-{
-    if (!GetSDFShape() || !effect_) {
-        return nullptr;
-    }
-
-    if (IS_UNI_RENDER) {
-        return std::static_pointer_cast<RSSDFEffectFilter>(effect_->foregroundFilterCache_);
-    }
-    return std::static_pointer_cast<RSSDFEffectFilter>(effect_->foregroundFilter_);
 }
 
 void RSProperties::SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)

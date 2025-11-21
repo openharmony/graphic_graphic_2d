@@ -31,6 +31,9 @@ class RSRenderNode;
 class RSFilter;
 class RSFilterCacheManager;
 class ExtendRecordingCanvas;
+namespace Drawing {
+class GEVisualEffectContainer;
+}
 
 namespace DrawableV2 {
 class RSPropertyDrawable : public RSDrawable {
@@ -109,6 +112,7 @@ private:
     RSClipToBoundsType stagingType_ = RSClipToBoundsType::INVALID;
     RSClipToBoundsType type_ = RSClipToBoundsType::INVALID;
     bool needSync_ = false;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
 };
 
 class RSClipToFrameDrawable : public RSPropertyDrawable {

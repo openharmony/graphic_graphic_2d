@@ -85,5 +85,4 @@ HWTEST_F(RSProfilerSocketTest, RSProfilerSocketAvailableTest, testing::ext::Test
     const auto size = s.Available();
     EXPECT_EQ(size, 0);
 }
-
 } // namespace OHOS::Rosen

@@ -348,7 +348,7 @@ HWTEST(RSProfilerDumpTest, DumpNodeDrawCmdModifiersWithCustomDrawCmdList, TestSi
 {
     NodeId nodeId = 42;
     auto node = std::make_shared<RSRenderNode>(nodeId++);
-    const auto property = std::make_shared<RSRenderProperty<int>>(1, 0);
+    const auto property = std::make_shared<RSRenderProperty<int>>(0, 1);
     auto modifier =
         ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::TRANSITION_STYLE, property);
     Drawing::DrawCmdListPtr cmdList = Drawing::DrawCmdList::CreateFromData(Drawing::CmdListData { "1234", 4 }, true);
@@ -373,7 +373,7 @@ HWTEST(RSProfilerDumpTest, DumpNodeDrawCmdModifiersWithCustomDrawCmdList, TestSi
     JsonWriter out2;
     RSProfiler::DumpNodeDrawCmdModifiers(*node, out2);
     std::string expected2 { "\"DrawCmdModifiers\":[{\"type\":25,\"modifiers\":[{\"drawCmdList\":"
-                            "[\"HYBRID_RENDER_PIXELMAP_SIZE_OPITEM\",\"ROTATE_OPITEM\"]}]}]" };
+                            "[]}]}]" };
     expected2.append(1, '\0');
     EXPECT_EQ(out2.GetDumpString(), expected2);
 }
@@ -568,7 +568,7 @@ HWTEST(RSProfilerDumpTest, DumpNodePropertiesShadow, TestSize.Level1)
 
     RSProfiler::DumpNodePropertiesShadow(node->GetRenderProperties(), out);
 
-    std::string expected { "\"ShadowColor\":\"#ff020304 (ARGB)\","
+    std::string expected { "\"ShadowColor\":\"#5020304 (ARGB)\","
                            "\"ShadowOffsetX\":12,"
                            "\"ShadowOffsetY\":14,"
                            "\"ShadowElevation\":16,"

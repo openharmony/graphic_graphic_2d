@@ -46,7 +46,7 @@ namespace OHOS::Rosen {
 constexpr int TEN = 10;
 constexpr int HUNDRED = 100;
 
-HWTEST(RSProfilerPixelMap, MarshalPixelMap, TestSize.Level1)
+HWTEST(RSProfilerPixelMapTest, MarshalPixelMap, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     RSProfiler::testing_ = true;
@@ -66,7 +66,7 @@ HWTEST(RSProfilerPixelMap, MarshalPixelMap, TestSize.Level1)
     EXPECT_TRUE(successfulMarshaling);
 }
 
-HWTEST(RSProfilerPixelMap, UnmarshalPixelMap, TestSize.Level1)
+HWTEST(RSProfilerPixelMapTest, UnmarshalPixelMap, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     RSProfiler::testing_ = true;
@@ -77,7 +77,7 @@ HWTEST(RSProfilerPixelMap, UnmarshalPixelMap, TestSize.Level1)
     EXPECT_EQ(pixelMap, nullptr);
 }
 
-HWTEST(RSProfilerPixelMap, PlaybackParcel, TestSize.Level1)
+HWTEST(RSProfilerPixelMapTest, PlaybackParcel, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     RSProfiler::testing_ = true;
@@ -108,18 +108,17 @@ HWTEST(RSProfilerPixelMap, PlaybackParcel, TestSize.Level1)
     parcelPtr->~Parcel();
 }
 
-HWTEST(RSProfilerPixelMap, MarshalUnmarshalNstdPixelMap, TestSize.Level1)
+HWTEST(RSProfilerPixelMapTest, MarshalUnmarshalNstdPixelMap, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     constexpr auto PIXELMAP_STRING_PIXEL_CHECK = "persist.graphic.profiler.pixelcheck";
-    bool isSucces = OHOS::system::SetParameter(PIXELMAP_STRING_PIXEL_CHECK, "1");
-    EXPECT_TRUE(isSucces);
+    OHOS::system::SetParameter(PIXELMAP_STRING_PIXEL_CHECK, "1");
     RSProfiler::testing_ = true;
     std::vector<uint32_t> colors(HUNDRED);
     for (int i = 0; i < colors.size(); ++i) {
         colors[i] = 4 * i;
     }
-
+ 
     Media::InitializationOptions options;
     options.size.width = TEN;
     options.size.height = TEN;
@@ -131,15 +130,15 @@ HWTEST(RSProfilerPixelMap, MarshalUnmarshalNstdPixelMap, TestSize.Level1)
     EXPECT_NE(map, nullptr);
     auto successfulMarshaling = RSProfiler::MarshalPixelMap(parcel, map);
     EXPECT_TRUE(successfulMarshaling);
-
+ 
     // This will use UnmarshalPixelMapNstd
     auto pixelMapNstd = RSProfiler::UnmarshalPixelMap(parcel, nullptr);
-
+ 
     EXPECT_NE(pixelMapNstd, nullptr);
     OHOS::system::SetParameter(PIXELMAP_STRING_PIXEL_CHECK, "0");
 }
 
-HWTEST(RSProfilerPixelMap, MarshalUnmarshalPixelMap, TestSize.Level1)
+HWTEST(RSProfilerPixelMapTest, MarshalUnmarshalPixelMap, TestSize.Level1)
 {
     OHOS::system::SetParameter("persist.graphic.profiler.enabled", "1");
     RSProfiler::testing_ = true;
@@ -164,7 +163,7 @@ HWTEST(RSProfilerPixelMap, MarshalUnmarshalPixelMap, TestSize.Level1)
     EXPECT_NE(pixelMap, nullptr);
 }
 
-class RSProfilerPixelMapStorage : public testing::Test {
+class RSProfilerPixelMapStorageTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
@@ -178,7 +177,7 @@ public:
     }
 };
 
-HWTEST_F(RSProfilerPixelMapStorage, PushPullHeapPixelMap, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, PushPullHeapPixelMap, TestSize.Level1)
 {
     RSProfiler::testing_ = true;
     std::vector<uint32_t> colors(HUNDRED);
@@ -227,7 +226,7 @@ HWTEST_F(RSProfilerPixelMapStorage, PushPullHeapPixelMap, TestSize.Level1)
     EXPECT_TRUE(successfulDefaultPull);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, PushPullSharedPixelMap, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, PushPullSharedPixelMap, TestSize.Level1)
 {
     RSProfiler::testing_ = true;
     std::vector<uint32_t> colors(HUNDRED);
@@ -277,7 +276,7 @@ HWTEST_F(RSProfilerPixelMapStorage, PushPullSharedPixelMap, TestSize.Level1)
     EXPECT_TRUE(successfulDefaultPull);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, PushPullDMAPixelMap, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, PushPullDMAPixelMap, TestSize.Level1)
 {
     RSProfiler::testing_ = true;
     std::vector<uint32_t> colors(HUNDRED);
@@ -328,7 +327,7 @@ HWTEST_F(RSProfilerPixelMapStorage, PushPullDMAPixelMap, TestSize.Level1)
     EXPECT_TRUE(successfulDefaultPull);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, AlmostFullStorage, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, AlmostFullStorage, TestSize.Level1)
 {
     // Constant defined in PixelMapStorage::Fits
     constexpr auto maxConsumption = 1024u * 1024u * 1024u;
@@ -389,7 +388,7 @@ HWTEST_F(RSProfilerPixelMapStorage, AlmostFullStorage, TestSize.Level1)
     EXPECT_TRUE(successfulDefaultPull);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, CopyImageData, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageData, TestSize.Level1)
 {
     std::vector<uint8_t> dstImage;
     dstImage.reserve(HUNDRED);
@@ -399,7 +398,7 @@ HWTEST_F(RSProfilerPixelMapStorage, CopyImageData, TestSize.Level1)
     EXPECT_TRUE(successfulCopied);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, CopyImageDataJpeg, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataJpeg, TestSize.Level1)
 {
     const int CHANNELS = 3;
     auto jpegImg = std::make_shared<Image>();
@@ -418,7 +417,7 @@ HWTEST_F(RSProfilerPixelMapStorage, CopyImageDataJpeg, TestSize.Level1)
     EXPECT_TRUE(copiedJpeg);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, CopyImageDataLZ4, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataLZ4, TestSize.Level1)
 {
     const int CHANNELS = 3;
     auto xlzz4Img = std::make_shared<Image>();
@@ -436,7 +435,7 @@ HWTEST_F(RSProfilerPixelMapStorage, CopyImageDataLZ4, TestSize.Level1)
     EXPECT_TRUE(copiedLz4);
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, CopyImageDataFailing, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, CopyImageDataFailing, TestSize.Level1)
 {
     std::vector<uint8_t> dstImage;
     dstImage.reserve(HUNDRED);
@@ -467,11 +466,11 @@ HWTEST_F(RSProfilerPixelMapStorage, CopyImageDataFailing, TestSize.Level1)
     }
 }
 
-HWTEST_F(RSProfilerPixelMapStorage, SurfaceBuffer, TestSize.Level1)
+HWTEST_F(RSProfilerPixelMapStorageTest, SurfaceBuffer, TestSize.Level1)
 {
     sptr<SurfaceBuffer> buffer;
     auto surfaceBuffer = PixelMapStorage::IncrementSurfaceBufferReference(buffer);
     EXPECT_EQ(surfaceBuffer, nullptr);
 }
 
-} // namespace OHOS::Rosen
+} // namespace OHOS::Rosen

@@ -32,7 +32,7 @@ enum RSCanvasNodeCommandType : uint16_t {
     CANVAS_NODE_UPDATE_RECORDING = 1,
     CANVAS_NODE_CLEAR_RECORDING = 2,
     CANVAS_NODE_SET_HDR_PRESENT = 3,
-    CANVAS_NODE_SET_LINKED_ROOTNODE = 4,
+    CANVAS_NODE_SET_LINKED_ROOTNODE = 4, // Deprecated
     CANVAS_NODE_SET_COLOR_GAMUT = 5,
 };
 
@@ -48,9 +48,6 @@ public:
     static void ClearRecording(RSContext& context, NodeId id);
     static void SetHDRPresent(RSContext& context, NodeId nodeId, bool hdrPresent);
     static void SetColorGamut(RSContext& context, NodeId nodeId, uint32_t colorGamut);
-
-    // [Attention] Only used in PC window resize scene now
-    static void SetLinkedRootNodeId(RSContext& context, NodeId nodeId, NodeId rootNodeId);
 
 private:
     static bool AddCmdToSingleFrameComposer(std::shared_ptr<RSCanvasRenderNode> node,
@@ -72,11 +69,6 @@ ADD_COMMAND(RSCanvasNodeSetHDRPresent,
 ADD_COMMAND(RSCanvasNodeSetColorGamut,
     ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_SET_COLOR_GAMUT,
         RSCanvasNodeCommandHelper::SetColorGamut, NodeId, uint32_t))
-
-// [Attention] Only used in PC window resize scene now
-ADD_COMMAND(RSCanvasNodeSetLinkedRootNodeId,
-    ARG(PERMISSION_APP, CANVAS_NODE, CANVAS_NODE_SET_LINKED_ROOTNODE,
-        RSCanvasNodeCommandHelper::SetLinkedRootNodeId, NodeId, NodeId))
 
 } // namespace Rosen
 } // namespace OHOS

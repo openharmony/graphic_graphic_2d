@@ -115,22 +115,5 @@ void RSRootRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
     visitor->ProcessRootRenderNode(*this);
 }
 
-// [Attention] Only used in PC window resize scene now
-void RSRootRenderNode::EnableWindowKeyFrame(bool enable)
-{
-    if (stagingRenderParams_ == nullptr) {
-        RS_LOGE("RSRootRenderNode::EnableWindowKeyFrame stagingRenderParams is null");
-        return;
-    }
-
-    stagingRenderParams_->EnableWindowKeyFrame(enable);
-    AddToPendingSyncList();
-}
-
-// [Attention] Only used in PC window resize scene now
-bool RSRootRenderNode::IsWindowKeyFrameEnabled()
-{
-    return stagingRenderParams_ != nullptr ? stagingRenderParams_->IsWindowKeyFrameEnabled() : false;
-}
 } // namespace Rosen
 } // namespace OHOS

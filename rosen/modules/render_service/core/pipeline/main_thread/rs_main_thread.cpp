@@ -168,6 +168,10 @@
 // HDRHeterogeneous
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 
+#ifdef SUBTREE_PARALLEL_ENABLE
+#include "rs_parallel_manager.h"
+#endif
+
 #ifdef RS_ENABLE_UNI_RENDER
 #include "ability_manager_client.h"
 #endif
@@ -847,7 +851,9 @@ void RSMainThread::InitVulkanErrorCallback(Drawing::GPUContext* gpuContext)
     gpuContext->RegisterVulkanErrorCallback([this](const std::vector<pid_t>& pidsToKill, const std::string& reason,
         bool needKillProcess) {
         RS_LOGE("FocusLeashWindowName:[%{public}s]", this->focusLeashWindowName_.c_str());
-
+#ifdef SUBTREE_PARALLEL_ENABLE
+        RSParallelManager::Singleton().ProcessVulkanError();
+#endif
         char appWindowName[EVENT_NAME_MAX_LENGTH];
         char focusLeashWindowName[EVENT_NAME_MAX_LENGTH];
         char extInfo[EXT_INFO_MAX_LENGTH];
@@ -3570,6 +3576,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_NAME_FMT("Animate [nodeSize, totalAnimationSize] is [%lu, %lu]", animatingNodeSize, totalAnimationSize);
     if (!isCalculateAnimationValue && needRequestNextVsync) {
         RS_TRACE_NAME("Animation running empty");
+        GpuDirtyRegionCollection::GetInstance().AddFrameAnimationNumberForDFX();
     }
 
     doWindowAnimate_ = curWinAnim;

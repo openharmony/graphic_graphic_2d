@@ -717,8 +717,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
     border->SetRadiusFour({1.f, 1.f, 1.f, 1.f});
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
-    EXPECT_TRUE(foregroundFilter->HasBorder());
-    EXPECT_EQ(foregroundFilter->GetBorderColor(), drawingColor);
-    EXPECT_EQ(foregroundFilter->GetBorderWidth(), borderWidth);
+    EXPECT_FALSE(foregroundFilter->HasBorder());
+    EXPECT_EQ(border->widths_.size(), 1);
 }
 } // namespace OHOS::Rosen

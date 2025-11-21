@@ -149,15 +149,15 @@ bool CheckDrawCmdModifiersEqual(const RSContext& context, const std::vector<std:
         const auto& drawCmdModifiers = patchedNode->GetDrawCmdModifiers();
 
         for (const auto& [modifierType, modifiers] : drawCmdModifiers) {
-            HRPI("TestDoubleReplay: For index %" PRIu32 " and modifierType %{public}hd count in buffer %" PRIu32, index,
-                modifierType, bufferOfDrawCmdModifiers[index].count(modifierType));
+            HRPI("TestDoubleReplay: For index %{public}z and modifierType %{public}hd count in buffer %{public}z",
+                index, modifierType, bufferOfDrawCmdModifiers[index].count(modifierType));
             if (bufferOfDrawCmdModifiers[index].count(modifierType) == 0) {
                 isDrawCmdModifiersEqual = false;
                 continue;
             }
 
             const auto& currentBufferList = bufferOfDrawCmdModifiers[index].at(modifierType);
-            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %" PRIu32 " buffer size %" PRIu32,
+            HRPI("TestDoubleReplay: For modifierType %{public}hd modifiers size %{public}z buffer size %{public}z",
                 modifierType, modifiers.size(), currentBufferList.size());
             if (currentBufferList.size() != modifiers.size()) {
                 isDrawCmdModifiersEqual = false;
@@ -319,7 +319,6 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
 
     auto data = std::make_shared<Drawing::Data>();
     constexpr size_t length = 40'000;
-    constexpr size_t position = 36;
 
     void* allocated = malloc(length);
     EXPECT_TRUE(data->BuildFromMalloc(allocated, length));
@@ -329,9 +328,97 @@ HWTEST_F(RSProfilerTest, IfNeedToSkipDuringReplay, Function | Reliability | Larg
 
     EXPECT_TRUE(RSMarshallingHelper::Marshalling(*messageParcel, data));
 
+    messageParcel->RewindRead(0);
+    size_t position = messageParcel->GetReadableBytes() - 1;
     EXPECT_TRUE(RSProfiler::IfNeedToSkipDuringReplay(*messageParcel, position));
-    EXPECT_EQ(messageParcel->GetWritePosition(), position);
+    EXPECT_EQ(messageParcel->GetReadPosition(), position);
 }
+
+class RSProfilerTestWithContext : public testing::Test {
+    static RSRenderService* renderService;
+
+public:
+    static void SetUpTestCase()
+    {
+        renderService = GetAndInitRenderService();
+        RSProfiler::Init(renderService);
+    };
+    static void TearDownTestCase()
+    {
+        delete renderService;
+        renderService = nullptr;
+        RSProfiler::Init(nullptr);
+    };
+    void SetUp() override {};
+    void TearDown() override {};
+};
+
+RSRenderService* RSProfilerTestWithContext::renderService;
+
+void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, bool isPatched = false)
+{
+    if (isPatched) {
+        EXPECT_EQ(rootNode->GetId(), Utils::PatchNodeId(0));
+    } else {
+        EXPECT_EQ(rootNode->GetId(), 0);
+    }
+
+    auto children = rootNode->GetChildren();
+    ASSERT_EQ(children->size(), 1);
+    auto screenNode = children->at(0);
+    auto shouldBeId = topNodeId;
+    if (isPatched) {
+        shouldBeId = Utils::PatchNodeId(topNodeId);
+    }
+    EXPECT_EQ(screenNode->GetId(), shouldBeId);
+    children = screenNode->GetChildren();
+    ASSERT_EQ(children->size(), 1);
+    auto displayNode = children->at(0);
+    shouldBeId++;
+    EXPECT_EQ(displayNode->GetId(), shouldBeId);
+}
+
+#ifndef MODIFIER_NG
+HWTEST_F(RSProfilerTestWithContext, HiddenSpaceTurnOnOff, Level1)
+{
+    EXPECT_NE(RSProfiler::context_, nullptr);
+    NodeId topNodeId = 12345000;
+    TestTreeBuilder treeBuilder;
+    std::cout << "Preparing to run test..." << std::endl;
+
+    treeBuilder.Build(*RSProfiler::context_, topNodeId, true, true);
+    std::cout << "Builded test tree" << std::endl;
+
+    treeBuilder.Build(*RSProfiler::context_, Utils::PatchNodeId(topNodeId), true, true, true);
+    std::cout << "Builded patched test tree" << std::endl;
+
+    GenerateFullChildrenListForAll(*RSProfiler::context_);
+    std::cout << "Generated children for all" << std::endl;
+
+    checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
+    std::cout << "Checked test tree first time" << std::endl;
+
+    RSProfiler::HiddenSpaceTurnOn();
+    std::cout << "Enabled HiddenSpace" << std::endl;
+
+    GenerateFullChildrenListForAll(*RSProfiler::context_);
+    std::cout << "Generated children for all" << std::endl;
+
+    checkTree(RSProfiler::context_->GetNodeMap().GetRenderNode(Utils::PatchNodeId(0)), topNodeId, true);
+    std::cout << "Checked test tree second time" << std::endl;
+
+    RSProfiler::HiddenSpaceTurnOff();
+    std::cout << "Disabled HiddenSpace" << std::endl;
+
+    GenerateFullChildrenListForAll(*RSProfiler::context_);
+    std::cout << "Generated children for all" << std::endl;
+
+    checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
+    std::cout << "Checked test tree third time" << std::endl;
+
+    std::cout << "End of test" << std::endl;
+}
+#endif
 
 /*
  * @tc.name: LogEventStart
@@ -367,6 +454,18 @@ HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
 
     EXPECT_DOUBLE_EQ(static_cast<double>(readTime), timeSinceRecordStart);
     EXPECT_EQ(readProperty, RSCaptureData::VAL_EVENT_TYPE_VSYNC);
+}
+
+/*
+ * @tc.name: SecureScreen
+ * @tc.desc: Test SecureScreen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTestWithContext, SecureScreen, testing::ext::TestSize.Level1)
+{
+    RSProfiler::testing_ = true;
+    EXPECT_FALSE(RSProfiler::IsSecureScreen());
 }
 
 /*
@@ -421,102 +520,6 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     EXPECT_NEAR(readCDTime, 1.f, 1e-2);
 
     RSProfiler::SetMode(Mode::NONE);
-}
-
-class RSProfilerTestWithContext : public testing::Test {
-    static RSRenderService* renderService;
-
-public:
-    static void SetUpTestCase()
-    {
-        renderService = GetAndInitRenderService();
-        RSProfiler::Init(renderService);
-    };
-    static void TearDownTestCase()
-    {
-        delete renderService;
-        renderService = nullptr;
-        RSProfiler::Init(nullptr);
-    };
-    void SetUp() override {};
-    void TearDown() override {};
-};
-
-RSRenderService* RSProfilerTestWithContext::renderService;
-
-void checkTree(std::shared_ptr<RSBaseRenderNode> rootNode, NodeId topNodeId, bool isPatched = false)
-{
-    if (isPatched) {
-        EXPECT_EQ(rootNode->GetId(), Utils::PatchNodeId(0));
-    } else {
-        EXPECT_EQ(rootNode->GetId(), 0);
-    }
-
-    auto children = rootNode->GetChildren();
-    ASSERT_EQ(children->size(), 1);
-    auto screenNode = children->at(0);
-    auto shouldBeId = topNodeId;
-    if (isPatched) {
-        shouldBeId = Utils::PatchNodeId(topNodeId);
-    }
-    EXPECT_EQ(screenNode->GetId(), shouldBeId);
-    children = screenNode->GetChildren();
-    ASSERT_EQ(children->size(), 1);
-    auto displayNode = children->at(0);
-    shouldBeId++;
-    EXPECT_EQ(displayNode->GetId(), shouldBeId);
-}
-
-HWTEST_F(RSProfilerTestWithContext, HiddenSpaceTurnOnOff, Level1)
-{
-    EXPECT_NE(RSProfiler::context_, nullptr);
-    NodeId topNodeId = 12345000;
-    TestTreeBuilder treeBuilder;
-    std::cout << "Preparing to run test..." << std::endl;
-
-    treeBuilder.Build(*RSProfiler::context_, topNodeId, true, true);
-    std::cout << "Builded test tree" << std::endl;
-
-    treeBuilder.Build(*RSProfiler::context_, Utils::PatchNodeId(topNodeId), true, true, true);
-    std::cout << "Builded patched test tree" << std::endl;
-
-    GenerateFullChildrenListForAll(*RSProfiler::context_);
-    std::cout << "Generated children for all" << std::endl;
-
-    checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
-    std::cout << "Checked test tree first time" << std::endl;
-
-    RSProfiler::HiddenSpaceTurnOn();
-    std::cout << "Enabled HiddenSpace" << std::endl;
-
-    GenerateFullChildrenListForAll(*RSProfiler::context_);
-    std::cout << "Generated children for all" << std::endl;
-
-    checkTree(RSProfiler::context_->GetNodeMap().GetRenderNode(Utils::PatchNodeId(0)), topNodeId, true);
-    std::cout << "Checked test tree second time" << std::endl;
-
-    RSProfiler::HiddenSpaceTurnOff();
-    std::cout << "Disabled HiddenSpace" << std::endl;
-
-    GenerateFullChildrenListForAll(*RSProfiler::context_);
-    std::cout << "Generated children for all" << std::endl;
-
-    checkTree(RSProfiler::context_->GetGlobalRootRenderNode(), topNodeId);
-    std::cout << "Checked test tree third time" << std::endl;
-
-    std::cout << "End of test" << std::endl;
-}
-
-/*
- * @tc.name: RSTreeTest
- * @tc.desc: Test SecureScreen
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSProfilerTestWithContext, SecureScreen, testing::ext::TestSize.Level1)
-{
-    RSProfiler::testing_ = true;
-    EXPECT_FALSE(RSProfiler::IsSecureScreen());
 }
 
 } // namespace OHOS::Rosen

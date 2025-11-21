@@ -890,7 +890,7 @@ void RSPaintFilterCanvasBase::Restore()
     // ClipRRect Optimization
     if (!pCanvasList_.empty()) {
         if (auto canvas = *pCanvasList_.begin()) {
-            RestoreClipRRect(canvas->GetSaveCount());
+            CustomRestore(canvas->GetSaveCount());
         }
     }
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
@@ -900,7 +900,7 @@ void RSPaintFilterCanvasBase::Restore()
     }
 #else
     if (canvas_ != nullptr) {
-        RestoreClipRRect(canvas_->GetSaveCount()); // ClipRRect Optimization
+        CustomRestore(canvas_->GetSaveCount()); // ClipRRect Optimization
         canvas_->Restore();
     }
 #endif
@@ -1433,6 +1433,32 @@ void RSPaintFilterCanvas::CopyHDRConfiguration(const RSPaintFilterCanvas& other)
     hdrProperties_ = other.hdrProperties_;
 }
 
+bool RSPaintFilterCanvas::CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
+    const std::shared_ptr<CachedEffectData>& srcEffectData, const RSPaintFilterCanvas& srcCanvas)
+{
+    if (srcEffectData == nullptr) {
+        return true;
+    }
+
+    // make a deep copy of effect data
+    auto copiedEffectData = std::make_shared<CachedEffectData>(*srcEffectData);
+    if (copiedEffectData == nullptr) {
+        ROSEN_LOGE("RSPaintFilterCanvas::CopyCachedEffectData fail to alloc effectData");
+        return false;
+    }
+
+    // calculate the mapping matrix from local coordinate system to global coordinate system
+    Drawing::Matrix inverse;
+    if (srcCanvas.GetTotalMatrix().Invert(inverse)) {
+        copiedEffectData->cachedMatrix_.PostConcat(inverse);
+    } else {
+        ROSEN_LOGE("RSPaintFilterCanvas::CopyCachedEffectData get invert matrix failed!");
+    }
+
+    dstEffectData = copiedEffectData;
+    return true;
+}
+
 void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilterCanvas& other)
 {
     // Note:
@@ -1441,25 +1467,18 @@ void RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas(const RSPaintFilter
     // copy high contrast flag
     isHighContrastEnabled_.store(other.isHighContrastEnabled_.load());
     // copy env
-    envStack_.top() = other.envStack_.top();
-    // update effect matrix
-    auto effectData = other.envStack_.top().effectData_;
-    if (effectData != nullptr) {
-        // make a deep copy of effect data, and calculate the mapping matrix from
-        // local coordinate system to global coordinate system.
-        auto copiedEffectData = std::make_shared<CachedEffectData>(*effectData);
-        if (copiedEffectData == nullptr) {
-            ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to create effectData");
-            return;
-        }
-        Drawing::Matrix inverse;
-        if (other.GetTotalMatrix().Invert(inverse)) {
-            copiedEffectData->cachedMatrix_.PostConcat(inverse);
-        } else {
-            ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas get invert matrix failed!");
-        }
-        envStack_.top().effectData_ = copiedEffectData;
+    const auto& otherEnv = other.envStack_.top();
+    auto& curEnv = envStack_.top();
+    curEnv = otherEnv;
+    if (!CopyCachedEffectData(curEnv.effectData_, otherEnv.effectData_, other)) {
+        ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to copy effectData");
+        return;
     }
+    if (!CopyCachedEffectData(curEnv.behindWindowData_, otherEnv.behindWindowData_, other)) {
+        ROSEN_LOGE("RSPaintFilterCanvas::CopyConfigurationToOffscreenCanvas fail to copy behindWindowData");
+        return;
+    }
+
     // cache related
     if (other.isHighContrastEnabled()) {
         // explicit disable cache for high contrast mode
@@ -1851,47 +1870,59 @@ bool RSPaintFilterCanvas::GetDarkColorMode() const
 
 uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> data)
 {
-    clipRRectStack_.push(data);
-    return clipRRectStack_.size();
+    RSPaintFilterCanvas::DrawFunc customFunc = [clipRRectData = data](Drawing::Canvas *canvas) {
+        if (canvas == nullptr || clipRRectData == nullptr) {
+            return;
+        }
+        canvas->Save();
+        canvas->ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
+        canvas->ResetMatrix();
+        for (auto& corner : clipRRectData->data_) {
+            if (corner != nullptr && corner->image_ != nullptr && !corner->rect_.IsEmpty()) {
+                Drawing::Brush brush;
+                brush.SetBlendMode(Drawing::BlendMode::SRC);
+                canvas->AttachBrush(brush);
+                canvas->DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
+                canvas->DetachBrush();
+            }
+        }
+    };
+    return CustomSaveLayer(customFunc);
 }
 
-void RSPaintFilterCanvasBase::RestoreClipRRect(uint32_t saveCount)
+uint32_t RSPaintFilterCanvasBase::CustomSaveLayer(DrawFunc customFunc)
 {
-    if (clipRRectStack_.empty()) {
+    std::pair<uint32_t, DrawFunc> data(GetSaveCount(), customFunc);
+    customStack_.push(data);
+    return customStack_.size();
+}
+
+void RSPaintFilterCanvasBase::CustomRestore(uint32_t saveCount)
+{
+    if (customStack_.empty()) {
         return;
     }
-    if (saveCount != clipRRectStack_.top()->saveCount_) {
+    if (saveCount != customStack_.top().first) {
         return;
     }
-    auto data = clipRRectStack_.top();
-    clipRRectStack_.pop();
+    auto data = customStack_.top();
+    customStack_.pop();
 #ifdef SKP_RECORDING_ENABLED
     for (auto iter = pCanvasList_.begin(); iter != pCanvasList_.end(); ++iter) {
         auto canvas = *iter;
-        DrawOptimizationClipRRect(canvas, data);
+        DrawCustomFunc(canvas, data.second);
     }
 #else
-    DrawOptimizationClipRRect(canvas_, data);
+    DrawCustomFunc(canvas_, data.second);
 #endif
 }
 
-void RSPaintFilterCanvasBase::DrawOptimizationClipRRect(Drawing::Canvas* canvas, std::shared_ptr<ClipRRectData> data)
+void RSPaintFilterCanvasBase::DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc drawFunc)
 {
-    if (canvas == nullptr || data == nullptr) {
+    if (canvas == nullptr) {
         return;
     }
-    canvas->Save();
-    canvas->ClipRoundRect(data->rRect_, Drawing::ClipOp::DIFFERENCE, true);
-    canvas->ResetMatrix();
-    for (auto& corner : data->data_) {
-        if (corner != nullptr && corner->image_ != nullptr && !corner->rect_.IsEmpty()) {
-            Drawing::Brush brush;
-            brush.SetBlendMode(Drawing::BlendMode::SRC);
-            canvas->AttachBrush(brush);
-            canvas->DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
-            canvas->DetachBrush();
-        }
-    }
+    drawFunc(canvas);
     canvas->Restore();
 }
 

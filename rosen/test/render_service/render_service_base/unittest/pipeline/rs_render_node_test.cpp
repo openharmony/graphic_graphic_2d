@@ -1246,6 +1246,19 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest, TestSize.Level1)
     node.UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::MASK);
     EXPECT_FALSE(node.dirtySlots_.empty());
 }
+
+/**
+ * @tc.name: UpdatePointLightDirtySlotTest2
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node.enableHdrEffect_);
+}
 /**
  * @tc.name: AddToPendingSyncListTest
  * @tc.desc:

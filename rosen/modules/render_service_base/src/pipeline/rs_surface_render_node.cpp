@@ -30,6 +30,7 @@
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
@@ -3612,6 +3613,10 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
             return;
         }
     }
+
+    // [Attention] Update behind region for pc window keyframe feature
+    RSWindowKeyFrameRenderNode::UpdateKeyFrameBehindWindowRegion(*this, *context, region);
+
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
         GetId(), region.ToString().c_str());
     RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",

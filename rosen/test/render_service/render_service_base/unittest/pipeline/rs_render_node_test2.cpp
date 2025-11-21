@@ -31,6 +31,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -1396,6 +1397,21 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
     canvasDrawingNode->DumpSubClassNode(outTest7);
     EXPECT_EQ(outTest7, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: []");
+}
+
+/**
+ * @tc.name: RSWindowkeyFrameRenderNodeDumpTest
+ * @tc.desc: test DumpSubClassNode for RSWindowkeyFrameRenderNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, RSWindowkeyFrameRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto node = std::make_shared<RSWindowKeyFrameRenderNode>(0);
+    node->SetLinkedNodeId(1);
+    node->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", linkedNodeId: 1");
 }
 
 /**

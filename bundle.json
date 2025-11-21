@@ -334,6 +334,7 @@
                 "animation/rs_transition.h",
                 "animation/rs_animation_timing_curve.h",
                 "animation/rs_motion_path_option.h",
+                "feature/window_keyframe/rs_window_keyframe_node.h",
                 "ui/rs_node.h",
                 "ui/rs_proxy_node.h",
                 "ui/rs_base_node.h",

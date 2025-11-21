@@ -60,7 +60,6 @@ void RSEffectNode::SetFreeze(bool isFreeze)
     }
     preFreeze_ = isFreeze;
     std::unique_ptr<RSCommand> command = std::make_unique<RSSetFreeze>(GetId(), isFreeze);
-    auto transaction = GetRSTransaction();
     AddCommand(command, true);
 }
 

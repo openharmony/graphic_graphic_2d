@@ -454,6 +454,7 @@ void RSUniRenderThread::CollectReleaseTasks(std::map<ScreenId, std::vector<std::
                 sptr<SyncFence> releaseFence = useReleaseFence ?
                     RSRenderComposerManager::GetInstance().GetReleaseFence(screenId) : acquireFence;
                 auto ret = consumer->ReleaseBuffer(buffer, releaseFence);
+                GpuDirtyRegionCollection::GetInstance().AddConsumeBufferNumberForDFX();
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }

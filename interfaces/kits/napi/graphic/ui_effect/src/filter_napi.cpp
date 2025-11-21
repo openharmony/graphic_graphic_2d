@@ -1201,7 +1201,7 @@ bool FilterNapi::FillFrostedGlassCommon(napi_env env, napi_value* argv, std::sha
     para->SetDownSampleFactor(downSampleFactor);
  
     float bgFactor = 0.f;
-    bgFactor = GetSpecialValue(env, argv[NUM_5]);
+    bgFactor = GetSpecialValue(env, argv[NUM_6]);
     para->SetBgFactor(bgFactor);
     return true;
 }

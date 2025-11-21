@@ -55,8 +55,8 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
     "$reliability_root/utils:test_utils",
   ]
 
-  public_deps = [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
-  public_external_deps = [
+  deps += [ "$graphic_2d_root/rosen/modules/composer/vsync:libvsync" ]
+  external_deps = [
     "graphic_surface:sync_fence",
     "skia:skia_canvaskit",
   ]
@@ -75,14 +75,14 @@ ohos_unittest("RSMarshallingHelperReliabilityTest") {
   }
 
   if (rs_enable_gpu) {
-    public_deps += [
+    deps += [
       "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
       "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     ]
-    public_external_deps += [ "openssl:libcrypto_shared" ]
+    external_deps += [ "openssl:libcrypto_shared" ]
   }
 
-  external_deps = [
+  external_deps += [
     "c_utils:utils",
     "eventhandler:libeventhandler",
     "googletest:gtest_main",

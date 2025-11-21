@@ -24,6 +24,7 @@
 
 #include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "feature/hyper_graphic_manager/rs_frame_rate_policy.h"
+#include "feature/window_keyframe/rs_window_keyframe_node.h"
 #include "rs_trace.h"
 #include "sandbox_utils.h"
 #include "ui_effect/effect/include/background_color_effect_para.h"
@@ -145,6 +146,8 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
     {RSUINodeType::ROOT_NODE,           "RootNode"},
     {RSUINodeType::EFFECT_NODE,         "EffectNode"},
     {RSUINodeType::CANVAS_DRAWING_NODE, "CanvasDrawingNode"},
+    {RSUINodeType::UNION_NODE,          "UnionNode"},
+    {RSUINodeType::WINDOW_KEYFRAME_NODE, "WindowKeyFrameNode"},
 };
 
 std::once_flag flag_;
@@ -4113,6 +4116,7 @@ template bool RSNode::IsInstanceOf<RSCanvasNode>() const;
 template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
 template bool RSNode::IsInstanceOf<RSEffectNode>() const;
+template bool RSNode::IsInstanceOf<RSWindowKeyFrameNode>() const;
 
 void RSNode::SetInstanceId(int32_t instanceId)
 {

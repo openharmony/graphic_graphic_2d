@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,6 +40,11 @@ struct RSB_EXPORT ImageProperties {
     int32_t height;
 
     int32_t stride;
+
+    void SetAllocType(AllocatorType at)
+    {
+        allocType = static_cast<int8_t>(at);
+    }
 
     AllocatorType GetAllocType() const
     {

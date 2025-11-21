@@ -29,6 +29,15 @@ ohos_unittest("RSCommonDefTest") {
   module_out_path = module_output_path
   sources = [ "rs_common_def.cpp" ]
   deps = [ ":rs_test_common" ]
+
+  deps += [
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+  ]
 }
 
 config("rs_test_common_config") {
@@ -55,15 +64,6 @@ ohos_static_library("rs_test_common") {
   defines = []
 
   public_configs = [ ":rs_test_common_config" ]
-
-  public_deps = [
-    "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-  ]
-
-  public_external_deps = [
-    "c_utils:utils",
-  ]
 
   subsystem_name = "graphic"
   part_name = "graphic_2d"

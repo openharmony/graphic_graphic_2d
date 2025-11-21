@@ -458,7 +458,7 @@ ohos_unittest("RSUIDirectorTest") {
 ohos_unittest("RSUnionNodeTest") {
   module_out_path = module_output_path
 
-  sources = [ "rs_root_node_test.cpp" ]
+  sources = [ "rs_union_node_test.cpp" ]
 
   include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
 

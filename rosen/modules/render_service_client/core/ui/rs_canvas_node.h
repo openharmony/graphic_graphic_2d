@@ -150,34 +150,6 @@ public:
     void SetBoundsChangedCallback(BoundsChangedCallback callback) override;
 
     /**
-     * @brief Set linked node id in PC window resize scenario.
-     * @param rootNodeId source RSRootNode id.
-     */
-    void SetLinkedRootNodeId(NodeId rootNodeId);
-
-    /**
-     * @brief Get linked node id.
-     * @return RootNode id.
-     */
-    NodeId GetLinkedRootNodeId();
-
-    /**
-     * @brief Serializes the RSCanvasNode into a parcel.
-     *
-     * @param parcel The Parcel object where the RSCanvasNode data will be written.
-     * @return true if the serialization is successful; false otherwise.
-     */
-    bool Marshalling(Parcel& parcel) const;
-
-    /**
-     * @brief Deserializes the RSCanvasNode from a Parcel.
-     *
-     * @param parcel The Parcel object containing the serialized RSCanvasNode data.
-     * @return A shared pointer to the deserialized RSCanvasNode instance.
-     */
-    static SharedPtr Unmarshalling(Parcel& parcel);
-
-    /**
      * @brief Sets the hybrid render canvas state.
      *
      * @param hybridRenderCanvas True to enable hybrid render canvas; false to disable it.
@@ -244,9 +216,6 @@ private:
     void OnBoundsSizeChanged() const override;
     void CreateRenderNodeForTextureExportSwitch() override;
     void RegisterNodeMap() override;
-
-    // [Attention] Only used in PC window resize scene now
-    NodeId linkedRootNodeId_ = INVALID_NODEID;
 
     Drawing::DrawCmdListPtr drawCmdList_ = nullptr;
 };
