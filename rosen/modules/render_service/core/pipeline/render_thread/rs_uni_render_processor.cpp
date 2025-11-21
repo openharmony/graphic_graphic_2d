@@ -177,23 +177,6 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     auto& layerInfo = params.GetLayerInfo();
     const Rect& dirtyRect = offlineResult ? offlineResult->damageRect : params.GetBufferDamage();
     const auto& srcRect = offlineResult ? offlineResult->bufferRect : layerInfo.srcRect;
-    RS_OPTIONAL_TRACE_NAME_FMT(
-        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] dirty:[%d, %d, %d, %d] "
-        "buffer:[%d, %d] alpha:[%f] type:[%d]",
-        offlineResult ? "DeviceOfflineLayer" : surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
-        srcRect.x, srcRect.y, srcRect.w, srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
-    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
-            "buffer:[%{public}d, %{public}d] alpha:[%{public}f] type:%{public}d]",
-        offlineResult ? "DeviceOfflineLayer" : surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
-        srcRect.x, srcRect.y, srcRect.w, srcRect.h,
-        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
-        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
     auto preBuffer = offlineResult ? offlineResult->preBuffer : params.GetPreBuffer();
     auto acquireFence = offlineResult ? offlineResult->acquireFence : params.GetAcquireFence();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceDrawable.GetConsumerOnDraw();
@@ -208,6 +191,26 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
+    RS_OPTIONAL_TRACE_NAME_FMT(
+        "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] adjustDst[%d %d %d %d] "
+        "dirty:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d] rog[w:%f h:%f]",
+        offlineResult ? "DeviceOfflineLayer" : surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
+        srcRect.x, srcRect.y, srcRect.w, srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType,
+        uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
+        uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
+    RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
+            "buffer:[%{public}d, %{public}d] alpha:[%{public}f] type:%{public}d]",
+        offlineResult ? "DeviceOfflineLayer" : surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
+        srcRect.x, srcRect.y, srcRect.w, srcRect.h,
+        layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
+        dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
 #ifdef RS_ENABLE_TV_PQ_METADATA
     RSTvMetadataManager::Instance().UpdateTvMetadata(params, buffer);
 #endif
@@ -297,9 +300,6 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
         layerInfo.dstRect.x -= offsetX_;
         layerInfo.dstRect.y -= offsetY_;
     }
-    if (params.GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
-        ScaleLayerIfNeeded(layerInfo);
-    }
     layer->SetNeedBilinearInterpolation(params.NeedBilinearInterpolation());
     layer->SetSurface(consumer);
     layer->SetBuffer(buffer, acquireFence);
@@ -322,6 +322,14 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     alpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(alpha);
     GraphicIRect dstRect = layerInfo.dstRect;
+    if (layerInfo.layerType != GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR) {
+        auto rogWidthRatio = uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio();
+        auto rogHeightRatio = uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio();
+        dstRect = { static_cast<int32_t>(std::floor(layerInfo.dstRect.x * rogWidthRatio)),
+            static_cast<int32_t>(std::floor(layerInfo.dstRect.y * rogHeightRatio)),
+            static_cast<int32_t>(std::ceil(layerInfo.dstRect.w * rogWidthRatio)),
+            static_cast<int32_t>(std::ceil(layerInfo.dstRect.h * rogHeightRatio)) };
+    }
     if (layerInfo.layerType == GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR &&
         ((layerInfo.dstRect.w != layerInfo.srcRect.w) || (layerInfo.dstRect.h != layerInfo.srcRect.h))) {
         dstRect = {layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.srcRect.w, layerInfo.srcRect.h};
@@ -417,24 +425,6 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     layer->SetIgnoreAlpha(params.GetSurfaceBufferOpaque());
     HandleTunnelLayerParameters(params, layer);
     return layer;
-}
-
-void RSUniRenderProcessor::ScaleLayerIfNeeded(RSLayerInfo& layerInfo)
-{
-    // dstRect transforms to physical screen
-    if (!screenInfo_.isSamplingOn) {
-        return;
-    }
-    Drawing::Matrix matrix;
-    matrix.PostTranslate(screenInfo_.samplingTranslateX, screenInfo_.samplingTranslateY);
-    matrix.PostScale(screenInfo_.samplingScale, screenInfo_.samplingScale);
-    Drawing::Rect dstRect = { layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.x + layerInfo.dstRect.w,
-        layerInfo.dstRect.y + layerInfo.dstRect.h };
-    matrix.MapRect(dstRect, dstRect);
-    layerInfo.dstRect.x = static_cast<int>(std::floor(dstRect.left_));
-    layerInfo.dstRect.y = static_cast<int>(std::floor(dstRect.top_));
-    layerInfo.dstRect.w = static_cast<int>(std::ceil(dstRect.right_ - dstRect.left_));
-    layerInfo.dstRect.h = static_cast<int>(std::ceil(dstRect.bottom_ - dstRect.top_));
 }
 
 bool RSUniRenderProcessor::ProcessOfflineLayer(

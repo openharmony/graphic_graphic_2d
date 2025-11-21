@@ -49,6 +49,7 @@ public:
     void CommitLayers();
     void SetMetaDataInfoToLayer(const RSLayerPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
+    const ScreenInfo& GetScreenInfo() const { return screenInfo_; }
 
 private:
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
