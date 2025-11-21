@@ -30,7 +30,7 @@ public:
     static void TearDownTestCase();
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
-    static inline std::vector<RSLayerPtr> layerInfos_;
+    static inline std::vector<std::shared_ptr<RSLayer>> rsLayers_ = {};
     static inline std::shared_ptr<HdiLayerContext> hdiLayerTemp_;
     static inline std::vector<std::string> paramKey_{};
 };
@@ -48,15 +48,15 @@ void HdiOutputSysTest::SetUpTestCase()
     std::shared_ptr<HdiLayerContext> hdiLayerTemp_ = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
-    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
+    hdiLayerTemp_->GetRSLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    rsLayers_.emplace_back(hdiLayerTemp_->GetRSLayer());
 
     zOrder = 1;
     hdiLayerTemp_ = std::make_unique<HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
-    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
-    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
+    hdiLayerTemp_->GetRSLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    rsLayers_.emplace_back(hdiLayerTemp_->GetRSLayer());
 
     mockDevice_ = MockSys::HdiDeviceMock::GetInstance();
     hdiOutput_->SetHdiOutputDevice(mockDevice_);
@@ -80,7 +80,7 @@ HWTEST_F(HdiOutputSysTest, PreProcessLayersComp001, Function | MediumTest| Level
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(), GRAPHIC_DISPLAY_PARAM_ERR);
 
     // layerIdMap is not nullptr in hdiouput
-    HdiOutputSysTest::hdiOutput_->SetLayerInfo(layerInfos_);
+    HdiOutputSysTest::hdiOutput_->SetRSLayers(rsLayers_);
     EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(1));
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->PreProcessLayersComp(), GRAPHIC_DISPLAY_SUCCESS);
 
@@ -126,7 +126,7 @@ HWTEST_F(HdiOutputSysTest, UpdateInfosAfterCommit001, Function | MediumTest| Lev
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence001, Function | MediumTest| Level3)
 {
-    std::map<RSLayerPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    auto res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 }
 
@@ -140,7 +140,7 @@ HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence001, Function | MediumTest| Leve
 */
 HWTEST_F(HdiOutputSysTest, FlushScreen001, Function | MediumTest| Level1)
 {
-    std::vector<LayerPtr> compClientLayers = {};
+    std::vector<std::shared_ptr<HdiLayer>> compClientLayers = {};
     // frame buffer is nullptr
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), -1);
 }
@@ -188,7 +188,7 @@ HWTEST_F(HdiOutputSysTest, SetHdiOutputDevice001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiOutputSysTest, FlushScreen002, Function | MediumTest| Level1)
 {
-    std::vector<LayerPtr> compClientLayers;
+    std::vector<std::shared_ptr<HdiLayer>> compClientLayers;
     HdiOutputSysTest::hdiOutput_->GetComposeClientLayers(compClientLayers);
     // frame buffer is nullptr
     ASSERT_EQ(HdiOutputSysTest::hdiOutput_->FlushScreen(compClientLayers), -1);
@@ -277,7 +277,7 @@ HWTEST_F(HdiOutputSysTest, TestHdiOutput001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiOutputSysTest, GetLayersReleaseFence002, Function | MediumTest| Level3)
 {
-    std::map<RSLayerPtr, sptr<SyncFence>> res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
+    auto res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();
     ASSERT_EQ(res.size(), 0);
 
     res = HdiOutputSysTest::hdiOutput_->GetLayersReleaseFence();

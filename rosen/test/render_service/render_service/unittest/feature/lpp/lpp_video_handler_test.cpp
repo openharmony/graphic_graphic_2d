@@ -15,6 +15,7 @@
 #include "consumer_surface.h"
 #include "feature/lpp/lpp_video_handler.h"
 #include "gtest/gtest.h"
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -275,7 +276,7 @@ HWTEST_F(LppVideoHandlerTest, AddLppLayerId001, TestSize.Level1)
 {
     std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetSurface(nullptr);
     layers.emplace_back(ptr);
@@ -299,7 +300,7 @@ HWTEST_F(LppVideoHandlerTest, AddLppLayerId002, TestSize.Level1)
 {
     std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
     ASSERT_NE(ptr, nullptr);
     auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
@@ -328,7 +329,7 @@ HWTEST_F(LppVideoHandlerTest, AddLppLayerId003, TestSize.Level1)
 {
     std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetTunnelLayerId(1);
     ptr->SetTunnelLayerProperty(LPP_LAYER_PROPERTY);
@@ -353,7 +354,7 @@ HWTEST_F(LppVideoHandlerTest, RemoveLayerId001, TestSize.Level1)
 {
     std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetSurface(nullptr);
     layers.emplace_back(ptr);
@@ -377,7 +378,7 @@ HWTEST_F(LppVideoHandlerTest, RemoveLayerId002, TestSize.Level1)
 {
     std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
     ASSERT_NE(ptr, nullptr);
     auto csurface = IConsumerSurface::Create();
     ASSERT_NE(csurface, nullptr);
@@ -406,7 +407,7 @@ HWTEST_F(LppVideoHandlerTest, RemoveLayerId003, TestSize.Level1)
 {
     std::vector<RSLayerPtr> layers;
     auto& lppVideoHandler = LppVideoHandler::Instance();
-    RSLayerPtr ptr = std::make_shared<HdiLayerInfo>();
+    RSLayerPtr ptr = std::make_shared<RSSurfaceLayer>();
     ASSERT_NE(ptr, nullptr);
     ptr->SetTunnelLayerId(1);
     ptr->SetTunnelLayerProperty(LPP_LAYER_PROPERTY);

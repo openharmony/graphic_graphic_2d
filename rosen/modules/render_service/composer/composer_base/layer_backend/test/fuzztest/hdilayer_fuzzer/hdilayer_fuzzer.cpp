@@ -18,6 +18,9 @@
 #include <securec.h>
 #include <surface_tunnel_handle.h>
 #include "hdi_layer.h"
+#include "rs_render_composer_client.h"
+#include "rs_surface_layer.h"
+
 using namespace OHOS::Rosen;
 
 namespace OHOS {
@@ -62,7 +65,7 @@ namespace OHOS {
         return str;
     }
 
-    std::shared_ptr<HdiLayerInfo> GetLayerInfoFromData()
+    std::shared_ptr<RSLayer> GetRSLayerFromData()
     {
         // get data
         int32_t zOrder = GetData<int32_t>();
@@ -82,19 +85,19 @@ namespace OHOS {
         bool change = GetData<bool>();
 
         // test
-        std::shared_ptr<HdiLayerInfo> layerInfo = HdiLayerInfo::CreateHdiLayerInfo();
-        layerInfo->SetZorder(zOrder);
-        layerInfo->SetAlpha(alpha);
-        layerInfo->SetTransform(transformType);
-        layerInfo->SetCompositionType(compositionType);
-        layerInfo->SetVisibleRegions(visibleRegions);
-        layerInfo->SetDirtyRegions(dirtyRegions);
-        layerInfo->SetBlendType(blendType);
-        layerInfo->SetCropRect(crop);
-        layerInfo->SetPreMulti(preMulti);
-        layerInfo->SetLayerSize(layerRect);
-        layerInfo->SetTunnelHandleChange(change);
-        return layerInfo;
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+        rsLayer->SetZorder(zOrder);
+        rsLayer->SetAlpha(alpha);
+        rsLayer->SetTransform(transformType);
+        rsLayer->SetCompositionType(compositionType);
+        rsLayer->SetVisibleRegions(visibleRegions);
+        rsLayer->SetDirtyRegions(dirtyRegions);
+        rsLayer->SetBlendType(blendType);
+        rsLayer->SetCropRect(crop);
+        rsLayer->SetPreMulti(preMulti);
+        rsLayer->SetLayerSize(layerRect);
+        rsLayer->SetTunnelHandleChange(change);
+        return rsLayer;
     }
 
     void HdiLayerFuzzTest001()
@@ -105,12 +108,12 @@ namespace OHOS {
 
         // test
         std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(screenId);
-        std::shared_ptr<HdiLayerInfo> layerInfo = nullptr;
+        std::shared_ptr<RSLayer> rsLayer = nullptr;
         sptr<SyncFence> fence = nullptr;
         Rosen::HdiDevice* hdiDeviceMock = nullptr;
 
-        hdiLayer->Init(layerInfo);
-        hdiLayer->UpdateLayerInfo(layerInfo);
+        hdiLayer->Init(rsLayer);
+        hdiLayer->UpdateRSLayer(rsLayer);
         hdiLayer->MergeWithFramebufferFence(fence);
         hdiLayer->MergeWithLayerFence(fence);
         hdiLayer->UpdateCompositionType(type);
@@ -143,19 +146,19 @@ namespace OHOS {
         bool doLayerInfoCompare = GetData<bool>();
 
         // test
-        std::shared_ptr<HdiLayerInfo> layerInfo = GetLayerInfoFromData();
+        std::shared_ptr<RSLayer> rsLayer = GetRSLayerFromData();
         std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(screenId);
         Rosen::HdiDevice* hdiDeviceMock = Rosen::HdiDevice::GetInstance();
         hdiLayer->doLayerInfoCompare_ = doLayerInfoCompare;
-        hdiLayer->Init(layerInfo);
+        hdiLayer->Init(rsLayer);
         hdiLayer->SetLayerStatus(inUsing);
-        hdiLayer->UpdateLayerInfo(layerInfo);
+        hdiLayer->UpdateRSLayer(rsLayer);
         hdiLayer->RecordPresentTime(timestamp);
         sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
         hdiLayer->MergeWithFramebufferFence(fence);
         hdiLayer->MergeWithLayerFence(fence);
         hdiLayer->UpdateCompositionType(type);
-        hdiLayer->SavePrevLayerInfo();
+        hdiLayer->SavePrevRSLayer();
         hdiLayer->SetLayerCrop();
         hdiLayer->SetLayerVisibleRegion();
         hdiLayer->SetHdiDeviceMock(hdiDeviceMock);

@@ -20,6 +20,8 @@
 #include "hdi_output.h"
 #include "surface_buffer.h"
 #include "surface_buffer_impl.h"
+#include "rs_render_composer_client.h"
+#include "rs_surface_layer.h"
 using namespace OHOS::Rosen;
 
 namespace OHOS {
@@ -64,6 +66,41 @@ namespace OHOS {
         return str;
     }
 
+    std::shared_ptr<RSLayer> GetRSLayerFromData()
+    {
+        // get data
+        int32_t zOrder = GetData<int32_t>();
+        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
+        GraphicTransformType transformType = GetData<GraphicTransformType>();
+        GraphicCompositionType compositionType = GetData<GraphicCompositionType>();
+        GraphicIRect visibleRegion = GetData<GraphicIRect>();
+        std::vector<GraphicIRect> visibleRegions;
+        visibleRegions.emplace_back(visibleRegion);
+        GraphicIRect dirtyRegion = GetData<GraphicIRect>();
+        std::vector<GraphicIRect> dirtyRegions;
+        dirtyRegions.emplace_back(dirtyRegion);
+        GraphicBlendType blendType = GetData<GraphicBlendType>();
+        GraphicIRect crop = GetData<GraphicIRect>();
+        bool preMulti = GetData<bool>();
+        GraphicIRect layerRect = GetData<GraphicIRect>();
+        bool change = GetData<bool>();
+
+        // test
+        std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
+        rsLayer->SetZorder(zOrder);
+        rsLayer->SetAlpha(alpha);
+        rsLayer->SetTransform(transformType);
+        rsLayer->SetCompositionType(compositionType);
+        rsLayer->SetVisibleRegions(visibleRegions);
+        rsLayer->SetDirtyRegions(dirtyRegions);
+        rsLayer->SetBlendType(blendType);
+        rsLayer->SetCropRect(crop);
+        rsLayer->SetPreMulti(preMulti);
+        rsLayer->SetLayerSize(layerRect);
+        rsLayer->SetTunnelHandleChange(change);
+        return rsLayer;
+    }
+
     bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     {
         if (data == nullptr || size < 0) {
@@ -83,10 +120,10 @@ namespace OHOS {
 
         // test
         std::shared_ptr<HdiOutput> hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-        std::vector<RSLayerPtr> layerInfos;
-        RSLayerPtr layerInfoptr = HdiLayerInfo::CreateHdiLayerInfo();
-        layerInfos.push_back(layerInfoptr);
-        hdiOutput->SetLayerInfo(layerInfos);
+        std::vector<std::shared_ptr<RSLayer>> rsLayers;
+        std::shared_ptr<RSLayer> rsLayer = GetRSLayerFromData();
+        rsLayers.push_back(rsLayer);
+        hdiOutput->SetRSLayers(rsLayers);
         std::vector<GraphicIRect> outputDamages;
         outputDamages.emplace_back(outputDamage);
         hdiOutput->SetOutputDamages(outputDamages);
@@ -95,7 +132,9 @@ namespace OHOS {
         hdiOutput->ClearFrameBuffer();
         hdiOutput->Dump(result);
         hdiOutput->DumpFps(result, arg);
-        
+        hdiOutput->DumpHitchs(result, arg);
+        hdiOutput->ClearFpsDump(result, arg);
+
         return true;
     }
 }

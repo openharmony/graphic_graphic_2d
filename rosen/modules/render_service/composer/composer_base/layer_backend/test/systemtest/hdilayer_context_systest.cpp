@@ -34,19 +34,19 @@ HdiLayerContext::HdiLayerContext(GraphicIRect dstRect, GraphicIRect srcRect, uin
     cSurface_->RegisterConsumerListener(listener);
     sptr<IBufferProducer> producer = cSurface_->GetProducer();
     pSurface_ = Surface::CreateSurfaceAsProducer(producer);
-    hdiLayer_ = HdiLayerInfo::CreateHdiLayerInfo();
+    rsLayer_ = std::make_shared<RSSurfaceLayer>();
 }
 
 HdiLayerContext::~HdiLayerContext()
 {
     cSurface_ = nullptr;
     pSurface_ = nullptr;
-    hdiLayer_ = nullptr;
+    rsLayer_ = nullptr;
 }
 
-std::shared_ptr<HdiLayerInfo> HdiLayerContext::GetHdiLayer()
+std::shared_ptr<RSLayer> HdiLayerContext::GetRSLayer()
 {
-    return hdiLayer_;
+    return rsLayer_;
 }
 
 GSError HdiLayerContext::DrawBufferColor()
@@ -109,22 +109,22 @@ GSError HdiLayerContext::FillHdiLayer()
         return ret;
     }
     GraphicLayerAlpha alpha = { .enPixelAlpha = true };
-    hdiLayer_->SetSurface(cSurface_);
-    hdiLayer_->SetBuffer(buffer, acquireSyncFence);
-    hdiLayer_->SetZorder(static_cast<int32_t>(zOrder_));
-    hdiLayer_->SetAlpha(alpha);
-    hdiLayer_->SetLayerSize(dstRect_);
-    hdiLayer_->SetCropRect(srcRect_);
+    rsLayer_->SetSurface(cSurface_);
+    rsLayer_->SetBuffer(buffer, acquireSyncFence);
+    rsLayer_->SetZorder(static_cast<int32_t>(zOrder_));
+    rsLayer_->SetAlpha(alpha);
+    rsLayer_->SetLayerSize(dstRect_);
+    rsLayer_->SetCropRect(srcRect_);
     std::vector<GraphicIRect> dirtyRegions;
     dirtyRegions.emplace_back(srcRect_);
-    hdiLayer_->SetDirtyRegions(dirtyRegions);
+    rsLayer_->SetDirtyRegions(dirtyRegions);
     std::vector<GraphicIRect> visibleRegions;
     visibleRegions.emplace_back(srcRect_);
-    hdiLayer_->SetVisibleRegions(visibleRegions);
-    hdiLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
-    hdiLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
-    hdiLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
-    hdiLayer_->SetPreMulti(false);
+    rsLayer_->SetVisibleRegions(visibleRegions);
+    rsLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
+    rsLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    rsLayer_->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    rsLayer_->SetPreMulti(false);
     return ret;
 }
 

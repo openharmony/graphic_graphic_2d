@@ -15,33 +15,23 @@
 import("//build/config/features.gni")
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
-module_output_path = "graphic_2d/graphic_2d"
+import("../../layer_backend_test_config.gni")
+
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_base/layer_backend"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("HdiOutputFuzzTest") {
-  fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/hdi_backend/test/fuzztest/hdioutput_fuzzer"
+ohos_fuzztest("HdiLayerFuzzTest") {
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend/test/fuzztest/hdilayer_fuzzer"
   module_out_path = module_output_path
 
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/composer/hdi_backend/include" ]
-  cflags = [
-    "-g",
-    "-O0",
-    "-Wno-unused-variable",
-    "-fno-omit-frame-pointer",
-  ]
-  sources = [ "hdioutput_fuzzer.cpp" ]
-  deps = [
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/utils:socketpair",
-  ]
+  sources = [ "hdilayer_fuzzer.cpp" ]
 
-  external_deps = [
-    "c_utils:utils",
-    "graphic_surface:surface",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
+  include_dirs = layer_backend_fuzz_include_dirs
+  cflags = layer_backend_fuzztest_cflags
+
+  deps = layer_backend_test_deps
+  deps += [ layer_backend_test_impl_dep ]
+  external_deps = layer_backend_fuzz_external_deps
 }
 
 ###############################################################################
@@ -50,7 +40,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":HdiOutputFuzzTest",
+    ":HdiLayerFuzzTest",
   ]
 }
 ###############################################################################

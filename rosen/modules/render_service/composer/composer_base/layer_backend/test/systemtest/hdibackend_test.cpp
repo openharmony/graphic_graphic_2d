@@ -31,7 +31,7 @@ public:
     static inline MockSys::HdiDeviceMock* mockDevice_ = nullptr;
     static inline std::shared_ptr<HdiOutput> output_ = nullptr;
     static inline std::shared_ptr<MockSys::HdiLayerContext> hdiLayerTemp_ = nullptr;
-    static inline std::vector<RSLayerPtr> layerInfos_ = {};
+    static inline std::vector<std::shared_ptr<RSLayer>> rsLayers_ = {};
     static inline std::vector<std::string> paramKey_{};
 };
 
@@ -52,14 +52,14 @@ void HdiBackendSysTest::SetUpTestCase()
     hdiLayerTemp_ = std::make_unique<MockSys::HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
-    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
-    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
+    hdiLayerTemp_->GetRSLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    rsLayers_.emplace_back(hdiLayerTemp_->GetRSLayer());
 
     zOrder = 1;
     hdiLayerTemp_ = std::make_unique<MockSys::HdiLayerContext>(dstRect, srcRect, zOrder);
     hdiLayerTemp_->DrawBufferColor();
     hdiLayerTemp_->FillHdiLayer();
-    hdiLayerTemp_->GetHdiLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
+    hdiLayerTemp_->GetRSLayer()->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
 
     hdiBackend_ = HdiBackend::GetInstance();
 }
@@ -83,34 +83,31 @@ namespace {
 */
 HWTEST_F(HdiBackendSysTest, Repaint001, Function | MediumTest| Level3)
 {
-    // Repaint before SetHdiBackendDevice
-    hdiBackend_->Repaint(nullptr);
-
     // repaint when layermap in output is empty
-    hdiBackend_->Repaint(output_);
+    output_->Repaint();
 
     // repaint when layermap in output is not empty
-    output_->SetLayerInfo(layerInfos_);
+    output_->SetRSLayers(rsLayers_);
     EXPECT_CALL(*mockDevice_, PrepareScreenLayers(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, GetScreenCompChange(_, _, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
-    hdiBackend_->Repaint(output_);
+    output_->Repaint();
     EXPECT_CALL(*mockDevice_, Commit(_, _)).WillRepeatedly(testing::Return(1));
-    hdiBackend_->Repaint(output_);
+    output_->Repaint();
 
     // client composition while onPrepareCompleteCb_ is nullptr
-    layerInfos_.emplace_back(hdiLayerTemp_->GetHdiLayer());
-    output_->SetLayerInfo(layerInfos_);
-    hdiBackend_->Repaint(output_);
+    rsLayers_.emplace_back(hdiLayerTemp_->GetRSLayer());
+    output_->SetRSLayers(rsLayers_);
+    output_->Repaint();
 
     // client composition while onPrepareCompleteCb_ is not nullptr
     auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &param, void* data) -> void {};
-    ASSERT_EQ(hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
-    hdiBackend_->Repaint(output_);
+    ASSERT_EQ(output_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
+    output_->Repaint();
 
-    hdiBackend_->SetScreenPowerOnChanged(true);
-    hdiBackend_->Repaint(output_);
+    output_->SetScreenPowerOnChanged(true);
+    output_->Repaint();
 }
 
 } // namespace

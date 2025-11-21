@@ -26,7 +26,6 @@
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_render_thread_params.h"
 #include "params/rs_screen_render_params.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"

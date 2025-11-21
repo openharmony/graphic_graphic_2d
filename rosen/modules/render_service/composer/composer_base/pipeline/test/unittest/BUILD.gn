@@ -1,0 +1,145 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_base/pipeline"
+
+# shared dependencies
+_common_deps = [
+  "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  "$graphic_2d_root/rosen/modules/render_service:librender_service",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
+  "$graphic_2d_root/rosen/modules/composer:libcomposer",
+  "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+]
+
+# shared external dependencies
+_common_external_deps = [
+  "c_utils:utils",
+  "eventhandler:libeventhandler",
+  "googletest:gtest_main",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "ipc:ipc_core",
+  "samgr:samgr_proxy",
+  "hisysevent:libhisysevent",
+  "init:libbegetutil",
+]
+
+# Add memmgr client dependency when memory manager integration is enabled so
+# headers like app_state_subscriber.h are available to unit tests.
+if (use_memmgr_plugin || use_memmgr) {
+  _common_external_deps += [ "memmgr:memmgrclient" ]
+}
+
+# shared test target template
+template("rs_render_composer_unittest") {
+  ohos_unittest(target_name) {
+    forward_variables_from(invoker, "*")
+    module_out_path = module_output_path
+    configs = [ ":rs_render_composer_common_test_config" ]
+    deps = _common_deps
+    external_deps = _common_external_deps
+    defines = []
+    if (graphic_2d_feature_enable_vulkan) {
+      defines += [ "RS_ENABLE_VK" ]
+      external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    if (defined(global_parts_info) &&
+        defined(global_parts_info.resourceschedule_resource_schedule_service)) {
+      external_deps += [ "resource_schedule_service:ressched_client" ]
+      defines += [ "RES_SCHED_ENABLE" ]
+    }
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+      external_deps += [ "sensor:sensor_interface_native" ]
+      defines += [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+    }
+    if (use_video_processing_engine) {
+      defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+      external_deps += [ "video_processing_engine:videoprocessingengine" ]
+    }
+    subsystem_name = "graphic"
+  }
+}
+
+rs_render_composer_unittest("RSRenderComposerAgentTest") {
+  sources = [ "rs_render_composer_agent_test.cpp" ]
+}
+
+rs_render_composer_unittest("RSRenderComposerContextTest") {
+  sources = [ "rs_render_composer_context_test.cpp" ]
+}
+
+rs_render_composer_unittest("RSRenderComposerManagerTest") {
+  sources = [ "rs_render_composer_manager_test.cpp" ]
+}
+
+rs_render_composer_unittest("RSRenderComposerTest") {
+  sources = [ "rs_render_composer_test.cpp" ]
+}
+
+config("rs_render_composer_common_test_config") {
+  visibility = [ ":*" ]
+
+  cflags_cc = [ "-Wno-deprecated-copy-with-user-provided-copy" ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/include",
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature",
+    "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_client/core",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+    "$graphic_2d_root/rosen/modules/hyper_graphic_manager/frame_rate_vote",
+    "$graphic_2d_root/utils/color_manager/export",
+    "$graphic_2d_root/interfaces/inner_api/color_manager",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":RSRenderComposerAgentTest",
+    ":RSRenderComposerContextTest",
+    ":RSRenderComposerManagerTest",
+    ":RSRenderComposerTest",
+  ]
+}

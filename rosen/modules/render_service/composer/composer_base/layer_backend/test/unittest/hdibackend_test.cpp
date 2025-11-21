@@ -54,7 +54,7 @@ HWTEST_F(HdiBackendTest, SetHdiBackendDevice001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiBackendTest::hdiBackend_->SetHdiBackendDevice(nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
     // init hdiDeviceMock_
     ASSERT_EQ(HdiBackendTest::hdiBackend_->SetHdiBackendDevice(HdiBackendTest::hdiDeviceMock_), ROSEN_ERROR_OK);
-    // the device_ in hdiBackend_ is not nullptr alredy
+    // the device_ in hdiBackend_ is not nullptr already
     ASSERT_EQ(HdiBackendTest::hdiBackend_->SetHdiBackendDevice(HdiBackendTest::hdiDeviceMock_), ROSEN_ERROR_OK);
 }
 
@@ -86,30 +86,30 @@ HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
 }
 
 /*
-* Function: RegPrepareComplete001
+* Function: RegScreenRefresh001
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
-* CaseDescription: 1. call RegPrepareComplete(nullptr, nullptr)
+* CaseDescription: 1. call RegScreenRefresh(nullptr, nullptr)
 *                  2. check ret
 */
-HWTEST_F(HdiBackendTest, RegPrepareComplete001, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, RegScreenRefresh001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegPrepareComplete(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
+    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(nullptr, nullptr), ROSEN_ERROR_INVALID_ARGUMENTS);
 }
 
 /*
-* Function: RegPrepareComplete002
+* Function: RegScreenRefresh002
 * Type: Function
 * Rank: Important(1)
 * EnvConditions: N/A
-* CaseDescription: 1. call RegPrepareComplete(func, nullptr)
+* CaseDescription: 1. call RegScreenRefresh(func, nullptr)
 *                  2. check ret
 */
-HWTEST_F(HdiBackendTest, RegPrepareComplete002, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, RegScreenRefresh002, Function | MediumTest| Level3)
 {
-    auto func = [](sptr<Surface> &, const struct PrepareCompleteParam &param, void* data) -> void {};
-    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegPrepareComplete(func, nullptr), ROSEN_ERROR_OK);
+    auto func = [](uint32_t, void*) -> void {};
+    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(func, nullptr), ROSEN_ERROR_OK);
 }
 
 /*
@@ -180,26 +180,6 @@ HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
 }
 
 /*
-* Function: OnPrepareComplete001
-* Type: Function
-* Rank: Important(1)
-* EnvConditions: N/A
-* CaseDescription: 1. call OnPrepareComplete() with invalid param
-*                  2. no crash
-*/
-HWTEST_F(HdiBackendTest, OnPrepareComplete001, Function | MediumTest| Level3)
-{
-    OutputPtr output = HdiOutput::CreateHdiOutput(0);
-    ASSERT_NE(output, nullptr);
-
-    std::vector<RSLayerPtr> newLayerInfos;
-    for (size_t i = 0; i < 3; i++) {
-        newLayerInfos.emplace_back(nullptr);
-    }
-    hdiBackend_->OnPrepareComplete(true, output, newLayerInfos);
-}
-
-/*
  * Function: RegScreenVBlankIdleCallback001
  * Type: Function
  * Rank: Important(1)
@@ -211,6 +191,8 @@ HWTEST_F(HdiBackendTest, RegScreenVBlankIdleCallback001, Function | MediumTest |
 {
     RosenError res = hdiBackend_->RegScreenVBlankIdleCallback(nullptr, nullptr);
     EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
+    auto func = [](uint32_t deviceId, uint64_t ns, void* data) -> void {};
+    res = hdiBackend_->RegScreenVBlankIdleCallback(func, nullptr);
 }
 
 /*
@@ -288,21 +270,64 @@ HWTEST_F(HdiBackendTest, RegHwcEventCallback001, Function | MediumTest| Level3)
 }
 
 /*
- * Function: SetScreenPowerOnChanged
+ * Function: OnHdiBackendHotPlugEvent
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1. call SetScreenPowerOnChanged
- *                  2. check ret
+ * CaseDescription: 1. get HdiBackend::GetInstance()
+ *                  2. call OnHdiBackendHotPlugEvent
+ *                  3. check result
  */
-HWTEST_F(HdiBackendTest, SetScreenPowerOnChangedTest, Function | MediumTest| Level3)
+HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent, Function | MediumTest| Level3)
 {
-    hdiBackend_->SetScreenPowerOnChanged(true);
-    EXPECT_TRUE(hdiBackend_->screenPowerOnChanged_);
-
-    hdiBackend_->SetScreenPowerOnChanged(false);
-    EXPECT_FALSE(hdiBackend_->screenPowerOnChanged_);
+    HdiBackend* data = HdiBackend::GetInstance();
+    EXPECT_NE(data, nullptr);
+    data->OnHdiBackendHotPlugEvent(0, false, nullptr);
+    EXPECT_NE(data, nullptr);
+    data->OnHdiBackendHotPlugEvent(0, true, nullptr);
+    EXPECT_NE(data, nullptr);
 }
+
+/*
+ * Function: OnHdiBackendRefreshEvent
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. get HdiBackend::GetInstance()
+ *                  2. call OnHdiBackendRefreshEvent
+ *                  3. check result
+ */
+HWTEST_F(HdiBackendTest, OnHdiBackendRefreshEvent, Function | MediumTest| Level3)
+{
+    HdiBackend* data = HdiBackend::GetInstance();
+    EXPECT_NE(data, nullptr);
+    data->OnHdiBackendRefreshEvent(0, nullptr);
+    EXPECT_NE(data, nullptr);
+    data->OnHdiBackendRefreshEvent(1, data);
+    EXPECT_NE(data, nullptr);
+}
+
+/*
+ * Function: OnScreenRefresh
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. get HdiBackend::GetInstance()
+ *                  2. call OnScreenRefresh
+ *                  3. check result
+ */
+HWTEST_F(HdiBackendTest, OnScreenRefresh, Function | MediumTest| Level3)
+{
+    HdiBackend* data = HdiBackend::GetInstance();
+    EXPECT_NE(data, nullptr);
+    data->OnScreenRefresh(0);
+    std::atomic<bool> ran{false};
+    auto onScreenRefreshFunc = [&ran](uint32_t, void*) { ran.store(true); };
+    EXPECT_EQ(data->RegScreenRefresh(onScreenRefreshFunc, data), ROSEN_ERROR_OK);
+    data->OnScreenRefresh(0);
+    EXPECT_TRUE(ran.load());
+}
+
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

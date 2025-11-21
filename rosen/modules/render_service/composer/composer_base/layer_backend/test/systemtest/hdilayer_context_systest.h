@@ -16,7 +16,9 @@
 #ifndef GRAPHIC_2D_COMPOSER_LAYER_CONTEXT_MOCK_H
 #define GRAPHIC_2D_COMPOSER_LAYER_CONTEXT_MOCK_H
 
-#include "hdi_layer.h"
+#include "hdi_layer_info.h"
+#include "rs_render_composer_client.h"
+#include "rs_surface_layer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -25,11 +27,11 @@ class HdiLayerContext {
 public:
     HdiLayerContext(GraphicIRect dstRect, GraphicIRect srcRect, uint32_t zOrder);
     virtual ~HdiLayerContext();
-    std::shared_ptr<HdiLayerInfo> GetHdiLayer();
+    std::shared_ptr<RSLayer> GetRSLayer();
     GSError DrawBufferColor();
     GSError FillHdiLayer();
 private:
-    std::shared_ptr<HdiLayerInfo> hdiLayer_;
+    std::shared_ptr<RSLayer> rsLayer_;
     sptr<Surface> pSurface_;
     sptr<IConsumerSurface> cSurface_;
     GraphicIRect srcRect_;

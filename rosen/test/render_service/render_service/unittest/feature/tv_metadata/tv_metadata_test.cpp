@@ -22,6 +22,7 @@
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "iconsumer_surface.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -197,7 +198,7 @@ HWTEST_F(TvMetadataTest, CopyFromLayersToSurface_001, TestSize.Level1)
     layerTvMetadata.vidFrameCnt = 24;
     layerTvMetadata.dpPixFmt = 2;
     MetadataHelper::SetVideoTVMetadata(buffer, layerTvMetadata);
-    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSLayer>();
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     layer->SetBuffer(buffer, acquireFence);
     layers.emplace_back(layer);
@@ -326,7 +327,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_001, TestSize.Level1)
     uniRenderTvMetadata.vidFrameCnt = 24;
     uniRenderTvMetadata.dpPixFmt = 2;
     MetadataHelper::SetVideoTVMetadata(unitRenderBuffer, uniRenderTvMetadata);
-    RSLayerPtr uniRenderLayer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr uniRenderLayer = std::make_shared<RSLayer>();
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     uniRenderLayer->SetBuffer(unitRenderBuffer, acquireFence);
     uniRenderLayer->SetUniRenderFlag(true);
@@ -359,7 +360,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     uniRenderTvMetadata.vidFrameCnt = 24;
     uniRenderTvMetadata.dpPixFmt = 2;
     MetadataHelper::SetVideoTVMetadata(unitRenderBuffer, uniRenderTvMetadata);
-    RSLayerPtr uniRenderLayer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr uniRenderLayer = std::make_shared<RSLayer>();
     sptr<SyncFence> acquireFence1 = SyncFence::INVALID_FENCE;
     uniRenderLayer->SetBuffer(unitRenderBuffer, acquireFence1);
     uniRenderLayer->SetUniRenderFlag(true);
@@ -375,7 +376,7 @@ HWTEST_F(TvMetadataTest, CombineMetadataForAllLayers_002, TestSize.Level1)
     selfDrawTvMetadata.vidFrameCnt = 25;
     selfDrawTvMetadata.dpPixFmt = 0;
     MetadataHelper::SetVideoTVMetadata(selfDrawBuffer, selfDrawTvMetadata);
-    RSLayerPtr selfDrawLayer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr selfDrawLayer = std::make_shared<RSLayer>();
     sptr<SyncFence> acquireFence2 = SyncFence::INVALID_FENCE;
     selfDrawLayer->SetBuffer(selfDrawBuffer, acquireFence2);
     selfDrawLayer->SetUniRenderFlag(false);

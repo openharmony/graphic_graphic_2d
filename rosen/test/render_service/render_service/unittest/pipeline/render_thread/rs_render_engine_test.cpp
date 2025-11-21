@@ -25,6 +25,7 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -169,13 +170,13 @@ HWTEST_F(RSRenderEngineTest, DrawLayers001, TestSize.Level1)
     }
     std::vector<RSLayerPtr> layers;
     layers.emplace_back(nullptr);
-    RSLayerPtr layer1 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer1 = std::make_shared<RSSurfaceLayer>();
     layer1->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layers.emplace_back(layer1);
-    RSLayerPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer2 = std::make_shared<RSSurfaceLayer>();
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR);
     layers.emplace_back(layer2);
-    RSLayerPtr layer3 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer3 = std::make_shared<RSSurfaceLayer>();
     layer3->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     RSRenderNodeMap& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();

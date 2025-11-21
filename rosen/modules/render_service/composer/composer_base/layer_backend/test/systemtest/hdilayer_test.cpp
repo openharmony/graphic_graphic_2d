@@ -16,6 +16,8 @@
 #include "hdi_layer.h"
 
 #include <gtest/gtest.h>
+#include "rs_render_composer_client.h"
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -28,14 +30,15 @@ public:
     static void TearDownTestCase();
 
     static inline std::shared_ptr<HdiLayer> hdiLayer_;
+    static inline std::shared_ptr<RSLayer> rsLayer_;
 };
 
 void HdiLayerSysTest::SetUpTestCase()
 {
     hdiLayer_ = HdiLayer::CreateHdiLayer(0);
-    RSLayerPtr layerInfo;
-    hdiLayer_->Init(layerInfo);
-    hdiLayer_->UpdateLayerInfo(layerInfo);
+    rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->Init(rsLayer_);
+    hdiLayer_->UpdateRSLayer(rsLayer_);
 }
 
 void HdiLayerSysTest::TearDownTestCase() {}

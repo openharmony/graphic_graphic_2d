@@ -641,3 +641,12 @@ ohos_executable("render_service") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
+
+group("test") {
+  testonly = true
+
+  deps = [
+    "composer/composer_base/layer_backend/test:test",
+    "composer/composer_base/pipeline/test:test",
+  ]
+}
