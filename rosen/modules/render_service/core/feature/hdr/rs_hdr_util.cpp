@@ -383,6 +383,7 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     if (childList.empty()) {
         return;
     }
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
     for (const auto& child : childList) {
         auto childPtr = child.lock();
         if (!childPtr) {
@@ -395,7 +396,6 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
             continue;
         }
         const auto& hdrNodeList = displayNode->GetHDRNodeList();
-        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         for (const auto& nodeId : hdrNodeList) {
             auto canvasNode = nodeMap.GetRenderNode(nodeId);
             if (!canvasNode) {
