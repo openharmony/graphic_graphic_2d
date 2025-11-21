@@ -163,13 +163,6 @@ void RSNGRenderShaderHelper::SetCornerRadius(const std::shared_ptr<RSNGRenderSha
 std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSNGRenderShaderHelper::GetCachedBlurImage(Drawing::Canvas* canvas)
 {
     auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-    const std::stack<RSPaintFilterCanvas::OffscreenData>& offscreenDataList = paintFilterCanvas->GetOffscreenDataList();
-    if (!offscreenDataList.empty()) {
-        std::shared_ptr<RSPaintFilterCanvas> offscreenCanvas = offscreenDataList.top().offscreenCanvas_;
-        if (offscreenCanvas != nullptr) {
-            paintFilterCanvas = offscreenCanvas.get();
-        }
-    }
     const auto& effectData = paintFilterCanvas->GetEffectData();
     if (effectData == nullptr) {
         ROSEN_LOGE("HarmoniumEffect effectData null");
