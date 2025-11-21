@@ -171,13 +171,15 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
     RS_OPTIONAL_TRACE_NAME_FMT(
         "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] adjustDst[%d %d %d %d] "
-        "dirty:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d]",
+        "dirty:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d] rog[w:%d h:%d]",
         offlineResult ? "DeviceOfflineLayer" : surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
         srcRect.x, srcRect.y, srcRect.w, srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
         layer->GetLayerSize().x, layer->GetLayerSize().y, layer->GetLayerSize().w, layer->GetLayerSize().h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h,
-        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType);
+        buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType,
+        uniComposerAdapter_->GetScreenInfo().GetRogWidthRatio(),
+        uniComposerAdapter_->GetScreenInfo().GetRogHeightRatio());
     RS_LOGD("CreateLayer name:%{public}s zorder:%{public}d src:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "dst:[%{public}d, %{public}d, %{public}d, %{public}d] "
             "drity:[%{public}d, %{public}d, %{public}d, %{public}d] "
