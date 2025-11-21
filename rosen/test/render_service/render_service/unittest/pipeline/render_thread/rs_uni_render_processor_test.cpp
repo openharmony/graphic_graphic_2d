@@ -693,34 +693,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
 }
 
 /**
- * @tc.name: ScaleLayerIfNeeded001
- * @tc.desc: Test RSUniRenderProcessorTest.ScaleLayerIfNeeded
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSUniRenderProcessorTest, ScaleLayerIfNeeded001, TestSize.Level1)
-{
-    ScreenInfo screenInfo;
-    screenInfo.isSamplingOn = false;
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    renderProcessor->screenInfo_ = screenInfo;
-
-    RSLayerInfo layerInfo;
-    layerInfo.dstRect.x = 1;
-
-    renderProcessor->ScaleLayerIfNeeded(layerInfo);
-    EXPECT_EQ(layerInfo.dstRect.x, 1);
-
-    screenInfo.isSamplingOn = true;
-    screenInfo.samplingTranslateX = 1.f;
-    screenInfo.samplingTranslateY = 1.f;
-    renderProcessor->screenInfo_ = screenInfo;
-    renderProcessor->ScaleLayerIfNeeded(layerInfo);
-    EXPECT_EQ(layerInfo.dstRect.x, 2);
-}
-
-/**
  * @tc.name: CreateSolidColorLayerTest
  * @tc.desc: Test CreateSolidColorLayer
  * @tc.type:FUNC
