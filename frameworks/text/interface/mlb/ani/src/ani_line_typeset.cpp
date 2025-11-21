@@ -28,7 +28,7 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l")};
+constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"};
 }
 
 AniLineTypeset::AniLineTypeset(std::shared_ptr<LineTypography> lineTypography) : lineTypography_(lineTypography)

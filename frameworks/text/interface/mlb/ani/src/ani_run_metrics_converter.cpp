@@ -23,9 +23,8 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 namespace {
-const std::string sign =
-                "C{" + std::string(ANI_INTERFACE_TEXT_STYLE) + "}C{" + std::string(ANI_INTERFACE_FONT_METRICS) + "}:";
-constexpr CacheKey RUNMETRICS_KEY{ANI_CLASS_RUNMETRICS, "<ctor>", sign.c_str()};
+constexpr std::string_view RUNMETRICS_SIGN = "C{" ANI_INTERFACE_TEXT_STYLE "}C{" ANI_INTERFACE_FONT_METRICS "}:";
+constexpr CacheKey RUNMETRICS_KEY{ANI_CLASS_RUNMETRICS, "<ctor>", RUNMETRICS_SIGN};
 } // namespace
 
 ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& runMetrics)

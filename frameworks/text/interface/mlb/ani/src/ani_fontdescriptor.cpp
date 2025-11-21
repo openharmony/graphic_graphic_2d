@@ -35,7 +35,8 @@ constexpr CacheKey FONT_DESCRIPTOR_WIDTH_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<ge
 constexpr CacheKey FONT_DESCRIPTOR_ITALIC_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT)};
 constexpr CacheKey FONT_DESCRIPTOR_MONO_SPACE_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
 constexpr CacheKey FONT_DESCRIPTOR_SYMBOLIC_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
-constexpr CacheKey FONT_DESCRIPTOR_KEY{ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", sign.c_str()};
+constexpr const std::string_view FONT_DESCRIPTOR_SIGN = "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "E{" ANI_ENUM_FONT_WEIGHT "}iizz:";
+constexpr CacheKey FONT_DESCRIPTOR_KEY{ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", FONT_DESCRIPTOR_SIGN};
 
 std::unordered_map<int, int> g_weightMap = {
     {100, static_cast<int>(FontWeight::W100)},
@@ -135,10 +136,6 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
-    static const std::string aniStringDescriptor = "C{" + std::string(ANI_STRING) + "}";
-    static const std::string sign = aniStringDescriptor + aniStringDescriptor + aniStringDescriptor +
-        aniStringDescriptor + aniStringDescriptor + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
-        "}iizz:";
 
     aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_FONT_DESCRIPTOR),
         AniClassFindMethod(env, FONT_DESCRIPTOR_KEY),

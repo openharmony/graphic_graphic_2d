@@ -104,7 +104,6 @@ ani_enum AniFindEnum(ani_env* env, const char* descriptor)
 
 ani_method AniClassFindMethod(ani_env* env, const CacheKey& key)
 {
-    const CacheKey key{descriptor, name, signature};
     {
         std::shared_lock<std::shared_mutex> lock(g_methodMutex);
         auto it = g_methodCache.find(key);
@@ -113,7 +112,7 @@ ani_method AniClassFindMethod(ani_env* env, const CacheKey& key)
         }
     }
 
-    ani_class cls = AniFindClass(env, descriptor);
+    ani_class cls = AniFindClass(env, std::string(key.d).c_str());
     if (cls == nullptr) {
         return nullptr;
     }
@@ -143,7 +142,7 @@ ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key)
         }
     }
 
-    ani_namespace ns = AniFindNamespace(env, descriptor);
+    ani_namespace ns = AniFindNamespace(env, std::string(key.d).c_str());
     if (ns == nullptr) {
         return nullptr;
     }

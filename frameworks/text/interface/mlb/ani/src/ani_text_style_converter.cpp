@@ -71,28 +71,19 @@ constexpr CacheKey RECT_STYLE_RIGHT_TOP_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<g
 constexpr CacheKey RECT_STYLE_RIGHT_BOTTOM_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>rightBottomRadius", ":d"};
 constexpr CacheKey RECT_STYLE_LEFT_BOTTOM_RADIUS_KEY{ANI_INTERFACE_RECT_STYLE, "<get>leftBottomRadius", ":d"};
 
-const std::string TEXT_STYLE_SIGN = "C{" + std::string(ANI_INTERFACE_DECORATION) + "}C{" +
-        std::string(ANI_INTERFACE_COLOR) + "}E{" + std::string(ANI_ENUM_FONT_WEIGHT) + "}E{" +
-        std::string(ANI_ENUM_FONT_STYLE) + "}E{" + std::string(ANI_ENUM_TEXT_BASELINE) + "}C{" +
-        std::string(ANI_ARRAY) + "}ddddzzC{" + std::string(ANI_STRING) + "}E{" +
-        std::string(ANI_ENUM_ELLIPSIS_MODE) + "}C{" + std::string(ANI_STRING) +
-        "}dC{" + std::string(ANI_ARRAY) + "}C{" +
-        std::string(ANI_ARRAY) + "}C{" + std::string(ANI_INTERFACE_RECT_STYLE) + "}:";
-constexpr CacheKey TEXT_STYLE_KEY{ANI_CLASS_TEXT_STYLE, "<ctor>", TEXT_STYLE_SIGN.c_str()};
+constexpr std::string_view TEXT_STYLE_SIGN = "C{" ANI_INTERFACE_DECORATION "}C{" ANI_INTERFACE_COLOR "}E{" ANI_ENUM_FONT_WEIGHT "}E{" ANI_ENUM_FONT_STYLE "}E{" ANI_ENUM_TEXT_BASELINE "}C{" ANI_ARRAY "}ddddzzC{" ANI_STRING "}E{" ANI_ENUM_ELLIPSIS_MODE "}C{" ANI_STRING "}dC{" ANI_ARRAY "}C{" ANI_ARRAY "}C{" ANI_INTERFACE_RECT_STYLE "}:";
+constexpr CacheKey TEXT_STYLE_KEY{ANI_CLASS_TEXT_STYLE, "<ctor>", TEXT_STYLE_SIGN};
 
-    const std::string TEXT_SHADOW_SIGN =
-        "C{" + std::string(ANI_INTERFACE_COLOR) + "}C{" + std::string(ANI_INTERFACE_POINT) + "}d:";
-constexpr CacheKey TEXTSHADOW_KEY{ANI_CLASS_TEXTSHADOW, "<ctor>", TEXT_SHADOW_SIGN.c_str()};
+constexpr std::string_view TEXT_SHADOW_SIGN = "C{" ANI_INTERFACE_COLOR "}C{" ANI_INTERFACE_POINT "}d:";
+constexpr CacheKey TEXTSHADOW_KEY{ANI_CLASS_TEXTSHADOW, "<ctor>", TEXT_SHADOW_SIGN};
 
-static std::string DECORATION_SIGN = "E{" + std::string(ANI_ENUM_TEXT_DECORATION_TYPE) + "}C{" +
-        std::string(ANI_INTERFACE_COLOR) + "}E{" + std::string(ANI_ENUM_TEXT_DECORATION_STYLE) + "}d:";
-constexpr CacheKey DECORATION_KEY{ANI_CLASS_DECORATION, "<ctor>", DECORATION_SIGN.c_str()};
+constexpr std::string_view DECORATION_SIGN = "E{" ANI_ENUM_TEXT_DECORATION_TYPE "}C{" ANI_INTERFACE_COLOR "}E{" ANI_ENUM_TEXT_DECORATION_STYLE "}d:";
+constexpr CacheKey DECORATION_KEY{ANI_CLASS_DECORATION, "<ctor>", DECORATION_SIGN};
 
-constexpr CacheKey RECT_STYLE_KEY{ANI_CLASS_RECT_STYLE, "<ctor>", "C{" + std::string(ANI_INTERFACE_COLOR) + "}dddd:"};
+constexpr CacheKey RECT_STYLE_KEY{ANI_CLASS_RECT_STYLE, "<ctor>", "C{" ANI_INTERFACE_COLOR "}dddd:"};
 
-constexpr CacheKey FONT_FEATURE_KEY{ANI_CLASS_FONT_FEATURE, "<ctor>", "C{" + std::string(ANI_STRING) + "}i:"};
+constexpr CacheKey FONT_FEATURE_KEY{ANI_CLASS_FONT_FEATURE, "<ctor>", "C{" ANI_STRING "}i:"};
 constexpr CacheKey FONT_VARIATION_KEY{ANI_CLASS_FONT_VARIATION, "<ctor>", ":"};
-}
 
 ani_status ParseDrawingColorToNative(
     ani_env* env, ani_object obj, bool readOptional, const ani_method getPropertyMethod, Drawing::Color& colorSrc)
@@ -143,11 +134,11 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     ParseDecorationToNative(env, objR, textStyle);
 
     ParseDrawingColorToNative(env, objR, false,
-        TEXT_STYLE_R_COLOR_KEY,
+        AniClassFindMethod(env, TEXT_STYLE_R_COLOR_KEY),
         textStyle.color);
 
     AniTextUtils::ReadEnumField(env, objR, AniTextEnum::fontWeight,
-        TEXT_STYLE_R_FONT_WEIGHT_KEY,
+        AniClassFindMethod(env, TEXT_STYLE_R_FONT_WEIGHT_KEY),
         textStyle.fontWeight);
     AniTextUtils::ReadEnumField(env, objR, AniTextEnum::fontStyle,
         AniClassFindMethod(env, TEXT_STYLE_R_FONT_STYLE_KEY),
