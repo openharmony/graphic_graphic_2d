@@ -37,7 +37,7 @@ public:
     static const std::vector<uint32_t> ENUM_RECT_WIDTH_STYLE;
     static const std::vector<uint32_t> ENUM_RECT_HEIGHT_STYLE;
     static const std::vector<uint32_t> ENUM_AFFINITY;
-    static const std::vector<uint32_t> ENUM_FONTWIDTH;
+    static const std::vector<uint32_t> ENUM_FONT_WIDTH;
     static const std::vector<uint32_t> ENUM_TEXTHEIGHTBEHAVIOR;
     static const std::vector<uint32_t> ENUM_SYSTEM_FONT_TYPE;
     static const std::vector<uint32_t> ENUM_TEXT_HIGH_CONTRAST;

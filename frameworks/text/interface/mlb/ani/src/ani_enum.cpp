@@ -125,7 +125,7 @@ const std::vector<uint32_t> AniTextEnum::ENUM_AFFINITY = {
     static_cast<uint32_t>(Affinity::NEXT),
 };
 
-const std::vector<uint32_t> AniTextEnum::ENUM_FONTWIDTH = {
+const std::vector<uint32_t> AniTextEnum::ENUM_FONT_WIDTH = {
     static_cast<uint32_t>(FontWidth::ULTRA_CONDENSED),
     static_cast<uint32_t>(FontWidth::EXTRA_CONDENSED),
     static_cast<uint32_t>(FontWidth::CONDENSED),

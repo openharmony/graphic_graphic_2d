@@ -58,7 +58,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_namespace ns = ANI_FIND_NAMESPACE(env, ANI_NAMESPACE_TEXT);
+    ani_namespace ns = AniFindNamespace(env, ANI_NAMESPACE_TEXT);
     if (ns == nullptr) {
         TEXT_LOGE("Failed to find namespace: %{public}s", ANI_NAMESPACE_TEXT);
         return ANI_NOT_FOUND;
@@ -94,28 +94,28 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
 
     ani_status status = ANI_OK;
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING)),
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING)),
         postScriptName, String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fullName", ANI_WRAP_RETURN_C(ANI_STRING)),
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fullName", ANI_WRAP_RETURN_C(ANI_STRING)),
         fullName, String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING)),
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING)),
         fontFamily, String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING)),
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING)),
         fontSubfamily, String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ANI_WRAP_RETURN_C(ANI_INT)), width, Int,
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ANI_WRAP_RETURN_C(ANI_INT)), width, Int,
         fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT)), italic,
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT)), italic,
         Int, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)),
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)),
         monoSpace, Bool, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj,
-        ANI_CLASS_FIND_METHOD(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)),
+        AniClassFindMethod(env, ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)),
         symbolic, Bool, fontDesc.get(), status);
 
     return status;
@@ -138,14 +138,14 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         aniStringDescriptor + aniStringDescriptor + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
         "}iizz:";
 
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_FONT_DESCRIPTOR),
-        ANI_CLASS_FIND_METHOD(env, ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", sign.c_str()),
+    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_FONT_DESCRIPTOR),
+        AniClassFindMethod(env, ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", sign.c_str()),
         AniTextUtils::CreateAniStringObj(env, fontDesc->path),
         AniTextUtils::CreateAniStringObj(env, fontDesc->postScriptName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fullName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontFamily),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontSubfamily),
-        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_FONT_WEIGHT),
+        AniTextUtils::CreateAniEnum(env, AniFindEnum(env, ANI_ENUM_FONT_WEIGHT),
             getEnumIndex(AniTextEnum::ENUM_FONT_WEIGHT, static_cast<uint32_t>(iter->second))),
         ani_int(fontDesc->width), ani_int(fontDesc->italic), ani_boolean(fontDesc->monoSpace),
         ani_boolean(fontDesc->symbolic));
