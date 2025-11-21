@@ -27,15 +27,23 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
 namespace {
-constexpr CacheKey FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_DESCRIPTOR_FULL_NAME_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fullName", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_DESCRIPTOR_FONT_FAMILY_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_FULL_NAME_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fullName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_FONT_FAMILY_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey FONT_DESCRIPTOR_WIDTH_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ANI_WRAP_RETURN_C(ANI_INT)};
 constexpr CacheKey FONT_DESCRIPTOR_ITALIC_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT)};
-constexpr CacheKey FONT_DESCRIPTOR_MONO_SPACE_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
-constexpr CacheKey FONT_DESCRIPTOR_SYMBOLIC_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
-constexpr const std::string_view FONT_DESCRIPTOR_SIGN = "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "E{" ANI_ENUM_FONT_WEIGHT "}iizz:";
+constexpr CacheKey FONT_DESCRIPTOR_MONO_SPACE_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey FONT_DESCRIPTOR_SYMBOLIC_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr const std::string_view FONT_DESCRIPTOR_SIGN = "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}"
+                                                        "C{" ANI_STRING "}" "C{" ANI_STRING "}"
+                                                        "E{" ANI_ENUM_FONT_WEIGHT "}iizz:";
 constexpr CacheKey FONT_DESCRIPTOR_KEY{ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", FONT_DESCRIPTOR_SIGN};
 
 std::unordered_map<int, int> g_weightMap = {
@@ -104,22 +112,22 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY),
-        postScriptName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FULL_NAME_KEY),
-        fullName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FONT_FAMILY_KEY),
-        fontFamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY),
-        fontSubfamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_WIDTH_KEY), width, Int,
+    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY), postScriptName,
+        String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FULL_NAME_KEY), fullName, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FONT_FAMILY_KEY), fontFamily, String,
         fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_ITALIC_KEY), italic,
-        Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_MONO_SPACE_KEY),
-        monoSpace, Bool, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_SYMBOLIC_KEY),
-        symbolic, Bool, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY), fontSubfamily, String,
+        fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_WIDTH_KEY), width, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_ITALIC_KEY), italic, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_MONO_SPACE_KEY), monoSpace, Bool, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_SYMBOLIC_KEY), symbolic, Bool, fontDesc.get(), status);
 
     return status;
 }

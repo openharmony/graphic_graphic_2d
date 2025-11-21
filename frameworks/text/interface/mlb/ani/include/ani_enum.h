@@ -18,8 +18,9 @@
 
 #include <optional>
 #include <string_view>
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
 
 namespace OHOS::Text::ANI {
 class AniTextEnum {

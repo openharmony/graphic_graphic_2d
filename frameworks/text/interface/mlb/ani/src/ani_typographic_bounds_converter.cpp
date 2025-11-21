@@ -28,8 +28,8 @@ ani_status AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
     ani_env* env, ani_object& obj, double ascent, double descent, double leading, double width)
 {
     obj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS),
-        AniClassFindMethod(env, TYPOGRAPHIC_BOUNDS_KEY), ani_double(ascent),
-        ani_double(descent), ani_double(leading), ani_double(width));
+        AniClassFindMethod(env, TYPOGRAPHIC_BOUNDS_KEY), ani_double(ascent), ani_double(descent), ani_double(leading),
+        ani_double(width));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

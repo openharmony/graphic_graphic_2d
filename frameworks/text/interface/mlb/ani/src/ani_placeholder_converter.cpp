@@ -23,15 +23,18 @@ using namespace OHOS::Rosen;
 namespace {
 constexpr CacheKey PLACEHOLDER_SPAN_WIDTH_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d"};
 constexpr CacheKey PLACEHOLDER_SPAN_HEIGHT_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>height", ":d"};
-constexpr CacheKey PLACEHOLDER_SPAN_ALIGN_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT)};
-constexpr CacheKey PLACEHOLDER_SPAN_BASELINE_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)};
+constexpr CacheKey PLACEHOLDER_SPAN_ALIGN_KEY{
+    ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT)};
+constexpr CacheKey PLACEHOLDER_SPAN_BASELINE_KEY{
+    ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)};
 constexpr CacheKey PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baselineOffset", ":d"};
 } // namespace
+
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_status ret = env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_WIDTH_KEY), &placeholderSpan.width);
+    ani_status ret =
+        env->Object_CallMethod_Double(obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_WIDTH_KEY), &placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
@@ -43,24 +46,19 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
         return ret;
     }
     ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::placeHolderAlignment,
-        AniClassFindMethod(
-            env, PLACEHOLDER_SPAN_ALIGN_KEY),
-        placeholderSpan.alignment);
+        AniClassFindMethod(env, PLACEHOLDER_SPAN_ALIGN_KEY), placeholderSpan.alignment);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
     ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::textBaseLine,
-        AniClassFindMethod(
-            env, PLACEHOLDER_SPAN_BASELINE_KEY),
-        placeholderSpan.baseline);
+        AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_KEY), placeholderSpan.baseline);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_CallMethod_Double(obj,
-        AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY),
-        &placeholderSpan.baselineOffset);
+    ret = env->Object_CallMethod_Double(
+        obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY), &placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baselineOffset, ret %{public}d", ret);
         return ret;

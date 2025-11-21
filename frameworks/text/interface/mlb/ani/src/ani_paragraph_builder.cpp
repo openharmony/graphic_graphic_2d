@@ -243,8 +243,8 @@ ani_object AniParagraphBuilder::BuildLineTypeset(ani_env* env, ani_object object
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Failed to create line typography.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_LINE_TYPESET),
-        AniClassFindMethod(env, LINE_TYPESET_KEY));
+    ani_object lineTypographyObj = AniTextUtils::CreateAniObject(
+        env, AniFindClass(env, ANI_CLASS_LINE_TYPESET), AniClassFindMethod(env, LINE_TYPESET_KEY));
     AniLineTypeset* aniLineTypeSet = new AniLineTypeset(std::move(lineTypography));
     ani_status ret = env->Object_CallMethodByName_Void(
         lineTypographyObj, TEXT_BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniLineTypeSet));
@@ -281,8 +281,8 @@ ani_object AniParagraphBuilder::NativeTransferStatic(ani_env* env, ani_class cls
             TEXT_LOGE("Null jsParagraphBuilder");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_PARAGRAPH_BUILDER),
-            AniClassFindMethod(env, PARAGRAPH_BUILDER_KEY));
+        ani_object staticObj = AniTextUtils::CreateAniObject(
+            env, AniFindClass(env, ANI_CLASS_PARAGRAPH_BUILDER), AniClassFindMethod(env, PARAGRAPH_BUILDER_KEY));
         std::shared_ptr<TypographyCreate> typographyCreatePtr = jsParagraphBuilder->GetTypographyCreate();
         if (typographyCreatePtr == nullptr) {
             TEXT_LOGE("Failed to get typographyCreate");

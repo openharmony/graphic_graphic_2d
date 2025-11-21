@@ -17,10 +17,10 @@
 #define OHOS_TEXT_ANI_CACHE_MANAGER_H
 
 #include <ani.h>
-#include <unordered_map>
-#include <string_view>
 #include <memory>
 #include <shared_mutex>
+#include <string_view>
+#include <unordered_map>
 
 namespace OHOS::Text::ANI {
 struct AniRefCache {
@@ -32,13 +32,12 @@ struct CacheKey {
     std::string_view d;
     std::string_view n;
     std::string_view s;
-    bool operator==(const CacheKey& other) const {
-        return d == other.d && n == other.n && s == other.s;
-    }
+    bool operator==(const CacheKey& other) const { return d == other.d && n == other.n && s == other.s; }
 };
 
 struct CacheKeyHash {
-    size_t operator()(const CacheKey& key) const {
+    size_t operator()(const CacheKey& key) const
+    {
         size_t h1 = std::hash<std::string_view>{}(key.d);
         size_t h2 = std::hash<std::string_view>{}(key.n);
         size_t h3 = std::hash<std::string_view>{}(key.s);

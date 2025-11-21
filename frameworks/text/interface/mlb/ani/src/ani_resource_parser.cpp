@@ -25,8 +25,10 @@ namespace {
 constexpr int32_t RESOURCE_STRING = 10003;
 constexpr int32_t RESOURCE_RAWFILE = 30000;
 constexpr CacheKey GLOBAL_RESOURCE_ID_KEY{ANI_GLOBAL_RESOURCE, "<get>id", ":l"};
-constexpr CacheKey GLOBAL_RESOURCE_BUNDLE_NAME_KEY{ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey GLOBAL_RESOURCE_MODULE_NAME_KEY{ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey GLOBAL_RESOURCE_BUNDLE_NAME_KEY{
+    ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey GLOBAL_RESOURCE_MODULE_NAME_KEY{
+    ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey GLOBAL_RESOURCE_PARAMS_KEY{ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)};
 constexpr CacheKey GLOBAL_RESOURCE_TYPE_KEY{ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)};
 } // namespace
@@ -39,21 +41,15 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
     env->Object_CallMethod_Long(obj, AniClassFindMethod(env, GLOBAL_RESOURCE_ID_KEY), &aniId);
-    env->Object_CallMethod_Ref(obj,
-        AniClassFindMethod(env, GLOBAL_RESOURCE_BUNDLE_NAME_KEY),
-        &aniBundleName);
-    env->Object_CallMethod_Ref(obj,
-        AniClassFindMethod(env, GLOBAL_RESOURCE_MODULE_NAME_KEY),
-        &aniModuleName);
-    AniTextUtils::ReadOptionalArrayField(env, obj,
-        AniClassFindMethod(env, GLOBAL_RESOURCE_PARAMS_KEY), result.params,
-        [](ani_env* env, ani_ref ref) {
+    env->Object_CallMethod_Ref(obj, AniClassFindMethod(env, GLOBAL_RESOURCE_BUNDLE_NAME_KEY), &aniBundleName);
+    env->Object_CallMethod_Ref(obj, AniClassFindMethod(env, GLOBAL_RESOURCE_MODULE_NAME_KEY), &aniModuleName);
+    AniTextUtils::ReadOptionalArrayField(
+        env, obj, AniClassFindMethod(env, GLOBAL_RESOURCE_PARAMS_KEY), result.params, [](ani_env* env, ani_ref ref) {
             std::string utf8Str;
             AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
             return utf8Str;
         });
-    AniTextUtils::ReadOptionalIntField(
-        env, obj, AniClassFindMethod(env, GLOBAL_RESOURCE_TYPE_KEY), aniType);
+    AniTextUtils::ReadOptionalIntField(env, obj, AniClassFindMethod(env, GLOBAL_RESOURCE_TYPE_KEY), aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
@@ -84,8 +80,8 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
 
     if (resource.type == RESOURCE_STRING) {
         std::string rPath;
-        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath) !=
-            Global::Resource::RState::SUCCESS) {
+        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath)
+            != Global::Resource::RState::SUCCESS) {
             return false;
         }
         return AniTextUtils::SplitAbsoluteFontPath(rPath) && AniTextUtils::ReadFile(rPath, dataLen, data);

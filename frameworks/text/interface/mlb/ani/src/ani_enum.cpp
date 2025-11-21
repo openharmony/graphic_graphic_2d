@@ -40,7 +40,6 @@ const std::vector<uint32_t> AniTextEnum::textDecoration = {
     static_cast<uint32_t>(TextDecoration::LINE_THROUGH),
 };
 
-
 const std::vector<uint32_t> AniTextEnum::textDecorationStyle = {
     static_cast<uint32_t>(TextDecorationStyle::SOLID),
     static_cast<uint32_t>(TextDecorationStyle::DOUBLE),

@@ -58,8 +58,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
         return ANI_NOT_FOUND;
     }
 
-    ani_method aniCtor =
-        AniClassFindMethod(env, BUSINESS_ERROR_KEY);
+    ani_method aniCtor = AniClassFindMethod(env, BUSINESS_ERROR_KEY);
     if (aniCtor == nullptr) {
         TEXT_LOGE("Failed to find ctor: %{public}s", ANI_BUSINESS_ERROR);
         return ANI_NOT_FOUND;
@@ -121,8 +120,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
-    return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_MAP), AniClassFindMethod(env, MAP_KEY));
+    return AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_MAP), AniClassFindMethod(env, MAP_KEY));
 }
 
 ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index)
@@ -143,14 +141,12 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType,
 
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
-    return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_DOUBLE), AniClassFindMethod(env, DOUBLE_KEY), val);
+    return AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_DOUBLE), AniClassFindMethod(env, DOUBLE_KEY), val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
 {
-    return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_INT), AniClassFindMethod(env, INT_KEY), val);
+    return AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_INT), AniClassFindMethod(env, INT_KEY), val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)

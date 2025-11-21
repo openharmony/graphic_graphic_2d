@@ -148,8 +148,8 @@ ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key)
     }
 
     ani_function function = nullptr;
-    ani_status status = env->Namespace_FindFunction(
-        ns, std::string(key.n).c_str(), std::string(key.s).c_str(), &function);
+    ani_status status =
+        env->Namespace_FindFunction(ns, std::string(key.n).c_str(), std::string(key.s).c_str(), &function);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to find function: %{public}s %{public}s %{public}s, status: %{public}d",
             std::string(key.d).c_str(), std::string(key.n).c_str(), std::string(key.s).c_str(), status);
