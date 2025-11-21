@@ -31,6 +31,8 @@ namespace {
     constexpr uint32_t NUM_0 = 0;
     constexpr uint32_t NUM_1 = 1;
     constexpr uint32_t NUM_2 = 2;
+    constexpr uint32_t NUM_3 = 3;
+    constexpr uint32_t NUM_4 = 4;
     const std::map<std::string, OHOS::Rosen::Drawing::TileMode> STRING_TO_JS_MAP = {
         { "CLAMP", OHOS::Rosen::Drawing::TileMode::CLAMP },
         { "REPEAT", OHOS::Rosen::Drawing::TileMode::REPEAT },
@@ -173,6 +175,7 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
     napi_status status;
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("blur", Blur),
+        DECLARE_NAPI_FUNCTION("ellipticalGradientBlur", EllipticalGradientBlur),
         DECLARE_NAPI_FUNCTION("brightness", Brightness),
         DECLARE_NAPI_FUNCTION("grayscale", Grayscale),
         DECLARE_NAPI_FUNCTION("invert", Invert),
@@ -492,6 +495,147 @@ napi_value FilterNapi::Blur(napi_env env, napi_callback_info info)
     return _this;
 }
 
+static uint32_t ParseBlurRadius(napi_env env, napi_value argv[], double &blurRadius)
+{
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) == napi_number) {
+        if (napi_get_value_double(env, argv[NUM_0], &blurRadius) != napi_ok) {
+            EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing blurRadius fail");
+            return ERR_INVALID_PARAM;
+        }
+    }
+    return SUCCESS;
+}
+
+static uint32_t ParseCenter(napi_env env, napi_value argv[], double &centerX, double &centerY)
+{
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_1]) == napi_object) {
+        uint32_t arrayLength = 0;
+        if (napi_get_array_length(env, argv[NUM_1], &arrayLength) == napi_ok && arrayLength == NUM_2) {
+            napi_value centerXValue;
+            napi_value centerYValue;
+            napi_get_element(env, argv[NUM_1], NUM_0, &centerXValue);
+            napi_get_element(env, argv[NUM_1], NUM_1, &centerYValue);
+            if (napi_get_value_double(env, centerXValue, &centerX) != napi_ok ||
+                napi_get_value_double(env, centerYValue, &centerY) != napi_ok) {
+                EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing center fail");
+                return ERR_INVALID_PARAM;
+            }
+        } else {
+            EFFECT_LOG_E("FilterNapi EllipticalGradientBlur invalid center array");
+            return ERR_INVALID_PARAM;
+        }
+    }
+    return SUCCESS;
+}
+
+static uint32_t ParseMaskRadius(napi_env env, napi_value argv[], double &maskRadiusX, double &maskRadiusY)
+{
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_2]) == napi_object) {
+        uint32_t arrayLength = 0;
+        if (napi_get_array_length(env, argv[NUM_2], &arrayLength) == napi_ok && arrayLength == NUM_2) {
+            napi_value maskRadiusXValue;
+            napi_value maskRadiusYValue;
+            napi_get_element(env, argv[NUM_2], NUM_0, &maskRadiusXValue);
+            napi_get_element(env, argv[NUM_2], NUM_1, &maskRadiusYValue);
+            if (napi_get_value_double(env, maskRadiusXValue, &maskRadiusX) != napi_ok ||
+                napi_get_value_double(env, maskRadiusYValue, &maskRadiusY) != napi_ok) {
+                EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing maskRadius fail");
+                return ERR_INVALID_PARAM;
+            }
+        } else {
+            EFFECT_LOG_E("FilterNapi EllipticalGradientBlur invalid maskRadius array");
+            return ERR_INVALID_PARAM;
+        }
+    }
+    return SUCCESS;
+}
+
+static uint32_t ParseFractionStops(
+    napi_env env, napi_value argv[], std::vector<float> &positions, std::vector<float> &degrees)
+{
+    uint32_t arrayLength = 0;
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_3]) == napi_object) {
+        napi_get_array_length(env, argv[NUM_3], &arrayLength);
+    } else {
+        EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing fractionStops fail");
+        return ERR_INVALID_PARAM;
+    }
+
+    for (uint32_t i = 0; i < arrayLength; ++i) {
+        napi_value element;
+        napi_get_element(env, argv[NUM_3], i, &element);
+        
+        if (EffectKitNapiUtils::GetInstance().GetType(env, element) == napi_object) {
+            uint32_t innerArrayLength = 0;
+            napi_get_array_length(env, element, &innerArrayLength);
+            if (innerArrayLength != NUM_2) {
+                EFFECT_LOG_E(
+                    "FilterNapi EllipticalGradientBlur parsing fractionStops fail, inner array length should be 2.");
+                return ERR_INVALID_PARAM;
+            }
+            napi_value positionValue;
+            napi_value degreeValue;
+            napi_get_element(env, element, 0, &positionValue);
+            napi_get_element(env, element, 1, &degreeValue);
+
+            double positionDouble;
+            double degreeDouble;
+            napi_get_value_double(env, positionValue, &positionDouble);
+            napi_get_value_double(env, degreeValue, &degreeDouble);
+
+            positions.emplace_back(static_cast<float>(positionDouble));
+            degrees.emplace_back(static_cast<float>(degreeDouble));
+        }
+    }
+    return SUCCESS;
+}
+
+napi_value FilterNapi::EllipticalGradientBlur(napi_env env, napi_callback_info info)
+{
+    size_t argc = NUM_4;
+    napi_value argv[NUM_4];
+    napi_value _this;
+    napi_status status;
+    EFFECT_JS_ARGS(env, info, status, argc, argv, _this);
+    EFFECT_NAPI_CHECK_RET_D(
+        status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing input fail"));
+
+    double blurRadius = 0.0;
+    if (ParseBlurRadius(env, argv, blurRadius) == ERR_INVALID_PARAM)
+        return nullptr;
+
+    double centerX = 0.0;
+    double centerY = 0.0;
+    if (ParseCenter(env, argv, centerX, centerY) == ERR_INVALID_PARAM)
+        return nullptr;
+
+    double maskRadiusX = 0.0;
+    double maskRadiusY = 0.0;
+    if (ParseMaskRadius(env, argv, maskRadiusX, maskRadiusY) == ERR_INVALID_PARAM)
+        return nullptr;
+
+    std::vector<float> positions;
+    std::vector<float> degrees;
+    if (ParseFractionStops(env, argv, positions, degrees) == ERR_INVALID_PARAM)
+        return nullptr;
+
+    FilterNapi *thisFilter = nullptr;
+    status = napi_unwrap(env, _this, reinterpret_cast<void **>(&thisFilter));
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && thisFilter != nullptr,
+                            nullptr, EFFECT_LOG_E("FilterNapi EllipticalGradientBlur napi_unwrap fail"));
+
+    auto ellipticalGradientBlur = EffectImageFilter::EllipticalGradientBlur(
+        static_cast<float>(blurRadius),
+        static_cast<float>(centerX),
+        static_cast<float>(centerY),
+        static_cast<float>(maskRadiusX),
+        static_cast<float>(maskRadiusY),
+        positions,
+        degrees);
+    thisFilter->AddEffectFilter(ellipticalGradientBlur);
+    return _this;
+}
+
 napi_value FilterNapi::Brightness(napi_env env, napi_callback_info info)
 {
     const size_t requireArgc = NUM_1;
@@ -608,5 +752,5 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     thisFilter->AddEffectFilter(applyColorMatrix);
     return _this;
 }
-}
-}
+}  // namespace Rosen
+}  // namespace OHOS

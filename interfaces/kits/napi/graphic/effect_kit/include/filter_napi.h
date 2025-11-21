@@ -46,6 +46,7 @@ private:
     static napi_value GetPixelMap(napi_env env, napi_callback_info info);
     static napi_value GetPixelMapAsync(napi_env env, napi_callback_info info);
     static napi_value Blur(napi_env env, napi_callback_info info);
+    static napi_value EllipticalGradientBlur(napi_env env, napi_callback_info info);
     static napi_value Brightness(napi_env env, napi_callback_info info);
     static napi_value Grayscale(napi_env env, napi_callback_info info);
     static napi_value Invert(napi_env env, napi_callback_info info);
