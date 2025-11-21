@@ -113,7 +113,7 @@ ani_method AniClassFindMethod(ani_env* env, const char* descriptor, const char* 
         }
     }
 
-    ani_class cls = AniFindClass(descriptor);
+    ani_class cls = AniFindClass(env, descriptor);
     if (cls == nullptr) {
         return nullptr;
     }

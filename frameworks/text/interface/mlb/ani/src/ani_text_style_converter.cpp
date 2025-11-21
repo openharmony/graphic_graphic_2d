@@ -82,18 +82,18 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
         AniClassFindMethod(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)),
         textStyle.color);
 
-    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::ENUM_FONT_WEIGHT,
+    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::fontWeight,
         AniClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT)),
         textStyle.fontWeight);
-    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::ENUM_FONT_STYLE,
+    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::fontStyle,
         AniClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)),
         textStyle.fontStyle);
     if (textStyle.fontStyle == FontStyle::OBLIQUE) {
         textStyle.fontStyle = FontStyle::ITALIC;
     }
-    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::ENUM_TEXT_BASE_LINE,
+    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::textBaseLine,
         AniClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)),
         textStyle.baseline);
@@ -125,7 +125,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     AniTextUtils::GetPropertyByCache_U16String(env, objR,
         AniClassFindMethod(env, ANI_INTERFACE_TEXT_STYLE_R, "<get>ellipsis", ANI_WRAP_RETURN_C(ANI_STRING)),
         textStyle.ellipsis);
-    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::ENUM_ELLIPSIS_MODAL,
+    AniTextUtils::ReadEnumField(env, objR, AniTextEnum::ellipsisModal,
         AniClassFindMethod(
             env, ANI_INTERFACE_TEXT_STYLE_R, "<get>ellipsisMode", ANI_WRAP_RETURN_E(ANI_ENUM_ELLIPSIS_MODE)),
         textStyle.ellipsisModal);
@@ -159,12 +159,12 @@ void AniTextStyleConverter::ParseDecorationToNative(ani_env* env, ani_object obj
         &decorationRef);
     if (status == ANI_OK && decorationRef != nullptr) {
         AniTextUtils::ReadOptionalEnumField(env, reinterpret_cast<ani_object>(decorationRef),
-            AniTextEnum::ENUM_TEXT_DECORATION,
+            AniTextEnum::textDecoration,
             AniClassFindMethod(
                 env, ANI_INTERFACE_DECORATION, "<get>textDecoration", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DECORATION_TYPE)),
             textStyle.decoration);
         AniTextUtils::ReadOptionalEnumField(env, reinterpret_cast<ani_object>(decorationRef),
-            AniTextEnum::ENUM_TEXT_DECORATION_STYLE,
+            AniTextEnum::textDecorationStyle,
             AniClassFindMethod(env, ANI_INTERFACE_DECORATION, "<get>decorationStyle",
                 ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DECORATION_STYLE)),
             textStyle.decorationStyle);
@@ -348,22 +348,22 @@ ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextSt
     ani_object aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_TEXT_STYLE),
         AniClassFindMethod(env, ANI_CLASS_TEXT_STYLE, "<ctor>", sign.c_str()),
         AniTextStyleConverter::ParseDecorationToAni(env, textStyle), aniColorObj,
-        AniTextUtils::CreateAniEnum(
+        AniTextUtils::CreateAniOptionalEnum(
             env, AniFindEnum(env, ANI_ENUM_FONT_WEIGHT),
-            getEnumIndex(AniTextEnum::ENUM_FONT_WEIGHT, static_cast<uint32_t>(textStyle.fontWeight))),
-        AniTextUtils::CreateAniEnum(
+            aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(textStyle.fontWeight))),
+        AniTextUtils::CreateAniOptionalEnum(
             env, AniFindEnum(env, ANI_ENUM_FONT_STYLE),
-            getEnumIndex(AniTextEnum::ENUM_FONT_STYLE, static_cast<uint32_t>(textStyle.fontStyle))),
-        AniTextUtils::CreateAniEnum(
+            aniGetEnumIndex(AniTextEnum::fontStyle, static_cast<uint32_t>(textStyle.fontStyle))),
+        AniTextUtils::CreateAniOptionalEnum(
             env, AniFindEnum(env, ANI_ENUM_TEXT_BASELINE),
-            getEnumIndex(AniTextEnum::ENUM_TEXT_BASE_LINE, static_cast<uint32_t>(textStyle.baseline))),
+            aniGetEnumIndex(AniTextEnum::textBaseLine, static_cast<uint32_t>(textStyle.baseline))),
         AniTextUtils::CreateAniArrayAndInitData(env, textStyle.fontFamilies, textStyle.fontFamilies.size(),
             [](ani_env* env, const std::string& item) { return AniTextUtils::CreateAniStringObj(env, item); }),
         textStyle.fontSize, textStyle.letterSpacing, textStyle.wordSpacing, textStyle.heightScale,
         textStyle.halfLeading, textStyle.heightOnly, AniTextUtils::CreateAniStringObj(env, textStyle.ellipsis),
-        AniTextUtils::CreateAniEnum(
+        AniTextUtils::CreateAniOptionalEnum(
             env, AniFindEnum(env, ANI_ENUM_ELLIPSIS_MODE),
-            getEnumIndex(AniTextEnum::ENUM_ELLIPSIS_MODAL, static_cast<uint32_t>(textStyle.ellipsisModal))),
+            aniGetEnumIndex(AniTextEnum::ellipsisModal, static_cast<uint32_t>(textStyle.ellipsisModal))),
         AniTextUtils::CreateAniStringObj(env, textStyle.locale), textStyle.baseLineShift,
         ParseFontFeaturesToAni(env, textStyle.fontFeatures),
         AniTextUtils::CreateAniArrayAndInitData(env, textStyle.shadows, textStyle.shadows.size(),
@@ -413,13 +413,13 @@ ani_object AniTextStyleConverter::ParseDecorationToAni(ani_env* env, const TextS
 
     ani_object aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_DECORATION),
         AniClassFindMethod(env, ANI_CLASS_DECORATION, "<ctor>", sign.c_str()),
-        AniTextUtils::CreateAniEnum(
+        AniTextUtils::CreateAniOptionalEnum(
             env, AniFindEnum(env, ANI_ENUM_TEXT_DECORATION_TYPE),
-            getEnumIndex(AniTextEnum::ENUM_TEXT_DECORATION, static_cast<uint32_t>(textStyle.decoration))),
+            aniGetEnumIndex(AniTextEnum::textDecoration, static_cast<uint32_t>(textStyle.decoration))),
         aniColorObj,
-        AniTextUtils::CreateAniEnum(
+        AniTextUtils::CreateAniOptionalEnum(
             env, AniFindEnum(env, ANI_ENUM_TEXT_DECORATION_STYLE),
-            getEnumIndex(AniTextEnum::ENUM_TEXT_DECORATION_STYLE, static_cast<uint32_t>(textStyle.decorationStyle))),
+            aniGetEnumIndex(AniTextEnum::textDecorationStyle, static_cast<uint32_t>(textStyle.decorationStyle))),
         textStyle.decorationThicknessScale);
     return aniObj;
 }

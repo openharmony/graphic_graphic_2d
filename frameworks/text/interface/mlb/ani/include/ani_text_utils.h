@@ -17,6 +17,7 @@
 #define OHOS_ANI_TEXT_UTILS_H
 #include <ani.h>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -41,6 +42,7 @@ public:
     template <typename T, typename Converter>
     static ani_object CreateAniArrayAndInitData(ani_env* env, const std::vector<T>& t, size_t size, Converter convert);
     static ani_object CreateAniMap(ani_env* env);
+    static ani_object CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index);
     static ani_enum_item CreateAniEnum(ani_env* env, const ani_enum enumType, ani_size index);
     static ani_object CreateAniDoubleObj(ani_env* env, double val);
     static ani_object CreateAniIntObj(ani_env* env, int val);

@@ -116,6 +116,15 @@ ani_object AniTextUtils::CreateAniMap(ani_env* env)
         env, AniFindClass(env, ANI_MAP), AniClassFindMethod(env, ANI_MAP, "<ctor>", ":"));
 }
 
+ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index)
+{
+    if (index.has_value()) {
+        return AniTextUtils::CreateAniEnum(env, enumType, index.value());
+    } else {
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+}
+
 ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType, ani_size index)
 {
     ani_enum_item enumItem;

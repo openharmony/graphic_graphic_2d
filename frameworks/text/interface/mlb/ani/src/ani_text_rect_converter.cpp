@@ -86,7 +86,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
         AniClassFindMethod(env, ANI_CLASS_TEXT_BOX, "<ctor>", sign.c_str()), rectObj,
         AniTextUtils::CreateAniEnum(
             env, AniFindEnum(env, ANI_ENUM_TEXT_DIRECTION),
-            getEnumIndex(AniTextEnum::ENUM_TEXT_DIRECTION, static_cast<uint32_t>(textRect.direction))));
+            aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textRect.direction)).value_or(0)));
     return ANI_OK;
 }
 

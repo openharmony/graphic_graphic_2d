@@ -16,6 +16,7 @@
 #ifndef OHOS_TEXT_ANI_ENUM_H
 #define OHOS_TEXT_ANI_ENUM_H
 
+#include <optional>
 #include <string_view>
 #include <vector>
 #include <unordered_map>
@@ -23,29 +24,29 @@
 namespace OHOS::Text::ANI {
 class AniTextEnum {
 public:
-    static const std::vector<uint32_t> ENUM_TEXT_ALIGN;
-    static const std::vector<uint32_t> ENUM_TEXT_DECORATION;
-    static const std::vector<uint32_t> ENUM_TEXT_DECORATION_STYLE;
-    static const std::vector<uint32_t> ENUM_FONT_WEIGHT;
-    static const std::vector<uint32_t> ENUM_FONT_STYLE;
-    static const std::vector<uint32_t> ENUM_TEXT_BASE_LINE;
-    static const std::vector<uint32_t> ENUM_TEXT_DIRECTION;
-    static const std::vector<uint32_t> ENUM_WORD_BREAK_TYPE;
-    static const std::vector<uint32_t> ENUM_BREAK_STRATEGY;
-    static const std::vector<uint32_t> ENUM_ELLIPSIS_MODAL;
-    static const std::vector<uint32_t> ENUM_PLACEHOLDER_ALIGNMENT;
-    static const std::vector<uint32_t> ENUM_RECT_WIDTH_STYLE;
-    static const std::vector<uint32_t> ENUM_RECT_HEIGHT_STYLE;
-    static const std::vector<uint32_t> ENUM_AFFINITY;
-    static const std::vector<uint32_t> ENUM_FONT_WIDTH;
-    static const std::vector<uint32_t> ENUM_TEXTHEIGHTBEHAVIOR;
-    static const std::vector<uint32_t> ENUM_SYSTEM_FONT_TYPE;
-    static const std::vector<uint32_t> ENUM_TEXT_HIGH_CONTRAST;
-    static const std::vector<uint32_t> ENUM_TEXT_BADGE_TYPE;
-    static const std::vector<uint32_t> ENUM_TEXT_UNDEFINED_GLYPH_DISPLAY;
-    static const std::vector<uint32_t> ENUM_TEXT_VERTICAL_ALIGN;
+    static const std::vector<uint32_t> textAlign;
+    static const std::vector<uint32_t> textDecoration;
+    static const std::vector<uint32_t> textDecorationStyle;
+    static const std::vector<uint32_t> fontWeight;
+    static const std::vector<uint32_t> fontStyle;
+    static const std::vector<uint32_t> textBaseLine;
+    static const std::vector<uint32_t> textDirection;
+    static const std::vector<uint32_t> wordBreakType;
+    static const std::vector<uint32_t> breakStrategy;
+    static const std::vector<uint32_t> ellipsisModal;
+    static const std::vector<uint32_t> placeHolderAlignment;
+    static const std::vector<uint32_t> rectWidthStyle;
+    static const std::vector<uint32_t> rectHeightStyle;
+    static const std::vector<uint32_t> affinity;
+    static const std::vector<uint32_t> fontWidth;
+    static const std::vector<uint32_t> textHeightBehavior;
+    static const std::vector<uint32_t> systemFontType;
+    static const std::vector<uint32_t> textHighContrast;
+    static const std::vector<uint32_t> textBadgeType;
+    static const std::vector<uint32_t> textUndefinedGlyphDisplay;
+    static const std::vector<uint32_t> textVerticalAlign;
 };
 
-size_t getEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue);
+std::optional<size_t> aniGetEnumIndex(const std::vector<uint32_t>& enumValues, uint32_t enumValue);
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_ENUM_H

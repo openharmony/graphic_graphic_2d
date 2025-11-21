@@ -35,7 +35,7 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::ENUM_PLACEHOLDER_ALIGNMENT,
+    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::placeHolderAlignment,
         AniClassFindMethod(
             env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT)),
         placeholderSpan.alignment);
@@ -43,7 +43,7 @@ ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::ENUM_TEXT_BASE_LINE,
+    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::textBaseLine,
         AniClassFindMethod(
             env, ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)),
         placeholderSpan.baseline);

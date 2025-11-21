@@ -56,26 +56,26 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     paragraphStyle->ellipsis = textStyle.ellipsis;
     paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_TEXT_DIRECTION,
+        AniTextEnum::textDirection,
         AniClassFindMethod(
             env, ANI_INTERFACE_PARAGRAPH_STYLE, "<get>textDirection", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_DIRECTION)),
         paragraphStyle->textDirection);
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_TEXT_ALIGN,
+        AniTextEnum::textAlign,
         AniClassFindMethod(env, ANI_INTERFACE_PARAGRAPH_STYLE, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_ALIGN)),
         paragraphStyle->textAlign);
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_WORD_BREAK_TYPE,
+        AniTextEnum::wordBreakType,
         AniClassFindMethod(
             env, ANI_INTERFACE_PARAGRAPH_STYLE, "<get>wordBreak", ANI_WRAP_RETURN_E(ANI_ENUM_WORD_BREAK)),
         paragraphStyle->wordBreakType);
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_BREAK_STRATEGY,
+        AniTextEnum::breakStrategy,
         AniClassFindMethod(
             env, ANI_INTERFACE_PARAGRAPH_STYLE, "<get>breakStrategy", ANI_WRAP_RETURN_E(ANI_ENUM_BREAK_STRATEGY)),
         paragraphStyle->breakStrategy);
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_TEXT_HEIGHT_BEHAVIOR,
+        AniTextEnum::textHeightBehavior,
         AniClassFindMethod(env, ANI_INTERFACE_PARAGRAPH_STYLE, "<get>textHeightBehavior",
             ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_HEIGHT_BEHAVIOR)),
         paragraphStyle->textHeightBehavior);
@@ -107,15 +107,15 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_FONT_STYLE,
+        AniTextEnum::fontStyle,
         AniClassFindMethod(env, ANI_INTERFACE_STRUT_STYLE, "<get>fontStyle", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_STYLE)),
         paragraphStyle->lineStyleFontStyle);
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_FONT_WIDTH,
+        AniTextEnum::fontWidth,
         AniClassFindMethod(env, ANI_INTERFACE_STRUT_STYLE, "<get>fontWidth", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WIDTH)),
         paragraphStyle->lineStyleFontWidth);
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_FONT_WEIGHT,
+        AniTextEnum::fontWeight,
         AniClassFindMethod(
             env, ANI_INTERFACE_STRUT_STYLE, "<get>fontWeight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT)),
         paragraphStyle->lineStyleFontWeight);
@@ -157,7 +157,7 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
 void AniParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab)
 {
     AniTextUtils::ReadOptionalEnumField(env, obj,
-        AniTextEnum::ENUM_TEXT_ALIGN,
+        AniTextEnum::textAlign,
         AniClassFindMethod(env, ANI_INTERFACE_TEXT_TAB, "<get>alignment", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_ALIGN)),
         textTab.alignment);
     ani_double tempLocation;

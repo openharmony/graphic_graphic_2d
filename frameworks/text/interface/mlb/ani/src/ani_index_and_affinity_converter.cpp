@@ -30,7 +30,7 @@ ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
         ani_int(indexAndAffinity.index),
         AniTextUtils::CreateAniEnum(
             env, AniFindEnum(env, ANI_ENUM_AFFINITY),
-            getEnumIndex(AniTextEnum::ENUM_AFFINITY, static_cast<uint32_t>(indexAndAffinity.affinity))));
+            aniGetEnumIndex(AniTextEnum::affinity, static_cast<uint32_t>(indexAndAffinity.affinity)).value_or(0)));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

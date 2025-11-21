@@ -79,8 +79,8 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
 
     if (resource.type == RESOURCE_STRING) {
         std::string rPath;
-        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath)
-            != Global::Resource::RState::SUCCESS) {
+        if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath) !=
+            Global::Resource::RState::SUCCESS) {
             return false;
         }
         return AniTextUtils::SplitAbsoluteFontPath(rPath) && AniTextUtils::ReadFile(rPath, dataLen, data);
