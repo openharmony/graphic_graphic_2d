@@ -3642,6 +3642,7 @@ void RSMainThread::Animate(uint64_t timestamp)
     RS_TRACE_NAME_FMT("Animate [nodeSize, totalAnimationSize] is [%lu, %lu]", animatingNodeSize, totalAnimationSize);
     if (!isCalculateAnimationValue && needRequestNextVsync) {
         RS_TRACE_NAME("Animation running empty");
+        GpuDirtyRegionCollection::GetInstance().AddFrameAnimationNumberForDFX();
     }
 
     doWindowAnimate_ = curWinAnim;

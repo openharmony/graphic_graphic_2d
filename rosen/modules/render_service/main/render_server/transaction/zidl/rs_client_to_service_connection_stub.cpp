@@ -3193,6 +3193,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.commandCount) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.consumeBufferSize) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.frameAnimationCount) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_GLOBAL_DIRTY_REGION_INFO Write globalDirtyRegionInfo "
                         "failed!");
