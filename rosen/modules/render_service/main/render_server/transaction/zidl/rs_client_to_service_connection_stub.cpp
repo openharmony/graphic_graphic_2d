@@ -904,7 +904,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK): {
             bool enableReadRemoteObject = false;
             if (!data.ReadBool(enableReadRemoteObject)) {
-                RS_LOGE("RSRenderServiceConnectionStub::REGISTER_CANVAS_CALLBACK Read parcel failed, pid=%{public}d!",
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_CANVAS_CALLBACK Read bool failed, pid=%{public}d!",
                     GetCallingPid());
                 ret = ERR_INVALID_DATA;
                 break;
@@ -912,6 +912,12 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             sptr<IRemoteObject> remoteObject = nullptr;
             if (enableReadRemoteObject) {
                 remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSClientToServiceConnectionStub::REGISTER_CANVAS_CALLBACK ReadRemoteObject failed, "
+                        "pid=%{public}d!", GetCallingPid());
+                    break;
+                }
             }
             sptr<RSICanvasSurfaceBufferCallback> callback = nullptr;
             if (remoteObject != nullptr) {
@@ -919,7 +925,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             int32_t status = RegisterCanvasCallback(callback);
             if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSRenderServiceConnectionStub::REGISTER_CANVAS_CALLBACK Write status failed, pid=%{public}d, "
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_CANVAS_CALLBACK Write status failed, pid=%{public}d, "
                     "status=%{public}d!", GetCallingPid(), status);
                 ret = ERR_INVALID_REPLY;
             }
@@ -929,19 +935,19 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             NodeId nodeId = INVALID_NODEID;
             uint32_t resetSurfaceIndex = 0;
             if (!data.ReadUint64(nodeId)) {
-                RS_LOGE("RSRenderServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read nodeId failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read nodeId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             if (!data.ReadUint32(resetSurfaceIndex)) {
                 RS_LOGE(
-                    "RSRenderServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read resetSurfaceIndex failed!");
+                    "RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read resetSurfaceIndex failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             bool hasBuffer = false;
             if (!data.ReadBool(hasBuffer)) {
-                RS_LOGE("RSRenderServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read buffer flag failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read buffer flag failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -949,13 +955,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (hasBuffer) {
                 buffer = SurfaceBuffer::Create();
                 if (buffer == nullptr) {
-                    RS_LOGE("RSRenderServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Create buffer failed!");
+                    RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Create buffer failed!");
                     ret = ERR_INVALID_DATA;
                     break;
                 }
                 GSError gsRet = buffer->ReadFromMessageParcel(data);
                 if (gsRet != GSERROR_OK) {
-                    RS_LOGE("RSRenderServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER ReadFromMessageParcel "
+                    RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER ReadFromMessageParcel "
                         "failed, ret=%{public}d!", gsRet);
                     ret = ERR_INVALID_DATA;
                     break;
@@ -963,7 +969,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             int32_t status = SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
             if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSRenderServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Write status failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Write status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
