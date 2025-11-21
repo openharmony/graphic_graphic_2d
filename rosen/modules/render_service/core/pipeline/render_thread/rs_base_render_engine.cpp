@@ -22,6 +22,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
+#include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
@@ -90,6 +91,14 @@ void RSBaseRenderEngine::Init()
         renderContext_->SetUniRenderMode(true);
     }
     renderContext_->SetUpGpuContext();
+    if (renderContext_->GetDrGPUContext()) {
+        renderContext_->GetDrGPUContext()->SetParam(
+            "IsSmartCacheEnabled", SmartCacheParam::IsEnabled());
+        renderContext_->GetDrGPUContext()->SetParam(
+            "SmartCacheUMDPoolSize", SmartCacheParam::GetUMDPoolSize());
+        renderContext_->GetDrGPUContext()->SetParam(
+            "SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
+    }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
     imageManager_ = RSImageManager::Create(renderContext_);

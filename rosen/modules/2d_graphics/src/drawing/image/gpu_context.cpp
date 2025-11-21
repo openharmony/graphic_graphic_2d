@@ -352,6 +352,11 @@ bool GPUContextOptions::GetIsUniRender() const
 {
     return isUniRender_;
 }
+
+void GPUContext::SetParam(const std::string& name, const std::string& value)
+{
+    impl_->SetParam(name, value);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -17,6 +17,7 @@
 #define GPU_CONTEXT_H
 #include <functional>
 #include <set>
+#include <string>
 
 #include "impl_interface/gpu_context_impl.h"
 #include "trace_memory_dump.h"
@@ -386,6 +387,13 @@ public:
      * @brief                   Defragment or clear Vma Cache if needed
      */
     void VmaDefragment();
+
+    /**
+     * @brief                   Set all type of param.
+     * @param name              Key to the param.
+     * @param value             Value to set.
+     */
+    void SetParam(const std::string& name, const std::string& value);
 private:
     std::shared_ptr<GPUContextImpl> impl_;
 };
