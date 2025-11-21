@@ -102,7 +102,7 @@ ani_enum AniFindEnum(ani_env* env, const char* descriptor)
     return en;
 }
 
-ani_method AniClassFindMethod(ani_env* env, const char* descriptor, const char* name, const char* signature)
+ani_method AniClassFindMethod(ani_env* env, const CacheKey& key)
 {
     const CacheKey key{descriptor, name, signature};
     {
@@ -119,10 +119,10 @@ ani_method AniClassFindMethod(ani_env* env, const char* descriptor, const char* 
     }
 
     ani_method method = nullptr;
-    ani_status status = env->Class_FindMethod(cls, name, signature, &method);
+    ani_status status = env->Class_FindMethod(cls, std::string(key.n).c_str(), std::string(key.s).c_str(), &method);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to find method: %{public}s %{public}s %{public}s, status: %{public}d",
-            descriptor, name, signature, status);
+            std::string(key.d).c_str(), std::string(key.n).c_str(), std::string(key.s).c_str(), status);
         return nullptr;
     }
 
@@ -133,9 +133,8 @@ ani_method AniClassFindMethod(ani_env* env, const char* descriptor, const char* 
     return method;
 }
 
-ani_function AniNamespaceFindFunction(ani_env* env, const char* descriptor, const char* name, const char* signature)
+ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key)
 {
-    const CacheKey key{descriptor, name, signature};
     {
         std::shared_lock<std::shared_mutex> lock(g_functionMutex);
         auto it = g_functionCache.find(key);
@@ -150,10 +149,11 @@ ani_function AniNamespaceFindFunction(ani_env* env, const char* descriptor, cons
     }
 
     ani_function function = nullptr;
-    ani_status status = env->Namespace_FindFunction(ns, name, signature, &function);
+    ani_status status = env->Namespace_FindFunction(
+        ns, std::string(key.n).c_str(), std::string(key.s).c_str(), &function);
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to find function: %{public}s %{public}s %{public}s, status: %{public}d",
-            descriptor, name, signature, status);
+            std::string(key.d).c_str(), std::string(key.n).c_str(), std::string(key.s).c_str(), status);
         return nullptr;
     }
 

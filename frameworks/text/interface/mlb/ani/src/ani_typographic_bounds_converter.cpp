@@ -20,12 +20,15 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr CacheKey TYPOGRAPHIC_BOUNDS_KEY{ANI_CLASS_TYPOGRAPHIC_BOUNDS, "<ctor>", "dddd:"};
+} // namespace
 
 ani_status AniTypographicBoundsConverter::ParseTypographicBoundsToAni(
     ani_env* env, ani_object& obj, double ascent, double descent, double leading, double width)
 {
     obj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS),
-        AniClassFindMethod(env, ANI_CLASS_TYPOGRAPHIC_BOUNDS, "<ctor>", "dddd:"), ani_double(ascent),
+        AniClassFindMethod(env, TYPOGRAPHIC_BOUNDS_KEY), ani_double(ascent),
         ani_double(descent), ani_double(leading), ani_double(width));
     return ANI_OK;
 }

@@ -32,6 +32,8 @@ using namespace OHOS::Rosen;
 namespace {
 const std::string GLOBAL_INSTANCE_SIGN = ":C{" + std::string(ANI_CLASS_FONT_COLLECTION) + "}";
 const std::string LOAD_FONT_SYNC_SIGN = "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}:";
+constexpr CacheKey FONT_COLLECTION_KEY{ANI_CLASS_FONT_COLLECTION, "<ctor>", "l:"};
+constexpr CacheKey FONT_COLLECTION_GET_NATIVE_KEY{ ANI_CLASS_FONT_COLLECTION, TEXT_GET_NATIVE, ":l"};
 
 void LoadString(
     ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
@@ -132,7 +134,7 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
     AniFontCollection* aniFontCollection = new AniFontCollection();
     aniFontCollection->fontCollection_ = FontCollection::Create();
     ani_object obj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_FONT_COLLECTION),
-        AniClassFindMethod(env, ANI_CLASS_FONT_COLLECTION, "<ctor>", "l:"),
+        AniClassFindMethod(env, FONT_COLLECTION_KEY),
         reinterpret_cast<ani_long>(aniFontCollection));
     if (AniTextUtils::IsUndefined(env, obj)) {
         TEXT_LOGE("Failed to create ani font collection obj");
@@ -151,7 +153,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
         return;
     }
     auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
-        env, obj, AniClassFindMethod(env, ANI_CLASS_FONT_COLLECTION, TEXT_GET_NATIVE, ":l"));
+        env, obj, AniClassFindMethod(env, FONT_COLLECTION_GET_NATIVE_KEY));
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
@@ -187,7 +189,7 @@ void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string na
 void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 {
     auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
-        env, obj, AniClassFindMethod(env, ANI_CLASS_FONT_COLLECTION, TEXT_GET_NATIVE, ":l"));
+        env, obj, AniClassFindMethod(env, FONT_COLLECTION_GET_NATIVE_KEY));
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
@@ -211,7 +213,7 @@ ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, 
         AniFontCollection* aniFontCollection = new AniFontCollection();
         aniFontCollection->fontCollection_ = jsFontCollection->GetFontCollection();
         ani_object staticObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_FONT_COLLECTION),
-            AniClassFindMethod(env, ANI_CLASS_FONT_COLLECTION, "<ctor>", "l:"),
+            AniClassFindMethod(env, FONT_COLLECTION_KEY),
             reinterpret_cast<ani_long>(aniFontCollection));
         if (AniTextUtils::IsUndefined(env, staticObj)) {
             TEXT_LOGE("Failed to create ani font collection obj");

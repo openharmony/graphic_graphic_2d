@@ -61,8 +61,8 @@ ani_class AniFindClass(ani_env* env, const char* descriptor);
 
 ani_enum AniFindEnum(ani_env* env, const char* descriptor);
 
-ani_method AniClassFindMethod(ani_env* env, const char* descriptor, const char* name, const char* signature);
+ani_method AniClassFindMethod(ani_env* env, const CacheKey& key);
 
-ani_function AniNamespaceFindFunction(ani_env* env, const char* descriptor, const char* name, const char* signature);
+ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key);
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_CACHE_MANAGER_H

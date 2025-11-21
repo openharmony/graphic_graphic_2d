@@ -27,6 +27,9 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l")};
+}
 
 AniLineTypeset::AniLineTypeset(std::shared_ptr<LineTypography> lineTypography) : lineTypography_(lineTypography)
 {
@@ -63,7 +66,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width)
 {
     AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(
-        env, object, AniClassFindMethod(env, ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"));
+        env, object, AniClassFindMethod(env, LINE_TYPESET_GET_NATIVE_KEY));
     if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -76,7 +79,7 @@ ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int st
 ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
 {
     AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(
-        env, object, AniClassFindMethod(env, ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"));
+        env, object, AniClassFindMethod(env, LINE_TYPESET_GET_NATIVE_KEY));
     if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");

@@ -24,7 +24,16 @@
 #include "typography_style.h"
 
 namespace OHOS::Text::ANI {
+namespace {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
+constexpr CacheKey BUSINESS_ERROR_KEY{ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:"};
+constexpr CacheKey ARRAY_KEY{ANI_ARRAY, "<ctor>", "i:"};
+constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", ":"};
+constexpr CacheKey DOUBLE_KEY{ANI_DOUBLE, "<ctor>", "d:"};
+constexpr CacheKey INT_KEY{ANI_INT, "<ctor>", "i:"};
+constexpr CacheKey BOOLEAN_KEY{ANI_BOOLEAN, "<ctor>", "z:"};
+} // namespace
+
 ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message)
 {
     ani_object aniError;
@@ -50,7 +59,7 @@ ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const 
     }
 
     ani_method aniCtor =
-        AniClassFindMethod(env, ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:");
+        AniClassFindMethod(env, BUSINESS_ERROR_KEY);
     if (aniCtor == nullptr) {
         TEXT_LOGE("Failed to find ctor: %{public}s", ANI_BUSINESS_ERROR);
         return ANI_NOT_FOUND;
@@ -96,7 +105,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
         return CreateAniUndefined(env);
     }
 
-    ani_method arrayCtor = AniClassFindMethod(env, ANI_ARRAY, "<ctor>", "i:");
+    ani_method arrayCtor = AniClassFindMethod(env, ARRAY_KEY);
     if (arrayCtor == nullptr) {
         TEXT_LOGE("Failed to find ctor: %{public}s", ANI_ARRAY);
         return CreateAniUndefined(env);
@@ -113,7 +122,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
     return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_MAP), AniClassFindMethod(env, ANI_MAP, "<ctor>", ":"));
+        env, AniFindClass(env, ANI_MAP), AniClassFindMethod(env, MAP_KEY));
 }
 
 ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index)
@@ -135,19 +144,19 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType,
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
     return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_DOUBLE), AniClassFindMethod(env, ANI_DOUBLE, "<ctor>", "d:"), val);
+        env, AniFindClass(env, ANI_DOUBLE), AniClassFindMethod(env, DOUBLE_KEY), val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
 {
     return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_INT), AniClassFindMethod(env, ANI_INT, "<ctor>", "i:"), val);
+        env, AniFindClass(env, ANI_INT), AniClassFindMethod(env, INT_KEY), val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
     return AniTextUtils::CreateAniObject(
-        env, AniFindClass(env, ANI_BOOLEAN), AniClassFindMethod(env, ANI_BOOLEAN, "<ctor>", "z:"), val);
+        env, AniFindClass(env, ANI_BOOLEAN), AniClassFindMethod(env, BOOLEAN_KEY), val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::string& str)

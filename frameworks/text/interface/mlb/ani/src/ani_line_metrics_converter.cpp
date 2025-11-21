@@ -21,10 +21,14 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr CacheKey LINEMETRICS_KEY{ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC{std.core.Map}:"};
+}
+
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
     ani_object aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_LINEMETRICS),
-        AniClassFindMethod(env, ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC{std.core.Map}:"),
+        AniClassFindMethod(env, LINEMETRICS_KEY),
         ani_int(lineMetrics.startIndex),
         ani_int(lineMetrics.endIndex),
         ani_double(lineMetrics.ascender),
