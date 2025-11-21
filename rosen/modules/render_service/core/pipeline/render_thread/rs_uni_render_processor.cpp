@@ -171,7 +171,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
     RS_OPTIONAL_TRACE_NAME_FMT(
         "CreateLayer name:%s zorder:%d src:[%d, %d, %d, %d] dst:[%d, %d, %d, %d] adjustDst[%d %d %d %d] "
-        "dirty:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d] rog[w:%d h:%d]",
+        "dirty:[%d, %d, %d, %d] buffer:[%d, %d] alpha:[%f] type:[%d] rog[w:%f h:%f]",
         offlineResult ? "DeviceOfflineLayer" : surfaceDrawable.GetName().c_str(), layerInfo.zOrder,
         srcRect.x, srcRect.y, srcRect.w, srcRect.h,
         layerInfo.dstRect.x, layerInfo.dstRect.y, layerInfo.dstRect.w, layerInfo.dstRect.h,
