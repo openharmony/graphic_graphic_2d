@@ -234,10 +234,10 @@ bool RSMagicPointerRenderManager::CalculateTargetLayer(std::shared_ptr<RSProcess
         ROSEN_LOGE("RSMagicPointerRenderManager::CalculateTargetLayer uniRenderProcessor is null!");
         return false;
     }
-    std::vector<LayerInfoPtr> layers = uniRenderProcessor->GetLayers();
+    std::vector<RSLayerPtr> layers = uniRenderProcessor->GetLayers();
     forceCPU_ = RSBaseRenderEngine::NeedForceCPU(layers);
 
-    std::sort(layers.begin(), layers.end(), [](LayerInfoPtr a, LayerInfoPtr b) {
+    std::sort(layers.begin(), layers.end(), [](RSLayerPtr a, RSLayerPtr b) {
         return a->GetZorder() < b->GetZorder();
     });
     // get pointer and display node layer
@@ -278,7 +278,7 @@ void RSMagicPointerRenderManager::CalculateColorRange(RectI& pRect)
     }
 }
 
-void RSMagicPointerRenderManager::GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect,
+void RSMagicPointerRenderManager::GetRectAndTargetLayer(std::vector<RSLayerPtr>& layers, RectI& pRect,
     int displayNodeIndex)
 {
     target_ = nullptr;

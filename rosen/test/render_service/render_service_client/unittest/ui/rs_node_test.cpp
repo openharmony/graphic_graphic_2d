@@ -5305,6 +5305,38 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LoadRenderNodeIfNeed001
+ * @tc.desc: Test LoadRenderNodeIfNeed func with RSNode
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->lazyLoad_, true);
+    rsNode->LoadRenderNodeIfNeed();
+    EXPECT_EQ(rsNode->lazyLoad_, false);
+}
+
+/**
+ * @tc.name: LoadRenderNodeIfNeed002
+ * @tc.desc: Test LoadRenderNodeIfNeed when commands count exceeds threshold
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->lazyLoad_, true);
+
+    constexpr int commandSize{1024};
+    for (int i = 0; i < commandSize; ++i) {
+        rsNode->SetNodeName(std::to_string(i));
+    }
+    EXPECT_EQ(rsNode->lazyLoad_, false);
+}
+
+/**
  * @tc.name: SetPivotZ
  * @tc.desc: test results of SetPivotZ
  * @tc.type: FUNC
@@ -7213,6 +7245,24 @@ HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddChildTest004
+ * @tc.desc: Test AddChild with shadow child
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto trueChild = RSCanvasNode::Create();
+    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), trueChild->GetId(),
+        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
+
+    EXPECT_EQ(trueChild->lazyLoad_, true);
+    rsNode->AddChild(shadowChild, 1);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
+}
+
+/**
  * @tc.name: MoveChild
  * @tc.desc: test results of MoveChild
  * @tc.type: FUNC
@@ -7905,12 +7955,14 @@ HWTEST_F(RSNodeTest, SetUIContextToken, TestSize.Level1)
     if (enable) {
         auto rsNode = RSCanvasNode::Create();
         ASSERT_NE(rsNode, nullptr);
+        rsNode->LoadRenderNodeIfNeed();
         rsNode->SetUIContextToken();
         rsNode = nullptr;
         auto uiDirector = RSUIDirector::Create();
         uiDirector->Init(true, true);
         auto uiContext = uiDirector->GetRSUIContext();
         rsNode = RSCanvasNode::Create(false, false, uiContext);
+        rsNode->LoadRenderNodeIfNeed();
         rsNode->SetUIContextToken();
         ASSERT_NE(uiContext, nullptr);
         auto transaction = uiContext->GetRSTransaction();
@@ -8692,6 +8744,7 @@ HWTEST_F(RSNodeTest, MarkRepaintBoundary001, TestSize.Level1)
 {
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     auto rsNode = RSCanvasNode::Create();
+    rsNode->LoadRenderNodeIfNeed();
     std::string tag = "ListItem";
     rsNode->SetFrameNodeInfo(0, tag);
     std::string strResult = rsNode->GetFrameNodeTag();

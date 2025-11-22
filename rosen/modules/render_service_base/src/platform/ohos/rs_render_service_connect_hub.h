@@ -22,10 +22,14 @@
 
 namespace OHOS {
 namespace Rosen {
-using OnConnectCallback = std::function<void(sptr<RSIRenderServiceConnection>&)>;
+using OnConnectCallback = std::function<void(sptr<RSIClientToServiceConnection>&)>; //遗漏，仅注册clienttoservice
 class RSRenderServiceConnectHub : public RefBase {
 public:
-    static sptr<RSIRenderServiceConnection> GetRenderService();
+    static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();
+
+    static sptr<RSIClientToRenderConnection> GetClientToRenderConnection();
+
+    static sptr<RSIClientToServiceConnection> GetClientToServiceConnection();
     static void SetOnConnectCallback(OnConnectCallback cb)
     {
         onConnectCallback_ = cb;
@@ -69,14 +73,15 @@ private:
         wptr<RSRenderServiceConnectHub> rsConnHub_;
     };
 
-    sptr<RSIRenderServiceConnection> GetRenderServiceConnection();
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderServiceConnection();
     bool Connect();
     void ConnectDied();
 
     mutable std::mutex mutex_;
     sptr<RSIRenderService> renderService_;
     sptr<RSIConnectionToken> token_;
-    sptr<RSIRenderServiceConnection> conn_;
+    sptr<RSIClientToServiceConnection> conn_;
+    sptr<RSIClientToRenderConnection> renderConn_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 
     static std::once_flag flag_;

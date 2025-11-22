@@ -253,7 +253,10 @@ OH_Drawing_ErrorCode OH_Drawing_RectContains(OH_Drawing_Rect* cRect, OH_Drawing_
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     Rect* otherRect = CastToRect(other);
-    
+
+    if (isContains == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
     *isContains = rect->Contains(*otherRect);
     return OH_DRAWING_SUCCESS;
 }

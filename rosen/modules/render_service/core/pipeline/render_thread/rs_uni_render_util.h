@@ -86,7 +86,7 @@ public:
     static BufferDrawParam CreateBufferDrawParamForRotationFixed(
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams,
         uint32_t threadIndex);
-    static BufferDrawParam CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU);
+    static BufferDrawParam CreateLayerBufferDrawParam(const RSLayerPtr& layer, bool forceCPU);
     static void DealWithRotationAndGravityForRotationFixed(GraphicTransformType transform, Gravity gravity,
         RectF& localBounds, BufferDrawParam& params);
     static bool IsNeedClient(RSSurfaceRenderNode& node, const ComposeInfo& info);

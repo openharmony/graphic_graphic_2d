@@ -15,6 +15,7 @@
 
 #include "convert.h"
 
+#include "draw/color.h"
 #include "txt/paint_record.h"
 
 namespace OHOS {
@@ -188,10 +189,12 @@ SPText::TextStyle Convert(const TextStyle& style)
 {
     SPText::TextStyle textStyle;
     textStyle.color = style.color.CastToColorQuad();
+    textStyle.colorPlaceholder = static_cast<uint8_t>(style.color.GetPlaceholder());
     textStyle.decoration = static_cast<SPText::TextDecoration>(style.decoration);
     auto decorationColor = SkColorSetARGB(style.decorationColor.GetAlpha(), style.decorationColor.GetRed(),
         style.decorationColor.GetGreen(), style.decorationColor.GetBlue());
     textStyle.decorationColor = decorationColor;
+    textStyle.decorationColorPlaceholder = static_cast<uint8_t>(style.decorationColor.GetPlaceholder());
     textStyle.decorationStyle = static_cast<SPText::TextDecorationStyle>(style.decorationStyle);
     textStyle.decorationThicknessMultiplier = style.decorationThicknessScale;
     textStyle.fontWeight = static_cast<SPText::FontWeight>(style.fontWeight);
@@ -279,8 +282,11 @@ TextStyle Convert(const SPText::TextStyle& style)
 {
     TextStyle textStyle;
     textStyle.color.SetColorQuad(style.color);
+    textStyle.color.SetPlaceholder(static_cast<ColorPlaceholder>(style.colorPlaceholder));
     textStyle.decoration = static_cast<TextDecoration>(style.decoration);
     textStyle.decorationColor.SetColorQuad(style.decorationColor);
+    textStyle.decorationColor.SetPlaceholder(
+        static_cast<ColorPlaceholder>(style.decorationColorPlaceholder));
     textStyle.decorationStyle = static_cast<TextDecorationStyle>(style.decorationStyle);
     textStyle.decorationThicknessScale = style.decorationThicknessMultiplier;
     textStyle.fontWeight = static_cast<FontWeight>(style.fontWeight);

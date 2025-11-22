@@ -32,6 +32,7 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
+#include "render_context/new_render_context/render_context_gl.h"
 #include "rs_trace.h"
 
 #ifdef RES_SCHED_ENABLE
@@ -46,7 +47,7 @@ RSSubThread::~RSSubThread()
 {
     RS_LOGI("~RSSubThread():%{public}u", threadIndex_);
     PostSyncTask([this]() {
-        DestroyShareEglContext();
+        renderContext_->DestroyShareContext();
     });
 }
 
@@ -129,42 +130,6 @@ float RSSubThread::GetAppGpuMemoryInMB()
     return total;
 }
 
-void RSSubThread::CreateShareEglContext()
-{
-    if (renderContext_ == nullptr) {
-        RS_LOGE("renderContext_ is nullptr");
-        return;
-    }
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    eglShareContext_ = renderContext_->CreateShareContext();
-    if (eglShareContext_ == EGL_NO_CONTEXT) {
-        RS_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
-        return;
-    }
-    if (!eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, eglShareContext_)) {
-        RS_LOGE("eglMakeCurrent failed");
-        return;
-    }
-#endif
-}
-
-void RSSubThread::DestroyShareEglContext()
-{
-#ifdef RS_ENABLE_GL
-    if (RSSystemProperties::GetGpuApiType() != GpuApiType::OPENGL) {
-        return;
-    }
-    if (renderContext_ != nullptr) {
-        eglDestroyContext(renderContext_->GetEGLDisplay(), eglShareContext_);
-        eglShareContext_ = EGL_NO_CONTEXT;
-        eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    }
-#endif
-}
-
 bool RSSubThread::CheckValid(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable)
 {
     if (grContext_ == nullptr) {
@@ -243,7 +208,7 @@ std::shared_ptr<Drawing::GPUContext> RSSubThread::CreateShareGrContext()
     RS_TRACE_NAME("CreateShareGrContext");
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        CreateShareEglContext();
+        renderContext_->CreateShareContext();
         auto gpuContext = std::make_shared<Drawing::GPUContext>();
         Drawing::GPUContextOptions options;
         auto handler = std::make_shared<MemoryHandler>();

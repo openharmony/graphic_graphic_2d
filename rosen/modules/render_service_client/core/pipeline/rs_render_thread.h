@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,7 +59,7 @@ public:
 
     std::string DumpRenderTree() const;
 #ifdef RS_ENABLE_GPU
-    RenderContext* GetRenderContext()
+    std::shared_ptr<RenderContext> GetRenderContext()
     {
         return renderContext_;
     }
@@ -182,7 +182,7 @@ private:
 
     std::shared_ptr<RSContext> context_;
 #ifdef RS_ENABLE_GPU
-    RenderContext* renderContext_ = nullptr;
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif
     std::shared_ptr<HighContrastObserver> highContrastObserver_;
     std::atomic_bool isHighContrastEnabled_ = false;

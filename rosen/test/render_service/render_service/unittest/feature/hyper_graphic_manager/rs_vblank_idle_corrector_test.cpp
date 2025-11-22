@@ -45,7 +45,26 @@ HWTEST_F(RSVBlankIdleCorrectorTest, SetScreenVBlankIdle001, TestSize.Level1)
     auto rsVBlankIdleCorrector = std::make_shared<RSVBlankIdleCorrector>();
     ASSERT_NE(nullptr, rsVBlankIdleCorrector);
     // device id is 0
-    rsVBlankIdleCorrector->SetScreenVBlankIdle(0);
+    rsVBlankIdleCorrector->SetScreenVBlankIdle();
+    sleep(1); // wait 1s for processing data
+    rsVBlankIdleCorrector = nullptr;
+}
+
+/**
+ * @tc.name: ProcessScreenConstraintTest
+ * @tc.desc: test RSVBlankIdleCorrectorTest.ProcessScreenConstraint
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSVBlankIdleCorrectorTest, ProcessScreenConstraintTest, TestSize.Level1)
+{
+    auto rsVBlankIdleCorrector = std::make_shared<RSVBlankIdleCorrector>();
+    ASSERT_NE(nullptr, rsVBlankIdleCorrector);
+    // device id is 0
+    ScreenId id = 0;
+    uint64_t timestamp = 10;
+    uint64_t constraintTime = 10;
+    rsVBlankIdleCorrector->ProcessScreenConstraint(id, timestamp, constraintTime);
     sleep(1); // wait 1s for processing data
     rsVBlankIdleCorrector = nullptr;
 }

@@ -399,7 +399,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
     RS_LOGW_IF(DEBUG_SCREEN, "RSScreen set active mode: %{public}u", modeId);
     int32_t selectModeId = supportedModes_[modeId].id;
     const auto& targetModeInfo = supportedModes_[modeId];
-    RS_LOGI("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[(%{public}u x %{public}u) %{public}u],"
+    RS_LOGD("%{public}s, ModeId:%{public}d->%{public}d, targetMode:[(%{public}u x %{public}u) %{public}u],"
         "CurMode:[(%{public}u x %{public}u) %{public}u]", __func__, modeId, selectModeId, targetModeInfo.width,
         targetModeInfo.height, targetModeInfo.freshRate, phyWidth_, phyHeight_, activeRefreshRate_);
     resolutionChanging_.store(targetModeInfo.width != phyWidth_ || targetModeInfo.height != phyHeight_);
@@ -425,7 +425,7 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
         activeRefreshRate_ = activeMode->freshRate;
         lock.unlock();
         WriteHisyseventEpsLcdInfo(activeMode.value());
-        RS_LOGI("%{public}s screenId:%{public}" PRIu64
+        RS_LOGD("%{public}s screenId:%{public}" PRIu64
             ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
             __func__, id_, activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
@@ -1614,6 +1614,7 @@ ScreenInfo RSScreen::GetScreenInfo() const
         info.activeRect = activeRect_;
         info.maskRect = maskRect_;
         info.reviseRect = reviseRect_;
+        info.name = name_;
     }
 
     info.pixelFormat = pixelFormat_;

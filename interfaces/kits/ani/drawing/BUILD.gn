@@ -13,6 +13,7 @@
 
 import("//build/config/components/ets_frontend/ets2abc_config.gni")
 import("//build/ohos.gni")
+import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("ani_drawing") {
@@ -24,7 +25,11 @@ group("ani_drawing") {
 }
 
 config("drawing_ani_config") {
-  include_dirs = [ "$graphic_2d_root/interfaces/kits/ani/drawing" ]
+  include_dirs = [
+    "$graphic_2d_root/interfaces/kits/ani/drawing",
+    "$graphic_2d_root/interfaces/kits/napi/graphic",
+    "$graphic_2d_root/interfaces/kits/napi/graphic/drawing"
+  ]
   defines = [ "ROSEN_OHOS" ]
 }
 
@@ -33,6 +38,7 @@ config("graphic_ani_drawing_config") {
   defines = []
   include_dirs = [
     ".",
+    "$graphic_2d_root/frameworks/text/adapter/skia",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/src",
     "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
@@ -85,7 +91,16 @@ ohos_shared_library("drawing_ani_core") {
     "ipc:ipc_single",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
+    "napi:ace_napi",
+    "runtime_core:ani_helpers",
   ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    external_deps += [
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:app_context",
+    ]
+  }
 
   public_external_deps = [ "image_framework:image" ]
 
@@ -141,10 +156,14 @@ ohos_shared_library("drawing_ani") {
     "canvas_ani/ani_canvas.cpp",
     "color_filter_ani/ani_color_filter.cpp",
     "font_ani/ani_font.cpp",
+    "text_blob_ani/ani_text_blob.cpp",
+    "tool_ani/ani_tool.cpp",
     "lattice_ani/ani_lattice.cpp",
     "matrix_ani/ani_matrix.cpp",
     "path_ani/ani_path.cpp",
     "path_iterator_ani/ani_path_iterator.cpp",
+    "path_effect_ani/ani_path_effect.cpp",
+    "shader_effect_ani/ani_shader_effect.cpp",
     "pen_ani/ani_pen.cpp",
     "rect_utils_ani/ani_rect_utils.cpp",
     "region_ani/ani_region.cpp",
@@ -152,9 +171,16 @@ ohos_shared_library("drawing_ani") {
     "sampling_options_ani/ani_sampling_options.cpp",
     "typeface_ani/ani_typeface.cpp",
     "typeface_arguments_ani/ani_typeface_arguments.cpp",
+    "image_filter_ani/ani_image_filter.cpp",
+    "mask_filter_ani/ani_mask_filter.cpp",
+    "shadow_layer_ani/ani_shadow_layer.cpp",
   ]
 
-  deps = [ "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics" ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$rosen_text_root:rosen_text",
+  ]
 
   external_deps = [
     "c_utils:utils",
@@ -163,7 +189,16 @@ ohos_shared_library("drawing_ani") {
     "ipc:ipc_single",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
+    "napi:ace_napi",
+    "runtime_core:ani_helpers",
   ]
+
+  if (current_os == "ohos" || current_os == "ohos_ng") {
+    external_deps += [
+      "ability_runtime:abilitykit_native",
+      "ability_runtime:app_context",
+    ]
+  }
 
   public_external_deps = [ "image_framework:image" ]
 

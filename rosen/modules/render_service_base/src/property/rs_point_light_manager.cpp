@@ -191,6 +191,7 @@ void RSPointLightManager::CheckIlluminated(
     }
     // lastframe is illuminated but curframe not illuminated should be mark dirty
     if (!inIlluminatedRange && lastFrameIlluminatedNodeSet_.count(illuminatedNode->GetId()) == 1) {
+        illuminatedNode->UpdatePointLightDirtySlot();
         illuminatedNode->SetDirty();
     }
 }

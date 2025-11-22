@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -213,13 +213,13 @@ bool BootAnimationOperation::InitRsSurface()
 #ifdef ACE_ENABLE_GL
     LOGI("init egl context start");
     if (Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
-        OHOS::Rosen::RenderContext* rc = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
+        auto rc = OHOS::Rosen::RenderContext::Create();
         if (rc == nullptr) {
             LOGE("init egl context failed");
             return false;
         } else {
             LOGI("init egl context success");
-            rc->InitializeEglContext();
+            rc->Init();
             rsSurface_->SetRenderContext(rc);
         }
     }

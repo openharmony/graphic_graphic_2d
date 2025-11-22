@@ -184,6 +184,7 @@ public:
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
+    static bool GetRenderNodeLazyLoadEnabled();
     static StencilPixelOcclusionCullingType GetStencilPixelOcclusionCullingEnabled();
     static float GetClipRectThreshold();
     static bool GetAllSurfaceVisibleDebugEnabled();
@@ -277,6 +278,7 @@ public:
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetUIFirstBehindWindowFilterEnabled();
+    static bool GetUIFirstAutoClearCacheEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();
@@ -379,11 +381,13 @@ public:
     static bool GetCompositeLayerEnabled();
     static bool GetEarlyZEnable();
     static bool GetAIBarOptEnabled();
+    static bool GetAIBarDirectCompositeFullEnabled();
     static bool GetRSMemoryInfoManagerParam();
     static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
+    static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
 
     static bool GetBootCompleted();

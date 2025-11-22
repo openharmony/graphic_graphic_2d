@@ -58,13 +58,17 @@ public:
         Drawing::Path& drPath, Drawing::Matrix& matrix);
     static bool PickColorSyn(Drawing::Canvas* canvas, Drawing::Path& drPath, Drawing::Matrix& matrix,
         RSColor& colorPicked, const int& colorStrategy);
-    static std::shared_ptr<Drawing::Image> GpuScaleImage(Drawing::Canvas* canvas,
-        const std::shared_ptr<Drawing::Image> image);
+    static bool PickColor(std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image,
+        Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy);
+    static std::shared_ptr<Drawing::Image> GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
+        std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
     static void BeginForegroundFilter(RSPaintFilterCanvas& canvas, const RectF& bounds);
     static void DrawForegroundFilter(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSFilter>& rsFilter);
     static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
-        const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter);
+        const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter,
+        const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,
+        const std::optional<Drawing::RectI>& drawRect = std::nullopt);
     static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
         const std::unique_ptr<RSFilterCacheManager>& cacheManager,
         Drawing::RectI& bounds, bool behindWindow = false);

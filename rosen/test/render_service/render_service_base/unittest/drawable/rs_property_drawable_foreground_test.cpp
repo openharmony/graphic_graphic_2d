@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
@@ -675,5 +676,48 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest001, TestSize.Level1)
 
     border->dashGap_.clear();
     borderDrawable->DrawBorder(properties, canvas, border, true);
+}
+
+/**
+ * @tc.name: DrawBorderTest002
+ * @tc.desc: DrawBorder test with sdf effect filter
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+
+    std::shared_ptr<DrawableV2::RSBorderDrawable> borderDrawable = std::make_shared<DrawableV2::RSBorderDrawable>();
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto foregroundFilter = std::make_shared<RSSDFEffectFilter>(sdfShape);
+    node.GetMutableRenderProperties().SetForegroundFilterCache(foregroundFilter);
+    node.GetMutableRenderProperties().SetForegroundFilter(foregroundFilter);
+
+    std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
+    Color borderColor = Color();
+    Drawing::Color drawingColor(
+        borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
+    float borderWidth = 2.f;
+    border->colors_.emplace_back(borderColor);
+    border->widths_.emplace_back(borderWidth);
+
+    Drawing::Canvas canvas;
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
+    EXPECT_FALSE(foregroundFilter->HasBorder());
+
+    border->styles_.emplace_back(BorderStyle::SOLID);
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
+    border->SetRadiusFour({0.f, 0.f, 0.f, 0.f});
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
+    border->SetRadiusFour({1.f, 1.f, 1.f, 1.f});
+    borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
+    EXPECT_FALSE(foregroundFilter->HasBorder());
+    EXPECT_EQ(border->widths_.size(), 1);
 }
 } // namespace OHOS::Rosen

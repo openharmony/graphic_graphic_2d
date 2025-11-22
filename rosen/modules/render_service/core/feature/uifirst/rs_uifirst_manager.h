@@ -315,6 +315,7 @@ private:
     void IncreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
     void DecreaseUifirstWindowCount(const RSSurfaceRenderNode& node);
     bool IsExceededWindowsThreshold(const RSSurfaceRenderNode& node) const;
+    void ShouldAutoCleanCache(NodeId id, DrawableV2::RsSubThreadCache& subThreadCache);
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;
@@ -415,6 +416,9 @@ private:
     int curUifirstWindowNums_ = 0;
     // uifirst mem opt.
     std::set<NodeId> markedClearCacheNodes_;
+
+    // auto clear the cache when cache reuse count reach threshold
+    int clearCacheThreshold_ = 0;
 };
 
 // If a subnode is delivered directly

@@ -129,3 +129,24 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, EdgeLightDirParams),
     ADD_PROPERTY_TAG(FrostedGlass, HlParams)
 );
+
+DECLARE_FILTER(GridWarp, GRID_WARP,
+    ADD_PROPERTY_TAG(GridWarp, GridPoint0),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint1),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint2),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint3),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint4),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint5),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint6),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint7),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint8),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle0),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle1),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle2),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle3),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle4),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle5),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle6),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle7),
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle8)
+);

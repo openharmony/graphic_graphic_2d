@@ -193,7 +193,15 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
-    DrawContent(*canvas_, rect);
+    {
+        std::optional<RSTagTracker> tagTracer;
+        if (renderParams_ && canvas_) {
+            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+                RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+        }
+        DrawContent(*canvas_, rect);
+    }
+
     if (!renderParams_ || !RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         return;
     }
@@ -294,6 +302,12 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             }
         }
 
+        std::optional<RSTagTracker> tagTracer;
+        if (canvas_) {
+            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+                RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+        }
+
         if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
             ResetSurface();
             RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", nodeId);
@@ -330,6 +344,11 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 bool RSCanvasDrawingRenderNodeDrawable::InitSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    std::optional<RSTagTracker> tagTracer;
+    if (renderParams_) {
+        tagTracer.emplace(canvas.GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+            RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+    }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         return InitSurfaceForGL(width, height, canvas);
     }
@@ -431,7 +450,7 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForVK(float width, float height, st
 {
     if (!recordingCanvas_) {
         REAL_ALLOC_CONFIG_SET_STATUS(true);
-        image_ = surface_->GetImageSnapshot();
+        image_ = GetImageAlias(surface_, GetTextureOrigin());
         REAL_ALLOC_CONFIG_SET_STATUS(false);
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();
@@ -448,6 +467,11 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
     NodeId nodeId, RSPaintFilterCanvas& rscanvas)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    std::optional<RSTagTracker> tagTracer;
+    if (renderParams_ && canvas_) {
+        tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+            RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+    }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         FlushForVK(width, height, context, nodeId, rscanvas);

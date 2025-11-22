@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,19 +29,19 @@ public:
     void TearDown() override;
     static std::shared_ptr<RenderContext> renderContext_;
 };
-std::shared_ptr<RenderContext> RSMagicPointerRenderManagerTest::renderContext_ = std::make_shared<RenderContext>();
+std::shared_ptr<RenderContext> RSMagicPointerRenderManagerTest::renderContext_ = RenderContext::Create();
 
 void RSMagicPointerRenderManagerTest::SetUpTestCase()
 {
-    renderContext_->InitializeEglContext();
+    renderContext_->Init();
     renderContext_->SetUpGpuContext();
 #if defined (RS_ENABLE_VK)
-    auto vkImageManager = std::make_shared<RSVkImageManager>();
+    auto vkImageManager = RSImageManager::Create();
     RSMagicPointerRenderManager::InitInstance(vkImageManager);
 #endif
 
 #if defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)
-    auto eglImageManager = std::make_shared<RSEglImageManager>(renderContext_->GetEGLDisplay());
+    auto eglImageManager = RSImageManager::Create(renderContext_);
     RSMagicPointerRenderManager::InitInstance(eglImageManager);
 #endif
     RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(true);

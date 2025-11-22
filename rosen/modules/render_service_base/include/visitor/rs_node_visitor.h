@@ -28,6 +28,8 @@ class RSProxyRenderNode;
 class RSRootRenderNode;
 class RSSurfaceRenderNode;
 class RSEffectRenderNode;
+class RSUnionRenderNode;
+class RSWindowKeyFrameRenderNode;
 
 class RSNodeVisitor : public std::enable_shared_from_this<RSNodeVisitor> {
 public:
@@ -44,6 +46,8 @@ public:
     virtual void QuickPrepareEffectRenderNode(RSEffectRenderNode& node) {}
     virtual void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) {}
     virtual void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) {}
+    virtual void QuickPrepareUnionRenderNode(RSUnionRenderNode& node) {}
+    virtual void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node) {}
 
     virtual void PrepareChildren(RSRenderNode& node) = 0;
     virtual void PrepareCanvasRenderNode(RSCanvasRenderNode& node) = 0;

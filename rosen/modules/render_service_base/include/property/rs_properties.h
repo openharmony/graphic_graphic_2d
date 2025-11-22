@@ -400,6 +400,14 @@ public:
     void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
 
+    // setter and getter of color picker related properties
+    void SetColorPickerPlaceholder(int placeholder);
+    ColorPlaceholder GetColorPickerPlaceholder() const;
+    void SetColorPickerStrategy(int strategy);
+    ColorPickStrategyType GetColorPickerStrategy() const;
+    void SetColorPickerInterval(int interval);
+    uint64_t GetColorPickerInterval() const;
+
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
     void SetFgBrightnessSaturation(const float& saturation);
@@ -509,8 +517,6 @@ public:
         return defaultValue;
     }
     void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
-
-    [[nodiscard]] const std::shared_ptr<RSSDFEffectFilter> GetSDFEffectFilter() const;
 
     void SetBackgroundBlurRadius(float backgroundBlurRadius);
     float GetBackgroundBlurRadius() const;
@@ -899,6 +905,8 @@ public:
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
 
+    void OnSDFShapeChange();
+
 private:
 struct CommonEffectParams {
     bool isAttractionValid_ = false;
@@ -1079,6 +1087,10 @@ struct CommonEffectParams {
     float unionSpacing_ = 0.f;
     Gravity frameGravity_ = Gravity::DEFAULT;
     float hdrUIBrightness_ = 1.0f;
+    // color picker properties
+    int colorPickerPlaceholder_ = 0;
+    int colorPickerStrategy_ = 0;
+    uint64_t colorPickerInterval_ = 0;
     // filter property
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSNGRenderShapeBase> renderSDFShape_ = nullptr;

@@ -53,6 +53,7 @@ struct ScreenInfo {
     RectI activeRect;
     RectI maskRect;
     RectI reviseRect;
+    std::string name;
 
     uint32_t activeRefreshRate = 0;
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL; // skip frame interval for change screen refresh rate

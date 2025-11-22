@@ -153,7 +153,7 @@ void DrawingSample::Draw()
             for (auto& func : iter->second) {
                 drawLayer->DrawBuffer(func); // producer
                 drawLayer->FillHDILayer();   // consumer
-                std::vector<LayerInfoPtr> layerVec;
+                std::vector<RSLayerPtr> layerVec;
                 layerVec.emplace_back(drawLayer->GetHdiLayer());
                 curOutput_ = outputMap_[screenId];
                 curOutput_->SetLayerInfo(layerVec);

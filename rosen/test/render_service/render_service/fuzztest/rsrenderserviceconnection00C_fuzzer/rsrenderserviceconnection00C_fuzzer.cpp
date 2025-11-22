@@ -26,9 +26,11 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
+#include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -37,19 +39,19 @@
 
 namespace OHOS {
 namespace Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 
 int32_t g_pid;
 sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
 RSMainThread* mainThread_ = RSMainThread::Instance();
-sptr<RSRenderServiceConnectionStub> connectionStub_ = nullptr;
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
+sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
 namespace {
 const uint8_t DO_EXECUTE_SYNCHRONOUS_TASK = 0;
 const uint8_t DO_NOTIFY_TOUCH_EVENT = 1;
 const uint8_t DO_SET_HARDWARE_ENABLED = 2;
 const uint8_t TARGET_SIZE = 3;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -119,12 +121,12 @@ void DoExecuteSynchronousTask()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
     NodeId targetId = static_cast<NodeId>(g_pid) << 32;
     auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
     task->Marshalling(dataParcel);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoNotifyTouchEvent()
@@ -134,7 +136,7 @@ void DoNotifyTouchEvent()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -145,7 +147,7 @@ void DoNotifyTouchEvent()
         return;
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoSetHardwareEnabled()
@@ -153,7 +155,7 @@ void DoSetHardwareEnabled()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIRenderServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
@@ -166,7 +168,7 @@ void DoSetHardwareEnabled()
     dataP.WriteBool(isEnabled);
     dataP.WriteUint8(selfDrawingType);
     dataP.WriteBool(dynamicHardwareEnable);
-    connectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -187,8 +189,11 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::connectionStub_ =
-        new OHOS::Rosen::RSRenderServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
+    OHOS::Rosen::toServiceConnectionStub_ =
+        new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
+            OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
+    OHOS::Rosen::toRenderConnectionStub_ =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr, OHOS::Rosen::mainThread_,
             OHOS::Rosen::screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
     return 0;
 }

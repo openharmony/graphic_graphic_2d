@@ -416,6 +416,9 @@ public:
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;
 
+    void SetScreenId(ScreenId screenId);
+    ScreenId GetScreenId() const;
+
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
@@ -916,6 +919,8 @@ private:
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+
+    ScreenId screenId_ = INVALID_SCREEN_ID;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

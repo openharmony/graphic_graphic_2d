@@ -334,6 +334,7 @@
                 "animation/rs_transition.h",
                 "animation/rs_animation_timing_curve.h",
                 "animation/rs_motion_path_option.h",
+                "feature/window_keyframe/rs_window_keyframe_node.h",
                 "ui/rs_node.h",
                 "ui/rs_proxy_node.h",
                 "ui/rs_base_node.h",
@@ -529,7 +530,8 @@
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo",
           "//foundation/graphic/graphic_2d/rosen/test/dtk:dtk",
           "//foundation/graphic/graphic_2d/frameworks/text/test:text_test",
-          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test"
+          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service:test"
         ]
       }
     }

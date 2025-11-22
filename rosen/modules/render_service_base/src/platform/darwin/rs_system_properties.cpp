@@ -132,6 +132,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+    return false;
+}
+
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
     return {};
@@ -502,6 +507,11 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return false;
 }
 
+bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     return true;
@@ -777,6 +787,11 @@ void RSSystemProperties::SetTypicalResidentProcess(bool isTypicalResidentProcess
 }
 
 bool RSSystemProperties::GetAIBarOptEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
 {
     return false;
 }

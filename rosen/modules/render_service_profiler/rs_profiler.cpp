@@ -42,7 +42,8 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "render/rs_typeface_cache.h"
 
 namespace OHOS::Rosen {
@@ -206,10 +207,9 @@ std::shared_ptr<ProfilerMarshallingJob> RSProfiler::GetJobForExecution()
 
 void RSProfiler::MarshalFirstFrameNodesLoop()
 {
-    auto job = GetJobForExecution();
-    while (job) {
-        constexpr auto waitTime = 100;
-        std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
+    constexpr auto waitTime = 100;
+    while (auto job = GetJobForExecution()) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(waitTime));
         if (g_jobTickTaskCount) {
             continue;
         }
@@ -226,8 +226,6 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
                 job->marshallingTick(0, false);
             }
         });
-
-        job = GetJobForExecution();
     }
 }
 
@@ -288,7 +286,6 @@ static void SendTelemetry(double time)
 */
 void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
 {
-#ifdef RS_ENABLE_GPU
     if (!IsRecording()) {
         return;
     }
@@ -299,16 +296,15 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     if (!context_) {
         return;
     }
-    std::shared_ptr<RSScreenRenderNode> displayNode = GetScreenNode(*context_);
-    if (!displayNode) {
+    std::shared_ptr<RSScreenRenderNode> screenNode = GetScreenNode(*context_);
+    if (!screenNode) {
         return;
     }
     // the following logic calcuate the percentage of dirtyRegion
-    auto params = static_cast<RSScreenRenderParams*>(displayNode->GetRenderParams().get());
+    auto params = static_cast<RSScreenRenderParams*>(screenNode->GetRenderParams().get());
     if (!params) {
         return;
     }
-
     auto screenInfo = params->GetScreenInfo();
     const uint64_t displayArea = static_cast<uint64_t>(screenInfo.width * screenInfo.height);
 
@@ -326,7 +322,6 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
         value = rect.GetHeight();
         g_dirtyRegionList.write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
-
     if (displayArea > 0) {
         g_dirtyRegionPercentage =
             maxPercentValue * static_cast<double>(dirtyRegionArea) / static_cast<double>(displayArea);
@@ -334,7 +329,6 @@ void RSProfiler::SetDirtyRegion(const Occlusion::Region& dirtyRegion)
     if (g_dirtyRegionPercentage > maxPercentValue) {
         g_dirtyRegionPercentage = maxPercentValue;
     }
-#endif
 }
 
 void RSProfiler::Init(RSRenderService* renderService)
@@ -343,7 +337,6 @@ void RSProfiler::Init(RSRenderService* renderService)
     g_mainThread = g_renderService ? g_renderService->mainThread_ : nullptr;
     context_ = g_mainThread ? g_mainThread->context_.get() : nullptr;
 
-    RSSystemProperties::SetProfilerDisabled();
     RSSystemProperties::WatchSystemProperty(SYS_KEY_ENABLED, OnFlagChangedCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(SYS_KEY_BETARECORDING, OnFlagChangedCallback, nullptr);
     bool isEnabled = RSSystemProperties::GetProfilerEnabled();
@@ -413,7 +406,7 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
     return g_recordParcelNumber;
 }
 
-uint64_t RSProfiler::OnRemoteRequest(RSIRenderServiceConnection* connection, uint32_t code,
+uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code,
     MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
 {
     g_counterOnRemoteRequest++;
@@ -470,29 +463,35 @@ void RSProfiler::CreateMockConnection(pid_t pid)
 
     auto tokenObj = new IRemoteStub<RSIConnectionToken>();
 
-    sptr<RSIRenderServiceConnection> newConn(new RSRenderServiceConnection(pid, g_renderService,
+    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, g_renderService,
         g_mainThread, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
 
-    sptr<RSIRenderServiceConnection> tmp;
+    sptr<RSIClientToRenderConnection> newRenderConn(
+        new RSClientToRenderConnection(pid, g_renderService, g_mainThread, g_renderService->screenManager_,
+        tokenObj, g_renderService->appVSyncDistributor_));
+ 
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
 
     std::unique_lock<std::mutex> lock(g_renderService->mutex_);
     // if connections_ has the same token one, replace it.
     if (g_renderService->connections_.count(tokenObj) > 0) {
         tmp = g_renderService->connections_.at(tokenObj);
     }
-    g_renderService->connections_[tokenObj] = newConn;
+    g_renderService->connections_[tokenObj] = {newConn, newRenderConn};
     lock.unlock();
     g_mainThread->AddTransactionDataPidInfo(pid);
 }
 
-RSRenderServiceConnection* RSProfiler::GetConnection(pid_t pid)
+RSClientToServiceConnection* RSProfiler::GetConnection(pid_t pid)
 {
     if (!g_renderService) {
         return nullptr;
     }
 
+    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+
     for (const auto& pair : g_renderService->connections_) {
-        auto connection = static_cast<RSRenderServiceConnection*>(pair.second.GetRefPtr());
+        auto connection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
         if (connection->remotePid_ == pid) {
             return connection;
         }
@@ -501,14 +500,16 @@ RSRenderServiceConnection* RSProfiler::GetConnection(pid_t pid)
     return nullptr;
 }
 
-pid_t RSProfiler::GetConnectionPid(RSIRenderServiceConnection* connection)
+pid_t RSProfiler::GetConnectionPid(RSIClientToServiceConnection* connection)
 {
     if (!g_renderService || !connection) {
         return 0;
     }
 
+    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+
     for (const auto& pair : g_renderService->connections_) {
-        auto renderServiceConnection = static_cast<RSRenderServiceConnection*>(pair.second.GetRefPtr());
+        auto renderServiceConnection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
         if (renderServiceConnection == connection) {
             return renderServiceConnection->remotePid_;
         }
@@ -523,10 +524,11 @@ std::vector<pid_t> RSProfiler::GetConnectionsPids()
         return {};
     }
 
+    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
     std::vector<pid_t> pids;
     pids.reserve(g_renderService->connections_.size());
     for (const auto& pair : g_renderService->connections_) {
-        pids.push_back(static_cast<RSRenderServiceConnection*>(pair.second.GetRefPtr())->remotePid_);
+        pids.push_back(static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr())->remotePid_);
     }
     return pids;
 }
@@ -802,6 +804,8 @@ void RSProfiler::OnFrameEnd()
             LogEventMsg(log_value.time_, log_value.type_, log_value.msg_);
         }
     }
+
+    BetaRecordOnFrameEnd();
 }
 
 void RSProfiler::CalcNodeWeigthOnFrameEnd(uint64_t frameLength)
@@ -1149,7 +1153,6 @@ void RSProfiler::HiddenSpaceTurnOn()
         HRPE("RSProfiler::HiddenSpaceTurnOn Logical Display is nullptr");
         return;
     }
-
     if (auto rootNode = GetRenderNode(Utils::PatchNodeId(0))) {
         g_childOfDisplayNodes = *logicalDisplayNode->GetChildren();
 
@@ -1343,7 +1346,6 @@ void RSProfiler::RecordUpdate()
     }
 
     const uint64_t frameLengthNanosecs = RawNowNano() - g_frameBeginTimestamp;
-
     const double currentTime = Utils::ToSeconds(g_frameBeginTimestamp);
     const double timeSinceRecordStart = currentTime - g_recordStartTime;
     const uint64_t recordStartTimeNano = Utils::ToNanoseconds(g_recordStartTime);
@@ -2202,7 +2204,7 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
         pid_t pid = 0;
         stream.read(reinterpret_cast<char*>(&pid), sizeof(pid));
 
-        RSRenderServiceConnection* connection = GetConnection(Utils::GetMockPid(pid));
+        RSClientToServiceConnection* connection = GetConnection(Utils::GetMockPid(pid));
         if (!connection) {
             const std::vector<pid_t>& pids = g_playbackFile.GetHeaderPids();
             if (!pids.empty()) {

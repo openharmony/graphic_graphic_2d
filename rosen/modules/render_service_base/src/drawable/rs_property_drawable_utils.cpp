@@ -142,7 +142,7 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
         ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn GetImageSnapshot Failed");
         return false;
     }
-    auto scaledImage = GpuScaleImage(canvas, shadowRegionImage);
+    auto scaledImage = GpuScaleImage(canvas ? canvas->GetGPUContext() : nullptr, shadowRegionImage);
     if (scaledImage == nullptr) {
         ROSEN_LOGE("RSPropertyDrawableUtils::PickColorSyn GpuScaleImageids null");
         return false;
@@ -177,8 +177,35 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
     return true;
 }
 
-std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(Drawing::Canvas* canvas,
-    const std::shared_ptr<Drawing::Image> image)
+bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> context,
+    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy)
+{
+    std::shared_ptr<Drawing::Pixmap> dst;
+    image = GpuScaleImage(context, image); // use shared GPU context
+    const int buffLen = image->GetWidth() * image->GetHeight();
+    auto pixelPtr = std::make_unique<uint32_t[]>(buffLen);
+    auto info = image->GetImageInfo();
+    dst = std::make_shared<Drawing::Pixmap>(info, pixelPtr.get(), info.GetWidth() * info.GetBytesPerPixel());
+    bool flag = image->ReadPixels(*dst, 0, 0);
+    if (!flag) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor ReadPixel Failed");
+        return false;
+    }
+    uint32_t errorCode = 0;
+    std::shared_ptr<RSColorPicker> colorPicker = RSColorPicker::CreateColorPicker(dst, errorCode);
+    if (colorPicker == nullptr || errorCode != 0) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor CreateColorPicker failed");
+        return false;
+    }
+    if (colorPicker->PickColor(colorPicked, strategy) != 0) {
+        RS_LOGE("RSPropertyDrawableUtils::PickColor PickColor failed");
+        return false;
+    }
+    return true;
+}
+
+std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
+    std::shared_ptr<Drawing::Image> image)
 {
     std::string shaderString(R"(
         uniform shader imageInput;
@@ -196,7 +223,7 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(Drawing::
     }
 
     Drawing::SamplingOptions linear(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBulider =
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     Drawing::ImageInfo pcInfo;
     Drawing::Matrix matrix;
@@ -208,10 +235,10 @@ std::shared_ptr<Drawing::Image> RSPropertyDrawableUtils::GpuScaleImage(Drawing::
         pcInfo = Drawing::ImageInfo::MakeN32Premul(100, 100); // 100 * 100 pixels
         matrix.SetScale(100.0 / image->GetWidth(), 100.0 / image->GetHeight());  // 100.0 pixels
     }
-    effectBulider->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(
+    effectBuilder->SetChild("imageInput", Drawing::ShaderEffect::CreateImageShader(
         *image, Drawing::TileMode::CLAMP, Drawing::TileMode::CLAMP, linear, matrix));
-    std::shared_ptr<Drawing::Image> tmpColorImg = effectBulider->MakeImage(
-        canvas->GetGPUContext().get(), nullptr, pcInfo, false);
+    std::shared_ptr<Drawing::Image> tmpColorImg = effectBuilder->MakeImage(
+        context.get(), nullptr, pcInfo, false);
 
     return tmpColorImg;
 }
@@ -281,7 +308,8 @@ inline void RSPropertyDrawableUtils::ClipVisibleRect(RSPaintFilterCanvas* canvas
 
 void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     const std::shared_ptr<RSFilter>& rsFilter, const std::unique_ptr<RSFilterCacheManager>& cacheManager,
-    NodeId nodeId, const bool isForegroundFilter)
+    NodeId nodeId, const bool isForegroundFilter, const std::optional<Drawing::RectI>& snapshotRect,
+    const std::optional<Drawing::RectI>& drawRect)
 {
     if (!RSSystemProperties::GetBlurEnabled()) {
         ROSEN_LOGD("RSPropertyDrawableUtils::DrawFilter close blur.");
@@ -329,7 +357,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     if (isForegroundFilter) {
         paintFilterCanvas->SetAlpha(1.0);
     }
-    auto imageClipIBounds = clipIBounds;
+    auto imageClipIBounds = snapshotRect.value_or(clipIBounds);
     auto magnifierShaderFilter = filter->GetShaderFilterWithType(RSUIFilterType::MAGNIFIER);
     if (magnifierShaderFilter != nullptr) {
         auto tmpFilter = std::static_pointer_cast<RSMagnifierShaderFilter>(magnifierShaderFilter);
@@ -352,7 +380,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
             auto tmpFilter = std::static_pointer_cast<RSLinearGradientBlurShaderFilter>(rsShaderFilter);
             tmpFilter->IsOffscreenCanvas(true);
         }
-        cacheManager->DrawFilter(*paintFilterCanvas, filter, nodeId);
+        cacheManager->DrawFilter(*paintFilterCanvas, filter, nodeId, false, true, snapshotRect, drawRect);
         cacheManager->CompactFilterCache(); // flag for clear witch cache after drawing
         return;
     }
@@ -382,7 +410,7 @@ void RSPropertyDrawableUtils::DrawFilter(Drawing::Canvas* canvas,
     Drawing::AutoCanvasRestore acr(*canvas, true);
     canvas->ResetMatrix();
     Drawing::Rect srcRect = Drawing::Rect(0, 0, imageSnapshot->GetWidth(), imageSnapshot->GetHeight());
-    Drawing::Rect dstRect = clipIBounds;
+    Drawing::Rect dstRect = drawRect.value_or(clipIBounds);
     filter->DrawImageRect(*canvas, imageSnapshot, srcRect, dstRect);
     filter->PostProcess(*canvas);
 }
@@ -863,7 +891,7 @@ std::shared_ptr<Drawing::RuntimeBlenderBuilder> RSPropertyDrawableUtils::MakeDyn
         uniform half ubo_negg;
         uniform half ubo_negb;
         uniform half ubo_headroom;
- 
+
         const vec3 baseVec = vec3(0.2412016, 0.6922296, 0.0665688);
         const half eps = 1e-5;
         half3 getUnpremulRGB(half4 color) {

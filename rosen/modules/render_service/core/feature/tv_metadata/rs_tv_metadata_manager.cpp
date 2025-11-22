@@ -138,7 +138,7 @@ void RSTvMetadataManager::CopyTvMetadataToSurface(std::shared_ptr<RSSurfaceOhos>
     (void)memset_s(&metadata_, sizeof(metadata_), 0, sizeof(metadata_));
 }
 
-void RSTvMetadataManager::CopyFromLayersToSurface(const std::vector<LayerInfoPtr>& layers,
+void RSTvMetadataManager::CopyFromLayersToSurface(const std::vector<RSLayerPtr>& layers,
     std::shared_ptr<RSSurfaceOhos>& surface)
 {
     if (surface == nullptr || surface->GetCurrentBuffer() == nullptr) {
@@ -180,7 +180,7 @@ void RSTvMetadataManager::ClearVideoMetadata(TvPQMetadata& metadata)
     metadata.hdrRatio = 0;
 }
 
-void RSTvMetadataManager::CombineMetadataForAllLayers(const std::vector<LayerInfoPtr>& layers)
+void RSTvMetadataManager::CombineMetadataForAllLayers(const std::vector<RSLayerPtr>& layers)
 {
     TvPQMetadata tvUniRenderMetadata = { 0 };
     TvPQMetadata tvSelfDrawMetadata = { 0 };

@@ -654,7 +654,7 @@ void RSJankStats::ReportEventResponse(const JankFrames& jankFrames) const
     RSBackgroundThread::Instance().PostTask([info, inputTime, beginVsyncTime, responseLatency, renderTime]() {
         RS_TRACE_NAME("RSJankStats::ReportEventResponse in RSBackgroundThread");
         RSHiSysEvent::EventWrite(RSEventName::INTERACTION_RESPONSE_LATENCY, RSEventType::RS_BEHAVIOR,
-            "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
+            "UNIQUE_ID", info.uniqueId, "SCENE_ID", info.sceneId, "APP_PID", info.appPid,
             "VERSION_CODE", info.versionCode, "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName,
             "ABILITY_NAME", info.abilityName, "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl,
             "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
@@ -682,7 +682,7 @@ void RSJankStats::ReportEventComplete(const JankFrames& jankFrames) const
         info, inputTime, animationStartLatency, animationEndLatency, completedLatency]() {
         RS_TRACE_NAME("RSJankStats::ReportEventComplete in RSBackgroundThread");
         RSHiSysEvent::EventWrite(RSEventName::INTERACTION_COMPLETED_LATENCY, RSEventType::RS_BEHAVIOR,
-            "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
+            "UNIQUE_ID", info.uniqueId, "APP_PID", info.appPid, "VERSION_CODE", info.versionCode,
             "VERSION_NAME", info.versionName, "BUNDLE_NAME", info.bundleName, "ABILITY_NAME", info.abilityName,
             "PROCESS_NAME", info.processName, "PAGE_URL", info.pageUrl, "SCENE_ID", info.sceneId,
             "SOURCE_TYPE", info.sourceType, "NOTE", info.note, "INPUT_TIME", static_cast<uint64_t>(inputTime),
@@ -1184,9 +1184,6 @@ void RSJankStats::AvcodecVideoDump(
 void RSJankStats::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, const uint32_t fps, const uint64_t reportTime)
 {
-    if (!isBeta_) {
-        return;
-    }
     std::lock_guard<std::mutex> lock(avcodecMutex_);
     if (uniqueIdList.size() != surfaceNameList.size()) {
         RS_LOGE("RSJankStats::AvcodecVideoStart uniqueIdList size not equal surfaceNameList size");
@@ -1215,9 +1212,6 @@ void RSJankStats::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
 void RSJankStats::AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
     const std::vector<std::string>& surfaceNameList, const uint32_t fps)
 {
-    if (!isBeta_) {
-        return;
-    }
     std::lock_guard<std::mutex> lock(avcodecMutex_);
     if (uniqueIdList.size() != surfaceNameList.size()) {
         RS_LOGE("RSJankStats::AvcodecVideoStop uniqueIdList size not equal surfaceNameList size");
@@ -1297,7 +1291,7 @@ void RSJankStats::AvcodecVideoExpectionStop(const uint64_t uniqueId)
 
 void RSJankStats::AvcodecVideoCollectFinish()
 {
-    if (!avcodecVideoCollectOpen_ || !isBeta_) {
+    if (!avcodecVideoCollectOpen_) {
         return;
     }
     std::lock_guard<std::mutex> lock(avcodecMutex_);
@@ -1316,7 +1310,7 @@ void RSJankStats::AvcodecVideoCollectFinish()
 
 void RSJankStats::AvcodecVideoCollect(const uint64_t uniqueId, const uint32_t sequence)
 {
-    if (!avcodecVideoCollectOpen_ || !isBeta_) {
+    if (!avcodecVideoCollectOpen_) {
         return;
     }
     std::lock_guard<std::mutex> lock(avcodecMutex_);

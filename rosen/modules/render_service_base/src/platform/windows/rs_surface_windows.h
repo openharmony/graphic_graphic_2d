@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,8 +41,8 @@ public:
         int32_t width, int32_t height, uint64_t uiTimestamp, bool useAFBC = true, bool isProtected = false) override;
 
     bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
-    RenderContext* GetRenderContext() override;
-    void SetRenderContext(RenderContext* context) override;
+    std::shared_ptr<RenderContext> GetRenderContext() override;
+    void SetRenderContext(std::shared_ptr<RenderContext> context) override;
     uint32_t GetQueueSize() const override;
     void ClearBuffer() override;
     void ClearAllBuffer() override;
@@ -60,7 +60,7 @@ private:
     void YInvert(void *addr, int32_t width, int32_t height);
     bool SetupGrContext();
 
-    RenderContext* renderContext_ = nullptr;
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::shared_ptr<Drawing::ColorSpace> drColorSpace_ = nullptr;
     OnRenderFunc onRender_ = nullptr;

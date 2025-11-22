@@ -143,6 +143,8 @@ public:
 
     std::optional<PaintRecord> background;
     std::optional<PaintRecord> foreground;
+    uint8_t colorPlaceholder {0};
+    uint8_t decorationColorPlaceholder {0};
 
     std::vector<TextShadow> textShadows;
     FontFeatures fontFeatures;

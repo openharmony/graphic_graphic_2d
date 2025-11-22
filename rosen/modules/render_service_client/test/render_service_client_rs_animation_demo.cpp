@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,7 +51,7 @@ void Init(std::shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
 }
 
 std::unique_ptr<RSSurfaceFrame> framePtr;
-RenderContext* rc_ = nullptr;
+std::shared_ptr<RenderContext> rc_ = nullptr;
 
 void DrawSurface(Drawing::Rect surfaceGeometry,
     uint32_t color, Drawing::Rect shapeGeometry, std::shared_ptr<RSSurfaceNode> surfaceNode)

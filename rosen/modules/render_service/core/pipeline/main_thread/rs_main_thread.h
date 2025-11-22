@@ -96,7 +96,8 @@ class RSMainThread {
 public:
     static RSMainThread* Instance();
 
-    void Init();
+    void Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
+        const std::shared_ptr<AppExecFwk::EventHandler>& handler);
     void Start();
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
@@ -455,13 +456,11 @@ public:
 
     // Enable HWCompose
     bool IsHardwareEnabledNodesNeedSync();
-    bool WaitHardwareThreadTaskExecute();
-    void NotifyHardwareThreadCanExecuteTask();
     void SetTaskEndWithTime(int64_t time);
 
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
-    void MarkNodeImageDirty(uint64_t nodeId);
+    void MarkNodeDirty(uint64_t nodeId);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -472,6 +471,11 @@ public:
     void TransitionDataMutexUnlock();
 
     const std::shared_ptr<RSHwcContext>& GetHwcContext() const { return hwcContext_; }
+
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
+    {
+        return aibarNodes_;
+    }
 
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
@@ -619,7 +623,7 @@ private:
     };
 
     bool IfStatusBarDirtyOnly();
-    
+
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
@@ -779,10 +783,6 @@ private:
     std::unordered_map<ScreenId, bool> displayLuminanceChanged_;
     std::mutex luminanceMutex_;
 
-    // used for blocking mainThread when hardwareThread has 2 and more task to Execute
-    mutable std::mutex hardwareThreadTaskMutex_;
-    std::condition_variable hardwareThreadTaskCond_;
-
     VisibleData lastVisVec_;
     std::map<NodeId, uint64_t> lastDrawStatusMap_;
     std::vector<NodeId> curDrawStatusVec_;
@@ -806,6 +806,9 @@ private:
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
     std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
+
+    // for aibar
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet> aibarNodes_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {

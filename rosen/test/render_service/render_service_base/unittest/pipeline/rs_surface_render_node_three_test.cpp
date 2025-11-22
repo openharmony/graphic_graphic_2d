@@ -207,7 +207,8 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdateCacheSurfaceDirtyManager, TestSize.
  */
 HWTEST_F(RSSurfaceRenderNodeThreeTest, SetIsOnTheTree, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     NodeId instanceRootNodeId = 1;
     NodeId firstLevelNodeId = 1;
     NodeId cacheNodeId = 1;

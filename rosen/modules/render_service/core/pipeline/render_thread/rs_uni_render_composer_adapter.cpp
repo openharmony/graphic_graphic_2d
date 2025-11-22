@@ -35,6 +35,8 @@
 #include "drm/drm.h"
 
 #include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "rs_render_composer_manager.h"
+#include "rs_surface_layer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -83,6 +85,11 @@ bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offs
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
 
+    // Initialize composerClient
+    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo.id);
+    if (composerClient_ == nullptr) {
+        return false;
+    }
     return true;
 }
 
@@ -92,7 +99,7 @@ bool RSUniRenderComposerAdapter::UpdateMirrorInfo(float mirrorAdaptiveCoefficien
     return true;
 }
 
-void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& layers)
+void RSUniRenderComposerAdapter::CommitLayers()
 {
     if (hdiBackend_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CommitLayers: backend is nullptr");
@@ -103,7 +110,7 @@ void RSUniRenderComposerAdapter::CommitLayers(const std::vector<LayerInfoPtr>& l
         RS_LOGE("RSUniRenderComposerAdapter::CommitLayers: output is nullptr");
         return;
     }
-    RSHardwareThread::Instance().CommitAndReleaseLayers(output_, layers);
+    composerClient_->CommitLayers();
 }
 
 void RSUniRenderComposerAdapter::SetPreBufferInfo(RSSurfaceHandler& surfaceHandler, ComposeInfo& info) const
@@ -237,7 +244,7 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
 }
 
 void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
-    const LayerInfoPtr& layer,
+    const RSLayerPtr& layer,
     const ComposeInfo& info,
     const sptr<IConsumerSurface>& surface) const
 {
@@ -320,7 +327,7 @@ void RSUniRenderComposerAdapter::SetBufferColorSpace(DrawableV2::RSScreenRenderN
     }
 }
 
-void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
+void RSUniRenderComposerAdapter::SetMetaDataInfoToLayer(const RSLayerPtr& layer, const sptr<SurfaceBuffer>& buffer,
                                                         const sptr<IConsumerSurface>& surface) const
 {
     HDRMetaDataType type;
@@ -821,7 +828,7 @@ bool RSUniRenderComposerAdapter::CheckStatusBeforeCreateLayer(
 }
 
 // private func, guarantee the layer is valid
-void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
+void RSUniRenderComposerAdapter::LayerCrop(const RSLayerPtr& layer) const
 {
     GraphicIRect dstRect = layer->GetLayerSize();
     GraphicIRect srcRect = layer->GetCropRect();
@@ -855,7 +862,7 @@ void RSUniRenderComposerAdapter::LayerCrop(const LayerInfoPtr& layer) const
 }
 
 // private func, guarantee the layer is valid
-void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node)
+void RSUniRenderComposerAdapter::LayerScaleDown(const RSLayerPtr& layer, RSSurfaceRenderNode& node)
 {
     const auto& buffer = layer->GetBuffer();
     const auto& surface = layer->GetSurface();
@@ -922,7 +929,7 @@ void RSUniRenderComposerAdapter::LayerScaleDown(const LayerInfoPtr& layer, RSSur
 }
 
 void RSUniRenderComposerAdapter::LayerScaleDown(
-    const LayerInfoPtr& layer, DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
+    const RSLayerPtr& layer, DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable)
 {
     auto& params = surfaceDrawable.GetRenderParams();
     const auto& buffer = layer->GetBuffer();
@@ -991,7 +998,7 @@ void RSUniRenderComposerAdapter::LayerScaleDown(
 }
 
 // private func, guarantee the layer is valid
-void RSUniRenderComposerAdapter::LayerScaleFit(const LayerInfoPtr& layer) const
+void RSUniRenderComposerAdapter::LayerScaleFit(const RSLayerPtr& layer) const
 {
     GraphicIRect srcRect = layer->GetCropRect();
     GraphicIRect dstRect = layer->GetLayerSize();
@@ -1064,7 +1071,7 @@ bool RSUniRenderComposerAdapter::IsOutOfScreenRegion(const ComposeInfo& info) co
     return false;
 }
 
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
+RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable)
 {
     if (output_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
@@ -1103,14 +1110,19 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderN
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer failed to create layer");
+        return nullptr;
+    }
+    layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     // do not crop or scale down for displayNode's layer.
     return layer;
 }
 
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
+RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
 {
     if (output_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
@@ -1151,8 +1163,12 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
-    layer->SetNodeId(node.GetId());
+    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer failed to create layer");
+        return nullptr;
+    }
+    layer->SetNodeId(node.GetId());  // node id only for dfx
     layer->SetUniRenderFlag(true);
     SetComposeInfoToLayer(layer, info, surfaceHandler->GetConsumer());
     LayerRotate(layer, *screenDrawable);
@@ -1160,7 +1176,7 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
     return layer;
 }
 
-LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
+RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
 {
     if (output_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
@@ -1183,13 +1199,17 @@ LayerInfoPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& nod
             info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     }
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    if (layer == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer failed to create layer");
+        return nullptr;
+    }
+    layer->SetNodeId(node.GetId());  // node id only for dfx
     SetComposeInfoToLayer(layer, info, node.GetConsumer());
     auto drawable = node.GetRenderDrawable();
     if (drawable) {
         LayerRotate(layer, *drawable);
     }
-    layer->SetNodeId(node.GetId());
     return layer;
 }
 
@@ -1216,7 +1236,7 @@ static int GetSurfaceNodeRotation(DrawableV2::RSRenderNodeDrawableAdapter& drawa
     return params ? RSUniRenderUtil::GetRotationFromMatrix(params->GetTotalMatrix()) : 0;
 }
 
-static void SetLayerTransform(const LayerInfoPtr& layer, RSSurfaceRenderNode& node,
+static void SetLayerTransform(const RSLayerPtr& layer, RSSurfaceRenderNode& node,
     const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
 {
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
@@ -1230,7 +1250,7 @@ static void SetLayerTransform(const LayerInfoPtr& layer, RSSurfaceRenderNode& no
     layer->SetTransform(rotateEnum);
 }
 
-static void SetLayerTransform(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable,
+static void SetLayerTransform(const RSLayerPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable,
     const sptr<IConsumerSurface>& surface, ScreenRotation screenRotation)
 {
     // screenRotation: anti-clockwise, surfaceNodeRotation: anti-clockwise, surfaceTransform: anti-clockwise
@@ -1244,7 +1264,7 @@ static void SetLayerTransform(const LayerInfoPtr& layer, DrawableV2::RSRenderNod
     layer->SetTransform(rotateEnum);
 }
 
-static void SetLayerSize(const LayerInfoPtr& layer, const ScreenInfo& screenInfo)
+static void SetLayerSize(const RSLayerPtr& layer, const ScreenInfo& screenInfo)
 {
     const auto screenWidth = static_cast<int32_t>(screenInfo.width);
     const auto screenHeight = static_cast<int32_t>(screenInfo.height);
@@ -1286,7 +1306,7 @@ static void SetLayerSize(const LayerInfoPtr& layer, const ScreenInfo& screenInfo
 
 // private func, guarantee the layer is valid
 void RSUniRenderComposerAdapter::LayerRotate(
-    const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const
+    const RSLayerPtr& layer, RSSurfaceRenderNode& node) const
 {
     auto surface = layer->GetSurface();
     if (surface == nullptr) {
@@ -1298,7 +1318,7 @@ void RSUniRenderComposerAdapter::LayerRotate(
 
 
 void RSUniRenderComposerAdapter::LayerRotate(
-    const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const
+    const RSLayerPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const
 {
     auto surface = layer->GetSurface();
     if (surface == nullptr) {

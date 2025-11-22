@@ -164,9 +164,11 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
+    auto visibleSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetDefaultFilterRegion());
+    auto lastVisibleSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(GetFilterCachedRegion());
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
-        GetId(), GetFilterCachedRegion().ToString().c_str(), filterRegion_.ToString().c_str());
-    if (filterRegion_ == GetFilterCachedRegion()) {
+        GetId(), lastVisibleSnapshotRegion.ToString().c_str(), visibleSnapshotRegion.ToString().c_str());
+    if (visibleSnapshotRegion == lastVisibleSnapshotRegion) {
         return;
     }
     // effect render node  only support background filter

@@ -25,6 +25,7 @@
 
 #include "command/rs_base_node_command.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
+#include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -32,7 +33,7 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_logical_display_render_node.h"
@@ -1983,7 +1984,7 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     mainThread->isUniRender_ = true;
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    
+
     auto rsContext = std::make_shared<RSContext>();
     auto rootNode = rsContext->GetGlobalRootRenderNode();
     NodeId id = 1;
@@ -4124,7 +4125,7 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
         0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
 
     std::string name("name");
@@ -4156,7 +4157,7 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
         0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
 
     ScreenId id = 100;
@@ -4179,7 +4180,7 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
-    auto rsRenderServiceConnection = new RSRenderServiceConnection(
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
         0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
 
     ScreenId id = 100;
@@ -6668,6 +6669,69 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DoDirectCompositionWithAIBar
+ * @tc.desc: DoDirectComposition with AIBar node
+ * @tc.type: FUNC
+ * @tc.require: issueICQ74B
+ */
+HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
+{
+    // INIT SCREEN
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+    auto rsScreen = std::make_shared<impl::RSScreen>(5, false, HdiOutput::CreateHdiOutput(5), nullptr);
+    ASSERT_NE(rsScreen, nullptr);
+    screenManager->MockHdiScreenConnected(rsScreen);
+
+    // INIT DISPLAY
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    NodeId rootId = 0;
+    auto rootNode = std::make_shared<RSBaseRenderNode>(rootId);
+    NodeId displayId = 1;
+    RSDisplayNodeConfig config;
+    config.screenId = 5; // screeId is 5 for test
+
+    // INIT CHILDLIST
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, config.screenId, rsContext->weak_from_this());
+
+    auto displayNode2 = std::make_shared<RSScreenRenderNode>(displayId, 2, rsContext->weak_from_this());
+
+    rootNode->AddChild(displayNode);
+    rootNode->AddChild(displayNode2);
+    rootNode->GenerateFullChildrenList();
+    auto childNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(rootNode->GetChildren()->front());
+    childNode->SetCompositeType(CompositeType::UNI_RENDER_COMPOSITE);
+
+    // INIT NodeList
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config.screenId, mainThread->context_);
+    surfaceNode->InitRenderParams();
+    ASSERT_NE(surfaceNode, nullptr);
+    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
+    surfaceNode->SetHardwareForcedDisabledState(false);
+    surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true);
+    displayNode->AddChild(surfaceNode);
+    mainThread->hardwareEnabledNodes_.clear();
+    mainThread->hardwareEnabledNodes_.emplace_back(surfaceNode);
+
+    // true case
+    mainThread->isUniRender_ = true;
+    displayNode->HwcDisplayRecorder().hasVisibleHwcNodes_ = true;
+    surfaceNode->surfaceHandler_->SetCurrentFrameBufferConsumed();
+
+    // add nullptr
+    RSRenderNode::WeakPtr nullNode;
+    mainThread->aibarNodes_[0].insert(nullNode);
+    EXPECT_TRUE(mainThread->DoDirectComposition(rootNode, false));
+
+    // add not aibar node
+    auto node = std::make_shared<RSRenderNode>(100, mainThread->context_);
+    mainThread->aibarNodes_[0].insert(node);
+    EXPECT_FALSE(mainThread->DoDirectComposition(rootNode, false));
+}
+
+/**
  * @tc.name: NotifyPackageEvent001
  * @tc.desc: NotifyPackageEvent001
  * @tc.type: FUNC
@@ -6709,7 +6773,7 @@ HWTEST_F(RSMainThreadTest, SetForceRsDVsync001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
-    sptr<RSRenderServiceConnection> connection = new RSRenderServiceConnection(
+    sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
         0, nullptr, mainThread, nullptr, nullptr, nullptr);
     RSSurfaceRenderNodeConfig config;
     config.id = 1;
@@ -6729,17 +6793,17 @@ HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeImageDirty001
- * @tc.desc: Test MarkNodeImageDirty001
+ * @tc.name: MarkNodeDirty001
+ * @tc.desc: Test MarkNodeDirty001
  * @tc.type: FUNC
  * @tc.require:IBZ6NM
  */
-HWTEST_F(RSMainThreadTest, MarkNodeImageDirty001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, MarkNodeDirty001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     uint64_t nodeId = 12345;
-    mainThread->MarkNodeImageDirty(nodeId);
+    mainThread->MarkNodeDirty(nodeId);
 }
 
 /**

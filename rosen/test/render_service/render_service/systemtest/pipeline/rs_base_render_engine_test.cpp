@@ -51,7 +51,7 @@ void RSBaseRenderEngineTest::TearDown() {}
  */
 HWTEST_F(RSBaseRenderEngineTest, TestRSBaseRenderEngine001, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layerInfo;
+    std::vector<RSLayerPtr> layerInfo;
     ASSERT_FALSE(renderEngine_->NeedForceCPU(layerInfo));
 }
 

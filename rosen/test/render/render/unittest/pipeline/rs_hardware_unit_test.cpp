@@ -207,7 +207,7 @@ HWTEST_F(RSHardwareUnitTest, Start003, TestSize.Level1)
     auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
     ASSERT_NE(layer3, nullptr);
 
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
@@ -297,7 +297,7 @@ HWTEST_F(RSHardwareUnitTest, HardcursorLayerTest001, TestSize.Level1)
     layer2->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     layer3->SetZorder(3);
 
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
@@ -338,7 +338,7 @@ HWTEST_F(RSHardwareUnitTest, HardcursorLayerTest002, TestSize.Level1)
     layer2->SetType(GraphicLayerType::GRAPHIC_LAYER_TYPE_CURSOR);
     layer3->SetZorder(3);
 
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
@@ -461,7 +461,7 @@ HWTEST_F(RSHardwareUnitTest, RecordTimestamp, TestSize.Level1)
     auto layer3 = composerAdapter_->CreateLayer(*surfaceNode3);
     ASSERT_NE(layer3, nullptr);
 
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
@@ -927,11 +927,11 @@ HWTEST_F(RSHardwareUnitTest, ComputeTargetPixelFormat001, TestSize.Level1)
 HWTEST_F(RSHardwareUnitTest, IsAllRedraw001, TestSize.Level1)
 {
     using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     ASSERT_NE(layer, nullptr);
     layers.emplace_back(layer);
-    LayerInfoPtr layer2 = nullptr;
+    RSLayerPtr layer2 = nullptr;
     layers.emplace_back(layer2);
     EXPECT_NE(layers.size(), 0);
 
@@ -964,8 +964,8 @@ HWTEST_F(RSHardwareUnitTest, IsAllRedraw001, TestSize.Level1)
  */
 HWTEST_F(RSHardwareUnitTest, ComputeTargetPixelFormat002, TestSize.Level1)
 {
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     ASSERT_NE(layer, nullptr);
     layers.emplace_back(layer);
     EXPECT_NE(layers.size(), 0);
@@ -992,7 +992,7 @@ HWTEST_F(RSHardwareUnitTest, ComputeTargetPixelFormat002, TestSize.Level1)
     hardwareThread.ComputeTargetPixelFormat(layers);
     layer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
     hardwareThread.ComputeTargetPixelFormat(layers);
-    LayerInfoPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer2 = HdiLayerInfo::CreateHdiLayerInfo();
     ASSERT_NE(layer2, nullptr);
     layer2->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
     layers.emplace_back(layer2);
@@ -1016,8 +1016,8 @@ HWTEST_F(RSHardwareUnitTest, ComputeTargetPixelFormat002, TestSize.Level1)
 HWTEST_F(RSHardwareUnitTest, ChangeLayersForActiveRectOutside001, TestSize.Level1)
 {
     auto &hardwareThread = RSHardwareThread::Instance();
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layers.emplace_back(layer);
     hardwareThread.ChangeLayersForActiveRectOutside(layers, screenId_);
     EXPECT_NE(layers.size(), 0);
@@ -1103,16 +1103,16 @@ HWTEST_F(RSHardwareUnitTest, RedrawScreenRCD001, TestSize.Level1)
     hardwareThread.Start();
     Drawing::Canvas canvas;
     RSPaintFilterCanvas rsPaintFilterCanvas(&canvas);
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layers.emplace_back(layer);
-    LayerInfoPtr nullLayer = nullptr;
+    RSLayerPtr nullLayer = nullptr;
     layers.emplace_back(nullLayer);
     std::vector<GraphicCompositionType> skipTypes = {GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE,
         GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE_CLEAR,
         GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR};
     for (auto skipType : skipTypes) {
-        LayerInfoPtr skipLayer = HdiLayerInfo::CreateHdiLayerInfo();
+        RSLayerPtr skipLayer = HdiLayerInfo::CreateHdiLayerInfo();
         skipLayer->SetCompositionType(skipType);
         layers.emplace_back(skipLayer);
     }
@@ -1141,8 +1141,8 @@ HWTEST_F(RSHardwareUnitTest, Redraw001, TestSize.Level1)
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
 
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layers.emplace_back(layer);
     EXPECT_NE(layers.size(), 0);
 
@@ -1179,8 +1179,8 @@ HWTEST_F(RSHardwareUnitTest, IsDropDirtyFrame, TestSize.Level1)
     hardwareThread.Start();
     SetUp();
 
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
     layers.emplace_back(layer);
     ASSERT_EQ(hardwareThread.IsDropDirtyFrame(layers, screenId_), false);
 }

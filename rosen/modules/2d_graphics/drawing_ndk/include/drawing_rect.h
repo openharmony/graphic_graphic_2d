@@ -278,7 +278,7 @@ OH_Drawing_ErrorCode OH_Drawing_RectDestroyArray(OH_Drawing_Array* rectArray);
  * @param isContains Indicates whether rect totally contains other.
  * @return Returns the error code.
  *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
- *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if rectArray or rect is nullptr,
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if rect, other or isContains is nullptr,
  *                 or index is valid.
  * @since 22
  * @version 1.0

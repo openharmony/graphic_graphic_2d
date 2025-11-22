@@ -29,6 +29,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "draw/color.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -1242,7 +1243,7 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para)
 {
     particleVelocityFields_ = para;
@@ -1264,6 +1265,39 @@ void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVeloc
     filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+void RSProperties::SetColorPickerPlaceholder(int placeholder)
+{
+    colorPickerPlaceholder_ = std::clamp<int>(placeholder, 0, static_cast<int>(ColorPlaceholder::MAX));
+    SetDirty();
+}
+
+ColorPlaceholder RSProperties::GetColorPickerPlaceholder() const
+{
+    return static_cast<ColorPlaceholder>(colorPickerPlaceholder_);
+}
+
+void RSProperties::SetColorPickerStrategy(int strategy)
+{
+    colorPickerStrategy_ = std::clamp<int>(strategy, 0, static_cast<int>(ColorPickStrategyType::MAX));
+    SetDirty();
+}
+
+ColorPickStrategyType RSProperties::GetColorPickerStrategy() const
+{
+    return static_cast<ColorPickStrategyType>(colorPickerStrategy_);
+}
+
+void RSProperties::SetColorPickerInterval(int interval)
+{
+    colorPickerInterval_ = static_cast<uint64_t>(interval);
+    SetDirty();
+}
+
+uint64_t RSProperties::GetColorPickerInterval() const
+{
+    return colorPickerInterval_;
 }
 
 void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
@@ -4430,6 +4464,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    if (sprintf_s(buffer, UINT8_MAX, " placeholder:%d",
+        static_cast<int>(GetBackgroundColor().GetPlaceholder())) != -1) {
+        dumpInfo.append(buffer);
+    }
+
     // BgImage
     std::unique_ptr<Decoration> defaultDecoration = std::make_unique<Decoration>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
@@ -4928,15 +4967,6 @@ void RSProperties::UpdateForegroundFilter()
         CreateHDRUIBrightnessFilter();
     } else if (GetForegroundNGFilter()) {
         ComposeNGRenderFilter(GetEffect().foregroundFilter_, GetForegroundNGFilter());
-    } else if (renderSDFShape_) {
-        if (!sdfFilter_) {
-            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
-        }
-        if (IS_UNI_RENDER) {
-            GetEffect().foregroundFilterCache_ = sdfFilter_;
-        } else {
-            GetEffect().foregroundFilter_ = sdfFilter_;
-        }
     }
 }
 
@@ -5138,18 +5168,6 @@ std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
     return renderSDFShape_;
 }
 
-const std::shared_ptr<RSSDFEffectFilter> RSProperties::GetSDFEffectFilter() const
-{
-    if (!GetSDFShape() || !effect_) {
-        return nullptr;
-    }
-
-    if (IS_UNI_RENDER) {
-        return std::static_pointer_cast<RSSDFEffectFilter>(effect_->foregroundFilterCache_);
-    }
-    return std::static_pointer_cast<RSSDFEffectFilter>(effect_->foregroundFilter_);
-}
-
 void RSProperties::SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)
 {
     GetEffect().mtNGRenderFilter_ = renderFilter;
@@ -5165,6 +5183,20 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
         return effect_->mtNGRenderFilter_;
     }
     return nullptr;
+}
+
+void RSProperties::OnSDFShapeChange()
+{
+    if (renderSDFShape_) {
+        if (!sdfFilter_) {
+            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
+        }
+        if (IS_UNI_RENDER) {
+            GetEffect().foregroundFilterCache_ = sdfFilter_;
+        } else {
+            GetEffect().foregroundFilter_ = sdfFilter_;
+        }
+    }
 }
 
 } // namespace Rosen

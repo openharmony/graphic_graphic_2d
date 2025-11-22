@@ -24,7 +24,7 @@ namespace Drawing {
 class AniSamplingOptions final {
 public:
     explicit AniSamplingOptions(std::shared_ptr<SamplingOptions> SamplingOptions)
-        : m_samplingOptions(SamplingOptions) {}
+        : samplingOptions_(SamplingOptions) {}
     ~AniSamplingOptions();
 
     static ani_status AniInit(ani_env *env);
@@ -35,7 +35,11 @@ public:
     std::shared_ptr<SamplingOptions> GetSamplingOptions();
 
 private:
-    std::shared_ptr<SamplingOptions> m_samplingOptions = nullptr;
+    static ani_object SamplingOptionsTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetSamplingOptionsAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<SamplingOptions>* GetSamplingOptionsPtrAddr();
+    std::shared_ptr<SamplingOptions> samplingOptions_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

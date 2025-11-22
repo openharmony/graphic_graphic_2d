@@ -84,6 +84,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std
 
     if (rsUIContext != nullptr) {
         rsUIContext_ = rsUIContext;
+        skipDestroyUIContext_ = true;
     } else if (isMultiInstance) {
         rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext();
     }
@@ -344,7 +345,12 @@ void RSUIDirector::Destroy(bool isTextureExport)
     }
     GoBackground(isTextureExport);
     if (rsUIContext_ != nullptr) {
-        RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+        // When a child window reuses the instance of the parent window, do not remove the UIContext from the
+        // UIContextManager when the child window is destroyed, as this would cause the parent window or newly created
+        // child windows to be unable to find the UIContext during animation callback.
+        if (!skipDestroyUIContext_) {
+            RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+        }
         rsUIContext_ = nullptr;
     }
     {

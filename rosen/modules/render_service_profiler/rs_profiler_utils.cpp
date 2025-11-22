@@ -302,7 +302,7 @@ std::string Utils::GetRealPath(const std::string& path)
     std::string realPath;
     if (!PathToRealPath(path, realPath)) {
         HRPD("PathToRealPath fails on %s !", path.data());
-        realPath.clear();
+        return path;
     }
     return realPath;
 }
@@ -612,7 +612,6 @@ void Utils::FileRead(FILE* file, void* data, size_t size)
         HRPE("FileRead: Data is null"); // NOLINT
         return;
     }
-
     if (file == g_recordInMemoryFile) {
         g_recordInMemory.read(reinterpret_cast<char*>(data), size);
         g_recordInMemory.seekp(g_recordInMemory.tellg());

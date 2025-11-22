@@ -118,6 +118,7 @@ template("render_service_client_source_set") {
       "core/modifier_ng/appearance/rs_behind_window_filter_modifier.cpp",
       "core/modifier_ng/appearance/rs_blend_modifier.cpp",
       "core/modifier_ng/appearance/rs_border_modifier.cpp",
+      "core/modifier_ng/appearance/rs_color_picker_modifier.cpp",
       "core/modifier_ng/appearance/rs_compositing_filter_modifier.cpp",
       "core/modifier_ng/appearance/rs_dynamic_light_up_modifier.cpp",
       "core/modifier_ng/appearance/rs_foreground_filter_modifier.cpp",
@@ -168,6 +169,7 @@ template("render_service_client_source_set") {
       #transaction
       "core/transaction/rs_application_agent_impl.cpp",
       "core/transaction/rs_interfaces.cpp",
+      "core/transaction/rs_render_interface.cpp",
       "core/transaction/rs_render_thread_client.cpp",
       "core/transaction/rs_sync_transaction_controller.cpp",
       "core/transaction/rs_sync_transaction_handler.cpp",
@@ -177,6 +179,7 @@ template("render_service_client_source_set") {
       "core/feature/hyper_graphic_manager/rs_frame_rate_linker.cpp",
       "core/feature/hyper_graphic_manager/rs_frame_rate_policy.cpp",
       "core/feature/hyper_graphic_manager/rs_ui_display_soloist.cpp",
+      "core/feature/window_keyframe/rs_window_keyframe_node.cpp",
       "core/ui/rs_callback_register.cpp",
       "core/ui/rs_canvas_drawing_node.cpp",
       "core/ui/rs_canvas_node.cpp",
@@ -191,6 +194,7 @@ template("render_service_client_source_set") {
       "core/ui/rs_ui_context.cpp",
       "core/ui/rs_ui_context_manager.cpp",
       "core/ui/rs_ui_director.cpp",
+      "core/ui/rs_union_node.cpp",
 
       #ui_effect
       "core/ui_effect/effect/src/visual_effect_para.cpp",

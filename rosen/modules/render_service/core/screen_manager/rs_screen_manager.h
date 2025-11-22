@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <hdi_backend.h>
+#include "hdi_backend.h"
 #include <ipc_callbacks/screen_change_callback.h>
 #include <ipc_callbacks/screen_switching_notify_callback.h>
 #include <refbase.h>
@@ -56,7 +56,7 @@ public:
     virtual ~RSScreenManager() noexcept = default;
 
     virtual bool Init() noexcept = 0;
-    virtual void ProcessScreenHotPlugEvents() = 0;
+    virtual void ProcessScreenHotPlugEvents(bool needPost = false) = 0;
     virtual bool TrySimpleProcessHotPlugEvents() = 0;
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     virtual void HandlePostureData(const SensorEvent* const event) = 0;
@@ -243,7 +243,7 @@ public:
     static sptr<OHOS::Rosen::RSScreenManager> GetInstance() noexcept;
 
     bool Init() noexcept override;
-    void ProcessScreenHotPlugEvents() override;
+    void ProcessScreenHotPlugEvents(bool needPost = false) override;
     bool TrySimpleProcessHotPlugEvents() override;
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void HandlePostureData(const SensorEvent* const event) override;
@@ -490,6 +490,8 @@ private:
 
     std::atomic<bool> mipiCheckInFirstHotPlugEvent_ = false;
     std::atomic<bool> isHwcDead_ = false;
+    std::condition_variable hwcDeadCV_;
+    std::condition_variable composerBlockedCV_;
 
     mutable std::mutex hotPlugAndConnectMutex_;
     std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;

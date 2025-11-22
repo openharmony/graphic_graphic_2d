@@ -648,7 +648,7 @@ HWTEST_F(RSRenderNodeTest, CalVisibleFilterRectTest, TestSize.Level1)
     RSRenderNode node(id, context);
     RectI prepareClipRect { 1, 1, 1, 1 };
     node.CalVisibleFilterRect(prepareClipRect);
-    EXPECT_TRUE(node.filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
+    EXPECT_TRUE(node.GetFilterRegionInfo().filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**
@@ -1245,6 +1245,19 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest, TestSize.Level1)
     EXPECT_TRUE(node.dirtySlots_.empty());
     node.UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::MASK);
     EXPECT_FALSE(node.dirtySlots_.empty());
+}
+
+/**
+ * @tc.name: UpdatePointLightDirtySlotTest2
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node.enableHdrEffect_);
 }
 /**
  * @tc.name: AddToPendingSyncListTest
@@ -2425,6 +2438,38 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest003, TestSize.
     auto& stagingRenderParams = nodeTest->GetStagingRenderParams();
     EXPECT_NE(stagingRenderParams, nullptr);
     EXPECT_EQ(stagingRenderParams->NodeGroupHasChildInBlacklist(), true);
+}
+
+/**
+ * @tc.name: UpdateDrawingCacheInfoAfterChildrenTest004
+ * @tc.desc: Test ForceDisableNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest004, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+ 
+    std::shared_ptr<RSRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(1);
+    EXPECT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+    nodeTest->AddChild(childNode, 1);
+    nodeTest->GenerateFullChildrenList();
+    bool isInBlackList = false;
+ 
+    nodeTest->nodeGroupType_ = RSRenderNode::GROUPED_BY_USER;
+    nodeTest->CheckDrawingCacheType();
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
+
+    childNode->SetUIFirstSwitch(RSUIFirstSwitch::FORCE_DISABLE_CARD);
+    childNode->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
+    EXPECT_TRUE(childNode->IsForceDisableNodeGroup());
+    EXPECT_TRUE(nodeTest->IsForceDisableNodeGroup());
+
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(isInBlackList);
+    EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**

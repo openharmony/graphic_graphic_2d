@@ -974,7 +974,7 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateDisplaySyncRange, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->UpdateDisplaySyncRange();
 
-    node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
     node->UpdateDisplaySyncRange();
     ASSERT_NE(node->displaySync_, nullptr);
 }
@@ -994,7 +994,7 @@ HWTEST_F(RSBaseRenderNodeTest, Animate, TestSize.Level1)
     int64_t leftDelayTime = 0;
     node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
 
-    node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
     node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }

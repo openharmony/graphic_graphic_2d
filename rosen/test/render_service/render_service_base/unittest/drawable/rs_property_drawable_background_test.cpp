@@ -21,6 +21,7 @@
 
 #include "drawable/rs_property_drawable_background.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -115,6 +116,43 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable002, TestSize.Level1)
     drawable->radius_ = 0.f;
     drawable->elevation_ = 1.0f;
     drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSShadowDrawable003
+ * @tc.desc: Shadow test with sdf filter
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable003, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    auto foregroundFilter = std::make_shared<RSSDFEffectFilter>(sdfShape);
+    node.GetMutableRenderProperties().SetForegroundFilterCache(foregroundFilter);
+    node.GetMutableRenderProperties().SetForegroundFilter(foregroundFilter);
+    Color shadowColor = Color();
+    node.GetMutableRenderProperties().SetShadowColor(shadowColor);
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    shadowDrawable->OnUpdate(node);
+    shadowDrawable->OnSync();
+    EXPECT_TRUE(shadowDrawable->geContainer_ != nullptr);
+
+    auto drawFunc = shadowDrawable->CreateDrawFunc();
+    auto rect = std::make_shared<Drawing::Rect>();
+    Drawing::Canvas canvas;
+    drawFunc(&canvas, rect.get());
+    ASSERT_TRUE(true);
+
+    drawFunc(nullptr, rect.get());
+    ASSERT_TRUE(true);
+
+    drawFunc(&canvas, nullptr);
     ASSERT_TRUE(true);
 }
 

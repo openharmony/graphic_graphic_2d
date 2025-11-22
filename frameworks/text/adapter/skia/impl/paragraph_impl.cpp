@@ -369,6 +369,7 @@ TextStyle ParagraphImpl::SkStyleToTextStyle(const skt::TextStyle& skStyle)
         PaintID foregroundId = std::get<PaintID>(skStyle.getForegroundPaintOrID());
         if ((0 <= foregroundId) && (foregroundId < static_cast<int>(paints_.size()))) {
             txt.foreground = paints_[foregroundId];
+            txt.colorPlaceholder = static_cast<uint8_t>(paints_[foregroundId].color.GetPlaceholder());
         } else {
             TEXT_LOGW("Invalid foreground id %{public}d", foregroundId);
         }

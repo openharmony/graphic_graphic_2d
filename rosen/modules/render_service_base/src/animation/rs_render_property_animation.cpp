@@ -232,7 +232,8 @@ void RSRenderPropertyAnimation::ProcessAnimateVelocityUnderAngleRotation(float f
 void RSRenderPropertyAnimation::DumpFraction(float fraction, int64_t time)
 {
     RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(GetTarget(), GetTargetId(), GetTargetName(),
-        GetAnimationId(), GetPropertyId(), fraction, GetPropertyValue(), time, GetDuration(), GetRepeatCount());
+        GetAnimationId(), GetPropertyId(), fraction, GetPropertyValue(), time, GetDuration(), GetRepeatCount(),
+        GetFrameRateRange());
 }
 } // namespace Rosen
 } // namespace OHOS

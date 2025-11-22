@@ -75,10 +75,6 @@ public:
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
 
-    // [Attention] Only used in PC window resize scene now
-    void SetLinkedRootNodeId(NodeId rootNodeId);
-    RSB_EXPORT NodeId GetLinkedRootNodeId() const;
-
     void UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const;
 
 protected:
@@ -102,9 +98,6 @@ private:
     bool hasHdrPresent_ = false;
     uint32_t colorGamut_ = 0;
     GraphicColorGamut graphicColorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
-
-    // [Attention] Only used in PC window resize scene now
-    NodeId linkedRootNodeId_ = INVALID_NODEID;
 };
 } // namespace Rosen
 } // namespace OHOS

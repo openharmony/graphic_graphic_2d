@@ -718,10 +718,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
         surfaceParams->GetVisibleRegion().GetRegionInfo().c_str());
 
+    const auto& bounds = surfaceParams->GetBounds();
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
-            "OcclusionVisible:%{public}d Bound:%{public}s",
-        surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(),
-        surfaceParams->GetBounds().ToString().c_str());
+            "OcclusionVisible:%{public}d Bound:(%{public}f, %{public}f, %{public}f, %{public}f)",
+        surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(), bounds.GetLeft(), bounds.GetTop(),
+        bounds.GetWidth(), bounds.GetHeight());
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);

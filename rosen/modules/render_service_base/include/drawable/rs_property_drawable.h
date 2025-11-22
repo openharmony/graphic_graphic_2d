@@ -31,6 +31,9 @@ class RSRenderNode;
 class RSFilter;
 class RSFilterCacheManager;
 class ExtendRecordingCanvas;
+namespace Drawing {
+class GEVisualEffectContainer;
+}
 
 namespace DrawableV2 {
 class RSPropertyDrawable : public RSDrawable {
@@ -109,6 +112,7 @@ private:
     RSClipToBoundsType stagingType_ = RSClipToBoundsType::INVALID;
     RSClipToBoundsType type_ = RSClipToBoundsType::INVALID;
     bool needSync_ = false;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
 };
 
 class RSClipToFrameDrawable : public RSPropertyDrawable {
@@ -157,8 +161,18 @@ public:
     bool IsSkippingFrame() const;
     bool IsAIBarFilter() const;
     bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage);
+    // Return true if the cache interval of aibar has been successfully reduced; otherwise, return false.
+    bool ForceReduceAIBarCacheInterval();
     bool WouldDrawLargeAreaBlur();
     bool WouldDrawLargeAreaBlurPrecisely();
+
+    RectF GetStagingRelativeRect(EffectRectType type, const RectF& defaultValue) const;
+    RectF GetRenderRelativeRect(EffectRectType type, const RectF& defaultValue) const;
+    virtual void CalVisibleRect(const Drawing::Matrix& absMatrix, const std::optional<RectI>& clipRect,
+        const RectF& defaultRelativeRect);
+    RectI GetVisibleTotalRegion(const RectI& defaultValue) const;
+    RectI GetVisibleSnapshotRegion(const RectI& defaultValue) const;
+    RectI GetLastVisibleSnapshotRegion(const RectI& defaultValue) const;
 
     void PostUpdate(const RSRenderNode& node);
     void OnSync() override;
@@ -174,8 +188,22 @@ public:
 
     void SetDrawBehindWindowRegion(RectI region);
 
+    void UpdateFilterRectInfo(const RectF& bound, const std::shared_ptr<RSFilter>& filter);
+
 protected:
+    struct FilterRectInfo {
+        RectF snapshotRect_;
+        RectF drawRect_;
+    };
+    static RectF GetRelativeRect(const std::unique_ptr<FilterRectInfo>& rectInfo,
+        EffectRectType type, const RectF& defaultValue);
     void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
+    virtual Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+        EffectRectType type, const RectF& bound) const;
+    struct FilterVisibleRectInfo {
+        RectI snapshotRect_;
+        RectI totalRect_;
+    };
 
     bool needSync_ = false;
     bool needDrawBehindWindow_ = false;
@@ -201,6 +229,11 @@ protected:
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
     RectI drawBehindWindowRegion_;
     RectI stagingDrawBehindWindowRegion_;
+
+    std::unique_ptr<RectI> lastStagingVisibleSnapshotRect_;
+    std::unique_ptr<FilterVisibleRectInfo> stagingVisibleRectInfo_;
+    std::unique_ptr<FilterRectInfo> stagingRelativeRectInfo_;
+    std::unique_ptr<FilterRectInfo> renderRelativeRectInfo_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

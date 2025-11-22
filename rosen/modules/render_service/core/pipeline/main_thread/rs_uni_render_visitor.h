@@ -27,7 +27,6 @@
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
-#include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -57,6 +56,8 @@ public:
     void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override;
     void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void QuickPrepareUnionRenderNode(RSUnionRenderNode& node) override;
+    void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
 
     void PrepareChildren(RSRenderNode& node) override {};
@@ -301,6 +302,8 @@ private:
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);
 
+    void CollectUnionInfo(RSRenderNode& node);
+
     void UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& node);
     void UpdateVirtualDisplaySecurityExemption(
         RSLogicalDisplayRenderNode& node, RSLogicalDisplayRenderNode& mirrorNode);
@@ -360,6 +363,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSDirtyRegionManager> curScreenDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
+    std::shared_ptr<RSUnionRenderNode> curUnionNode_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
@@ -470,9 +474,6 @@ private:
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
-
-    // Used for PC window resize scene
-    RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
 
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;

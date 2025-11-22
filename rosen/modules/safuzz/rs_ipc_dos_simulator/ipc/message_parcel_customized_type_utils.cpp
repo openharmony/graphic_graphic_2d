@@ -29,6 +29,7 @@
 #include "transaction/rs_application_agent_impl.h"
 #endif
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 #include "transaction/rs_render_service_client_utils.h"
 #include "transaction/rs_transaction_data_utils.h"
 #include "vsync_iconnection_token.h"
@@ -279,7 +280,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr(Me
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr "
             "rsClient is nullptr");
@@ -345,7 +346,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr "
             "rsClient is nullptr");
@@ -376,7 +377,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBrightnessInfoChangeCallbackSp
 bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
             "rsClient is nullptr");

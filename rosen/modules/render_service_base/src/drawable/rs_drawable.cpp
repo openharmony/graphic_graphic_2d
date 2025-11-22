@@ -65,6 +65,7 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR,         RSDrawableSlot::ENV_FOREGROUND_COLOR },
     { ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER,         RSDrawableSlot::BACKGROUND_FILTER },
     { ModifierNG::RSModifierType::FOREGROUND_SHADER,            RSDrawableSlot::FOREGROUND_SHADER },
+    { ModifierNG::RSModifierType::COLOR_PICKER,                 RSDrawableSlot::COLOR_PICKER },
     { ModifierNG::RSModifierType::MATERIAL_FILTER,              RSDrawableSlot::MATERIAL_FILTER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
@@ -85,6 +86,7 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSMaskDrawable::OnGenerate,                                      // MASK,
     ModifierGenerator<ModifierNG::RSModifierType::TRANSITION_STYLE>, // TRANSITION_STYLE,
     RSEnvFGColorDrawable::OnGenerate,                                // ENV_FOREGROUND_COLOR,
+    RSColorPickerDrawable::OnGenerate,                               // COLOR_PICKER,
     RSMaterialFilterDrawable::OnGenerate,                            // MATERIAL_FILTER,
     RSShadowDrawable::OnGenerate,                                    // SHADOW,
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
@@ -211,7 +213,8 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
         drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)] ||
         drawableVec[static_cast<size_t>(RSDrawableSlot::BLENDER)] ||
         (node.GetType() == RSRenderNodeType::EFFECT_NODE &&
-            drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)])) {
+            drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)]) ||
+        drawableVec[static_cast<size_t>(RSDrawableSlot::COLOR_PICKER)]) {
         result |= DrawableVecStatus::ENV_CHANGED;
     }
 
