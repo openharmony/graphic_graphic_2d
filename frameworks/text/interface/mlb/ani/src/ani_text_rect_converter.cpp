@@ -23,22 +23,23 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr CacheKey RANGE_START_KEY{ANI_INTERFACE_RANGE, "<get>start", ":i"};
+constexpr CacheKey RANGE_END_KEY{ANI_INTERFACE_RANGE, "<get>end", ":i"};
+constexpr CacheKey TEXT_BOX_KEY{
+    ANI_CLASS_TEXT_BOX, "<ctor>", "C{" ANI_INTERFACE_RECT "}C{" ANI_ENUM_TEXT_DIRECTION "}:"};
+constexpr CacheKey RANGE_KEY{ANI_CLASS_RANGE, "<ctor>", "ii:"};
+} // namespace
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
-    ani_boolean isObj = false;
-    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_RANGE, &isObj);
-    if (ret != ANI_OK || !isObj) {
-        TEXT_LOGE("Object mismatch:%{public}d", ret);
-        return ret;
-    }
     ani_int startTmp = 0;
-    ret = env->Object_GetPropertyByName_Int(obj, "start", &startTmp);
+    ani_status ret = env->Object_CallMethod_Int(obj, AniClassFindMethod(env, RANGE_START_KEY), &startTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     ani_int endTmp = 0;
-    ret = env->Object_GetPropertyByName_Int(obj, "end", &endTmp);
+    ret = env->Object_CallMethod_Int(obj, AniClassFindMethod(env, RANGE_END_KEY), &endTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
@@ -84,19 +85,18 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
         rectObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    static std::string sign =
-        "C{" + std::string(ANI_INTERFACE_RECT) + "}C{" + std::string(ANI_ENUM_TEXT_DIRECTION) + "}:";
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_TEXT_BOX, sign.c_str(), rectObj,
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_TEXT_DIRECTION, static_cast<int>(textRect.direction)));
+    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_TEXT_BOX),
+        AniClassFindMethod(env, TEXT_BOX_KEY), rectObj,
+        AniTextUtils::CreateAniEnum(env, AniFindEnum(env, ANI_ENUM_TEXT_DIRECTION),
+            aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textRect.direction)).value_or(0)));
     return ANI_OK;
 }
 
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RANGE, "ii:",
-        ani_int(boundary.leftIndex),
-        ani_int(boundary.rightIndex));
+    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_RANGE), AniClassFindMethod(env, RANGE_KEY),
+        ani_int(boundary.leftIndex), ani_int(boundary.rightIndex));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

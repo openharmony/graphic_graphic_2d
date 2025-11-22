@@ -20,14 +20,17 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr CacheKey POSITION_WITH_AFFINITY_KEY{ANI_CLASS_POSITION_WITH_AFFINITY, "<ctor>", "iE{" ANI_ENUM_AFFINITY "}:"};
+}
 
 ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
     ani_env* env, const OHOS::Rosen::IndexAndAffinity indexAndAffinity, ani_object& aniObj)
 {
-    static std::string sign = "iE{" + std::string(ANI_ENUM_AFFINITY) + "}:";
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_POSITION_WITH_AFFINITY, sign.c_str(),
-        ani_int(indexAndAffinity.index),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_AFFINITY, static_cast<int>(indexAndAffinity.affinity)));
+    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_POSITION_WITH_AFFINITY),
+        AniClassFindMethod(env, POSITION_WITH_AFFINITY_KEY), ani_int(indexAndAffinity.index),
+        AniTextUtils::CreateAniEnum(env, AniFindEnum(env, ANI_ENUM_AFFINITY),
+            aniGetEnumIndex(AniTextEnum::affinity, static_cast<uint32_t>(indexAndAffinity.affinity)).value_or(0)));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI

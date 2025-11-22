@@ -93,7 +93,7 @@ static void Clean(ani_env* env, ani_object object)
         TEXT_LOGE("Failed to clean, undefined ptrAddr, className %{public}s", className.c_str());
         return;
     }
-   
+
     using DeleteFunc = void (*)(ani_long&);
     static const std::unordered_map<std::string, DeleteFunc> deleteMap = {
         {"ParagraphBuilder", SafeDelete<AniParagraphBuilder>}, {"Paragraph", SafeDelete<AniParagraph>},
@@ -114,11 +114,10 @@ static ani_status AniCleanerInit(ani_vm* vm)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_CLEANER, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
+    ani_class cls = AniFindClass(env, ANI_CLASS_CLEANER);
+    if (cls == nullptr) {
+        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_CLEANER);
+        return ANI_NOT_FOUND;
     }
 
     std::array methods = {

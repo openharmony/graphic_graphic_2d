@@ -505,7 +505,7 @@ namespace drawing {
     static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
     private nativeObj : long = 0;
     private cleaner: Cleaner | null = null;
-
+    private getNative() { return this.nativeObj; }
     registerCleaner(ptr: long): void {
       this.cleaner = new Cleaner("Canvas", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
@@ -3897,7 +3897,7 @@ namespace drawing {
     static { loadLibraryWithPermissionCheck("drawing_ani_core", "@ohos.graphics.drawing"); }
     private nativeObj: long = 0;
     private cleaner: Cleaner | null = null;
-
+    private getNative() { return this.nativeObj; }
     registerCleaner(ptr: long): void {
       this.cleaner = new Cleaner("Path", ptr);
       destroyRegister.register(this, this.cleaner!, unregisterToken);
