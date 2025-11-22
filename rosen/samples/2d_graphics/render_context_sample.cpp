@@ -308,7 +308,7 @@ void RenderContextSample::Draw()
             return;
         }
 
-        std::vector<LayerInfoPtr> layers;
+        std::vector<RSLayerPtr> layers;
         layers.push_back(backgroundLayer);
         layers.push_back(drawingLayer);
 

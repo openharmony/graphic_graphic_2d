@@ -18,11 +18,16 @@
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
+#ifdef RS_ENABLE_VK
+#include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+#include "rs_render_composer_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -41,6 +46,7 @@ public:
     static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
     static constexpr uint32_t LIGHT_LEVEL = 1;
     static constexpr uint64_t SCREEN_ID = 10;
+    static constexpr uint64_t HGM_SCREEN_ID = 1031;
     static inline ScreenId mockScreenId_;
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
 
@@ -57,6 +63,19 @@ public:
     private:
         std::function<void()> callbackFunc_;
     };
+
+    class RSIScreenSwitchingNotifyCallbackConfig : public RSIScreenSwitchingNotifyCallback {
+    public:
+        RSIScreenSwitchingNotifyCallbackConfig() = default;
+        explicit RSIScreenSwitchingNotifyCallbackConfig(std::function<void()> callbackFunc_)
+            : callbackFunc_(std::move(callbackFunc_))
+        {}
+        ~RSIScreenSwitchingNotifyCallbackConfig() = default;
+        void OnScreenSwitchingNotify(bool status) override;
+        sptr<IRemoteObject> AsObject() override;
+    private:
+        std::function<void()> callbackFunc_;
+    };
 };
 
 void RSScreenManagerTest::SetUpTestCase()
@@ -67,9 +86,22 @@ void RSScreenManagerTest::SetUpTestCase()
         DoAll(SaveArg<1>(&Mock::HdiDeviceMock::powerStatusMock_), testing::Return(0)));
     EXPECT_CALL(*hdiDeviceMock_, GetScreenPowerStatus(mockScreenId_, _)).WillRepeatedly(
         DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::powerStatusMock_)), testing::Return(0)));
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
 }
 
-void RSScreenManagerTest::TearDownTestCase() {}
+void RSScreenManagerTest::TearDownTestCase()
+{
+    for (auto& [id, renderComposer]: RSRenderComposerManager::GetInstance().rsRenderComposerMap_) {
+        if (renderComposer) {
+            renderComposer->frameBufferSurfaceOhosMap_ .clear();
+            renderComposer->uniRenderEngine_ = nullptr;
+        }
+    }
+    RSRenderComposerManager::GetInstance().rsRenderComposerMap_.clear();
+    usleep(200); // 200 : sleep time
+}
 void RSScreenManagerTest::SetUp() {}
 void RSScreenManagerTest::TearDown() {}
 void RSScreenManagerTest::RSIScreenChangeCallbackConfig::OnScreenChanged(ScreenId id,
@@ -92,20 +124,28 @@ sptr<IRemoteObject> RSScreenManagerTest::RSIScreenChangeCallbackConfig::AsObject
 HWTEST_F(RSScreenManagerTest, HandlePostureData, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
     ASSERT_NE(nullptr, screenManager);
     screenManager->HandlePostureData(nullptr);
     SensorEvent event[10];
     screenManager->HandlePostureData(event);
+
     uint8_t sensorData1[7] = {0, 0, 0, 0, 0, 0, -1};
     event[0].data = sensorData1;
     event[0].dataLen = sizeof(PostureData);
     screenManager->HandlePostureData(event);
+    ASSERT_EQ(screenManagerImpl.activeScreenId_, 0);
+
     uint8_t sensorData2[7] = {0, 0, 0, 0, 0, 0, 150};
     event[0].data = sensorData2;
     screenManager->HandlePostureData(event);
-    uint8_t sensorData3[7] = {0, 0, 0, 0, 0, 0, 180};
+    ASSERT_EQ(screenManagerImpl.activeScreenId_, 0);
+
+    uint8_t sensorData3[7] = {0, 0, 0, 0, 0, 0, 80};
     event[0].data = sensorData3;
     screenManager->HandlePostureData(event);
+    ASSERT_EQ(screenManagerImpl.activeScreenId_, 0);
 }
 
 /*
@@ -148,6 +188,48 @@ HWTEST_F(RSScreenManagerTest, CreateOrGetScreenManager_001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
+}
+
+/*
+ * @tc.name: AddScreenToHgm_001
+ * @tc.desc: Test AddScreenToHgm
+ * @tc.type: FUNC
+ * @tc.require: issueI5ZK2I
+ */
+HWTEST_F(RSScreenManagerTest, AddScreenToHgm_001, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<impl::RSScreen>(HGM_SCREEN_ID, false, nullptr, nullptr);
+    ASSERT_NE(nullptr, rsScreen);
+
+    //IsVirtual() is false
+    rsScreen->isVirtual_ = false;
+
+    //isure GetActiveMode return {}
+    decltype(rsScreen->supportedModes_.size()) supportedModesSize = 3;
+    rsScreen->supportedModes_.resize(supportedModesSize);
+
+    rsScreen->supportedModes_[0].width = 200;
+    rsScreen->supportedModes_[0].height = 100;
+    rsScreen->supportedModes_[0].freshRate = 60;
+    rsScreen->supportedModes_[0].id = 1;
+    rsScreen->supportedModes_[1].width = 200;
+    rsScreen->supportedModes_[1].height = 100;
+    rsScreen->supportedModes_[1].freshRate = 60;
+    rsScreen->supportedModes_[1].id = 2;
+    rsScreen->supportedModes_[2].width = 200;
+    rsScreen->supportedModes_[2].height = 100;
+    rsScreen->supportedModes_[2].freshRate = 0;
+    rsScreen->supportedModes_[2].id = 3;
+    auto screenManager = CreateOrGetScreenManager();
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+    screenManagerImpl.screens_[HGM_SCREEN_ID] = rsScreen;
+    auto output = HdiOutput::CreateHdiOutput(HGM_SCREEN_ID);
+    screenManagerImpl.AddScreenToHgm(output);
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto hgmScreen = hgmCore.GetScreen(HGM_SCREEN_ID);
+    ASSERT_EQ(hgmScreen->supportedModeIds_.size(), 2);
+    usleep(SLEEP_TIME_US);
 }
 
 /*
@@ -2020,7 +2102,9 @@ HWTEST_F(RSScreenManagerTest, GetActiveScreenId_001, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     auto activeScreenId = screenManager->GetActiveScreenId();
     bool isFoldScreenFlag = false;
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     isFoldScreenFlag = system::GetParameter("const.window.foldscreen.type", "") != "";
+#endif
     if (isFoldScreenFlag) {
         ASSERT_NE(INVALID_SCREEN_ID, activeScreenId);
     } else {
@@ -2503,6 +2587,26 @@ HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList004, TestSize.Level1)
 }
 
 /*
+ * @tc.name: AddVirtualScreenBlackList005
+ * @tc.desc: Test AddVirtualScreenBlackList and RemoveVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require: issueIB3TS6
+ */
+HWTEST_F(RSScreenManagerTest, AddVirtualScreenBlackList005, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 10;
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, false, nullptr, nullptr);
+    std::vector<uint64_t> tmpBlackList = {1, 2, 3, 4};
+    ASSERT_EQ(screenManagerImpl.AddVirtualScreenBlackList(id, tmpBlackList), StatusCode::SUCCESS);
+    ASSERT_EQ(screenManagerImpl.RemoveVirtualScreenBlackList(id, tmpBlackList), StatusCode::SUCCESS);
+}
+
+/*
  * @tc.name: RemoveVirtualScreenBlackList001
  * @tc.desc: Test RemoveVirtualScreenBlackList, when id is INVALID_SCREEN_ID
  * @tc.type: FUNC
@@ -2817,6 +2921,32 @@ HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect003, TestSize.Level1)
     int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
     ASSERT_EQ(ret, StatusCode::SUCCESS);
     ASSERT_EQ(screenManagerImpl.screens_[id]->GetEnableVisibleRect(), false);
+}
+
+/*
+ * @tc.name: SetMirrorScreenVisibleRect004
+ * @tc.desc: Test SetMirrorScreenVisibleRect with zero rect.
+ * @tc.type: FUNC
+ * @tc.require: issueIB9E4C
+ */
+HWTEST_F(RSScreenManagerTest, SetMirrorScreenVisibleRect004, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
+        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+
+    ScreenId id = 1;
+    uint32_t width = 720;  // width value for test
+    uint32_t height = 1280;  // height value for test
+    Rect rect = {0, 0, width, height};
+    screenManagerImpl.screens_[id] = std::make_shared<impl::RSScreen>(id, true, nullptr, nullptr);
+    int32_t ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
+    
+    rect = {-10, -10, -100, -100};  // test rect value
+    ret = screenManagerImpl.SetMirrorScreenVisibleRect(id, rect, true);
+    ASSERT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -3350,10 +3480,32 @@ HWTEST_F(RSScreenManagerTest, GetMirrorScreenSecLayerOption001, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(nullptr, screenManager);
+    ScreenId invalidId = INVALID_SCREEN_ID;
+    ASSERT_EQ(screenManager->GetVirtualScreenSecLayerOption(invalidId), INVALID_ARGUMENTS);
+
     constexpr uint32_t sizeWidth = 720;
     constexpr uint32_t sizeHeight = 1280;
-    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", sizeWidth, sizeHeight, nullptr, 0, 1);
-    ASSERT_EQ(screenManager->GetVirtualScreenSecLayerOption(virtualScreenId), 1);
+    auto virtualScreenId = screenManager->CreateVirtualScreen("virtualScreen01", sizeWidth, sizeHeight, nullptr);
+    ASSERT_EQ(screenManager->GetVirtualScreenSecLayerOption(virtualScreenId), 0);
+}
+
+/*
+ * @tc.name: GetVirtualScreenSecLayerOption002
+ * @tc.desc: Test GetVirtualScreenSecLayerOption
+ * @tc.type: FUNC
+ * @tc.require: issueICCRA8
+ */
+HWTEST_F(RSScreenManagerTest, GetVirtualScreenSecLayerOption002, TestSize.Level1)
+{
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    auto rsScreen =
+        std::make_shared<impl::RSScreen>(200, true, HdiOutput::CreateHdiOutput(200), nullptr);
+    EXPECT_NE(nullptr, rsScreen);
+    rsScreen->isVirtual_ = false;
+    screenManagerImpl->screens_.insert(std::make_pair(200, rsScreen));
+    ASSERT_EQ(screenManagerImpl->GetVirtualScreenSecLayerOption(200), SCREEN_NOT_FOUND);
+
+    ASSERT_EQ(screenManagerImpl->GetVirtualScreenSecLayerOption(100), SCREEN_NOT_FOUND);
 }
 
 /*
@@ -3712,6 +3864,28 @@ HWTEST_F(RSScreenManagerTest, GetPixelFormat, TestSize.Level1)
     screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
 
     res = screenManagerImpl->RSScreenManager::GetPixelFormat(100, pixelFormat);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+}
+
+/*
+ * @tc.name: SetScreenColorSpace
+ * @tc.desc: Test SetScreenColorSpace
+ * @tc.type: FUNC
+ * @tc.require: issueIBIQ0Q
+ */
+HWTEST_F(RSScreenManagerTest, SetScreenColorSpace, TestSize.Level1)
+{
+    // 8+2
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(nullptr, screenManagerImpl);
+    screenManagerImpl->screens_.clear();
+    GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_BT601_EBU_FULL;
+    auto res = screenManagerImpl->RSScreenManager::SetScreenColorSpace(100, colorSpace);
+    EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
+
+    screenManagerImpl->screens_.insert(std::make_pair(100, nullptr));
+
+    res = screenManagerImpl->RSScreenManager::SetScreenColorSpace(100, colorSpace);
     EXPECT_EQ(StatusCode::SCREEN_NOT_FOUND, res);
 }
 
@@ -4487,19 +4661,56 @@ HWTEST_F(RSScreenManagerTest, OnHotPlugEvent, TestSize.Level1)
 }
 
 /*
- * @tc.name: ProcessVSyncScreenIdWhilePowerStatusChangedTest
+ * @tc.name: ProcessVSyncScreenIdWhilePowerStatusChangedTest001
  * @tc.desc: Test ProcessVSyncScreenIdWhilePowerStatusChanged
  * @tc.type: FUNC
  */
-HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest, TestSize.Level1)
+HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest001, TestSize.Level1)
 {
     auto sampler = CreateVSyncSampler();
     VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
     sampler->RegSetScreenVsyncEnabledCallback(cb);
     auto screenManager = CreateOrGetScreenManager();
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->isFoldScreenFlag_ = true;
     static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->ProcessVSyncScreenIdWhilePowerStatusChanged(
         0, ScreenPowerStatus::POWER_STATUS_OFF);
     ASSERT_EQ(static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_, false);
+}
+
+/*
+ * @tc.name: ProcessVSyncScreenIdWhilePowerStatusChangedTest002
+ * @tc.desc: Test ProcessVSyncScreenIdWhilePowerStatusChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest002, TestSize.Level1)
+{
+    auto sampler = CreateVSyncSampler();
+    static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
+    sampler->RegSetScreenVsyncEnabledCallback(cb);
+    auto screenManager = CreateOrGetScreenManager();
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->isFoldScreenFlag_ = true;
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->ProcessVSyncScreenIdWhilePowerStatusChanged(
+        0, ScreenPowerStatus::POWER_STATUS_SUSPEND);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_, false);
+}
+
+/*
+ * @tc.name: ProcessVSyncScreenIdWhilePowerStatusChangedTest003
+ * @tc.desc: Test ProcessVSyncScreenIdWhilePowerStatusChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, ProcessVSyncScreenIdWhilePowerStatusChangedTest003, TestSize.Level1)
+{
+    auto sampler = CreateVSyncSampler();
+    static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_ = true;
+    VSyncSampler::SetScreenVsyncEnabledCallback cb = [](uint64_t screenId, bool enabled) {};
+    sampler->RegSetScreenVsyncEnabledCallback(cb);
+    auto screenManager = CreateOrGetScreenManager();
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->isFoldScreenFlag_ = false;
+    static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->ProcessVSyncScreenIdWhilePowerStatusChanged(
+        0, ScreenPowerStatus::POWER_STATUS_ON);
+    ASSERT_EQ(static_cast<impl::VSyncSampler*>(sampler.GetRefPtr())->hardwareVSyncStatus_, true);
 }
 
 /*
@@ -4582,5 +4793,27 @@ HWTEST_F(RSScreenManagerTest, RegisterSensorCallbackTest, TestSize.Level1)
     EXPECT_EQ(screenManagerImpl.hasRegisterSensorCallback_, false);
     screenManagerImpl.UnRegisterSensorCallback();
     EXPECT_EQ(screenManagerImpl.hasRegisterSensorCallback_, false);
+}
+
+/*
+ * @tc.name: NotifyScreenNotSwitchingTest
+ * @tc.desc: Test results of NotifyScreenNotSwitching
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenManagerTest, NotifyScreenNotSwitchingTest, TestSize.Level1)
+{
+    constexpr NodeId nodeId = 0;
+    RSDisplayNodeConfig config;
+    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    EXPECT_NE(renderNode, nullptr);
+
+    renderNode->SetScreenStatusNotifyTask([](bool status) {
+        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
+        if (screenManager == nullptr) {
+            return;
+        }
+        screenManager->SetScreenSwitchStatus(status);
+    });
+    renderNode->NotifyScreenNotSwitching();
 }
 } // namespace OHOS::Rosen

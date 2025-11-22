@@ -65,19 +65,6 @@ std::string GetDumpResult(sptr<RSRenderService> renderService, std::u16string ar
 }
 
 /**
- * @tc.name: TestRemoveConnection001
- * @tc.desc: RemoveConnection test.
- * @tc.type: FUNC
- * @tc.require: issueI7G75T
- */
-HWTEST_F(RSRenderServiceUnitTest, TestRemoveConnection001, TestSize.Level1)
-{
-    sptr<RSRenderService> renderService(new RSRenderService());
-    ASSERT_NE(renderService, nullptr);
-    renderService->RemoveConnection(nullptr);
-}
-
-/**
  * @tc.name: DoDump001
  * @tc.desc: test DoDump, with empty arg sets.
  * @tc.type: FUNC
@@ -297,7 +284,8 @@ HWTEST_F(RSRenderServiceUnitTest, RSParamManager004, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager005, TestSize.Level1) {
+HWTEST_F(RSRenderServiceUnitTest, RSParamManager005, TestSize.Level1)
+{
     RSParamManager& paramManager = RSParamManager::GetInstance();
     std::vector<std::string> localVersion1 = {"5", "0", "0", "0"};
     std::vector<std::string> cloudVersion1 = {"4", "0", "0", "0"};
@@ -309,4 +297,23 @@ HWTEST_F(RSRenderServiceUnitTest, RSParamManager005, TestSize.Level1) {
     ASSERT_FALSE(versionCompare2);
 }
 
+/**
+ * @tc.name  : RemoveConnectionTest001
+ * @tc.desc  : test RemoveConnection
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceUnitTest, RemoveConnectionTest001, TestSize.Level1)
+{
+    sptr<RSRenderService> renderService(new RSRenderService());
+    ASSERT_NE(renderService, nullptr);
+    bool isConnectionRemoved = renderService->RemoveConnection(nullptr);
+    EXPECT_FALSE(isConnectionRemoved);
+
+    auto token = new IRemoteStub<RSIConnectionToken>();
+    auto tokenObj = token->AsObject();
+    ASSERT_NE(tokenObj, nullptr);
+    isConnectionRemoved = renderService->RemoveConnection(token);
+    EXPECT_FALSE(isConnectionRemoved);
+}
 } // namespace OHOS::Rosen

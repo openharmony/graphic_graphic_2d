@@ -124,7 +124,7 @@ void LppVideoHandler::JudgeRequestVsyncForLpp(uint64_t vsyncId)
     }
 }
 
-void LppVideoHandler::AddLppLayerId(const std::vector<LayerInfoPtr>& layers)
+void LppVideoHandler::AddLppLayerId(const std::vector<RSLayerPtr>& layers)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -146,7 +146,7 @@ void LppVideoHandler::SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay)
     hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
 }
 
-void LppVideoHandler::RemoveLayerId(const std::vector<LayerInfoPtr>& layers)
+void LppVideoHandler::RemoveLayerId(const std::vector<RSLayerPtr>& layers)
 {
     for (const auto& layer : layers) {
         bool isLppLayer = layer != nullptr &&

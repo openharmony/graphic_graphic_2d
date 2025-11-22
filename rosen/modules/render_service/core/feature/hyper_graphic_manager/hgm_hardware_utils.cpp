@@ -17,7 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "rs_render_composer_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -100,7 +100,7 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
     }
     uint64_t timestamp = refreshRateParam_.frameTimestamp;
     uint64_t constraintRelativeTime = refreshRateParam_.constraintRelativeTime;
-    vblankIdleCorrector_.ProcessScreenConstraint(timestamp, constraintRelativeTime);
+    vblankIdleCorrector_.ProcessScreenConstraint(output->GetScreenId(), timestamp, constraintRelativeTime);
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;

@@ -26,54 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-static const std::map<GraphicTransformType, std::string> TransformTypeStrs = {
-    {GRAPHIC_ROTATE_NONE,                    "0 <no rotation>"},
-    {GRAPHIC_ROTATE_90,                      "1 <rotation by 90 degrees>"},
-    {GRAPHIC_ROTATE_180,                     "2 <rotation by 180 degrees>"},
-    {GRAPHIC_ROTATE_270,                     "3 <rotation by 270 degrees>"},
-    {GRAPHIC_FLIP_H,                         "4 <flip horizontally>"},
-    {GRAPHIC_FLIP_V,                         "5 <flip vertically>"},
-    {GRAPHIC_FLIP_H_ROT90,                   "6 <flip horizontally and rotate 90 degrees>"},
-    {GRAPHIC_FLIP_V_ROT90,                   "7 <flip vertically and rotate 90 degrees>"},
-    {GRAPHIC_FLIP_H_ROT180,                  "8 <flip horizontally and rotate 180 degrees>"},
-    {GRAPHIC_FLIP_V_ROT180,                  "9 <flip vertically and rotate 180 degrees>"},
-    {GRAPHIC_FLIP_H_ROT270,                  "10 <flip horizontally and rotate 270 degrees>"},
-    {GRAPHIC_FLIP_V_ROT270,                  "11 <flip vertically and rotate 270 degrees>"},
-    {GRAPHIC_ROTATE_BUTT,                    "12 <uninitialized>"},
-};
-
-static const std::map<GraphicCompositionType, std::string> CompositionTypeStrs = {
-    {GRAPHIC_COMPOSITION_CLIENT,             "0 <client composistion>"},
-    {GRAPHIC_COMPOSITION_DEVICE,             "1 <device composistion>"},
-    {GRAPHIC_COMPOSITION_CURSOR,             "2 <cursor composistion>"},
-    {GRAPHIC_COMPOSITION_VIDEO,              "3 <video composistion>"},
-    {GRAPHIC_COMPOSITION_DEVICE_CLEAR,       "4 <device clear composistion>"},
-    {GRAPHIC_COMPOSITION_CLIENT_CLEAR,       "5 <client clear composistion>"},
-    {GRAPHIC_COMPOSITION_TUNNEL,             "6 <tunnel composistion>"},
-    {GRAPHIC_COMPOSITION_SOLID_COLOR,        "7 <layercolor composition>"},
-    {GRAPHIC_COMPOSITION_BUTT,               "8 <uninitialized>"},
-};
-
-static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
-    {GRAPHIC_BLEND_NONE,                     "0 <No blending>"},
-    {GRAPHIC_BLEND_CLEAR,                    "1 <CLEAR blending>"},
-    {GRAPHIC_BLEND_SRC,                      "2 <SRC blending>"},
-    {GRAPHIC_BLEND_SRCOVER,                  "3 <SRC_OVER blending>"},
-    {GRAPHIC_BLEND_DSTOVER,                  "4 <DST_OVER blending>"},
-    {GRAPHIC_BLEND_SRCIN,                    "5 <SRC_IN blending>"},
-    {GRAPHIC_BLEND_DSTIN,                    "6 <DST_IN blending>"},
-    {GRAPHIC_BLEND_SRCOUT,                   "7 <SRC_OUT blending>"},
-    {GRAPHIC_BLEND_DSTOUT,                   "8 <DST_OUT blending>"},
-    {GRAPHIC_BLEND_SRCATOP,                  "9 <SRC_ATOP blending>"},
-    {GRAPHIC_BLEND_DSTATOP,                  "10 <DST_ATOP blending>"},
-    {GRAPHIC_BLEND_ADD,                      "11 <ADD blending>"},
-    {GRAPHIC_BLEND_XOR,                      "12 <XOR blending>"},
-    {GRAPHIC_BLEND_DST,                      "13 <DST blending>"},
-    {GRAPHIC_BLEND_AKS,                      "14 <AKS blending>"},
-    {GRAPHIC_BLEND_AKD,                      "15 <AKD blending>"},
-    {GRAPHIC_BLEND_BUTT,                     "16 <Uninitialized>"},
-};
-
 class HdiLayerInfo {
 public:
     HdiLayerInfo() = default;
@@ -255,7 +207,7 @@ public:
 
     bool IsSupportedPresentTimestamp() const
     {
-        return IsSupportedPresentTimestamp_;
+        return isSupportedPresentTimestamp_;
     }
 
     const GraphicPresentTimestamp &GetPresentTimestamp()
@@ -415,7 +367,7 @@ public:
 
     void SetIsSupportedPresentTimestamp(bool isSupported)
     {
-        IsSupportedPresentTimestamp_ = isSupported;
+        isSupportedPresentTimestamp_ = isSupported;
     }
 
     void SetPresentTimestamp(const GraphicPresentTimestamp &timestamp)
@@ -565,65 +517,6 @@ public:
         ignoreAlpha_ = layerInfo->GetIgnoreAlpha();
     }
 
-    void Dump(std::string &result) const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (TransformTypeStrs.find(transformType_) != TransformTypeStrs.end() &&
-            CompositionTypeStrs.find(compositionType_) != CompositionTypeStrs.end() &&
-            BlendTypeStrs.find(blendType_) != BlendTypeStrs.end()) {
-            result += " zOrder = " + std::to_string(zOrder_) +
-                ", visibleNum = " + std::to_string(visibleRegions_.size()) +
-                ", transformType = " + TransformTypeStrs.at(transformType_) +
-                ", compositionType = " + CompositionTypeStrs.at(compositionType_) +
-                ", blendType = " + BlendTypeStrs.at(blendType_) +
-                ", layerAlpha = [enGlobalAlpha(" + std::to_string(layerAlpha_.enGlobalAlpha) + "), enPixelAlpha(" +
-                std::to_string(layerAlpha_.enPixelAlpha) + "), alpha0(" +
-                std::to_string(layerAlpha_.alpha0) + "), alpha1(" +
-                std::to_string(layerAlpha_.alpha1) + "), gAlpha(" +
-                std::to_string(layerAlpha_.gAlpha) + ")].\n";
-        }
-        result += " layerRect = [" + std::to_string(layerRect_.x) + ", " +
-            std::to_string(layerRect_.y) + ", " +
-            std::to_string(layerRect_.w) + ", " +
-            std::to_string(layerRect_.h) + "], ";
-        result += "cropRect = [" + std::to_string(cropRect_.x) + ", " +
-            std::to_string(cropRect_.y) + ", " +
-            std::to_string(cropRect_.w) + ", " +
-            std::to_string(cropRect_.h) + "],";
-        for (decltype(visibleRegions_.size()) i = 0; i < visibleRegions_.size(); i++) {
-            result += "visibleRegions[" + std::to_string(i) + "] = [" +
-                std::to_string(visibleRegions_[i].x) + ", " +
-                std::to_string(visibleRegions_[i].y) + ", " +
-                std::to_string(visibleRegions_[i].w) + ", " +
-                std::to_string(visibleRegions_[i].h) + "], ";
-        }
-        for (decltype(dirtyRegions_.size()) i = 0; i < dirtyRegions_.size(); i++) {
-            result += "dirtyRegions[" + std::to_string(i) + "] = [" +
-                std::to_string(dirtyRegions_[i].x) + ", " +
-                std::to_string(dirtyRegions_[i].y) + ", " +
-                std::to_string(dirtyRegions_[i].w) + ", " +
-                std::to_string(dirtyRegions_[i].h) + "], ";
-        }
-        result += "layerColor = [R:" + std::to_string(layerColor_.r) + ", G:" +
-            std::to_string(layerColor_.g) + ", B:" +
-            std::to_string(layerColor_.b) + ", A:" +
-            std::to_string(layerColor_.a) + "],";
-        if (cSurface_ != nullptr) {
-            cSurface_->Dump(result);
-        }
-        result += " displayNit = " + std::to_string(displayNit_) +
-            ", brightnessRatio = " + std::to_string(brightnessRatio_) + ", ";
-        result += " ancoFlags = " + std::to_string(ancoFlags_) + ", ";
-    }
-
-    void DumpCurrentFrameLayer() const
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (cSurface_ != nullptr) {
-            cSurface_->DumpCurrentFrameLayer();
-        }
-    }
-
     RosenError SetLayerMaskInfo(LayerMask mask)
     {
         switch (mask) {
@@ -703,7 +596,7 @@ private:
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     std::vector<std::string> windowsName_;
     bool tunnelHandleChange_ = false;
-    bool IsSupportedPresentTimestamp_ = false;
+    bool isSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
 
     sptr<IConsumerSurface> cSurface_ = nullptr;

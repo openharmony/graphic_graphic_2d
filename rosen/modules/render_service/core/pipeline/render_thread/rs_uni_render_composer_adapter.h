@@ -17,19 +17,20 @@
 #define RS_CORE_PIPELINE_UNI_RENDER_COMPOSER_ADAPTER_H
 
 #include "hdi_backend.h"
-#include "rs_composer_adapter.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_map.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "rs_base_render_util.h"
+#include "rs_composer_adapter.h"
+#include "rs_render_composer_manager.h"
+#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
 class RSRcdSurfaceRenderNode;
+class RSRenderComposerClient;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable;
@@ -39,14 +40,14 @@ class RSUniRenderComposerAdapter {
 public:
     RSUniRenderComposerAdapter() = default;
     ~RSUniRenderComposerAdapter() noexcept = default;
-    LayerInfoPtr CreateLayer(RSScreenRenderNode& node);
-    LayerInfoPtr CreateLayer(RSRcdSurfaceRenderNode& node);
+    RSLayerPtr CreateLayer(RSScreenRenderNode& node);
+    RSLayerPtr CreateLayer(RSRcdSurfaceRenderNode& node);
     bool Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY);
     bool UpdateMirrorInfo(float mirrorAdaptiveCoefficient);
 
-    LayerInfoPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
-    void CommitLayers(const std::vector<LayerInfoPtr>& layers);
-    void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const sptr<SurfaceBuffer>& buffer,
+    RSLayerPtr CreateLayer(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
+    void CommitLayers();
+    void SetMetaDataInfoToLayer(const RSLayerPtr& layer, const sptr<SurfaceBuffer>& buffer,
         const sptr<IConsumerSurface>& surface) const;
     const ScreenInfo& GetScreenInfo() const { return screenInfo_; }
 
@@ -60,20 +61,20 @@ private:
     ComposeInfo BuildComposeInfo(RSRcdSurfaceRenderNode& node) const;
 
     void SetComposeInfoToLayer(
-        const LayerInfoPtr& layer,
+        const RSLayerPtr& layer,
         const ComposeInfo& info,
         const sptr<IConsumerSurface>& surface) const;
     static void SetBufferColorSpace(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
-    void LayerRotate(const LayerInfoPtr& layer, RSSurfaceRenderNode& node) const;
-    void LayerRotate(const LayerInfoPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const;
+    void LayerRotate(const RSLayerPtr& layer, RSSurfaceRenderNode& node) const;
+    void LayerRotate(const RSLayerPtr& layer, DrawableV2::RSRenderNodeDrawableAdapter& drawable) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
     void DealWithNodeGravity(const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, ComposeInfo& info) const;
 
-    void LayerCrop(const LayerInfoPtr& layer) const;
-    static void LayerScaleDown(const LayerInfoPtr& layer, RSSurfaceRenderNode& node);
-    static void LayerScaleDown(const LayerInfoPtr& layer, DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
-    void LayerScaleFit(const LayerInfoPtr& layer) const;
-    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<Surface>& surface);
+    void LayerCrop(const RSLayerPtr& layer) const;
+    static void LayerScaleDown(const RSLayerPtr& layer, RSSurfaceRenderNode& node);
+    static void LayerScaleDown(const RSLayerPtr& layer, DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable);
+    void LayerScaleFit(const RSLayerPtr& layer) const;
+    static void LayerPresentTimestamp(const RSLayerPtr& layer, const sptr<Surface>& surface);
 
     static void GetComposerInfoSrcRect(ComposeInfo &info, const RSSurfaceRenderNode& node);
     static void GetComposerInfoSrcRect(
@@ -90,6 +91,7 @@ private:
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
     float mirrorAdaptiveCoefficient_ = 1.0f;
+    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

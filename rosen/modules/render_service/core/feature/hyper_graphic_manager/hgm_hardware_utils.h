@@ -40,10 +40,7 @@ public:
     void ExecuteSwitchRefreshRate(ScreenId screenId);
     void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
     void UpdateRefreshRateParam();
-    void SetScreenVBlankIdle(ScreenId screenId)
-    {
-        vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
-    }
+    void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
 
     const RefreshRateParam& GetRefreshRateParam() const
     {

@@ -18,7 +18,6 @@
 #include <securec.h>
 
 #include "hdi_device.h"
-#include "hdi_backend.h"
 #include "surface.h"
 using namespace OHOS::Rosen;
 

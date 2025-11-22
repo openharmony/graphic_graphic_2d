@@ -45,8 +45,7 @@ namespace OHOS {
 namespace Rosen {
 thread_local bool RsVulkanContext::isProtected_ = false;
 thread_local VulkanInterfaceType RsVulkanContext::vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
-std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> RsVulkanContext::drawingContextMap_;
-std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> RsVulkanContext::protectedDrawingContextMap_;
+std::map<int, DrawingContextProperty> RsVulkanContext::drawingContextMap_;
 std::mutex RsVulkanContext::drawingContextMutex_;
 std::recursive_mutex RsVulkanContext::recyclableSingletonMutex_;
 bool RsVulkanContext::isRecyclable_ = true;
@@ -668,7 +667,6 @@ RsVulkanContext::~RsVulkanContext()
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
     drawingContextMap_.clear();
-    protectedDrawingContextMap_.clear();
     RsVulkanContext::isRecyclableSingletonValid_ = false;
 }
 
@@ -739,14 +737,8 @@ bool RsVulkanContext::CheckDrawingContextRecyclable()
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
     for (const auto& iter : RsVulkanContext::drawingContextMap_) {
-        // check the tag only set to true when GetRecyclableDrawingContext
-        if (!iter.second.second) {
-            return false;
-        }
-    }
-    for (const auto& iter : RsVulkanContext::protectedDrawingContextMap_) {
-        // check the tag only set to true when GetRecyclableDrawingContext
-        if (!iter.second.second) {
+        if ((iter.second.unprotectContext != nullptr && !iter.second.unprotectRecyclable) ||
+            (iter.second.protectContext != nullptr && !iter.second.protectRecyclable)) {
             return false;
         }
     }
@@ -777,12 +769,13 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetRecyclableDrawingContex
 
     // 2. set recyclable tag for drawingContext when it's valid (i.e it's in the map)
     static thread_local int tidForRecyclable = gettid();
-    auto& drawingContextMap = isProtected_ ?
-        RsVulkanContext::protectedDrawingContextMap_ : RsVulkanContext::drawingContextMap_;
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
-    auto iter = drawingContextMap.find(tidForRecyclable);
-    if (iter != drawingContextMap.end()) {
-        iter->second.second = true;
+    if (auto iter = drawingContextMap_.find(tidForRecyclable); iter != drawingContextMap_.end()) {
+        if (isProtected_) {
+            iter->second.protectRecyclable = true;
+        } else {
+            iter->second.unprotectRecyclable = true;
+        }
     }
     return drawingContext;
 }
@@ -790,33 +783,29 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetRecyclableDrawingContex
 void RsVulkanContext::ReleaseDrawingContextMap()
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
-    for (auto& iter : drawingContextMap_) {
-        auto context = iter.second.first;
-        if (context == nullptr) {
-            continue;
+    for (const auto& [_, second] : drawingContextMap_) {
+        if (auto context = second.unprotectContext) {
+            context->FlushAndSubmit(true);
         }
-        context->FlushAndSubmit(true);
+        if (auto protectContext = second.protectContext) {
+            protectContext->FlushAndSubmit(true);
+        }
     }
     drawingContextMap_.clear();
-
-    for (auto& protectedIter : protectedDrawingContextMap_) {
-        auto protectedContext = protectedIter.second.first;
-        if (protectedContext == nullptr) {
-            continue;
-        }
-        protectedContext->FlushAndSubmit(true);
-    }
-    protectedDrawingContextMap_.clear();
 }
 
 void RsVulkanContext::ReleaseRecyclableDrawingContext()
 {
-    auto& drawingContextMap = isProtected_ ?
-        RsVulkanContext::protectedDrawingContextMap_ : RsVulkanContext::drawingContextMap_;
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
-    for (auto iter = drawingContextMap.begin(); iter != drawingContextMap.end();) {
-        if (iter->second.second) {
-            iter = drawingContextMap.erase(iter);
+    for (auto iter = drawingContextMap_.begin(); iter != drawingContextMap_.end();) {
+        if (iter->second.protectRecyclable) {
+            iter->second.protectContext = nullptr;
+        }
+        if (iter->second.unprotectRecyclable) {
+            iter->second.unprotectContext = nullptr;
+        }
+        if (iter->second.protectContext == nullptr && iter->second.unprotectContext == nullptr) {
+            iter = drawingContextMap_.erase(iter);
         } else {
             ++iter;
         }
@@ -827,7 +816,6 @@ void RsVulkanContext::ReleaseDrawingContextForThread(int tid)
 {
     std::lock_guard<std::mutex> lock(drawingContextMutex_);
     drawingContextMap_.erase(tid);
-    protectedDrawingContextMap_.erase(tid);
 }
 
 void RsVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GPUContext> drawingContext)
@@ -837,10 +825,13 @@ void RsVulkanContext::SaveNewDrawingContext(int tid, std::shared_ptr<Drawing::GP
         RsVulkanContext::ReleaseDrawingContextForThread(tid);
     };
     static thread_local auto drawContextHolder = std::make_shared<DrawContextHolder>(func);
+    auto& context = drawingContextMap_[tid];
     if (isProtected_) {
-        protectedDrawingContextMap_[tid] = std::make_pair(drawingContext, false);
+        context.protectContext = drawingContext;
+        context.protectRecyclable = false;
     } else {
-        drawingContextMap_[tid] = std::make_pair(drawingContext, false);
+        context.unprotectContext = drawingContext;
+        context.unprotectRecyclable = false;
     }
 }
 
@@ -920,20 +911,18 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::CreateDrawingContext()
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
         switch (vulkanInterfaceType_) {
             case VulkanInterfaceType::PROTECTED_REDRAW: {
-                // protectedDrawingContextMap_ : <tid, <drawingContext, isRecyclable>>
-                auto protectedIter = protectedDrawingContextMap_.find(tidForRecyclable);
-                if (protectedIter != protectedDrawingContextMap_.end() && protectedIter->second.first != nullptr) {
-                    return protectedIter->second.first;
+                auto protectedIter = drawingContextMap_.find(tidForRecyclable);
+                if (protectedIter != drawingContextMap_.end() && protectedIter->second.protectContext != nullptr) {
+                    return protectedIter->second.protectContext;
                 }
                 break;
             }
             case VulkanInterfaceType::BASIC_RENDER:
             case VulkanInterfaceType::UNPROTECTED_REDRAW:
             default: {
-                // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
                 auto iter = drawingContextMap_.find(tidForRecyclable);
-                if (iter != drawingContextMap_.end() && iter->second.first != nullptr) {
-                    return iter->second.first;
+                if (iter != drawingContextMap_.end() && iter->second.unprotectContext != nullptr) {
+                    return iter->second.unprotectContext;
                 }
                 break;
             }
@@ -948,16 +937,14 @@ std::shared_ptr<Drawing::GPUContext> RsVulkanContext::GetDrawingContext(const st
     {
         std::lock_guard<std::mutex> lock(drawingContextMutex_);
         if (isProtected_) {
-            // protectedDrawingContextMap_ : <tid, <drawingContext, isRecyclable>>
-            auto protectedIter = protectedDrawingContextMap_.find(tidForRecyclable);
-            if (protectedIter != protectedDrawingContextMap_.end() && protectedIter->second.first != nullptr) {
-                return protectedIter->second.first;
+            auto protectedIter = drawingContextMap_.find(tidForRecyclable);
+            if (protectedIter != drawingContextMap_.end() && protectedIter->second.protectContext != nullptr) {
+                return protectedIter->second.protectContext;
             }
         } else {
-            // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
             auto iter = drawingContextMap_.find(tidForRecyclable);
-            if (iter != drawingContextMap_.end() && iter->second.first != nullptr) {
-                return iter->second.first;
+            if (iter != drawingContextMap_.end() && iter->second.unprotectContext != nullptr) {
+                return iter->second.unprotectContext;
             }
         }
     }

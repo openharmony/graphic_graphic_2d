@@ -530,7 +530,8 @@
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo",
           "//foundation/graphic/graphic_2d/rosen/test/dtk:dtk",
           "//foundation/graphic/graphic_2d/frameworks/text/test:text_test",
-          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test"
+          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service:test"
         ]
       }
     }

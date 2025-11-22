@@ -13,23 +13,25 @@
  * limitations under the License.
  */
 
-#include <parameters.h>
-
 #include "gtest/gtest.h"
-#include "limit_number.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+
+#include <parameters.h>
 #include "dirty_region/rs_gpu_dirty_collector.h"
 #include "drawable/rs_logical_display_render_node_drawable.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
+#include "limit_number.h"
 #include "metadata_helper.h"
 #include "params/rs_screen_render_params.h"
-#include "feature/round_corner_display/rs_rcd_surface_render_node.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_processor.h"
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_logical_display_render_node.h"
-#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_processor_factory.h"
+#include "pipeline/rs_test_util.h"
+#include "rs_surface_layer.h"
+#include "screen_manager/rs_screen.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -64,10 +66,38 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+
+    static inline uint32_t screenId_ = 0;
+    static inline std::shared_ptr<RSUniRenderProcessor> renderProcessor = nullptr;
+    static inline std::unique_ptr<OHOS::Rosen::impl::RSScreen> screen = nullptr;
 };
 
-void RSUniRenderProcessorTest::SetUpTestCase() {}
-void RSUniRenderProcessorTest::TearDownTestCase() {}
+void RSUniRenderProcessorTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+    RSTestUtil::InitRenderNodeGC();
+    auto output = std::make_shared<HdiOutput>(screenId_);
+    RSRenderComposerManager::GetInstance().OnScreenConnected(output);
+    screen = std::make_unique<OHOS::Rosen::impl::RSScreen>(screenId_, false, output, nullptr);
+    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    screenManager->screens_.insert(std::make_pair(0, std::move(screen)));
+
+    renderProcessor = std::make_shared<RSUniRenderProcessor>();
+    renderProcessor->screenInfo_.id = screenId_;
+    NodeId nodeId = 1;
+    RSScreenRenderNode node(nodeId, screenId_);
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    renderProcessor->Init(node, 0, 0, 0, renderEngine);
+    EXPECT_NE(renderProcessor->composerClient_, nullptr);
+}
+void RSUniRenderProcessorTest::TearDownTestCase()
+{
+    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
+    renderProcessor = nullptr;
+}
 void RSUniRenderProcessorTest::SetUp() {}
 void RSUniRenderProcessorTest::TearDown() {}
 
@@ -77,7 +107,7 @@ void RSUniRenderProcessorTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
 {
     NodeId nodeId = 1;
     ScreenId screenId = 0;
@@ -95,7 +125,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI6QM6E
  */
-HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
 {
     NodeId nodeId = 1;
     ScreenId screenId = 0;
@@ -112,41 +142,15 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitTest
- * @tc.desc: Verify function Init
- * @tc.type:FUNC
- * @tc.require:issuesI9KRF1
- */
-HWTEST(RSUniRenderProcessorTest, InitTest, TestSize.Level1)
-{
-    NodeId nodeId = 1;
-    ScreenId screenId = 0;
-    std::weak_ptr<RSContext> context = {};
-    if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        RSScreenRenderNode node(nodeId, screenId, context);
-        auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        EXPECT_EQ(renderProcessor->Init(node, 0, 0, 0, renderEngine), false);
-    }
-}
-
-/**
  * @tc.name: ProcessSurfaceTest
  * @tc.desc: Verify function ProcessSurface
  * @tc.type:FUNC
  * @tc.require:issuesI9KRF1
  */
-HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
 {
-    NodeId nodeId = 1;
-    ScreenId screenId = 0;
-    std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
-        RSScreenRenderNode node(nodeId, screenId, context);
-        auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(node, 0, 0, 0, uniRenderEngine);
         // for test
         RSSurfaceRenderNode surfaceNode(2);
         renderProcessor->ProcessSurface(surfaceNode);
@@ -159,32 +163,29 @@ HWTEST(RSUniRenderProcessorTest, ProcessSurfaceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:issuesI9KRF1
  */
-HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        HdiBackend hdiBackend;
-        auto output = std::make_shared<HdiOutput>(1);
-        renderProcessor->uniComposerAdapter_->hdiBackend_ = &hdiBackend;
-        renderProcessor->uniComposerAdapter_->output_ = output;
-        RSSurfaceRenderNode node(0);
-        auto iConsumerSurface = IConsumerSurface::Create();
-        node.GetRSSurfaceHandler()->SetConsumer(iConsumerSurface);
-        sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
-        sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-        int64_t timestamp = 0;
-        Rect damage;
-        node.GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
-        RSSurfaceRenderParams params(0);
+        auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+        auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
         RSLayerInfo layerInfo;
         sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
         sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
-        params.SetBuffer(bufferTest, {});
-        params.SetPreBuffer(preBufferTest);
+        params->SetBuffer(bufferTest, {});
+        params->SetPreBuffer(preBufferTest);
         layerInfo.zOrder = 0;
-        params.SetLayerInfo(layerInfo);
-        renderProcessor->CreateLayer(node, params);
-        EXPECT_TRUE(params.GetLayerCreated());
+        params->SetLayerInfo(layerInfo);
+        renderProcessor->composerClient_ = nullptr;
+        renderProcessor->CreateLayer(*surfaceNode, *params);
+
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->CreateLayer(*surfaceNode, *params);
+        EXPECT_TRUE(params->GetLayerCreated());
     }
 }
 
@@ -194,16 +195,16 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:issuesI9KRF1
  */
-HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceTest, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceTest, TestSize.Level1)
 {
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
         RSScreenRenderNode node(nodeId, screenId, context);
+        auto size = renderProcessor->layers_.size();
         renderProcessor->ProcessScreenSurface(node);
-        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
+        EXPECT_EQ(renderProcessor->layers_.size(), size);
     }
 }
 
@@ -213,15 +214,15 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:issuesI9KRF1
  */
-HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
         RCDSurfaceType type = RCDSurfaceType::INVALID;
         RSRcdSurfaceRenderNode node(nodeId, type);
+        auto size = renderProcessor->layers_.size();
         renderProcessor->ProcessRcdSurface(node);
-        EXPECT_FALSE(renderProcessor->uniComposerAdapter_->CreateLayer(node));
+        EXPECT_EQ(renderProcessor->layers_.size(), size);
     }
 }
 
@@ -231,18 +232,28 @@ HWTEST(RSUniRenderProcessorTest, ProcessRcdSurfaceTest, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAJ1RT
  */
-HWTEST(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
+        // case1:renderEngine is nullptr
         NodeId nodeId = 1;
-        auto node = std::make_shared<RSRenderNode>(nodeId);
-        DrawableV2::RSScreenRenderNodeDrawable drawable(node);
-        drawable.renderParams_ = std::make_unique<RSRenderParams>(nodeId);
-        ASSERT_NE(drawable.renderParams_, nullptr);
-
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+        auto screenNode = std::make_shared<RSRenderNode>(nodeId);
+        auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenNode));
         ASSERT_NE(renderProcessor, nullptr);
-        renderProcessor->InitForRenderThread(drawable, nullptr);
+        auto ret = renderProcessor->InitForRenderThread(*screenDrawable, nullptr);
+        EXPECT_EQ(ret, false);
+
+        // case2: renderParams is nullptr
+        auto renderEngine = std::make_shared<RSRenderEngine>();
+        screenDrawable->renderParams_ = nullptr;
+        ret = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
+        EXPECT_EQ(ret, false);
+
+        // case3: renderEngine not nullptr, renderParams not nullptr
+        screenDrawable->renderParams_ = std::make_unique<RSRenderParams>(screenNode->GetId());
+        ret = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
+        EXPECT_EQ(ret, false);
     }
 }
 
@@ -252,45 +263,22 @@ HWTEST(RSUniRenderProcessorTest, InitForRenderThread001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAJ1RT
  */
-HWTEST(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, InitForRenderThread002, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
         NodeId nodeId = 1;
-        auto node = std::make_shared<RSRenderNode>(nodeId);
-        DrawableV2::RSScreenRenderNodeDrawable drawable(node);
-        drawable.renderParams_ = nullptr;
-        ASSERT_EQ(drawable.renderParams_, nullptr);
-        auto renderEngine = std::make_shared<RSRenderEngine>();
-        ASSERT_NE(renderEngine, nullptr);
-        
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        ASSERT_NE(renderProcessor, nullptr);
-        renderProcessor->InitForRenderThread(drawable, renderEngine);
-    }
-}
-
-/**
- * @tc.name: InitForRenderThread003
- * @tc.desc: Test RSUniRenderProcessorTest.InitForRenderThread with not nullptr
- * @tc.type:FUNC
- * @tc.require: issueIAJ1RT
- */
-HWTEST(RSUniRenderProcessorTest, InitForRenderThread003, TestSize.Level1)
-{
-    if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        NodeId nodeId = 0;
-        ScreenId screenId = 1;
+        ScreenId screenId = 0;
         auto context = std::make_shared<RSContext>();
         std::shared_ptr<RSScreenRenderNode> screenNode =
             std::make_shared<RSScreenRenderNode>(nodeId, screenId, context->weak_from_this());
         auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
-            screenNode->GetRenderDrawable());
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(screenNode));
+        auto params = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+        params->screenInfo_.id = screenId;
         auto renderEngine = std::make_shared<RSRenderEngine>();
         ASSERT_NE(renderEngine, nullptr);
-        renderEngine = nullptr;
         bool result = renderProcessor->InitForRenderThread(*screenDrawable, renderEngine);
-        ASSERT_EQ(result, false);
+        ASSERT_EQ(result, true);
     }
 }
 
@@ -300,14 +288,12 @@ HWTEST(RSUniRenderProcessorTest, InitForRenderThread003, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAJ1RT
  */
-HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread001, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
         NodeId nodeId = 1;
         auto node = std::make_shared<RSRenderNode>(nodeId);
         DrawableV2::RSScreenRenderNodeDrawable drawable(node);
-        
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         renderProcessor->ProcessScreenSurfaceForRenderThread(drawable);
     }
@@ -319,15 +305,13 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread001, TestSiz
  * @tc.type:FUNC
  * @tc.require: issueIAJ1RT
  */
-HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread002, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread002, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
         NodeId nodeId = 1;
         auto node = std::make_shared<RSRenderNode>(nodeId);
         DrawableV2::RSScreenRenderNodeDrawable drawable(node);
         drawable.renderParams_= nullptr;
-        
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         auto output = std::make_shared<HdiOutput>(1);
         renderProcessor->uniComposerAdapter_->output_ = output;
@@ -341,7 +325,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread002, TestSiz
  * @tc.type:FUNC
  * @tc.require: issueIAJ1RT
  */
-HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread003, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread003, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
         NodeId nodeId = 1;
@@ -364,7 +348,7 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread003, TestSiz
  * @tc.type:FUNC
  * @tc.require: issueIAJ1RT
  */
-HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
         NodeId nodeId = 1;
@@ -375,7 +359,6 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestSiz
         drawable.surfaceHandler_ = std::make_shared<RSSurfaceHandler>(0);
         ASSERT_NE(drawable.surfaceHandler_, nullptr);
 
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         auto output = std::make_shared<HdiOutput>(1);
         ASSERT_NE(output, nullptr);
@@ -390,17 +373,16 @@ HWTEST(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestSiz
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread001, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        NodeId id = 0;
-        auto node = std::make_shared<RSSurfaceRenderNode>(id);
+        auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
         ASSERT_NE(node, nullptr);
-        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
         ASSERT_NE(surfaceDrawable, nullptr);
 
         surfaceDrawable->renderParams_ = nullptr;
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
         surfaceDrawable->renderParams_= std::make_unique<RSRenderParams>(0);
@@ -414,21 +396,24 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        RSSurfaceRenderParams params(0);
-        sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
-        params.SetBuffer(bufferTest, {});
-        NodeId id = 1;
-        auto node = std::make_shared<RSSurfaceRenderNode>(id);
+        auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
         ASSERT_NE(node, nullptr);
-        auto surfaceDrawable = std::make_shared<DrawableV2::RSSurfaceRenderNodeDrawable>(node);
-        ASSERT_EQ(surfaceDrawable->renderParams_, nullptr);
-        surfaceDrawable->renderParams_ = std::make_unique<RSRenderParams>(1);
-
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-        ASSERT_NE(renderProcessor, nullptr);
+        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+        ASSERT_NE(surfaceDrawable->renderParams_, nullptr);
+        sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+        surfaceDrawable->renderParams_->SetBuffer(buffer, {});
+        ASSERT_EQ(renderProcessor, nullptr);
+        renderProcessor->composerClient_ = nullptr;
+        renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
+        
+        NodeId nodeId = 1;
+        RSScreenRenderNode screenNode(nodeId, screenId_);
+        auto renderEngine = std::make_shared<RSUniRenderEngine>();
+        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
         renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
     }
 }
@@ -439,10 +424,9 @@ HWTEST(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         RSSurfaceRenderParams params(0);
         params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
@@ -456,10 +440,9 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         RSSurfaceRenderParams params(0);
         params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
@@ -474,10 +457,9 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM002, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         RSSurfaceRenderParams params(0);
         params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
@@ -495,7 +477,7 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM003, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
 {
     NodeId nodeId = 1;
     ScreenId screenId = 0;
@@ -524,10 +506,9 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issueIAIT5Z
  */
-HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
 {
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
         RSSurfaceRenderParams params(0);
         params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
@@ -547,50 +528,22 @@ HWTEST(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, HandleTunnelLayerParameters001, TestSize.Level1)
 {
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
-    LayerInfoPtr layer = nullptr;
-    renderProcessor->HandleTunnelLayerParameters(params, layer);
-    EXPECT_EQ(layer, nullptr);
-}
- 
-/**
- * @tc.name: HandleTunnelLayerParameters002
- * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters002, TestSize.Level1)
-{
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    LayerInfoPtr layer;
+
+    RSLayerPtr layer = nullptr;
     params.SetTunnelLayerId(0);
     renderProcessor->HandleTunnelLayerParameters(params, layer);
-    EXPECT_EQ(layer->GetTunnelLayerId(), 0);
-    EXPECT_EQ(layer->GetTunnelLayerProperty(), 0);
-}
- 
-/**
- * @tc.name: HandleTunnelLayerParameters003
- * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters003, TestSize.Level1)
-{
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
-    ASSERT_NE(renderProcessor, nullptr);
-    RSSurfaceRenderParams params(0);
-    LayerInfoPtr layer;
-    params.SetTunnelLayerId(1);
+
+    params.SetTunnelLayerId(0);
     renderProcessor->HandleTunnelLayerParameters(params, layer);
-    EXPECT_EQ(layer->GetTunnelLayerId(), 1);
-    ASSERT_NE(layer->GetTunnelLayerProperty(), 0);
+
+    layer = std::make_shared<RSSurfaceLayer>();
+    renderProcessor->HandleTunnelLayerParameters(params, layer);
+
+    ASSERT_EQ(layer->GetTunnelLayerId(), params.GetTunnelLayerId());
 }
  
 /**
@@ -599,9 +552,8 @@ HWTEST(RSUniRenderProcessorTest, HandleTunnelLayerParameters003, TestSize.Level1
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
 {
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
     params.SetTunnelLayerId(1);
@@ -609,8 +561,8 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
- 
-    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    EXPECT_EQ(params.GetTunnelLayerId(), 1);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
@@ -620,9 +572,8 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo001, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
 {
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
     params.SetTunnelLayerId(1);
@@ -631,7 +582,7 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
@@ -641,11 +592,11 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo002, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
 {
     ScreenInfo screenInfo;
     screenInfo.isSamplingOn = false;
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
@@ -655,7 +606,7 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
@@ -665,11 +616,11 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo003, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
 {
     ScreenInfo screenInfo;
     screenInfo.isSamplingOn = true;
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
@@ -679,7 +630,7 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
@@ -689,11 +640,11 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo004, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
 {
     ScreenInfo screenInfo;
     screenInfo.isSamplingOn = false;
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
+
     ASSERT_NE(renderProcessor, nullptr);
     renderProcessor->screenInfo_ = screenInfo;
     RSSurfaceRenderParams params(0);
@@ -704,7 +655,7 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
     sptr<SurfaceBuffer> preBuffer = nullptr;
     sptr<IConsumerSurface> consumer = nullptr;
     sptr<SyncFence> acquireFence = nullptr;
-    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
 }
 
@@ -714,9 +665,8 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo005, TestSize.Level1)
  * @tc.type:FUNC
  * @tc.require: issuesICA3L1
  */
-HWTEST(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
+HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
 {
-    auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
     ASSERT_NE(renderProcessor, nullptr);
     RSSurfaceRenderParams params(0);
     params.SetTunnelLayerId(1);
@@ -735,10 +685,36 @@ HWTEST(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
     params.SetBuffer(buffer, DEFAULT_RECT);
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
-    LayerInfoPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
+    RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", param);
     result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
     EXPECT_EQ(result->GetType(), GraphicLayerType::GRAPHIC_LAYER_TYPE_TUNNEL);
+}
+
+/**
+ * @tc.name: CreateSolidColorLayerTest
+ * @tc.desc: Test CreateSolidColorLayer
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
+{
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceNode));
+    auto params = static_cast<RSSurfaceRenderParams*>(surfaceDrawable->GetRenderParams().get());
+    params->SetIsHwcEnabledBySolidLayer(true);
+    ASSERT_NE(renderProcessor, nullptr);
+    renderProcessor->composerClient_ = nullptr;
+    renderProcessor->CreateSolidColorLayer(layer, *params);
+
+    NodeId nodeId = 1;
+    RSScreenRenderNode screenNode(nodeId, screenId_);
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+    renderProcessor->CreateSolidColorLayer(layer, *params);
+    ASSERT_NE(renderProcessor->layers_.size(), 0);
 }
 }

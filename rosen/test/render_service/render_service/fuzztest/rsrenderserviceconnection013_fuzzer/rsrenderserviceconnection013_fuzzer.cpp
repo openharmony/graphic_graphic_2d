@@ -94,7 +94,7 @@ int Initialize()
 #ifdef RS_ENABLE_VK
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif
-    RSHardwareThread::Instance().Start();
+    // RSHardwareThread::Instance().Start();
     return 0;
 }
 

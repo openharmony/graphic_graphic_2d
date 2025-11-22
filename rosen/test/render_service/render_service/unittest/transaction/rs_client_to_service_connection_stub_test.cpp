@@ -130,7 +130,7 @@ void RSClientToServiceConnectionStubTest::SetUp()
 {
     CreateComposerAdapterWithScreenInfo(DEFAULT_WIDTH, DEFAULT_HEIGHT,
         ScreenColorGamut::COLOR_GAMUT_SRGB, ScreenState::UNKNOWN, ScreenRotation::ROTATION_0);
-    RSHardwareThread::Instance().Start();
+    // RSHardwareThread::Instance().Start();
 
     auto mainThread = RSMainThread::Instance();
     if (!mainThread) {

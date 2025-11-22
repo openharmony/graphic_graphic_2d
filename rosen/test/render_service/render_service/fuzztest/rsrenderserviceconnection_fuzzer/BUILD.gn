@@ -45,6 +45,12 @@ ohos_fuzztest("RSRenderServiceConnectionFuzzTest") {
     "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
     "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
     "$graphic_2d_root/frameworks/surface/include",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
   ]
 
   deps = [

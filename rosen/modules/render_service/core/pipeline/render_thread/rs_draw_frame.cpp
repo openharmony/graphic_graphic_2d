@@ -31,12 +31,12 @@
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_high_performance_visual_engine.h"
 #include "rs_frame_report.h"
-#include "rs_uni_render_thread.h"
-
 #include "rs_profiler.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #endif
+#include "rs_render_composer_manager.h"
+#include "rs_uni_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -85,7 +85,7 @@ void RSDrawFrame::RenderFrame()
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
-        RSBaseRenderUtil::GetAccumulatedBufferCount());
+        GetMinAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSHeteroHDRManager::Instance().PostHDRSubTasks();
@@ -145,6 +145,19 @@ void RSDrawFrame::EndCheck()
             exceptionCheck_.exceptionMoment_, exceptionCheck_.exceptionPoint_.c_str());
     }
     timer_ = nullptr;
+}
+
+int32_t RSDrawFrame::GetMinAccumulatedBufferCount() const
+{
+    // Report minimum buffer count across all screens
+    int32_t minAccumulatedBufferCount = 4;
+    RSRenderComposerManager::GetInstance().ForEachScreen(
+        [&minAccumulatedBufferCount](ScreenId screenId, std::shared_ptr<RSRenderComposer> composer) {
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(composer);
+        int32_t accumulatedBufferCount = renderComposerAgent->GetAccumulatedBufferCount();
+        minAccumulatedBufferCount = std::min(minAccumulatedBufferCount, accumulatedBufferCount);
+    });
+    return minAccumulatedBufferCount;
 }
 
 void RSDrawFrame::NotifyClearGpuCache()
