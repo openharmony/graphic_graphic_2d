@@ -108,8 +108,8 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref strutStyleRef = nullptr;
     if (AniTextUtils::ReadOptionalField(
-            env, obj, AniClassFindMethod(env, PARAGRAPH_STYLE_STRUT_STYLE_KEY), strutStyleRef) == ANI_OK &&
-            strutStyleRef != nullptr) {
+        env, obj, AniClassFindMethod(env, PARAGRAPH_STYLE_STRUT_STYLE_KEY), strutStyleRef) == ANI_OK &&
+        strutStyleRef != nullptr) {
         ParseParagraphStyleStrutStyleToNative(env, reinterpret_cast<ani_object>(strutStyleRef), paragraphStyle);
     }
 
@@ -149,9 +149,8 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
 
     ani_ref aniFontFamilies = nullptr;
     if (AniTextUtils::ReadOptionalField(
-            env, obj, AniClassFindMethod(env, STRUT_STYLE_FONT_FAMILIES_KEY), aniFontFamilies)
-            == ANI_OK
-        && aniFontFamilies != nullptr) {
+        env, obj, AniClassFindMethod(env, STRUT_STYLE_FONT_FAMILIES_KEY), aniFontFamilies) == ANI_OK &&
+        aniFontFamilies != nullptr) {
         std::vector<std::string> fontFamilies;
         ParseFontFamiliesToNative(env, reinterpret_cast<ani_array>(aniFontFamilies), fontFamilies);
         paragraphStyle->lineStyleFontFamilies = fontFamilies;

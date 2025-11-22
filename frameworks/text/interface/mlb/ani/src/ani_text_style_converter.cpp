@@ -153,7 +153,6 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
         return status;
     }
     ParseDecorationToNative(env, objR, textStyle);
-
     ParseDrawingColorToNative(env, objR, false, AniClassFindMethod(env, TEXT_STYLE_R_COLOR_KEY), textStyle.color);
 
     AniTextUtils::ReadEnumField(env, objR, AniTextEnum::fontWeight,
@@ -195,14 +194,7 @@ ani_status AniTextStyleConverter::ParseTextStyleToNative(ani_env* env, ani_objec
     ParseTextShadowToNative(env, objR, textStyle.shadows);
     ParseFontFeatureToNative(env, objR, textStyle.fontFeatures);
     ParseFontVariationToNative(env, objR, textStyle.fontVariations);
-
-    ani_ref backgroundRectRef = nullptr;
-    status =
-        env->Object_CallMethod_Ref(objR, AniClassFindMethod(env, TEXT_STYLE_R_BACKGROUND_RECT_KEY), &backgroundRectRef);
-    if (status == ANI_OK && backgroundRectRef != nullptr) {
-        ParseRectStyleToNative(env, reinterpret_cast<ani_object>(backgroundRectRef), textStyle.backgroundRect);
-    }
-
+    ParseRectStyleToNative(env, objR, textStyle.backgroundRect);
     return ANI_OK;
 }
 
@@ -339,18 +331,26 @@ void AniTextStyleConverter::ParseFontVariationToNative(ani_env* env, ani_object 
 
 void AniTextStyleConverter::ParseRectStyleToNative(ani_env* env, ani_object obj, RectStyle& rectStyle)
 {
-    Drawing::Color color;
-    if (ParseDrawingColorToNative(env, obj, false, AniClassFindMethod(env, RECT_STYLE_COLOR_KEY), color) == ANI_OK) {
-        rectStyle.color = color.CastToColorQuad();
+    ani_ref backgroundRectRef = nullptr;
+    ani_status status =
+        env->Object_CallMethod_Ref(obj, AniClassFindMethod(env, TEXT_STYLE_R_BACKGROUND_RECT_KEY), &backgroundRectRef);
+    if (status == ANI_OK && backgroundRectRef != nullptr) {
+        ani_object rectObj = reinterpret_cast<ani_object>(backgroundRectRef);
+        Drawing::Color color;
+        ani_status ret =
+            ParseDrawingColorToNative(env, rectObj, false, AniClassFindMethod(env, RECT_STYLE_COLOR_KEY), color);
+        if (ret == ANI_OK) {
+            rectStyle.color = color.CastToColorQuad();
+        }
+        env->Object_CallMethod_Double(
+            rectObj, AniClassFindMethod(env, RECT_STYLE_LEFT_TOP_RADIUS_KEY), &rectStyle.leftTopRadius);
+        env->Object_CallMethod_Double(
+            rectObj, AniClassFindMethod(env, RECT_STYLE_RIGHT_TOP_RADIUS_KEY), &rectStyle.rightTopRadius);
+        env->Object_CallMethod_Double(
+            rectObj, AniClassFindMethod(env, RECT_STYLE_RIGHT_BOTTOM_RADIUS_KEY), &rectStyle.rightBottomRadius);
+        env->Object_CallMethod_Double(
+            rectObj, AniClassFindMethod(env, RECT_STYLE_LEFT_BOTTOM_RADIUS_KEY), &rectStyle.leftBottomRadius);
     }
-    env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, RECT_STYLE_LEFT_TOP_RADIUS_KEY), &rectStyle.leftTopRadius);
-    env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, RECT_STYLE_RIGHT_TOP_RADIUS_KEY), &rectStyle.rightTopRadius);
-    env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, RECT_STYLE_RIGHT_BOTTOM_RADIUS_KEY), &rectStyle.rightBottomRadius);
-    env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, RECT_STYLE_LEFT_BOTTOM_RADIUS_KEY), &rectStyle.leftBottomRadius);
 }
 
 ani_object AniTextStyleConverter::ParseTextStyleToAni(ani_env* env, const TextStyle& textStyle)

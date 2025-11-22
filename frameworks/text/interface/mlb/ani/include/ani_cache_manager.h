@@ -41,7 +41,7 @@ struct CacheKeyHash {
         size_t h1 = std::hash<std::string_view>{}(key.d);
         size_t h2 = std::hash<std::string_view>{}(key.n);
         size_t h3 = std::hash<std::string_view>{}(key.s);
-        return h1 ^ (h2 << 1) ^ (h3 << 2);
+        return h1 ^ (h2 << 1) ^ (h3 << 2); // h1 ^ (h2 << 1) ^ (h3 << 2) :: combine the three hashes
     }
 };
 

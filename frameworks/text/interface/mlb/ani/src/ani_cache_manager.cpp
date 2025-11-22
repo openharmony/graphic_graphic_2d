@@ -55,11 +55,14 @@ ani_namespace AniFindNamespace(ani_env* env, const char* descriptor)
         return nullptr;
     }
 
-    ani_ref global = ToGlobalRef(env, ns);
     {
-        if (global != nullptr) {
-            std::unique_lock<std::shared_mutex> lock(g_nsCache.mtx);
-            g_nsCache.store.emplace(descriptor, global);
+        std::unique_lock<std::shared_mutex> lock(g_nsCache.mtx);
+        auto it = g_nsCache.store.find(descriptor);
+        if (it == g_nsCache.store.end()) {
+            ani_ref global = ToGlobalRef(env, ns);
+            if (global != nullptr) {
+                g_nsCache.store.emplace(descriptor, global);
+            }
         }
     }
     return ns;
@@ -82,11 +85,14 @@ ani_class AniFindClass(ani_env* env, const char* descriptor)
         return nullptr;
     }
 
-    ani_ref global = ToGlobalRef(env, cls);
     {
-        if (global != nullptr) {
-            std::unique_lock<std::shared_mutex> lock(g_classCache.mtx);
-            g_classCache.store.emplace(descriptor, global);
+        std::unique_lock<std::shared_mutex> lock(g_classCache.mtx);
+        auto it = g_classCache.store.find(descriptor);
+        if (it == g_classCache.store.end()) {
+            ani_ref global = ToGlobalRef(env, cls);
+            if (global != nullptr) {
+                g_classCache.store.emplace(descriptor, global);
+            }
         }
     }
     return cls;
@@ -109,11 +115,14 @@ ani_enum AniFindEnum(ani_env* env, const char* descriptor)
         return nullptr;
     }
 
-    ani_ref global = ToGlobalRef(env, en);
     {
-        if (global != nullptr) {
-            std::unique_lock<std::shared_mutex> lock(g_enumCache.mtx);
-            g_enumCache.store.emplace(descriptor, global);
+        std::unique_lock<std::shared_mutex> lock(g_enumCache.mtx);
+        auto it = g_enumCache.store.find(descriptor);
+        if (it == g_enumCache.store.end()) {
+            ani_ref global = ToGlobalRef(env, en);
+            if (global != nullptr) {
+                g_enumCache.store.emplace(descriptor, global);
+            }
         }
     }
     return en;
@@ -144,7 +153,10 @@ ani_method AniClassFindMethod(ani_env* env, const CacheKey& key)
 
     {
         std::unique_lock<std::shared_mutex> lock(g_methodMutex);
-        g_methodCache.emplace(key, method);
+        auto it = g_methodCache.find(key);
+        if (it == g_methodCache.end()) {
+            g_methodCache.emplace(key, method);
+        }
     }
     return method;
 }
@@ -175,7 +187,10 @@ ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key)
 
     {
         std::unique_lock<std::shared_mutex> lock(g_functionMutex);
-        g_functionCache.emplace(key, function);
+        auto it = g_functionCache.find(key);
+        if (it == g_functionCache.end()) {
+            g_functionCache.emplace(key, function);
+        }
     }
     return function;
 }
