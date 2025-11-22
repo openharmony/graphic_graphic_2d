@@ -204,6 +204,7 @@ public:
 
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
+    void ReleaseImageMem();
 
     void AddUiCaptureTask(NodeId id, std::function<void()> task);
     void ProcessUiCaptureTasks();

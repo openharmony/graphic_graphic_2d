@@ -184,6 +184,8 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
     RS_PROFILER_KILL_PID(remotePid_);
     nodeMap.FilterNodeByPid(remotePid_);
     RS_PROFILER_KILL_PID_END();
+
+    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
 }
 
 void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept
