@@ -2900,8 +2900,7 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
             firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
     }
-    auto context = GetContext().lock();
-    if (context && onTree) {
+    if (auto context = GetContext().lock() && onTree) {
         context->GetMutableNodeMap().ObtainLauncherNodeId(
             std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this())
         );
