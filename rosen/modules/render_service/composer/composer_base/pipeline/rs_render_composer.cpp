@@ -276,7 +276,7 @@ void RSRenderComposer::ComposerPrepare(RefreshRateParam& param, uint32_t& curren
 #endif
     {
         ++acquiredBufferCount_;
-        RS_TRACE_NAME_FMT("Inc Acq BufferCount %d screenId : %" PRIu64, acquiredBufferCount_.load(), screenId_);
+        RS_TRACE_NAME_FMT("screenId : %" PRIu64 "Inc Acq BufferCount %d", screenId_, acquiredBufferCount_.load());
     }
     unExecuteTaskNum_++;
     RSMainThread::Instance()->SetHardwareTaskNum(unExecuteTaskNum_.load());
@@ -416,6 +416,8 @@ void RSRenderComposer::ComposerProcess(RefreshRateParam param, uint32_t currentR
     std::function<void()> task = [this, param = param, currentRate = currentRate, hasGameScene = hasGameScene,
         transactionData = transactionData]() {
         if (hdiOutput_ == nullptr || rsRenderComposerContext_ == nullptr) {
+            unExecuteTaskNum_--;
+            acquiredBufferCount_--;
             RS_LOGE("ComposerProcess output or context is nullptr, screenId:%{public}" PRIu64, screenId_);
             return;
         }
