@@ -75,7 +75,7 @@ public:
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
 
-    void UpdateDisplayHDRNodeList(bool isInsert, NodeId displayNodeId) const;
+    void UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,

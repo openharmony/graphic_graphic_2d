@@ -129,11 +129,11 @@ void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
     NodeId instanceRootNodeId = GetInstanceRootNodeId();
     if (GetHDRPresent()) {
         SetHdrNum(isOnTheTree, instanceRootNodeId, HDRComponentType::IMAGE);
-        UpdateDisplayHDRNodeList(isOnTheTree, displayNodeId);
+        UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
     }
     if (GetRenderProperties().IsHDRUIBrightnessValid()) {
         SetHdrNum(isOnTheTree, instanceRootNodeId, HDRComponentType::UICOMPONENT);
-        UpdateDisplayHDRNodeList(isOnTheTree, displayNodeId);
+        UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
     }
 }
 
@@ -276,24 +276,24 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
     }
 }
 
-// When the HDR node status changed, update the node list in the ancestor display node.
+// When the HDR node status changed, update the node map in the ancestor display node.
 // Support to add animation on canvas nodes when display node is forced to close HDR.
-void RSCanvasRenderNode::UpdateDisplayHDRNodeList(bool isInsert, NodeId displayNodeId) const
+void RSCanvasRenderNode::UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid context");
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeMap Invalid context");
         return;
     }
     auto displayNode = context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId);
     if (!displayNode) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeList Invalid displayNode");
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeMap Invalid displayNode");
         return;
     }
-    if (isInsert) {
-        displayNode->InsertHDRNode(GetId());
+    if (isIncrease) {
+        displayNode->IncreaseHDRNode(GetId());
     } else {
-        displayNode->RemoveHDRNode(GetId());
+        displayNode->DecreaseHDRNode(GetId());
     }
 }
 
@@ -304,7 +304,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
     if (IsOnTheTree()) {
         SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
-        UpdateDisplayHDRNodeList(hasHdrPresent, GetLogicalDisplayNodeId());
+        UpdateDisplayHDRNodeMap(hasHdrPresent, GetLogicalDisplayNodeId());
     }
     UpdateHDRStatus(HdrStatus::HDR_PHOTO, hasHdrPresent);
     hasHdrPresent_ = hasHdrPresent;

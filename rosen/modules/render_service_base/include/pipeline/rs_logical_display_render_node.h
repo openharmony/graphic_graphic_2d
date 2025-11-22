@@ -77,19 +77,23 @@ public:
         return screenRotation_;
     }
 
-    void InsertHDRNode(NodeId id)
+    void IncreaseHDRNode(NodeId id)
     {
-        hdrNodeList_.insert(id);
+        hdrNodeMap_[id]++;
     }
 
-    void RemoveHDRNode(NodeId id)
+    void DecreaseHDRNode(NodeId id)
     {
-        hdrNodeList_.erase(id);
+        auto it = hdrNodeMap_.find(id);
+        bool needErase = it != hdrNodeMap_.end() && --it->second == 0;
+        if (needErase) {
+            hdrNodeMap_.erase(it);
+        }
     }
 
-    const std::unordered_set<NodeId>& GetHDRNodeList() const
+    const std::unordered_map<NodeId, uint32_t>& GetHDRNodeMap() const
     {
-        return hdrNodeList_;
+        return hdrNodeMap_;
     }
 
     void SetIsOnTheTree(bool flag, NodeId instanceRootNodeId = INVALID_NODEID,
@@ -200,8 +204,8 @@ private:
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
 
-    // save children hdr canvasNode id
-    std::unordered_set<NodeId> hdrNodeList_;
+    // save children hdr canvasNode id, the value is larger than one if one node contains multiple HDR types
+    std::unordered_map<NodeId, uint32_t> hdrNodeMap_;
     bool isSecurityDisplay_ = false;
     bool isMirrorDisplay_ = false;
     WeakPtr mirrorSource_;

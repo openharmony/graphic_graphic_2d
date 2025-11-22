@@ -2458,7 +2458,7 @@ void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
             node->UpdateHDRStatus(HdrStatus::HDR_UICOMPONENT, newHDRUIStatus);
             if (node->IsOnTheTree()) {
                 node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
-                node->UpdateDisplayHDRNodeList(newHDRUIStatus, node->GetLogicalDisplayNodeId());
+                node->UpdateDisplayHDRNodeMap(newHDRUIStatus, node->GetLogicalDisplayNodeId());
             }
         }
     }
@@ -2594,13 +2594,13 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
         return;
     }
-    const auto& hdrNodeList = displayNode->GetHDRNodeList();
+    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
     auto context = displayNode->GetContext().lock();
     if (!context) {
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
         return;
     }
-    for (const auto& nodeId : hdrNodeList) {
+    for (const auto& [nodeId, _] : hdrNodeMap) {
         auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
         if (!canvasNode) {
             RS_LOGD("RSHdrUtil::SetHDRBrightnessFactor canvasNode is not on the tree");

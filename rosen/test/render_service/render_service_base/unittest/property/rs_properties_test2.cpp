@@ -566,15 +566,15 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
 
     properties.backref_ = displayNode;
-    displayNode->InsertHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayNode->hdrNodeList_.find(screenRenderNodeId), displayNode->hdrNodeList_.end());
+    displayNode->IncreaseHDRNode(screenRenderNodeId);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
     properties.SetHDRBrightnessFactor(0.5f);
 
     NodeId nodeId1 = 0;
     auto node1 = std::make_shared<RSRenderNode>(nodeId1);
     pid_t pid1 = ExtractPid(nodeId1);
     context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayNode->InsertHDRNode(nodeId1);
+    displayNode->IncreaseHDRNode(nodeId1);
     properties.SetHDRBrightnessFactor(0.6f);
 
     pid_t pid = ExtractPid(screenRenderNodeId);
@@ -584,8 +584,8 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     ScreenId displayNodeId2 = 6;
     auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
     properties.backref_ = displayNode2;
-    displayNode->InsertHDRNode(3);
-    EXPECT_NE(displayNode->hdrNodeList_.find(3), displayNode->hdrNodeList_.end());
+    displayNode->IncreaseHDRNode(3);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
     properties.SetHDRBrightnessFactor(0.9f);
 }
 

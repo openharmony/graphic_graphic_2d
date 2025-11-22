@@ -199,22 +199,22 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateDisplayHDRNodeList001
- * @tc.desc: test UpdateDisplayHDRNodeList
+ * @tc.name: UpdateDisplayHDRNodeMap001
+ * @tc.desc: test UpdateDisplayHDRNodeMap
  * @tc.type: FUNC
  * @tc.require: #IBPVN9
  */
-HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeList001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeMap001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSCanvasRenderNode node1(nodeId);
-    node1.UpdateDisplayHDRNodeList(false, 0);
+    node1.UpdateDisplayHDRNodeMap(false, 0);
 
     NodeId displayNodeId = 1;
     RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
     RSCanvasRenderNode node(nodeId, context);
-    node.UpdateDisplayHDRNodeList(false, 1);
+    node.UpdateDisplayHDRNodeMap(false, 1);
 
     auto& nodeMap = context->GetMutableNodeMap();
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
@@ -222,31 +222,31 @@ HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeList001, TestSize.Level1)
     ASSERT_EQ(res, true);
     node.logicalDisplayNodeId_ = displayNodeId;
 
-    node.UpdateDisplayHDRNodeList(true, 1);
-    EXPECT_NE(displayNode->hdrNodeList_.find(nodeId), displayNode->hdrNodeList_.end());
+    node.UpdateDisplayHDRNodeMap(true, 1);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(nodeId), displayNode->hdrNodeMap_.end());
 
-    node.UpdateDisplayHDRNodeList(false, 1);
-    EXPECT_EQ(displayNode->hdrNodeList_.find(nodeId), displayNode->hdrNodeList_.end());
+    node.UpdateDisplayHDRNodeMap(false, 1);
+    EXPECT_EQ(displayNode->hdrNodeMap_.find(nodeId), displayNode->hdrNodeMap_.end());
 }
 
 /**
- * @tc.name: GetHDRNodeList001
- * @tc.desc: test GetHDRNodeList
+ * @tc.name: GetHDRNodeMap001
+ * @tc.desc: test GetHDRNodeMap
  * @tc.type: FUNC
  * @tc.require: #IBPVN9
  */
-HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeList001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeMap001, TestSize.Level1)
 {
     NodeId displayNodeId = 1;
     RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
 
-    auto& hdrNodeList = displayNode->GetHDRNodeList();
-    EXPECT_TRUE(hdrNodeList.empty());
+    auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+    EXPECT_TRUE(hdrNodeMap.empty());
 
-    displayNode->InsertHDRNode(1);
-    EXPECT_NE(displayNode->hdrNodeList_.find(1), displayNode->hdrNodeList_.end());
+    displayNode->IncreaseHDRNode(1);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(1), displayNode->hdrNodeMap_.end());
 }
 
 /**

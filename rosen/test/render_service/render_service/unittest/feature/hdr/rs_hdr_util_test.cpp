@@ -461,15 +461,15 @@ HWTEST_F(RSHdrUtilTest, LuminanceChangeSetDirtyTest, TestSize.Level1)
     screenRenderNode->children_.emplace_back(displayNode);
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
 
-    displayNode->InsertHDRNode(screenRenderNodeId);
-    EXPECT_NE(displayNode->hdrNodeList_.find(screenRenderNodeId), displayNode->hdrNodeList_.end());
+    displayNode->IncreaseHDRNode(screenRenderNodeId);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
 
     NodeId nodeId1 = 0;
     auto node1 = std::make_shared<RSRenderNode>(nodeId1);
     pid_t pid1 = ExtractPid(nodeId1);
     context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    displayNode->InsertHDRNode(nodeId1);
+    displayNode->IncreaseHDRNode(nodeId1);
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
 
     pid_t pid = ExtractPid(screenRenderNodeId);
@@ -479,9 +479,9 @@ HWTEST_F(RSHdrUtilTest, LuminanceChangeSetDirtyTest, TestSize.Level1)
     ScreenId screenId2 = 1;
     std::shared_ptr<RSContext> context2;
     auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, screenId2, context2);
-    displayNode->InsertHDRNode(3);
+    displayNode->IncreaseHDRNode(3);
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
-    EXPECT_NE(displayNode->hdrNodeList_.find(3), displayNode->hdrNodeList_.end());
+    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
 }
 
 /**

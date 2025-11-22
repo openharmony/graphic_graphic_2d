@@ -395,8 +395,8 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
             RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty child is not displayNode");
             continue;
         }
-        const auto& hdrNodeList = displayNode->GetHDRNodeList();
-        for (const auto& nodeId : hdrNodeList) {
+        const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+        for (const auto& [nodeId, _] : hdrNodeMap) {
             auto canvasNode = nodeMap.GetRenderNode(nodeId);
             if (!canvasNode) {
                 RS_LOGD("RSHdrUtil::LuminanceChangeSetDirty canvasNode is not on the tree");
