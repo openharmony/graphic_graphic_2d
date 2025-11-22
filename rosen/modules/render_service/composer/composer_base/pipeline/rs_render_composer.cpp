@@ -378,6 +378,11 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
     }
     LppVideoHandler::Instance().JudgeLppLayer(param.vsyncId);
     EndCheck(timer);
+    if (isDisconnected_ && unExecuteTaskNum_ == 0) {
+        RS_TRACE_NAME_FMT("Clear output, screenId : %" PRIu64, screenId_);
+        rsRenderComposerContext_ = nullptr;
+        hdiOutput_ = nullptr;
+    }
 }
 
 int64_t RSRenderComposer::UpdateDelayTime(RefreshRateParam param, uint32_t currentRate, bool hasGameScene)
@@ -416,8 +421,6 @@ void RSRenderComposer::ComposerProcess(RefreshRateParam param, uint32_t currentR
     std::function<void()> task = [this, param = param, currentRate = currentRate, hasGameScene = hasGameScene,
         transactionData = transactionData]() {
         if (hdiOutput_ == nullptr || rsRenderComposerContext_ == nullptr) {
-            unExecuteTaskNum_--;
-            acquiredBufferCount_--;
             RS_LOGE("ComposerProcess output or context is nullptr, screenId:%{public}" PRIu64, screenId_);
             return;
         }
@@ -655,8 +658,8 @@ void RSRenderComposer::CalculateDelayTime(HgmCore& hgmCore, const RefreshRatePar
     RS_TRACE_NAME_FMT("CalculateDelayTime pipelineOffset: %" PRId64 ", actualTimestamp: %" PRId64 ", " \
         "expectCommitTime: %" PRId64 ", currTime: %" PRId64 ", diffTime: %" PRId64 ", delayTime_: %" PRId64 ", " \
         "frameOffset: %" PRId64 ", dvsyncOffset: %" PRIu64 ", vsyncOffset: %" PRId64 ", idealPeriod: %" PRId64 ", " \
-        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 "screenId : %" PRIu64,
-        pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
+        "period: %" PRId64 ", idealPipelineOffset: %" PRId64 ", fastComposeTimeStampDiff: %" PRIu64 \
+        "screenId : %" PRIu64, pipelineOffset, param.actualTimestamp, expectCommitTime, currTime, diffTime, delayTime_,
         frameOffset, dvsyncOffset, vsyncOffset, idealPeriod, period,
         idealPipelineOffset, param.fastComposeTimeStampDiff, screenId_);
     RS_LOGD_IF(DEBUG_PIPELINE, "CalculateDelayTime period:%{public}" PRId64 " delayTime_:%{public}" PRId64 "", period,
@@ -1226,6 +1229,7 @@ void RSRenderComposer::ContextRegisterPostTask()
 void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& output)
 {
     std::function<void()> task = [this, output = output]() {
+        isDisconnected_ = false;
         hdiOutput_ = output;
         auto screenManager = CreateOrGetScreenManager();
         if (!screenManager) {
@@ -1248,11 +1252,7 @@ void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& outpu
 void RSRenderComposer::OnScreenDisconnected()
 {
     std::function<void()> task = [this]() {
-        acquiredBufferCount_ = 0;
-        unExecuteTaskNum_ = 0;
-        ClearFrameBuffers();
-        rsRenderComposerContext_ = nullptr;
-        hdiOutput_ = nullptr;
+        isDisconnected_ = true;
     };
     PostTask(task);
 }
