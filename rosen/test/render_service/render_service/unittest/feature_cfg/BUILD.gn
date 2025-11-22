@@ -64,6 +64,8 @@ ohos_unittest("feature_cfg_test") {
     "video_metadata_param_parse_test.cpp",
     "video_metadata_param_test.cpp",
     "xml_parser_base_test.cpp",
+    "gpu_cache_param_parse_test.cpp",
+    "gpu_cache_param_test.cpp",
   ]
 
   include_dirs = [

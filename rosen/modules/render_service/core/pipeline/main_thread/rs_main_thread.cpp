@@ -819,17 +819,29 @@ void RSMainThread::UpdateGpuContextCacheSize()
     size_t cacheLimitsResourceSize = 0;
     size_t maxResourcesSize = 0;
     int32_t maxResources = 0;
-    gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
-    auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
-    constexpr size_t baseResourceSize = 500;    // 500 M memory is baseline
-    constexpr int32_t baseResolution = 3427200; // 3427200 is base resolution
-    float actualScale = maxScreenInfo.phyWidth * maxScreenInfo.phyHeight * 1.0f / baseResolution;
-    cacheLimitsResourceSize = baseResourceSize * actualScale
-        * MEMUNIT_RATE * MEMUNIT_RATE; // adjust by actual Resolution
-    cacheLimitsResourceSize = cacheLimitsResourceSize > MAX_GPU_CONTEXT_CACHE_SIZE ?
-        MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
-    if (cacheLimitsResourceSize > maxResourcesSize) {
+    auto gpuCacheParam = std::static_pointer_cast<GpuCacheParam>(
+        GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[GPU_CACHE]));
+    if (gpuCacheParam != nullptr && gpuCacheParam->GetGpuCacheConfigEnable()) {
+        // set gpu cache size from param config
+        cacheLimitsResourceSize = gpuCacheParam->GetRSGpuCacheSize() * MEMUNIT_RATE * MEMUNIT_RATE;
         gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+        RS_LOGI("UpdateGpuContextCacheSize, gpu cache size of param config: %{public}zu Bytes",
+            cacheLimitsResourceSize);
+    } else {
+        gpuContext->GetResourceCacheLimits(&maxResources, &maxResourcesSize);
+        auto maxScreenInfo = screenManager->GetActualScreenMaxResolution();
+        constexpr size_t baseResourceSize = 500;    // 500 M memory is baseline
+        constexpr int32_t baseResolution = 3427200; // 3427200 is base resolution
+        float actualScale = maxScreenInfo.phyWidth * maxScreenInfo.phyHeight * 1.0f / baseResolution;
+        cacheLimitsResourceSize = baseResourceSize * actualScale
+            * MEMUNIT_RATE * MEMUNIT_RATE; // adjust by actual Resolution
+        cacheLimitsResourceSize = cacheLimitsResourceSize > MAX_GPU_CONTEXT_CACHE_SIZE ?
+            MAX_GPU_CONTEXT_CACHE_SIZE : cacheLimitsResourceSize;
+        if (cacheLimitsResourceSize > maxResourcesSize) {
+            gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
+            RS_LOGI("UpdateGpuContextCacheSize, gpu cache size: %{public}zu Bytes",
+                cacheLimitsResourceSize);
+        }
     }
     static int systemCacheLimitResourceSize = MEMParam::GetRSCacheLimitsResourceSize();
     RS_LOGD("systemCacheLimitResourceSize: %{public}d", systemCacheLimitResourceSize);
