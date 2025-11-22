@@ -19,42 +19,40 @@
 #include <ani.h>
 #include <memory>
 #include <shared_mutex>
-#include <string>
+#include <string_view>
 #include <unordered_map>
 
-#include "utils/text_log.h"
-
 namespace OHOS::Text::ANI {
-class AniCacheManager {
-public:
-    static AniCacheManager& Instance()
-    {
-        static AniCacheManager instance;
-        return instance;
-    }
-
-    void InsertClass(ani_env* env, const std::string& key, ani_class cls);
-    bool FindClass(const std::string& key, ani_class& cls);
-    void InsertMethod(const std::string& key, ani_method method);
-    bool FindMethod(const std::string& key, ani_method& method);
-    void InsertEnum(ani_env* env, const std::string& key, ani_enum enumType);
-    bool FindEnum(const std::string& key, ani_enum& enumType);
-    void Clear(ani_env* env);
-
-private:
-    AniCacheManager() = default;
-    ~AniCacheManager() = default;
-    AniCacheManager(AniCacheManager&&) = delete;
-    AniCacheManager& operator=(AniCacheManager&&) = delete;
-    AniCacheManager(const AniCacheManager&) = delete;
-    AniCacheManager& operator=(const AniCacheManager&) = delete;
-
-    std::unordered_map<std::string, ani_ref> clsCache_;
-    std::unordered_map<std::string, ani_method> methodCache_;
-    std::unordered_map<std::string, ani_ref> enumCache_;
-    mutable std::shared_mutex clsMutex_;
-    mutable std::shared_mutex methodMutex_;
-    mutable std::shared_mutex enumMutex_;
+struct AniRefCache {
+    std::unordered_map<std::string_view, ani_ref> store;
+    std::shared_mutex mtx;
 };
+
+struct CacheKey {
+    std::string_view d;
+    std::string_view n;
+    std::string_view s;
+    bool operator==(const CacheKey& other) const { return d == other.d && n == other.n && s == other.s; }
+};
+
+struct CacheKeyHash {
+    size_t operator()(const CacheKey& key) const
+    {
+        size_t h1 = std::hash<std::string_view>{}(key.d);
+        size_t h2 = std::hash<std::string_view>{}(key.n);
+        size_t h3 = std::hash<std::string_view>{}(key.s);
+        return h1 ^ (h2 << 1) ^ (h3 << 2); // h1 ^ (h2 << 1) ^ (h3 << 2) :: combine the three hashes
+    }
+};
+
+ani_namespace AniFindNamespace(ani_env* env, const char* descriptor);
+
+ani_class AniFindClass(ani_env* env, const char* descriptor);
+
+ani_enum AniFindEnum(ani_env* env, const char* descriptor);
+
+ani_method AniClassFindMethod(ani_env* env, const CacheKey& key);
+
+ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key);
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_CACHE_MANAGER_H

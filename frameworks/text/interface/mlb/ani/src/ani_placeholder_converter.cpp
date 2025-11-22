@@ -20,42 +20,45 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+namespace {
+constexpr CacheKey PLACEHOLDER_SPAN_WIDTH_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>width", ":d"};
+constexpr CacheKey PLACEHOLDER_SPAN_HEIGHT_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>height", ":d"};
+constexpr CacheKey PLACEHOLDER_SPAN_ALIGN_KEY{
+    ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>align", ANI_WRAP_RETURN_E(ANI_ENUM_PLACEHOLDER_ALIGNMENT)};
+constexpr CacheKey PLACEHOLDER_SPAN_BASELINE_KEY{
+    ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baseline", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_BASELINE)};
+constexpr CacheKey PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY{ANI_INTERFACE_PLACEHOLDER_SPAN, "<get>baselineOffset", ":d"};
+} // namespace
+
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_PLACEHOLDER_SPAN, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
-    }
-    ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(obj, cls, &isObj);
-    if (!isObj) {
-        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
-        return ret;
-    }
-    ret = env->Object_GetPropertyByName_Double(obj, "width", &placeholderSpan.width);
+    ani_status ret =
+        env->Object_CallMethod_Double(obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_WIDTH_KEY), &placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_GetPropertyByName_Double(obj, "height", &placeholderSpan.height);
+    ret = env->Object_CallMethod_Double(
+        obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_HEIGHT_KEY), &placeholderSpan.height);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, "align", placeholderSpan.alignment);
+    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::placeHolderAlignment,
+        AniClassFindMethod(env, PLACEHOLDER_SPAN_ALIGN_KEY), placeholderSpan.alignment);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, "baseline", placeholderSpan.baseline);
+    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::textBaseLine,
+        AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_KEY), placeholderSpan.baseline);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_GetPropertyByName_Double(obj, "baselineOffset", &placeholderSpan.baselineOffset);
+    ret = env->Object_CallMethod_Double(
+        obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY), &placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baselineOffset, ret %{public}d", ret);
         return ret;

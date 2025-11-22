@@ -27,6 +27,25 @@ namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
 namespace {
+constexpr CacheKey FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_FULL_NAME_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fullName", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_FONT_FAMILY_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_WIDTH_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ANI_WRAP_RETURN_C(ANI_INT)};
+constexpr CacheKey FONT_DESCRIPTOR_ITALIC_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT)};
+constexpr CacheKey FONT_DESCRIPTOR_MONO_SPACE_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>monoSpace", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr CacheKey FONT_DESCRIPTOR_SYMBOLIC_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>symbolic", ANI_WRAP_RETURN_C(ANI_BOOLEAN)};
+constexpr const std::string_view FONT_DESCRIPTOR_SIGN = "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}"
+                                                        "C{" ANI_STRING "}" "C{" ANI_STRING "}"
+                                                        "E{" ANI_ENUM_FONT_WEIGHT "}iizz:";
+constexpr CacheKey FONT_DESCRIPTOR_KEY{ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", FONT_DESCRIPTOR_SIGN};
+
 std::unordered_map<int, int> g_weightMap = {
     {100, static_cast<int>(FontWeight::W100)},
     {200, static_cast<int>(FontWeight::W200)},
@@ -40,14 +59,13 @@ std::unordered_map<int, int> g_weightMap = {
 };
 }
 
-#define READ_OPTIONAL_FIELD(env, obj, field, type, fontDescPtr, error_var) \
-    do { \
-        ani_status ret = AniTextUtils::ReadOptional##type##Field( \
-            (env), (obj), #field, (fontDescPtr)->field); \
-        if (ret != ANI_OK) { \
-            TEXT_LOGE("Failed to convert %{public}s: ret %{public}d", #field, ret); \
-            (error_var) = ret; \
-        } \
+#define READ_OPTIONAL_FIELD(env, obj, method, field, type, fontDescPtr, error_var)                                     \
+    do {                                                                                                               \
+        ani_status ret = AniTextUtils::ReadOptional##type##Field((env), (obj), (method), (fontDescPtr)->field);        \
+        if (ret != ANI_OK) {                                                                                           \
+            TEXT_LOGE("Failed to convert optional field: ret %{public}d", ret);                                        \
+            (error_var) = ret;                                                                                         \
+        }                                                                                                              \
     } while (0)
 
 ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
@@ -59,11 +77,10 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_namespace ns = nullptr;
-    ret = env->FindNamespace(ANI_NAMESPACE_TEXT, &ns);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find namespace %{public}s, ret %{public}d", ANI_NAMESPACE_TEXT, ret);
-        return ret;
+    ani_namespace ns = AniFindNamespace(env, ANI_NAMESPACE_TEXT);
+    if (ns == nullptr) {
+        TEXT_LOGE("Failed to find namespace: %{public}s", ANI_NAMESPACE_TEXT);
+        return ANI_NOT_FOUND;
     }
 
     std::string getSystemFontFullNamesByTypeSignature =
@@ -92,33 +109,25 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
 
 ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDescSharedPtr& fontDesc)
 {
-    ani_class cls = nullptr;
-    ani_status ret = AniTextUtils::FindClassWithCache(env, ANI_INTERFACE_FONT_DESCRIPTOR, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        fontDesc = nullptr;
-        return ret;
-    }
-
-    ani_boolean isObj = false;
-    ret = env->Object_InstanceOf(aniObj, cls, &isObj);
-    if (!isObj) {
-        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
-        fontDesc = nullptr;
-        return ret;
-    }
-
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
-    READ_OPTIONAL_FIELD(env, aniObj, postScriptName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, fullName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, fontFamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, fontSubfamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, width, Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, italic, Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, monoSpace, Bool, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, symbolic, Bool, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY), postScriptName,
+        String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FULL_NAME_KEY), fullName, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FONT_FAMILY_KEY), fontFamily, String,
+        fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY), fontSubfamily, String,
+        fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_WIDTH_KEY), width, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_ITALIC_KEY), italic, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_MONO_SPACE_KEY), monoSpace, Bool, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniClassFindMethod(env, FONT_DESCRIPTOR_SYMBOLIC_KEY), symbolic, Bool, fontDesc.get(), status);
 
     return status;
 }
@@ -135,23 +144,18 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
-    static const std::string aniStringDescriptor = "C{" + std::string(ANI_STRING) + "}";
-    static const std::string sign = aniStringDescriptor + aniStringDescriptor + aniStringDescriptor +
-        aniStringDescriptor + aniStringDescriptor + "E{" + std::string(ANI_ENUM_FONT_WEIGHT) +
-        "}iizz:";
 
-    aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_DESCRIPTOR, sign.c_str(),
+    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_FONT_DESCRIPTOR),
+        AniClassFindMethod(env, FONT_DESCRIPTOR_KEY),
         AniTextUtils::CreateAniStringObj(env, fontDesc->path),
         AniTextUtils::CreateAniStringObj(env, fontDesc->postScriptName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fullName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontFamily),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontSubfamily),
-        AniTextUtils::CreateAniEnum(env, ANI_ENUM_FONT_WEIGHT, static_cast<int>(iter->second)),
-        ani_int(fontDesc->width),
-        ani_int(fontDesc->italic),
-        ani_boolean(fontDesc->monoSpace),
-        ani_boolean(fontDesc->symbolic)
-    );
+        AniTextUtils::CreateAniOptionalEnum(env, AniFindEnum(env, ANI_ENUM_FONT_WEIGHT),
+            aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(iter->second))),
+        ani_int(fontDesc->width), ani_int(fontDesc->italic), ani_boolean(fontDesc->monoSpace),
+        ani_boolean(fontDesc->symbolic));
 
     return ANI_OK;
 }
