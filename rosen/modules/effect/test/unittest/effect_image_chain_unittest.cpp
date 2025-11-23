@@ -157,11 +157,16 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
 {
     auto image = std::make_shared<EffectImageChain>();
     EXPECT_NE(image, nullptr);
-    auto ret = image->ApplyDrawingFilter(nullptr);
-    EXPECT_NE(ret, DrawingError::ERR_OK);
-    // test not prepare
     std::vector<float> positions = {0.0f, 1.0f};
     std::vector<float> degrees = {0.0f, 1.0f};
+
+    // test filter_ == nullptr
+    auto ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_NOT_PREPARED);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
+    ret = image->ApplyDrawingFilter(nullptr);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+    // test not prepare
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_NOT_PREPARED);
     EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
@@ -203,6 +208,9 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
 
     // test if forceCPU_ is true
     ret = image->Prepare(srcPixelMap, true);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    // test multiple filters
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_OK);
     ret = image->Draw();
