@@ -2303,12 +2303,23 @@ void RSRenderNode::SetTreeStateChangeDirty(bool val)
     isTreeStateChangeDirty_ = val;
 }
 
-void RSRenderNode::SetParentTreeStateChangeDirty()
+void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
 {
     auto parentNode = parent_.lock();
-    if (parentNode && !parentNode->IsTreeStateChangeDirty()) {
+    if (!parentNode) {
+        return;
+    }
+    if (parentNode && (isUpdateAllParentNode || !parentNode->IsTreeStateChangeDirty())) {
         parentNode->SetTreeStateChangeDirty(true);
-        parentNode->SetParentTreeStateChangeDirty();
+        parentNode->SetParentTreeStateChangeDirty(isUpdateAllParentNode);
+    }
+}
+
+void RSRenderNode::SetChildrenTreeStateChangeDirty()
+{
+    auto sortedChildren = GetSortedChildren();
+    for (auto& child : *sortedChildren) {
+        child->SetTreeStateChangeDirty(true);
     }
 }
 

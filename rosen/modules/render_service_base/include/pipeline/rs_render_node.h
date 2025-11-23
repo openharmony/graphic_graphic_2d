@@ -194,7 +194,8 @@ public:
     void SetParentSubTreeDirty();
     bool IsTreeStateChangeDirty() const;
     void SetTreeStateChangeDirty(bool val);
-    void SetParentTreeStateChangeDirty();
+    void SetParentTreeStateChangeDirty(bool isUpdateAllParentNode = false);
+    void SetChildrenTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
