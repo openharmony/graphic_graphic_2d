@@ -1280,6 +1280,46 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect002, TestSize.Level
 }
 
 /**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect003
+ * @tc.desc: test pendingPurgeFilterRegion
+ * @tc.type: FUNC
+ * @tc.require: issue20551
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect003, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto& geoPtr = node.renderProperties_.boundsGeo_;
+    geoPtr = std::make_shared<RSObjAbsGeometry>();
+    RectI rect(50, 50, 100, 100);
+    geoPtr->absRect_ = rect;
+
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    slot = RSDrawableSlot::COMPOSITING_FILTER;
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 60, 60)));
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, false);
+    EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
+
+    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, true);
+    EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
+
+    rsDirtyManager->GetFilterCollector().ClearPendingPurgeFilterRegion();
+    rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 10, 10)));
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, false);
+    EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
+    const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
+    auto filterRegion = Occlusion::Region(node.GetFilterRect());
+    EXPECT_FALSE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+}
+
+/**
  * @tc.name: IsBackgroundInAppOrNodeSelfDirty
  * @tc.desc: test
  * @tc.type: FUNC
