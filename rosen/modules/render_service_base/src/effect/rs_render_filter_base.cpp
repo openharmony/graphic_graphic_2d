@@ -96,6 +96,12 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
 };
 
+using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
+static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {};
+
+using FilterGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
+static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {};
+
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
 {
     auto it = creatorLUT.find(type);
@@ -212,6 +218,31 @@ void RSNGRenderFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBa
             contentLightFilter->Setter<ContentLightRotationAngleRenderTag>(rotationAngle);
         }
         current =  current->nextEffect_;
+    }
+}
+
+RectF RSNGRenderFilterHelper::CalcRect(const std::shared_ptr<RSNGRenderFilterBase>& filter, const RectF& bound,
+    EffectRectType rectType)
+{
+    if (filter == nullptr) {
+        return RectF();
+    }
+
+    switch (rectType) {
+        case EffectRectType::SNAPSHOT: {
+            auto iter = getSnapshotRectLUT.find(filter->GetType());
+            return iter == getSnapshotRectLUT.end() ? bound : iter->second(filter, bound);
+        }
+        case EffectRectType::DRAW: {
+            auto current = filter;
+            while (current->nextEffect_) {
+                current = current->nextEffect_;
+            }
+            auto iter = getDrawRectLUT.find(current->GetType());
+            return iter == getDrawRectLUT.end() ? bound : iter->second(filter, bound);
+        }
+        default:
+            return RectF();
     }
 }
 } // namespace Rosen

@@ -42,6 +42,7 @@
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
+#include "feature/window_keyframe/rs_window_keyframe_node_command.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -760,6 +761,9 @@ void RSProfiler::MarshalNode(const RSRenderNode& node, std::stringstream& data, 
     const float pivotZ = node.GetRenderProperties().GetPivotZ();
     data.write(reinterpret_cast<const char*>(&pivotZ), sizeof(pivotZ));
 
+    const NodePriorityType priority = NodePriorityType::MAIN_PRIORITY;
+    data.write(reinterpret_cast<const char*>(&priority), sizeof(priority));
+
     const bool isOnTree = node.IsOnTheTree();
     data.write(reinterpret_cast<const char*>(&isOnTree), sizeof(isOnTree));
 
@@ -1020,6 +1024,8 @@ std::string RSProfiler::UnmarshalNode(RSContext& context, std::stringstream& dat
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else if (nodeType == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         RSCanvasDrawingNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
+    } else if (nodeType == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {
+        RSWindowKeyFrameNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     } else {
         RootNodeCommandHelper::Create(context, nodeId, isTextureExportNode);
     }
@@ -1616,7 +1622,8 @@ int64_t RSProfiler::AnimeSetStartTime(AnimationId id, int64_t nanoTime)
         if (!g_animeStartMap.count(id)) {
             return nanoTime;
         }
-        int64_t minDt = INT64_MAX, minTime = nanoTime - g_replayStartTimeNano;
+        int64_t minDt = INT64_MAX;
+        int64_t minTime = nanoTime - g_replayStartTimeNano;
         for (const auto recordedTime : g_animeStartMap[id]) {
             int64_t dt = abs(recordedTime - (nanoTime - g_replayStartTimeNano));
             if (dt < minDt) {
@@ -1812,16 +1819,6 @@ uint64_t RSProfiler::GetParseTransactionDataEndCounter()
     return g_counterParseTransactionDataEnd;
 }
 
-void RSProfiler::SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize)
-{
-    if (!IsEnabled()) {
-        return;
-    }
-    if (IsReadEmulationMode() || IsReadMode()) {
-        useNodeMatchOptimize = true;
-    }
-}
-
 void RSProfiler::MetricRenderNodeInc(bool isOnTree)
 {
     if (!IsEnabled() || !IsWriteMode()) {
@@ -1833,7 +1830,7 @@ void RSProfiler::MetricRenderNodeInc(bool isOnTree)
         GetCustomMetrics().AddInt(RSPROFILER_METRIC_OFFTREE_NODE_COUNT, 1);
     }
 }
-
+ 
 void RSProfiler::MetricRenderNodeDec(bool isOnTree)
 {
     if (!IsEnabled() || !IsWriteMode()) {
@@ -1845,7 +1842,7 @@ void RSProfiler::MetricRenderNodeDec(bool isOnTree)
         GetCustomMetrics().SubInt(RSPROFILER_METRIC_OFFTREE_NODE_COUNT, 1);
     }
 }
-
+ 
 void RSProfiler::MetricRenderNodeChange(bool isOnTree)
 {
     if (!IsEnabled() || !IsWriteMode()) {
@@ -1859,7 +1856,7 @@ void RSProfiler::MetricRenderNodeChange(bool isOnTree)
         GetCustomMetrics().SubInt(RSPROFILER_METRIC_ONTREE_NODE_COUNT, 1);
     }
 }
-
+ 
 void RSProfiler::MetricRenderNodeInit(RSContext* context)
 {
     if (!context) {
@@ -1883,13 +1880,13 @@ void RSProfiler::MetricRenderNodeInit(RSContext* context)
         }
     });
 }
-
+ 
 void RSProfiler::RSLogOutput(RSProfilerLogType type, const char* format, va_list argptr)
 {
     if (!IsEnabled() || !(IsWriteMode() || IsReadEmulationMode())) {
         return;
     }
-
+ 
     // no access to vsnprintf_s_p in inner api of hilog - have to write naive code myself
     constexpr int maxSize = 1024;
     char format2[maxSize] = {0}; // zero ending always present
@@ -1919,13 +1916,13 @@ void RSProfiler::RSLogOutput(RSProfilerLogType type, const char* format, va_list
         }
     }
     *ptr2++ = 0;
-
+ 
     char outStr[maxSize] = {0};
     if (vsprintf_s(outStr, sizeof(outStr), format2, argptr) > 0) {
         SendRSLogBase(type, std::string(outStr));
     }
 }
-
+ 
 RSProfilerLogMsg RSProfiler::ReceiveRSLogBase()
 {
     const std::lock_guard<std::mutex> guard(g_rsLogListMutex);
@@ -1936,7 +1933,7 @@ RSProfilerLogMsg RSProfiler::ReceiveRSLogBase()
     g_rsLogList.pop();
     return value;
 }
-
+ 
 void RSProfiler::SendRSLogBase(RSProfilerLogType type, const std::string& msg)
 {
     if (IsReadEmulationMode()) {
@@ -1950,22 +1947,21 @@ void RSProfiler::SendRSLogBase(RSProfilerLogType type, const std::string& msg)
         g_rsLogList.push(RSProfilerLogMsg(type, Utils::Now(), msg));
     }
 }
-
+ 
 void RSProfiler::ResetCustomMetrics()
 {
     RSProfilerCustomMetrics& customMetrics = GetCustomMetrics();
     customMetrics.Reset();
 }
-
+ 
 RSProfilerCustomMetrics& RSProfiler::GetCustomMetrics()
 {
     static RSProfilerCustomMetrics s_customMetrics;
     return s_customMetrics;
 }
-
+ 
 bool RSProfiler::IsRecordingMode()
 {
     return IsEnabled() && IsWriteMode();
 }
-
 } // namespace OHOS::Rosen

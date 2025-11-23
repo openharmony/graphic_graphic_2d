@@ -269,7 +269,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 #ifdef RS_ENABLE_VK
     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif
-    OHOS::Rosen::RSHardwareThread::Instance().Start();
+    // OHOS::Rosen::RSHardwareThread::Instance().Start();
     return 0;
 }
 

@@ -31,6 +31,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -1215,10 +1216,10 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     RectI inRegion(10, 10, 20, 20);
     RectI outRegion(90, 90, 110, 110);
     RectI lastRegion(0, 0, 100, 100);
-    node.filterRegion_ = inRegion;
+    node.GetFilterRegionInfo().filterRegion_ = inRegion;
     node.lastFilterRegion_ = lastRegion;
     node.UpdateFilterCacheWithSelfDirty();
-    node.filterRegion_ = outRegion;
+    node.GetFilterRegionInfo().filterRegion_ = outRegion;
     node.UpdateFilterCacheWithSelfDirty();
     ASSERT_TRUE(true);
 }
@@ -1260,7 +1261,7 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect002, TestSize.Level
     geoPtr = std::make_shared<RSObjAbsGeometry>();
     RectI rect(50, 50, 100, 100);
     geoPtr->absRect_ = rect;
-    node.filterRegion_ = node.GetFilterRect();
+    node.GetFilterRegionInfo().filterRegion_ = node.GetFilterRect();
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
@@ -1396,6 +1397,21 @@ HWTEST_F(RSRenderNodeTest2, DumpSubClassNodeTest032, TestSize.Level1)
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
     canvasDrawingNode->DumpSubClassNode(outTest7);
     EXPECT_EQ(outTest7, ", lastResetSurfaceTime: 0, opCountAfterReset: 0, drawOpInfo: []");
+}
+
+/**
+ * @tc.name: RSWindowkeyFrameRenderNodeDumpTest
+ * @tc.desc: test DumpSubClassNode for RSWindowkeyFrameRenderNode
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest2, RSWindowkeyFrameRenderNodeDumpTest, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto node = std::make_shared<RSWindowKeyFrameRenderNode>(0);
+    node->SetLinkedNodeId(1);
+    node->DumpSubClassNode(outTest);
+    EXPECT_EQ(outTest, ", linkedNodeId: 1");
 }
 
 /**

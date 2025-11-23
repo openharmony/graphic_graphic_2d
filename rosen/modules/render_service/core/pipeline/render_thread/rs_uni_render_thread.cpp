@@ -38,7 +38,6 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_handler.h"
@@ -47,6 +46,7 @@
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats.h"
 #include "platform/ohos/rs_node_stats.h"
+#include "rs_render_composer_manager.h"
 #include "rs_trace.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
@@ -403,7 +403,7 @@ void RSUniRenderThread::Render()
     totalProcessNodeNum_ = 0;
 }
 
-void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks)
+void RSUniRenderThread::CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks)
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     if (!renderThreadParams) {
@@ -442,22 +442,28 @@ void RSUniRenderThread::CollectReleaseTasks(std::vector<std::function<void()>>& 
                 }
                 continue;
             }
-            auto releaseTask = [buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
-                                   useReleaseFence = lastHardWareEnabled,
-                                   acquireFence = acquireFence_]() mutable {
+
+            auto screenId = surfaceParams->GetScreenId();
+            auto releaseTask = [screenId, buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
+                                useReleaseFence = lastHardWareEnabled,
+                                acquireFence = acquireFence_]() mutable {
                 if (consumer == nullptr) {
                     RS_LOGE("ReleaseSelfDrawingNodeBuffer failed consumer nullptr");
                     return;
                 }
-                auto ret = consumer->ReleaseBuffer(buffer, useReleaseFence ?
-                    RSHardwareThread::Instance().releaseFence_ : acquireFence);
+                sptr<SyncFence> releaseFence = useReleaseFence ?
+                    RSRenderComposerManager::GetInstance().GetReleaseFence(screenId) : acquireFence;
+                auto ret = consumer->ReleaseBuffer(buffer, releaseFence);
+                GpuDirtyRegionCollection::GetInstance().AddConsumeBufferNumberForDFX();
                 if (ret != OHOS::SURFACE_ERROR_OK) {
                     RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
                 }
             };
             params->SetPreBuffer(nullptr);
-            if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0) {
-                releaseTasks.emplace_back(releaseTask);
+            if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0 && screenId != INVALID_SCREEN_ID) {
+                RS_TRACE_NAME("RSUniRenderThread::releaseInHardwareThreadTaskNum_");
+                auto& tasks = releaseTasks[screenId];
+                tasks.emplace_back(releaseTask);
                 surfaceParams->releaseInHardwareThreadTaskNum_--;
             } else {
                 releaseTask();
@@ -486,21 +492,18 @@ sptr<SyncFence> RSUniRenderThread::GetAcquireFence()
 
 void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
 {
-    std::vector<std::function<void()>> releaseTasks;
-    CollectReleaseTasks(releaseTasks);
-    if (releaseTasks.empty()) {
+    std::map<ScreenId, std::vector<std::function<void()>>> releaseTasksWithScreenId;
+    CollectReleaseTasks(releaseTasksWithScreenId);
+    if (releaseTasksWithScreenId.empty()) {
         return;
     }
-    auto releaseBufferTask = [releaseTasks]() {
-        for (const auto& task : releaseTasks) {
-            task();
-        }
-    };
-    auto delayTime = RSHardwareThread::Instance().delayTime_;
-    if (delayTime > 0) {
-        RSHardwareThread::Instance().PostDelayTask(releaseBufferTask, delayTime);
-    } else {
-        RSHardwareThread::Instance().PostTask(releaseBufferTask);
+    for (auto& [screenId, releaseTasks] : releaseTasksWithScreenId) {
+        auto releaseBufferTask = [releaseTasks = std::move(releaseTasks)]() {
+            for (const auto& task : releaseTasks) {
+                task();
+            }
+        };
+        RSRenderComposerManager::GetInstance().PostTask(screenId, releaseBufferTask);
     }
 }
 
@@ -585,11 +588,29 @@ void RSUniRenderThread::SubScribeSystemAbility()
     }
 }
 #endif
+
+void RSUniRenderThread::UnRegisterCond(ScreenId curScreenId)
+{
+    std::unique_lock<std::mutex> lock(screenCondMutex_);
+    screenCond_.erase(curScreenId);
+}
+
 bool RSUniRenderThread::WaitUntilScreenNodeBufferReleased(
     DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable)
 {
-    std::unique_lock<std::mutex> lock(screenNodeBufferReleasedMutex_);
-    screenNodeBufferReleased_ = false; // prevent spurious wakeup of condition variable
+    auto params = static_cast<RSScreenRenderParams*>(screenNodeDrawable.GetRenderParams().get());
+    auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
+    std::shared_ptr<ScreenNodeBufferCond> tmpCond = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(screenCondMutex_);
+        auto [iter, isNewElement] = screenCond_.try_emplace(curScreenId, std::make_shared<ScreenNodeBufferCond>());
+        tmpCond = iter->second;
+    }
+    if (tmpCond == nullptr) {
+        return false;
+    }
+    std::unique_lock<std::mutex> releaseLock(tmpCond->screenNodeBufferReleasedMutex);
+    tmpCond->screenNodeBufferReleased = false; // prevent spurious wakeup of condition variable
     if (!screenNodeDrawable.IsSurfaceCreated()) {
         return true;
     }
@@ -597,16 +618,30 @@ bool RSUniRenderThread::WaitUntilScreenNodeBufferReleased(
     if (consumer && consumer->QueryIfBufferAvailable()) {
         return true;
     }
-    return screenNodeBufferReleasedCond_.wait_until(lock, std::chrono::system_clock::now() +
-        std::chrono::milliseconds(WAIT_FOR_RELEASED_BUFFER_TIMEOUT), [this]() { return screenNodeBufferReleased_; });
+    return tmpCond->screenNodeBufferReleasedCond.wait_until(releaseLock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(
+            WAIT_FOR_RELEASED_BUFFER_TIMEOUT), [&tmpCond]() { return tmpCond->screenNodeBufferReleased; });
 }
 
-void RSUniRenderThread::NotifyScreenNodeBufferReleased()
+void RSUniRenderThread::NotifyScreenNodeBufferReleased(ScreenId curScreenId)
 {
+    std::shared_ptr<ScreenNodeBufferCond> tmpCond = nullptr;
+    {
+        std::unique_lock<std::mutex> lock(screenCondMutex_);
+        auto iter = screenCond_.find(curScreenId);
+        if (iter == screenCond_.end()) {
+            return;
+        }
+        tmpCond = iter->second;
+    }
+    if (tmpCond == nullptr) {
+        return;
+    }
+
     RS_TRACE_NAME("RSUniRenderThread::NotifyScreenNodeBufferReleased");
-    std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
-    screenNodeBufferReleased_ = true;
-    screenNodeBufferReleasedCond_.notify_one();
+    std::lock_guard<std::mutex> releaseLock(tmpCond->screenNodeBufferReleasedMutex);
+    tmpCond->screenNodeBufferReleased = true;
+    tmpCond->screenNodeBufferReleasedCond.notify_one();
 }
 
 void RSUniRenderThread::PerfForBlurIfNeeded()

@@ -37,7 +37,7 @@ group("unittest") {
     ":RSVBlankIdleCorrectorTest",
     ":HgmContextTest",
     ":LppVideoHandlerTest",
-    ":RSWindowKeyFrameTest",
+    ":RSWindowKeyFrameDrawableTest",
     ":RSWindowCaptureTaskTest",
     ":RSHpaeRenderListenerTest",
   ]
@@ -859,13 +859,12 @@ ohos_unittest("RSAncoManagerTest") {
   }
 }
 
-## Build RSWindowKeyFrameTest
-ohos_unittest("RSWindowKeyFrameTest") {
+## Build RSWindowKeyFrameDrawableTest
+ohos_unittest("RSWindowKeyFrameDrawableTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
-    "window_keyframe/rs_window_keyframe_buffer_test.cpp",
-    "window_keyframe/rs_window_keyframe_node_info_test.cpp",
+    "window_keyframe/rs_window_keyframe_node_drawable_test.cpp",
   ]
   deps = [
     ":rs_test_common",
@@ -1179,6 +1178,13 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
   ]
 
   cflags = [

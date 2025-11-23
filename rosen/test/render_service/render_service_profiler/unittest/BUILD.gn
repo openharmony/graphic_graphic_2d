@@ -83,7 +83,12 @@ ohos_unittest("RSProfilerArchiveTest") {
 ohos_unittest("RSProfilerBaseTest") {
   module_out_path = module_output_path
 
-  defines = [ "RS_PROFILER_ENABLED" ]
+  defines = [
+    "RS_PROFILER_ENABLED",
+    "NOT_BUILD_FOR_OHOS_SDK",
+    "MODULE_RS",
+    "RSPROFILER_RSLOGD_ENABLED",
+  ]
   sources = [ "rs_profiler_base_test.cpp" ]
 
   configs = [
@@ -99,7 +104,6 @@ ohos_unittest("RSProfilerBaseTest") {
   deps = [
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base_static",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest/pipeline:rs_test_common",
   ]
 
@@ -117,7 +121,6 @@ ohos_unittest("RSProfilerBaseTest") {
 
   use_exceptions = true
   subsystem_name = "graphic"
-  part_name = "graphic_2d"
 }
 
 ##############################  RSProfilerCaptureDataTest  ##################################

@@ -716,6 +716,7 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     }
     const auto& lightSourcesAndPosMap = illuminatedPtr->GetLightSourcesAndPosMap();
     if (lightSourcesAndPosMap.empty()) {
+        stagingEnableEDREffect_ = false;
         return true;
     }
     stagingLightSourcesAndPosVec_.clear();

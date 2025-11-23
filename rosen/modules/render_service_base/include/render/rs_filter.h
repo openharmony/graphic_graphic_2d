@@ -21,7 +21,9 @@
 
 #include "common/rs_color.h"
 #include "common/rs_macros.h"
+#include "common/rs_rect.h"
 #include "image/gpu_context.h"
+#include "property/rs_properties_def.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
@@ -59,6 +61,7 @@ public:
     static std::shared_ptr<RSFilter> CreateLightUpEffectFilter(float lightUpDegree);
     static float RadiusVp2Sigma(float radiusVp, float dipScale);
     virtual bool NeedForceSubmit() const { return false; }
+    RectF GetRect(const RectF& bound, EffectRectType type) const;
 
     enum FilterType {
         NONE = 0,
@@ -151,6 +154,7 @@ protected:
     uint32_t hash_ = 0;
     bool needSnapshotOutset_ = true;
     RSFilter();
+    virtual RectF CalcRect(const RectF& bound, EffectRectType type) const { return bound; };
 };
 } // namespace Rosen
 } // namespace OHOS

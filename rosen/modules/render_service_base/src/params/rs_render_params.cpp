@@ -499,10 +499,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
 
     // [Attention] Only used in PC window resize scene now
-    target->windowKeyframeEnabled_ = windowKeyframeEnabled_;
-    target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
-    target->needSwapBuffer_ = needSwapBuffer_;
-    target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
+    target->windowKeyFrameNodeDrawable_ = windowKeyFrameNodeDrawable_;
 
     // used for DFX
     target->isOnTheTree_ = isOnTheTree_;
@@ -604,41 +601,16 @@ void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdap
 }
 
 // [Attention] Only used in PC window resize scene now
-void RSRenderParams::EnableWindowKeyFrame(bool enable)
+void RSRenderParams::SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
-    if (windowKeyframeEnabled_ == enable) {
-        return;
-    }
-
-    windowKeyframeEnabled_ = enable;
+    windowKeyFrameNodeDrawable_ = drawable;
     needSync_ = true;
 }
 
 // [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetWindowKeyFrameNodeDrawable()
 {
-    linkedRootNodeDrawable_ = drawable;
-    needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetNeedSwapBuffer(bool needSwapBuffer)
-{
-    if (needSwapBuffer_ == needSwapBuffer) {
-        return;
-    }
-    needSwapBuffer_ = needSwapBuffer;
-    needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect)
-{
-    if (cacheNodeFrameRect_ == cacheNodeFrameRect) {
-        return;
-    }
-    cacheNodeFrameRect_ = cacheNodeFrameRect;
-    needSync_ = true;
+    return windowKeyFrameNodeDrawable_;
 }
 
 // used for DFX

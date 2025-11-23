@@ -648,7 +648,7 @@ HWTEST_F(RSRenderNodeTest, CalVisibleFilterRectTest, TestSize.Level1)
     RSRenderNode node(id, context);
     RectI prepareClipRect { 1, 1, 1, 1 };
     node.CalVisibleFilterRect(prepareClipRect);
-    EXPECT_TRUE(node.filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
+    EXPECT_TRUE(node.GetFilterRegionInfo().filterRegion_.ToString().compare("[0, 0, 0, 0]") == 0);
 }
 
 /**
@@ -1245,6 +1245,19 @@ HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest, TestSize.Level1)
     EXPECT_TRUE(node.dirtySlots_.empty());
     node.UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::MASK);
     EXPECT_FALSE(node.dirtySlots_.empty());
+}
+
+/**
+ * @tc.name: UpdatePointLightDirtySlotTest2
+ * @tc.desc:
+ * @tc.type: FUNC
+ * @tc.require: issueI9T3XY
+ */
+HWTEST_F(RSRenderNodeTest, UpdatePointLightDirtySlotTest2, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    node.UpdatePointLightDirtySlot();
+    EXPECT_FALSE(node.enableHdrEffect_);
 }
 /**
  * @tc.name: AddToPendingSyncListTest

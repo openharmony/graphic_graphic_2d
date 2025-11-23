@@ -593,7 +593,7 @@ HWTEST_F(RSPropertyDrawableUtilsTest, GetColorForShadowSynTest017, testing::ext:
     EXPECT_NE(image, nullptr);
     std::shared_ptr<Drawing::SkiaImage> imageImpl = std::make_shared<Drawing::SkiaImage>();
     image->imageImplPtr = imageImpl;
-    rsPropertyDrawableUtilsTest->GpuScaleImage(&canvasTest2, image);
+    rsPropertyDrawableUtilsTest->GpuScaleImage(canvasTest2.GetGPUContext(), image);
 }
 
 /**

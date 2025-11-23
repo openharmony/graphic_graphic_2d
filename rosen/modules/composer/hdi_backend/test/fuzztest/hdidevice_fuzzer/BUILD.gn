@@ -24,6 +24,9 @@ ohos_fuzztest("HdiDeviceFuzzTest") {
 
   include_dirs = [
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
   ]
   cflags = [
     "-g",
@@ -42,6 +45,7 @@ ohos_fuzztest("HdiDeviceFuzzTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "skia:skia_canvaskit",
   ]
 }
 

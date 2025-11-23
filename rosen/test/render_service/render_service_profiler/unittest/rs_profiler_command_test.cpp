@@ -52,7 +52,7 @@ HWTEST_F(RSProfilerCommandTest, CommandArgListTest, testing::ext::TestSize.Level
     EXPECT_EQ(list.Fp32(4), 1.5f);
     EXPECT_EQ(list.Fp64(5), 678.789);
     EXPECT_EQ(list.String(6), "qwe");
-    EXPECT_EQ(list.Count(), 7);
+    EXPECT_EQ(list.Count(), 8);
     EXPECT_TRUE(list.String(7).empty());
     EXPECT_TRUE(list.String(100).empty());
 

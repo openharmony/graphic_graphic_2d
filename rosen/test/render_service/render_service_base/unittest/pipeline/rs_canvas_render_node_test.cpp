@@ -519,20 +519,4 @@ HWTEST_F(RSCanvasRenderNodeTest, QuickPrepare001, TestSize.Level1)
     rsCanvasRenderNode->QuickPrepare(visitor);
 }
 
-/**
- * @tc.name: SetLinkedRootNodeId
- * @tc.desc: test SetLinkedRootNodeId
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSCanvasRenderNodeTest, SetLinkedRootNodeId, TestSize.Level1)
-{
-    NodeId nodeId = static_cast<NodeId>(2);
-    NodeId rootNodeId = static_cast<NodeId>(3);
-    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
-    EXPECT_EQ(rsCanvasRenderNode->GetLinkedRootNodeId(), INVALID_NODEID);
-
-    rsCanvasRenderNode->SetLinkedRootNodeId(rootNodeId);
-    EXPECT_EQ(rsCanvasRenderNode->GetLinkedRootNodeId(), rootNodeId);
-}
 } // namespace OHOS::Rosen

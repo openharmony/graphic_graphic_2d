@@ -247,7 +247,7 @@ void HelloComposer::Draw()
     for (auto iter = drawLayersMap_.begin(); iter != drawLayersMap_.end(); ++iter) {
         uint32_t screenId = iter->first;
         std::vector<std::unique_ptr<LayerContext>> &drawLayers = drawLayersMap_[screenId];
-        std::vector<LayerInfoPtr> layerVec;
+        std::vector<RSLayerPtr> layerVec;
         for (auto &drawLayer : drawLayers) { // producer
             SetRunArgs(drawLayer);
             drawLayer->DrawBufferColor();
@@ -472,8 +472,8 @@ void HelloComposer::DoPrepareCompleted(sptr<Surface> surface, const struct Prepa
     tempFence->Wait(100); // 100 ms
 
     bool hasClient = false;
-    const std::vector<LayerInfoPtr> &layers = param.layers;
-    for (const LayerInfoPtr &layer : layers) {
+    const std::vector<RSLayerPtr> &layers = param.layers;
+    for (const RSLayerPtr& layer : layers) {
         if (layer->GetCompositionType() == GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT) {
             hasClient = true;
         }

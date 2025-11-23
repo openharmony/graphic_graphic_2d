@@ -219,7 +219,7 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsWithForceClearFilterCache, 
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->MarkFilterForceClearCache();
-    node.filterRegion_ = RectI(0, 0, 10, 10);
+    node.GetFilterRegionInfo().filterRegion_ = RectI(0, 0, 10, 10);
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, false);
     EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), RectI(0, 0, 10, 10));
 }

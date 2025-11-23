@@ -260,7 +260,7 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
         ClearBufferCache();
         return false;
     }
-    uint32_t unExecuteTaskNum = RSHardwareThread::Instance().GetunExecuteTaskNum();
+    uint32_t unExecuteTaskNum = RSRenderComposerManager::GetInstance().GetUnExecuteTaskNum(screenId);
     if (unExecuteTaskNum > UN_EXECUTE_TASK_NUM_MAX) {
         RS_LOGW("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode unExecuteTaskNum%{public}" PRIu32,
             unExecuteTaskNum);

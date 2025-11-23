@@ -75,7 +75,7 @@ void RSPhysicalScreenProcessor::ProcessRcdSurface(RSRcdSurfaceRenderNode& node)
     RS_LOGI("RSPhysicalScreenProcessor::ProcessRcdSurface() is not supported");
 }
 
-void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)
+void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers)
 {
     RS_TRACE_NAME("Redraw");
     if (surface == nullptr || renderEngine_ == nullptr) {

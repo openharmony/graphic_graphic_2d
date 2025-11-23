@@ -92,9 +92,11 @@ TextStyle::TextStyle() : fontFamilies(SPText::DefaultFamilyNameMgr::GetInstance(
 bool TextStyle::operator==(TextStyle const& other) const
 {
     return color == other.color &&
+        colorPlaceholder == other.colorPlaceholder &&
         decoration == other.decoration &&
         decorationColor == other.decorationColor &&
         decorationStyle == other.decorationStyle &&
+        decorationColorPlaceholder == other.decorationColorPlaceholder &&
         skt::nearlyEqual(decorationThicknessMultiplier, other.decorationThicknessMultiplier) &&
         fontWeight == other.fontWeight &&
         fontWidth == other.fontWidth &&

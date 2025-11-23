@@ -101,11 +101,11 @@
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage) \
     RSProfiler::LogShaderCall(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() RSProfiler::IsRecordingMode()
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber) \
+    RSProfiler::TransactionUnmarshallingStart(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels) RSProfiler::AddAnimationNodeMetrics(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns) RSProfiler::AddAnimationStart(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns) RSProfiler::AddAnimationFinish(id, timestamp_ns)
-#define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize) \
-    RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize)
 #else
 #define RS_PROFILER_INIT(renderSevice)
 #define RS_PROFILER_ON_FRAME_BEGIN(syncTime)
@@ -148,11 +148,10 @@
 #define RS_PROFILER_PROCESS_ADD_CHILD(parent, child, index) false
 #define RS_PROFILER_IF_NEED_TO_SKIP_DRAWCMD_SURFACE(parcel, skipBytes) false
 #define RS_PROFILER_IS_FIRST_FRAME_PARCEL(parcel) false
-#define RS_PROFILER_KILL_PID(pid) RSProfiler::JobMarshallingKillPid(pid)
-#define RS_PROFILER_KILL_PID_END() RSProfiler::JobMarshallingKillPidEnd()
+#define RS_PROFILER_KILL_PID(pid)
+#define RS_PROFILER_KILL_PID_END()
 #define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
 #define RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber)
-#define RS_PROFILER_SURFACE_ON_DRAW_MATCH_OPTIMIZE(useNodeMatchOptimize)
 #define RS_PROFILER_RSLOGEOUTPUT(format, argptr)
 #define RS_PROFILER_RSLOGWOUTPUT(format, argptr)
 #define RS_PROFILER_RSLOGDOUTPUT(format, argptr)
@@ -165,10 +164,10 @@
 #define RS_PROFILER_ADD_MESA_BLUR_METRICS(area)
 #define RS_PROFILER_LOG_SHADER_CALL(shaderType, srcImage, dstRect, outImage)
 #define RS_PROFILER_IS_RECORDING_MODE() false
+#define RS_PROFILER_TRANSACTION_UNMARSHALLING_START(parcel, parcelNumber)
 #define RS_PROFILER_ANIMATION_NODE(type, pixels)
 #define RS_PROFILER_ANIMATION_DURATION_START(id, timestamp_ns)
 #define RS_PROFILER_ANIMATION_DURATION_STOP(id, timestamp_ns)
-
 #endif
 
 #ifdef RS_PROFILER_ENABLED
@@ -194,6 +193,7 @@ class RSIClientToRenderConnection;
 class RSClientToRenderConnection;
 class RSTransactionData;
 class RSRenderNode;
+class RSRenderModifier;
 class RSProperties;
 class RSContext;
 class RSScreenRenderNode;
@@ -548,7 +548,7 @@ public:
     RSB_EXPORT static void AddMESABlursMetrics(uint32_t areaBlurs);
     RSB_EXPORT static void LogShaderCall(const std::string& shaderType, const std::shared_ptr<Drawing::Image>& srcImage,
         const Drawing::Rect& dstRect, const std::shared_ptr<Drawing::Image>& outImage);
-
+ 
     RSB_EXPORT static void AddAnimationNodeMetrics(RSRenderNodeType type, int32_t size);
     RSB_EXPORT static void AddAnimationStart(AnimationId id, int64_t timestamp_ns);
     RSB_EXPORT static void AddAnimationFinish(AnimationId id, int64_t timestamp_ns);
@@ -586,8 +586,6 @@ public:
     RSB_EXPORT static bool IfNeedToSkipDuringReplay(Parcel& parcel, uint32_t skipBytes);
     RSB_EXPORT static void JobMarshallingKillPid(pid_t pid);
     RSB_EXPORT static void JobMarshallingKillPidEnd();
-    RSB_EXPORT static void SurfaceOnDrawMatchOptimize(bool& useNodeMatchOptimize);
-
     RSB_EXPORT static bool IsFirstFrameParcel(const Parcel& parcel);
     RSB_EXPORT static void JobMarshallingTick(NodeId nodeId, bool skipDrawCmdModifiers = false);
     RSB_EXPORT static std::shared_ptr<ProfilerMarshallingJob>& GetMarshallingJob();
@@ -601,9 +599,9 @@ public:
     RSB_EXPORT static void RsMetricClear();
     RSB_EXPORT static void RsMetricSet(std::string name, std::string value);
     RSB_EXPORT static std::string RsMetricGetList();
-
+ 
     RSB_EXPORT static void RSLogOutput(RSProfilerLogType type, const char* format, va_list argptr);
-
+ 
     RSB_EXPORT static void MetricRenderNodeInc(bool isOnTree);
     RSB_EXPORT static void MetricRenderNodeDec(bool isOnTree);
     RSB_EXPORT static void MetricRenderNodeChange(bool isOnTree);

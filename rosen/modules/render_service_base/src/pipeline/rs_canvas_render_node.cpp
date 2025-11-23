@@ -329,22 +329,5 @@ void RSCanvasRenderNode::ModifyWindowWideColorGamutNum(bool isOnTree, GraphicCol
     }
 }
 
-// [Attention] Only used in PC window resize scene now
-void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
-{
-    if (!RSSystemProperties::GetWindowKeyFrameEnabled()) {
-        RS_LOGW("RSCanvasRenderNode::SetLinkedRootNodeId WindowKeyFrame feature disabled");
-        return;
-    }
-
-    linkedRootNodeId_ = rootNodeId;
-}
-
-// [Attention] Only used in PC window resize scene now
-NodeId RSCanvasRenderNode::GetLinkedRootNodeId() const
-{
-    return linkedRootNodeId_;
-}
-
 } // namespace Rosen
 } // namespace OHOS

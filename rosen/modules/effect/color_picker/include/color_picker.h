@@ -115,6 +115,7 @@ public:
     NATIVEEXPORT std::vector<double> GetTopProportion(uint32_t colorsNum) const;
     NATIVEEXPORT uint32_t ComplexityDegree(PictureComplexityDegree &degree) const;
     NATIVEEXPORT uint32_t ShadeDegree(PictureShadeDegree &degree) const;
+    NATIVEEXPORT double GetAlphaZeroTransparentProportion() const;
 
 private:
     void AdjustLowSaturationBrightColor(HSV &colorHsv, HSV &mainHsv, HSV &secondaryHsv,

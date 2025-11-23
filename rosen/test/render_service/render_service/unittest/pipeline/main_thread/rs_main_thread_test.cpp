@@ -1984,7 +1984,7 @@ HWTEST_F(RSMainThreadTest, UniRender004, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     mainThread->isUniRender_ = true;
     mainThread->renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    
+
     auto rsContext = std::make_shared<RSContext>();
     auto rootNode = rsContext->GetGlobalRootRenderNode();
     NodeId id = 1;
@@ -6793,17 +6793,17 @@ HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeImageDirty001
- * @tc.desc: Test MarkNodeImageDirty001
+ * @tc.name: MarkNodeDirty001
+ * @tc.desc: Test MarkNodeDirty001
  * @tc.type: FUNC
  * @tc.require:IBZ6NM
  */
-HWTEST_F(RSMainThreadTest, MarkNodeImageDirty001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, MarkNodeDirty001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     uint64_t nodeId = 12345;
-    mainThread->MarkNodeImageDirty(nodeId);
+    mainThread->MarkNodeDirty(nodeId);
 }
 
 /**

@@ -52,8 +52,8 @@ public:
     void ConsumeAndUpdateLppBuffer(uint64_t vsyncId, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     // >>
     // << call from hareware thread
-    void AddLppLayerId(const std::vector<LayerInfoPtr>& layers);
-    void RemoveLayerId(const std::vector<LayerInfoPtr>& layers);
+    void AddLppLayerId(const std::vector<RSLayerPtr>& layers);
+    void RemoveLayerId(const std::vector<RSLayerPtr>& layers);
     void JudgeLppLayer(uint64_t vsyncId);
     // >>
 };

@@ -1925,23 +1925,6 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
     }
 }
 
-int RSBaseRenderUtil::GetAccumulatedBufferCount()
-{
-    return std::max(acquiredBufferCount_ - 1, 0);
-}
-
-void RSBaseRenderUtil::IncAcquiredBufferCount()
-{
-    ++acquiredBufferCount_;
-    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
-}
-
-void RSBaseRenderUtil::DecAcquiredBufferCount()
-{
-    --acquiredBufferCount_;
-    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
-}
-
 pid_t RSBaseRenderUtil::GetLastSendingPid()
 {
     return lastSendingPid_;

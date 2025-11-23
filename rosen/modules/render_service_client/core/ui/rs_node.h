@@ -1107,6 +1107,15 @@ public:
      */
     void SetOutlineRadius(const Vector4f& radius);
 
+    /**
+     * @brief Sets color picker params of the node
+     *
+     * @param placeholder The handle to receive realtime color.
+     * @param strategy Strategy type to handle the color picked.
+     * @param interval Color picker task interval in ms, minimum is 500ms.
+     */
+    void SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval);
+
     // UIEffect
     /**
      * @brief Sets the background filter for the UI.

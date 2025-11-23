@@ -244,6 +244,43 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSWindowKeyFrameNodeTest  ##################################
+ohos_unittest("RSWindowKeyFrameRenderNodeTest") {
+  module_out_path = module_output_path
+ 
+  sources = [
+    "window_keyframe/rs_window_keyframe_node_command_test.cpp",
+    "window_keyframe/rs_window_keyframe_render_node_test.cpp",
+  ]
+ 
+  cflags = [
+    "-Dprivate = public",
+    "-Dprotected = public",
+  ]
+ 
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+ 
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+ 
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
+  ]
+ 
+  subsystem_name = "graphic"
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
 ###############################################################################
 config("render_test") {
   visibility = [ ":*" ]
@@ -260,5 +297,6 @@ group("unittest") {
     ":RSColorSpaceUtilTest",
     ":RSSingleFrameComposerTest",
     ":RSMemoryInfoManagerTest",
+    ":RSWindowKeyFrameRenderNodeTest",
   ]
 }

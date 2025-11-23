@@ -100,8 +100,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
-    auto linkedDrawable = std::static_pointer_cast<RSRootRenderNodeDrawable>(
-        params->GetLinkedRootNodeDrawable().lock());
     auto needOcclusionSkip = paintFilterCanvas->IsQuickDrawState() ?
         true : GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
@@ -110,7 +108,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     paintFilterCanvas->SetHDRBrightness(params->GetHDRBrightness());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() && needOcclusionSkip &&
-        !params->HasUnobscuredUEC() && LIKELY(linkedDrawable == nullptr) && !params->GetDrawingCacheChanged());
+        !params->HasUnobscuredUEC() && !params->GetDrawingCacheChanged());
     if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
@@ -133,13 +131,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             SetDrawSkipType(DrawSkipType::MULTI_ACCESS);
             return;
         }
-    }
-
-    // [Attention] Only used in PC window resize scene now
-    if (UNLIKELY(linkedDrawable != nullptr)) {
-        linkedDrawable->DrawWindowKeyFrameOffscreenBuffer(*paintFilterCanvas, params->GetFrameRect(),
-            params->GetAlpha(), params->GetRSFreezeFlag());
-        return;
     }
 
     if (LIKELY(isDrawingCacheEnabled_)) {

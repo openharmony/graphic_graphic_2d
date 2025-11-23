@@ -22,6 +22,7 @@
 #include "display_engine/rs_luminance_control.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
+#include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
@@ -90,6 +91,14 @@ void RSBaseRenderEngine::Init()
         renderContext_->SetUniRenderMode(true);
     }
     renderContext_->SetUpGpuContext();
+    if (renderContext_->GetDrGPUContext()) {
+        renderContext_->GetDrGPUContext()->SetParam(
+            "IsSmartCacheEnabled", SmartCacheParam::IsEnabled());
+        renderContext_->GetDrGPUContext()->SetParam(
+            "SmartCacheUMDPoolSize", SmartCacheParam::GetUMDPoolSize());
+        renderContext_->GetDrGPUContext()->SetParam(
+            "SmartCacheTimeInterval", SmartCacheParam::GetTimeInterval());
+    }
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
 #if (defined(RS_ENABLE_EGLIMAGE) && defined(RS_ENABLE_GPU)) || defined(RS_ENABLE_VK)
     imageManager_ = RSImageManager::Create(renderContext_);
@@ -110,7 +119,7 @@ void RSBaseRenderEngine::ResetCurrentContext()
 #endif
 }
 
-bool RSBaseRenderEngine::NeedForceCPU(const std::vector<LayerInfoPtr>& layers)
+bool RSBaseRenderEngine::NeedForceCPU(const std::vector<RSLayerPtr>& layers)
 {
     bool forceCPU = false;
     for (const auto& layer: layers) {
@@ -640,7 +649,6 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
         params.brightnessRatio, params.hasMetadata);
 #endif
 
-    RSMainThread::GPUCompositonCacheGuard guard;
     VideoInfo videoInfo;
     auto image = CreateImageFromBuffer(canvas, params, videoInfo);
     if (image == nullptr) {

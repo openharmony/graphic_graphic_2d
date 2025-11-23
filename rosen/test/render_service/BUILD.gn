@@ -191,6 +191,7 @@ group("test") {
     "render_service_client/fuzztest/ui/rstextureexport_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuidirector_fuzzer:fuzztest",
     "render_service_client/fuzztest/ui/rsuisurface_fuzzer:fuzztest",
+    "render_service_client/fuzztest/ui/rswindowkeyframenode_fuzzer:fuzztest",
     "render_service_client/unittest/animation:unittest",
     "render_service_client/unittest/feature:unittest",
     "render_service_client/unittest/modifier:unittest",
@@ -204,6 +205,8 @@ group("test") {
     "render_service_base/fuzztest/rsanimationmarshalling_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsanimationratedeciderstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rswindowkeyframerendernode_fuzzer:fuzztest",
+    "render_service_base/fuzztest/rswindowkeyframenodecommand_fuzzer:fuzztest",
   ]
 
 

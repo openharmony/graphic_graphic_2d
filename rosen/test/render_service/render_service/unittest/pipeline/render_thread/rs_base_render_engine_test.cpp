@@ -25,7 +25,7 @@
 #include "pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"
 #include "v2_1/cm_color_space.h"
-
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -128,13 +128,13 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(nullptr);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
 
     layers.clear();
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layers.emplace_back(layer);
     ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
@@ -151,8 +151,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetBuffer(buffer, node->GetRSSurfaceHandler()->GetAcquireFence());
     layers.emplace_back(layer);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
