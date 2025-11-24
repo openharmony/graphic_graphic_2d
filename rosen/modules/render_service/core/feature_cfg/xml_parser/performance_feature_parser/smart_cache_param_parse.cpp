@@ -52,12 +52,12 @@ int32_t SmartCacheParamParse::ParseSmartCacheInternal(xmlNode &node)
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         if (name == "IsSmartCacheEnabled") {
             SmartCacheParam::SetEnabled(val);
-        } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
-            if (name == "SmartCacheUMDPoolSize" && IsNumber(val)) {
-                SmartCacheParam::SetUMDPoolSize(val);
-            } else if (name == "TimeInterval" && IsNumber(val)) {
-                SmartCacheParam::SetTimeInterval(val);
-            }
+        }
+    } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
+        if (name == "SmartCacheUMDPoolSize" && IsNumber(val)) {
+            SmartCacheParam::SetUMDPoolSize(val);
+        } else if (name == "TimeInterval" && IsNumber(val)) {
+            SmartCacheParam::SetTimeInterval(val);
         }
     }
     return PARSE_EXEC_SUCCESS;
