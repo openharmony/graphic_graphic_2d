@@ -559,5 +559,48 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest017, TestSi
     typeface = fontCollection_->LoadFont(mathNameSans, mathData.data(), mathData.size());
     EXPECT_EQ(typeface, nullptr);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest018
+ * @tc.desc: test for load ttc font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest018, TestSize.Level0)
+{
+    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
+    // 10000 just for test
+    const size_t minSize = 10000;
+    EXPECT_GE(cjkData.size(), minSize);
+    std::string familyName1 = "familyname1";
+    auto cTypeface = fontCollection_->LoadFont(familyName1, cjkData.data(), cjkData.size(), 0);
+    auto jTypeface = fontCollection_->LoadFont(familyName1, cjkData.data(), cjkData.size(), 1);
+    // the 2nd index typeface in ttc
+    auto kTypeface = fontCollection_->LoadFont(familyName1, cjkData.data(), cjkData.size(), 2);
+    // the invalid typeface index 100
+    auto nTypeface = fontCollection_->LoadFont(familyName1, cjkData.data(), cjkData.size(), 100);
+
+    ASSERT_NE(cTypeface, nullptr);
+    ASSERT_NE(jTypeface, nullptr);
+    ASSERT_NE(kTypeface, nullptr);
+    EXPECT_EQ(nTypeface, nullptr);
+
+    EXPECT_EQ(cTypeface->GetFamilyName(), cjkFamily_);
+    EXPECT_EQ(jTypeface->GetFamilyName(), "Noto Sans CJK KR");
+    EXPECT_EQ(kTypeface->GetFamilyName(), "Noto Sans CJK SC");
+
+    EXPECT_EQ(fontMgr_->CountFamilies(), 1);
+    auto styleSet = fontMgr_->MatchFamily(familyName1.c_str());
+    ASSERT_NE(styleSet, nullptr);
+    auto tf1 = styleSet->CreateTypeface(0);
+    auto tf2 = styleSet->CreateTypeface(1);
+    auto tf3 = styleSet->CreateTypeface(2);
+
+    EXPECT_EQ(tf1->GetFamilyName(), cjkFamily_);
+    EXPECT_EQ(tf2->GetFamilyName(), "Noto Sans CJK KR");
+    EXPECT_EQ(tf3->GetFamilyName(), "Noto Sans CJK SC");
+
+    fontCollection_->UnloadFont(familyName1);
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
+}
 } // namespace Rosen
 } // namespace OHOS
