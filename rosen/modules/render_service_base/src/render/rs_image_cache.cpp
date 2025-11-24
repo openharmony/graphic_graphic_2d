@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "rs_trace.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "memory/rs_memory_snapshot.h"
 #include "render/rs_image_cache.h"
@@ -225,6 +226,7 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
 void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
     NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd)
 {
+    RS_TRACE_NAME_FMT_DEBUG("","RSImageCache::ReserveImageInfo nodeId:%{public}llu", nodeId);
     if (rsImage != nullptr) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
         if (drawableAdapter == nullptr) {
@@ -238,6 +240,8 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
 
 void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
 {
+    RS_TRACE_NAME_FMT_DEBUG("","RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}llu",
+        surfaceNodeId);
     ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];
     for (auto& [img_wptr, imageOp] : rsImageVec) {
         if (auto img = img_wptr.lock()) {
