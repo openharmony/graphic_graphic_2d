@@ -105,6 +105,7 @@ struct RS_EXPORT TypographyStyle {
     float paragraphSpacing{0.0f};
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
+    bool compressHeadPunctuation{false};
     bool enableAutoSpace{false};
     TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 

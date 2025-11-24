@@ -480,6 +480,7 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetEnumValueFromJS(env, argValue, "textHeightBehavior", pographyStyle.textHeightBehavior);
     SetBoolValueFromJS(env, argValue, "trailingSpaceOptimized", pographyStyle.isTrailingSpaceOptimized);
     SetBoolValueFromJS(env, argValue, "autoSpace", pographyStyle.enableAutoSpace);
+    SetBoolValueFromJS(env, argValue, "compressHeadPunctuation", pographyStyle.compressHeadPunctuation);
     SetEnumValueFromJS(env, argValue, "verticalAlign", pographyStyle.verticalAlignment);
     SetDoubleValueFromJS(env, argValue, "lineSpacing", pographyStyle.lineSpacing);
 }

@@ -617,6 +617,11 @@ typedef enum OH_Drawing_TypographyStyleAttributeId {
     TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE = 3,
     /** Font width */
     TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH = 4,
+    /** 
+     * compress head punctuation
+     * @since 23
+     */
+    TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION = 5,
 } OH_Drawing_TypographyStyleAttributeId;
 
 /**
@@ -746,6 +751,36 @@ OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeInt(OH_Drawing_Typogr
  */
 OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeInt(OH_Drawing_TypographyStyle* style,
     OH_Drawing_TypographyStyleAttributeId id, int* value);
+
+/**
+ * @brief Sets bool value to the typography style attribute.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param id Indicates the attribute id.
+ * @param value Indicates the value to set.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the style is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeBool(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, bool value);
+
+/**
+ * @brief Gets the bool type property's value from the typography style.
+ *
+ * @param style Indicates the pointer to an <b>OH_Drawing_TypographyStyle</b> object.
+ * @param id Indicates the attribute id.
+ * @param value Indicates the return value of the interface.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if the style or value is nullptr.
+ *         Returns {@link OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH} if the attribute id is not recognized or supported.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeBool(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, bool* value);
 
 /**
  * @brief Type of badge.
