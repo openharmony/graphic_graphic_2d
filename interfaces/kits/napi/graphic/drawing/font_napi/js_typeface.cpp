@@ -405,5 +405,38 @@ napi_value JsTypeface::TypefaceTransferDynamic(napi_env env, napi_callback_info 
     }
     return CreateJsTypeface(env, typeface);
 }
+
+napi_value JsTypeface::IsBold(napi_env env, napi_callback_info info)
+{
+    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    return (me != nullptr) ? me->OnIsBold(env, info) : nullptr;
+}
+
+napi_value JsTypeface::OnIsBold(napi_env env, napi_callback_info info)
+{
+    if (m_typeface == nullptr) {
+        ROSEN_LOGE("[NAPI]typeface is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    auto result = m_typeface->GetBold();
+    return CreateJsValue(env, result);
+}
+
+napi_value JsTypeface::IsItalic(napi_env env, napi_callback_info info)
+{
+    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    return (me != nullptr) ? me->OnIsItalic(env, info) : nullptr;
+}
+
+napi_value JsTypeface::OnIsItalic(napi_env env, napi_callback_info info)
+{
+    if (m_typeface == nullptr) {
+        ROSEN_LOGE("[NAPI]typeface is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    auto result = m_typeface->GetItalic();
+    return CreateJsValue(env, result);
+}
 } // namespace Drawing
 } // namespace OHOS::Rosen
