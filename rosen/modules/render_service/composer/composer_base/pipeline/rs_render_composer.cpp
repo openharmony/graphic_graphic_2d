@@ -302,8 +302,9 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         startTimeNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
     }
-    RS_TRACE_NAME_FMT("CommitLayers screenId:%" PRIu64 ", rate:%u, now:%" PRIu64 ", vsyncId:%" PRIu64 ", size:%zu, %s",
-        screenId_, currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
+    RS_TRACE_NAME_FMT("CommitLayers screenId:%" PRIu64 ", rate:%u, now:%" PRIu64 ", vsyncId:%" PRIu64 ", \
+        size:%zu, taskNum:%d %s",
+        screenId_, currentRate, param.frameTimestamp, param.vsyncId, layers.size(), unExecuteTaskNum_.load(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
     RS_LOGD("CommitLayers screenId:%" PRIu64 "rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
         size:%{public}zu, %{public}s", screenId_, currentRate, param.frameTimestamp, param.vsyncId, layers.size(),
@@ -421,6 +422,8 @@ void RSRenderComposer::ComposerProcess(RefreshRateParam param, uint32_t currentR
     std::function<void()> task = [this, param = param, currentRate = currentRate, hasGameScene = hasGameScene,
         transactionData = transactionData]() {
         if (hdiOutput_ == nullptr || rsRenderComposerContext_ == nullptr) {
+            acquiredBufferCount_--;
+            unExecuteTaskNum_--;
             RS_LOGE("ComposerProcess output or context is nullptr, screenId:%{public}" PRIu64, screenId_);
             return;
         }
@@ -1229,6 +1232,7 @@ void RSRenderComposer::ContextRegisterPostTask()
 void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& output)
 {
     std::function<void()> task = [this, output = output]() {
+        RS_TRACE_NAME("RSRenderComposer::OnScreenConnected");
         isDisconnected_ = false;
         hdiOutput_ = output;
         auto screenManager = CreateOrGetScreenManager();
@@ -1252,6 +1256,12 @@ void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& outpu
 void RSRenderComposer::OnScreenDisconnected()
 {
     std::function<void()> task = [this]() {
+        RS_TRACE_NAME("RSRenderComposer::OnScreenDisconnected");
+        if (unExecuteTaskNum_ == 0) {
+            RS_TRACE_NAME_FMT("OnScreenDisconnected Clear output, screenId : %" PRIu64, screenId_);
+            rsRenderComposerContext_ = nullptr;
+            hdiOutput_ = nullptr;
+        }
         isDisconnected_ = true;
     };
     PostTask(task);
