@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,6 +111,11 @@ bool Region::QuickReject(const RectI& rectI) const
 bool Region::QuickReject(const Region& region) const
 {
     return impl_->QuickReject(region);
+}
+
+bool Region::QuickContains(const RectI& rectI) const
+{
+    return impl_->QuickContains(rectI);
 }
 
 void Region::Translate(int32_t x, int32_t y)

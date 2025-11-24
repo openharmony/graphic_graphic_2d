@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@ public:
     virtual bool Op(const Region& region, const RegionOp op) = 0;
     virtual bool QuickReject(const RectI& rectI) const = 0;
     virtual bool QuickReject(const Region& region) const = 0;
+    virtual bool QuickContains(const RectI& rectI) const = 0;
     virtual void Translate(int32_t x, int32_t y) = 0;
     virtual void Clone(const Region& other) = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;

@@ -546,6 +546,11 @@ bool SkiaPath::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathM
         &matrix->GetImpl<SkiaMatrix>()->ExportMatrix(), skFlag);
 }
 
+bool SkiaPath::IsInverseFillType() const
+{
+    return path_.isInverseFillType();
+}
+
 std::shared_ptr<Data> SkiaPath::Serialize() const
 {
     if (path_.isEmpty()) {

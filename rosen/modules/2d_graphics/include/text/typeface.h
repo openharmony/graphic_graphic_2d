@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,6 +86,12 @@ public:
      * @return        The number of bytes actually copied into data.
      */
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const;
+
+    /**
+     * @brief   Get fontStyle is bold.
+     * @return  If fontStyle is bold, return true.
+     */
+    bool GetBold() const;
 
     /**
      * @brief   Get fontStyle is italic.

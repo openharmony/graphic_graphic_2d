@@ -28,6 +28,11 @@ static Path* CastToPath(OH_Drawing_Path* cPath)
     return reinterpret_cast<Path*>(cPath);
 }
 
+static const Path* CastToPath(const OH_Drawing_Path* cPath)
+{
+    return reinterpret_cast<const Path*>(cPath);
+}
+
 static const Matrix* CastToMatrix(const OH_Drawing_Matrix* cMatrix)
 {
     return reinterpret_cast<const Matrix*>(cMatrix);
@@ -712,4 +717,24 @@ void OH_Drawing_PathGetBounds(OH_Drawing_Path* cPath, OH_Drawing_Rect* cRect)
         return;
     }
     *rect = path->GetBounds();
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathIsInverseFillType(const OH_Drawing_Path* cPath, bool* isInverse)
+{
+    const Path* path = CastToPath(cPath);
+    if (path == nullptr || isInverse == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isInverse = path->IsInverseFillType();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_PathToggleInverseFillType(OH_Drawing_Path* cPath)
+{
+    Path* path = CastToPath(cPath);
+    if (path == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    path->ToggleInverseFillType();
+    return OH_DRAWING_SUCCESS;
 }

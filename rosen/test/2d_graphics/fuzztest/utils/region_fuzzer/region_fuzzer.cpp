@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,7 @@ bool RegionFuzzTest001(const uint8_t* data, size_t size)
     uint32_t op = GetObject<uint32_t>();
     region.Op(regionOne, static_cast<RegionOp>(op % OPTYPE_SIZE));
     region.QuickReject(rect);
+    region.QuickContains(RectI{GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>()});
     if (str != nullptr) {
         delete[] str;
         str = nullptr;

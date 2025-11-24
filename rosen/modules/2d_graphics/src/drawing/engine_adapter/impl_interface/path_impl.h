@@ -111,6 +111,7 @@ public:
     virtual bool IsRect(Rect* rect, bool* isClosed, PathDirection* direction) = 0;
     virtual void SetPath(const Path& path) = 0;
     virtual bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) = 0;
+    virtual bool IsInverseFillType() const = 0;
     virtual std::shared_ptr<Data> Serialize() const = 0;
     virtual bool Deserialize(std::shared_ptr<Data> data) = 0;
 };
