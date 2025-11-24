@@ -554,12 +554,11 @@ static uint32_t ParseFractionStops(
     napi_env env, napi_value argv[], std::vector<float> &positions, std::vector<float> &degrees)
 {
     uint32_t arrayLength = 0;
-    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_3]) == napi_object) {
-        napi_get_array_length(env, argv[NUM_3], &arrayLength);
-    } else {
+    if (EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_3]) != napi_object) {
         EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing fractionStops fail");
         return ERR_INVALID_PARAM;
     }
+    napi_get_array_length(env, argv[NUM_3], &arrayLength);
 
     for (uint32_t i = 0; i < arrayLength; ++i) {
         napi_value element;
@@ -601,23 +600,27 @@ napi_value FilterNapi::EllipticalGradientBlur(napi_env env, napi_callback_info i
         status == napi_ok, nullptr, EFFECT_LOG_E("FilterNapi EllipticalGradientBlur parsing input fail"));
 
     double blurRadius = 0.0;
-    if (ParseBlurRadius(env, argv, blurRadius) == ERR_INVALID_PARAM)
+    if (ParseBlurRadius(env, argv, blurRadius) == ERR_INVALID_PARAM) {
         return nullptr;
+    }
 
     double centerX = 0.0;
     double centerY = 0.0;
-    if (ParseCenter(env, argv, centerX, centerY) == ERR_INVALID_PARAM)
+    if (ParseCenter(env, argv, centerX, centerY) == ERR_INVALID_PARAM) {
         return nullptr;
+    }
 
     double maskRadiusX = 0.0;
     double maskRadiusY = 0.0;
-    if (ParseMaskRadius(env, argv, maskRadiusX, maskRadiusY) == ERR_INVALID_PARAM)
+    if (ParseMaskRadius(env, argv, maskRadiusX, maskRadiusY) == ERR_INVALID_PARAM) {
         return nullptr;
+    }
 
     std::vector<float> positions;
     std::vector<float> degrees;
-    if (ParseFractionStops(env, argv, positions, degrees) == ERR_INVALID_PARAM)
+    if (ParseFractionStops(env, argv, positions, degrees) == ERR_INVALID_PARAM) {
         return nullptr;
+    }
 
     FilterNapi *thisFilter = nullptr;
     status = napi_unwrap(env, _this, reinterpret_cast<void **>(&thisFilter));
