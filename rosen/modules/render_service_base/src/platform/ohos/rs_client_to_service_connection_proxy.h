@@ -120,7 +120,7 @@ public:
     bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    int32_t RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
 
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;

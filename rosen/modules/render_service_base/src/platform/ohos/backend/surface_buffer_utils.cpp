@@ -64,19 +64,14 @@ sptr<SurfaceBuffer> SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid_t pid, int
         .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
         .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE |
                  BUFFER_USAGE_MEM_DMA |         // DMA access
-                 BUFFER_USAGE_MEM_MMZ_CACHE,    // MMZ cache
+                 BUFFER_USAGE_ALLOC_NO_IPC |    // MMZ cache
+                 BUFFER_USAGE_HW_RENDER |
+                 BUFFER_USAGE_HW_TEXTURE,
         .timeout = 0,
     };
     GSError ret = buffer->Alloc(config);
     if (ret != GSERROR_OK) {
         RS_LOGE("CreateCanvasSurfaceBuffer: Alloc failed, ret=%{public}d", ret);
-        return nullptr;
-    }
-
-    // Verify virtual address mapping
-    void* virAddr = buffer->GetVirAddr();
-    if (virAddr == nullptr) {
-        RS_LOGE("CreateCanvasSurfaceBuffer: GetVirAddr failed");
         return nullptr;
     }
 

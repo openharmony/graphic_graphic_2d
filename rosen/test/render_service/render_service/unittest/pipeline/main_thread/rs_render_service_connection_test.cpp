@@ -525,7 +525,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: RegisterCanvasCallbackAndCleanTest
- * @tc.desc: Test RegisterCanvasCallback and CleanCanvasCallbacks functions
+ * @tc.desc: Test RegisterCanvasCallback and CleanCanvasCallbacksAndPendingBuffer functions
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -547,9 +547,9 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
     int32_t result = rsRenderServiceConnection->RegisterCanvasCallback(mockCallback);
     EXPECT_EQ(result, ERR_OK);
 
-    // Test CleanCanvasCallbacks
+    // Test CleanCanvasCallbacksAndPendingBuffer
     // This should clean up the registered callback for the remote pid
-    rsRenderServiceConnection->CleanCanvasCallbacks();
+    rsRenderServiceConnection->CleanCanvasCallbacksAndPendingBuffer();
 
     // Verify cleanup was successful by checking that re-registering works
     result = rsRenderServiceConnection->RegisterCanvasCallback(mockCallback);
@@ -565,8 +565,8 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
     result = rsRenderServiceConnectionWithNullThread->RegisterCanvasCallback(mockCallback);
     EXPECT_EQ(result, INVALID_ARGUMENTS);
 
-    // Test CleanCanvasCallbacks with nullptr mainThread - should return early without crash
-    rsRenderServiceConnectionWithNullThread->CleanCanvasCallbacks();
+    // Test CleanCanvasCallbacksAndPendingBuffer with nullptr mainThread - should return early without crash
+    rsRenderServiceConnectionWithNullThread->CleanCanvasCallbacksAndPendingBuffer();
     // No assertion needed - just verify it doesn't crash
 }
 #endif

@@ -231,7 +231,7 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             connection->CleanFrameRateLinkers();
             connection->CleanBrightnessInfoChangeCallbacks();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-            connection->CleanCanvasCallbacks();
+            connection->CleanCanvasCallbacksAndPendingBuffer();
 #endif
         }).wait();
     mainThread_->ScheduleTask(
@@ -1054,27 +1054,33 @@ int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, Bright
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-void RSClientToServiceConnection::CleanCanvasCallbacks() noexcept
+void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcept
 {
     if (mainThread_ == nullptr) {
         return;
     }
-    mainThread_->GetContext().RegisterCanvasCallback(remotePid_, nullptr);
+    auto& context = mainThread_->GetContext();
+    context.RegisterCanvasCallback(remotePid_, nullptr);
+    context.ClearPendingBufferByPid(remotePid_);
 }
 
-int32_t RSClientToServiceConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+void RSClientToServiceConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
     if (mainThread_ == nullptr) {
-        return INVALID_ARGUMENTS;
+        return;
     }
     mainThread_->GetContext().RegisterCanvasCallback(remotePid_, callback);
-    return ERR_OK;
 }
 
 int32_t RSClientToServiceConnection::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
     if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    if (ExtractPid(nodeId) != remotePid_) {
+        RS_LOGE("SubmitCanvasPreAllocatedBuffer: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d",
+            nodeId, remotePid_);
         return INVALID_ARGUMENTS;
     }
     auto task = [this, nodeId, buffer, resetSurfaceIndex]() {

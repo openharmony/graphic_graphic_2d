@@ -162,7 +162,17 @@ private:
     static bool CheckNodeAndSurfaceBufferState(
         std::weak_ptr<RSCanvasDrawingNode> weakNode, NodeId nodeId, uint32_t resetSurfaceIndex);
 
+    struct ResetSurfaceParams {
+        int width = 0;
+        int height = 0;
+        uint32_t resetSurfaceIndex = 0;
+
+        ResetSurfaceParams(int w, int h, int index) : width(w), height(h), resetSurfaceIndex(index) {}
+    };
+
     bool isNeverOnTree_ = true;
+
+    std::unique_ptr<ResetSurfaceParams> resetSurfaceParams_ = nullptr;
 
     // Canvas SurfaceBuffer management for memory attribution
     // This buffer contains DMA memory that RS and app both hold, causing memory to be counted to app process.

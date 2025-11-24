@@ -129,11 +129,15 @@ bool RSCanvasDrawingNode::ResetSurface(int width, int height)
         resetSurfaceIndex = resetSurfaceIndex_;
         canvasSurfaceBuffer_ = nullptr;
     }
-    if (PRE_ALLOCATE_DMA_ENABLED && !isNeverOnTree_) {
-        std::weak_ptr<RSCanvasDrawingNode> weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
-        ffrt::submit([weakNode, nodeId = GetId(), width, height, resetSurfaceIndex]() {
-            PreAllocateDMABuffer(weakNode, nodeId, width, height, resetSurfaceIndex);
-        });
+    if (PRE_ALLOCATE_DMA_ENABLED) {
+        if (isNeverOnTree_) {
+            resetSurfaceParams_ = std::make_unique<ResetSurfaceParams>(width, height, resetSurfaceIndex);
+        } else {
+            auto weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
+            ffrt::submit([weakNode, nodeId = GetId(), width, height, resetSurfaceIndex]() {
+                PreAllocateDMABuffer(weakNode, nodeId, width, height, resetSurfaceIndex);
+            });
+        }
     }
 #endif
     std::unique_ptr<RSCommand> command =
@@ -187,8 +191,8 @@ void RSCanvasDrawingNode::PreAllocateDMABuffer(
         // !!! Do not set canvasSurfaceBuffer_ to nullptr, it was set to nullptr in function ResetSurface,
         // if it's not nullptr at this time, then it must have been changed by callback.
         RS_LOGE("PreAllocateDMABuffer: Pre-allocated DMA buffer submitted to RS fail, nodeId=%{public}" PRIu64
-                ", width=%{public}d, height=%{public}d, resetSurfaceIndex=%{public}u",
-            nodeId, width, height, resetSurfaceIndex);
+                ", width=%{public}d, height=%{public}d, resetSurfaceIndex=%{public}u, result=%{public}d",
+            nodeId, width, height, resetSurfaceIndex, result);
     }
 }
 
@@ -339,6 +343,15 @@ void RSCanvasDrawingNode::SetIsOnTheTree(bool onTheTree)
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (isNeverOnTree_ && onTheTree) {
         isNeverOnTree_ = false;
+        if (resetSurfaceParams_ != nullptr) {
+            auto weakNode = std::static_pointer_cast<RSCanvasDrawingNode>(shared_from_this());
+            ffrt::submit(
+                [weakNode, nodeId = GetId(), width = resetSurfaceParams_->width, height = resetSurfaceParams_->height,
+                    resetSurfaceIndex = resetSurfaceParams_->resetSurfaceIndex]() {
+                    PreAllocateDMABuffer(weakNode, nodeId, width, height, resetSurfaceIndex);
+                });
+            resetSurfaceParams_ = nullptr;
+        }
     }
 #endif
     RSNode::SetIsOnTheTree(onTheTree);

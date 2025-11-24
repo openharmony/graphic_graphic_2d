@@ -1994,10 +1994,7 @@ void RSRenderServiceClient::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCa
         return;
     }
 
-    int32_t ret = clientToService->RegisterCanvasCallback(callback);
-    if (ret != ERR_OK) {
-        ROSEN_LOGE("RSRenderServiceClient::RegisterCanvasCallback failed, ret=%{public}d", ret);
-    }
+    clientToService->RegisterCanvasCallback(callback);
 }
 
 int32_t RSRenderServiceClient::SubmitCanvasPreAllocatedBuffer(

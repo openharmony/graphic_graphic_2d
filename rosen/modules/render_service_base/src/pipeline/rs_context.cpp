@@ -140,18 +140,12 @@ bool RSContext::AddPendingBuffer(NodeId nodeId, const sptr<SurfaceBuffer>& buffe
 
     auto& cache = it->second; // std::pair<currentResetSurfaceIndex, BufferMap>
     auto currentResetSurfaceIndex = cache.first;
-    auto& nodeBufferMap = cache.second; // resetSurfaceIndex -> SurfaceBuffer
-    auto node = GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(nodeId);
-    if (node == nullptr) {
-        RS_LOGE("RSContext::AddPendingBuffer nodeId=%{public}" PRIu64 ", node not exists", nodeId);
-        nodeBufferMap.clear();
-        pendingBufferMap_.erase(it);
-        return false;
-    } else if (resetSurfaceIndex <= currentResetSurfaceIndex) {
+    if (resetSurfaceIndex <= currentResetSurfaceIndex) {
         RS_LOGW("RSContext::AddPendingBuffer nodeId=%{public}" PRIu64 " ignored (old resetSurfaceIndex)", nodeId);
         return false;
     }
 
+    auto& nodeBufferMap = cache.second; // resetSurfaceIndex -> SurfaceBuffer
     auto bufferIt = nodeBufferMap.find(resetSurfaceIndex);
     if (bufferIt == nodeBufferMap.end()) {
         nodeBufferMap.emplace(resetSurfaceIndex, buffer);
@@ -191,20 +185,50 @@ sptr<SurfaceBuffer> RSContext::AcquirePendingBuffer(NodeId nodeId, uint32_t rese
         if (bufferIt->first <= resetSurfaceIndex) {
             bufferIt = nodeBufferMap.erase(bufferIt);
             continue;
+        } else {
+            break;
         }
-        ++bufferIt;
     }
 
     return buffer;
 }
 
-void RSContext::ClearPendingBuffer(NodeId nodeId)
+void RSContext::RemovePendingBuffer(NodeId nodeId, uint32_t resetSurfaceIndex)
+{
+    std::lock_guard<std::mutex> lock(pendingBufferMutex_);
+    auto it = pendingBufferMap_.find(nodeId);
+    if (it == pendingBufferMap_.end()) {
+        return;
+    }
+
+    auto& nodeBufferMap = it->second.second;
+    auto bufferIt = nodeBufferMap.find(resetSurfaceIndex);
+    if (bufferIt != nodeBufferMap.end()) {
+        nodeBufferMap.erase(bufferIt);
+    }
+}
+
+void RSContext::ClearPendingBufferByNodeId(NodeId nodeId)
 {
     std::lock_guard<std::mutex> lock(pendingBufferMutex_);
     auto it = pendingBufferMap_.find(nodeId);
     if (it != pendingBufferMap_.end()) {
         it->second.second.clear();
         pendingBufferMap_.erase(it);
+    }
+}
+
+void RSContext::ClearPendingBufferByPid(pid_t pid)
+{
+    std::lock_guard<std::mutex> lock(pendingBufferMutex_);
+    auto it = pendingBufferMap_.begin();
+    while (it != pendingBufferMap_.end()) {
+        if (ExtractPid(it->first) == pid) {
+            it->second.second.clear();
+            it = pendingBufferMap_.erase(it);
+        } else {
+            ++it;
+        }
     }
 }
 #endif

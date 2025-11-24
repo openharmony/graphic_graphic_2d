@@ -72,7 +72,7 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     if (PRE_ALLOCATE_DMA_ENABLED) {
-        RSMainThread::Instance()->GetContext().ClearPendingBuffer(GetId());
+        RSMainThread::Instance()->GetContext().ClearPendingBufferByNodeId(GetId());
     }
 #endif
 }
@@ -875,8 +875,9 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
         if (!surface_) {
 #ifdef ROSEN_OHOS
             if ((PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED) && params != nullptr) {
-                RSMainThread::Instance()->GetContext().NotifyCanvasSurfaceBufferChanged(
-                    nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+                auto& context = RSMainThread::Instance()->GetContext();
+                context.NotifyCanvasSurfaceBufferChanged(nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+                context.RemovePendingBuffer(nodeId_, params->GetCanvasDrawingResetSurfaceIndex());
             }
 #endif
             isGpuSurface_ = false;
@@ -1014,8 +1015,9 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
 #ifdef ROSEN_OHOS
         const auto& params = GetRenderParams();
         if ((PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED) && params != nullptr) {
-            RSMainThread::Instance()->GetContext().NotifyCanvasSurfaceBufferChanged(
-                nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+            auto& context = RSMainThread::Instance()->GetContext();
+            context.NotifyCanvasSurfaceBufferChanged(nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+            context.RemovePendingBuffer(nodeId_, params->GetCanvasDrawingResetSurfaceIndex());
         }
 #endif
         isGpuSurface_ = false;
@@ -1236,8 +1238,10 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRegionForDfx(Drawing::Canvas& canvas
 void RSCanvasDrawingRenderNodeDrawable::DumpSubDrawableTree(std::string& out) const
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    out += ", dmaAllocationCount:" + std::to_string(dmaAllocationCount_.load());
-    out += ", dmaFallbackCount:" + std::to_string(dmaFallbackCount_.load());
+    if (PRE_ALLOCATE_DMA_ENABLED) {
+        out += ", dmaAllocationCount:" + std::to_string(dmaAllocationCount_.load());
+        out += ", dmaFallbackCount:" + std::to_string(dmaFallbackCount_.load());
+    }
 #endif
 }
 } // namespace OHOS::Rosen::DrawableV2

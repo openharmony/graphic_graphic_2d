@@ -27,6 +27,10 @@
 #include "transaction/rs_marshalling_helper.h"
 #include "rs_trace.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "buffer_utils.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -5650,45 +5654,37 @@ ErrCode RSClientToServiceConnectionProxy::SetOptimizeCanvasDirtyPidList(const st
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-int32_t RSClientToServiceConnectionProxy::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+void RSClientToServiceConnectionProxy::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterCanvasCallback: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
+        return;
     }
 
     if (callback) {
         if (!data.WriteBool(true)) {
             ROSEN_LOGE("RegisterCanvasCallback: WriteBool[true] err");
-            return WRITE_PARCEL_ERR;
+            return;
         }
         if (!data.WriteRemoteObject(callback->AsObject())) {
             ROSEN_LOGE("RegisterCanvasCallback: WriteRemoteObject callback err");
-            return WRITE_PARCEL_ERR;
+            return;
         }
     } else if (!data.WriteBool(false)) {
         ROSEN_LOGE("RegisterCanvasCallback: WriteBool[false] err.");
-        return WRITE_PARCEL_ERR;
+        return;
     }
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("RegisterCanvasCallback: Send Request err.");
-        return RS_CONNECTION_ERROR;
+        ROSEN_LOGE("RegisterCanvasCallback: Send Request err, errCode=%{public}d", err);
     }
-
-    int32_t result = 0;
-    if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("RegisterCanvasCallback: Read result failed");
-        return READ_PARCEL_ERR;
-    }
-    return result;
 }
 
 int32_t RSClientToServiceConnectionProxy::SubmitCanvasPreAllocatedBuffer(
@@ -5714,18 +5710,9 @@ int32_t RSClientToServiceConnectionProxy::SubmitCanvasPreAllocatedBuffer(
         return WRITE_PARCEL_ERR;
     }
 
-    if (buffer) {
-        if (!data.WriteBool(true)) {
-            ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteBool[true] err.");
-            return WRITE_PARCEL_ERR;
-        }
-        GSError gsRet = buffer->WriteToMessageParcel(data);
-        if (gsRet != GSERROR_OK) {
-            ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteToMessageParcel err, ret=%{public}d.", gsRet);
-            return WRITE_PARCEL_ERR;
-        }
-    } else if (!data.WriteBool(false)) {
-        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteBool[false] err.");
+    GSError gsRet = WriteSurfaceBufferImpl(data, 0, buffer);
+    if (gsRet != GSERROR_OK) {
+        ROSEN_LOGE("SubmitCanvasPreAllocatedBuffer: WriteToMessageParcel err, ret=%{public}d.", gsRet);
         return WRITE_PARCEL_ERR;
     }
 

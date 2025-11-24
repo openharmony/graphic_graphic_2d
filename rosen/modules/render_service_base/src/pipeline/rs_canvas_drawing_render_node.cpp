@@ -783,11 +783,6 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
     opCountAfterReset_ = 0;
 }
 
-uint32_t RSCanvasDrawingRenderNode::GetResetSurfaceIndex() const
-{
-    return stagingRenderParams_ != nullptr ? stagingRenderParams_->GetCanvasDrawingResetSurfaceIndex() : 0;
-}
-
 const std::map<ModifierNG::RSModifierType, ModifierCmdList>& RSCanvasDrawingRenderNode::GetDrawCmdListsNG() const
 {
     return drawCmdListsNG_;

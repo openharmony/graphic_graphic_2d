@@ -62,7 +62,7 @@ private:
     void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks() noexcept;
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    void CleanCanvasCallbacks() noexcept;
+    void CleanCanvasCallbacksAndPendingBuffer() noexcept;
 #endif
     void CleanAll(bool toDelete = false) noexcept;
 
@@ -148,7 +148,7 @@ private:
     int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    int32_t RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
 
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;

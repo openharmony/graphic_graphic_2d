@@ -25,6 +25,10 @@
 #include "securec.h"
 #include "sys_binder.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "buffer_utils.h"
+#endif
+
 #include "command/rs_command_factory.h"
 #include "command/rs_command_verify_helper.h"
 #include "common/rs_xcollie.h"
@@ -929,12 +933,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (remoteObject != nullptr) {
                 callback = iface_cast<RSICanvasSurfaceBufferCallback>(remoteObject);
             }
-            int32_t status = RegisterCanvasCallback(callback);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_CANVAS_CALLBACK Write status failed, "
-                    "pid=%{public}d, status=%{public}d!", GetCallingPid(), status);
-                ret = ERR_INVALID_REPLY;
-            }
+            RegisterCanvasCallback(callback);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER): {
@@ -951,27 +950,17 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            bool hasBuffer = false;
-            if (!data.ReadBool(hasBuffer)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read buffer flag failed!");
+            sptr<SurfaceBuffer> buffer = nullptr;
+            uint32_t sequence = 0U;
+            auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+                return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+            };
+            GSError gsRet = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
+            if (gsRet != GSERROR_OK) {
+                RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER ReadFromMessageParcel "
+                    "failed, ret=%{public}d!", gsRet);
                 ret = ERR_INVALID_DATA;
                 break;
-            }
-            sptr<SurfaceBuffer> buffer = nullptr;
-            if (hasBuffer) {
-                buffer = SurfaceBuffer::Create();
-                if (buffer == nullptr) {
-                    RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Create buffer failed");
-                    ret = ERR_INVALID_DATA;
-                    break;
-                }
-                GSError gsRet = buffer->ReadFromMessageParcel(data);
-                if (gsRet != GSERROR_OK) {
-                    RS_LOGE("RSClientToServiceConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER ReadFromMessageParcel "
-                        "failed, ret=%{public}d!", gsRet);
-                    ret = ERR_INVALID_DATA;
-                    break;
-                }
             }
             int32_t status = SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
             if (!reply.WriteInt32(status)) {

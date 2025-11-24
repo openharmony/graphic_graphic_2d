@@ -166,7 +166,7 @@ public:
     virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    virtual int32_t RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) = 0;
+    virtual void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) = 0;
 
     virtual int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;

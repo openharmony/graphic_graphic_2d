@@ -138,7 +138,11 @@ public:
 
     sptr<SurfaceBuffer> AcquirePendingBuffer(NodeId nodeId, uint32_t resetSurfaceIndex);
 
-    void ClearPendingBuffer(NodeId nodeId);
+    void RemovePendingBuffer(NodeId nodeId, uint32_t resetSurfaceIndex);
+
+    void ClearPendingBufferByNodeId(NodeId nodeId);
+
+    void ClearPendingBufferByPid(pid_t pid);
 #endif
 
     void SetVsyncRequestFunc(const std::function<void()>& taskRunner)
