@@ -102,7 +102,7 @@ NapiTextResult NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBas
     napi_value resource = nullptr;
     stat = napi_create_string_utf8(contextBase->env, name.c_str(), NAPI_AUTO_LENGTH, &resource);
     NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR,
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "Failed to create string,", promise),
+        return NapiTextResult::Invalid("Failed to create string,", promise),
         "Failed to create string, stat:%d", static_cast<int>(stat));
     stat = napi_create_async_work(
         contextBase->env, nullptr, resource,
@@ -123,13 +123,13 @@ NapiTextResult NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBas
         },
         reinterpret_cast<void*>(contextBase.GetRefPtr()), &contextBase->work);
     NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR,
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "Failed to create async work", promise),
-        "Failed to create async work, stat:%d", static_cast<int>(stat));
+        return NapiTextResult::Invalid("Failed to create async work", promise), "Failed to create async work, stat:%d",
+        static_cast<int>(stat));
 
     stat = napi_queue_async_work_with_qos(contextBase->env, contextBase->work, napi_qos_user_initiated);
     NAPI_CHECK_ARGS(contextBase, stat == napi_ok, stat, TextErrorCode::ERROR,
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "Failed to queue async work", promise),
-        "Failed to queue async work, stat:%d", static_cast<int>(stat));
+        return NapiTextResult::Invalid("Failed to queue async work", promise), "Failed to queue async work, stat:%d",
+        static_cast<int>(stat));
     return NapiTextResult::Success(promise);
 }
 

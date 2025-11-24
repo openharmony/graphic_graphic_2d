@@ -50,7 +50,7 @@ AniTextResult LoadString(ani_env* env, ani_object path, std::shared_ptr<OHOS::Ro
     }
     if (!AniTextUtils::SplitAbsoluteFontPath(pathStr)) {
         TEXT_LOGE("Failed to split absolute font path");
-        return AniTextResult::Invalid("The file format is like 'file://system/fonts...'");
+        return AniTextResult::Invalid("The file format is like 'file:///system/fonts...'");
     }
     auto result = AniTextUtils::ReadFile(pathStr, dataLen, data);
     if (!result.success) {

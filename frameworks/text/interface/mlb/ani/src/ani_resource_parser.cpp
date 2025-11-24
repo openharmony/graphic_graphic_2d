@@ -79,7 +79,7 @@ AniTextResult AniResourceParser::ResolveResource(
         }
         if (!AniTextUtils::SplitAbsoluteFontPath(rPath)) {
             TEXT_LOGE("Failed to split absolute font path");
-            return AniTextResult::Invalid("The file format is like 'file://system/fonts...'");
+            return AniTextResult::Invalid("The file format is like 'file:///system/fonts...'");
         }
         return AniTextUtils::ReadFile(rPath, dataLen, data);
     } else if (resource.type == RESOURCE_RAWFILE) {

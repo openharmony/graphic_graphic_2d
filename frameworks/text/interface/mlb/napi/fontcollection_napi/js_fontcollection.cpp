@@ -333,7 +333,7 @@ NapiTextResult JsFontCollection::OnLoadFont(napi_env env, napi_callback_info inf
         if (SplitAbsolutePath(path)) {
             return this->LoadFontFromPath(env, path, familyName, index);
         } else {
-            return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "the file format is like file:///system/fonts..");
+            return NapiTextResult::Invalid("the file format is like 'file:///system/fonts...'");
         }
     };
     if (ConvertFromJsValue(env, argv[1], familySrc)) {
@@ -365,9 +365,9 @@ NapiTextResult JsFontCollection::OnClearCaches(napi_env env, napi_callback_info 
 {
     if (fontcollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
-        return NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "Internal Error",
-            NapiThrowError(
-                env, TextErrorCode::ERROR_INVALID_PARAM, "JsFontCollection::OnClearCaches fontCollection is nullptr."));
+        return NapiTextResult::Invalid(
+            "Internal Error", NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM,
+                                  "JsFontCollection::OnClearCaches fontCollection is nullptr."));
     }
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, fontcollection_)) {
@@ -405,7 +405,7 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
         NAPI_CHECK_ARGS_WITH_STATEMENT(context, SplitAbsolutePath(context->filePath), napi_invalid_arg,
             TextErrorCode::ERROR_INVALID_PARAM, return,
             context->result =
-                NapiTextResult::Error(MLB::ERROR_INVALID_PARAM, "the file format is like file:///system/fonts.."),
+                NapiTextResult::Invalid("the file format is like 'file:///system/fonts...'"),
             "Failed to get font file properties");
         context->result =
             fontCollection->LoadFontFromPath(context->env, context->filePath, context->familyName, context->index);
@@ -416,8 +416,7 @@ void JsFontCollection::OnLoadFontAsyncExecutor(sptr<FontArgumentsConcreteContext
             if (SplitAbsolutePath(path)) {
                 return fontCollection->LoadFontFromPath(context->env, path, context->familyName, context->index);
             } else {
-                return NapiTextResult::Error(
-                    MLB::ERROR_INVALID_PARAM, "the file format is like file:///system/fonts..");
+                return NapiTextResult::Invalid("the file format is like 'file:///system/fonts...'");
             }
         };
         auto fileCB = [context, fontCollection](const void* data, size_t size) {
