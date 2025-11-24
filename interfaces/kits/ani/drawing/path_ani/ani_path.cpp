@@ -33,6 +33,7 @@ static const std::array g_methods = {
         reinterpret_cast<void*>(AniPath::ConstructorWithPath) },
     ani_native_function { "arcTo", "dddddd:", reinterpret_cast<void*>(AniPath::ArcTo) },
     ani_native_function { "reset", ":", reinterpret_cast<void*>(AniPath::Reset) },
+    ani_native_function { "isRect", nullptr, reinterpret_cast<void*>(AniPath::IsRect) },
     ani_native_function { "getSegment", nullptr, reinterpret_cast<void*>(AniPath::GetSegment) },
     ani_native_function { "getPathIterator", ":C{@ohos.graphics.drawing.drawing.PathIterator}",
         reinterpret_cast<void*>(AniPath::GetPathIterator) },
