@@ -85,6 +85,7 @@ size_t CmdList::AddImageData(const void* data, size_t size)
 
 const void* CmdList::GetImageData(size_t offset, size_t size) const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return imageAllocator_.OffsetToAddr(offset, size);
 }
 
