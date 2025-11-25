@@ -95,14 +95,14 @@ void NdkTypographyStyleTest::PrepareWorkForAutoSpaceTest(std::string& text, doub
     OH_Drawing_TypographyLayout(typography2_, DEFAULT_LAYOUT_WIDTH);
 }
 
-void NdkTypographyStyleTest::PrepareWorkForCompressPunctuationTest(std::string& text, double layoutWidth, 
+void NdkTypographyStyleTest::PrepareWorkForCompressPunctuationTest(std::string& text, double layoutWidth,
     int fontFamiliesNumber, const char* fontFamilies[], bool isSetFontFeatureSs08)
 {
     PrepareWorkForTypographyStyleTest();
     // paragraph1 with compressPunctuation
     typoStyle_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle_, nullptr);
-    OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_, TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION , true);
+    OH_Drawing_SetTypographyStyleAttributeBool(typoStyle_, TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, true);
     handler_ = OH_Drawing_CreateTypographyHandler(typoStyle_, fontCollection_);
     ASSERT_NE(handler_, nullptr);
     OH_Drawing_SetTextStyleFontSize(txtStyle_, DEFAULT_FONT_SIZE1);
@@ -121,7 +121,7 @@ void NdkTypographyStyleTest::PrepareWorkForCompressPunctuationTest(std::string& 
     // paragraph2 without compressPunctuation
     typoStyle2_ = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle2_, nullptr);
-    OH_Drawing_SetTypographyStyleAttributeBool(typoStyle2_, TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION , false);
+    OH_Drawing_SetTypographyStyleAttributeBool(typoStyle2_, TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, false);
     handler2_ = OH_Drawing_CreateTypographyHandler(typoStyle2_, fontCollection_);
     ASSERT_NE(handler2_, nullptr);
     OH_Drawing_TypographyHandlerPushTextStyle(handler2_, txtStyle_);
@@ -285,15 +285,15 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation001, TestSize.Leve
     constexpr double lineWidthComp2 = 124.999847;
     constexpr double lineWidthComp3 = 124.999908;
     constexpr double lineWidthComp4 = 124.999969;
-    constexpr size_t lineNumber = 11;
+    constexpr size_t lineNum = 11;
 
-    double lineWidthsTrue[lineNumber] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp2,
+    double lineWidthsTrue[lineNum] = { lineWidthComp1, lineWidthComp1, lineWidthComp2, lineWidthComp2, lineWidthComp2,
         lineWidthComp2, lineWidthComp3, lineWidthComp4, lineWidthComp4, lineWidthComp4, lineWidthComp4 };
     size_t lineNumberTrue = OH_Drawing_TypographyGetLineCount(typography_);
     size_t lineNumberFalse = OH_Drawing_TypographyGetLineCount(typography2_);
     EXPECT_EQ(lineNumberTrue, lineNumberFalse);
-    EXPECT_EQ(lineNumberTrue, lineNumber);
-    for (int i = 0; i < lineNumber; i++) {
+    EXPECT_EQ(lineNumberTrue, lineNum);
+    for (int i = 0; i < lineNum; i++) {
         double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, i);
         EXPECT_NEAR(lineTrue, lineWidthsTrue[i], FLOAT_DATA_EPSILON);
         double lineFalse = OH_Drawing_TypographyGetLineWidth(typography2_, i);
@@ -315,8 +315,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation002, TestSize.Leve
     // Prepare Paragraph 1 and Paragraph 2, and turn on and turn off compressPunctuation respectively.
     std::string text = "‘好的 “标签";
     PrepareWorkForCompressPunctuationTest(text, DEFAULT_LAYOUT_WIDTH1);
-    constexpr double lineWidthComp1 = 124.999878;
-    constexpr double lineWidthComp2 = 112.049896;
+    constexpr double lineWidthComp1 = 112.049896;
+    constexpr double lineWidthComp2 = 124.999878;
     constexpr size_t lineNumber = 2;
 
     double lineWidthsFalse[lineNumber] = { lineWidthComp1, lineWidthComp2 };
@@ -372,8 +372,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation004, TestSize.Leve
         0x73, 0x20, 0x53, 0x43};
     const char* fontFamilies[] = { fontFamiliesTest };
     PrepareWorkForCompressPunctuationTest(text, DEFAULT_LAYOUT_WIDTH1, 1, fontFamilies);
-    constexpr double lineWidthComp1 = 124.999878;
-    constexpr double lineWidthComp2 = 112.049896;
+    constexpr double lineWidthComp1 = 112.049896;
+    constexpr double lineWidthComp2 = 124.999878;
     constexpr size_t lineNumber = 2;
 
     double lineWidthsFalse[lineNumber] = { lineWidthComp1, lineWidthComp2 };
@@ -431,7 +431,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation006, TestSize.Leve
         0x73, 0x20, 0x53, 0x43};
     const char* fontFamilies[] = { fontFamiliesTest };
     constexpr double lineWidthComp1 = 174.999832;
-    constexpr double lineWidthComp2 = 199.999802;
+    constexpr double lineWidthComp2 = 174.999817;
+    constexpr double lineWidthComp3 = 199.999802;
     PrepareWorkForCompressPunctuationTest(text, DEFAULT_LAYOUT_WIDTH1, 1, fontFamilies, true);
 
     double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, 0);
@@ -441,8 +442,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation006, TestSize.Leve
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
     double line1False = OH_Drawing_TypographyGetLineWidth(typography2_, 1);
     EXPECT_LT(line1True, line1False);
-    EXPECT_NEAR(line1True, lineWidthComp1, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(line1False, lineWidthComp2, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(line1True, lineWidthComp2, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(line1False, lineWidthComp3, FLOAT_DATA_EPSILON);
     double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
     EXPECT_LT(longeslineTrue, longeslineFalse);
@@ -462,8 +463,9 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation007, TestSize.Leve
     const char fontFamiliesTest[] = { 0x48, 0x61, 0x72, 0x6d, 0x6f, 0x6e, 0x79, 0x4f, 0x53, 0x20, 0x53, 0x61, 0x6e,
         0x73, 0x20, 0x53, 0x43};
     const char* fontFamilies[] = { fontFamiliesTest };
-    constexpr double lineWidthComp = 199.999756;
-    constexpr size_t lineNumber = 2;
+    constexpr double lineWidthComp1 = 199.999756;
+    constexpr double lineWidthComp2 = 174.999786;
+    constexpr size_t lineNumber = 3;
 
     PrepareWorkForCompressPunctuationTest(text, DEFAULT_LAYOUT_WIDTH1, 1, fontFamilies, true);
     size_t lineNumberTrue = OH_Drawing_TypographyGetLineCount(typography_);
@@ -474,11 +476,11 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation007, TestSize.Leve
     double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     double lineFalse = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
     EXPECT_NEAR(lineTrue, lineFalse, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(lineTrue, lineWidthComp, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(lineTrue, lineWidthComp1, FLOAT_DATA_EPSILON);
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
     double line1False = OH_Drawing_TypographyGetLineWidth(typography2_, 1);
     EXPECT_NEAR(line1True, line1False, FLOAT_DATA_EPSILON);
-    EXPECT_NEAR(line1False, lineWidthComp, FLOAT_DATA_EPSILON);
+    EXPECT_NEAR(line1False, lineWidthComp2, FLOAT_DATA_EPSILON);
     double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
     EXPECT_NEAR(longeslineTrue, longeslineFalse, FLOAT_DATA_EPSILON);
@@ -508,13 +510,39 @@ HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation008, TestSize.Leve
 
     double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, 0);
     double lineFalse = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
-    EXPECT_LT(lineTrue, lineFalse);
+    EXPECT_NEAR(lineTrue, lineFalse, FLOAT_DATA_EPSILON);
     double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
     double line1False = OH_Drawing_TypographyGetLineWidth(typography2_, 1);
     EXPECT_NEAR(line1True, line1False, FLOAT_DATA_EPSILON);
     double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
     double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
     EXPECT_NEAR(longeslineTrue, longeslineFalse, FLOAT_DATA_EPSILON);
+}
+
+/*
+ * @tc.name: TypographyCompressPunctuation009
+ * @tc.desc: test for compress punctuation with symbol.
+ * ss08 cannot compress all head punctuation marks.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographyCompressPunctuation009, TestSize.Level0)
+{
+    std::string text = "【😊😂】😊";
+
+    PrepareWorkForCompressPunctuationTest(text, DEFAULT_LAYOUT_WIDTH1);
+    size_t lineNumberTrue = OH_Drawing_TypographyGetLineCount(typography_);
+    size_t lineNumberFalse = OH_Drawing_TypographyGetLineCount(typography2_);
+    EXPECT_EQ(lineNumberTrue, lineNumberFalse);
+
+    double lineTrue = OH_Drawing_TypographyGetLineWidth(typography_, 0);
+    double lineFalse = OH_Drawing_TypographyGetLineWidth(typography2_, 0);
+    EXPECT_GT(lineTrue, lineFalse);
+    double line1True = OH_Drawing_TypographyGetLineWidth(typography_, 1);
+    double line1False = OH_Drawing_TypographyGetLineWidth(typography2_, 1);
+    EXPECT_LT(line1True, line1False);
+    double longeslineTrue = OH_Drawing_TypographyGetLongestLine(typography_);
+    double longeslineFalse = OH_Drawing_TypographyGetLongestLine(typography2_);
+    EXPECT_GT(longeslineTrue, longeslineFalse);
 }
 
 /*
