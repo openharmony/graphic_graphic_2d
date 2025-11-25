@@ -397,6 +397,7 @@ HWTEST_F(VSyncSamplerTest, RegSetScreenVsyncEnabledCallbackTest, Function | Medi
     ASSERT_EQ(result, true);
     VSyncSamplerTest::vsyncSampler->SetScreenVsyncEnabledInRSMainThread(0, false);
     ASSERT_EQ(result, false);
+    VSyncSamplerTest::vsyncSampler->RegSetScreenVsyncEnabledCallback(nullptr);
 }
 
 /*

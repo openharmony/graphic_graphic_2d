@@ -58,6 +58,8 @@ constexpr uint32_t MAX_VIRTUAL_SCREEN_REFRESH_RATE = 120;
 constexpr uint32_t ORIGINAL_FOLD_SCREEN_AMOUNT = 2;
 const std::string FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 const std::string BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
+constexpr ScreenId BUILT_IN_MAIN_SCREEN_ID = 0;
+constexpr ScreenId BUILT_IN_EXTERNAL_SCREEN_ID = 5;
 void SensorPostureDataCallback(SensorEvent* event)
 {
     CreateOrGetScreenManager()->HandlePostureData(event);
@@ -671,6 +673,14 @@ void RSScreenManager::RemoveScreenFromHgm(std::shared_ptr<HdiOutput>& output)
     });
 }
 
+bool RSScreenManager::CheckFoldScreenIdBuiltIn(ScreenId id)
+{
+    if (id == BUILT_IN_MAIN_SCREEN_ID || id == BUILT_IN_EXTERNAL_SCREEN_ID) {
+        return true;
+    }
+    return false;
+}
+
 void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
@@ -684,7 +694,7 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 
     std::unique_lock<std::mutex> lock(screenMapMutex_);
     screens_[id] = screen;
-    if (isFoldScreenFlag_ && foldScreenIds_.size() < ORIGINAL_FOLD_SCREEN_AMOUNT) {
+    if (isFoldScreenFlag_ && CheckFoldScreenIdBuiltIn(id) && foldScreenIds_.size() < ORIGINAL_FOLD_SCREEN_AMOUNT) {
         foldScreenIds_[id] = {true, false};
     }
     lock.unlock();

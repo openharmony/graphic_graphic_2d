@@ -429,6 +429,7 @@ private:
         std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;
 
     // physical screen
+    bool CheckFoldScreenIdBuiltIn(ScreenId id);
     void ProcessScreenConnected(std::shared_ptr<HdiOutput>& output);
     void ProcessPendingConnections();
     void ProcessScreenDisConnected(std::shared_ptr<HdiOutput>& output);
