@@ -508,13 +508,13 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
                 if (hpaeBlurOutputQueue_.size() != 1 && blurImage->BuildFromSurface(
                     *(headSurface->GetCanvas()->GetGPUContext()), *headSurface, Drawing::TextureOrigin::TOP_LEFT,
                     blurInfo, headSurface->GetImageInfo().GetColorSpace())) {
-                        RS_OPTIONAL_TRACE_NAME("UseBuildFroSurface");
-                        headIter->blurImage_ = blurImage;
-                    } else {
-                        RS_OPTIONAL_TRACE_NAME("UseImageSnapshot");
-                        auto snapshotIBounds = Drawing::RectI(0, 0, headSurface->Width(), headSurface->Height());
-                        headIter->blurImage_ = headSurface->GetImageSnapshot(snapshotIBounds, false);
-                    }
+                    RS_OPTIONAL_TRACE_NAME("UseBuildFroSurface");
+                    headIter->blurImage_ = blurImage;
+                } else {
+                    RS_OPTIONAL_TRACE_NAME("UseImageSnapshot");
+                    auto snapshotIBounds = Drawing::RectI(0, 0, headSurface->Width(), headSurface->Height());
+                    headIter->blurImage_ = headSurface->GetImageSnapshot(snapshotIBounds, false);
+                }
             } else {
                 headIter->gpFrameId_ = 0; // avoid submit with FFTS
                 useCacheImage_ = true;
