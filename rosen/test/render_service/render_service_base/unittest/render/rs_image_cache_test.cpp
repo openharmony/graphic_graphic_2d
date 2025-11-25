@@ -747,7 +747,7 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
     imageCache.rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage, extendImageObject->weak_from_this()));
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 1);
 
-    RemoveImageMemForWindow(surfaceNodeId);
+    imageCache.RemoveImageMemForWindow(surfaceNodeId);
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 }
 #endif
