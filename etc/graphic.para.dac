@@ -26,3 +26,4 @@ persist.rosen.animationtrace.enabled = graphics:graphics:0706
 persist.sys.mode = graphics:graphics:0001
 persist.rosen.disableddgr.enabled = graphics:graphics:0777
 debug.graphic.cloudpushrestart = graphics:graphics:0777
+persist.rosen.subtree.disabled = graphics:graphics:0777
