@@ -33,7 +33,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include <screen_manager/screen_types.h>
-#include "screen_manager/rs_screen_info.h"
+#include "screen_manager/rs_screen_property.h"
 #include "platform/drawing/rs_surface.h"
 
 namespace OHOS {
@@ -80,6 +80,16 @@ public:
         screenInfo_ = std::move(info);
     }
 
+    void SetScreenProperty(RSScreenProperty& property)
+    {
+        screenProperty_ = property;
+    }
+
+    const RSScreenProperty& GetScreenProperty() const
+    {
+        return screenProperty_;
+    }
+
     bool IsScreenResolutionChanged() const
     {
         return screenResolutionChanged_;
@@ -101,16 +111,6 @@ public:
     }
 
     static void SetReleaseTask(ReleaseDmaBufferTask callback);
-
-    int32_t GetScreenOffsetX() const
-    {
-        return screenInfo_.offsetX;
-    }
-
-    int32_t GetScreenOffsetY() const
-    {
-        return screenInfo_.offsetY;
-    }
     
     bool HasChildCrossNode() const
     {
@@ -521,6 +521,8 @@ public:
     void SetForceFreeze(bool forceFreeze);
     bool GetForceFreeze() const;
 
+    void CheckSurfaceChanged();
+
 protected:
     void OnSync() override;
 private:
@@ -591,6 +593,9 @@ private:
     bool hasMirrorDisplay_ = false;
     bool screenResolutionChanged_ = false;
 
+    std::pair<bool, uint64_t> virtualSurfaceState_ = { false, UINT64_MAX };
+    bool isVirtualSurfaceChanged_ = false;
+
     // Use in round corner display
     // removed later due to rcd node will be handled by RS tree in OH 6.0 rcd refactoring
     RSBaseRenderNode::SharedPtr rcdSurfaceNodeTop_ = nullptr;
@@ -598,6 +603,7 @@ private:
 
     NodeId targetSurfaceRenderNodeId_ = INVALID_NODEID;
     ScreenInfo screenInfo_;
+    RSScreenProperty screenProperty_;
     friend class DisplayNodeCommandHelper;
 
     // Enable HWCompose

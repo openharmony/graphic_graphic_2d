@@ -55,7 +55,7 @@ void RSComposerAdapterTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
     screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();

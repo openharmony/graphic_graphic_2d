@@ -81,11 +81,12 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int flags,
     std::vector<NodeId> whiteList)
 {
-    return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
+    return renderServiceClient_->CreateVirtualScreen(
+        name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)

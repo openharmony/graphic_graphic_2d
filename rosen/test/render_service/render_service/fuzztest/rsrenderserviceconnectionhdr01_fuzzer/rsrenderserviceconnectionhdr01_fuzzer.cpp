@@ -265,7 +265,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_token = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
     OHOS::Rosen::g_toServiceConnectionStub = new OHOS::Rosen::RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        OHOS::Rosen::impl::RSScreenManager::GetInstance(), OHOS::Rosen::g_token->AsObject(), nullptr);
+        OHOS::Rosen::RSScreenManager::GetInstance(), OHOS::Rosen::g_token->AsObject(), nullptr);
 #ifdef RS_ENABLE_VK
     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif

@@ -1385,8 +1385,9 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
     // dstRect transform to globalposition when node is move
     if (node.GetHwcGlobalPositionEnabled()) {
         auto dstRect = node.GetDstRect();
-        dstRect.left_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetX();
-        dstRect.top_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetY();
+        const auto& screenProperty = uniRenderVisitor_.curScreenNode_->GetScreenProperty();
+        dstRect.left_ += screenProperty.GetOffsetX();
+        dstRect.top_ += screenProperty.GetOffsetY();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " dstRect:[%s]",
             node.GetName().c_str(), node.GetId(), dstRect.ToString().c_str());
         node.SetDstRect(dstRect);

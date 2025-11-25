@@ -120,12 +120,6 @@ void ProcessScreenHotPlugEvents()
     CreateOrGetScreenManager()->ProcessScreenHotPlugEvents();
 }
 
-void SetDefaultScreenId()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    CreateOrGetScreenManager()->SetDefaultScreenId(screenId);
-}
-
 void GetVirtualScreenResolution()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -287,12 +281,6 @@ void GetAllBlackList()
 void GetAllWhiteList()
 {
     CreateOrGetScreenManager()->GetAllWhiteList();
-}
-
-void GetAndResetVirtualSurfaceUpdateFlag()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    CreateOrGetScreenManager()->GetAndResetVirtualSurfaceUpdateFlag(screenId);
 }
 
 void RemoveVirtualScreen()
@@ -534,13 +522,6 @@ void SetScreenSkipFrameInterval()
     CreateOrGetScreenManager()->SetScreenSkipFrameInterval(screenId, skipFrameInterval);
 }
 
-void SetEqualVsyncPeriod()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    bool isEqualVsyncPeriod = GetData<bool>();
-    CreateOrGetScreenManager()->SetEqualVsyncPeriod(screenId, isEqualVsyncPeriod);
-}
-
 void GetDisplayIdentificationData()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -617,12 +598,6 @@ void DisablePowerOffRenderControl()
     CreateOrGetScreenManager()->DisablePowerOffRenderControl(screenId);
 }
 
-void GetDisplayPropertyForHardCursor()
-{
-    uint32_t screenId = GetData<uint32_t>();
-    CreateOrGetScreenManager()->GetDisplayPropertyForHardCursor(screenId);
-}
-
 void SetScreenHasProtectedLayer()
 {
     uint32_t screenId = GetData<uint32_t>();
@@ -655,7 +630,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::RemoveForceRefreshTask,
         OHOS::Rosen::TrySimpleProcessHotPlugEvents,
         OHOS::Rosen::ProcessScreenHotPlugEvents,
-        OHOS::Rosen::SetDefaultScreenId,
         OHOS::Rosen::GetVirtualScreenResolution,
         OHOS::Rosen::GetScreenActiveMode,
         OHOS::Rosen::GetScreenSupportedModes,
@@ -679,7 +653,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetVirtualScreenTypeBlackList,
         OHOS::Rosen::GetAllBlackList,
         OHOS::Rosen::GetAllWhiteList,
-        OHOS::Rosen::GetAndResetVirtualSurfaceUpdateFlag,
         OHOS::Rosen::RemoveVirtualScreen,
         OHOS::Rosen::SetScreenActiveMode,
         OHOS::Rosen::SetScreenActiveRect,
@@ -715,7 +688,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetScreenHDRCapability,
         OHOS::Rosen::GetScreenType,
         OHOS::Rosen::SetScreenSkipFrameInterval,
-        OHOS::Rosen::SetEqualVsyncPeriod,
         OHOS::Rosen::GetDisplayIdentificationData,
         OHOS::Rosen::SetPixelFormat,
         OHOS::Rosen::SetScreenHDRFormat,
@@ -726,7 +698,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetScreenSupportedColorSpaces,
         OHOS::Rosen::IsScreenPowerOff,
         OHOS::Rosen::DisablePowerOffRenderControl,
-        OHOS::Rosen::GetDisplayPropertyForHardCursor,
         OHOS::Rosen::SetScreenHasProtectedLayer,
         OHOS::Rosen::IsVisibleRectSupportRotation,
         OHOS::Rosen::SetVirtualScreenAutoRotation

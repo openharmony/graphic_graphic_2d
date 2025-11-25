@@ -562,7 +562,7 @@ ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
@@ -611,8 +611,8 @@ ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
             return INVALID_SCREEN_ID;
         }
     }
-    if (!data.WriteUint64(mirrorId)) {
-        ROSEN_LOGE("CreateVirtualScreen: WriteUint64 mirrorId err.");
+    if (!data.WriteUint64(associatedScreenId)) {
+        ROSEN_LOGE("CreateVirtualScreen: WriteUint64 associatedScreenId err.");
         return INVALID_SCREEN_ID;
     }
     if (!data.WriteInt32(flags)) {

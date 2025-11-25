@@ -277,7 +277,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
@@ -287,7 +287,7 @@ ScreenId RSRenderServiceClient::CreateVirtualScreen(
         return INVALID_SCREEN_ID;
     }
 
-    return clientToService->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
+    return clientToService->CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -507,7 +507,7 @@ public:
     ~CustomScreenChangeCallback() override {};
 
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason) override
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override
     {
         if (cb_ != nullptr) {
             cb_(id, event, reason);

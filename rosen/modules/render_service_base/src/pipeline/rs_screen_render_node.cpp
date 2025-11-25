@@ -204,8 +204,10 @@ void RSScreenRenderNode::UpdateRenderParams()
     }
     screenParams->childDisplayCount_ = GetChildrenCount();
     screenParams->screenInfo_ = screenInfo_;
+    screenParams->screenProperty_ = screenProperty_;
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
     screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
+    screenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
     screenParams->roundCornerSurfaceDrawables_.clear();
     if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
         screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
@@ -563,5 +565,26 @@ bool RSScreenRenderNode::GetForceFreeze() const
 {
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
+
+void RSScreenRenderNode::CheckSurfaceChanged()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (!screenProperty_.IsVirtual()) {
+        return;
+    }
+    auto& [lastHasSurface, lastSurfaceId] = virtualSurfaceState_;
+    auto curSurface = screenProperty_.GetProducerSurface();
+    bool curHasSurface = (curSurface != nullptr);
+    if (lastHasSurface != curHasSurface || (curHasSurface && lastSurfaceId != curSurface->GetUniqueId())) {
+        lastHasSurface = curHasSurface;
+        lastSurfaceId = curSurface ? curSurface->GetUniqueId() : UINT64_MAX;
+        isVirtualSurfaceChanged_ = true;
+        return;
+    }
+
+    isVirtualSurfaceChanged_ = false;
+#endif
+}
+
 } // namespace Rosen
 } // namespace OHOS

@@ -72,8 +72,7 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
     ScreenRotation rotation, float translateWidth, float translateHeight)
 {
     auto params = static_cast<RSLogicalDisplayRenderParams*>(logicalDisplayParams_.get());
-    auto screenManager = CreateOrGetScreenManager();
-    if (UNLIKELY(params == nullptr || screenManager == nullptr)) {
+    if (UNLIKELY(!params)) {
         return false;
     }
     Drawing::Matrix invertMatrix;
@@ -81,8 +80,15 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
         canvas.ConcatMatrix(invertMatrix);
     }
 
-    auto screenId = params->GetScreenId();
-    auto screenCorrection = screenManager->GetScreenCorrection(screenId);
+    auto screenDrawable = params->GetAncestorScreenDrawable().lock();
+    if (UNLIKELY(!screenDrawable)) {
+        return false;
+    }
+    auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable->GetRenderParams().get());
+    if (UNLIKELY(!screenParams)) {
+        return false;
+    }
+    auto screenCorrection = screenParams->GetScreenProperty().GetScreenCorrection();
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
         screenCorrection != ScreenRotation::ROTATION_0) {
         // Recaculate rotation if mirrored screen has additional rotation angle

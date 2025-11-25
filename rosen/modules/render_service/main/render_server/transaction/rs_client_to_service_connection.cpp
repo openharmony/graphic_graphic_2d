@@ -801,7 +801,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
@@ -814,7 +814,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
         return StatusCode::SCREEN_NOT_FOUND;
     }
     auto newVirtualScreenId = screenManager_->CreateVirtualScreen(
-        name, width, height, surface, mirrorId, flags, whiteList);
+        name, width, height, surface, associatedScreenId, flags, whiteList);
     virtualScreenIds_.insert(newVirtualScreenId);
     if (surface != nullptr) {
         EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };

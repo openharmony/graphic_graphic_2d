@@ -287,7 +287,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetSurfaceCustomWatermarkTest001, TestSi
     auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
 
-    screenManager->SetDefaultScreenId(id);
+    screenManager->defaultScreenId_ = id;
     auto mainThread = RSMainThread::Instance();
     std::string watermarkName = "watermarkName";
     Media::InitializationOptions opts;

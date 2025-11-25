@@ -37,7 +37,18 @@ int RSScreenChangeCallbackStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            OnScreenChanged(id, static_cast<ScreenEvent>(event), static_cast<ScreenChangeReason>(reason));
+            bool hasRemoteObj = false;
+            sptr<IRemoteObject> obj;
+            if (data.ReadBool(hasRemoteObj)) {
+                if (hasRemoteObj) {
+                    obj = data.ReadRemoteObject();
+                }
+            } else {
+                RS_LOGE("RSScreenChangeCallbackStub::ON_SCREEN_CHANGED read remoteObj failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            OnScreenChanged(id, static_cast<ScreenEvent>(event), static_cast<ScreenChangeReason>(reason), obj);
             break;
         }
         default: {
