@@ -426,8 +426,6 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
         return resultTask;
     }
 
-    outputBuffer.canvas->Clear(Drawing::Color::COLOR_TRANSPARENT); // notify GetImageSnapshot()
-
     int32_t srcWidth = inputBuffer.canvas->GetWidth();
     int32_t srcHeight = inputBuffer.canvas->GetHeight();
 
@@ -448,8 +446,8 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     HaeBlurBasicAttr basicInfo;
     basicInfo.srcLayer = &srcLayer;
     basicInfo.dstLayer = &dstLayer;
-    basicInfo.perfLevel = 4; // 4 for the highest level
-    basicInfo.expectRunTime = 2000; // us
+    basicInfo.perfLevel = 1; // 4 for the highest level, 1 means 335Mhz
+    basicInfo.expectRunTime = -1; // us, -1 means unlimited
     basicInfo.timeoutMs = 0;
     basicInfo.sigmaNum = radius;
     basicInfo.enablePremult = false;
@@ -504,9 +502,19 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
             }
             auto headSurface = headIter->surface_.lock();
             if (headIter->blurImage_ == nullptr && headSurface) {
-                auto snapshotIBounds = Drawing::RectI(0, 0, headSurface->Width(), headSurface->Height());
-                headIter->blurImage_ = headSurface->GetImageSnapshot(snapshotIBounds, false);
-                RS_OPTIONAL_TRACE_NAME("UseSnapshot");
+                auto blurImage = std::make_shared<Drawing::Image>();
+                Drawing::BitmapFormat blurInfo = Drawing::BitmapFormat{
+                    headSurface->GetImageInfo().GetColorType(), headSurface->GetImageInfo().GetAlphaType()};
+                if (hpaeBlurOutputQueue_.size() != 1 && blurImage->BuildFromSurface(
+                    *(headSurface->GetCanvas()->GetGPUContext()), *headSurface, Drawing::TextureOrigin::TOP_LEFT,
+                    blurInfo, headSurface->GetImageInfo().GetColorSpace())) {
+                        RS_OPTIONAL_TRACE_NAME("UseBuildFroSurface");
+                        headIter->blurImage = blurImage;
+                    } else {
+                        RS_OPTIONAL_TRACE_NAME("UseImageSnapshot");
+                        auto snapshotIBounds = Drawing::RectI(0, 0, headSurface->Width(), headSurface->Height());
+                        headIter->blurImage_ = headSurface->GetImageSnapshot(snapshotIBounds, false);
+                    }
             } else {
                 headIter->gpFrameId_ = 0; // avoid submit with FFTS
                 useCacheImage_ = true;
