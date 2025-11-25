@@ -85,9 +85,9 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref textStyleRef = nullptr;
     TextStyle textStyle;
-    if (AniTextUtils::ReadOptionalField(env, obj, 
-            ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_STYLE_KEY), textStyleRef) == ANI_OK && 
-            textStyleRef != nullptr) {
+    if (AniTextUtils::ReadOptionalField(
+        env, obj, ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_STYLE_KEY), textStyleRef) == ANI_OK &&
+        textStyleRef != nullptr) {
         ret = AniTextStyleConverter::ParseTextStyleToNative(env, reinterpret_cast<ani_object>(textStyleRef), textStyle);
         if (ret == ANI_OK) {
             paragraphStyle->SetTextStyle(textStyle);

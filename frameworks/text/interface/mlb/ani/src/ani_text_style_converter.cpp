@@ -276,7 +276,7 @@ void AniTextStyleConverter::ParseTextShadowToNative(ani_env* env, ani_object obj
 void AniTextStyleConverter::ParseFontFeatureToNative(ani_env* env, ani_object obj, FontFeatures& fontFeatures)
 {
     std::vector<std::string> array;
-    AniTextUtils::ReadArrayField<std::string>(env, obj, 
+    AniTextUtils::ReadArrayField<std::string>(env, obj,
         ANI_CLASS_FIND_METHOD(env, TEXT_STYLE_R_FONT_FEATURES_KEY), array, [&fontFeatures](ani_env* env, ani_ref ref) {
             ani_object obj = reinterpret_cast<ani_object>(ref);
             ani_ref nameRef = nullptr;
