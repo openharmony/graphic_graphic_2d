@@ -606,7 +606,7 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
         dst_ = Drawing::Rect(0, lineDstTop, imageLineWidth, lineDstTop + dstRect.height_);
         canvas.DrawImageRect(*imageLine, imageLineSrc, dst_, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-    }    
+    }
 }
     
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
