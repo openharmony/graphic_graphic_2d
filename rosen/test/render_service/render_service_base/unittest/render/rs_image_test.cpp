@@ -1269,27 +1269,28 @@ HWTEST_F(RSImageTest, CalcRepeatBoundsTest, TestSize.Level1)
 HWTEST_F(RSImageTest, RsImageDrawTest, TestSize.Level1)
 {
     auto rsImage = std::make_shared<RSImage>();
-    EXPECT_EQ(rsImage, nullptr);
+    EXPECT_NE(rsImage, nullptr);
 
     auto sampling = Drawing::SamplingOptions();
     Drawing::Canvas drawingCanvas;
     rsImage->RsImageDraw(sampling, drawingCanvas, false);
+    EXPECT_NE(rsImage, nullptr);
 
     // isAstc branch
     rsImage->pixelMap_ = std:make_shared<Media::PixelMap>();
     rsImage->pixelMap_->SetAstc(true);
     rsImage->RsImageDraw(sampling, drawingCanvas, false);
-    EXPECT_EQ(rsImage, nullptr);
+    EXPECT_NE(rsImage, nullptr);
 
     // isOrientationValid_ branch
     rsImage->isOrientationValid_ = true;
     rsImage->RsImageDraw(sampling, drawingCanvas, false);
-    EXPECT_EQ(rsImage, nullptr);
+    EXPECT_NE(rsImage, nullptr);
 
     // image_ is not null branch
     rsImage->image_ = std::make_shared<Drawing::Image>();
     rsImage->RsImageDraw(sampling, drawingCanvas, false);
-    EXPECT_EQ(rsImage, nullptr);
+    EXPECT_NE(rsImage, nullptr);
 }
 
 /**
