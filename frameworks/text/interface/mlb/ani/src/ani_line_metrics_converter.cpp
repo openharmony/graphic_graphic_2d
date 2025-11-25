@@ -27,8 +27,8 @@ constexpr CacheKey LINEMETRICS_KEY{ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC
 
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_LINEMETRICS),
-        AniClassFindMethod(env, LINEMETRICS_KEY), ani_int(lineMetrics.startIndex), ani_int(lineMetrics.endIndex),
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_LINEMETRICS),
+        ANI_CLASS_FIND_METHOD(env, LINEMETRICS_KEY), ani_int(lineMetrics.startIndex), ani_int(lineMetrics.endIndex),
         ani_double(lineMetrics.ascender), ani_double(lineMetrics.descender), ani_double(lineMetrics.height),
         ani_double(lineMetrics.width), ani_double(lineMetrics.x), ani_double(lineMetrics.baseline),
         ani_int(lineMetrics.lineNumber), ani_double(lineMetrics.y),

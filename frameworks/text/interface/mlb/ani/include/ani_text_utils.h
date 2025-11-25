@@ -109,7 +109,8 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
     ani_size index = 0;
     for (const T& item : t) {
         ani_object aniObj = convert(env, item);
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniObj);
+        static CacheKey MAP_SET_KEY{ANI_ARRAY, "$_set", "iY:"};
+        ani_status ret = env->Object_CallMethod_Void(arrayObj, ANI_CLASS_FIND_METHOD(env, MAP_SET_KEY), index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Array $_set failed, ret %{public}d", ret);
             continue;

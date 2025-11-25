@@ -71,7 +71,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref ref = nullptr;
     ani_status ret =
-        AniTextUtils::ReadOptionalField(env, obj, AniClassFindMethod(env, PARAGRAPH_STYLE_MAX_LINES_KEY), ref);
+        AniTextUtils::ReadOptionalField(env, obj, ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_MAX_LINES_KEY), ref);
     if (ret == ANI_OK && ref != nullptr) {
         int maxLines = 0;
         ret = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "toInt", ":i", &maxLines);
@@ -85,9 +85,9 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref textStyleRef = nullptr;
     TextStyle textStyle;
-    if (AniTextUtils::ReadOptionalField(env, obj, AniClassFindMethod(env, PARAGRAPH_STYLE_TEXT_STYLE_KEY), textStyleRef)
-            == ANI_OK
-        && textStyleRef != nullptr) {
+    if (AniTextUtils::ReadOptionalField(env, obj, 
+            ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_STYLE_KEY), textStyleRef) == ANI_OK && 
+            textStyleRef != nullptr) {
         ret = AniTextStyleConverter::ParseTextStyleToNative(env, reinterpret_cast<ani_object>(textStyleRef), textStyle);
         if (ret == ANI_OK) {
             paragraphStyle->SetTextStyle(textStyle);
@@ -96,26 +96,26 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     paragraphStyle->ellipsis = textStyle.ellipsis;
     paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textDirection,
-        AniClassFindMethod(env, PARAGRAPH_STYLE_TEXT_DIRECTION_KEY), paragraphStyle->textDirection);
+        ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_DIRECTION_KEY), paragraphStyle->textDirection);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textAlign,
-        AniClassFindMethod(env, PARAGRAPH_STYLE_ALIGN_KEY), paragraphStyle->textAlign);
+        ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_ALIGN_KEY), paragraphStyle->textAlign);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::wordBreakType,
-        AniClassFindMethod(env, PARAGRAPH_STYLE_WORD_BREAK_KEY), paragraphStyle->wordBreakType);
+        ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_WORD_BREAK_KEY), paragraphStyle->wordBreakType);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::breakStrategy,
-        AniClassFindMethod(env, PARAGRAPH_STYLE_BREAK_STRATEGY_KEY), paragraphStyle->breakStrategy);
+        ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_BREAK_STRATEGY_KEY), paragraphStyle->breakStrategy);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textHeightBehavior,
-        AniClassFindMethod(env, PARAGRAPH_STYLE_TEXT_HEIGHT_BEHAVIOR_KEY), paragraphStyle->textHeightBehavior);
+        ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_HEIGHT_BEHAVIOR_KEY), paragraphStyle->textHeightBehavior);
 
     ani_ref strutStyleRef = nullptr;
     if (AniTextUtils::ReadOptionalField(
-        env, obj, AniClassFindMethod(env, PARAGRAPH_STYLE_STRUT_STYLE_KEY), strutStyleRef) == ANI_OK &&
+        env, obj, ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_STRUT_STYLE_KEY), strutStyleRef) == ANI_OK &&
         strutStyleRef != nullptr) {
         ParseParagraphStyleStrutStyleToNative(env, reinterpret_cast<ani_object>(strutStyleRef), paragraphStyle);
     }
 
     ani_ref tabRef = nullptr;
     if (AniTextUtils::ReadOptionalField(
-        env, obj, AniClassFindMethod(env, PARAGRAPH_STYLE_TAB_KEY), tabRef) == ANI_OK && tabRef != nullptr) {
+        env, obj, ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TAB_KEY), tabRef) == ANI_OK && tabRef != nullptr) {
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
 
@@ -126,30 +126,30 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::fontStyle,
-        AniClassFindMethod(env, STRUT_STYLE_FONT_STYLE_KEY), paragraphStyle->lineStyleFontStyle);
+        ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FONT_STYLE_KEY), paragraphStyle->lineStyleFontStyle);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::fontWidth,
-        AniClassFindMethod(env, STRUT_STYLE_FONT_WIDTH_KEY), paragraphStyle->lineStyleFontWidth);
+        ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FONT_WIDTH_KEY), paragraphStyle->lineStyleFontWidth);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::fontWeight,
-        AniClassFindMethod(env, STRUT_STYLE_FONT_WEIGHT_KEY), paragraphStyle->lineStyleFontWeight);
+        ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FONT_WEIGHT_KEY), paragraphStyle->lineStyleFontWeight);
 
     AniTextUtils::ReadOptionalDoubleField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_FONT_SIZE_KEY), paragraphStyle->lineStyleFontSize);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FONT_SIZE_KEY), paragraphStyle->lineStyleFontSize);
     AniTextUtils::ReadOptionalDoubleField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_HEIGHT_KEY), paragraphStyle->lineStyleHeightScale);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_HEIGHT_KEY), paragraphStyle->lineStyleHeightScale);
     AniTextUtils::ReadOptionalDoubleField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_LEADING_KEY), paragraphStyle->lineStyleSpacingScale);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_LEADING_KEY), paragraphStyle->lineStyleSpacingScale);
     AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_FORCE_HEIGHT_KEY), paragraphStyle->lineStyleOnly);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FORCE_HEIGHT_KEY), paragraphStyle->lineStyleOnly);
     AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_ENABLED_KEY), paragraphStyle->useLineStyle);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_ENABLED_KEY), paragraphStyle->useLineStyle);
     AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_HEIGHT_OVERRIDE_KEY), paragraphStyle->lineStyleHeightOnly);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_HEIGHT_OVERRIDE_KEY), paragraphStyle->lineStyleHeightOnly);
     AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_HALF_LEADING_KEY), paragraphStyle->lineStyleHalfLeading);
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_HALF_LEADING_KEY), paragraphStyle->lineStyleHalfLeading);
 
     ani_ref aniFontFamilies = nullptr;
     if (AniTextUtils::ReadOptionalField(
-        env, obj, AniClassFindMethod(env, STRUT_STYLE_FONT_FAMILIES_KEY), aniFontFamilies) == ANI_OK &&
+        env, obj, ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FONT_FAMILIES_KEY), aniFontFamilies) == ANI_OK &&
         aniFontFamilies != nullptr) {
         std::vector<std::string> fontFamilies;
         ParseFontFamiliesToNative(env, reinterpret_cast<ani_array>(aniFontFamilies), fontFamilies);
@@ -160,9 +160,9 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
 void AniParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object obj, TextTab& textTab)
 {
     AniTextUtils::ReadOptionalEnumField(
-        env, obj, AniTextEnum::textAlign, AniClassFindMethod(env, TEXT_TAB_ALIGNMENT_KEY), textTab.alignment);
+        env, obj, AniTextEnum::textAlign, ANI_CLASS_FIND_METHOD(env, TEXT_TAB_ALIGNMENT_KEY), textTab.alignment);
     ani_double tempLocation;
-    env->Object_CallMethod_Double(obj, AniClassFindMethod(env, TEXT_TAB_LOCATION_KEY), &tempLocation);
+    env->Object_CallMethod_Double(obj, ANI_CLASS_FIND_METHOD(env, TEXT_TAB_LOCATION_KEY), &tempLocation);
     textTab.location = static_cast<float>(tempLocation);
 }
 

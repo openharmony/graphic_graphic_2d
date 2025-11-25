@@ -33,13 +33,13 @@ constexpr CacheKey RANGE_KEY{ANI_CLASS_RANGE, "<ctor>", "ii:"};
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
     ani_int startTmp = 0;
-    ani_status ret = env->Object_CallMethod_Int(obj, AniClassFindMethod(env, RANGE_START_KEY), &startTmp);
+    ani_status ret = env->Object_CallMethod_Int(obj, ANI_CLASS_FIND_METHOD(env, RANGE_START_KEY), &startTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     ani_int endTmp = 0;
-    ret = env->Object_CallMethod_Int(obj, AniClassFindMethod(env, RANGE_END_KEY), &endTmp);
+    ret = env->Object_CallMethod_Int(obj, ANI_CLASS_FIND_METHOD(env, RANGE_END_KEY), &endTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
@@ -85,9 +85,9 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
         rectObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_TEXT_BOX),
-        AniClassFindMethod(env, TEXT_BOX_KEY), rectObj,
-        AniTextUtils::CreateAniEnum(env, AniFindEnum(env, ANI_ENUM_TEXT_DIRECTION),
+    aniObj = AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_CLASS_TEXT_BOX),
+        ANI_CLASS_FIND_METHOD(env, TEXT_BOX_KEY), rectObj,
+        AniTextUtils::CreateAniEnum(env, ANI_FIND_ENUM(env, ANI_ENUM_TEXT_DIRECTION),
             aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textRect.direction)).value_or(0)));
     return ANI_OK;
 }
@@ -95,7 +95,8 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_RANGE), AniClassFindMethod(env, RANGE_KEY),
+    aniObj = AniTextUtils::CreateAniObject(
+        env, ANI_FIND_CLASS(env, ANI_CLASS_RANGE), ANI_CLASS_FIND_METHOD(env, RANGE_KEY),
         ani_int(boundary.leftIndex), ani_int(boundary.rightIndex));
     return ANI_OK;
 }

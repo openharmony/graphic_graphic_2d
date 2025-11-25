@@ -33,32 +33,32 @@ constexpr CacheKey PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY{ANI_INTERFACE_PLACEHOLDE
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_status ret =
-        env->Object_CallMethod_Double(obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_WIDTH_KEY), &placeholderSpan.width);
+    ani_status ret = env->Object_CallMethod_Double(
+        obj, ANI_CLASS_FIND_METHOD(env, PLACEHOLDER_SPAN_WIDTH_KEY), &placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
     }
     ret = env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_HEIGHT_KEY), &placeholderSpan.height);
+        obj, ANI_CLASS_FIND_METHOD(env, PLACEHOLDER_SPAN_HEIGHT_KEY), &placeholderSpan.height);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
     }
     ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::placeHolderAlignment,
-        AniClassFindMethod(env, PLACEHOLDER_SPAN_ALIGN_KEY), placeholderSpan.alignment);
+        ANI_CLASS_FIND_METHOD(env, PLACEHOLDER_SPAN_ALIGN_KEY), placeholderSpan.alignment);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
     ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::textBaseLine,
-        AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_KEY), placeholderSpan.baseline);
+        ANI_CLASS_FIND_METHOD(env, PLACEHOLDER_SPAN_BASELINE_KEY), placeholderSpan.baseline);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
     ret = env->Object_CallMethod_Double(
-        obj, AniClassFindMethod(env, PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY), &placeholderSpan.baselineOffset);
+        obj, ANI_CLASS_FIND_METHOD(env, PLACEHOLDER_SPAN_BASELINE_OFFSET_KEY), &placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baselineOffset, ret %{public}d", ret);
         return ret;

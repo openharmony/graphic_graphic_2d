@@ -111,7 +111,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
         return ret;
     }
 
-    ani_class cls = AniFindClass(env, ANI_CLASS_CLEANER);
+    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_CLEANER);
     if (cls == nullptr) {
         TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_CLEANER);
         return ANI_NOT_FOUND;
