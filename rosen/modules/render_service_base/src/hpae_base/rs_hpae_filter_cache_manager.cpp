@@ -509,7 +509,7 @@ HpaeBackgroundCacheItem RSHpaeFilterCacheManager::GetBlurOutput()
                     *(headSurface->GetCanvas()->GetGPUContext()), *headSurface, Drawing::TextureOrigin::TOP_LEFT,
                     blurInfo, headSurface->GetImageInfo().GetColorSpace())) {
                         RS_OPTIONAL_TRACE_NAME("UseBuildFroSurface");
-                        headIter->blurImage = blurImage;
+                        headIter->blurImage_ = blurImage;
                     } else {
                         RS_OPTIONAL_TRACE_NAME("UseImageSnapshot");
                         auto snapshotIBounds = Drawing::RectI(0, 0, headSurface->Width(), headSurface->Height());
