@@ -49,6 +49,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
      [] {
          return std::make_shared<RSNGFrostedGlassFilter>();
      }},
+    {RSNGEffectType::GRID_WARP,
+     [] {
+         return std::make_shared<RSNGGridWarpFilter>();
+     }},
 };
 
 // Default values
@@ -253,6 +257,58 @@ std::vector<std::array<float, COLOR_GRADIENT_PARAMS_COUNT>> colorGradientParams 
     {0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 3.0f},
     {0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f},
     {999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f},
+};
+
+constexpr int GRID_WARP_PARAMS_COUNT = 18;
+std::vector<std::array<Vector2f, GRID_WARP_PARAMS_COUNT>> gridWarpParams = {
+    {
+        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
+        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
+        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 1.0f, 0.0f },
+        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, -0.1f }, Vector2f{ 1.0f, 0.0f },
+        Vector2f{ -0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.1f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.1f }, Vector2f{ 1.0f, 1.0f },
+        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.1f }, Vector2f{ 1.0f, 0.0f },
+        Vector2f{ 0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.9f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 0.9f }, Vector2f{ 1.0f, 1.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
+    },
+    {
+        Vector2f{ -999.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 999.0f, 0.0f },
+        Vector2f{ -999.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 999.0f, 0.5f },
+        Vector2f{ -999.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 999.0f, 999.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }
+    },
 };
 
 enum class TestDataGroupParamsType {
@@ -905,6 +961,44 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_HlParamsTest
         int y = (i / columnCount) * sizeY;
         auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_GRID_WARP_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create grid warp filter
+        auto filter = CreateFilter(RSNGEffectType::GRID_WARP);
+        auto gridWarpFilter = std::static_pointer_cast<RSNGGridWarpFilter>(filter);
+        gridWarpFilter->Setter<GridWarpGridPoint0Tag>(gridWarpParams[i][0]);
+        gridWarpFilter->Setter<GridWarpGridPoint1Tag>(gridWarpParams[i][1]);
+        gridWarpFilter->Setter<GridWarpGridPoint2Tag>(gridWarpParams[i][2]);
+        gridWarpFilter->Setter<GridWarpGridPoint3Tag>(gridWarpParams[i][3]);
+        gridWarpFilter->Setter<GridWarpGridPoint4Tag>(gridWarpParams[i][4]);
+        gridWarpFilter->Setter<GridWarpGridPoint5Tag>(gridWarpParams[i][5]);
+        gridWarpFilter->Setter<GridWarpGridPoint6Tag>(gridWarpParams[i][6]);
+        gridWarpFilter->Setter<GridWarpGridPoint7Tag>(gridWarpParams[i][7]);
+        gridWarpFilter->Setter<GridWarpGridPoint8Tag>(gridWarpParams[i][8]);
+        gridWarpFilter->Setter<GridWarpRotationAngle0Tag>(gridWarpParams[i][9]);
+        gridWarpFilter->Setter<GridWarpRotationAngle1Tag>(gridWarpParams[i][10]);
+        gridWarpFilter->Setter<GridWarpRotationAngle2Tag>(gridWarpParams[i][11]);
+        gridWarpFilter->Setter<GridWarpRotationAngle3Tag>(gridWarpParams[i][12]);
+        gridWarpFilter->Setter<GridWarpRotationAngle4Tag>(gridWarpParams[i][13]);
+        gridWarpFilter->Setter<GridWarpRotationAngle5Tag>(gridWarpParams[i][14]);
+        gridWarpFilter->Setter<GridWarpRotationAngle6Tag>(gridWarpParams[i][15]);
+        gridWarpFilter->Setter<GridWarpRotationAngle7Tag>(gridWarpParams[i][16]);
+        gridWarpFilter->Setter<GridWarpRotationAngle8Tag>(gridWarpParams[i][17]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        backgroundTestNode->SetBackgroundNGFilter(gridWarpFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
     }
