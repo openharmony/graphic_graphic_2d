@@ -528,10 +528,11 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     UploadGpu(canvas);
     bool hdrImageDraw = HDRConvert(samplingOptions, canvas);
     src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
-    uint64_t loopTime = (maxX - minX + 1) * (maxY - minY + 1);
-    if (!hdrImageDraw && imageRepeat_ != ImageRepeat::NO_REPEAT &&
-        loopTime > REPEAT_LOOP_TIME_LIMIT) {
+    uint64_t loopTime = (maxX - minX) * (maxY - minY);
+    bool isNeedOffscreen = (maxX - minX >= 10) &&  loopTime > REPEAT_LOOP_TIME_LIMIT;
+    if (!hdrImageDraw && imageRepeat_ == ImageRepeat::REPEAT && isNeedOffscreen) {
         DrawImageRepeatOffScreen(samplingOptions, canvas, minX, maxX, minY, maxY);
+        return;
     }
     for (int i = minX; i <= maxX; ++i) {
         auto left = dstRect_.left_ + i * dstRect_.width_;
@@ -569,42 +570,32 @@ void RSImage::RsImageDraw(const Drawing::SamplingOptions& samplingOptions, Drawi
 void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
     int& minX, int& maxX, int& minY, int& maxY)
 {
-    RS_TRACE_NAME_FMT_DEBUG("","RSImage::DrawImageRepeatOffScreen");
-    bool needDrawLine = (imageRepeat_ == ImageRepeat::REPEAT_X || imageRepeat_ == ImageRepeat::REPEAT)
-                        && (maxX - minX > 1);
+    RS_TRACE_NAME_FMT("RSImage::DrawImageRepeatOffScreen");
     auto dstRect = RectF(std::floor(dstRect_.GetLeft()),
                          std::floor(dstRect_.GetTop()),
                          std::ceil(dstRect_.GetWidth()),
-                         std::ceil(dstRect_.GetHeight()))
-    auto imageLineSrc = src_;
-    auto imageLine = image_;
-    auto imageLineWidth = dstRect.left_ + dstRect.height_;
-    auto imageLinLeft = dstRect.left_;
-    if (needDrawLine) {
-        imageLineSrc = Drawing::Rect(0, 0, frameRect_.width_, dstRect.height_);
-        imageLineWidth = frameRect_.width_;
-        imageLinLeft = 0;
-        auto surface = canvas.GetSurface();
-        if (!surface) {
-            RS_LOGE("RSImage::DrawImageRepeatOffScreen get surface null");
-            return;
-        }
-
-        auto offScreenSurface = surface->MakeSurface(frameRect_.width_, dstRect.height_);
-        if(!offScreenSurface) {
-            RS_LOGE("RSImage::DrawImageRepeatOffScreen make offScreenSurface null");
-            return;
-        }
-        auto offScreenCanvas = *offScreenSurface->GetCanvas();
-        for (int i = minX; i <= maxX; ++i) {
-            auto left =  i * dstRect.width_;
-            auto right = left + dstRect.width_;
-            dst_ = Drawing::Rect(left, 0, right, dstRect.height_);
-            RsImageDraw(samplingOptions, offScreenCanvas, false);
-        }
-        imageLine = offScreenCanvas->GetImageSnapShot();
+                         std::ceil(dstRect_.GetHeight()));
+    auto imageLineSrc = Drawing::Rect(0, 0, frameRect_.width_, dstRect.height_);
+    auto imageLineWidth = frameRect_.width_;
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen get surface null");
+        return;
     }
 
+    auto offScreenSurface = surface->MakeSurface(frameRect_.width_, dstRect.height_);
+    if(!offScreenSurface) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen make offScreenSurface null");
+        return;
+    }
+    auto offScreenCanvas = *offScreenSurface->GetCanvas();
+    for (int i = minX; i <= maxX; ++i) {
+        auto left =  i * dstRect.width_;
+        auto right = left + dstRect.width_;
+        dst_ = Drawing::Rect(left, 0, right, dstRect.height_);
+        RsImageDraw(samplingOptions, offScreenCanvas, false);
+    }
+    auto imageLine = offScreenSurface->GetImageSnapShot();
     if (imageLine == nullptr) {
         RS_LOGE("RSImage::DrawImageRepeatOffScreen imageLine null");
         return;
@@ -612,14 +603,9 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
 
     for (int j = minY; j <= maxY; ++j) {
         auto lineDstTop = dstRect.top_ + j * dstRect.height_;
-        dst_ = Drawing::Rect(imageLinLeft, lineDstTop, imageLineWidth, lineDstTop + dstRect.height_);
-        if (needDrawLine) {
-            canvas.DrawImageRect(*imageLine, imageLineSrc, dst_, Drawing::SamplingOptions(),
-                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
-        }
-        else {
-            RsImageDraw(samplingOptions, canvas, false);
-        }     
+        dst_ = Drawing::Rect(0, lineDstTop, imageLineWidth, lineDstTop + dstRect.height_);
+        canvas.DrawImageRect(*imageLine, imageLineSrc, dst_, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }    
 }
     
