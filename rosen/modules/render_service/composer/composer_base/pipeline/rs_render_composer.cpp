@@ -70,6 +70,7 @@
 #endif
 
 #ifdef RES_SCHED_ENABLE
+#include "concurrent_task_client.h"
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
@@ -162,6 +163,11 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
             threadTid_ = gettid();
         }).wait();
     }
+#ifdef RES_SCHED_ENABLE
+    int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(threadTid_,
+        OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
+    RS_LOGI("RSRenderComposer SetSystemQoS qosRes = %{public}d", qosRes);
+#endif
 #ifdef RS_ENABLE_GPU
     // report composer tid to sched deadline
     RsFrameReport::GetInstance().ReportComposerInfo(screenId_, threadTid_);

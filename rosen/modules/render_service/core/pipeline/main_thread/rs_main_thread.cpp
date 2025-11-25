@@ -149,6 +149,7 @@
 #include "rs_chipset_vsync.h"
 #endif
 #ifdef RES_SCHED_ENABLE
+#include "concurrent_task_client.h"
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
@@ -587,6 +588,11 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         RSMainThread::Instance()->SetDirtyFlag();
     });
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(gettid(), taskDispatchFunc);
+#ifdef RES_SCHED_ENABLE
+    int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(gettid(),
+        OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
+    RS_LOGI("RSMainThread SetSystemQoS qosRes = %{public}d", qosRes);
+#endif
     RsFrameReport::GetInstance().Init();
     RegisterHwcEvent();
     RSImageDetailEnhancerThread::Instance().RegisterCallback(

@@ -522,6 +522,7 @@ ohos_shared_library("librender_service") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
+    "qos_manager:concurrent_task_client",
   ]
   if (graphic_2d_feature_rs_enable_uni_render) {
     external_deps += [ "ability_runtime:ability_manager" ]
