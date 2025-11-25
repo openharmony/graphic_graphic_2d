@@ -502,6 +502,9 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd(
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd typeface is nullptr");
         return false;
     }
+    if (typeface->GetFd() == -1) {
+        return messageParcel.WriteFileDescriptor(0);
+    }
     return messageParcel.WriteFileDescriptor(typeface->GetFd());
 }
 } // namespace Rosen

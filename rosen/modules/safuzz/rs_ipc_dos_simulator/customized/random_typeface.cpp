@@ -15,9 +15,13 @@
 
 #include "customized/random_typeface.h"
 
+#include <filesystem>
+
 #include "file_ex.h"
+#include "common/safuzz_log.h"
 #include "random/random_data.h"
 #include "random/random_engine.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -225,24 +229,44 @@ const std::vector<std::string> FONTS = {
     "Roboto-Regular.ttf",
     "ShuS-SC.ttf",
 };
+constexpr int DEFAULT_FONT_INDEX = 8;
+
+std::string GetFilePath(int index)
+{
+    std::string filePath = std::string("/system/fonts/") + FONTS[index];
+    if (!std::filesystem::exists(filePath)) {
+        filePath = std::string("/system/fonts/") + FONTS[DEFAULT_FONT_INDEX];
+    }
+    return filePath;
+}
 } // namespace
 
 std::shared_ptr<Drawing::Typeface> RandomTypeface::GetRandomTypeface()
 {
     int index = RandomEngine::GetRandomIndex(FONTS.size() - 1);
-    std::string fileName = FONTS[index];
+    std::string filePath = GetFilePath(index);
     std::vector<char> content;
-    LoadBufferFromFile(std::string("/system/fonts/") + fileName, content);
+    // The maximum file size is 32 MB.
+    if (!LoadBufferFromFile(filePath, content)) {
+        SAFUZZ_LOGI("Failed to read file %s", filePath.c_str());
+    }
+    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
 
-    int maxIndex = 5;
-    uint32_t ttcIndex = static_cast<uint32_t>(RandomEngine::GetRandomIndex(maxIndex));
-    if (fileName.find("ttc") != std::string::npos) {
-        return Drawing::Typeface::MakeFromAshmem(
+    if (filePath.find("ttc") != std::string::npos) {
+        static constexpr int TTC_MAX_INDEX = 5;
+        uint32_t ttcIndex = static_cast<uint32_t>(RandomEngine::GetRandomIndex(TTC_MAX_INDEX));
+        typeface = Drawing::Typeface::MakeFromAshmem(
             reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "safuzz", ttcIndex);
     } else {
-        return Drawing::Typeface::MakeFromAshmem(
+        typeface = Drawing::Typeface::MakeFromAshmem(
             reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "safuzz");
     }
+
+    if (typeface == nullptr) {
+        typeface = Drawing::Typeface::MakeDefault();
+    }
+
+    return typeface;
 }
 } // namespace Rosen
 } // namespace OHOS
