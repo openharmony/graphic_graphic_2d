@@ -590,7 +590,7 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     }
     auto offScreenCanvas = *offScreenSurface->GetCanvas();
     for (int i = minX; i <= maxX; ++i) {
-        auto left = i * dstRect.width_;
+        auto left = dstRect.left_ + i * dstRect.width_;
         auto right = left + dstRect.width_;
         dst_ = Drawing::Rect(left, 0, right, dstRect.height_);
         RsImageDraw(samplingOptions, offScreenCanvas, false);
