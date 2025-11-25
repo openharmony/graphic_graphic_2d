@@ -194,7 +194,7 @@ void RSScreen::PhysicalScreenInit() noexcept
     ScreenCapabilityInit();
 
     auto outType = GraphicDisplayConnectionType::GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL;
-    if (hdiScreen_->GetScreenConnectionType(outType) < 0) {
+    if (hdiScreen_->GetScreenConnectionType(outType) != 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id_);
         connectionType_ = ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE;
     } else {
