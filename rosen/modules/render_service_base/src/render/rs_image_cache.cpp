@@ -226,7 +226,6 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
 void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
     NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd)
 {
-    RS_TRACE_NAME_FMT_DEBUG("","RSImageCache::ReserveImageInfo nodeId:%{public}llu", nodeId);
     if (rsImage != nullptr) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
         if (drawableAdapter == nullptr) {
