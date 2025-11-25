@@ -502,10 +502,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd(
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd typeface is nullptr");
         return false;
     }
-    if (typeface->GetFd() == -1) {
-        return messageParcel.WriteFileDescriptor(0);
-    }
-    return messageParcel.WriteFileDescriptor(typeface->GetFd());
+    int fd = (typeface->GetFd() == INVALID_FD) ? 0 : typeface->GetFd();
+    return messageParcel.WriteFileDescriptor(fd);
 }
 } // namespace Rosen
 } // namespace OHOS

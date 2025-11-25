@@ -22,7 +22,6 @@
 #include "random/random_data.h"
 #include "random/random_engine.h"
 
-
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -231,7 +230,7 @@ const std::vector<std::string> FONTS = {
 };
 constexpr int DEFAULT_FONT_INDEX = 8;
 
-std::string GetFilePath(int index)
+std::string GetFontFilePath(int index)
 {
     std::string filePath = std::string("/system/fonts/") + FONTS[index];
     if (!std::filesystem::exists(filePath)) {
@@ -239,33 +238,39 @@ std::string GetFilePath(int index)
     }
     return filePath;
 }
-} // namespace
 
-std::shared_ptr<Drawing::Typeface> RandomTypeface::GetRandomTypeface()
+std::shared_ptr<Drawing::Typeface> GetRandomTypefaceInner()
 {
     int index = RandomEngine::GetRandomIndex(FONTS.size() - 1);
-    std::string filePath = GetFilePath(index);
+    std::string filePath = GetFontFilePath(index);
     std::vector<char> content;
     // The maximum file size is 32 MB.
     if (!LoadBufferFromFile(filePath, content)) {
         SAFUZZ_LOGI("Failed to read file %s", filePath.c_str());
+        return nullptr;
     }
-    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
 
     if (filePath.find("ttc") != std::string::npos) {
         static constexpr int TTC_MAX_INDEX = 5;
         uint32_t ttcIndex = static_cast<uint32_t>(RandomEngine::GetRandomIndex(TTC_MAX_INDEX));
-        typeface = Drawing::Typeface::MakeFromAshmem(
+        return Drawing::Typeface::MakeFromAshmem(
             reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "safuzz", ttcIndex);
     } else {
-        typeface = Drawing::Typeface::MakeFromAshmem(
+        return Drawing::Typeface::MakeFromAshmem(
             reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "safuzz");
     }
+}
+} // namespace
 
+std::shared_ptr<Drawing::Typeface> RandomTypeface::GetRandomTypeface()
+{
+    std::shared_ptr<Drawing::Typeface> typeface = GetRandomTypefaceInner();
+    if (typeface == nullptr) {
+        typeface = GetRandomTypefaceInner();
+    }
     if (typeface == nullptr) {
         typeface = Drawing::Typeface::MakeDefault();
     }
-
     return typeface;
 }
 } // namespace Rosen
