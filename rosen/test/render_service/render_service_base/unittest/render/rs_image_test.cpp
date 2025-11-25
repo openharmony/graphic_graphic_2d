@@ -311,7 +311,7 @@ HWTEST_F(RSImageTest, DrawImageRepeatRectTest001, TestSize.Level1)
     EXPECT_EQ(image->frameRect_.left_, 0);
 
     image->dstRect_ = RectF(0, 0, 1, 1);
-    image_->frameRect_ = RectF(0, 0, 1000, 1000);
+    image->frameRect_ = RectF(0, 0, 1000, 1000);
     image->imageRepeat_ = ImageRepeat::REPEAT;
     image->DrawImageRepeatRect(samplingOptions, canvas);
     EXPECT_NE(image, nullptr);
