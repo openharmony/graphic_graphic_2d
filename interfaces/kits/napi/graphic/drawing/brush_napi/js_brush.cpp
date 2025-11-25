@@ -96,7 +96,8 @@ napi_value JsBrush::Constructor(napi_env env, napi_callback_info info)
     } else {
         JsBrush* otherBrush = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, otherBrush);
-        std::shared_ptr<Brush> brush = otherBrush->GetBrush();
+        std::shared_ptr<Brush> other = otherBrush->GetBrush();
+        std::shared_ptr<Brush> brush = other == nullptr ? std::make_shared<Brush>() : std::make_shared<Brush>(*other);
         if (brush != nullptr) {
             jsBrush = new JsBrush(brush);
         }
