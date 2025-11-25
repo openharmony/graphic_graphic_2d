@@ -204,7 +204,7 @@ private:
     ScreenRotation screenRotation_ = ScreenRotation::ROTATION_0;
     ScreenRotation mirrorSourceRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
 
-    // save children hdr canvasNode id, the value is larger than one if one node contains multiple HDR types
+    // save children hdr canvasNode id, the value is larger than one if one node contain multiple HDR types
     std::unordered_map<NodeId, uint32_t> hdrNodeMap_;
     bool isSecurityDisplay_ = false;
     bool isMirrorDisplay_ = false;

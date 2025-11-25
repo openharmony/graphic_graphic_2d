@@ -2594,12 +2594,12 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
         return;
     }
-    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
     auto context = displayNode->GetContext().lock();
     if (!context) {
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
         return;
     }
+    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
     for (const auto& [nodeId, _] : hdrNodeMap) {
         auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
         if (!canvasNode) {

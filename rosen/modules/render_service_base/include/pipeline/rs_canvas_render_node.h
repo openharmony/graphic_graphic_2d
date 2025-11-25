@@ -56,6 +56,8 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
+    void UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const;
+
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
     RSRenderNodeType GetType() const override
@@ -74,8 +76,6 @@ public:
     void SetColorGamut(uint32_t colorGamut);
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
-
-    void UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,
