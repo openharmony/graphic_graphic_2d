@@ -157,6 +157,7 @@ private:
     int exceptionCnt_ = 0;
     ExceptionCheck exceptionCheck_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
+    bool isDisconnected_ = false;
     friend class RSRenderComposerAgent;
 };
 } // namespace OHOS::Rosen

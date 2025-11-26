@@ -4534,6 +4534,67 @@ HWTEST_F(RSScreenManagerTest, ProcessScreenConnected, TestSize.Level1)
 }
 
 /*
+ * @tc.name: ProcessScreenConnected01
+ * @tc.desc: Test ProcessScreenConnected
+ * @tc.type: FUNC
+ * @tc.require: issue20799
+ */
+HWTEST_F(RSScreenManagerTest, ProcessScreenConnected01, TestSize.Level1)
+{
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    EXPECT_NE(screenManagerImpl, nullptr);
+
+    uint32_t id = 5;
+    std::shared_ptr<HdiOutput> output = std::make_shared<HdiOutput>(id);
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->foldScreenIds_.clear();
+    screenManagerImpl->isFoldScreenFlag_ = true;
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+    bool found = screenManagerImpl->foldScreenIds_.find(id) != screenManagerImpl->foldScreenIds_.end();
+    ASSERT_TRUE(found);
+
+    id = 1;
+    output = std::make_shared<HdiOutput>(id);
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+    found = screenManagerImpl->foldScreenIds_.find(id) != screenManagerImpl->foldScreenIds_.end();
+    ASSERT_FALSE(found);
+
+    id = 0;
+    output = std::make_shared<HdiOutput>(id);
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+    found = screenManagerImpl->foldScreenIds_.find(id) != screenManagerImpl->foldScreenIds_.end();
+    ASSERT_TRUE(found);
+
+    id = 3;
+    output = std::make_shared<HdiOutput>(id);
+    screenManagerImpl->RSScreenManager::ProcessScreenConnected(output);
+    found = screenManagerImpl->foldScreenIds_.find(id) != screenManagerImpl->foldScreenIds_.end();
+    ASSERT_FALSE(found);
+
+    screenManagerImpl->screens_.clear();
+    screenManagerImpl->foldScreenIds_.clear();
+    screenManagerImpl->isFoldScreenFlag_ = false;
+}
+
+/*
+ * @tc.name: CheckFoldScreenIdBuiltIn
+ * @tc.desc: Test CheckFoldScreenIdBuiltIn
+ * @tc.type: FUNC
+ * @tc.require: issue20799
+ */
+HWTEST_F(RSScreenManagerTest, CheckFoldScreenIdBuiltIn, TestSize.Level1)
+{
+    uint32_t id = 0;
+    auto screenManagerImpl = sptr<impl::RSScreenManager>::MakeSptr();
+    ASSERT_NE(screenManagerImpl, nullptr);
+    bool res = screenManagerImpl->RSScreenManager::CheckFoldScreenIdBuiltIn(id);
+    ASSERT_TRUE(res);
+    id = 1;
+    res = screenManagerImpl->RSScreenManager::CheckFoldScreenIdBuiltIn(id);
+    ASSERT_FALSE(res);
+}
+
+/*
  * @tc.name: OnScreenVBlankIdleEvent
  * @tc.desc: Test OnScreenVBlankIdleEvent
  * @tc.type: FUNC

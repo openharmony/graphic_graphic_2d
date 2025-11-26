@@ -15,3 +15,4 @@ persist.graphic.profiler.renderservice.rdo.enable = true
 persist.graphic.profiler.renderservice.rdo.init.successed = true
 persist.rosen.disableddgr.enabled = 0
 debug.graphic.cloudpushrestart = 0
+persist.rosen.subtree.disabled = 0

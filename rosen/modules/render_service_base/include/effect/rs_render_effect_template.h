@@ -90,6 +90,8 @@ public:
             case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
+            case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
+            case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
@@ -143,6 +145,9 @@ private:
         const std::string& desc, const RRect& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const Matrix3f& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<Drawing::Image> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, float value);
@@ -166,6 +171,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const std::vector<float>& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const RRect& value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value);
 

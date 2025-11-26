@@ -73,6 +73,8 @@ public:
 
     DrawingError ApplyDrawingFilter(const std::shared_ptr<Drawing::ImageFilter>& filter);
     DrawingError ApplyBlur(float radius, const Drawing::TileMode& tileMode);
+    DrawingError ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
+        float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees);
 
     DrawingError Draw();
 

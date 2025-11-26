@@ -56,6 +56,7 @@ rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connecti
 rosen/modules/render_service_base/src/platform/ohos/rs_client_to_render_connection_proxy.cpp @white-dragon-tiger
 rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.h @white-dragon-tiger
 rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.cpp @white-dragon-tiger
+rosen/modules/render_service_base/include/command/ @white-dragon-tiger
 etc/graphic.para.dac @white-dragon-tiger
 rosen/modules/safuzz/ @siyuan_zhou
 
@@ -76,6 +77,7 @@ rosen/modules/render_service/core/feature/opinc/ @conan13234
 
 [composer]
 rosen/modules/render_service/core/pipeline/hardware_thread/ @conan13234
+rosen/modules/render_service/composer/ @conan13234
 rosen/modules/composer/hdi_backend/ @conan13234
 
 [main_thread]
@@ -111,7 +113,6 @@ rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_util.h @c
 [Render Profiler]
 rosen/modules/render_service_profiler/ @huang_kaixing
 rosen/test/render_service/render_service_profiler/unittest/ @huang_kaixing
-rosen/modules/render_service_base/include/command/ @huang_kaixing
 rosen/modules/render_service_base/include/common/rs_common_def.h @huang_kaixing
 rosen/modules/render_service_base/include/platform/ohos/rs_irender_service_connection_ipc_interface_code.h @huang_kaixing
 

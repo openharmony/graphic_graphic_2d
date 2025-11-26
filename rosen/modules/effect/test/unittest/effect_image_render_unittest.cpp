@@ -89,6 +89,16 @@ HWTEST_F(EffectImageFilterUnittest, ApplyTest001, TestSize.Level1)
     EXPECT_TRUE(filterBlur != nullptr);
     ret = filterBlur->Apply(nullptr);
     EXPECT_TRUE(ret != DrawingError::ERR_OK);
+
+    std::vector<float> positions = {0.0f, 1.0f};
+    std::vector<float> degrees = {0.0f, 1.0f};
+    auto filterEllipticalGradientBlur =
+        EffectImageFilter::EllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_TRUE(filterEllipticalGradientBlur != nullptr);
+    ret = filterEllipticalGradientBlur->Apply(nullptr);
+    EXPECT_TRUE(ret != DrawingError::ERR_OK);
+    ret = filterEllipticalGradientBlur->Apply(image);
+    EXPECT_TRUE(ret == DrawingError::ERR_OK);
 }
 
 /**
@@ -114,6 +124,36 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest001, TestSize.Level1)
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 
     ret = imageRender.Render(nullptr, imageFilter, true, dstPixelMap);
+    ASSERT_NE(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: EllipticalGradientBlurApplyTest
+ * @tc.desc: Test EllipticalGradientBlur filter application
+ */
+HWTEST_F(EffectImageRenderUnittest, EllipticalGradientBlurApplyTest, TestSize.Level1)
+{
+    std::vector<float> positions = {0.0f, 1.0f};
+    std::vector<float> degrees = {0.5f, 1.0f};
+
+    Media::InitializationOptions opts;
+    opts.size = {1, 1};
+    auto uniPixelMap = Media::PixelMap::Create(opts);
+    std::shared_ptr<Media::PixelMap> srcPixelMap(std::move(uniPixelMap));
+
+    std::shared_ptr<Media::PixelMap> dstPixelMap = nullptr;
+    std::vector<std::shared_ptr<EffectImageFilter>> imageFilter;
+    imageFilter.emplace_back(nullptr);
+    EffectImageRender imageRender;
+    auto ret = imageRender.Render(srcPixelMap, imageFilter, false, dstPixelMap);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+
+    auto filterBlur = EffectImageFilter::EllipticalGradientBlur(
+        1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_TRUE(filterBlur != nullptr);
+    imageFilter.emplace_back(filterBlur);
+
+    ret = imageRender.Render(nullptr, imageFilter, false, dstPixelMap);
     ASSERT_NE(ret, DrawingError::ERR_OK);
 }
 } // namespace Rosen

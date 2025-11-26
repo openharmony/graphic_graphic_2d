@@ -222,7 +222,7 @@ bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange, pid_t pid
     std::pair<bool, int> fpsInfo;
     bool isEnergyAssured = false;
     for (const auto& [key, value] : uiEnergyAssuranceMap_) {
-        if ((key & type) == type) {
+        if ((key & type) != 0) {
             fpsInfo = value;
             isEnergyAssured = true;
             break;

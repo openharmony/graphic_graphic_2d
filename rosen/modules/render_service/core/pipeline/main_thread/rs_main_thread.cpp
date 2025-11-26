@@ -526,12 +526,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
         if (!isUniRender_) {
             RSRenderNodeGC::Instance().ReleaseDrawableMemory();
         }
-        if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
-            static std::function<void()> task = []() -> void {
-                RSImageCache::Instance().ReleaseUniqueIdList();
-            };
-            RSBackgroundThread::Instance().PostTask(task);
-        }
+        ReleaseImageMem();
         RSTypefaceCache::Instance().HandleDelayDestroyQueue();
 #if defined(RS_ENABLE_CHIPSET_VSYNC)
         ConnectChipsetVsyncSer();
@@ -758,6 +753,27 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
     MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
     RSSystemProperties::WatchSystemProperty(ENABLE_DEBUG_FMT_TRACE, OnFmtTraceSwitchCallback, nullptr);
+    RSRenderNodeGC::Instance().SetImageReleaseFunc([this]() {
+        PostTask([this]() {
+            ReleaseImageMem();
+        }, "ReleaseImageMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
+    });
+    RSRenderNodeGC::Instance().SetDrawableReleaseFunc([this](bool highPriority) {
+        PostTask([this, highPriority]() {
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
+            drawFrame_.ClearDrawableResource();
+        }, "ReleaseNodeDrawableMem in mainthread", 0, AppExecFwk::EventQueue::Priority::HIGH);
+    });
+}
+
+void RSMainThread::ReleaseImageMem()
+{
+    if (!RSImageCache::Instance().CheckUniqueIdIsEmpty()) {
+        static std::function<void()> task = []() -> void {
+            RSImageCache::Instance().ReleaseUniqueIdList();
+        };
+        RSBackgroundThread::Instance().PostTask(task);
+    }
 }
 
 void RSMainThread::GetFrontBufferDesiredPresentTimeStamp(
@@ -2246,6 +2262,19 @@ void RSMainThread::SetFrameIsRender(bool isRender)
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = nodeMap.GetRenderNode(id);
+    if (!node) {
+        RS_LOGW("RSMainThread::AddUiCaptureTask node nullptr, id: %{public}" PRIu64, id);
+    } else {
+        bool isNeedSetTreeStateChangeDirty = node && (node->IsDirty() || node->IsSubTreeDirty());
+        RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask isDirty:%d, subDirty:%d, isOnTheTree:%d",
+            node->IsDirty(), node->IsSubTreeDirty(), node->IsOnTheTree());
+        if (isNeedSetTreeStateChangeDirty) {
+            node->SetChildrenTreeStateChangeDirty();
+            node->SetParentTreeStateChangeDirty(true);
+        }
+    }
     if (!IsRequestedNextVSync()) {
         RequestNextVSync();
     }

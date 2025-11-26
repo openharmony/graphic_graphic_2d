@@ -414,7 +414,6 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     nativeSurfaceInfo->nativeWindowBuffer = nativeWindowBuffer;
     std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBuffer(context.get(),
         imageInfoForRenderTarget, *nativeSurfaceInfo);
-    DestroyNativeWindowBuffer(nativeWindowBuffer);
     return newSurface;
 }
 
@@ -452,10 +451,6 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
         RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
-    if (cleanUpHelper == nullptr || dmaImage == nullptr) {
-        RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
-        return nullptr;
-    }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};

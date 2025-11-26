@@ -625,6 +625,9 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 
 void RSRenderNodeDrawableAdapter::ClearResource()
 {
+    if (toClearDrawableVec_.empty() && toClearCmdListVec_.empty()) {
+        return;
+    }
     RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
         toClearDrawableVec_.size(), toClearCmdListVec_.size());
     toClearDrawableVec_.clear();

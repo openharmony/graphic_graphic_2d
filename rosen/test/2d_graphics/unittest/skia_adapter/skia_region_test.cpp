@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -215,6 +215,30 @@ HWTEST_F(SkiaRegionTest, QuickRejectTest001, TestSize.Level1)
     region.SetRect(rectI);
     region2.SetRect(otherRectI);
     ASSERT_FALSE(region.QuickReject(region2));
+}
+
+/**
+ * @tc.name: QuickContains001
+ * @tc.desc: Test QuickContains
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(SkiaRegionTest, QuickContains001, TestSize.Level1)
+{
+    Region region1;
+    auto skiaRegion1 = region1.GetImpl<SkiaRegion>();
+    ASSERT_NE(skiaRegion1, nullptr);
+    RectI rectI1(100, 100, 300, 300);
+    Region region2;
+    auto skiaRegion2 = region2.GetImpl<SkiaRegion>();
+    ASSERT_NE(skiaRegion2, nullptr);
+    RectI rectI2(200, 200, 400, 400);
+    skiaRegion1->SetRect(rectI1);
+    skiaRegion2->SetRect(rectI2);
+    skiaRegion1->Op(region2, RegionOp::UNION);
+    EXPECT_EQ(skiaRegion1->QuickContains(RectI{100, 100, 200, 200}), false);
+    EXPECT_EQ(skiaRegion2->QuickContains(RectI{200, 200, 300, 300}), true);
+    EXPECT_EQ(skiaRegion2->QuickContains(RectI{200, 200, 500, 500}), false);
 }
 
 /**

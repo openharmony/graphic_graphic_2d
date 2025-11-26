@@ -30,6 +30,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_error_code_test.cpp",
     "drawing_gpu_context_test.cpp",
     "drawing_image_test.cpp",
+    "drawing_lattice_test.cpp",
     "drawing_matrix_test.cpp",
     "drawing_memory_stream_test.cpp",
     "drawing_path_effect_test.cpp",

@@ -17,6 +17,8 @@
 
 #include "effect_utils.h"
 #include "ge_mesa_blur_shader_filter.h"
+#include "ge_radial_gradient_shader_mask.h"
+#include "ge_variable_radius_blur_shader_filter.h"
 #include "rs_trace.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -181,6 +183,54 @@ DrawingError EffectImageChain::ApplyBlur(float radius, const Drawing::TileMode& 
     }
 
     return ApplyMesaBlur(radius, tileMode);
+}
+
+DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, float centerX, float centerY,
+    float maskRadiusX, float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees)
+{
+    if (blurRadius < 0.0f) { // invalid radius
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    if (maskRadiusX <= 0.0f || maskRadiusY <= 0.0f) {
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    if (positions.empty()) {
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    if (degrees.empty()) {
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    // CPU not supported
+    if (forceCPU_) {
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) { // blur need prepare first
+        EFFECT_LOG_E("EffectImageChain::ApplyEllipticalGradientBlur: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+    if (filters_ != nullptr) {
+        DrawOnFilter(); // need draw first to ensure cascading
+        image_ = surface_->GetImageSnapshot();
+        filters_ = nullptr; // clear filters_ to avoid apply again
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyEllipticalGradientBlur");
+    Drawing::GERadialGradientShaderMaskParams maskParams{
+        {centerX, centerY}, maskRadiusX, maskRadiusY, degrees, positions};
+    auto radialGradientShaderMask = std::make_shared<Drawing::GERadialGradientShaderMask>(maskParams);
+
+    Drawing::GEVariableRadiusBlurShaderFilterParams filterParams{radialGradientShaderMask, blurRadius};
+    auto variableRadiusBlurFilter = std::make_shared<GEVariableRadiusBlurShaderFilter>(filterParams);
+    image_ = variableRadiusBlurFilter->ProcessImage(*canvas_,
+        image_,
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()),
+        Drawing::Rect(0, 0, srcPixelMap_->GetWidth(), srcPixelMap_->GetHeight()));
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return DrawingError::ERR_OK;
 }
 
 DrawingError EffectImageChain::ApplyMesaBlur(float radius, const Drawing::TileMode& tileMode)

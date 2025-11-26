@@ -27,6 +27,52 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
+static const std::array g_methods = {
+    ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(AniPath::Constructor) },
+    ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Path}:",
+        reinterpret_cast<void*>(AniPath::ConstructorWithPath) },
+    ani_native_function { "arcTo", "dddddd:", reinterpret_cast<void*>(AniPath::ArcTo) },
+    ani_native_function { "reset", ":", reinterpret_cast<void*>(AniPath::Reset) },
+    ani_native_function { "isRect", nullptr, reinterpret_cast<void*>(AniPath::IsRect) },
+    ani_native_function { "getSegment", nullptr, reinterpret_cast<void*>(AniPath::GetSegment) },
+    ani_native_function { "getPathIterator", ":C{@ohos.graphics.drawing.drawing.PathIterator}",
+        reinterpret_cast<void*>(AniPath::GetPathIterator) },
+    ani_native_function { "rLineTo", "dd:", reinterpret_cast<void*>(AniPath::RLineTo) },
+    ani_native_function { "addRoundRect", nullptr, reinterpret_cast<void*>(AniPath::AddRoundRect) },
+    ani_native_function { "rQuadTo", "dddd:", reinterpret_cast<void*>(AniPath::RQuadTo) },
+    ani_native_function { "transform", "C{@ohos.graphics.drawing.drawing.Matrix}:",
+        reinterpret_cast<void*>(AniPath::Transform) },
+    ani_native_function { "offset", "dd:C{@ohos.graphics.drawing.drawing.Path}",
+        reinterpret_cast<void*>(AniPath::Offset) },
+    ani_native_function { "addArc", "C{@ohos.graphics.common2D.common2D.Rect}dd:",
+        reinterpret_cast<void*>(AniPath::AddArc) },
+    ani_native_function { "rMoveTo", "dd:", reinterpret_cast<void*>(AniPath::RMoveTo) },
+    ani_native_function { "getPositionAndTangent", nullptr, reinterpret_cast<void*>(AniPath::GetPositionAndTangent) },
+    ani_native_function { "getLength", nullptr, reinterpret_cast<void*>(AniPath::GetLength) },
+    ani_native_function { "op", nullptr, reinterpret_cast<void*>(AniPath::Op) },
+    ani_native_function { "addPolygon", nullptr, reinterpret_cast<void*>(AniPath::AddPolygon) },
+    ani_native_function { "conicTo", nullptr, reinterpret_cast<void*>(AniPath::ConicTo) },
+    ani_native_function { "addCircle", nullptr, reinterpret_cast<void*>(AniPath::AddCircle) },
+    ani_native_function { "rCubicTo", nullptr, reinterpret_cast<void*>(AniPath::RCubicTo) },
+    ani_native_function { "rConicTo", nullptr, reinterpret_cast<void*>(AniPath::RConicTo) },
+    ani_native_function { "setFillType", nullptr, reinterpret_cast<void*>(AniPath::SetFillType) },
+    ani_native_function { "addRect", nullptr, reinterpret_cast<void*>(AniPath::AddRect) },
+    ani_native_function { "getMatrix", nullptr, reinterpret_cast<void*>(AniPath::GetMatrix) },
+    ani_native_function { "getBounds", nullptr, reinterpret_cast<void*>(AniPath::GetBounds) },
+    ani_native_function { "addOval", nullptr, reinterpret_cast<void*>(AniPath::AddOval) },
+    ani_native_function { "contains", nullptr, reinterpret_cast<void*>(AniPath::Contains) },
+    ani_native_function { "addPath", nullptr, reinterpret_cast<void*>(AniPath::AddPath) },
+    ani_native_function { "isClosed", nullptr, reinterpret_cast<void*>(AniPath::IsClosed) },
+    ani_native_function { "buildFromSvgString", nullptr, reinterpret_cast<void*>(AniPath::BuildFromSVGString) },
+    ani_native_function { "cubicTo", nullptr, reinterpret_cast<void*>(AniPath::CubicTo) },
+    ani_native_function { "quadTo", nullptr, reinterpret_cast<void*>(AniPath::QuadTo) },
+    ani_native_function { "lineTo", nullptr, reinterpret_cast<void*>(AniPath::LineTo) },
+    ani_native_function { "moveTo", nullptr, reinterpret_cast<void*>(AniPath::MoveTo) },
+    ani_native_function { "close", nullptr, reinterpret_cast<void*>(AniPath::Close) },
+    ani_native_function { "isInverseFillType", nullptr, reinterpret_cast<void*>(AniPath::IsInverseFillType) },
+    ani_native_function { "toggleInverseFillType", nullptr, reinterpret_cast<void*>(AniPath::ToggleInverseFillType) },
+};
+
 ani_status AniPath::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -36,49 +82,7 @@ ani_status AniPath::AniInit(ani_env *env)
         return ANI_NOT_FOUND;
     }
 
-    std::array methods = {
-        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Path}:",
-            reinterpret_cast<void*>(ConstructorWithPath) },
-        ani_native_function { "arcTo", "dddddd:", reinterpret_cast<void*>(ArcTo) },
-        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "getSegment", nullptr, reinterpret_cast<void*>(GetSegment) },
-        ani_native_function { "getPathIterator", ":C{@ohos.graphics.drawing.drawing.PathIterator}",
-            reinterpret_cast<void*>(GetPathIterator) },
-        ani_native_function { "rLineTo", "dd:", reinterpret_cast<void*>(RLineTo) },
-        ani_native_function { "addRoundRect", nullptr, reinterpret_cast<void*>(AddRoundRect) },
-        ani_native_function { "rQuadTo", "dddd:", reinterpret_cast<void*>(RQuadTo) },
-        ani_native_function { "transform", "C{@ohos.graphics.drawing.drawing.Matrix}:",
-            reinterpret_cast<void*>(Transform) },
-        ani_native_function { "offset", "dd:C{@ohos.graphics.drawing.drawing.Path}", reinterpret_cast<void*>(Offset) },
-        ani_native_function { "addArc", "C{@ohos.graphics.common2D.common2D.Rect}dd:",
-            reinterpret_cast<void*>(AddArc) },
-        ani_native_function { "rMoveTo", "dd:", reinterpret_cast<void*>(RMoveTo) },
-        ani_native_function { "getPositionAndTangent", nullptr, reinterpret_cast<void*>(GetPositionAndTangent) },
-        ani_native_function { "getLength", nullptr, reinterpret_cast<void*>(GetLength) },
-        ani_native_function { "op", nullptr, reinterpret_cast<void*>(Op) },
-        ani_native_function { "addPolygon", nullptr, reinterpret_cast<void*>(AddPolygon) },
-        ani_native_function { "conicTo", nullptr, reinterpret_cast<void*>(ConicTo) },
-        ani_native_function { "addCircle", nullptr, reinterpret_cast<void*>(AddCircle) },
-        ani_native_function { "rCubicTo", nullptr, reinterpret_cast<void*>(RCubicTo) },
-        ani_native_function { "rConicTo", nullptr, reinterpret_cast<void*>(RConicTo) },
-        ani_native_function { "setFillType", nullptr, reinterpret_cast<void*>(SetFillType) },
-        ani_native_function { "addRect", nullptr, reinterpret_cast<void*>(AddRect) },
-        ani_native_function { "getMatrix", nullptr, reinterpret_cast<void*>(GetMatrix) },
-        ani_native_function { "getBounds", nullptr, reinterpret_cast<void*>(GetBounds) },
-        ani_native_function { "addOval", nullptr, reinterpret_cast<void*>(AddOval) },
-        ani_native_function { "contains", nullptr, reinterpret_cast<void*>(Contains) },
-        ani_native_function { "addPath", nullptr, reinterpret_cast<void*>(AddPath) },
-        ani_native_function { "isClosed", nullptr, reinterpret_cast<void*>(IsClosed) },
-        ani_native_function { "buildFromSvgString", nullptr, reinterpret_cast<void*>(BuildFromSVGString) },
-        ani_native_function { "cubicTo", nullptr, reinterpret_cast<void*>(CubicTo) },
-        ani_native_function { "quadTo", nullptr, reinterpret_cast<void*>(QuadTo) },
-        ani_native_function { "lineTo", nullptr, reinterpret_cast<void*>(LineTo) },
-        ani_native_function { "moveTo", nullptr, reinterpret_cast<void*>(MoveTo) },
-        ani_native_function { "close", nullptr, reinterpret_cast<void*>(Close) }
-    };
-
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: ret %{public}d %{public}s", ret, ANI_CLASS_PATH_NAME);
         return ret;
@@ -279,7 +283,7 @@ ani_object AniPath::Offset(ani_env* env, ani_object obj, ani_double dx, ani_doub
     }
     std::shared_ptr<Path> path = std::make_shared<Path>();
     aniPath->GetPath()->Offset(path.get(), dx, dy);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, nullptr);
+    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, ":");
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -719,6 +723,27 @@ void AniPath::Close(ani_env* env, ani_object obj)
     }
     aniPath->GetPath()->Close();
 }
+
+ani_boolean AniPath::IsInverseFillType(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return false;
+    }
+    return aniPath->GetPath()->IsInverseFillType();
+}
+
+void AniPath::ToggleInverseFillType(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return;
+    }
+    aniPath->GetPath()->ToggleInverseFillType();
+}
+
 ani_object AniPath::PathTransferStatic(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
 {

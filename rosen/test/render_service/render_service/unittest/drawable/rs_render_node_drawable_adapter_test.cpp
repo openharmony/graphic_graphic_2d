@@ -581,8 +581,35 @@ HWTEST(RSRenderNodeDrawableAdapterTest, ClearResourceTest, TestSize.Level1)
     NodeId id = 16;
     auto node = std::make_shared<RSRenderNode>(id);
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
+
+    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
+    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
     adapter->ClearResource();
-    EXPECT_TRUE(adapter->drawCmdList_.empty());
+    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
+    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+
+    adapter->toClearDrawableVec_.emplace_back();
+    EXPECT_FALSE(adapter->toClearDrawableVec_.empty());
+    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+    adapter->ClearResource();
+    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
+    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+
+    adapter->toClearDrawableVec_.clear();
+    adapter->toClearCmdListVec_.emplace_back();
+    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
+    EXPECT_FALSE(adapter->toClearCmdListVec_.empty());
+    adapter->ClearResource();
+    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
+    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
+
+    adapter->toClearDrawableVec_.emplace_back();
+    adapter->toClearCmdListVec_.emplace_back();
+    EXPECT_FALSE(adapter->toClearDrawableVec_.empty());
+    EXPECT_FALSE(adapter->toClearCmdListVec_.empty());
+    adapter->ClearResource();
+    EXPECT_TRUE(adapter->toClearDrawableVec_.empty());
+    EXPECT_TRUE(adapter->toClearCmdListVec_.empty());
 }
 
 /**

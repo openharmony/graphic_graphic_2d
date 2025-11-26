@@ -37,6 +37,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr useconds_t DELAY = 6000000;
 #define DECLARE_WRITE_RANDOM(type) { "Write" #type, MessageParcelCustomizedTypeUtils::WriteRandom##type }
 
 const std::unordered_map<std::string, std::function<bool(MessageParcel&, const TestCaseParams&)>>
@@ -149,8 +150,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBufferAvailableCallbackSptr(Me
     const TestCaseParams& /* testCaseParams */)
 {
     BufferAvailableCallback callback = []() {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferAvailableCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferAvailableCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIBufferAvailableCallback> obj = new CustomBufferAvailableCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -165,8 +166,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBufferClearCallbackSptr(Messag
     const TestCaseParams& /* testCaseParams */)
 {
     BufferClearCallback callback = []() {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferClearCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferClearCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIBufferClearCallback> obj = new CustomBufferClearCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -180,8 +181,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmConfigChangeCallbackSptr(Me
     const TestCaseParams& /* testCaseParams */)
 {
     HgmConfigChangeCallback callback = [](std::shared_ptr<RSHgmConfigData>) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmConfigChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmConfigChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmConfigChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -197,8 +198,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateModeChangeCallba
 {
     HgmRefreshRateModeChangeCallback callback = [](int32_t) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateModeChangeCallbackSptr "
-            "enter dead lock");
-        while (true) {}
+            "sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateModeChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -213,8 +214,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSp
     const TestCaseParams& /* testCaseParams */)
 {
     HgmRefreshRateUpdateCallback callback = [](int32_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateUpdateCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -230,8 +231,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallback
     const TestCaseParams& /* testCaseParams */)
 {
     PointerLuminanceChangeCallback callback = [](int32_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIPointerLuminanceChangeCallback> obj = new CustomPointerLuminanceChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -248,8 +249,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpda
 {
     FrameRateLinkerExpectedFpsUpdateCallback callback = [](int32_t, const std::string&, int32_t) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpdateCallbackSptr "
-            "enter dead lock");
-        while (true) {}
+            "sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> obj =
         new CustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
@@ -265,8 +266,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr(Me
     const TestCaseParams& /* testCaseParams */)
 {
     OcclusionChangeCallback callback = [](std::shared_ptr<RSOcclusionData>) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIOcclusionChangeCallback> obj = new CustomOcclusionChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -299,8 +300,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceOcclusionChangeCallback
     const TestCaseParams& /* testCaseParams */)
 {
     SurfaceOcclusionChangeCallback callback = [](float) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceOcclusionChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceOcclusionChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSISurfaceOcclusionChangeCallback> obj = new CustomSurfaceOcclusionChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -315,8 +316,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomUIExtensionCallbackSptr(Messag
     const TestCaseParams& /* testCaseParams */)
 {
     UIExtensionCallback callback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomUIExtensionCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomUIExtensionCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIUIExtensionCallback> obj = new CustomUIExtensionCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -331,8 +332,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
     const TestCaseParams& /* testCaseParams */)
 {
     ScreenChangeCallback callback = [](ScreenId, ScreenEvent, ScreenChangeReason) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIScreenChangeCallback> obj = new CustomScreenChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -397,8 +398,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallb
 {
     SelfDrawingNodeRectChangeCallback callback = [](std::shared_ptr<RSSelfDrawingNodeRectData>) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallbackSptr "
-            "enter dead lock");
-        while (true) {}
+            "sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSISelfDrawingNodeRectChangeCallback> obj = new CustomSelfDrawingNodeRectChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {

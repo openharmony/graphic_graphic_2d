@@ -36,26 +36,11 @@ constexpr uint32_t COLOR_OFFSET_RED = 16;
 constexpr uint32_t COLOR_STRING_FORMAT = 16;
 constexpr uint32_t COLOR_OFFSET_ALPHA = 24;
 constexpr uint32_t COLOR_DEFAULT_ALPHA = 0xFF000000;
-constexpr uint32_t COLOR_ENUM_COUNT = 12;
 const std::vector<size_t> EXPECT_MAGIC_COLOR_LENGTHS = {7, 9};
 const std::vector<size_t> EXPECT_MAGIC_MINI_COLOR_LENGTHS = {4, 5};
 const std::regex COLOR_WITH_RGB(R"(rgb\(([+]?[0-9]+)\,([+]?[0-9]+)\,([+]?[0-9]+)\))", std::regex::icase);
 const std::regex COLOR_WITH_RGBA(R"(rgba\(([+]?[0-9]+)\,([+]?[0-9]+)\,([+]?[0-9]+)\,(\d+\.?\d*)\))", std::regex::icase);
 const std::regex HEX_PATTERN("^[0-9a-fA-F]+$");
-std::array<uint32_t, COLOR_ENUM_COUNT> colorArray = {
-    0xffffff | 0xFF000000,
-    0x000000 | 0xFF000000,
-    0x0000ff | 0xFF000000,
-    0xa52a2a | 0xFF000000,
-    0x808080 | 0xFF000000,
-    0x008000 | 0xFF000000,
-    0x808080 | 0xFF000000,
-    0xffa500 | 0xFF000000,
-    0xffc0cb | 0xFF000000,
-    0xff0000 | 0xFF000000,
-    0xffff00 | 0xFF000000,
-    0x00000000,
-};
 #endif
 
 ani_status AniTool::AniInit(ani_env *env)
@@ -111,7 +96,7 @@ ani_object AniTool::MakeColorFromResourceColor(ani_env* env, ani_object obj, ani
         ROSEN_LOGE("AniTool::makeColorFromResourceColor failed to get colorNumber!");
         return CreateAniUndefined(env);
     }
-    OHOS::Rosen::Drawing::Color color = OHOS::Rosen::Drawing::Color((colorNumber >> COLOR_OFFSET_ALPHA) & 0xFF,
+    OHOS::Rosen::Drawing::Color color = OHOS::Rosen::Drawing::Color((colorNumber >> COLOR_OFFSET_RED) & 0xFF,
         (colorNumber >> COLOR_OFFSET_GREEN) & 0xFF,
         colorNumber & 0xFF,
         (colorNumber >> COLOR_OFFSET_ALPHA) & 0xFF
@@ -520,17 +505,17 @@ bool AniTool::IsColorEnum(ani_env* env, ani_object obj)
     return (bool)isEnum;
 }
 
-bool AniTool::IsNumberObject(ani_env* env, ani_object obj)
+bool AniTool::IsIntObject(ani_env* env, ani_object obj)
 {
-    ani_class doubleClass;
-    if (env->FindClass("std.core.Double", &doubleClass) != ANI_OK) {
+    ani_class intClass;
+    if (env->FindClass("std.core.Int", &intClass) != ANI_OK) {
         return false;
     }
-    ani_boolean isDouble;
-    if (env->Object_InstanceOf(obj, doubleClass, &isDouble) != ANI_OK) {
+    ani_boolean isInt;
+    if (env->Object_InstanceOf(obj, intClass, &isInt) != ANI_OK) {
         return false;
     }
-    return (bool)isDouble;
+    return (bool)isInt;
 }
 
 bool AniTool::IsResourceObject(ani_env* env, ani_object obj)
@@ -558,25 +543,26 @@ bool AniTool::GetResourceColor(ani_env* env, ani_object obj, uint32_t& result)
     }
 
     if (IsColorEnum(env, obj)) {
-        ani_int colorInt;
-        if (env->EnumItem_GetValue_Int(static_cast<ani_enum_item>(obj), &colorInt) != ANI_OK) {
+        ani_string colorEnumStr;
+        if (env->EnumItem_GetValue_String(static_cast<ani_enum_item>(obj), &colorEnumStr) != ANI_OK) {
             ROSEN_LOGE("AniTool::GetResourceColor failed to EnumItem_GetValue_Int");
             return false;
         }
-        if (static_cast<size_t>(colorInt) >= colorArray.size()) {
+        std::string colorStr = CreateStdString(env, colorEnumStr);
+        if (!GetColorStringResult(colorStr, result)) {
+            ROSEN_LOGE("AniTool::GetResourceColor failed to GetColorStringResult!");
             return false;
         }
-        result = colorArray[static_cast<size_t>(colorInt)];
         return true;
     }
 
-    if (IsNumberObject(env, obj)) {
-        ani_double aniColor;
-        if (ANI_OK != env->Object_CallMethodByName_Double(obj, "toDouble", nullptr, &aniColor)) {
+    if (IsIntObject(env, obj)) {
+        ani_int aniColor;
+        if (ANI_OK != env->Object_CallMethodByName_Int(obj, "toInt", ":i", &aniColor)) {
             ROSEN_LOGE("AniTool::GetResourceColor failed by Object_CallMethodByName_Double");
             return false;
         }
-        result = GetColorNumberResult(aniColor);
+        result = GetColorNumberResult(static_cast<uint32_t>(aniColor));
         return true;
     }
 

@@ -200,7 +200,10 @@ public:
         isTreeStateChangeDirty_ = val;
     }
     void SetParentSubTreeDirty();
-    void SetParentTreeStateChangeDirty();
+    // set when tree state changed or in uicapture task for each parent node recursively
+    void SetParentTreeStateChangeDirty(bool isUpdateAllParentNode = false);
+    // set in uicapture task for each child node recursively
+    void SetChildrenTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;

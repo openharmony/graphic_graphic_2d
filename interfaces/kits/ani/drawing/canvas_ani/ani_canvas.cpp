@@ -298,6 +298,82 @@ AniCanvas* UnwrapAniCanvas(ani_env* env, ani_object obj)
     return aniCanvas;
 }
 
+static const std::array g_methods = {
+    ani_native_function { "constructorNative", nullptr, reinterpret_cast<void*>(AniCanvas::Constructor) },
+    ani_native_function { "drawRect", "C{@ohos.graphics.common2D.common2D.Rect}:",
+        reinterpret_cast<void*>(AniCanvas::DrawRectWithRect) },
+    ani_native_function { "drawRect", "dddd:", reinterpret_cast<void*>(AniCanvas::DrawRect) },
+    ani_native_function { "drawRoundRect", nullptr, reinterpret_cast<void*>(AniCanvas::DrawRoundRect) },
+    ani_native_function { "drawNestedRoundRect", nullptr, reinterpret_cast<void*>(AniCanvas::DrawNestedRoundRect) },
+    ani_native_function { "drawBackground", nullptr, reinterpret_cast<void*>(AniCanvas::DrawBackground) },
+    ani_native_function { "drawShadow", "C{@ohos.graphics.drawing.drawing.Path}"
+        "C{@ohos.graphics.common2D.common2D.Point3d}C{@ohos.graphics.common2D.common2D.Point3d}"
+        "dC{@ohos.graphics.common2D.common2D.Color}C{@ohos.graphics.common2D.common2D.Color}"
+        "C{@ohos.graphics.drawing.drawing.ShadowFlag}:",
+        reinterpret_cast<void*>(AniCanvas::DrawShadow) },
+    ani_native_function { "drawShadow", "C{@ohos.graphics.drawing.drawing.Path}"
+        "C{@ohos.graphics.common2D.common2D.Point3d}C{@ohos.graphics.common2D.common2D.Point3d}"
+        "dX{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}"
+        "X{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}C{@ohos.graphics.drawing.drawing.ShadowFlag}:",
+        reinterpret_cast<void*>(AniCanvas::DrawShadowWithOption) },
+    ani_native_function { "drawCircle", nullptr, reinterpret_cast<void*>(AniCanvas::DrawCircle) },
+    ani_native_function { "drawImage", nullptr, reinterpret_cast<void*>(AniCanvas::DrawImage) },
+    ani_native_function { "drawImageLattice", nullptr, reinterpret_cast<void*>(AniCanvas::DrawImageLattice) },
+    ani_native_function { "drawImageNine", nullptr, reinterpret_cast<void*>(AniCanvas::DrawImageNine) },
+    ani_native_function { "drawImageRect", nullptr, reinterpret_cast<void*>(AniCanvas::DrawImageRect) },
+    ani_native_function { "drawVertices", nullptr, reinterpret_cast<void*>(AniCanvas::DrawVertices) },
+    ani_native_function { "drawImageRectWithSrc", nullptr, reinterpret_cast<void*>(AniCanvas::DrawImageRectWithSrc) },
+    ani_native_function { "drawColor",
+        "C{@ohos.graphics.common2D.common2D.Color}C{@ohos.graphics.drawing.drawing.BlendMode}:",
+        reinterpret_cast<void*>(AniCanvas::DrawColorWithObject) },
+    ani_native_function { "drawColor", "iiiiC{@ohos.graphics.drawing.drawing.BlendMode}:",
+        reinterpret_cast<void*>(AniCanvas::DrawColorWithArgb) },
+    ani_native_function { "drawColor", "iC{@ohos.graphics.drawing.drawing.BlendMode}:",
+        reinterpret_cast<void*>(AniCanvas::DrawColor) },
+    ani_native_function { "drawPath", nullptr, reinterpret_cast<void*>(AniCanvas::DrawPath) },
+    ani_native_function { "drawLine", nullptr, reinterpret_cast<void*>(AniCanvas::DrawLine) },
+    ani_native_function { "drawSingleCharacter", nullptr, reinterpret_cast<void*>(AniCanvas::DrawSingleCharacter) },
+    ani_native_function { "drawTextBlob", nullptr, reinterpret_cast<void*>(AniCanvas::DrawTextBlob) },
+    ani_native_function { "drawOval", nullptr, reinterpret_cast<void*>(AniCanvas::DrawOval) },
+    ani_native_function { "drawArc", nullptr, reinterpret_cast<void*>(AniCanvas::DrawArc) },
+    ani_native_function { "drawArcWithCenter", nullptr, reinterpret_cast<void*>(AniCanvas::DrawArcWithCenter) },
+    ani_native_function { "drawPoint", nullptr, reinterpret_cast<void*>(AniCanvas::DrawPoint) },
+    ani_native_function { "drawPoints", nullptr, reinterpret_cast<void*>(AniCanvas::DrawPoints) },
+    ani_native_function { "drawPixelMapMesh", nullptr, reinterpret_cast<void*>(AniCanvas::DrawPixelMapMesh) },
+    ani_native_function { "drawRegion", nullptr, reinterpret_cast<void*>(AniCanvas::DrawRegion) },
+    ani_native_function { "attachPen", nullptr, reinterpret_cast<void*>(AniCanvas::AttachPen) },
+    ani_native_function { "attachBrush", nullptr, reinterpret_cast<void*>(AniCanvas::AttachBrush) },
+    ani_native_function { "detachPen", nullptr, reinterpret_cast<void*>(AniCanvas::DetachPen) },
+    ani_native_function { "detachBrush", nullptr, reinterpret_cast<void*>(AniCanvas::DetachBrush) },
+    ani_native_function { "save", nullptr, reinterpret_cast<void*>(AniCanvas::Save) },
+    ani_native_function { "saveLayer", nullptr, reinterpret_cast<void*>(AniCanvas::SaveLayer) },
+    ani_native_function { "clear", "C{@ohos.graphics.common2D.common2D.Color}:",
+        reinterpret_cast<void*>(AniCanvas::Clear) },
+    ani_native_function { "clear", "X{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}:",
+        reinterpret_cast<void*>(AniCanvas::ClearWithOption) },
+    ani_native_function { "restore", nullptr, reinterpret_cast<void*>(AniCanvas::Restore) },
+    ani_native_function { "restoreToCount", nullptr, reinterpret_cast<void*>(AniCanvas::RestoreToCount) },
+    ani_native_function { "getSaveCount", nullptr, reinterpret_cast<void*>(AniCanvas::GetSaveCount) },
+    ani_native_function { "getWidth", nullptr, reinterpret_cast<void*>(AniCanvas::GetWidth) },
+    ani_native_function { "getHeight", nullptr, reinterpret_cast<void*>(AniCanvas::GetHeight) },
+    ani_native_function { "getLocalClipBounds", nullptr, reinterpret_cast<void*>(AniCanvas::GetLocalClipBounds) },
+    ani_native_function { "getTotalMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::GetTotalMatrix) },
+    ani_native_function { "scale", nullptr, reinterpret_cast<void*>(AniCanvas::Scale) },
+    ani_native_function { "skew", nullptr, reinterpret_cast<void*>(AniCanvas::Skew) },
+    ani_native_function { "rotate", nullptr, reinterpret_cast<void*>(AniCanvas::Rotate) },
+    ani_native_function { "translate", nullptr, reinterpret_cast<void*>(AniCanvas::Translate) },
+    ani_native_function { "clipPath", nullptr, reinterpret_cast<void*>(AniCanvas::ClipPath) },
+    ani_native_function { "clipRect", nullptr, reinterpret_cast<void*>(AniCanvas::ClipRect) },
+    ani_native_function { "concatMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::ConcatMatrix) },
+    ani_native_function { "clipRegion", nullptr, reinterpret_cast<void*>(AniCanvas::ClipRegion) },
+    ani_native_function { "clipRoundRect", nullptr, reinterpret_cast<void*>(AniCanvas::ClipRoundRect) },
+    ani_native_function { "isClipEmpty", nullptr, reinterpret_cast<void*>(AniCanvas::IsClipEmpty) },
+    ani_native_function { "setMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::SetMatrix) },
+    ani_native_function { "resetMatrix", nullptr, reinterpret_cast<void*>(AniCanvas::ResetMatrix) },
+    ani_native_function { "quickRejectPath", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectPath) },
+    ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(AniCanvas::QuickRejectRect) },
+};
+
 ani_status AniCanvas::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -306,83 +382,7 @@ ani_status AniCanvas::AniInit(ani_env *env)
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_CANVAS_NAME);
         return ANI_NOT_FOUND;
     }
-
-    std::array methods = {
-        ani_native_function { "constructorNative", nullptr, reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "drawRect", "C{@ohos.graphics.common2D.common2D.Rect}:",
-            reinterpret_cast<void*>(DrawRectWithRect) },
-        ani_native_function { "drawRect", "dddd:", reinterpret_cast<void*>(DrawRect) },
-        ani_native_function { "drawRoundRect", nullptr, reinterpret_cast<void*>(DrawRoundRect) },
-        ani_native_function { "drawNestedRoundRect", nullptr, reinterpret_cast<void*>(DrawNestedRoundRect) },
-        ani_native_function { "drawBackground", nullptr, reinterpret_cast<void*>(DrawBackground) },
-        ani_native_function { "drawShadow", "C{@ohos.graphics.drawing.drawing.Path}"
-            "C{@ohos.graphics.common2D.common2D.Point3d}C{@ohos.graphics.common2D.common2D.Point3d}"
-            "dC{@ohos.graphics.common2D.common2D.Color}C{@ohos.graphics.common2D.common2D.Color}"
-            "C{@ohos.graphics.drawing.drawing.ShadowFlag}:",
-            reinterpret_cast<void*>(DrawShadow) },
-        ani_native_function { "drawShadow", "C{@ohos.graphics.drawing.drawing.Path}"
-            "C{@ohos.graphics.common2D.common2D.Point3d}C{@ohos.graphics.common2D.common2D.Point3d}"
-            "dX{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}"
-            "X{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}C{@ohos.graphics.drawing.drawing.ShadowFlag}:",
-            reinterpret_cast<void*>(DrawShadowWithOption) },
-        ani_native_function { "drawCircle", nullptr, reinterpret_cast<void*>(DrawCircle) },
-        ani_native_function { "drawImage", nullptr, reinterpret_cast<void*>(DrawImage) },
-        ani_native_function { "drawImageLattice", nullptr, reinterpret_cast<void*>(DrawImageLattice) },
-        ani_native_function { "drawImageNine", nullptr, reinterpret_cast<void*>(DrawImageNine) },
-        ani_native_function { "drawImageRect", nullptr, reinterpret_cast<void*>(DrawImageRect) },
-        ani_native_function { "drawVertices", nullptr, reinterpret_cast<void*>(DrawVertices) },
-        ani_native_function { "drawImageRectWithSrc", nullptr, reinterpret_cast<void*>(DrawImageRectWithSrc) },
-        ani_native_function { "drawColor",
-            "C{@ohos.graphics.common2D.common2D.Color}C{@ohos.graphics.drawing.drawing.BlendMode}:",
-            reinterpret_cast<void*>(DrawColorWithObject) },
-        ani_native_function { "drawColor", "iiiiC{@ohos.graphics.drawing.drawing.BlendMode}:",
-            reinterpret_cast<void*>(DrawColorWithArgb) },
-        ani_native_function { "drawColor", "iC{@ohos.graphics.drawing.drawing.BlendMode}:",
-            reinterpret_cast<void*>(DrawColor) },
-        ani_native_function { "drawPath", nullptr, reinterpret_cast<void*>(DrawPath) },
-        ani_native_function { "drawLine", nullptr, reinterpret_cast<void*>(DrawLine) },
-        ani_native_function { "drawSingleCharacter", nullptr, reinterpret_cast<void*>(DrawSingleCharacter) },
-        ani_native_function { "drawTextBlob", nullptr, reinterpret_cast<void*>(DrawTextBlob) },
-        ani_native_function { "drawOval", nullptr, reinterpret_cast<void*>(DrawOval) },
-        ani_native_function { "drawArc", nullptr, reinterpret_cast<void*>(DrawArc) },
-        ani_native_function { "drawArcWithCenter", nullptr, reinterpret_cast<void*>(DrawArcWithCenter) },
-        ani_native_function { "drawPoint", nullptr, reinterpret_cast<void*>(DrawPoint) },
-        ani_native_function { "drawPoints", nullptr, reinterpret_cast<void*>(DrawPoints) },
-        ani_native_function { "drawPixelMapMesh", nullptr, reinterpret_cast<void*>(DrawPixelMapMesh) },
-        ani_native_function { "drawRegion", nullptr, reinterpret_cast<void*>(DrawRegion) },
-        ani_native_function { "attachPen", nullptr, reinterpret_cast<void*>(AttachPen) },
-        ani_native_function { "attachBrush", nullptr, reinterpret_cast<void*>(AttachBrush) },
-        ani_native_function { "detachPen", nullptr, reinterpret_cast<void*>(DetachPen) },
-        ani_native_function { "detachBrush", nullptr, reinterpret_cast<void*>(DetachBrush) },
-        ani_native_function { "save", nullptr, reinterpret_cast<void*>(Save) },
-        ani_native_function { "saveLayer", nullptr, reinterpret_cast<void*>(SaveLayer) },
-        ani_native_function { "clear", "C{@ohos.graphics.common2D.common2D.Color}:", reinterpret_cast<void*>(Clear) },
-        ani_native_function { "clear", "X{C{@ohos.graphics.common2D.common2D.Color}C{std.core.Int}}:",
-            reinterpret_cast<void*>(ClearWithOption) },
-        ani_native_function { "restore", nullptr, reinterpret_cast<void*>(Restore) },
-        ani_native_function { "restoreToCount", nullptr, reinterpret_cast<void*>(RestoreToCount) },
-        ani_native_function { "getSaveCount", nullptr, reinterpret_cast<void*>(GetSaveCount) },
-        ani_native_function { "getWidth", nullptr, reinterpret_cast<void*>(GetWidth) },
-        ani_native_function { "getHeight", nullptr, reinterpret_cast<void*>(GetHeight) },
-        ani_native_function { "getLocalClipBounds", nullptr, reinterpret_cast<void*>(GetLocalClipBounds) },
-        ani_native_function { "getTotalMatrix", nullptr, reinterpret_cast<void*>(GetTotalMatrix) },
-        ani_native_function { "scale", nullptr, reinterpret_cast<void*>(Scale) },
-        ani_native_function { "skew", nullptr, reinterpret_cast<void*>(Skew) },
-        ani_native_function { "rotate", nullptr, reinterpret_cast<void*>(Rotate) },
-        ani_native_function { "translate", nullptr, reinterpret_cast<void*>(Translate) },
-        ani_native_function { "clipPath", nullptr, reinterpret_cast<void*>(ClipPath) },
-        ani_native_function { "clipRect", nullptr, reinterpret_cast<void*>(ClipRect) },
-        ani_native_function { "concatMatrix", nullptr, reinterpret_cast<void*>(ConcatMatrix) },
-        ani_native_function { "clipRegion", nullptr, reinterpret_cast<void*>(ClipRegion) },
-        ani_native_function { "clipRoundRect", nullptr, reinterpret_cast<void*>(ClipRoundRect) },
-        ani_native_function { "isClipEmpty", nullptr, reinterpret_cast<void*>(IsClipEmpty) },
-        ani_native_function { "setMatrix", nullptr, reinterpret_cast<void*>(SetMatrix) },
-        ani_native_function { "resetMatrix", nullptr, reinterpret_cast<void*>(ResetMatrix) },
-        ani_native_function { "quickRejectPath", nullptr, reinterpret_cast<void*>(QuickRejectPath) },
-        ani_native_function { "quickRejectRect", nullptr, reinterpret_cast<void*>(QuickRejectRect) },
-    };
-
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_CANVAS_NAME);
         return ANI_NOT_FOUND;
@@ -575,7 +575,8 @@ void AniCanvas::DrawShadow(ani_env* env, ani_object obj, ani_object pathObj,
     Drawing::ColorQuad ambient;
     Drawing::ColorQuad spot;
     if (!GetColorQuadFromParam(env, ambientColor, ambient) || !GetColorQuadFromParam(env, spotColor, spot)) {
-        ROSEN_LOGE("AniCanvas::DrawShadow params4 or params5 is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "AniCanvas::DrawShadow the range of color channels must be [0, 255].");
         return;
     }
 
@@ -622,7 +623,8 @@ void AniCanvas::DrawShadowWithOption(ani_env* env, ani_object obj, ani_object pa
     Drawing::ColorQuad ambient;
     Drawing::ColorQuad spot;
     if (!GetColorQuadFromParam(env, ambientColorOps, ambient) || !GetColorQuadFromParam(env, spotColorOps, spot)) {
-        ROSEN_LOGE("AniCanvas::DrawShadowWithOption params4 or params5 is invalid");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED,
+            "AniCanvas::DrawShadow the range of color channels must be [0, 255].");
         return;
     }
 
@@ -963,7 +965,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
         AniThrowError(env, "Invalid params.");
         return;
     }
-    uint32_t colorsSize = aniLength;
+    uint32_t colorsSize = static_cast<uint32_t>(aniLength);
     int64_t tempColorsSize = (args.column + 1) * (args.row + 1) + colorOffset;
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("AniCanvas::GetColorsAndDraw colors are invalid");
@@ -994,7 +996,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
             return;
         }
-        colors[i] = color;
+        colors[i] = static_cast<uint32_t>(color);
     }
     uint32_t* colorsMesh = colors + colorOffset;
     DrawingPixelMapMesh(args.pixelMap, args.column, args.row, verticesMesh, colorsMesh, canvas);
@@ -1607,15 +1609,16 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_object pointsObj, a
         return;
     }
     uint32_t size = static_cast<uint32_t>(aniLength);
-    Drawing::Point* points = new(std::nothrow) Point[size];
-    if (points == nullptr) {
-        return;
-    }
     if (size > MAX_ELEMENTSIZE) {
-        delete [] points;
         ROSEN_LOGE("AniCanvas::DrawPoints size exceeds the upper limit");
         return;
     }
+    Drawing::Point* points = new(std::nothrow) Point[size];
+    if (points == nullptr) {
+        ROSEN_LOGE("AniCanvas::DrawPoints points size is %{public}u", size);
+        return;
+    }
+
     if (!GetPoints(env, pointsObj, size, points)) {
         delete [] points;
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawPoints get points failed.");

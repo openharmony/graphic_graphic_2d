@@ -117,6 +117,7 @@ public:
     bool IsRect(Rect* rect, bool* isClosed, PathDirection* direction) override;
     void SetPath(const Path& path) override;
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasureMatrixFlags flag) override;
+    bool IsInverseFillType() const override;
 
     std::shared_ptr<Data> Serialize() const override;
     bool Deserialize(std::shared_ptr<Data> data) override;
