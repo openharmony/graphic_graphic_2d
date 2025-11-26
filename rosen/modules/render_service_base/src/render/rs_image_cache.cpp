@@ -239,7 +239,7 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
 
 void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
 {
-    RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}llu",
+    RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}" PRIu64,
         surfaceNodeId);
     ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];
     for (auto& [img_wptr, imageOp] : rsImageVec) {
