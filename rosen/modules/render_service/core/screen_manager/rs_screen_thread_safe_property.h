@@ -68,6 +68,7 @@ public:
     void SetCastScreenEnableSkipWindow(bool enable);
     void SetPowerStatus(ScreenPowerStatus powerStatus);
     void SetScreenType(RSScreenType screenType);
+    void SetConnectionType(ScreenConnectionType connectionType);
     void SetProducerSurface(sptr<Surface> producerSurface);
     void SetScreenScaleMode(ScreenScaleMode scaleMode);
     void SetScreenStatus(VirtualScreenStatus screenStatus);

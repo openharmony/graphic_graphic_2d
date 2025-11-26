@@ -197,10 +197,10 @@ void RSScreen::PhysicalScreenInit() noexcept
 
     auto outType = GraphicDisplayConnectionType::GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL;
     if (hdiScreen_->GetScreenConnectionType(outType) != 0) {
-        RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id_);
-        connectionType_ = ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE;
+        RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
+        property_.SetConnectionType(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE);
     } else {
-        connectionType_ = static_cast<ScreenConnectionType>(outType);
+        property_.SetConnectionType(static_cast<ScreenConnectionType>(outType));
     }
 
     std::vector<GraphicColorGamut> supportedColorGamuts;

@@ -322,6 +322,12 @@ void RSScreenThreadSafeProperty::SetScreenType(RSScreenType screenType)
     property_->screenType_ = screenType;
 }
 
+void RSScreenThreadSafeProperty::SetConnectionType(ScreenConnectionType connectionType)
+{
+    UniqueLock lock(propertyMutex_);
+    property_->connectionType_ = connectionType;
+}
+
 void RSScreenThreadSafeProperty::SetProducerSurface(sptr<Surface> producerSurface)
 {
     UniqueLock lock(propertyMutex_);
