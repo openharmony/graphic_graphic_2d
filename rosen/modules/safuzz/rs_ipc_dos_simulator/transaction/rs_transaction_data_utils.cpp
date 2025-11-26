@@ -118,7 +118,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetBootAnimation),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetGlobalPositionEnabled),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSecurityLayer),
-    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSourceVirtualScreenId),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSourceVirtualDisplayId),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSkipLayer),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSnapshotSkipLayer),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetFingerprint),
