@@ -30,10 +30,11 @@ namespace Rosen {
 namespace {
 using GPInstanceGetFunc = void*(*)(PatternType_C, const char*);
 using GPInstanceInitFunc = bool(*)(void*, size_t);
+using GPInstanceWarmupFunc = bool(*)(void*);
 using GPInstanceDestroyFunc = void(*)(void*);
 using GPRequstEGraphFunc = bool(*)(void*, uint64_t);
 using GPReleaseEGraphFunc = bool(*)(void*, uint64_t);
-using GPReleaseAllEGraphFunc = bool(*)(void*);
+using GPReleaseAllEGraphFunc = bool(*)(void*, bool);
 using GPWaitFunc = void*(*)(void*, uint64_t, MHC_PatternTaskName);
 using GPQueryTaskFunc = int32_t(*)(void*, uint64_t, MHC_PatternTaskName);
 using GPGetGPUWaitEventFunc = uint16_t(*)(void*, uint64_t, MHC_PatternTaskName);
@@ -42,6 +43,7 @@ using GPGPTaskSubmitFunc = void(*)(void*, uint64_t, MHC_TaskInfo*);
 
 static GPInstanceGetFunc g_getGPInstance = nullptr;
 static GPInstanceInitFunc g_GPInit = nullptr;
+static GPInstanceWarmupFunc g_GPWarmup = nullptr;
 static GPInstanceDestroyFunc g_GPDestroy = nullptr;
 static GPRequstEGraphFunc g_GPRequestEGraph = nullptr;
 static GPReleaseEGraphFunc g_GPReleaseEGraph = nullptr;
@@ -83,6 +85,7 @@ RSHpaeFfrtPatternManager::~RSHpaeFfrtPatternManager()
 #endif
         g_getGPInstance = nullptr;
         g_GPInit = nullptr;
+        g_GPWarmup = nullptr;
         g_GPDestroy = nullptr;
         g_GPRequestEGraph = nullptr;
         g_GPReleaseEGraph = nullptr;
@@ -113,10 +116,11 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
 
     g_getGPInstance = reinterpret_cast<GPInstanceGetFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_get"));
     g_GPInit = reinterpret_cast<GPInstanceInitFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_init"));
+    g_GPWarmup = reinterpret_cast<GPInstanceWarmupFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_warmup"));
     g_GPDestroy = reinterpret_cast<GPInstanceDestroyFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_destroy"));
     g_GPRequestEGraph = reinterpret_cast<GPRequstEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_request_eg"));
     g_GPReleaseEGraph = reinterpret_cast<GPReleaseEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_eg"));
-    g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_all"));
+    g_GPReleaseAll = reinterpret_cast<GPReleaseAllEGraphFunc>(dlsym(g_mhcHandle, "mhc_graph_pattern_release_all_ext"));
     g_GPWait = reinterpret_cast<GPWaitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_wait"));
     g_GPQueryTask = reinterpret_cast<GPQueryTaskFunc>(dlsym(g_mhcHandle, "mhc_gp_query_task_error"));
     g_GPGetVulkanWaitEvent = reinterpret_cast<GPGetGPUWaitEventFunc>(
@@ -125,8 +129,8 @@ bool RSHpaeFfrtPatternManager::MHCDlOpen()
         dlsym(g_mhcHandle, "mhc_gp_vulkan_task_get_notify_event"));
     g_GPTaskSubmit = reinterpret_cast<GPGPTaskSubmitFunc>(dlsym(g_mhcHandle, "mhc_gp_task_submit"));
 
-    bool dlsymDone = g_getGPInstance && g_GPInit && g_GPDestroy && g_GPRequestEGraph && g_GPReleaseEGraph && g_GPWait &&
-        g_GPQueryTask && g_GPGetVulkanWaitEvent && g_GPGetVulkanNotifyEvent && g_GPTaskSubmit && g_GPReleaseAll;
+    bool dlsymDone = g_getGPInstance && g_GPInit && g_GPWarmup && g_GPDestroy && g_GPRequestEGraph && g_GPReleaseEGraph && 
+        g_GPWait && g_GPQueryTask && g_GPGetVulkanWaitEvent && g_GPGetVulkanNotifyEvent && g_GPTaskSubmit && g_GPReleaseAll;
     if (!dlsymDone) {
         HPAE_LOGE("mhc_so dlsym error\n");
         dlclose(g_mhcHandle);
@@ -162,6 +166,20 @@ bool RSHpaeFfrtPatternManager::MHCGraphPatternInit(size_t size)
     }
     g_instance = g_getGPInstance(PatternType_C::BLUR, "blur_graph");
     return g_GPInit(g_instance, size);
+}
+
+bool RSHpaeFfrtPatternManager::MHCGraphPatternWarmup() 
+{
+    HPAE_LOGI("mhc_so MHCGraphPatternWarmup");
+    if (!g_instance) {
+        HPAE_LOGW("mhc_so MHCGraphPatternWarmup g_instance nullptr");
+        return false;
+    }
+    if (g_GPWarmup == nullptr) {
+        HPAE_LOGW("mhc_so g_GPWarmup nullptr");
+        return false;
+    }
+    return g_GPWarmup(g_instance);
 }
 
 bool RSHpaeFfrtPatternManager::MHCRequestEGraph(uint64_t frameId)
@@ -253,7 +271,7 @@ bool RSHpaeFfrtPatternManager::MHCReleaseEGraph(uint64_t frameId)
     return g_GPReleaseEGraph(g_instance, frameId);
 }
 
-void RSHpaeFfrtPatternManager::MHCReleaseAll()
+void RSHpaeFfrtPatternManager::MHCReleaseAll(bool releaseHcs)
 {
 #ifdef RS_ENABLE_VK
     HPAE_LOGI("mhc_so MHCReleaseAll. semaphoreMapSize: %{public}zu", semaphoreMap_.size());
@@ -268,7 +286,7 @@ void RSHpaeFfrtPatternManager::MHCReleaseAll()
         return;
     }
     // return 1 is succ
-    int ret = g_GPReleaseAll(g_instance);
+    int ret = g_GPReleaseAll(g_instance, releaseHcs);
 #ifdef RS_ENABLE_VK
     ClearSemaphoreMap();
 #endif
