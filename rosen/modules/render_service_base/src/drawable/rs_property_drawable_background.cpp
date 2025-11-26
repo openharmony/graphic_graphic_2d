@@ -823,6 +823,10 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
             (effectData == nullptr || effectData->cachedImage_ == nullptr)) {
             ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+            if (paintFilterCanvas->GetIsParallelCanvas()) {
+                ROSEN_LOGE("RSPropertyDrawableUtils::DrawUseEffect is parallel canvas, disable fallback");
+                return;
+            }
             auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
             if (!drawable) {
                 return;
