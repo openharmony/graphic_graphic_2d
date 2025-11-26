@@ -21,183 +21,265 @@
 namespace OHOS::Text::ANI {
 ani_status InitAniGlobalRef(ani_vm* vm);
 
-struct AniGlobalNamespace
-{
-    static ani_namespace text;
+class AniGlobalNamespace {
+public:
+    static AniGlobalNamespace& GetInstance()
+    {
+        static AniGlobalNamespace instance;
+        return instance;
+    }
+
+    void Init(ani_env* env);
+
+    ani_namespace text;
+
+private:
+    AniGlobalNamespace() = default;
+    ~AniGlobalNamespace() = default;
+    AniGlobalNamespace(const AniGlobalNamespace&) = delete;
+    AniGlobalNamespace& operator=(const AniGlobalNamespace&) = delete;
+    AniGlobalNamespace(AniGlobalNamespace&&) = delete;
+    AniGlobalNamespace& operator=(AniGlobalNamespace&&) = delete;
 };
 
-struct AniGlobalClass
-{
-    static ani_class aniString;
-    static ani_class aniArray;
-    static ani_class aniMap;
-    static ani_class aniDouble;
-    static ani_class aniInt;
-    static ani_class aniBoolean;
-    static ani_class businessError;
-    static ani_class globalResource;
-    static ani_class fontCollection;
-    static ani_class fontDescriptor;
-    static ani_class paragraphBuilder;
-    static ani_class paragraph;
-    static ani_class run;
-    static ani_class textLine;
-    static ani_class lineTypeSet;
-    static ani_class positionWithAffinity;
-    static ani_class lineMetrics;
-    static ani_class runMetrics;
-    static ani_class font;
-    static ani_class textBox;
-    static ani_class range;
-    static ani_class textStyle;
-    static ani_class textShadow;
-    static ani_class decoration;
-    static ani_class rectStyle;
-    static ani_class fontFeature;
-    static ani_class fontVariation;
-    static ani_class typographicBounds;
-    static ani_class cleaner;
+class AniGlobalClass {
+public:
+    static AniGlobalClass& GetInstance()
+    {
+        static AniGlobalClass instance;
+        return instance;
+    }
+
+    void Init(ani_env* env);
+
+    ani_class aniString;
+    ani_class aniArray;
+    ani_class aniMap;
+    ani_class aniDouble;
+    ani_class aniInt;
+    ani_class aniBoolean;
+    ani_class businessError;
+    ani_class globalResource;
+    ani_class fontCollection;
+    ani_class fontDescriptor;
+    ani_class paragraphBuilder;
+    ani_class paragraph;
+    ani_class run;
+    ani_class textLine;
+    ani_class lineTypeSet;
+    ani_class positionWithAffinity;
+    ani_class lineMetrics;
+    ani_class runMetrics;
+    ani_class font;
+    ani_class textBox;
+    ani_class range;
+    ani_class textStyle;
+    ani_class textShadow;
+    ani_class decoration;
+    ani_class rectStyle;
+    ani_class fontFeature;
+    ani_class fontVariation;
+    ani_class typographicBounds;
+    ani_class cleaner;
+    ani_class canvas;
+    ani_class paragraphStyle;
+    ani_class strutStyle;
+    ani_class textTab;
+    ani_class point;
+    ani_class path;
+    ani_class placeholderSpan;
+
+private:
+    AniGlobalClass() = default;
+    ~AniGlobalClass() = default;
+    AniGlobalClass(const AniGlobalClass&) = delete;
+    AniGlobalClass& operator=(const AniGlobalClass&) = delete;
+    AniGlobalClass(AniGlobalClass&&) = delete;
+    AniGlobalClass& operator=(AniGlobalClass&&) = delete;
 };
 
-struct AniGlobalEnum
-{
-    static ani_enum fontWeight;
-    static ani_enum affinity;
-    static ani_enum textDirection;
-    static ani_enum fontStyle;
-    static ani_enum textBaseline;
-    static ani_enum ellipsisMode;
-    static ani_enum textDecorationType;
-    static ani_enum textDecorationStyle;
+class AniGlobalEnum {
+public:
+    static AniGlobalEnum& GetInstance()
+    {
+        static AniGlobalEnum instance;
+        return instance;
+    }
+
+    void Init(ani_env* env);
+
+    ani_enum fontWeight;
+    ani_enum affinity;
+    ani_enum textDirection;
+    ani_enum fontStyle;
+    ani_enum textBaseline;
+    ani_enum ellipsisMode;
+    ani_enum textDecorationType;
+    ani_enum textDecorationStyle;
+
+private:
+    AniGlobalEnum() = default;
+    ~AniGlobalEnum() = default;
+    AniGlobalEnum(const AniGlobalEnum&) = delete;
+    AniGlobalEnum& operator=(const AniGlobalEnum&) = delete;
+    AniGlobalEnum(AniGlobalEnum&&) = delete;
+    AniGlobalEnum& operator=(AniGlobalEnum&&) = delete;
 };
 
-struct AniGlobalMethod
-{
-    static ani_method map;
-    static ani_method mapSet;
-    static ani_method businessErrorCtor;
-    static ani_method arrayCtor;
-    static ani_method arraySet;
-    static ani_method doubleCtor;
-    static ani_method doubleGet;
-    static ani_method intCtor;
-    static ani_method intGet;
-    static ani_method booleanCtor;
-    static ani_method booleanGet;
-    static ani_method fontCollection;
-    static ani_method fontCollectionGetNative;
-    static ani_method paragraphBuilderGetNative;
-    static ani_method paragraph;
-    static ani_method paragraphGetNative;
-    static ani_method paragraphBuilderCtor;
-    static ani_method run;
-    static ani_method runGetNative;
-    static ani_method textLine;
-    static ani_method textLineGetNative;
-    static ani_method lineTypesetCtor;
-    static ani_method lineTypesetGetNative;
-    static ani_method fontDescriptorCtor;
-    static ani_method canvasGetNative;
-    static ani_method lineMetricsCtor;
-    static ani_method fontDescriptorGetPostScriptName;
-    static ani_method fontDescriptorGetFullName;
-    static ani_method fontDescriptorGetFontFamily;
-    static ani_method fontDescriptorGetFontSubfamily;
-    static ani_method fontDescriptorGetWidth;
-    static ani_method fontDescriptorGetItalic;
-    static ani_method fontDescriptorGetMonoSpace;
-    static ani_method fontDescriptorGetSymbolic;
-    static ani_method positionWithAffinity;
-    static ani_method paragraphStyleMaxLines;
-    static ani_method paragraphStyleTextStyle;
-    static ani_method paragraphStyleTextDirection;
-    static ani_method paragraphStyleAlign;
-    static ani_method paragraphStyleWordBreak;
-    static ani_method paragraphStyleBreakStrategy;
-    static ani_method paragraphStyleTextHeightBehavior;
-    static ani_method paragraphStyleStrutStyle;
-    static ani_method paragraphStyleTab;
-    static ani_method strutStyleFontStyle;
-    static ani_method strutStyleFontWidth;
-    static ani_method strutStyleFontWeight;
-    static ani_method strutStyleFontSize;
-    static ani_method strutStyleHeight;
-    static ani_method strutStyleLeading;
-    static ani_method strutStyleForceHeight;
-    static ani_method strutStyleEnabled;
-    static ani_method strutStyleHeightOverride;
-    static ani_method strutStyleHalfLeading;
-    static ani_method strutStyleFontFamilies;
-    static ani_method textTabAlignment;
-    static ani_method textTabLocation;
-    static ani_method textStyleCtor;
-    static ani_method textStyleRColor;
-    static ani_method textStyleRFontWeight;
-    static ani_method textStyleRFontStyle;
-    static ani_method textStyleRBaseline;
-    static ani_method textStyleRFontFamilies;
-    static ani_method textStyleRFontSize;
-    static ani_method textStyleRLetterSpacing;
-    static ani_method textStyleRWordSpacing;
-    static ani_method textStyleRHeightScale;
-    static ani_method textStyleRHalfLeading;
-    static ani_method textStyleRHeightOnly;
-    static ani_method textStyleREllipsis;
-    static ani_method textStyleREllipsisMode;
-    static ani_method textStyleRLocale;
-    static ani_method textStyleRBaselineShift;
-    static ani_method textStyleRDecoration;
-    static ani_method textStyleRTextShadows;
-    static ani_method textStyleRFontFeatures;
-    static ani_method textStyleRFontVariations;
-    static ani_method textStyleRBackgroundRect;
-    static ani_method decorationCtor;
-    static ani_method decorationDecorationType;
-    static ani_method decorationDecorationStyle;
-    static ani_method decorationDecorationThicknessScale;
-    static ani_method decorationDecorationColor;
-    static ani_method pointX;
-    static ani_method pointY;
-    static ani_method textShadowCtor;
-    static ani_method textShadowBlurRadius;
-    static ani_method textShadowColor;
-    static ani_method textShadowPoint;
-    static ani_method fontFeatureCtor;
-    static ani_method fontFeatureName;
-    static ani_method fontFeatureValue;
-    static ani_method fontVariationCtor;
-    static ani_method fontVariationAxis;
-    static ani_method fontVariationValue;
-    static ani_method rectStyleCtor;
-    static ani_method rectStyleColor;
-    static ani_method rectStyleLeftTopRadius;
-    static ani_method rectStyleRightTopRadius;
-    static ani_method rectStyleRightBottomRadius;
-    static ani_method rectStyleLeftBottomRadius;
-    static ani_method pathGetNative;
-    static ani_method placeholderSpanWidth;
-    static ani_method placeholderSpanHeight;
-    static ani_method placeholderSpanAlign;
-    static ani_method placeholderSpanBaseline;
-    static ani_method placeholderSpanBaselineOffset;
-    static ani_method globalResourceId;
-    static ani_method globalResourceBundleName;
-    static ani_method globalResourceModuleName;
-    static ani_method globalResourceParams;
-    static ani_method globalResourceType;
-    static ani_method runMetricsCtor;
-    static ani_method fontCtor;
-    static ani_method rangeCtor;
-    static ani_method rangeStart;
-    static ani_method rangeEnd;
-    static ani_method textBoxCtor;
-    static ani_method typographicBoundsCtor;
-};
+class AniGlobalMethod {
+public:
+    static AniGlobalMethod& GetInstance()
+    {
+        static AniGlobalMethod instance;
+        return instance;
+    }
 
-struct AniGlobalFunction
-{
-    static ani_function transToRequired;
+    void Init(ani_env* env);
+
+    ani_method map;
+    ani_method mapSet;
+    ani_method businessErrorCtor;
+    ani_method arrayCtor;
+    ani_method arraySet;
+    ani_method doubleCtor;
+    ani_method doubleGet;
+    ani_method intCtor;
+    ani_method intGet;
+    ani_method booleanCtor;
+    ani_method booleanGet;
+    ani_method fontCollection;
+    ani_method fontCollectionGetNative;
+    ani_method paragraphBuilderGetNative;
+    ani_method paragraph;
+    ani_method paragraphGetNative;
+    ani_method paragraphBuilderCtor;
+    ani_method run;
+    ani_method runGetNative;
+    ani_method textLine;
+    ani_method textLineGetNative;
+    ani_method lineTypesetCtor;
+    ani_method lineTypesetGetNative;
+    ani_method fontDescriptorCtor;
+    ani_method canvasGetNative;
+    ani_method lineMetricsCtor;
+    ani_method fontDescriptorGetPostScriptName;
+    ani_method fontDescriptorGetFullName;
+    ani_method fontDescriptorGetFontFamily;
+    ani_method fontDescriptorGetFontSubfamily;
+    ani_method fontDescriptorGetWidth;
+    ani_method fontDescriptorGetItalic;
+    ani_method fontDescriptorGetMonoSpace;
+    ani_method fontDescriptorGetSymbolic;
+    ani_method positionWithAffinity;
+    ani_method paragraphStyleMaxLines;
+    ani_method paragraphStyleTextStyle;
+    ani_method paragraphStyleTextDirection;
+    ani_method paragraphStyleAlign;
+    ani_method paragraphStyleWordBreak;
+    ani_method paragraphStyleBreakStrategy;
+    ani_method paragraphStyleTextHeightBehavior;
+    ani_method paragraphStyleStrutStyle;
+    ani_method paragraphStyleTab;
+    ani_method strutStyleFontStyle;
+    ani_method strutStyleFontWidth;
+    ani_method strutStyleFontWeight;
+    ani_method strutStyleFontSize;
+    ani_method strutStyleHeight;
+    ani_method strutStyleLeading;
+    ani_method strutStyleForceHeight;
+    ani_method strutStyleEnabled;
+    ani_method strutStyleHeightOverride;
+    ani_method strutStyleHalfLeading;
+    ani_method strutStyleFontFamilies;
+    ani_method textTabAlignment;
+    ani_method textTabLocation;
+    ani_method textStyleCtor;
+    ani_method textStyleColor;
+    ani_method textStyleFontWeight;
+    ani_method textStyleFontStyle;
+    ani_method textStyleBaseline;
+    ani_method textStyleFontFamilies;
+    ani_method textStyleFontSize;
+    ani_method textStyleLetterSpacing;
+    ani_method textStyleWordSpacing;
+    ani_method textStyleHeightScale;
+    ani_method textStyleHalfLeading;
+    ani_method textStyleHeightOnly;
+    ani_method textStyleEllipsis;
+    ani_method textStyleEllipsisMode;
+    ani_method textStyleLocale;
+    ani_method textStyleBaselineShift;
+    ani_method textStyleDecoration;
+    ani_method textStyleTextShadows;
+    ani_method textStyleFontFeatures;
+    ani_method textStyleFontVariations;
+    ani_method textStyleBackgroundRect;
+    ani_method decorationCtor;
+    ani_method decorationDecorationType;
+    ani_method decorationDecorationStyle;
+    ani_method decorationDecorationThicknessScale;
+    ani_method decorationDecorationColor;
+    ani_method pointX;
+    ani_method pointY;
+    ani_method textShadowCtor;
+    ani_method textShadowBlurRadius;
+    ani_method textShadowColor;
+    ani_method textShadowPoint;
+    ani_method fontFeatureCtor;
+    ani_method fontFeatureName;
+    ani_method fontFeatureValue;
+    ani_method fontVariationCtor;
+    ani_method fontVariationAxis;
+    ani_method fontVariationValue;
+    ani_method rectStyleCtor;
+    ani_method rectStyleColor;
+    ani_method rectStyleLeftTopRadius;
+    ani_method rectStyleRightTopRadius;
+    ani_method rectStyleRightBottomRadius;
+    ani_method rectStyleLeftBottomRadius;
+    ani_method pathGetNative;
+    ani_method placeholderSpanWidth;
+    ani_method placeholderSpanHeight;
+    ani_method placeholderSpanAlign;
+    ani_method placeholderSpanBaseline;
+    ani_method placeholderSpanBaselineOffset;
+    ani_method globalResourceId;
+    ani_method globalResourceBundleName;
+    ani_method globalResourceModuleName;
+    ani_method globalResourceParams;
+    ani_method globalResourceType;
+    ani_method runMetricsCtor;
+    ani_method fontCtor;
+    ani_method rangeCtor;
+    ani_method rangeStart;
+    ani_method rangeEnd;
+    ani_method textBoxCtor;
+    ani_method typographicBoundsCtor;
+
+private:
+    AniGlobalMethod() = default;
+    ~AniGlobalMethod() = default;
+    AniGlobalMethod(const AniGlobalMethod&) = delete;
+    AniGlobalMethod& operator=(const AniGlobalMethod&) = delete;
+    AniGlobalMethod(AniGlobalMethod&&) = delete;
+    AniGlobalMethod& operator=(AniGlobalMethod&&) = delete;
+
+    void InitBaseMethod(ani_env* env);
+    void InitCommonMethod(ani_env* env);
+    void InitFontDescriptorMethod(ani_env* env);
+    void InitParagraphStyleMethod(ani_env* env);
+    void InitStrutStyleMethod(ani_env* env);
+    void InitTextStyleMethod(ani_env* env);
+    void InitDecorationMethod(ani_env* env);
+    void InitTextShadowMethod(ani_env* env);
+    void InitFontFeatureMethod(ani_env* env);
+    void InitFontVariationMethod(ani_env* env);
+    void InitRectStyleMethod(ani_env* env);
+    void InitPlaceholderMethod(ani_env* env);
+    void InitGlobalResourceMethod(ani_env* env);
+    void InitRangeMethod(ani_env* env);
+    void InitPointMethod(ani_env* env);
+    void InitTextTabMethod(ani_env* env);
 };
-    
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_GLOBAL_REF_H

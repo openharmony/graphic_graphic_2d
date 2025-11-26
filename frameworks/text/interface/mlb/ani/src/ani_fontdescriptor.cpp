@@ -74,7 +74,7 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
             reinterpret_cast<void*>(MatchFontDescriptors)},
     };
 
-    ret = env->Namespace_BindNativeFunctions(AniGlobalNamespace::text, methods.data(), methods.size());
+    ret = env->Namespace_BindNativeFunctions(AniGlobalNamespace::GetInstance().text, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for AniFontDescriptor, ret %{public}d", ret);
         return ret;
@@ -87,20 +87,22 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetPostScriptName, postScriptName,
+        String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetFullName, fullName, String,
+        fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetFontFamily, fontFamily, String,
+        fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetFontSubfamily, fontSubfamily,
+        String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetPostScriptName, postScriptName, String, fontDesc.get(), status);
+        env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetWidth, width, Int, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetFullName, fullName, String, fontDesc.get(), status);
+        env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetItalic, italic, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetMonoSpace, monoSpace, Bool,
+        fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetFontFamily, fontFamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetFontSubfamily, fontSubfamily, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetWidth, width, Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetItalic, italic, Int, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetMonoSpace, monoSpace, Bool, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetSymbolic, symbolic, Bool, fontDesc.get(), status);
+        env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetSymbolic, symbolic, Bool, fontDesc.get(), status);
 
     return status;
 }
@@ -118,14 +120,13 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         return ANI_ERROR;
     }
 
-    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::fontDescriptor,
-        AniGlobalMethod::fontDescriptorCtor,
-        AniTextUtils::CreateAniStringObj(env, fontDesc->path),
+    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontDescriptor,
+        AniGlobalMethod::GetInstance().fontDescriptorCtor, AniTextUtils::CreateAniStringObj(env, fontDesc->path),
         AniTextUtils::CreateAniStringObj(env, fontDesc->postScriptName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fullName),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontFamily),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontSubfamily),
-        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::fontWeight,
+        AniTextUtils::CreateAniOptionalEnum(env, AniGlobalEnum::GetInstance().fontWeight,
             aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(iter->second))),
         ani_int(fontDesc->width), ani_int(fontDesc->italic), ani_boolean(fontDesc->monoSpace),
         ani_boolean(fontDesc->symbolic));
@@ -159,7 +160,7 @@ ani_object AniFontDescriptor::GetSystemFontFullNamesByType(ani_env* env, ani_enu
     ani_size index = 0;
     for (const auto& item : fontList) {
         ani_string aniStr = AniTextUtils::CreateAniStringObj(env, item);
-        if (ANI_OK != env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniStr)) {
+        if (ANI_OK != env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniStr)) {
             TEXT_LOGE("Failed to set fontList item %{public}zu", index);
             continue;
         }
@@ -225,7 +226,7 @@ ani_object AniFontDescriptor::MatchFontDescriptors(ani_env* env, ani_object desc
             TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniObj);
+        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to set FontDescriptor item,index %{public}zu,status %{public}d", index, status);
             continue;

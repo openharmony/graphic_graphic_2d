@@ -33,16 +33,16 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    env->Object_CallMethod_Long(obj, AniGlobalMethod::globalResourceId, &aniId);
-    env->Object_CallMethod_Ref(obj, AniGlobalMethod::globalResourceBundleName, &aniBundleName);
-    env->Object_CallMethod_Ref(obj, AniGlobalMethod::globalResourceModuleName, &aniModuleName);
+    env->Object_CallMethod_Long(obj, AniGlobalMethod::GetInstance().globalResourceId, &aniId);
+    env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().globalResourceBundleName, &aniBundleName);
+    env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().globalResourceModuleName, &aniModuleName);
     AniTextUtils::ReadOptionalArrayField(
-        env, obj, AniGlobalMethod::globalResourceParams, result.params, [](ani_env* env, ani_ref ref) {
+        env, obj, AniGlobalMethod::GetInstance().globalResourceParams, result.params, [](ani_env* env, ani_ref ref) {
             std::string utf8Str;
             AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
             return utf8Str;
         });
-    AniTextUtils::ReadOptionalIntField(env, obj, AniGlobalMethod::globalResourceType, aniType);
+    AniTextUtils::ReadOptionalIntField(env, obj, AniGlobalMethod::GetInstance().globalResourceType, aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);

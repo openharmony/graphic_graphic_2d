@@ -47,7 +47,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{"createLine", createLineSignature.c_str(), reinterpret_cast<void*>(CreateLine)},
     };
 
-    ret = env->Class_BindNativeMethods(AniGlobalClass::lineTypeSet, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(AniGlobalClass::GetInstance().lineTypeSet, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for LineTypeset, ret %{public}d", ret);
         return ret;
@@ -57,8 +57,8 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 
 ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width)
 {
-    AniLineTypeset* aniLineTypeSet =
-        AniTextUtils::GetNativeFromObj<AniLineTypeset>(env, object, AniGlobalMethod::lineTypesetGetNative);
+    AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(
+        env, object, AniGlobalMethod::GetInstance().lineTypesetGetNative);
     if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -70,8 +70,8 @@ ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int st
 
 ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
 {
-    AniLineTypeset* aniLineTypeSet =
-        AniTextUtils::GetNativeFromObj<AniLineTypeset>(env, object, AniGlobalMethod::lineTypesetGetNative);
+    AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(
+        env, object, AniGlobalMethod::GetInstance().lineTypesetGetNative);
     if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");

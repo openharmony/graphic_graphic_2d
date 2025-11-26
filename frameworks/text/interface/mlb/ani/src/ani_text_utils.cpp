@@ -47,8 +47,8 @@ ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCod
 ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
 {
     ani_string aniMsg = AniTextUtils::CreateAniStringObj(env, message);
-    ani_status status = env->Object_New(AniGlobalClass::businessError, AniGlobalMethod::businessErrorCtor, &err, aniMsg,
-        AniTextUtils::CreateAniUndefined(env));
+    ani_status status = env->Object_New(AniGlobalClass::GetInstance().businessError,
+        AniGlobalMethod::GetInstance().businessErrorCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to new err, status %{public}d", static_cast<int32_t>(status));
         return status;
@@ -82,7 +82,9 @@ bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
     ani_object arrayObj = nullptr;
-    if (env->Object_New(AniGlobalClass::aniArray, AniGlobalMethod::arrayCtor, &arrayObj, size) != ANI_OK) {
+    if (env->Object_New(
+        AniGlobalClass::GetInstance().aniArray, AniGlobalMethod::GetInstance().arrayCtor, &arrayObj, size)
+        != ANI_OK) {
         TEXT_LOGE("Failed to create object Array");
         return CreateAniUndefined(env);
     }
@@ -91,7 +93,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
-    return AniTextUtils::CreateAniObject(env, AniGlobalClass::aniMap, AniGlobalMethod::map);
+    return AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().aniMap, AniGlobalMethod::GetInstance().map);
 }
 
 ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index)
@@ -112,17 +114,20 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType,
 
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
-    return AniTextUtils::CreateAniObject(env, AniGlobalClass::aniDouble, AniGlobalMethod::doubleCtor, val);
+    return AniTextUtils::CreateAniObject(
+        env, AniGlobalClass::GetInstance().aniDouble, AniGlobalMethod::GetInstance().doubleCtor, val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
 {
-    return AniTextUtils::CreateAniObject(env, AniGlobalClass::aniInt, AniGlobalMethod::intCtor, val);
+    return AniTextUtils::CreateAniObject(
+        env, AniGlobalClass::GetInstance().aniInt, AniGlobalMethod::GetInstance().intCtor, val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
-    return AniTextUtils::CreateAniObject(env, AniGlobalClass::aniBoolean, AniGlobalMethod::booleanCtor, val);
+    return AniTextUtils::CreateAniObject(
+        env, AniGlobalClass::GetInstance().aniBoolean, AniGlobalMethod::GetInstance().booleanCtor, val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::string& str)
@@ -261,7 +266,8 @@ ani_status AniTextUtils::ReadOptionalDoubleField(
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result == ANI_OK && ref != nullptr) {
-        result = env->Object_CallMethod_Double(reinterpret_cast<ani_object>(ref), AniGlobalMethod::doubleGet, &value);
+        result = env->Object_CallMethod_Double(
+            reinterpret_cast<ani_object>(ref), AniGlobalMethod::GetInstance().doubleGet, &value);
     }
     return result;
 }
@@ -272,7 +278,8 @@ ani_status AniTextUtils::ReadOptionalIntField(
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result == ANI_OK && ref != nullptr) {
-        result = env->Object_CallMethod_Int(reinterpret_cast<ani_object>(ref), AniGlobalMethod::intGet, &value);
+        result = env->Object_CallMethod_Int(
+            reinterpret_cast<ani_object>(ref), AniGlobalMethod::GetInstance().intGet, &value);
     }
     return result;
 }
@@ -306,8 +313,8 @@ ani_status AniTextUtils::ReadOptionalBoolField(
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean aniBool;
-        result =
-            env->Object_CallMethod_Boolean(reinterpret_cast<ani_object>(ref), AniGlobalMethod::booleanGet, &aniBool);
+        result = env->Object_CallMethod_Boolean(
+            reinterpret_cast<ani_object>(ref), AniGlobalMethod::GetInstance().booleanGet, &aniBool);
         if (result == ANI_OK) {
             value = static_cast<bool>(aniBool);
         }

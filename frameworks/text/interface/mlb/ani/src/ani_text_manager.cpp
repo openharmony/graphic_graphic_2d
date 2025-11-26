@@ -116,7 +116,7 @@ static ani_status AniCleanerInit(ani_vm* vm)
         ani_native_function{"clean", ":", reinterpret_cast<void*>(Clean)},
     };
 
-    ret = env->Class_BindNativeMethods(AniGlobalClass::cleaner, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(AniGlobalClass::GetInstance().cleaner, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Manager, ret %{public}d", ret);
         return ret;

@@ -24,9 +24,9 @@ using namespace OHOS::Rosen;
 ani_status AniIndexAndAffinityConverter::ParseIndexAndAffinityToAni(
     ani_env* env, const OHOS::Rosen::IndexAndAffinity indexAndAffinity, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::positionWithAffinity,
-        AniGlobalMethod::positionWithAffinity, ani_int(indexAndAffinity.index),
-        AniTextUtils::CreateAniEnum(env, AniGlobalEnum::affinity,
+    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().positionWithAffinity,
+        AniGlobalMethod::GetInstance().positionWithAffinity, ani_int(indexAndAffinity.index),
+        AniTextUtils::CreateAniEnum(env, AniGlobalEnum::GetInstance().affinity,
             aniGetEnumIndex(AniTextEnum::affinity, static_cast<uint32_t>(indexAndAffinity.affinity)).value_or(0)));
     return ANI_OK;
 }

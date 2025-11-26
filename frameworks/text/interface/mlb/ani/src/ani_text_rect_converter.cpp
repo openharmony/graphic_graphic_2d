@@ -26,13 +26,13 @@ using namespace OHOS::Rosen;
 ani_status AniTextRectConverter::ParseRangeToNative(ani_env* env, ani_object obj, RectRange& rectRange)
 {
     ani_int startTmp = 0;
-    ani_status ret = env->Object_CallMethod_Int(obj, AniGlobalMethod::rangeStart, &startTmp);
+    ani_status ret = env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().rangeStart, &startTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get start, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
     }
     ani_int endTmp = 0;
-    ret = env->Object_CallMethod_Int(obj, AniGlobalMethod::rangeEnd, &endTmp);
+    ret = env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().rangeEnd, &endTmp);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to get end, ret %{public}d", ret);
         return ANI_INVALID_ARGS;
@@ -78,8 +78,9 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
         rectObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::textBox, AniGlobalMethod::textBoxCtor, rectObj,
-        AniTextUtils::CreateAniEnum(env, AniGlobalEnum::textDirection,
+    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().textBox,
+        AniGlobalMethod::GetInstance().textBoxCtor, rectObj,
+        AniTextUtils::CreateAniEnum(env, AniGlobalEnum::GetInstance().textDirection,
             aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textRect.direction)).value_or(0)));
     return ANI_OK;
 }
@@ -87,8 +88,8 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::range, AniGlobalMethod::rangeCtor,
-        ani_int(boundary.leftIndex), ani_int(boundary.rightIndex));
+    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().range,
+        AniGlobalMethod::GetInstance().rangeCtor, ani_int(boundary.leftIndex), ani_int(boundary.rightIndex));
     return ANI_OK;
 }
 } // namespace OHOS::Text::ANI
