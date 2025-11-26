@@ -56,6 +56,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/fg_fgcolor_test.cpp",
   "rs_display_effect/property_display/fg_lightupeffect_test.cpp",
   "rs_display_effect/property_display/fg_mask_test.cpp",
+  "rs_display_effect/property_display/fg_sdf_light_test.cpp",
   "rs_display_effect/property_display/geom_cameradistance_test.cpp",
   "rs_display_effect/property_display/geom_clip_test.cpp",
   "rs_display_effect/property_display/geom_cornerradius_test.cpp",

@@ -892,7 +892,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest001, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_CONTENT;
     EXPECT_FALSE(pointLightDrawableTest->DrawSDFContentLight(canvas1, lightShaderEffect1, brush1));
     EXPECT_FALSE(brush1.IsAntiAlias());
-    EXPECT_EQ(brush1.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush1.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_EQ(nullptr, brush1.GetShaderEffect());
 }
 
@@ -934,7 +934,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest002, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas11, lightShaderEffect11, brush11));
     EXPECT_FALSE(brush11.IsAntiAlias());
-    EXPECT_EQ(brush11.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush11.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush11.GetShaderEffect());
 }
 
@@ -956,7 +956,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest003, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::INVALID;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas4, lightShaderEffect4, brush4));
     EXPECT_FALSE(brush4.IsAntiAlias());
-    EXPECT_EQ(brush4.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush4.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush4.GetShaderEffect());
 
     Drawing::Canvas canvas5;
@@ -966,7 +966,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest003, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NONE;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas5, lightShaderEffect5, brush5));
     EXPECT_FALSE(brush5.IsAntiAlias());
-    EXPECT_EQ(brush5.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush5.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush5.GetShaderEffect());
 }
 
@@ -988,7 +988,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest004, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas9, lightShaderEffect9, brush9));
     EXPECT_FALSE(brush9.IsAntiAlias());
-    EXPECT_EQ(brush9.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush9.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush9.GetShaderEffect());
 
     Drawing::Canvas canvas10;
@@ -998,7 +998,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest004, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER_CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas10, lightShaderEffect10, brush10));
     EXPECT_FALSE(brush10.IsAntiAlias());
-    EXPECT_EQ(brush10.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush10.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush10.GetShaderEffect());
 }
 
@@ -1020,7 +1020,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas6, lightShaderEffect6, brush6));
     EXPECT_FALSE(brush6.IsAntiAlias());
-    EXPECT_EQ(brush6.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush6.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush6.GetShaderEffect());
 
     Drawing::Canvas canvas7;
@@ -1030,7 +1030,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas7, lightShaderEffect7, brush7));
     EXPECT_FALSE(brush7.IsAntiAlias());
-    EXPECT_EQ(brush7.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush7.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush7.GetShaderEffect());
 
     Drawing::Canvas canvas8;
@@ -1040,7 +1040,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas8, lightShaderEffect8, brush8));
     EXPECT_FALSE(brush8.IsAntiAlias());
-    EXPECT_EQ(brush8.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush8.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush8.GetShaderEffect());
 }
 
@@ -1062,7 +1062,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest006, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas12, lightShaderEffect12, brush12));
     EXPECT_FALSE(brush12.IsAntiAlias());
-    EXPECT_EQ(brush12.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush12.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush12.GetShaderEffect());
 
     Drawing::Canvas canvas13;
@@ -1072,7 +1072,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest006, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas13, lightShaderEffect13, brush13));
     EXPECT_FALSE(brush13.IsAntiAlias());
-    EXPECT_EQ(brush13.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush13.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush13.GetShaderEffect());
 }
 
