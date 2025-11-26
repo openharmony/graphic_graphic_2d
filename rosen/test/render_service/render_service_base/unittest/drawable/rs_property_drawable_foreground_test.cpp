@@ -558,6 +558,73 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateDrawFuncAndRunTest001
+ * @tc.desc: DrawLight test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
+        std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
+    auto drawFunction = foregroundFilterRestoreDrawable->CreateDrawFunc();
+    EXPECT_NE(drawFunction, nullptr);
+
+    // initialize drawing filter
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    std::shared_ptr<RSDrawingFilter> drawingFilter = std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    drawingFilter->SetImageFilter(imageFilter);
+
+    // create and sync a foreground filter
+    std::shared_ptr<RSFilter> stagingForegroundFilter = drawingFilter;
+    EXPECT_NE(stagingForegroundFilter, nullptr);
+    foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
+
+    // initial state
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+    }
+
+    Drawing::Canvas canvasTest;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    drawFunction(&paintFilterCanvas, nullptr);
+    // rect == nullptr, still initial width/height
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+    }
+
+    const auto width = 100.0f;
+    const auto height = 100.0f;
+    Drawing::Rect rect(0.0f, 0.0f, width, height);
+    drawFunction(&paintFilterCanvas, &rect);
+    // properly initialized
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, width);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, height);
+    }
+
+    // in case foregroundFilter_ happens to be nullptr
+    foregroundFilterRestoreDrawable->foregroundFilter_ = nullptr;
+    drawFunction(&paintFilterCanvas, &rect); // should not crash or anything
+
+    // RSFilter is used instead of RSDrawingFilter
+    stagingForegroundFilter = std::make_shared<RSFilter>();
+    foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
+    drawFunction(&paintFilterCanvas, &rect);
+}
+
+/**
  * @tc.name: GetShaderTest001
  * @tc.desc: GetPhongShaderBuilder GetFeatheringBoardLightShaderBuilder test
  * @tc.type: FUNC

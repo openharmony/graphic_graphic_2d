@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
 
@@ -477,6 +478,11 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDraw
 {
     auto ptr = std::static_pointer_cast<const RSForegroundFilterRestoreDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (ptr->foregroundFilter_ && ptr->foregroundFilter_->IsDrawingFilter() && rect) {
+            auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(ptr->foregroundFilter_);
+            drawingFilter->SetGeometry(*canvas, rect->GetWidth(), rect->GetHeight());
+        }
+
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
         RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
