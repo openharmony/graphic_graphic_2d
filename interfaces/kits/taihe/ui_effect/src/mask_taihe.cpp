@@ -101,12 +101,11 @@ Mask CreatePixelMapMask(ohos::multimedia::image::image::weak::PixelMap pixelMap,
         UIEFFECT_MASK_LOG_E("CreatePixelMapMask srcRect ConvertVector4fFromAniRect failed");
         return make_holder<MaskImpl, Mask>(std::move(mask));
     }
-    pixelMapPara->SetSrc(srcRectRes);
     if (!ConvertVector4fFromAniRect(dstRect, dstRectRes)) {
         UIEFFECT_MASK_LOG_E("CreatePixelMapMask dstRect ConvertVector4fFromAniRect failed");
         return make_holder<MaskImpl, Mask>(std::move(mask));
     }
-    pixelMapPara->SetDst(dstRectRes);
+
     if (fillColor.has_value()) {
         OHOS::Rosen::Vector4f colorRes = OHOS::Rosen::Vector4f(fillColor->red, fillColor->green, fillColor->blue,
             fillColor->alpha);

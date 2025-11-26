@@ -18,6 +18,7 @@
 #include "effect/include/blender.h"
 #include "effect/include/brightness_blender.h"
 #include "ui_effect_taihe_utils.h"
+#include "taihe/runtime.hpp"
 #include "stdexcept"
 #include "mask_taihe.h"
 
@@ -234,77 +235,6 @@ Filter FilterImpl::DirectionLight(uintptr_t direction, ::ohos::graphics::uiEffec
     if (factor.has_value()) {
         para->SetMaskFactor(static_cast<float>(factor.value()));
     }
-    nativeFilter_->AddPara(para);
-    auto filter = nativeFilter_;
-    return taihe::make_holder<FilterImpl, Filter>(std::move(filter));
-}
-
-bool FilterImpl::GetFractionStops(
-    ani_env *env, ani_array arrayObj, std::vector<std::pair<float, float>> &fractionStops)
-{
-    if (env == nullptr) {
-        UIEFFECT_LOG_E("call GetFractionStops failed, env is nullptr");
-        return false;
-    }
-    ani_size len = 0;
-    if (env->Array_GetLength(arrayObj, &len) != ANI_OK || len <= 0) {
-        UIEFFECT_LOG_E("call GetFractionStops failed, get anit array failed");
-        return false;
-    }
-    ani_ref tupleObj {};
-    for (ani_size i = 0; i < len; i++) {
-        if (env->Array_Get(arrayObj, i, &tupleObj) == ANI_OK) {
-            OHOS::Rosen::Vector2f fraStopsData;
-            if (ConvertVector2fFromAniTuple(fraStopsData, reinterpret_cast<uintptr_t>(tupleObj))) {
-                fractionStops.emplace_back(
-                    static_cast<float>(fraStopsData[0]), static_cast<float>(fraStopsData[1]));
-            }
-        }
-    }
-    return true;
-}
-
-Filter FilterImpl::RadiusGradientBlur(double value, uintptr_t options)
-{
-    if (!IsSystemApp()) {
-        UIEFFECT_LOG_E("call RadiusGradientBlur failed, is not system app");
-        return make_holder<FilterImpl, Filter>(nativeFilter_);
-    }
-
-    if (!IsFilterValid()) {
-        UIEFFECT_LOG_E("FilterImpl::RadiusGradientBlur failed, filter is invalid");
-        return make_holder<FilterImpl, Filter>(nativeFilter_);
-    }
-
-    auto para = std::make_shared<OHOS::Rosen::RadiusGradientBlurPara>();
-    para->SetBlurRadius(value);
-
-    ani_env *env = get_env();
-    ani_object ani_obj = reinterpret_cast<ani_object>(options);
-    if (ani_obj == nullptr || env == nullptr) {
-        nativeFilter_->AddPara(para);
-        auto filter = nativeFilter_;
-        return make_holder<FilterImpl, Filter>(nativeFilter_);
-    }
-    
-    ani_array fractionStopsObj {};
-    if (env->Object_GetPropertyByName_Ref(
-        ani_obj, "fractionStops", reinterpret_cast<ani_ref *>(&fractionStopsObj)) == ANI_OK) {
-        std::vector<std::pair<float, float>> fractionStops;
-        if (GetFractionStops(env, fractionStopsObj, fractionStops) && fractionStops.size() > 0) {
-            para->SetFractionStops(fractionStops);
-        }
-    }
-    ani_object direction {};
-    if (env->Object_GetPropertyByName_Ref(
-        ani_obj, "direction", reinterpret_cast<ani_ref *>(&direction)) == ANI_OK) {
-        ani_enum_item enumItem = static_cast<ani_enum_item>(direction);
-        ani_int value = 0;
-        if (env->EnumItem_GetValue_Int(enumItem, &value) == ANI_OK) {
-            para->SetDirection(static_cast<OHOS::Rosen::GradientDirection>(value));
-        }
-    }
-
     nativeFilter_->AddPara(para);
     auto filter = nativeFilter_;
     return taihe::make_holder<FilterImpl, Filter>(std::move(filter));
