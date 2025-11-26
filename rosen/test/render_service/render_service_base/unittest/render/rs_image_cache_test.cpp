@@ -729,5 +729,26 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoTest, TestSize.Level1)
     imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
 }
+
+/**
+ * @tc.name: RemoveImageMemForWindowTest
+ * @tc.desc: Verify function RemoveImageMemForWindowTest
+ * @tc.type: FUNC
+ * @tc.require: issue#IBZ6NM
+ */
+HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
+{
+    RSImageCache& imageCache = RSImageCache::Instance();
+    std::shared_ptr<RSImage> rsImage = std::make_shared<RSImage>();
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap;
+    Drawing::AdaptiveImageInfo imageInfo;
+    auto extendImageObject = std::make_shared<RSExtendImageObject>(pixelMap, imageInfo);
+    NodeId surfaceNodeId = 1;
+    imageCache.rsImageInfoMap[surfaceNodeId].push_back(std::make_pair(rsImage, extendImageObject->weak_from_this()));
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 1);
+
+    imageCache.RemoveImageMemForWindow(surfaceNodeId);
+    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
+}
 #endif
 } // namespace OHOS::Rosen

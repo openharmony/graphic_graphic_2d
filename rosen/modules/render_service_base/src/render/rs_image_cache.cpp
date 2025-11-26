@@ -16,6 +16,7 @@
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "memory/rs_memory_snapshot.h"
 #include "render/rs_image_cache.h"
+#include "rs_trace.h"
 #include "pixel_map.h"
 #include "params/rs_render_params.h"
 
@@ -238,6 +239,8 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
 
 void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
 {
+    RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}" PRIu64,
+        surfaceNodeId);
     ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];
     for (auto& [img_wptr, imageOp] : rsImageVec) {
         if (auto img = img_wptr.lock()) {
