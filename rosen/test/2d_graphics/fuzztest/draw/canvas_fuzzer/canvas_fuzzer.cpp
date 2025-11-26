@@ -94,6 +94,65 @@ bool CanvasFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    uint32_t count = GetObject<uint32_t>();
+    bool flag = GetObject<bool>();
+    canvas.AddCanvas(&canvas);
+    canvas.RemoveAll();
+    canvas.RestoreToCount(count);
+    canvas.GetRecordingState();
+    canvas.SetRecordingState(flag);
+    std::shared_ptr<Drawing::Canvas> cCanvas;
+    OverDrawCanvas overDrawCanvas = OverDrawCanvas(cCanvas);
+    overDrawCanvas.GetDrawingType();
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    NoDrawCanvas noDrawCanvas = NoDrawCanvas(width, height);
+    noDrawCanvas.GetDrawingType();
+
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Image image;
+    image.BuildFromBitmap(bmp);
+    // GetLocalShadowBound
+    Rect rect;
+    Path path;
+    Rect oval = GetObject<Rect>();
+    path.AddOval(oval, GetObject<PathDirection>());
+    path.Close();
+
+    scalar sx = GetObject<scalar>();
+    scalar sy = GetObject<scalar>();
+    scalar sz = GetObject<scalar>();
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+    scalar dz = GetObject<scalar>();
+    scalar tx = GetObject<scalar>();
+    scalar ty = GetObject<scalar>();
+    scalar tz = GetObject<scalar>();
+    Matrix matrix;
+    matrix.SetMatrix(tx, ty, tz, sx, sy, sz, dx, dy, dz);
+
+    Point3 planeParams{GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    Point3 devLightPos{GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    scalar lightRadius = GetObject<scalar>();
+    ShadowFlags shadowFlag = ShadowFlags::ALL;
+    bool isLimitElevation = false;
+
+    canvas.GetLocalShadowBounds(matrix, path, planeParams, devLightPos, lightRadius, shadowFlag, isLimitElevation,
+        rect);
+
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -109,5 +168,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
     return 0;
 }

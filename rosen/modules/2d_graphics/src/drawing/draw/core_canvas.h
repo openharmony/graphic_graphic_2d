@@ -317,6 +317,9 @@ public:
      */
     virtual void DrawBackground(const Brush& brush);
 
+    virtual bool GetLocalShadowBounds(const Matrix& ctm, const Path& path, const Point3& planeParams,
+        const Point3& devLightPos, scalar lightRadius, ShadowFlags flag, bool isLimitElevation, Rect& rect);
+
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag);
 
