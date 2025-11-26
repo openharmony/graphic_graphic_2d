@@ -104,8 +104,7 @@ ani_object AniTextLine::CreateTextLine(ani_env* env, Rosen::TextLineBase* textLi
     }
     AniTextLine* aniTextLine = new AniTextLine();
     aniTextLine->textLine_ = std::shared_ptr<Rosen::TextLineBase>(textLine);
-    ani_object textLineObj = AniTextUtils::CreateAniObject(
-        env, AniGlobalClass::textLine, AniGlobalMethod::textLine);
+    ani_object textLineObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::textLine, AniGlobalMethod::textLine);
     ani_status ret =
         env->Object_CallMethodByName_Void(textLineObj, TEXT_BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniTextLine));
     if (ret != ANI_OK) {
@@ -209,8 +208,8 @@ void AniTextLine::Paint(ani_env* env, ani_object object, ani_object canvas, ani_
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(
-        env, canvas, AniGlobalMethod::canvasGetNative);
+    Drawing::AniCanvas* aniCanvas =
+        AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, AniGlobalMethod::canvasGetNative);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Failed to get canvas");
         return;
@@ -423,8 +422,7 @@ ani_object AniTextLine::NativeTransferStatic(ani_env* env, ani_class cls, ani_ob
             TEXT_LOGE("Null jsTextLine");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(
-            env, AniGlobalClass::textLine, AniGlobalMethod::textLine);
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::textLine, AniGlobalMethod::textLine);
         std::shared_ptr<TextLineBase> textLineBase = jsTextLine->GetTextLineBase();
         if (textLineBase == nullptr) {
             TEXT_LOGE("Failed to get textLineBase");

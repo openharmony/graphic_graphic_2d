@@ -65,8 +65,7 @@ ani_object AniParagraph::SetTypography(ani_env* env, OHOS::Rosen::Typography* ty
         return AniTextUtils::CreateAniUndefined(env);
     }
     AniParagraph* aniParagraph = new AniParagraph();
-    ani_object paragraphObj = AniTextUtils::CreateAniObject(
-        env, AniGlobalClass::paragraph, AniGlobalMethod::paragraph);
+    ani_object paragraphObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::paragraph, AniGlobalMethod::paragraph);
     aniParagraph->typography_ = std::shared_ptr<OHOS::Rosen::Typography>(typography);
     ani_status ret = env->Object_CallMethodByName_Void(
         paragraphObj, TEXT_BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniParagraph));
@@ -165,8 +164,8 @@ void AniParagraph::Paint(ani_env* env, ani_object object, ani_object canvas, ani
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(
-        env, canvas, AniGlobalMethod::canvasGetNative);
+    Drawing::AniCanvas* aniCanvas =
+        AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, AniGlobalMethod::canvasGetNative);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "canvas unavailable.");
@@ -185,8 +184,8 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(
-        env, canvas, AniGlobalMethod::canvasGetNative);
+    Drawing::AniCanvas* aniCanvas =
+        AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, AniGlobalMethod::canvasGetNative);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Canvas is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Canvas unavailable.");
@@ -523,8 +522,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
             textLineBasePtr = nullptr;
             continue;
         }
-        ani_status ret =
-            env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniObj);
+        ani_status ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);
             delete textLineBasePtr;
@@ -557,8 +555,7 @@ ani_ref AniParagraph::GetLineMetrics(ani_env* env, ani_object object)
     ani_size index = 0;
     for (const auto& lineMetrics : vectorLineMetrics) {
         ani_object aniObj = AniLineMetricsConverter::ParseLineMetricsToAni(env, lineMetrics);
-        ani_status ret =
-            env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniObj);
+        ani_status ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set lineMetrics item %{public}zu", index);
             continue;
@@ -592,8 +589,8 @@ ani_object AniParagraph::NativeTransferStatic(ani_env* env, ani_class cls, ani_o
             TEXT_LOGE("Null jsParagraph");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(
-            env, AniGlobalClass::paragraph, AniGlobalMethod::paragraph);
+        ani_object staticObj =
+            AniTextUtils::CreateAniObject(env, AniGlobalClass::paragraph, AniGlobalMethod::paragraph);
         std::shared_ptr<Typography> typographyPtr = jsParagraph->GetParagraph();
         if (typographyPtr == nullptr) {
             TEXT_LOGE("Failed to get typography");

@@ -23,7 +23,6 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
-
 ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& runMetrics)
 {
     ani_object mapAniObj = AniTextUtils::CreateAniMap(env);
@@ -31,8 +30,7 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
     for (const auto& [key, runMetrics] : runMetrics) {
         if (runMetrics.textStyle != nullptr) {
             ani_object aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::runMetrics,
-                AniGlobalMethod::runMetricsCtor,
-                AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
+                AniGlobalMethod::runMetricsCtor, AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
                 OHOS::Rosen::Drawing::CreateAniFontMetrics(env, runMetrics.fontMetrics));
             ani_status status = env->Object_CallMethod_Ref(mapAniObj, AniGlobalMethod::mapSet, &mapRef,
                 AniTextUtils::CreateAniIntObj(env, static_cast<int>(key)), aniObj);

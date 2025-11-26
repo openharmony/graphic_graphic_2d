@@ -78,8 +78,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
         rectObj = AniTextUtils::CreateAniUndefined(env);
     }
 
-    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::textBox,
-        AniGlobalMethod::textBoxCtor, rectObj,
+    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::textBox, AniGlobalMethod::textBoxCtor, rectObj,
         AniTextUtils::CreateAniEnum(env, AniGlobalEnum::textDirection,
             aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textRect.direction)).value_or(0)));
     return ANI_OK;
@@ -88,8 +87,7 @@ ani_status AniTextRectConverter::ParseTextBoxToAni(
 ani_status AniTextRectConverter::ParseBoundaryToAni(
     ani_env* env, const OHOS::Rosen::Boundary& boundary, ani_object& aniObj)
 {
-    aniObj = AniTextUtils::CreateAniObject(
-        env, AniGlobalClass::range, AniGlobalMethod::rangeCtor,
+    aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::range, AniGlobalMethod::rangeCtor,
         ani_int(boundary.leftIndex), ani_int(boundary.rightIndex));
     return ANI_OK;
 }

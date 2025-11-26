@@ -28,8 +28,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
 
     ani_ref ref = nullptr;
-    ani_status ret =
-        AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::paragraphStyleMaxLines, ref);
+    ani_status ret = AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::paragraphStyleMaxLines, ref);
     if (ret == ANI_OK && ref != nullptr) {
         int maxLines = 0;
         ret = env->Object_CallMethodByName_Int(reinterpret_cast<ani_object>(ref), "toInt", ":i", &maxLines);
@@ -43,8 +42,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     ani_ref textStyleRef = nullptr;
     TextStyle textStyle;
-    if (AniTextUtils::ReadOptionalField(
-        env, obj, AniGlobalMethod::paragraphStyleTextStyle, textStyleRef) == ANI_OK &&
+    if (AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::paragraphStyleTextStyle, textStyleRef) == ANI_OK &&
         textStyleRef != nullptr) {
         ret = AniTextStyleConverter::ParseTextStyleToNative(env, reinterpret_cast<ani_object>(textStyleRef), textStyle);
         if (ret == ANI_OK) {
@@ -55,25 +53,24 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textDirection,
         AniGlobalMethod::paragraphStyleTextDirection, paragraphStyle->textDirection);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textAlign,
-        AniGlobalMethod::paragraphStyleAlign, paragraphStyle->textAlign);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::wordBreakType,
-        AniGlobalMethod::paragraphStyleWordBreak, paragraphStyle->wordBreakType);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::textAlign, AniGlobalMethod::paragraphStyleAlign, paragraphStyle->textAlign);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::wordBreakType, AniGlobalMethod::paragraphStyleWordBreak, paragraphStyle->wordBreakType);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::breakStrategy,
         AniGlobalMethod::paragraphStyleBreakStrategy, paragraphStyle->breakStrategy);
     AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textHeightBehavior,
         AniGlobalMethod::paragraphStyleTextHeightBehavior, paragraphStyle->textHeightBehavior);
 
     ani_ref strutStyleRef = nullptr;
-    if (AniTextUtils::ReadOptionalField(
-        env, obj, AniGlobalMethod::paragraphStyleStrutStyle, strutStyleRef) == ANI_OK &&
+    if (AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::paragraphStyleStrutStyle, strutStyleRef) == ANI_OK &&
         strutStyleRef != nullptr) {
         ParseParagraphStyleStrutStyleToNative(env, reinterpret_cast<ani_object>(strutStyleRef), paragraphStyle);
     }
 
     ani_ref tabRef = nullptr;
-    if (AniTextUtils::ReadOptionalField(
-        env, obj, AniGlobalMethod::paragraphStyleTab, tabRef) == ANI_OK && tabRef != nullptr) {
+    if (AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::paragraphStyleTab, tabRef) == ANI_OK
+        && tabRef != nullptr) {
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
 
@@ -83,12 +80,12 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
     ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::fontStyle,
-        AniGlobalMethod::strutStyleFontStyle, paragraphStyle->lineStyleFontStyle);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::fontWidth,
-        AniGlobalMethod::strutStyleFontWidth, paragraphStyle->lineStyleFontWidth);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::fontWeight,
-        AniGlobalMethod::strutStyleFontWeight, paragraphStyle->lineStyleFontWeight);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::fontStyle, AniGlobalMethod::strutStyleFontStyle, paragraphStyle->lineStyleFontStyle);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::fontWidth, AniGlobalMethod::strutStyleFontWidth, paragraphStyle->lineStyleFontWidth);
+    AniTextUtils::ReadOptionalEnumField(
+        env, obj, AniTextEnum::fontWeight, AniGlobalMethod::strutStyleFontWeight, paragraphStyle->lineStyleFontWeight);
 
     AniTextUtils::ReadOptionalDoubleField(
         env, obj, AniGlobalMethod::strutStyleFontSize, paragraphStyle->lineStyleFontSize);
@@ -98,16 +95,14 @@ void AniParagraphStyleConverter::ParseParagraphStyleStrutStyleToNative(
         env, obj, AniGlobalMethod::strutStyleLeading, paragraphStyle->lineStyleSpacingScale);
     AniTextUtils::ReadOptionalBoolField(
         env, obj, AniGlobalMethod::strutStyleForceHeight, paragraphStyle->lineStyleOnly);
-    AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniGlobalMethod::strutStyleEnabled, paragraphStyle->useLineStyle);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::strutStyleEnabled, paragraphStyle->useLineStyle);
     AniTextUtils::ReadOptionalBoolField(
         env, obj, AniGlobalMethod::strutStyleHeightOverride, paragraphStyle->lineStyleHeightOnly);
     AniTextUtils::ReadOptionalBoolField(
         env, obj, AniGlobalMethod::strutStyleHalfLeading, paragraphStyle->lineStyleHalfLeading);
 
     ani_ref aniFontFamilies = nullptr;
-    if (AniTextUtils::ReadOptionalField(
-        env, obj, AniGlobalMethod::strutStyleFontFamilies, aniFontFamilies) == ANI_OK &&
+    if (AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::strutStyleFontFamilies, aniFontFamilies) == ANI_OK &&
         aniFontFamilies != nullptr) {
         std::vector<std::string> fontFamilies;
         ParseFontFamiliesToNative(env, reinterpret_cast<ani_array>(aniFontFamilies), fontFamilies);

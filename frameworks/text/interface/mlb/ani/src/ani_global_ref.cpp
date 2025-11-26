@@ -20,8 +20,7 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
-namespace 
-{
+namespace {
 constexpr CacheKey TRANS_TO_REQUIRED_KEY{ANI_NAMESPACE_TEXT, "transToRequired",
     "C{@ohos.graphics.text.text.TextStyle}:C{@ohos.graphics.text.text.TextStyleR}"};
 constexpr std::string_view RUNMETRICS_SIGN = "C{" ANI_INTERFACE_TEXT_STYLE "}C{" ANI_INTERFACE_FONT_METRICS "}:";
@@ -219,8 +218,8 @@ constexpr CacheKey RANGE_KEY{ANI_CLASS_RANGE, "<ctor>", "ii:"};
 constexpr CacheKey TYPOGRAPHIC_BOUNDS_KEY{ANI_CLASS_TYPOGRAPHIC_BOUNDS, "<ctor>", "dddd:"};
 
 constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"};
-} // namespace name
-    
+} // namespace
+
 ani_namespace AniGlobalNamespace::text = nullptr;
 
 ani_class AniGlobalClass::aniString = nullptr;
@@ -478,7 +477,8 @@ void InitMethod(ani_env* env)
     AniGlobalMethod::paragraphStyleAlign = ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_ALIGN_KEY);
     AniGlobalMethod::paragraphStyleWordBreak = ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_WORD_BREAK_KEY);
     AniGlobalMethod::paragraphStyleBreakStrategy = ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_BREAK_STRATEGY_KEY);
-    AniGlobalMethod::paragraphStyleTextHeightBehavior = ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_HEIGHT_BEHAVIOR_KEY);
+    AniGlobalMethod::paragraphStyleTextHeightBehavior =
+        ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TEXT_HEIGHT_BEHAVIOR_KEY);
     AniGlobalMethod::paragraphStyleStrutStyle = ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_STRUT_STYLE_KEY);
     AniGlobalMethod::paragraphStyleTab = ANI_CLASS_FIND_METHOD(env, PARAGRAPH_STYLE_TAB_KEY);
     AniGlobalMethod::strutStyleFontStyle = ANI_CLASS_FIND_METHOD(env, STRUT_STYLE_FONT_STYLE_KEY);
@@ -519,7 +519,8 @@ void InitMethod(ani_env* env)
     AniGlobalMethod::decorationCtor = ANI_CLASS_FIND_METHOD(env, DECORATION_KEY);
     AniGlobalMethod::decorationDecorationType = ANI_CLASS_FIND_METHOD(env, DECORATION_DECORATION_TYPE_KEY);
     AniGlobalMethod::decorationDecorationStyle = ANI_CLASS_FIND_METHOD(env, DECORATION_DECORATION_STYLE_KEY);
-    AniGlobalMethod::decorationDecorationThicknessScale =ANI_CLASS_FIND_METHOD(env, DECORATION_DECORATION_THICKNESS_SCALE_KEY);
+    AniGlobalMethod::decorationDecorationThicknessScale =
+        ANI_CLASS_FIND_METHOD(env, DECORATION_DECORATION_THICKNESS_SCALE_KEY);
     AniGlobalMethod::decorationDecorationColor = ANI_CLASS_FIND_METHOD(env, DECORATION_DECORATION_COLOR_KEY);
     AniGlobalMethod::pointX = ANI_CLASS_FIND_METHOD(env, POINT_X_KEY);
     AniGlobalMethod::pointY = ANI_CLASS_FIND_METHOD(env, POINT_Y_KEY);
@@ -563,9 +564,7 @@ void InitMethod(ani_env* env)
 
     AniGlobalMethod::textBoxCtor = ANI_CLASS_FIND_METHOD(env, TEXT_BOX_KEY);
     AniGlobalMethod::typographicBoundsCtor = ANI_CLASS_FIND_METHOD(env, TYPOGRAPHIC_BOUNDS_KEY);
-
 }
-
 
 void InitFunction(ani_env* env)
 {

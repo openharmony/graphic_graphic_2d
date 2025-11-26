@@ -87,16 +87,16 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
-    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetPostScriptName, postScriptName,
-        String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetFullName, fullName, String, fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetFontFamily, fontFamily, String,
-        fontDesc.get(), status);
-    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetFontSubfamily, fontSubfamily, String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetWidth, width, Int, fontDesc.get(), status);
+        env, aniObj, AniGlobalMethod::fontDescriptorGetPostScriptName, postScriptName, String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
-        env, aniObj, AniGlobalMethod::fontDescriptorGetItalic, italic, Int, fontDesc.get(), status);
+        env, aniObj, AniGlobalMethod::fontDescriptorGetFullName, fullName, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniGlobalMethod::fontDescriptorGetFontFamily, fontFamily, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(
+        env, aniObj, AniGlobalMethod::fontDescriptorGetFontSubfamily, fontSubfamily, String, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetWidth, width, Int, fontDesc.get(), status);
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::fontDescriptorGetItalic, italic, Int, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
         env, aniObj, AniGlobalMethod::fontDescriptorGetMonoSpace, monoSpace, Bool, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(
