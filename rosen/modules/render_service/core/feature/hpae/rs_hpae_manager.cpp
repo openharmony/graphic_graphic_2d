@@ -392,7 +392,7 @@ void RSHpaeManager::SetUpHpaeSurface(GraphicPixelFormat pixelFormat, GraphicColo
     bufferConfig.colorGamut = colorSpace;
     bufferConfig.format = pixelFormat;
     bufferConfig.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_GRAPHIC_2D_ACCEL |
-        BUFFER_USAGE_MEM_DMA;
+        BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_ALLOC_NO_IPC;
     bufferConfig.timeout = 0;
 
     if (hpaeFrameState_ != HpaeFrameState::ALLOC_BUF && UpdateBufferIfNeed(bufferConfig, isHebc)) {

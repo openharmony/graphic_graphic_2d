@@ -26,7 +26,7 @@
 
 namespace OHOS::Rosen {
 
-constexpr uint32_t HPAE_BUFFER_SIZE = 4;
+constexpr uint32_t HPAE_BUFFER_SIZE = 3;
 
 namespace DrawableV2 {
 class RSHpaeBuffer {
