@@ -1455,8 +1455,16 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
                 offscreenWidth = curCanvas_->GetWidth();
                 offscreenHeight = curCanvas_->GetHeight();
             }
-            Drawing::ImageInfo info = { offscreenWidth, offscreenHeight, Drawing::COLORTYPE_RGBA_F16,
-                Drawing::ALPHATYPE_PREMUL, Drawing::ColorSpace::CreateSRGB() };
+            auto colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
+            auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+            // Disable fp16 for hardware constrains. 'true' indicates check brightness ratio
+            if (RSLuminanceControl::Get().IsHardwareHdrDisabled(true, params->GetScreenId())) {
+                colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(screenParams->GetNewPixelFormat());
+                colorSpace =
+                    RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(screenParams->GetNewColorSpace());
+            }
+            Drawing::ImageInfo info = {
+                offscreenWidth, offscreenHeight, colorType, Drawing::ALPHATYPE_PREMUL, colorSpace };
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(info);
         } else {
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(offscreenWidth, offscreenHeight);

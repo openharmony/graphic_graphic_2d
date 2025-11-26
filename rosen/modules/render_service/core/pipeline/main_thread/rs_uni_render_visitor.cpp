@@ -463,12 +463,8 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     ScreenId screenId = node.GetScreenId();
     bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
     bool forceCloseHDR = node.GetForceCloseHdr();
-    if ((RSLuminanceControl::Get().IsCloseHardwareHdr() && !drmNodes_.empty()) || forceCloseHDR) {
-        // Disable hdr when drm videos exist to avoid flicker
-        RSLuminanceControl::Get().SetHdrStatus(screenId, HdrStatus::NO_HDR);
-    } else {
-        RSLuminanceControl::Get().SetHdrStatus(screenId, node.GetDisplayHdrStatus());
-    }
+    bool isCloseHdr = forceCloseHDR || (RSLuminanceControl::Get().IsHardwareHdrDisabled() && !drmNodes_.empty());
+    RSLuminanceControl::Get().SetHdrStatus(screenId, isCloseHdr ? HdrStatus::NO_HDR : node.GetDisplayHdrStatus());
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     rsHdrCollection_->HandleHdrState(isHdrOn);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
@@ -480,7 +476,7 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     RS_LOGD("HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
         "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d, forceCloseHDR:%{public}d",
         isHdrOn, hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus(), forceCloseHDR);
-    if (!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsCloseHardwareHdr()) {
+    if (!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
         isHdrOn = false;
     }
     node.SetHDRPresent(isHdrOn);
@@ -2443,17 +2439,21 @@ void RSUniRenderVisitor::UpdateHwcNodeDirtyRegionAndCreateLayer(
             }
             continue;
         }
-        if (((curScreenNode_->GetHasUniRenderHdrSurface() && !RSHdrUtil::GetRGBA1010108Enabled()) ||
-            !drmNodes_.empty() || hasFingerprint_) &&
-            !hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
+        bool isHdrSurface = RSHdrUtil::CheckIsHdrSurface(*hwcNodePtr) != HdrStatus::NO_HDR;
+        bool isHardwareHdrDisabled = RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
+            (isHdrSurface || RSLuminanceControl::Get().IsHdrOn(curScreenNode_->GetScreenId()));
+        bool hasUniRenderHdrSurface = curScreenNode_->GetHasUniRenderHdrSurface();
+        bool isDisableHwcForHdrSurface = hasUniRenderHdrSurface && !RSHdrUtil::GetRGBA1010108Enabled();
+        bool hasProtectedLayer = hwcNodePtr->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED);
+        if ((isHardwareHdrDisabled || isDisableHwcForHdrSurface || !drmNodes_.empty() || hasFingerprint_) &&
+            !hasProtectedLayer) {
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64
                 " disabled by Having UniRenderHdrSurface/DRM node",
                 node->GetName().c_str(), node->GetId());
             hwcVisitor_->PrintHiperfLog(node, "uniRender HDR");
             hwcNodePtr->SetHardwareForcedDisabledState(true);
             // DRM will force HDR to use unirender
-            curScreenNode_->SetHasUniRenderHdrSurface(curScreenNode_->GetHasUniRenderHdrSurface() ||
-                RSHdrUtil::CheckIsHdrSurface(*hwcNodePtr) != HdrStatus::NO_HDR);
+            curScreenNode_->SetHasUniRenderHdrSurface(hasUniRenderHdrSurface || isHdrSurface);
             hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
                 HwcDisabledReasons::DISABLED_BY_RENDER_HDR_SURFACE, hwcNodePtr->GetName());
         }

@@ -1911,8 +1911,8 @@ void RSMainThread::CollectInfoForHardwareComposer()
                 return;
             }
 
-            // If hardware don't support hdr render, should disable direct composition
-            if (RSLuminanceControl::Get().IsCloseHardwareHdr() &&
+            // If hardware HDR is disabled, disable direct composition
+            if (RSLuminanceControl::Get().IsHardwareHdrDisabled() &&
                 surfaceNode->GetVideoHdrStatus() != HdrStatus::NO_HDR &&
                 !surfaceNode->GetSpecialLayerMgr().Find(SpecialLayerType::PROTECTED)) {
                 doDirectComposition_ = false;

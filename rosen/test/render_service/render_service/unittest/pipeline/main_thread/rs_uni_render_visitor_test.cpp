@@ -44,6 +44,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/rs_union_render_node.h"
+#include "pipeline/mock/mock_rs_luminance_control.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "property/rs_point_light_manager.h"
@@ -6688,4 +6689,158 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo004, TestSize.Level2)
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }
 
+/**
+ * @tc.name: DisableHardwareHdrTest001
+ * @tc.desc: Test HandlePixelFormat with disable hardware hdr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest001, TestSize.Level1)
+{
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, 0, rsContext->weak_from_this());
+    ASSERT_NE(rsScreenRenderNode, nullptr);
+    rsScreenRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(rsScreenRenderNode->dirtyManager_, nullptr);
+    auto screenManager = CreateOrGetScreenManager();
+    auto screenId = CreateVirtualScreen(screenManager);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
+    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    mockInterface.isHardwareHdrDisabled_ = true;
+    rsScreenRenderNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+    rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
+    rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
+    ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::NO_HDR);
+    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsScreenRenderNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+    rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
+    ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::NO_HDR);
+    if (!rsUniRenderVisitor->drmNodes_.empty()) {
+        rsUniRenderVisitor->drmNodes_.pop_back();
+    }
+    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
+    ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::HDR_PHOTO);
+    mockInterface.isHardwareHdrDisabled_ = false;
+    rsScreenRenderNode->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+    rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
+    ASSERT_EQ(mockInterface.hdrStatus_, HdrStatus::HDR_PHOTO);
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: DisableHardwareHdrTest002
+ * @tc.desc: Test HandlePixelFormat with disable hardware hdr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest002, TestSize.Level1)
+{
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, 0, rsContext->weak_from_this());
+    ASSERT_NE(rsScreenRenderNode, nullptr);
+    rsScreenRenderNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    ASSERT_NE(rsScreenRenderNode->dirtyManager_, nullptr);
+    auto screenManager = CreateOrGetScreenManager();
+    auto screenId = CreateVirtualScreen(screenManager);
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
+    auto param = static_cast<RSScreenRenderParams*>(rsScreenRenderNode->stagingRenderParams_.get());
+    rsScreenRenderNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+    rsScreenRenderNode->SetHasUniRenderHdrSurface(false);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
+
+    mockInterface.isHdrOn_ = true;
+    mockInterface.isHardwareHdrDisabled_ = false;
+    rsScreenRenderNode->SetHDRPresent(true);
+    rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
+    ASSERT_FALSE(param->GetHDRPresent());
+    mockInterface.isHardwareHdrDisabled_ = true;
+    rsScreenRenderNode->SetHDRPresent(true);
+    rsScreenRenderNode->SetHasUniRenderHdrSurface(false);
+    rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
+    ASSERT_TRUE(param->GetHDRPresent());
+    rsScreenRenderNode->SetHDRPresent(true);
+    rsScreenRenderNode->SetHasUniRenderHdrSurface(true);
+    rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
+    ASSERT_TRUE(param->GetHDRPresent());
+    mockInterface.isHardwareHdrDisabled_ = false;
+    rsScreenRenderNode->SetHDRPresent(true);
+    rsScreenRenderNode->SetHasUniRenderHdrSurface(true);
+    rsUniRenderVisitor->HandlePixelFormat(*rsScreenRenderNode);
+    ASSERT_TRUE(param->GetHDRPresent());
+
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: DisableHardwareHdrTest003
+ * @tc.desc: Test IsHdrUseUnirender with disable hardware hdr.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest003, TestSize.Level1)
+{
+    // create input args.
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+    auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    NodeId childId = 1;
+    auto childNode1 = std::make_shared<RSSurfaceRenderNode>(childId);
+    childNode1->SetIsOnTheTree(true);
+    childNode1->InitRenderParams();
+    node->AddChildHardwareEnabledNode(childNode1);
+    NodeId displayId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(displayId, 0, rsContext);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    childNode1->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    mockInterface.isHardwareHdrDisabled_ = false;
+    mockInterface.isHdrOn_ = true;
+    std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    ASSERT_FALSE(childNode1->isHardwareForcedDisabled_);
+    childNode1->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    ASSERT_FALSE(childNode1->isHardwareForcedDisabled_);
+    mockInterface.isHardwareHdrDisabled_ = true;
+    childNode1->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    ASSERT_FALSE(childNode1->isHardwareForcedDisabled_);
+    childNode1->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, false);
+    rsUniRenderVisitor->hasFingerprint_ = true;
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    ASSERT_TRUE(childNode1->isHardwareForcedDisabled_);
+    std::shared_ptr<RSSurfaceRenderNode> drmNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(drmNode, nullptr);
+    drmNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = RectT(0, 0, 1, 1);
+    rsUniRenderVisitor->drmNodes_.emplace_back(drmNode);
+    rsUniRenderVisitor->UpdateHwcNodeDirtyRegionAndCreateLayer(node, topLayers);
+    ASSERT_TRUE(childNode1->isHardwareForcedDisabled_);
+    displayNode->SetHasUniRenderHdrSurface(true);
+    ASSERT_TRUE(childNode1->isHardwareForcedDisabled_);
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
 } // OHOS::Rosen

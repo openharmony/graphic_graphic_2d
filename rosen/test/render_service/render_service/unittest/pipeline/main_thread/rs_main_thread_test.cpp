@@ -44,6 +44,7 @@
 #include "screen_manager/rs_screen.h"
 #include "string_utils.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/mock/mock_rs_luminance_control.h"
 #if defined(ACCESSIBILITY_ENABLE)
 #include "accessibility_config.h"
 #endif
@@ -6946,5 +6947,48 @@ HWTEST_F(RSMainThreadTest, SetScreenPowerOnChangedTest, TestSize.Level1)
 
     mainThread->SetScreenPowerOnChanged(false);
     EXPECT_FALSE(mainThread->screenPowerOnChanged_);
+}
+
+/**
+ * @tc.name: DisableHdrDirectCompositionTest001
+ * @tc.desc: Test CollectInfoForHardwareComposer when hardware hdr is disabled.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DisableHdrDirectCompositionTest001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    bool isUniRender = mainThread->isUniRender_;
+    bool doDirectComposition = mainThread->doDirectComposition_;
+    mainThread->isUniRender_ = true;
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    auto node1 = std::make_shared<RSSurfaceRenderNode>(config);
+    node1->SetIsOnTheTree(true);
+    mainThread->context_->GetMutableNodeMap().RegisterRenderNode(node1);
+    auto& originalInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    Mock::RSLuminanceControlInterfaceMock mockInterface;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = &mockInterface;
+
+    mockInterface.isHardwareHdrDisabled_ = true;
+    node1->SetVideoHdrStatus(HdrStatus::HDR_VIDEO);
+    mainThread->CollectInfoForHardwareComposer();
+    ASSERT_FALSE(mainThread->doDirectComposition_);
+    node1->GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
+    mainThread->CollectInfoForHardwareComposer();
+    ASSERT_FALSE(mainThread->doDirectComposition_);
+    node1->SetVideoHdrStatus(HdrStatus::NO_HDR);
+    mainThread->CollectInfoForHardwareComposer();
+    ASSERT_FALSE(mainThread->doDirectComposition_);
+    mockInterface.isHardwareHdrDisabled_ = false;
+    mainThread->CollectInfoForHardwareComposer();
+    ASSERT_FALSE(mainThread->doDirectComposition_);
+
+    mainThread->isUniRender_ = isUniRender;
+    mainThread->doDirectComposition_ = doDirectComposition;
+    RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
 }
 } // namespace OHOS::Rosen
