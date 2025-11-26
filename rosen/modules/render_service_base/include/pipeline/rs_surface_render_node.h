@@ -577,6 +577,16 @@ public:
         copybitTag_ = copybitTag;
     }
 
+    void SetStableSkipReached(bool isStableSkipReached)
+    {
+        isStableSkipReached_ = isStableSkipReached;
+    }
+
+    bool IsStableSkipReached()
+    {
+        return isStableSkipReached_;
+    }
+
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
@@ -1894,6 +1904,7 @@ private:
     
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
+    bool isStableSkipReached_ = false;
     RectI skipFrameDirtyRect_;
     bool UIExtensionUnobscured_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;

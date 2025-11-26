@@ -304,6 +304,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdgeLightAngleParams, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdgeLightBlurParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdgeLightDirParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, HlParams, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, Shape, std::shared_ptr<RSNGRenderShapeBase>);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color0, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color1, Vector4f);

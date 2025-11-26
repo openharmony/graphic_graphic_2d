@@ -98,10 +98,11 @@ void RSScreenRenderNodeDrawableTest::SetUp()
     // init RSScreen
     auto screenManager = CreateOrGetScreenManager();
     auto output = std::make_shared<HdiOutput>(renderNode_->GetScreenId());
-    auto rsScreen = std::make_shared<impl::RSScreen>(renderNode_->GetScreenId(), false, output, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(output);
     screenManager->MockHdiScreenConnected(rsScreen);
     auto mirroredOutput = std::make_shared<HdiOutput>(mirroredNode_->GetScreenId());
-    auto mirroredRsScreen = std::make_shared<impl::RSScreen>(mirroredNode_->GetScreenId(), false, output, nullptr);
+    auto output2 = std::make_shared<HdiOutput>(mirroredNode_->GetScreenId());
+    auto mirroredRsScreen = std::make_shared<RSScreen>(output2);
     screenManager->MockHdiScreenConnected(mirroredRsScreen);
 
     renderNode_->AddChild(displayRenderNode_);
@@ -130,15 +131,13 @@ void RSScreenRenderNodeDrawableTest::SetUp()
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
     params->childDisplayCount_ = 1;
-    ScreenInfo screenInfo;
-    screenInfo.id = renderNode_->GetScreenId();
-    params->screenInfo_ = screenInfo;
+    params->screenInfo_.id = renderNode_->GetScreenId();
+    params->screenProperty_.id_ = renderNode_->GetScreenId();
 
     auto mirroredParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable_->GetRenderParams().get());
     mirroredParams->childDisplayCount_ = 1;
-    ScreenInfo mirroredScreenInfo;
-    mirroredScreenInfo.id = mirroredNode_->GetScreenId();
-    mirroredParams->screenInfo_ = mirroredScreenInfo;
+    mirroredParams->screenInfo_.id = mirroredNode_->GetScreenId();
+    mirroredParams->screenProperty_.id_ = mirroredNode_->GetScreenId();
 
     // generate canvas for screenDrawable_
     drawingCanvas_ = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
@@ -519,7 +518,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest004, TestSize.Level1)
     // when curScreenInfo.isEqualVsyncPeriod not equal isEqualVsyncPeriod
     ScreenInfo screenInfo3;
     screenInfo3.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
-    screenInfo3.isEqualVsyncPeriod = true;
+    params->SetIsEqualVsyncPeriod(true);
     auto vsyncRefreshRate = RSMainThread::Instance()->GetVsyncRefreshRate();
     screenInfo3.expectedRefreshRate = vsyncRefreshRate;
     params->screenInfo_ = screenInfo3;
@@ -528,7 +527,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest004, TestSize.Level1)
     // when curScreenInfo.isEqualVsyncPeriod equal isEqualVsyncPeriod
     ScreenInfo screenInfo4;
     screenInfo4.skipFrameStrategy = SKIP_FRAME_BY_REFRESH_RATE;
-    screenInfo4.isEqualVsyncPeriod = false;
+    params->SetIsEqualVsyncPeriod(false);
     screenInfo4.expectedRefreshRate = vsyncRefreshRate;
     params->screenInfo_ = screenInfo4;
     screenDrawable_->OnDraw(canvas);
@@ -602,15 +601,15 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest007, TestSize.Level1)
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     ScreenInfo screenInfo;
     // when isEqualVsyncPeriod is false;
-    screenInfo.isEqualVsyncPeriod = false;
+    screenInfo.skipFrameInterval = 2;
     params->screenInfo_ = screenInfo;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_FALSE(params->GetScreenInfo().isEqualVsyncPeriod);
+    EXPECT_FALSE(params->IsEqualVsyncPeriod());
     // when isEqualVsyncPeriod is true;
-    screenInfo.isEqualVsyncPeriod = true;
+    screenInfo.skipFrameInterval = 1;
     params->screenInfo_ = screenInfo;
     screenDrawable_->OnDraw(canvas);
-    EXPECT_TRUE(params->GetScreenInfo().isEqualVsyncPeriod);
+    EXPECT_TRUE(params->IsEqualVsyncPeriod());
 }
 
 /**

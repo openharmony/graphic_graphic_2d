@@ -801,6 +801,11 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
 {
     return {};

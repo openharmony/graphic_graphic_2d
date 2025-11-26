@@ -922,7 +922,7 @@ bool AniCanvas::GetVerticesUint16(ani_env* env, ani_object verticesObj, uint16_t
         ani_int vertex;
         ani_ref vertexRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
+                verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
                 static_cast<ani_object>(vertexRef), "unboxed", ":i", &vertex)) {
             ROSEN_LOGE("AniCanvas::GetVerticesUint16 vertices is invalid");
@@ -937,19 +937,19 @@ bool AniCanvas::GetVerticesUint16(ani_env* env, ani_object verticesObj, uint16_t
     return true;
 }
 
-bool AniCanvas::GetColorsUint32(ani_env* env, ani_object verticesObj, uint32_t* vertices, uint32_t verticesSize)
+bool AniCanvas::GetColorsUint32(ani_env* env, ani_object colorsObj, uint32_t* colors, uint32_t colorsSize)
 {
-    for (uint32_t i = 0; i < verticesSize; i++) {
-        ani_int vertex;
-        ani_ref vertexRef;
+    for (uint32_t i = 0; i < colorsSize; i++) {
+        ani_int color;
+        ani_ref colorRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
+                colorsObj, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(vertexRef), "unboxed", ":i", &vertex)) {
-            ROSEN_LOGE("AniCanvas::GetColorsUint32 vertices is invalid");
+                static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
+            ROSEN_LOGE("AniCanvas::GetColorsUint32 colors is invalid");
             return false;
         }
-        vertices[i] = static_cast<uint32_t>(vertex);
+        colors[i] = static_cast<uint32_t>(color);
     }
     return true;
 }
@@ -965,7 +965,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
         AniThrowError(env, "Invalid params.");
         return;
     }
-    uint32_t colorsSize = aniLength;
+    uint32_t colorsSize = static_cast<uint32_t>(aniLength);
     int64_t tempColorsSize = (args.column + 1) * (args.row + 1) + colorOffset;
     if (colorsSize != 0 && colorsSize != tempColorsSize) {
         ROSEN_LOGE("AniCanvas::GetColorsAndDraw colors are invalid");
@@ -996,7 +996,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
             return;
         }
-        colors[i] = color;
+        colors[i] = static_cast<uint32_t>(color);
     }
     uint32_t* colorsMesh = colors + colorOffset;
     DrawingPixelMapMesh(args.pixelMap, args.column, args.row, verticesMesh, colorsMesh, canvas);

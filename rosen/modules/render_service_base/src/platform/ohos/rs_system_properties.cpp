@@ -1703,6 +1703,12 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
     return ConvertToInt(enable, 1) != 0;
 }
 
+bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
+{
+    static bool quickSkipEnabled = system::GetIntParameter("persist.rosen.graphic.quick.skip.enabled", 1) != 0;
+    return quickSkipEnabled;
+}
+
 bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.selfdrawingdirtyregion.enabled", "1");

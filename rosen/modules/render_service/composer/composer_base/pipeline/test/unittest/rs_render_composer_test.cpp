@@ -723,15 +723,15 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_IsSuperFoldDisplay, TestSize.Lev
     ASSERT_NE(screenManager, nullptr);
     ScreenId screenId = rsRenderComposer_ ->screenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
 
-    auto tmpActiveRect = rsScreen->activeRect_;
-    auto tmpReviseRect = rsScreen->reviseRect_;
-    auto tmpMaskRect = rsScreen->maskRect_;
+    auto tmpActiveRect = rsScreen->property_.GetActiveRect();
+    auto tmpReviseRect = rsScreen->property_.GetReviseRect();
+    auto tmpMaskRect = rsScreen->property_.GetMaskRect();
 
-    rsScreen->activeRect_ = {0, 1008, 2232, 128};
-    rsScreen->reviseRect_ = {0, 1008, 2232, 128};
-    rsScreen->maskRect_ = {0, 1008, 2232, 128};
+    rsScreen->property_.SetActiveRect(RectI{0, 1008, 2232, 128});
+    rsScreen->property_.SetReviseRect(RectI{0, 1008, 2232, 128});
+    rsScreen->property_.SetMaskRect(RectI{0, 1008, 2232, 128});
     screenManager->MockHdiScreenConnected(rsScreen);
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     const RectI& reviseRect = screenInfo.reviseRect;
@@ -754,9 +754,9 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_IsSuperFoldDisplay, TestSize.Lev
 
     system::SetParameter("const.window.foldscreen.type", "0,0,0,0");
 
-    rsScreen->activeRect_ = tmpActiveRect;
-    rsScreen->reviseRect_ = tmpReviseRect;
-    rsScreen->maskRect_ = tmpMaskRect;
+    rsScreen->property_.SetActiveRect(tmpActiveRect);
+    rsScreen->property_.SetReviseRect(tmpReviseRect);
+    rsScreen->property_.SetMaskRect(tmpMaskRect);
 }
 
 /**
@@ -995,13 +995,13 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside, TestSize.Level1
     ASSERT_NE(screenManager, nullptr);
     ScreenId screenId = 3u;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
 
-    auto tmpReviseRect = rsScreen->reviseRect_;
-    auto tmpMaskRect = rsScreen->maskRect_;
+    auto tmpReviseRect = rsScreen->property_.GetReviseRect();
+    auto tmpMaskRect = rsScreen->property_.GetMaskRect();
 
-    rsScreen->reviseRect_ = {0, 1008, 2232, 128};
-    rsScreen->maskRect_ = {0, 1008, 2232, 128};
+    rsScreen->property_.SetReviseRect(RectI{0, 1008, 2232, 128});
+    rsScreen->property_.SetMaskRect(RectI{0, 1008, 2232, 128});
     screenManager->MockHdiScreenConnected(rsScreen);
     auto screenInfo = screenManager->QueryScreenInfo(screenId);
     const RectI& reviseRect = screenInfo.reviseRect;
@@ -1020,8 +1020,8 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside, TestSize.Level1
     }
 
     system::SetParameter("debug.foldscreen.shaft.color", tmpParameter);
-    rsScreen->reviseRect_ = tmpReviseRect;
-    rsScreen->maskRect_ = tmpMaskRect;
+    rsScreen->property_.SetReviseRect(tmpReviseRect);
+    rsScreen->property_.SetMaskRect(tmpMaskRect);
 }
 
 

@@ -55,10 +55,11 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& sc
         return false;
     }
     auto screenParams = static_cast<RSScreenRenderParams*>(params.get());
-    offsetX_ = screenParams->GetScreenOffsetX();
-    offsetY_ = screenParams->GetScreenOffsetY();
+    const auto& screenProperty = screenParams->GetScreenProperty();
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
     renderEngine_ = renderEngine;
-    screenInfo_ = screenParams->GetScreenInfo();
+    screenInfo_ = screenProperty.GetScreenInfo();
 
     // set default render frame config
     renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);

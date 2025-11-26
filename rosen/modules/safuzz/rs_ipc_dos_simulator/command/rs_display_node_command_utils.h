@@ -27,6 +27,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeCreate, Uint64, RSDisplayNodeConfig);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetScreenId, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetSecurityDisplay, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetVirtualScreenMuteStatus, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetDisplayMode, Uint64, RSDisplayNodeConfig);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetScreenRotation, Uint64, ScreenRotation);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDisplayNodeSetBootAnimation, Uint64, Bool);

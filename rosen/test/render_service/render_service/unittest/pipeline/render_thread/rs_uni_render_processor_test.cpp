@@ -69,7 +69,7 @@ public:
 
     static inline uint32_t screenId_ = 0;
     static inline std::shared_ptr<RSUniRenderProcessor> renderProcessor = nullptr;
-    static inline std::unique_ptr<OHOS::Rosen::impl::RSScreen> screen = nullptr;
+    static inline std::unique_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
 };
 
 void RSUniRenderProcessorTest::SetUpTestCase()
@@ -80,9 +80,8 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
     auto output = std::make_shared<HdiOutput>(screenId_);
     RSRenderComposerManager::GetInstance().OnScreenConnected(output);
-    screen = std::make_unique<OHOS::Rosen::impl::RSScreen>(screenId_, false, output, nullptr);
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    screen = std::make_unique<OHOS::Rosen::RSScreen>(output);
+    auto screenManager = RSScreenManager::GetInstance();
     screenManager->screens_.insert(std::make_pair(0, std::move(screen)));
 
     renderProcessor = std::make_shared<RSUniRenderProcessor>();

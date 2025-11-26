@@ -235,6 +235,10 @@ private:
     void PrepareForMultiScreenViewSurfaceNode(RSSurfaceRenderNode& node);
     void PrepareForMultiScreenViewDisplayNode(RSScreenRenderNode& node);
 
+    bool CheckSkipAndUpdateForegroundSurfaceRenderNode(RSSurfaceRenderNode& node);
+    bool CheckSkipBackgroundSurfaceRenderNode(RSSurfaceRenderNode& node);
+    bool CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& node);
+
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
@@ -297,6 +301,7 @@ private:
     }
 
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
+    void UpdateFilterRegionInSkippedSurfaceNode(const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
@@ -348,6 +353,7 @@ private:
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
+    bool isBgWindowTraversalStarted_ = false;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     bool doAnimate_ = false;
@@ -487,6 +493,7 @@ private:
     NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
 
     int32_t rsScreenNodeChildNum_ = 0;
+    size_t rsScreenNodeNum_ = 0;
 
     ScreenState screenState_ = ScreenState::UNKNOWN;
     

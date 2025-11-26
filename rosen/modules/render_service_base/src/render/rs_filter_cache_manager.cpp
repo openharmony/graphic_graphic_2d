@@ -515,12 +515,8 @@ void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if (stagingIsAIBarInteractWithHWC_) {
+    if (stagingIsAIBarInteractWithHWC_ || stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
         ReduceCacheUpdateInterval();
-    } else {
-        if (stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
-            ReduceCacheUpdateInterval();
-        }
     }
     stagingIsAIBarInteractWithHWC_ = false;
 }

@@ -60,7 +60,7 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
 
     output_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto screen = std::make_shared<impl::RSScreen>(screenId_, false, output_, nullptr);
+    auto screen = std::make_shared<RSScreen>(output_);
     screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(screen);
 

@@ -389,6 +389,7 @@ public:
     static bool GetSupportScreenFreezeEnabled();
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
+    static bool GetPreparePhaseQuickSkipEnabled();
 
     static bool GetBootCompleted();
 

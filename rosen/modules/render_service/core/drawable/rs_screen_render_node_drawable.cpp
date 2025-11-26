@@ -600,8 +600,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetCompositeType(params->GetCompositeType());
     params->SetDirtyAlignEnabled(uniParam->IsDirtyAlignEnabled());
     ScreenId paramScreenId = params->GetScreenId();
-    offsetX_ = params->GetScreenOffsetX();
-    offsetY_ = params->GetScreenOffsetY();
+    const auto& screenProperty = params->GetScreenProperty();
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
     curDisplayScreenId_ = paramScreenId;
     RS_LOGD("RSScreenRenderNodeDrawable::OnDraw curScreenId=[%{public}" PRIu64 "], "
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
@@ -625,10 +626,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // so that need change whether equal vsync period and whether use virtual dirty
     if (screenInfo.skipFrameStrategy == SKIP_FRAME_BY_REFRESH_RATE) {
         bool isEqualVsyncPeriod = (vsyncRefreshRate == screenInfo.expectedRefreshRate);
-        if (screenInfo.isEqualVsyncPeriod != isEqualVsyncPeriod) {
-            screenInfo.isEqualVsyncPeriod = isEqualVsyncPeriod;
-            screenManager->SetEqualVsyncPeriod(paramScreenId, isEqualVsyncPeriod);
-        }
+        params->SetIsEqualVsyncPeriod(isEqualVsyncPeriod);
+    } else if (screenInfo.skipFrameStrategy == SKIP_FRAME_BY_INTERVAL) {
+        bool isEqualVsyncPeriod = (screenInfo.skipFrameInterval == 1);
+        params->SetIsEqualVsyncPeriod(isEqualVsyncPeriod);
     }
     screenManager->RemoveForceRefreshTask();
 
@@ -654,7 +655,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         screenManager->PostForceRefreshTask();
         return;
     }
-    if (!screenInfo.isEqualVsyncPeriod) {
+    if (!params->IsEqualVsyncPeriod()) {
         uniParam->SetVirtualDirtyRefresh(true);
     }
 
@@ -681,8 +682,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         if (mirroredRenderParams) {
-            offsetX_ = mirroredRenderParams->GetScreenOffsetX();
-            offsetY_ = mirroredRenderParams->GetScreenOffsetY();
+            const auto& mirroredScreenProperty = mirroredRenderParams->GetScreenProperty();
+            offsetX_ = mirroredScreenProperty.GetOffsetX();
+            offsetY_ = mirroredScreenProperty.GetOffsetY();
             RSUniRenderThread::Instance().SetEnableVisibleRect(screenInfo.enableVisibleRect);
             if (screenInfo.enableVisibleRect) {
                 const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);

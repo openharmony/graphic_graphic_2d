@@ -2262,6 +2262,19 @@ void RSMainThread::SetFrameIsRender(bool isRender)
 void RSMainThread::AddUiCaptureTask(NodeId id, std::function<void()> task)
 {
     pendingUiCaptureTasks_.emplace_back(id, task);
+    const auto& nodeMap = context_->GetNodeMap();
+    auto node = nodeMap.GetRenderNode(id);
+    if (!node) {
+        RS_LOGW("RSMainThread::AddUiCaptureTask node nullptr, id: %{public}" PRIu64, id);
+    } else {
+        bool isNeedSetTreeStateChangeDirty = node && (node->IsDirty() || node->IsSubTreeDirty());
+        RS_TRACE_NAME_FMT("RSMainThread::AddUiCaptureTask isDirty:%d, subDirty:%d, isOnTheTree:%d",
+            node->IsDirty(), node->IsSubTreeDirty(), node->IsOnTheTree());
+        if (isNeedSetTreeStateChangeDirty) {
+            node->SetChildrenTreeStateChangeDirty();
+            node->SetParentTreeStateChangeDirty(true);
+        }
+    }
     if (!IsRequestedNextVSync()) {
         RequestNextVSync();
     }
@@ -2587,8 +2600,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     auto screenId = screenNode->GetScreenId();
     // check just before CreateProcessor, otherwise the cache interval will be reduced twice
-    if (auto& nodeSet = aibarNodes_[screenId];
-        !nodeSet.empty() && CheckReduceIntervalForAIBarNodesIfNeeded(nodeSet)) {
+    if (auto nodeSetIter = aibarNodes_.find(screenId);
+        nodeSetIter != aibarNodes_.end() && CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second)) {
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by aibar need update cache");
         return false;
     }
@@ -5416,15 +5429,20 @@ void RSMainThread::RegisterScreenNodeListener()
     screenManager->RegisterScreenNodeListener(std::make_shared<RSScreenNodeListener>());
 }
 
-void RSMainThread::RSScreenNodeListener::OnScreenConnect(ScreenId id)
+void RSMainThread::RSScreenNodeListener::OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property)
 {
+    if (!property) {
+        RS_LOGE("OnScreenConnect property is null! id is %{public}" PRIu64, id);
+        return;
+    }
     auto mainThread = RSMainThread::Instance();
-    auto task = [context = mainThread->context_, id]() {
+    auto task = [context = mainThread->context_, id, property]() {
         RS_TRACE_NAME_FMT("OnScreenConnect execute task ScreenId[%" PRIu64 "]", id);
         RS_LOGI("OnScreenConnect execute task ScreenId[%{public}" PRIu64 "]", id);
         auto& nodeMap = context->GetMutableNodeMap();
         auto node = std::shared_ptr<RSScreenRenderNode>(new RSScreenRenderNode(GenerateUniqueNodeIdForRS(),
             id, context->weak_from_this()), RSRenderNodeGC::NodeDestructor);
+        node->SetScreenProperty(*property);
         nodeMap.RegisterRenderNode(node);
         context->GetGlobalRootRenderNode()->AddChild(node);
 
@@ -5466,6 +5484,21 @@ void RSMainThread::RSScreenNodeListener::OnScreenDisconnect(ScreenId id)
         nodeMap.UnregisterRenderNode(screenNode->GetId());
     };
 
+    mainThread->PostTask(task);
+}
+
+void RSMainThread::RSScreenNodeListener::OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto task = [context = mainThread->context_, id, property]() {
+        auto& nodeMap = context->GetMutableNodeMap();
+        nodeMap.TraverseScreenNodes(
+            [id, property](const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == id) {
+                node->SetScreenProperty(*property);
+            }
+        });
+    };
     mainThread->PostTask(task);
 }
 

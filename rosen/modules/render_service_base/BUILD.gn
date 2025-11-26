@@ -370,7 +370,8 @@ ohos_source_set("render_service_base_src") {
     "src/screen_manager/rs_screen_data.cpp",
     "src/screen_manager/rs_screen_hdr_capability.cpp",
     "src/screen_manager/rs_screen_mode_info.cpp",
-    "src/screen_manager/rs_screen_props.cpp",
+    "src/screen_manager/rs_screen_property.cpp",
+    "src/screen_manager/rs_screen_props.cpp",  
     "src/screen_manager/rs_virtual_screen_resolution.cpp",
 
     #info_collection
@@ -497,6 +498,7 @@ ohos_source_set("render_service_base_src") {
       "src/screen_manager/rs_screen_data.cpp",
       "src/screen_manager/rs_screen_hdr_capability.cpp",
       "src/screen_manager/rs_screen_mode_info.cpp",
+      "src/screen_manager/rs_screen_property.cpp",
       "src/screen_manager/rs_screen_props.cpp",
       "src/screen_manager/rs_virtual_screen_resolution.cpp",
     ]

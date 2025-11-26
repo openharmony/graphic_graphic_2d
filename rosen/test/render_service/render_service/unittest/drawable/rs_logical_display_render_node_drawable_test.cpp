@@ -760,9 +760,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyTest001, T
     RSUniRenderThread::Instance().Sync(std::move(uniParams));
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     ASSERT_NE(screenParams, nullptr);
-    auto screenInfo = screenParams->GetScreenInfo();
-    screenInfo.isEqualVsyncPeriod = false;
-    screenParams->screenInfo_ = screenInfo;
+    screenParams->SetIsEqualVsyncPeriod(false);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;
     auto ret = displayDrawable_->CalculateVirtualDirty(virtualProcesser, *screenDrawable_, *renderParams, matrix);
@@ -1128,7 +1126,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, CalculateVirtualDirtyForWiredSc
 
     screenDrawable_->syncDirtyManager_ = std::make_shared<RSDirtyRegionManager>(false);
     auto screenParam = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    screenParam->screenInfo_.isEqualVsyncPeriod = true;
+    screenParams->SetIsEqualVsyncPeriod(true);
     displayDrawable_->virtualDirtyNeedRefresh_ = false;
     auto damageRects = displayDrawable_->CalculateVirtualDirtyForWiredScreen(*screenDrawable_, canvasMatrix);
 
@@ -1189,10 +1187,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawSecurityMaskTest002, TestSi
     ASSERT_NE(displayDrawable_, nullptr);
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(renderParams, nullptr);
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    auto screenManager = RSScreenManager::GetInstance();
     VirtualScreenConfigs configs;
-    auto screen = std::make_unique<OHOS::Rosen::impl::RSScreen>(configs);
+    auto screen = std::make_unique<OHOS::Rosen::RSScreen>(configs);
     screenManager->screens_.insert(std::make_pair(renderParams->GetScreenId(), std::move(screen)));
     ASSERT_NE(screenManager, nullptr);
     
@@ -1301,21 +1298,20 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
 
     ASSERT_TRUE(displayDrawable_->GetRenderParams());
 
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    auto screenManager = RSScreenManager::GetInstance();
     VirtualScreenConfigs configs;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     ASSERT_NE(renderParams, nullptr);
     ScreenId screenId = renderParams->GetScreenId();
-    auto screen = std::make_unique<OHOS::Rosen::impl::RSScreen>(configs);
+    auto screen = std::make_unique<OHOS::Rosen::RSScreen>(configs);
     screenManager->screens_.insert(std::make_pair(screenId, std::move(screen)));
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
     ASSERT_FALSE(screenManager->screens_.empty());
 
     screenManager->screens_.clear();
-    auto screenPtr = std::make_unique<OHOS::Rosen::impl::RSScreen>(configs);
-    screenPtr->screenRotation_ = ScreenRotation::ROTATION_90;
-    screenManager->screens_.insert(std::make_pair(screenPtr->id_, std::move(screenPtr)));
+    auto screenPtr = std::make_unique<OHOS::Rosen::RSScreen>(configs);
+    screenPtr->SetScreenCorrection(ScreenRotation::ROTATION_90);
+    screenManager->screens_.insert(std::make_pair(screenPtr->Id(), std::move(screenPtr)));
 
     auto mirroredParams = mirroredDisplayDrawable_->GetRenderParams() ?
         static_cast<RSLogicalDisplayRenderParams*>(mirroredDisplayDrawable_->GetRenderParams().get()) : nullptr;
@@ -1328,9 +1324,9 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, ScaleAndRotateMirrorForWiredScr
     ASSERT_FALSE(screenManager->screens_.empty());
 
     screenManager->screens_.clear();
-    auto managerPtr = std::make_unique<OHOS::Rosen::impl::RSScreen>(configs);
-    managerPtr->screenRotation_ = ScreenRotation::ROTATION_270;
-    screenManager->screens_.insert(std::make_pair(managerPtr->id_, std::move(managerPtr)));
+    auto managerPtr = std::make_unique<OHOS::Rosen::RSScreen>(configs);
+    managerPtr->SetScreenCorrection(ScreenRotation::ROTATION_270);
+    screenManager->screens_.insert(std::make_pair(managerPtr->Id(), std::move(managerPtr)));
     mainScreenInfo.height = 1;
     displayDrawable_->ScaleAndRotateMirrorForWiredScreen(*mirroredDisplayDrawable_);
     mirroredDisplayDrawable_->renderParams_ = nullptr;
@@ -2699,8 +2695,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001, TestSize.Lev
     auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
-    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
-    ASSERT_EQ(virtualSecLayerOption, 0);
 
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     ASSERT_NE(drawable, nullptr);
@@ -2752,8 +2746,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest001_SKP, TestSize
     auto id = screenManager->CreateVirtualScreen("virtualScreen01", 480, 320, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
-    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
-    ASSERT_EQ(virtualSecLayerOption, 0);
 
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     ASSERT_NE(drawable, nullptr);
@@ -2804,8 +2796,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002, TestSize.Lev
     auto id = screenManager->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
-    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
-    ASSERT_EQ(virtualSecLayerOption, 1);
 
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     ASSERT_NE(drawable, nullptr);
@@ -2857,8 +2847,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorTest002_SKP, TestSize
     auto id = screenManager->CreateVirtualScreen("virtualScreen02", 480, 320, psurface, 0, 1);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
-    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
-    ASSERT_EQ(virtualSecLayerOption, 1);
 
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     ASSERT_NE(drawable, nullptr);
@@ -2999,8 +2987,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirror007, TestSize.Level1)
     auto id = screenManager->CreateVirtualScreen("virtualScreen01", width, height, psurface);
     params->screenId_ = id;
     ASSERT_EQ(params->GetScreenId(), id);
-    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params->GetScreenId());
-    ASSERT_EQ(virtualSecLayerOption, 0);
 
     auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     ASSERT_NE(drawable, nullptr);
@@ -3968,7 +3954,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSiz
     ASSERT_NE(psurface, nullptr);
     auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
-    screenManager->SetDefaultScreenId(screenId);
+    screenManager->defaultScreenId_ = screenId;
 
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
@@ -3993,28 +3979,27 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed001, TestSiz
 
     Drawing::Canvas drawingCanvas(400, 400);
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto screen = static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->GetScreen(screenId);
-    auto screenRawPtr = static_cast<impl::RSScreen*>(screen.get());
-    ASSERT_TRUE(screenRawPtr != nullptr);
+    auto screen = screenManager->GetScreen(screenId);
+    ASSERT_TRUE(screen != nullptr);
 
     // Test0 ScreenCorrection = INVALID_SCREEN_ROTATION && ScreenRotation = ROTATION_0
     params->screenRotation_ = ScreenRotation::ROTATION_0;
-    screenRawPtr->screenRotation_ = ScreenRotation::INVALID_SCREEN_ROTATION;
+    screen->SetScreenCorrection(ScreenRotation::INVALID_SCREEN_ROTATION);
     displayDrawable_->DrawWatermarkIfNeed(canvas);
 
     // Test1 ScreenCorrection = ROTATION_0 && ScreenRotation = ROTATION_180
     params->screenRotation_ = ScreenRotation::ROTATION_180;
-    screenRawPtr->screenRotation_ = ScreenRotation::ROTATION_0;
+    screen->SetScreenCorrection(ScreenRotation::ROTATION_0);
     displayDrawable_->DrawWatermarkIfNeed(canvas);
 
     // Test2 ScreenCorrection = ROTATION_0 && ScreenRotation = ROTATION_90
     params->screenRotation_ = ScreenRotation::ROTATION_90;
-    screenRawPtr->screenRotation_ = ScreenRotation::ROTATION_0;
+    screen->SetScreenCorrection(ScreenRotation::ROTATION_0);
     displayDrawable_->DrawWatermarkIfNeed(canvas);
 
     // Test3 ScreenCorrection = ROTATION_270 && ScreenRotation = ROTATION_180
     params->screenRotation_ = ScreenRotation::ROTATION_180;
-    screenRawPtr->screenRotation_ = ScreenRotation::ROTATION_270;
+    screen->SetScreenCorrection(ScreenRotation::ROTATION_270);
     displayDrawable_->DrawWatermarkIfNeed(canvas);
 
     // Reset
@@ -4043,7 +4028,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed002, TestSiz
     ASSERT_NE(psurface, nullptr);
     auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, screenId);
-    screenManager->SetDefaultScreenId(screenId);
+    screenManager->defaultScreenId_ = screenId;
 
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
@@ -4068,9 +4053,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed002, TestSiz
 
     Drawing::Canvas drawingCanvas(400, 400);
     RSPaintFilterCanvas canvas(&drawingCanvas);
-    auto screen = static_cast<impl::RSScreenManager*>(screenManager.GetRefPtr())->GetScreen(screenId);
-    auto screenRawPtr = static_cast<impl::RSScreen*>(screen.get());
-    ASSERT_TRUE(screenRawPtr != nullptr);
 
     rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
     rsRenderThreadParams->SetWatermark(true, img);

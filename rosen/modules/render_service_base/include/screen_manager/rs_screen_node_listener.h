@@ -23,8 +23,9 @@ class RSIScreenNodeListener {
 public:
     virtual ~RSIScreenNodeListener() = default;
 
-    virtual void OnScreenConnect(ScreenId id) = 0;
+    virtual void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) = 0;
     virtual void OnScreenDisconnect(ScreenId id) = 0;
+    virtual void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) = 0;
 };
 } // namespace OHOS::Rosen
 

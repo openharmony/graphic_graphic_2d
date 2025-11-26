@@ -233,7 +233,8 @@ void RSRenderServiceVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
    
     if (curScreenNode_) {
         RestoreSurfaceNodeAttrsFromScreenNode(*curScreenNode_, node);
-        node.SetOffset(curScreenNode_->GetScreenOffsetX(), curScreenNode_->GetScreenOffsetY());
+        const auto& screenProperty = curScreenNode_->GetScreenProperty();
+        node.SetOffset(screenProperty.GetOffsetX(), screenProperty.GetOffsetY());
     }
 
     if (!node.ShouldPaint()) {
@@ -305,7 +306,8 @@ bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
         processorRenderEngine_ = mainThread->GetRenderEngine();
     }
 
-    if (!processor_->Init(node, node.GetScreenOffsetX(), node.GetScreenOffsetY(),
+    const auto& screenProperty = node.GetScreenProperty();
+    if (!processor_->Init(node, screenProperty.GetOffsetX(), screenProperty.GetOffsetY(),
         mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, processorRenderEngine_)) {
         RS_LOGE("ProcessDisplayRenderNode: processor init failed!");
         return false;

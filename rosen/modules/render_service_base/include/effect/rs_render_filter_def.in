@@ -127,7 +127,8 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, EdgeLightAngleParams),
     ADD_PROPERTY_TAG(FrostedGlass, EdgeLightBlurParams),
     ADD_PROPERTY_TAG(FrostedGlass, EdgeLightDirParams),
-    ADD_PROPERTY_TAG(FrostedGlass, HlParams)
+    ADD_PROPERTY_TAG(FrostedGlass, HlParams),
+    ADD_PROPERTY_TAG(FrostedGlass, Shape)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,

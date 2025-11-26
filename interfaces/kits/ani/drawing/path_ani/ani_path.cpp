@@ -68,7 +68,9 @@ static const std::array g_methods = {
     ani_native_function { "quadTo", nullptr, reinterpret_cast<void*>(AniPath::QuadTo) },
     ani_native_function { "lineTo", nullptr, reinterpret_cast<void*>(AniPath::LineTo) },
     ani_native_function { "moveTo", nullptr, reinterpret_cast<void*>(AniPath::MoveTo) },
-    ani_native_function { "close", nullptr, reinterpret_cast<void*>(AniPath::Close) }
+    ani_native_function { "close", nullptr, reinterpret_cast<void*>(AniPath::Close) },
+    ani_native_function { "isInverseFillType", nullptr, reinterpret_cast<void*>(AniPath::IsInverseFillType) },
+    ani_native_function { "toggleInverseFillType", nullptr, reinterpret_cast<void*>(AniPath::ToggleInverseFillType) },
 };
 
 ani_status AniPath::AniInit(ani_env *env)
@@ -721,6 +723,27 @@ void AniPath::Close(ani_env* env, ani_object obj)
     }
     aniPath->GetPath()->Close();
 }
+
+ani_boolean AniPath::IsInverseFillType(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return false;
+    }
+    return aniPath->GetPath()->IsInverseFillType();
+}
+
+void AniPath::ToggleInverseFillType(ani_env* env, ani_object obj)
+{
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
+        return;
+    }
+    aniPath->GetPath()->ToggleInverseFillType();
+}
+
 ani_object AniPath::PathTransferStatic(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input)
 {
