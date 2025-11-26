@@ -22,13 +22,13 @@
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
 #include "ui_effect/filter/include/filter_content_light_para.h"
 #include "ui_effect/filter/include/filter_direction_light_para.h"
-#include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_dispersion_para.h"
+#include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_para.h"
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
-#include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 
@@ -265,7 +265,7 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
 std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::BEZIER_WARP);
-    if (filter == nullptr || filterPara == nullptr) {
+    if (filter == nullptr) {
         return nullptr;
     }
     auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
