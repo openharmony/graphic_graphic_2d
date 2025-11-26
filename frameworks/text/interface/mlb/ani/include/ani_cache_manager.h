@@ -17,6 +17,7 @@
 #define OHOS_TEXT_ANI_CACHE_MANAGER_H
 
 #include <ani.h>
+#include <string>
 #include <string_view>
 
 #include "utils/text_log.h"

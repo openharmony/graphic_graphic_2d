@@ -26,15 +26,6 @@
 namespace OHOS::Text::ANI {
 namespace {
 constexpr size_t FILE_HEAD_LENGTH = 7; // 7 is the size of "file://"
-constexpr CacheKey BUSINESS_ERROR_KEY{ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:"};
-constexpr CacheKey ARRAY_KEY{ANI_ARRAY, "<ctor>", "i:"};
-constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", ":"};
-constexpr CacheKey DOUBLE_KEY{ANI_DOUBLE, "<ctor>", "d:"};
-constexpr CacheKey INT_KEY{ANI_INT, "<ctor>", "i:"};
-constexpr CacheKey BOOLEAN_KEY{ANI_BOOLEAN, "<ctor>", "z:"};
-constexpr CacheKey DOUBLE_GET_KEY{ANI_DOUBLE, "toDouble", ":d"};
-constexpr CacheKey INT_GET_KEY{ANI_INT, "toInt", ":i"};
-constexpr CacheKey BOOLEAN_GET_KEY{ANI_BOOLEAN, "toBoolean", ":z"};
 } // namespace
 
 ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCode, const char* message)
@@ -55,20 +46,8 @@ ani_status AniTextUtils::ThrowBusinessError(ani_env* env, TextErrorCode errorCod
 
 ani_status AniTextUtils::CreateBusinessError(ani_env* env, int32_t error, const char* message, ani_object& err)
 {
-    ani_class aniClass = ANI_FIND_CLASS(env, ANI_BUSINESS_ERROR);
-    if (aniClass == nullptr) {
-        TEXT_LOGE("Failed to find class: %{public}s", ANI_BUSINESS_ERROR);
-        return ANI_NOT_FOUND;
-    }
-
-    ani_method aniCtor = ANI_CLASS_FIND_METHOD(env, BUSINESS_ERROR_KEY);
-    if (aniCtor == nullptr) {
-        TEXT_LOGE("Failed to find ctor: %{public}s", ANI_BUSINESS_ERROR);
-        return ANI_NOT_FOUND;
-    }
-
     ani_string aniMsg = AniTextUtils::CreateAniStringObj(env, message);
-    ani_status status = env->Object_New(aniClass, aniCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
+    ani_status status = env->Object_New(AniGlobalClass::businessError, AniGlobalMethod::businessErrorCtor, &err, aniMsg, AniTextUtils::CreateAniUndefined(env));
     if (status != ANI_OK) {
         TEXT_LOGE("Failed to new err, status %{public}d", static_cast<int32_t>(status));
         return status;
@@ -101,20 +80,8 @@ bool AniTextUtils::IsUndefined(ani_env* env, ani_ref ref)
 
 ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 {
-    ani_class arrayCls = ANI_FIND_CLASS(env, ANI_ARRAY);
-    if (arrayCls == nullptr) {
-        TEXT_LOGE("Failed to find class: %{public}s", ANI_ARRAY);
-        return CreateAniUndefined(env);
-    }
-
-    ani_method arrayCtor = ANI_CLASS_FIND_METHOD(env, ARRAY_KEY);
-    if (arrayCtor == nullptr) {
-        TEXT_LOGE("Failed to find ctor: %{public}s", ANI_ARRAY);
-        return CreateAniUndefined(env);
-    }
-
     ani_object arrayObj = nullptr;
-    if (env->Object_New(arrayCls, arrayCtor, &arrayObj, size) != ANI_OK) {
+    if (env->Object_New(AniGlobalClass::aniArray, AniGlobalMethod::arrayCtor, &arrayObj, size) != ANI_OK) {
         TEXT_LOGE("Failed to create object Array");
         return CreateAniUndefined(env);
     }
@@ -123,7 +90,7 @@ ani_object AniTextUtils::CreateAniArray(ani_env* env, size_t size)
 
 ani_object AniTextUtils::CreateAniMap(ani_env* env)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_MAP), ANI_CLASS_FIND_METHOD(env, MAP_KEY));
+    return AniTextUtils::CreateAniObject(env, AniGlobalClass::aniMap, AniGlobalMethod::map);
 }
 
 ani_object AniTextUtils::CreateAniOptionalEnum(ani_env* env, const ani_enum enumType, std::optional<ani_size> index)
@@ -145,18 +112,18 @@ ani_enum_item AniTextUtils::CreateAniEnum(ani_env* env, const ani_enum enumType,
 ani_object AniTextUtils::CreateAniDoubleObj(ani_env* env, double val)
 {
     return AniTextUtils::CreateAniObject(
-        env, ANI_FIND_CLASS(env, ANI_DOUBLE), ANI_CLASS_FIND_METHOD(env, DOUBLE_KEY), val);
+        env, AniGlobalClass::aniDouble, AniGlobalMethod::doubleCtor, val);
 }
 
 ani_object AniTextUtils::CreateAniIntObj(ani_env* env, int val)
 {
-    return AniTextUtils::CreateAniObject(env, ANI_FIND_CLASS(env, ANI_INT), ANI_CLASS_FIND_METHOD(env, INT_KEY), val);
+    return AniTextUtils::CreateAniObject(env, AniGlobalClass::aniInt, AniGlobalMethod::intCtor, val);
 }
 
 ani_object AniTextUtils::CreateAniBooleanObj(ani_env* env, bool val)
 {
     return AniTextUtils::CreateAniObject(
-        env, ANI_FIND_CLASS(env, ANI_BOOLEAN), ANI_CLASS_FIND_METHOD(env, BOOLEAN_KEY), val);
+        env, AniGlobalClass::aniBoolean, AniGlobalMethod::booleanCtor, val);
 }
 
 ani_string AniTextUtils::CreateAniStringObj(ani_env* env, const std::string& str)
@@ -296,7 +263,7 @@ ani_status AniTextUtils::ReadOptionalDoubleField(
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result == ANI_OK && ref != nullptr) {
         result = env->Object_CallMethod_Double(
-            reinterpret_cast<ani_object>(ref), ANI_CLASS_FIND_METHOD(env, DOUBLE_GET_KEY), &value);
+            reinterpret_cast<ani_object>(ref), AniGlobalMethod::doubleGet, &value);
     }
     return result;
 }
@@ -308,7 +275,7 @@ ani_status AniTextUtils::ReadOptionalIntField(
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
     if (result == ANI_OK && ref != nullptr) {
         result = env->Object_CallMethod_Int(
-            reinterpret_cast<ani_object>(ref), ANI_CLASS_FIND_METHOD(env, INT_GET_KEY), &value);
+            reinterpret_cast<ani_object>(ref), AniGlobalMethod::intGet, &value);
     }
     return result;
 }
@@ -343,7 +310,7 @@ ani_status AniTextUtils::ReadOptionalBoolField(
     if (result == ANI_OK && ref != nullptr) {
         ani_boolean aniBool;
         result = env->Object_CallMethod_Boolean(
-            reinterpret_cast<ani_object>(ref), ANI_CLASS_FIND_METHOD(env, BOOLEAN_GET_KEY), &aniBool);
+            reinterpret_cast<ani_object>(ref), AniGlobalMethod::booleanGet, &aniBool);
         if (result == ANI_OK) {
             value = static_cast<bool>(aniBool);
         }

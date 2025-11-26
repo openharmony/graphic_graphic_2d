@@ -24,6 +24,7 @@
 #include "ani_cache_manager.h"
 #include "ani_common.h"
 #include "ani_enum.h"
+#include "ani_global_ref.h"
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
@@ -109,8 +110,7 @@ ani_object AniTextUtils::CreateAniArrayAndInitData(
     ani_size index = 0;
     for (const T& item : t) {
         ani_object aniObj = convert(env, item);
-        static CacheKey MAP_SET_KEY{ANI_ARRAY, "$_set", "iY:"};
-        ani_status ret = env->Object_CallMethod_Void(arrayObj, ANI_CLASS_FIND_METHOD(env, MAP_SET_KEY), index, aniObj);
+        ani_status ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::arraySet, index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Array $_set failed, ret %{public}d", ret);
             continue;

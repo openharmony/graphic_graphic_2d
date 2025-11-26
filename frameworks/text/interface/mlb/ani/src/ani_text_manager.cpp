@@ -19,6 +19,7 @@
 #include "ani_common.h"
 #include "ani_font_collection.h"
 #include "ani_fontdescriptor.h"
+#include "ani_global_ref.h"
 #include "ani_line_typeset.h"
 #include "ani_paragraph.h"
 #include "ani_paragraph_builder.h"
@@ -111,17 +112,11 @@ static ani_status AniCleanerInit(ani_vm* vm)
         return ret;
     }
 
-    ani_class cls = ANI_FIND_CLASS(env, ANI_CLASS_CLEANER);
-    if (cls == nullptr) {
-        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_CLEANER);
-        return ANI_NOT_FOUND;
-    }
-
     std::array methods = {
         ani_native_function{"clean", ":", reinterpret_cast<void*>(Clean)},
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(AniGlobalClass::cleaner, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Manager, ret %{public}d", ret);
         return ret;
@@ -131,8 +126,12 @@ static ani_status AniCleanerInit(ani_vm* vm)
 
 static ani_status Init(ani_vm* vm, uint32_t* result)
 {
-    AniCleanerInit(vm);
-    return InitAllStruct<AniTypes>(vm, result, std::make_index_sequence<std::tuple_size_v<AniTypes>>());
+    ani_status ret = InitAniGlobalRef(vm);
+    if (ret == ANI_OK) {
+        AniCleanerInit(vm);
+        ret = InitAllStruct<AniTypes>(vm, result, std::make_index_sequence<std::tuple_size_v<AniTypes>>());
+    }
+    return ret;
 }
 } // namespace OHOS::Text::ANI
 
