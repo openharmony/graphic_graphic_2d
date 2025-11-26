@@ -238,14 +238,14 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     ani_double top;
     ani_double right;
     ani_double bottom;
-    RectPropertyConfig leftConfig = {
-        "left", Builder::BuildGetterName("left").c_str(), gGetLeftMethod, left };
-    RectPropertyConfig topConfig = {
-        "top", Builder::BuildGetterName("top").c_str(), gGetTopMethod, top };
-    RectPropertyConfig rightConfig = {
-        "right", Builder::BuildGetterName("right").c_str(), gGetRightMethod, right };
-    RectPropertyConfig bottomConfig = {
-        "bottom", Builder::BuildGetterName("bottom").c_str(), gGetBottomMethod, bottom };
+    std::string leftGetter = Builder::BuildGetterName("left");
+    std::string topGetter = Builder::BuildGetterName("top");
+    std::string rightGetter = Builder::BuildGetterName("right");
+    std::string bottomGetter = Builder::BuildGetterName("bottom");
+    RectPropertyConfig leftConfig = { "left", leftGetter.c_str(), gGetLeftMethod, left };
+    RectPropertyConfig topConfig = { "top", topGetter.c_str(), gGetTopMethod, top };
+    RectPropertyConfig rightConfig = { "right", rightGetter.c_str(), gGetRightMethod, right };
+    RectPropertyConfig bottomConfig = { "bottom", bottomGetter.c_str(), gGetBottomMethod, bottom };
     if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) != ANI_OK) ||
         (GetRectPropertyValue(env, obj, rectClass, topConfig) != ANI_OK) ||
         (GetRectPropertyValue(env, obj, rectClass, rightConfig) != ANI_OK) ||
