@@ -547,6 +547,7 @@ HWTEST_F(RecorRsProfileRecordTest, RecordStartSuccess, Level1)
     RSProfiler::RecordStart(args); // record starting
     EXPECT_TRUE(RSProfiler::IsWriteMode());
     EXPECT_TRUE(RSProfiler::IsRecordingMode());
+    usleep(200000);
 }
 
 /*
