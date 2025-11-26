@@ -1355,7 +1355,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "ExcludedFromNodeGroup*100",
+    "commandList": "RSExcludedFromNodeGroup*100",
     "commandListRepeat": 1
   },
   {

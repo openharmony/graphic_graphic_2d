@@ -496,6 +496,9 @@ HWTEST_F(RSBaseRenderNodeTest, MarkNodeGroup, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, CheckDrawingCacheType, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    node->InitRenderParams();
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
     node->CheckDrawingCacheType();
     ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
 

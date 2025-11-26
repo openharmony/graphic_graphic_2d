@@ -6867,6 +6867,7 @@ HWTEST_F(RSNodeTest, ExcludedFromNodeGroup, TestSize.Level1)
 
     rsNode->ExcludedFromNodeGroup(false);
     EXPECT_FALSE(rsNode->isExcludedFromNodeGroup_);
+    rsNode->ExcludedFromNodeGroup(false);
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     rsNode->ExcludedFromNodeGroup(true);

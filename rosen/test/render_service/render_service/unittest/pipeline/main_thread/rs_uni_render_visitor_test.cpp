@@ -3906,6 +3906,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo008, TestSize.Level2)
     rsUniRenderVisitor->CollectEffectInfo(*node);
     EXPECT_TRUE(parent->HasChildExcludedFromNodeGroup());
 
+    parent->SetHasChildExcludedFromNodeGroup(false);
     node->ExcludedFromNodeGroup(false);
     node->SetHasChildExcludedFromNodeGroup(false);
     rsUniRenderVisitor->CollectEffectInfo(*node);
