@@ -160,6 +160,8 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
         }
 
         dstPixelMap = effectImage->GetPixelMap();
+        dstPixelMap->MarkDirty();
+        EFFECT_LOG_E("MarkDirty")
     } while (false);
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
