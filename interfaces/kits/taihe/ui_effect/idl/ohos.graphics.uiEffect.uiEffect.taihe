@@ -21,7 +21,6 @@ from ohos.multimedia.image.image use PixelMap;
 static { loadLibrary("uieffect_taihe_native.z"); }
 """)
 @!sts_inject_into_module("import common2D from '@ohos.graphics.common2D';")
-@!sts_inject_into_module("import {LinearGradientBlurOptions} from '@ohos.arkui.component';")
 
 enum TileMode: i32 {
   CLAMP = 0,
@@ -71,7 +70,6 @@ interface Filter {
   MaskTransition(alphaMask: Mask, @optional factor: Optional<f64>, @optional inverse: Optional<bool>): Filter;
   DirectionLight(direction: @sts_type("common2D.Point3d") Opaque, color: Color, intensity: f64,
     @optional mask: Optional<Mask>, @optional factor: Optional<f64>): Filter;
-  RadiusGradientBlur(value: f64, options: @sts_type("LinearGradientBlurOptions") Opaque): Filter;
   DisplacementDistort(displacementMap: Mask, @optional factor: Optional<@sts_type("[double, double]") Opaque>): Filter;
   VariableRadiusBlur(radius: f64, radiusMap: Mask): Filter;
   ContentLight(lightPosition: @sts_type("common2D.Point3d") Opaque, lightColor: @sts_type("common2D.Color") Opaque,
