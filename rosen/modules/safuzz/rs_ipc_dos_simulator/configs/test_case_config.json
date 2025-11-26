@@ -1332,6 +1332,24 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_154",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSurfaceNodeSetSourceVirtualDisplayId*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_155",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSDisplayNodeSetVirtualScreenMuteStatus*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -2245,6 +2263,13 @@
     "testCaseDesc": "SET_WINDOW_CONTAINER_TEST_001",
     "interfaceName": "SET_WINDOW_CONTAINER",
     "inputParams": "WriteUint64;WriteBool",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_SCREEN_FRAME_GRAVITY_001",
+    "interfaceName": "SET_SCREEN_FRAME_GRAVITY",
+    "inputParams": "WriteUint64;WriteUint32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },
