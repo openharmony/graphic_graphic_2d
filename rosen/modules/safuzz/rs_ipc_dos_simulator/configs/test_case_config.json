@@ -2295,6 +2295,13 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "CLEAR_UIFIRST_CACHE_TEST_001",
+    "interfaceName": "CLEAR_UIFIRST_CACHE",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "NOTIFY_LIGHT_FACTOR_STATUS_TEST_001",
     "interfaceName": "NOTIFY_LIGHT_FACTOR_STATUS",
     "inputParams": "WriteInt32",
