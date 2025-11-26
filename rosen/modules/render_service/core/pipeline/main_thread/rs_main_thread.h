@@ -619,8 +619,9 @@ private:
     public:
         ~RSScreenNodeListener() override = default;
 
-        void OnScreenConnect(ScreenId id) override;
+        void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) override;
         void OnScreenDisconnect(ScreenId id) override;
+        void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
     };
 
     bool IfStatusBarDirtyOnly();

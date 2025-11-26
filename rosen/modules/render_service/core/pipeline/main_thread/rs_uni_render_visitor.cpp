@@ -1018,7 +1018,8 @@ void RSUniRenderVisitor::PrepareForSkippedCrossNode(RSSurfaceRenderNode& surface
     // 2. Get the AbsMatrix under current display node. Concatenate current parent matrix and nodeRef relative matrix.
     Drawing::Matrix nodeAbsMatrix = geoPtr->GetMatrix();
     if (nodeRef.GetGlobalPositionEnabled()) {
-        nodeAbsMatrix.PostTranslate(-curScreenNode_->GetScreenOffsetX(), -curScreenNode_->GetScreenOffsetY());
+        const auto& screenProperty = curScreenNode_->GetScreenProperty();
+        nodeAbsMatrix.PostTranslate(-screenProperty.GetOffsetX(), -screenProperty.GetOffsetY());
     }
     if (auto parent = surfaceNode.GetParent().lock()) {
         auto parentGeoPtr = parent->GetRenderProperties().GetBoundsGeometry();
@@ -2113,9 +2114,10 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     node.SetExistHWCNode(false);
     CheckLuminanceStatusChange(curScreenNode_->GetScreenId());
+    node.CheckSurfaceChanged();
 
     // 2 init screenManager info
-    auto screenInfo = screenManager_->QueryScreenInfo(node.GetScreenId());
+    auto screenInfo = curScreenNode_->GetScreenProperty().GetScreenInfo();
     node.SetScreenRect(screenInfo.activeRect.IsEmpty() ? RectI{0, 0, screenInfo.width, screenInfo.height} :
         screenInfo.activeRect);
     node.SetScreenInfo(std::move(screenInfo));
@@ -2482,7 +2484,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         if (!curScreenNode_) {
             return;
         }
-        bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curScreenNode_->GetScreenId());
+        bool isHardCursor = curScreenNode_->GetScreenProperty().IsHardCursorSupport();
         if (isHardCursor) {
             // Set the highest z-order for hardCursor
             pointSurfaceHandler->SetGlobalZOrder(static_cast<float>(TopLayerZOrder::POINTER_WINDOW));
@@ -2863,7 +2865,7 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByZorderChanged(RSSurfaceRenderNo
 
 void RSUniRenderVisitor::CheckMergeDisplayDirtyByPosChanged(RSSurfaceRenderNode& surfaceNode) const
 {
-    bool isHardCursor = RSPointerWindowManager::Instance().CheckHardCursorSupport(curScreenNode_->GetScreenId());
+    bool isHardCursor = curScreenNode_->GetScreenProperty().IsHardCursorSupport();
     if (isHardCursor && surfaceNode.IsHardwareEnabledTopSurface() && surfaceNode.GetHardCursorStatus()) {
         return;
     }

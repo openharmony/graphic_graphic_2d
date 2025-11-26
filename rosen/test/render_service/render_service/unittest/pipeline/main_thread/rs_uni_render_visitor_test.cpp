@@ -5308,8 +5308,8 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateVirtualScreenInfo002, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor->screenManager_, nullptr);
 
     ScreenId screenId = 0;
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, HdiOutput::CreateHdiOutput(screenId), nullptr);
-    rsScreen->screenType_ = EXTERNAL_TYPE_SCREEN;
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    rsScreen->property_.SetScreenType(EXTERNAL_TYPE_SCREEN);
     rsUniRenderVisitor->screenManager_->MockHdiScreenConnected(rsScreen);
     auto rsContext = std::make_shared<RSContext>();
     auto displayNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());

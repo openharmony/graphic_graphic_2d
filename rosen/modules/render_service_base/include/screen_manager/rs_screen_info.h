@@ -47,24 +47,24 @@ struct ScreenInfo {
     float samplingTranslateY = 0.f;
     float samplingScale = 1.f;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
+    ScreenGamutMap gamutMap = ScreenGamutMap::GAMUT_MAP_CONSTANT;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
     std::unordered_set<uint64_t> whiteList = {};
     RectI activeRect;
     RectI maskRect;
     RectI reviseRect;
-    std::string name;
 
     uint32_t activeRefreshRate = 0;
     uint32_t skipFrameInterval = DEFAULT_SKIP_FRAME_INTERVAL; // skip frame interval for change screen refresh rate
     uint32_t expectedRefreshRate = INVALID_EXPECTED_REFRESH_RATE;
     SkipFrameStrategy skipFrameStrategy = SKIP_FRAME_BY_INTERVAL;
-    bool isEqualVsyncPeriod = true;
 
     GraphicPixelFormat pixelFormat = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
     ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
 
     bool enableVisibleRect = false;
+    ScreenPowerStatus powerStatus = ScreenPowerStatus::INVALID_POWER_STATUS;
 
     uint32_t GetRotatedWidth() const
     {

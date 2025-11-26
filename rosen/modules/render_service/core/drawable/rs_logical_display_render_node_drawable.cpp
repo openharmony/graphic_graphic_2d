@@ -318,14 +318,15 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGW("RSLogicalDisplayRenderNodeDrawable::OnCapture: buffer is null!");
     }
 
+    const auto& screenProperty = screenParam->GetScreenProperty();
     auto specialLayerType = GetSpecialLayerType(*params);
     // Screenshot blackList, exclude surfaceNode in blackList while capturing displayNode
     auto currentBlackList = RSUniRenderThread::Instance().GetBlackList();
-    if (specialLayerType != NO_SPECIAL_LAYER || UNLIKELY(noBuffer) || screenParam->GetScreenInfo().isSamplingOn ||
+    if (specialLayerType != NO_SPECIAL_LAYER || UNLIKELY(noBuffer) || screenProperty.GetIsSamplingOn() ||
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) || screenDrawable->IsRenderSkipIfScreenOff() ||
         !currentBlackList.empty()) {
-        offsetX_ = screenParam->GetScreenOffsetX();
-        offsetY_ = screenParam->GetScreenOffsetY();
+        offsetX_ = screenProperty.GetOffsetX();
+        offsetY_ = screenProperty.GetOffsetY();
         RS_LOGD("RSLogicalDisplayRenderNodeDrawable::OnCapture: \
             process RSLogicalDisplayRenderNode(id:[%{public}" PRIu64 "]) Not using UniRender buffer.",
             params->GetId());
@@ -333,7 +334,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             " Not using UniRender buffer. specialLayer: %d, noBuffer: %d, "
             "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %zu, "
             "offsetX: %d, offsetY: %d", __func__, params->GetScreenId(),
-            specialLayerType != NO_SPECIAL_LAYER, noBuffer, screenParam->GetScreenInfo().isSamplingOn,
+            specialLayerType != NO_SPECIAL_LAYER, noBuffer, screenProperty.GetIsSamplingOn(),
             screenDrawable->IsRenderSkipIfScreenOff(), currentBlackList.size(), offsetX_, offsetY_);
 
         if (!UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
@@ -390,7 +391,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
         RS_LOGE("%{public}s screenParam is nullptr", __func__);
         return;
     }
-    const auto& screenInfo = screenParam->GetScreenInfo();
+    const auto& screenProperty = screenParam->GetScreenProperty();
     if (screenParam->GetHDRPresent()) {
         RS_LOGD("%{public}s HDRCast isHDREnabledVirtualScreen true", __func__);
         curCanvas_->SetHDREnabledVirtualScreen(true);
@@ -398,7 +399,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
         PrepareOffscreenRender(*this, false, false);
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::NEAREST, Drawing::MipmapMode::NONE),
-            screenInfo.isSamplingOn);
+            screenProperty.GetIsSamplingOn());
     } else {
         RSRenderNodeDrawable::OnDraw(*curCanvas_);
         curCanvas_->SetOnMultipleScreen(true); // for HDR
@@ -522,7 +523,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         lastCanvasMatrix_ = canvasMatrix;
         lastMirrorMatrix_ = mirrorParams->GetMatrix();
     }
-    std::string screenName = curScreenParams->GetScreenInfo().name;
+    std::string screenName = curScreenParams->GetScreenProperty().Name();
     if (!RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(curScreenDrawable) &&
         !curScreenDrawable.GetAccumulateDirtyInSkipFrame() && !needRefresh &&
         screenName.find("fromAnco") == std::string::npos) {
@@ -530,8 +531,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         return mappedDamageRegion.GetRegionRectIs();
     }
     curScreenDrawable.SetAccumulateDirtyInSkipFrame(false);
-    const auto& curScreenInfo = curScreenParams->GetScreenInfo();
-    if (!curScreenInfo.isEqualVsyncPeriod) {
+    if (!curScreenParams->IsEqualVsyncPeriod()) {
         RS_LOGD("RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty frame rate is irregular");
         virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
         return mappedDamageRegion.GetRegionRectIs();
@@ -611,8 +611,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForW
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen screenManager is null");
         return damageRegionRects;
     }
-    auto curScreenInfo = curScreenParams->GetScreenInfo();
-    if (!curScreenInfo.isEqualVsyncPeriod) {
+    if (!curScreenParams->IsEqualVsyncPeriod()) {
         RS_LOGD("RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForWiredScreen frame rate is irregular");
         return damageRegionRects;
     }
@@ -892,7 +891,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     auto [mirroredDrawable, mirroredParams,
         mirroredScreenDrawable, mirroredScreenParams] = GetMirrorSourceParams(params);
-    if (!mirroredDrawable || !mirroredParams) {
+    if (!mirroredDrawable || !mirroredParams || !mirroredScreenParams) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen mirror source is null");
         return;
     }
@@ -917,7 +916,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     uniParam->SetScreenInfo(screenParams->GetScreenInfo());
     // When mirrorSource is paused, mirrorScreen needs to redraw to avoid using an expired cacheImage
     bool mirroredScreenIsPause =
-        CreateOrGetScreenManager()->GetVirtualScreenStatus(mirroredParams->GetScreenId()) == VIRTUAL_SCREEN_PAUSE;
+        mirroredScreenParams->GetScreenProperty().GetVirtualScreenStatus() == VIRTUAL_SCREEN_PAUSE;
     // if specialLayer is visible and no CacheImg
     if ((mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() && specialLayerType == HAS_SPECIAL_LAYER)
         || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause ||
@@ -1111,12 +1110,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
     }
     curCanvas_->SetDisableFilterCache(true);
     auto hasSecSurface = mirroredParams->GetSpecialLayerMgr().Find(SpecialLayerType::HAS_SECURITY);
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirror ScreenManager is nullptr");
-        return;
-    }
-    int32_t virtualSecLayerOption = screenManager->GetVirtualScreenSecLayerOption(params.GetScreenId());
+    int32_t virtualSecLayerOption = curScreenParams->GetScreenProperty().GetVirtualSecLayerOption();
     bool isSecurity = (!enableVisibleRect_ && hasSecSurface) ||
                       (enableVisibleRect_ && params.HasSecLayerInVisibleRect());
     bool securitySkip = (isSecurity && !uniParam.GetSecExemption() && !virtualSecLayerOption) ||

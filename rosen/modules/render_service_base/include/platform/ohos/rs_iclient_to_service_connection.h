@@ -96,13 +96,12 @@ public:
 
     virtual std::vector<ScreenId> GetAllScreenIds() = 0;
 
-    // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
     virtual ScreenId CreateVirtualScreen(
         const std::string &name,
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId = 0,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) = 0;
 

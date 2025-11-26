@@ -98,7 +98,7 @@ private:
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
 

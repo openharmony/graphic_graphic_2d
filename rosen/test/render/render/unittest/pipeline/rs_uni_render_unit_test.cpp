@@ -961,8 +961,8 @@ HWTEST_F(RSUniRenderUnitTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
         auto screenManager = CreateOrGetScreenManager();
-        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+        OHOS::Rosen::RSScreenManager& screenManagerImpl =
+            static_cast<OHOS::Rosen::RSScreenManager&>(*screenManager);
         screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
 
         screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
@@ -987,8 +987,8 @@ HWTEST_F(RSUniRenderUnitTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
         auto screenManager = CreateOrGetScreenManager();
-        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
+        OHOS::Rosen::RSScreenManager& screenManagerImpl =
+            static_cast<OHOS::Rosen::RSScreenManager&>(*screenManager);
 
         screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
         screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
