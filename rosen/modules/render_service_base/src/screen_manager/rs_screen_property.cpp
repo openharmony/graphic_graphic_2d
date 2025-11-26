@@ -783,12 +783,13 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
         ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 screenType err.");
         return false;
     }
+    screenType_ = static_cast<RSScreenType>(screenType);
     uint32_t connectionType = 0;
     if (!data.ReadUint32(connectionType)) {
         ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 connectionType err.");
         return false;
     }
-    screenType_ = static_cast<RSScreenType>(screenType);
+    connectionType_ = static_cast<ScreenConnectionType>(connectionType);
     if (!data.ReadBool(isHardCursorSupport_)) {
         ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool isHardCursorSupport err.");
         return false;

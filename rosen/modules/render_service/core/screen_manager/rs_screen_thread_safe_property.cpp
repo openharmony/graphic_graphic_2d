@@ -602,13 +602,11 @@ ScreenPowerStatus RSScreenThreadSafeProperty::GetPowerStatus() const
 
 RSScreenType RSScreenThreadSafeProperty::GetScreenType() const
 {
-    SharedLock lock(propertyMutex_);
     return property_->screenType_;
 }
 
 ScreenConnectionType RSScreenThreadSafeProperty::GetConnectionType() const
 {
-    SharedLock lock(propertyMutex_);
     return property_->connectionType_;
 }
 
