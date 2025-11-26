@@ -23,7 +23,7 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-namespace{
+namespace {
 using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
 using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
 
