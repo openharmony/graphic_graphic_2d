@@ -586,10 +586,8 @@ void RSScreenManager::ProcessPendingConnections()
     for (auto id : pendingConnectedIds) {
         if (!isHwcDead_) {
             NotifyScreenNodeChange(id, true);
-            TriggerCallbacks(id, ScreenEvent::CONNECTED);
-        } else if (id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
-            TriggerCallbacks(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
         }
+        TriggerCallbacks(id, ScreenEvent::CONNECTED, isHwcDead_ ? ScreenChangeReason::HWCDEAD : ScreenChangeReason::DEFAULT);
         auto screen = GetScreen(id);
         if (screen == nullptr) {
             continue;
