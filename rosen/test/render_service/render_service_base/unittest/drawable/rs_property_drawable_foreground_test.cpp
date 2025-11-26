@@ -559,7 +559,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest002, TestSize.Level1)
 
 /**
  * @tc.name: CreateDrawFuncAndRunTest001
- * @tc.desc: DrawLight test
+ * @tc.desc: CreateDrawFuncAndRun test
  * @tc.type: FUNC
  * @tc.require:issueI9SCBR
  */
