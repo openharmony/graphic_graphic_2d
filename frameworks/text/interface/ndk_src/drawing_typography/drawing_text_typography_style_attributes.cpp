@@ -108,7 +108,7 @@ namespace OHOS::Rosen::Text {
 
     OH_Drawing_ErrorCode GetCompressHeadPunctuation(const TypographyStyle* style, bool* value)
     {
-        *value = static_cast<int>(style->compressHeadPunctuation);
+        *value = static_cast<bool>(style->compressHeadPunctuation);
         return OH_DRAWING_SUCCESS;
     }
 
