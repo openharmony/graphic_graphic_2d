@@ -599,7 +599,7 @@ public:
     void SetHwcChildrenDisabledState();
 
     void SetContextBounds(const Vector4f bounds);
-    virtual bool CheckParticipateInOcclusion();
+    virtual bool CheckParticipateInOcclusion(bool isAnimationOcclusionScenes);
 
     void OnApplyModifiers() override;
 
@@ -853,16 +853,6 @@ public:
     void SetOcclusionVisibleWithoutFilter(bool visible)
     {
         isOcclusionVisibleWithoutFilter_ = visible;
-    }
-
-    void SetOcclusionInSpecificScenes(bool isOcclusionInSpecificScenes)
-    {
-        isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
-    }
-
-    bool GetOcclusionInSpecificScenes() const
-    {
-        return isOcclusionInSpecificScenes_;
     }
 
     const Occlusion::Region& GetVisibleRegion() const
@@ -1812,7 +1802,6 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
-    bool isOcclusionInSpecificScenes_ = false;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;

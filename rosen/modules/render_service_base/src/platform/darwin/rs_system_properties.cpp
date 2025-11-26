@@ -117,6 +117,11 @@ AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationOcclusionEnabled()
+{
+    return {};
+}
+
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     return {};

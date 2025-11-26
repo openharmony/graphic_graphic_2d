@@ -445,6 +445,13 @@ public:
         unmappedCacheSet_.insert(seqNumSet.begin(), seqNumSet.end());
     }
 
+    void SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart);
+
+    bool GetIsAnimationOcclusion() const
+    {
+        return isAnimationOcclusion_.first;
+    }
+
     void ClearUnmappedCache();
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
@@ -688,6 +695,7 @@ private:
     std::atomic_bool discardJankFrames_ = false;
     std::atomic_bool skipJankAnimatorFrame_ = false;
     bool isImplicitAnimationEnd_ = false;
+    std::pair<bool, time_t> isAnimationOcclusion_;
 
     pid_t lastCleanCachePid_ = -1;
     int32_t unmarshalFinishedCount_ = 0;

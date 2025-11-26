@@ -1832,7 +1832,7 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     SetTreatedAsTransparent(false);
     // when a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated it as a full
     // transparent layer.
-    if ((GetAnimateState() || IsParentLeashWindowInScale()) && !isOcclusionInSpecificScenes_) {
+    if (GetAnimateState() || IsParentLeashWindowInScale()) {
         SetTreatedAsTransparent(true);
         return;
     }
@@ -2448,18 +2448,21 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
         GetDirtyManager()->IsActiveSurfaceRectChanged();
 }
 
-bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
+bool RSSurfaceRenderNode::CheckParticipateInOcclusion(bool isAnimationOcclusionScenes)
 {
     // planning: Need consider others situation
     isParentScaling_ = false;
     auto nodeParent = GetParent().lock();
     if (nodeParent && nodeParent->IsScale()) {
         isParentScaling_ = true;
-        if (GetDstRectChanged() && !isOcclusionInSpecificScenes_) {
+        if (GetDstRectChanged() && !isAnimationOcclusionScenes) {
             return false;
         }
     }
-    if ((IsTransparent() && !NeedDrawBehindWindow()) || GetAnimateState() || IsRotating() || IsSubSurfaceNode()) {
+    // surface can't participate occlusion in transparent, animate, rotating, and sub surface scenes
+    // specific animate can be used for occlusion
+    if ((IsTransparent() && !NeedDrawBehindWindow()) ||
+        (GetAnimateState() && !isAnimationOcclusionScenes) || IsRotating() || IsSubSurfaceNode()) {
         return false;
     }
     return true;

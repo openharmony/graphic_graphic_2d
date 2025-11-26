@@ -1863,7 +1863,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, AccumulateOcclusionRegion, TestSize.Level1)
 
     auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     testNode->SetParent(parentSurfaceNode);
-    testNode->isOcclusionInSpecificScenes_ = true;
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
     EXPECT_FALSE(hasFilterCacheOcclusion);
@@ -2394,7 +2393,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckIfOcclusionReusable, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, CheckParticipateInOcclusion, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    EXPECT_FALSE(node->CheckParticipateInOcclusion());
+    EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
 }
 
 /**

@@ -111,7 +111,7 @@ public:
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false)
         : RSSurfaceRenderNode(id, context, isTextureExportNode) {}
     ~MockRSSurfaceRenderNode() override {}
-    MOCK_METHOD0(CheckParticipateInOcclusion, bool());
+    MOCK_METHOD1(CheckParticipateInOcclusion, bool(bool));
     MOCK_CONST_METHOD0(NeedDrawBehindWindow, bool());
     MOCK_CONST_METHOD0(GetFilterRect, RectI());
     MOCK_METHOD0(CheckIfOcclusionChanged, bool());
@@ -260,6 +260,51 @@ HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured, TestSize.Level1)
     nodeMap.UnregisterRenderNode(filterNode1->GetId());
     nodeMap.UnregisterRenderNode(filterNode3->GetId());
     nodeMap.UnregisterRenderNode(filterNode4->GetId());
+}
+
+/**
+ * @tc.name: ProcessFilterNodeObscured002
+ * @tc.desc: Test ProcessFilterNodeObscured, childNode not use effect
+ * @tc.type: FUNC
+ * @tc.require: issue20843
+ */
+HWTEST_F(RSUniRenderVisitorTest, ProcessFilterNodeObscured002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(1.0f, 1.0f);
+    ASSERT_NE(filter, nullptr);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    NodeId id = 1;
+    Occlusion::Region extendRegion;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    auto filterNode1 = std::make_shared<RSEffectRenderNode>(++id);
+    auto filterNode2 = std::make_shared<RSEffectRenderNode>(++id);
+    auto filterNode3 = std::make_shared<RSCanvasRenderNode>(++id);
+    ASSERT_NE(filterNode1, nullptr);
+    ASSERT_NE(filterNode2, nullptr);
+    ASSERT_NE(filterNode3, nullptr);
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(filterNode1);
+    nodeMap.RegisterRenderNode(filterNode2);
+    nodeMap.RegisterRenderNode(filterNode3);
+    filterNode1->visibleEffectChild_.clear();
+    filterNode2->visibleEffectChild_.emplace(id);
+    filterNode1->renderProperties_.GetEffect().backgroundFilter_ = filter;
+    filterNode2->renderProperties_.GetEffect().backgroundFilter_ = filter;
+    filterNode3->renderProperties_.GetEffect().backgroundFilter_ = filter;
+    surfaceNode->visibleFilterChild_.push_back(filterNode1->GetId());
+    surfaceNode->visibleFilterChild_.push_back(filterNode2->GetId());
+    surfaceNode->visibleFilterChild_.push_back(filterNode3->GetId());
+    surfaceNode->SetAbilityBGAlpha(MAX_ALPHA);
+
+    rsUniRenderVisitor->ProcessFilterNodeObscured(surfaceNode, extendRegion, nodeMap);
+    ASSERT_FALSE(surfaceNode->IsTransparent());
+    nodeMap.UnregisterRenderNode(filterNode1->GetId());
+    nodeMap.UnregisterRenderNode(filterNode2->GetId());
+    nodeMap.UnregisterRenderNode(filterNode3->GetId());
 }
 
 /**
@@ -4481,7 +4526,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion006, TestSiz
 
     rsUniRenderVisitor->ancestorNodeHasAnimation_ = false;
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
-    EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion(false)).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_FILTER_RECT));
 
@@ -4524,7 +4569,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
 
     rsUniRenderVisitor->ancestorNodeHasAnimation_ = false;
     rsUniRenderVisitor->isAllSurfaceVisibleDebugEnabled_ = false;
-    EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*rsSurfaceRenderNode, CheckParticipateInOcclusion(false)).WillRepeatedly(testing::Return(true));
     EXPECT_CALL(*rsSurfaceRenderNode, NeedDrawBehindWindow()).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*rsSurfaceRenderNode, GetFilterRect()).WillRepeatedly(testing::Return(DEFAULT_FILTER_RECT));
 

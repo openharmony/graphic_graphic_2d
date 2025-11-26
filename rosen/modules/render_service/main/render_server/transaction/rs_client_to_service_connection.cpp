@@ -2822,6 +2822,7 @@ ErrCode RSClientToServiceConnection::ReportEventResponse(DataBaseRs info)
     RSUifirstManager::Instance().OnProcessEventResponse(info);
 #endif
     RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
+    UpdateAnimationOcclusionStatus(info.sceneId, true);
     return ERR_OK;
 }
 
@@ -2847,7 +2848,23 @@ ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
     renderThread_.PostTask(task);
 #endif
     RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
+    UpdateAnimationOcclusionStatus(info.sceneId, false);
     return ERR_OK;
+}
+
+void RSClientToServiceConnection::UpdateAnimationOcclusionStatus(const std::string& sceneId, bool isStart)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), sceneId, isStart]() -> void {
+        sptr<RSClientToServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->mainThread_->SetAnimationOcclusionInfo(sceneId, isStart);
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)

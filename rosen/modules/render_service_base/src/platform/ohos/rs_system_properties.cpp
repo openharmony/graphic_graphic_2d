@@ -326,6 +326,14 @@ AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
     return static_cast<AdvancedDirtyRegionType>(ConvertToInt(enable, DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE));
 }
 
+bool RSSystemProperties::GetAnimationOcclusionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.animation.occlusion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.dirtyalign.enabled", "0");
