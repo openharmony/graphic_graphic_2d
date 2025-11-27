@@ -558,19 +558,18 @@ EventInfo RandomDataCustomizedType::GetRandomEventInfo()
     uint32_t minRefreshRate = RandomDataBasicType::GetRandomUint32();
     uint32_t maxRefreshRate = RandomDataBasicType::GetRandomUint32();
     std::string description = RandomDataBasicType::GetRandomString();
-    EventInfo eventInfo { eventName, eventStatus, minRefreshRate, maxRefreshRate, description };
-    return eventInfo;
+    return { eventName, eventStatus, minRefreshRate, maxRefreshRate, description };
 }
 
 std::vector<std::pair<uint64_t, EventInfo>> RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector()
 {
     std::vector<std::pair<uint64_t, EventInfo>> vector;
     int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
     for (int i = 0; i < vectorLength; ++i) {
         uint64_t x = RandomDataBasicType::GetRandomUint64();
         EventInfo y = GetRandomEventInfo();
-        auto item = std::make_pair(x, y);
-        vector.emplace_back(item);
+        vector.emplace_back(std::make_pair(x, y));
     }
     return vector;
 }
@@ -579,11 +578,11 @@ std::vector<std::pair<std::string, EventInfo>> RandomDataCustomizedType::GetRand
 {
     std::vector<std::pair<std::string, EventInfo>> vector;
     int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
     for (int i = 0; i < vectorLength; ++i) {
         std::string x = RandomDataBasicType::GetRandomString();
         EventInfo y = GetRandomEventInfo();
-        auto item = std::make_pair(x, y);
-        vector.emplace_back(item);
+        vector.emplace_back(std::make_pair(x, y));
     }
     return vector;
 }
@@ -592,11 +591,11 @@ std::vector<std::pair<std::string, std::string>> RandomDataCustomizedType::GetRa
 {
     std::vector<std::pair<std::string, std::string>> vector;
     int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
     for (int i = 0; i < vectorLength; ++i) {
         std::string x = RandomDataBasicType::GetRandomString();
         std::string y = RandomDataBasicType::GetRandomString();
-        auto item = std::make_pair(x, y);
-        vector.emplace_back(item);
+        vector.emplace_back(std::make_pair(x, y));
     }
     return vector;
 }

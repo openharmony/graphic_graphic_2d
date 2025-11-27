@@ -234,7 +234,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector(M
 {
     std::vector<std::pair<uint64_t, EventInfo>> dataVec =
         RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector();
-    for (const std::pair<uint64_t, EventInfo>& data : dataVec) {
+    for (const auto& data : dataVec) {
         if (!messageParcel.WriteUint64(data.first)) {
             SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector WriteUint64 failed");
             return false;
@@ -253,7 +253,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector(M
 {
     std::vector<std::pair<std::string, EventInfo>> dataVec =
         RandomDataCustomizedType::GetRandomStringAndEventInfoPairVector();
-    for (const std::pair<std::string, EventInfo>& data : dataVec) {
+    for (const auto& data : dataVec) {
         if (!messageParcel.WriteString(data.first)) {
             SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector WriteString failed");
             return false;
@@ -272,7 +272,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector(Mess
 {
     std::vector<std::pair<std::string, std::string>> dataVec =
         RandomDataCustomizedType::GetRandomStringAndStringPairVector();
-    for (const std::pair<std::string, std::string>& data : dataVec) {
+    for (const auto& data : dataVec) {
         if (!messageParcel.WriteString(data.first) || !messageParcel.WriteString(data.second)) {
             SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector WriteString failed");
             return false;
