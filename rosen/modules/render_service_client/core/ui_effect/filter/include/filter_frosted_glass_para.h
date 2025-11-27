@@ -45,261 +45,261 @@ public:
         weightsEmboss_ = weightsEmboss;
     }
 
-    const Vector2f GetWeightsEmboss() const 
-    { 
+    const Vector2f GetWeightsEmboss() const
+    {
         return weightsEmboss_;
     }
 
-    void SetWeightsEdl(Vector2f& weightsEdl) 
+    void SetWeightsEdl(Vector2f& weightsEdl)
     {
         weightsEdl_ = weightsEdl; 
     } 
 
-    const Vector2f GetWeightsEdl() const 
+    const Vector2f GetWeightsEdl() const
     { 
-        return weightsEdl_; 
+        return weightsEdl_;
     }
 
-    void SetBgRates(Vector2f& bgRates) 
-    { 
+    void SetBgRates(Vector2f& bgRates)
+    {
         bgRates_ = bgRates; 
     }
 
-    const Vector2f GetBgRates() const 
+    const Vector2f GetBgRates() const
     { 
-        return bgRates_; 
+        return bgRates_;
     }
 
-    void SetBgKBS(Vector3f& bgKBS) 
-    { 
+    void SetBgKBS(Vector3f& bgKBS)
+    {
         bgKBS_ = bgKBS; 
     }
 
-    const Vector3f GetBgKBS() const 
+    const Vector3f GetBgKBS() const
     { 
-        return bgKBS_; 
+        return bgKBS_;
     }
 
-    void SetBgPos(Vector3f& bgPos) 
+    void SetBgPos(Vector3f& bgPos)
     { 
-        bgPos_ = bgPos; 
+        bgPos_ = bgPos;
     }
 
-    const Vector3f GetBgPos() const 
+    const Vector3f GetBgPos() const
     { 
-        return bgPos_; 
+        return bgPos_;
     }
 
-    void SetBgNeg(Vector3f& bgNeg) 
-    { 
-        bgNeg_ = bgNeg; 
+    void SetBgNeg(Vector3f& bgNeg)
+    {
+        bgNeg_ = bgNeg;
     }
 
-    const Vector3f GetBgNeg() const 
-    { 
-        return bgNeg_; 
+    const Vector3f GetBgNeg() const
+    {
+        return bgNeg_;
     }
 
-    void SetRefractParams(Vector3f& refractParams) 
-    { 
-        refractParams_ = refractParams; 
+    void SetRefractParams(Vector3f& refractParams)
+    {
+        refractParams_ = refractParams;
     }
 
-    const Vector3f GetRefractParams() const 
-    { 
-        return refractParams_; 
+    const Vector3f GetRefractParams() const
+    {
+        return refractParams_;
     }
 
-    void SetSdParams(Vector3f& sdParams) 
-    { 
+    void SetSdParams(Vector3f& sdParams)
+    {
         sdParams_ = sdParams;
     }
 
-    const Vector3f GetSdParams() const 
-    { 
-        return sdParams_; 
-    }
-
-    void SetSdRates(Vector2f& sdRates) 
+    const Vector3f GetSdParams() const
     {
-        sdRates_ = sdRates; 
+        return sdParams_;
     }
 
-    const Vector2f GetSdRates() const 
-    { 
+    void SetSdRates(Vector2f& sdRates)
+    {
+        sdRates_ = sdRates;
+    }
+
+    const Vector2f GetSdRates() const
+    {
         return sdRates_;
     }
 
-    void SetSdKBS(Vector3f& sdKBS) 
-    { 
-        sdKBS_ = sdKBS; 
+    void SetSdKBS(Vector3f& sdKBS)
+    {
+        sdKBS_ = sdKBS;
     }
 
-    const Vector3f GetSdKBS() const 
-    { 
-        return sdKBS_; 
+    const Vector3f GetSdKBS() const
+    {
+        return sdKBS_;
     }
 
-    void SetSdPos(Vector3f& sdPos) 
-    { 
-        sdPos_ = sdPos; 
+    void SetSdPos(Vector3f& sdPos)
+    {
+        sdPos_ = sdPos;
     }
 
-    const Vector3f GetSdPos() const 
-    { 
-        return sdPos_; 
+    const Vector3f GetSdPos() const
+    {
+        return sdPos_;
     }
 
-    void SetSdNeg(Vector3f& sdNeg) 
-    { 
+    void SetSdNeg(Vector3f& sdNeg)
+    {
         sdNeg_ = sdNeg;
     }
 
-    const Vector3f GetSdNeg() const 
-    { 
-        return sdNeg_; 
+    const Vector3f GetSdNeg() const
+    {
+        return sdNeg_;
     }
 
-    void SetEnvLightParams(Vector3f& envLightParams) 
-    { 
+    void SetEnvLightParams(Vector3f& envLightParams)
+    {
         envLightParams_ = envLightParams;
     }
 
-    const Vector3f GetEnvLightParams() const 
-    { 
+    const Vector3f GetEnvLightParams() const
+    {
         return envLightParams_;
     }
 
-    void SetEnvLightRates(Vector2f& envLightRates) 
-    { 
+    void SetEnvLightRates(Vector2f& envLightRates)
+    {
         envLightRates_ = envLightRates;
     }
 
-    const Vector2f GetEnvLightRates() const 
-    { 
-        return envLightRates_; 
+    const Vector2f GetEnvLightRates() const
+    {
+        return envLightRates_;
     }
 
-    void SetEnvLightKBS(Vector3f& envLightKBS) 
-    { 
+    void SetEnvLightKBS(Vector3f& envLightKBS)
+    {
         envLightKBS_ = envLightKBS;
     }
 
-    const Vector3f GetEnvLightKBS() const 
+    const Vector3f GetEnvLightKBS() const
     {
-        return envLightKBS_; 
+        return envLightKBS_;
     }
 
-    void SetEnvLightPos(Vector3f& envLightPos) 
-    { 
+    void SetEnvLightPos(Vector3f& envLightPos)
+    {
         envLightPos_ = envLightPos;
     }
 
-    const Vector3f GetEnvLightPos() const 
-    { 
-        return envLightPos_; 
+    const Vector3f GetEnvLightPos() const
+    {
+        return envLightPos_;
     }
 
-    void SetEnvLightNeg(Vector3f& envLightNeg) 
-    { 
-        envLightNeg_ = envLightNeg; 
+    void SetEnvLightNeg(Vector3f& envLightNeg)
+    {
+        envLightNeg_ = envLightNeg;
     }
 
-    const Vector3f GetEnvLightNeg() const 
-    { 
-        return envLightNeg_; 
+    const Vector3f GetEnvLightNeg() const
+    {
+        return envLightNeg_;
     }
     
-    void SetEdLightParams(Vector2f& edLightParams) 
-    { 
-        edLightParams_ = edLightParams; 
+    void SetEdLightParams(Vector2f& edLightParams)
+    {
+        edLightParams_ = edLightParams;
     }
 
-    const Vector2f GetEdLightParams() const 
+    const Vector2f GetEdLightParams() const
     { 
-        return edLightParams_; 
+        return edLightParams_;
     }
 
-    void SetEdLightAngles(Vector2f& edLightAngles) 
-    { 
+    void SetEdLightAngles(Vector2f& edLightAngles)
+    {
         edLightAngles_ = edLightAngles;
     }
 
-    const Vector2f GetEdLightAngles() const 
-    { 
+    const Vector2f GetEdLightAngles() const
+    {
         return edLightAngles_;
     }
 
-    void SetEdLightDir(Vector2f& edLightDir) 
-    { 
+    void SetEdLightDir(Vector2f& edLightDir)
+    {
         edLightDir_ = edLightDir;
     }
 
-    const Vector2f GetEdLightDir() const 
-    { 
-        return edLightDir_; 
+    const Vector2f GetEdLightDir() const
+    {
+        return edLightDir_;
     }
 
-    void SetEdLightRates(Vector2f& edLightRates) 
-    { 
+    void SetEdLightRates(Vector2f& edLightRates)
+    {
         edLightRates_ = edLightRates;
     }
 
-    const Vector2f GetEdLightRates() const 
+    const Vector2f GetEdLightRates() const
     {
         return edLightRates_;
     }
 
-    void SetEdLightKBS(Vector3f& edLightKBS) 
-    { 
-        edLightKBS_ = edLightKBS; 
+    void SetEdLightKBS(Vector3f& edLightKBS)
+    {
+        edLightKBS_ = edLightKBS;
     }
 
-    const Vector3f GetEdLightKBS() const 
+    const Vector3f GetEdLightKBS() const
     {
         return edLightKBS_;
     }
 
-    void SetEdLightPos(Vector3f& edLightPos) 
+    void SetEdLightPos(Vector3f& edLightPos)
     {
         edLightPos_ = edLightPos;
     }
 
-    const Vector3f GetEdLightPos() const 
-    { 
-        return edLightPos_; 
-    }
-
-    void SetEdLightNeg(Vector3f& edLightNeg) 
-    { 
-        edLightNeg_ = edLightNeg; 
-    }
-
-    const Vector3f GetEdLightNeg() const 
+    const Vector3f GetEdLightPos() const
     {
-        return edLightNeg_; 
+        return edLightPos_;
     }
 
-    void SetBorderSize(Vector2f& borderSize) 
-    { 
-        borderSize_ = borderSize; 
-    }
-
-    const Vector2f GetBorderSize() const 
+    void SetEdLightNeg(Vector3f& edLightNeg)
     {
-        return borderSize_; 
+        edLightNeg_ = edLightNeg;
     }
 
-    void SetCornerRadius(float& cornerRadius) 
-    { 
-        cornerRadius_ = cornerRadius; 
-    }
-
-    const float& GetCornerRadius() const 
+    const Vector3f GetEdLightNeg() const
     {
-        return cornerRadius_; 
+        return edLightNeg_;
     }
-    
+
+    void SetBorderSize(Vector2f& borderSize)
+    {
+        borderSize_ = borderSize;
+    }
+
+    const Vector2f GetBorderSize() const
+    {
+        return borderSize_;
+    }
+
+    void SetCornerRadius(float& cornerRadius)
+    {
+        cornerRadius_ = cornerRadius;
+    }
+
+    const float& GetCornerRadius() const
+    {
+        return cornerRadius_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
