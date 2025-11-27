@@ -202,7 +202,7 @@ public:
     // check if timestamp in vsync receiver sync with mainthread timestamp, if not, return false;
     bool IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
         uint64_t unsignedNowTime, uint64_t lastVsyncTime, int64_t vsyncTimeStamp);
-    void CheckFastCompose(int64_t bufferTimeStamp);
+    bool CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
