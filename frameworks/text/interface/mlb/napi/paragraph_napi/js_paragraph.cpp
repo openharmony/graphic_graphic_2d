@@ -900,7 +900,7 @@ napi_value JsParagraph::OnLayoutAsync(napi_env env, napi_callback_info info)
     auto complete = [env](napi_value& output) {
         output = NapiGetUndefined(env);
     };
-    return NapiAsyncWork::Enqueue(env, context, "onLayoutAsync", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "onLayoutAsync", executor, complete).result;
 }
 
 napi_value JsParagraph::UpdateColor(napi_env env, napi_callback_info info)

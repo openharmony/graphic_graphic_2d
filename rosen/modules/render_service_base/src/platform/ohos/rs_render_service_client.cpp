@@ -1287,18 +1287,34 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
 }
 
 
-int32_t RSRenderServiceClient::RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd)
+int32_t RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: clientToService is nullptr");
-        return false;
+        return -1;
     }
-    uint64_t id = RSTypefaceCache::GenGlobalUniqueId(hash);
+    uint64_t id = RSTypefaceCache::GenGlobalUniqueId(typeface->GetHash());
     ROSEN_LOGD("RSRenderServiceClient::RegisterTypeface: pid[%{public}d] register typface[%{public}u]",
         RSTypefaceCache::GetTypefacePid(id), RSTypefaceCache::GetTypefaceId(id));
     int32_t needUpdate = 0;
-    return clientToService->RegisterTypeface(id, size, fd, needUpdate);
+    uint32_t size = typeface->GetSize();
+    int32_t originFd = typeface->GetFd();
+    int32_t fd = clientToService->RegisterTypeface(id, size, originFd, needUpdate, index);
+    if (fd != originFd && fd >= 0) {
+        auto ashmem = std::make_unique<Ashmem>(fd, size);
+        bool mapResult = ashmem->MapReadOnlyAshmem();
+        const void* ptr = ashmem->ReadFromAshmem(size, 0);
+        if (!mapResult || ptr == nullptr) {
+            RS_LOGE("Failed to update ashmem: %{public}d -> %{public}d", typeface->GetFd(), fd);
+            return fd;
+        }
+        auto stream = std::make_unique<Drawing::MemoryStream>(
+            ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); },
+            ashmem.release());
+        typeface->UpdateStream(std::move(stream));
+    }
+    return fd;
 }
 
 bool RSRenderServiceClient::UnRegisterTypeface(uint32_t uniqueId)

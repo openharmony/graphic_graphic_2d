@@ -437,7 +437,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
         }
         RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
             tf->GetFamilyName().c_str(), tf->GetHash());
-        return renderServiceClient_->RegisterTypeface(tf->GetHash(), tf->GetSize(), tf->GetFd());
+        return renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",

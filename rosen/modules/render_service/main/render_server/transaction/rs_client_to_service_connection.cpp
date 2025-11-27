@@ -2290,7 +2290,8 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     return true;
 }
 
-int32_t RSClientToServiceConnection::RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate)
+int32_t RSClientToServiceConnection::RegisterTypeface(
+    uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index)
 {
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(id);
     if (tf != nullptr) {
@@ -2299,11 +2300,12 @@ int32_t RSClientToServiceConnection::RegisterTypeface(uint64_t id, uint32_t size
         return tf->GetFd();
     }
     needUpdate = 0;
-    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id));
+    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
     if (tf != nullptr) {
         RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
         return tf->GetFd();
     }
+    ::close(fd);
     RS_LOGE("RegisterTypeface: failed to register typeface");
     return -1;
 }

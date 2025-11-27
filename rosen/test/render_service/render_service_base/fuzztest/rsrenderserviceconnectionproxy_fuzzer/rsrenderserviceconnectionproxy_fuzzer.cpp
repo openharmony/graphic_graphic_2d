@@ -256,7 +256,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
     rsClientToServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
     rsClientToServiceConnectionProxy.RegisterTypeface(id1, typeface);
-    rsClientToServiceConnectionProxy.RegisterTypeface(id1, id2, screenId, resCode);
+    rsClientToServiceConnectionProxy.RegisterTypeface(id1, id2, screenId, resCode, id1);
     rsClientToServiceConnectionProxy.UnRegisterTypeface(id1);
     rsClientToServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width, resCode);
     rsClientToServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);

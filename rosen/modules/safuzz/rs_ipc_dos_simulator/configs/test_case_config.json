@@ -2106,6 +2106,13 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "REGISTER_SHARED_TYPEFACE_TEST_001",
+    "interfaceName": "REGISTER_SHARED_TYPEFACE",
+    "inputParams": "WriteUint64;WriteUint32;WriteUint32;WriteSharedTypefaceFd",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "REFRESH_RATE_UPDATE_CALLBACK_TEST_001",
     "interfaceName": "REFRESH_RATE_UPDATE_CALLBACK",
     "inputParams": "WriteBool;WriteHgmRefreshRateUpdateCallbackSptr",

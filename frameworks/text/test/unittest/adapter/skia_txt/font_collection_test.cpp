@@ -43,11 +43,16 @@ private:
 
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_;
     std::shared_ptr<Drawing::FontMgr> fontMgr_;
+
+    std::vector<uint8_t> symbolData_;
+    std::vector<uint8_t> cjkData_;
+    std::vector<uint8_t> sansData_;
+    std::vector<uint8_t> mathData_;
 };
 
 void OH_Drawing_FontCollectionTest::SetUp()
 {
-    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto) { return true; });
+    OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto tf) { return tf->GetFd(); });
     auto callback = [](const FontCollection* fc, const FontEventInfo& info) {
         EXPECT_NE(fc, nullptr);
         EXPECT_FALSE(info.familyName.empty());
@@ -65,6 +70,10 @@ void OH_Drawing_FontCollectionTest::SetUp()
     ASSERT_NE(fontCollection_, nullptr);
     fontMgr_ = fontCollection_->GetFontMgr();
     ASSERT_NE(fontMgr_, nullptr);
+    symbolData_ = GetFileData(symbolFile_);
+    cjkData_ = GetFileData(cjkFile_);
+    sansData_ = GetFileData(sansFile_);
+    mathData_ = GetFileData(mathFile_);
 }
 
 std::vector<uint8_t> OH_Drawing_FontCollectionTest::GetFileData(const std::string& path)
@@ -99,12 +108,8 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    auto typefaces = fontCollection_->LoadThemeFont("familyname", { { sansData.data(), sansData.size() } });
-    auto typefaces1 = fontCollection_->LoadThemeFont("familyname", { { sansData.data(), sansData.size() } });
+    auto typefaces = fontCollection_->LoadThemeFont("familyname", { { sansData_.data(), sansData_.size() } });
+    auto typefaces1 = fontCollection_->LoadThemeFont("familyname", { { sansData_.data(), sansData_.size() } });
     ASSERT_EQ(typefaces.size(), 1);
     ASSERT_EQ(typefaces1.size(), typefaces.size());
     EXPECT_EQ(typefaces[0]->GetFamilyName(), typefaces1[0]->GetFamilyName());
@@ -180,15 +185,9 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    EXPECT_GE(cjkData.size(), minSize);
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
-        "familyname", { { sansData.data(), sansData.size() }, { cjkData.data(), cjkData.size() } });
+        "familyname", { { sansData_.data(), sansData_.size() }, { cjkData_.data(), cjkData_.size() } });
     // 2 is the theme families' size
     ASSERT_EQ(typefaces.size(), 2);
     auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
@@ -219,18 +218,10 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    std::vector<uint8_t> mathData = GetFileData(mathFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    EXPECT_GE(cjkData.size(), minSize);
-    EXPECT_GE(mathData.size(), minSize);
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
-        "familyname", { { sansData.data(), sansData.size() },
-        { cjkData.data(), cjkData.size() }, { mathData.data(), mathData.size() } });
+        "familyname", { { sansData_.data(), sansData_.size() },
+        { cjkData_.data(), cjkData_.size() }, { mathData_.data(), mathData_.size() } });
     // 3 is the theme families' size
     ASSERT_EQ(typefaces.size(), 3);
     auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
@@ -261,17 +252,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    EXPECT_GE(cjkData.size(), minSize);
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
-        "familyname", { { sansData.data(), sansData.size() },
+        "familyname", { { sansData_.data(), sansData_.size() },
                           // size of "12345" is 5
-                        { reinterpret_cast<const uint8_t*>("12345"), 5 }, { cjkData.data(), cjkData.size() } });
+                        { reinterpret_cast<const uint8_t*>("12345"), 5 }, { cjkData_.data(), cjkData_.size() } });
     // 2 is the theme families' size
     ASSERT_EQ(typefaces.size(), 2);
     auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
@@ -302,12 +287,8 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
     std::string familyName = "familyname";
-    auto typeface = fontCollection_->LoadFont(familyName, sansData.data(), sansData.size());
+    auto typeface = fontCollection_->LoadFont(familyName, sansData_.data(), sansData_.size());
     ASSERT_NE(typeface, nullptr);
     EXPECT_EQ(typeface->GetFamilyName(), sansFamily_);
     EXPECT_EQ(fontMgr_->CountFamilies(), 1);
@@ -326,14 +307,9 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
     std::string familyName = "familyname";
-    auto sansTypeface = fontCollection_->LoadFont(familyName, sansData.data(), sansData.size());
-    auto cjkTypeface = fontCollection_->LoadFont(familyName, cjkData.data(), cjkData.size());
+    auto sansTypeface = fontCollection_->LoadFont(familyName, sansData_.data(), sansData_.size());
+    auto cjkTypeface = fontCollection_->LoadFont(familyName, cjkData_.data(), cjkData_.size());
     ASSERT_NE(sansTypeface, nullptr);
     ASSERT_NE(cjkTypeface, nullptr);
     EXPECT_EQ(sansTypeface->GetFamilyName(), sansFamily_);
@@ -355,15 +331,10 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
     std::string familyName1 = "familyname1";
     std::string familyName2 = "familyname2";
-    auto sansTypeface = fontCollection_->LoadFont(familyName1, sansData.data(), sansData.size());
-    auto cjkTypeface = fontCollection_->LoadFont(familyName2, cjkData.data(), cjkData.size());
+    auto sansTypeface = fontCollection_->LoadFont(familyName1, sansData_.data(), sansData_.size());
+    auto cjkTypeface = fontCollection_->LoadFont(familyName2, cjkData_.data(), cjkData_.size());
     ASSERT_NE(sansTypeface, nullptr);
     EXPECT_EQ(sansTypeface->GetFamilyName(), sansFamily_);
     ASSERT_NE(cjkTypeface, nullptr);
@@ -391,11 +362,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    auto sansTypeface = fontCollection_->LoadFont("", sansData.data(), sansData.size());
+    auto sansTypeface = fontCollection_->LoadFont("", sansData_.data(), sansData_.size());
     ASSERT_NE(sansTypeface, nullptr);
     EXPECT_EQ(sansTypeface->GetFamilyName(), sansFamily_);
     EXPECT_EQ(fontMgr_->CountFamilies(), 1);
@@ -414,15 +381,9 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    EXPECT_GE(cjkData.size(), minSize);
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
-        "familyname", { { sansData.data(), sansData.size() }, { cjkData.data(), cjkData.size() } });
+        "familyname", { { sansData_.data(), sansData_.size() }, { cjkData_.data(), cjkData_.size() } });
     // 2 is the theme families' size
     ASSERT_EQ(typefaces.size(), 2);
     auto themeFamilies = SPText::DefaultFamilyNameMgr::GetInstance().GetThemeFontFamilies();
@@ -496,15 +457,9 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest014, TestSi
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSize.Level0)
 {
     std::string familyName = "familyname";
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
-    std::vector<uint8_t> cjkData = GetFileData(cjkFile_);
-    // 10000 just for test
-    const size_t minSize = 10000;
-    EXPECT_GE(sansData.size(), minSize);
-    EXPECT_GE(cjkData.size(), minSize);
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
-        familyName, { { sansData.data(), sansData.size() }, { cjkData.data(), cjkData.size() } });
+        familyName, { { sansData_.data(), sansData_.size() }, { cjkData_.data(), cjkData_.size() } });
     // 2 is the theme families' size
     EXPECT_EQ(typefaces.size(), 2);
     for (auto& typeface : typefaces) {
@@ -514,7 +469,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSi
     }
     fontCollection_->ClearThemeFont();
 
-    auto typeface = fontCollection_->LoadFont(familyName, sansData.data(), sansData.size());
+    auto typeface = fontCollection_->LoadFont(familyName, sansData_.data(), sansData_.size());
     ASSERT_NE(typeface, nullptr);
     EXPECT_TRUE(typeface->IsCustomTypeface());
     EXPECT_FALSE(typeface->IsThemeTypeface());
@@ -541,22 +496,76 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest016, TestSi
  */
 HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest017, TestSize.Level0)
 {
-    std::vector<uint8_t> sansData = GetFileData(sansFile_);
     std::string familyNameSans = "Sans";
-    auto typeface = fontCollection_->LoadFont(familyNameSans, sansData.data(), sansData.size());
+    auto typeface = fontCollection_->LoadFont(familyNameSans, sansData_.data(), sansData_.size());
     EXPECT_NE(typeface, nullptr);
 
     auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
     adaptFontCollection->enableGlobalFontMgr_ = true;
 
-    std::vector<uint8_t> mathData = GetFileData(mathFile_);
     std::string mathNameSans = "Math";
-    typeface = fontCollection_->LoadFont(mathNameSans, mathData.data(), mathData.size());
+    typeface = fontCollection_->LoadFont(mathNameSans, mathData_.data(), mathData_.size());
     EXPECT_NE(typeface, nullptr);
 
     const size_t targetMaxSize = 10000;
     FontCollectionMgr::GetInstance().SetLocalFontCollectionMaxSize(targetMaxSize);
-    typeface = fontCollection_->LoadFont(mathNameSans, mathData.data(), mathData.size());
+    typeface = fontCollection_->LoadFont(mathNameSans, mathData_.data(), mathData_.size());
+    EXPECT_EQ(typeface, nullptr);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest018
+ * @tc.desc: test for load ttc font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest018, TestSize.Level0)
+{
+    std::string familyName1 = "familyname1";
+    auto cTypeface = fontCollection_->LoadFont(familyName1, cjkData_.data(), cjkData_.size(), 0);
+    auto jTypeface = fontCollection_->LoadFont(familyName1, cjkData_.data(), cjkData_.size(), 1);
+    // the 2nd index typeface in ttc
+    auto kTypeface = fontCollection_->LoadFont(familyName1, cjkData_.data(), cjkData_.size(), 2);
+    // the invalid typeface index 100
+    auto nTypeface = fontCollection_->LoadFont(familyName1, cjkData_.data(), cjkData_.size(), 100);
+
+    ASSERT_NE(cTypeface, nullptr);
+    ASSERT_NE(jTypeface, nullptr);
+    ASSERT_NE(kTypeface, nullptr);
+    EXPECT_EQ(nTypeface, nullptr);
+
+    EXPECT_EQ(cTypeface->GetFamilyName(), cjkFamily_);
+    EXPECT_EQ(jTypeface->GetFamilyName(), "Noto Sans CJK KR");
+    EXPECT_EQ(kTypeface->GetFamilyName(), "Noto Sans CJK SC");
+
+    EXPECT_EQ(fontMgr_->CountFamilies(), 1);
+    auto styleSet = fontMgr_->MatchFamily(familyName1.c_str());
+    ASSERT_NE(styleSet, nullptr);
+    auto tf1 = styleSet->CreateTypeface(0);
+    auto tf2 = styleSet->CreateTypeface(1);
+    // the 2nd index typeface in ttc
+    auto tf3 = styleSet->CreateTypeface(2);
+    // the 3rd index typeface in ttc
+    auto tf4 = styleSet->CreateTypeface(3);
+
+    EXPECT_EQ(tf1->GetFamilyName(), cjkFamily_);
+    EXPECT_EQ(tf2->GetFamilyName(), "Noto Sans CJK KR");
+    EXPECT_EQ(tf3->GetFamilyName(), "Noto Sans CJK SC");
+    EXPECT_EQ(tf4, nullptr);
+
+    fontCollection_->UnloadFont(familyName1);
+    EXPECT_EQ(fontMgr_->CountFamilies(), 0);
+}
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest019
+ * @tc.desc: test for load ttf font with invalid index
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest019, TestSize.Level0)
+{
+    std::string familyName1 = "familyname1";
+    // 100 is an invalid index
+    auto typeface = fontCollection_->LoadFont(familyName1, sansData_.data(), sansData_.size(), 100);
     EXPECT_EQ(typeface, nullptr);
 }
 } // namespace Rosen
