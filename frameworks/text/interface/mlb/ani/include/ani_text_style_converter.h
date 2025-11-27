@@ -25,7 +25,6 @@
 namespace OHOS::Text::ANI {
 class AniTextStyleConverter final {
 public:
-    static ani_status TransTextStyleToRequired(ani_env* env, ani_object obj, ani_object& objR);
     static ani_status ParseTextStyleToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextStyle& textStyle);
     static void ParseFontFeatureToNative(ani_env* env, ani_object obj, OHOS::Rosen::FontFeatures& fontFeatures);
     static void ParseFontVariationToNative(ani_env* env, ani_object obj, OHOS::Rosen::FontVariations& fontVariations);

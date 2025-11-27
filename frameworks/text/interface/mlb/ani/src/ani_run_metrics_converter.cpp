@@ -22,10 +22,6 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-namespace {
-constexpr std::string_view RUNMETRICS_SIGN = "C{" ANI_INTERFACE_TEXT_STYLE "}C{" ANI_INTERFACE_FONT_METRICS "}:";
-constexpr CacheKey RUNMETRICS_KEY{ANI_CLASS_RUNMETRICS, "<ctor>", RUNMETRICS_SIGN};
-} // namespace
 
 ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std::map<size_t, RunMetrics>& runMetrics)
 {
@@ -33,11 +29,11 @@ ani_object AniRunMetricsConverter::ParseRunMetricsToAni(ani_env* env, const std:
     ani_ref mapRef = nullptr;
     for (const auto& [key, runMetrics] : runMetrics) {
         if (runMetrics.textStyle != nullptr) {
-            ani_object aniObj = AniTextUtils::CreateAniObject(env, AniFindClass(env, ANI_CLASS_RUNMETRICS),
-                AniClassFindMethod(env, RUNMETRICS_KEY),
+            ani_object aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().runMetrics,
+                AniGlobalMethod::GetInstance().runMetricsCtor,
                 AniTextStyleConverter::ParseTextStyleToAni(env, *runMetrics.textStyle),
                 OHOS::Rosen::Drawing::CreateAniFontMetrics(env, runMetrics.fontMetrics));
-            ani_status status = env->Object_CallMethodByName_Ref(mapAniObj, "set", "YY:C{std.core.Map}", &mapRef,
+            ani_status status = env->Object_CallMethod_Ref(mapAniObj, AniGlobalMethod::GetInstance().mapSet, &mapRef,
                 AniTextUtils::CreateAniIntObj(env, static_cast<int>(key)), aniObj);
             if (status != ANI_OK) {
                 TEXT_LOGE("Failed to set run metrics map, key %{public}zu, ret %{public}d", key, status);

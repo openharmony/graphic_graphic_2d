@@ -27,9 +27,6 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
-namespace {
-constexpr CacheKey LINE_TYPESET_GET_NATIVE_KEY{ANI_CLASS_LINE_TYPESET, TEXT_GET_NATIVE, ":l"};
-}
 
 AniLineTypeset::AniLineTypeset(std::shared_ptr<LineTypography> lineTypography) : lineTypography_(lineTypography)
 {
@@ -44,18 +41,13 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = AniFindClass(env, ANI_CLASS_LINE_TYPESET);
-    if (cls == nullptr) {
-        TEXT_LOGE("Failed to find class: %{public}s", ANI_CLASS_LINE_TYPESET);
-        return ANI_NOT_FOUND;
-    }
     std::string createLineSignature = "ii:C{" + std::string(ANI_CLASS_TEXT_LINE) + "}";
     std::array methods = {
         ani_native_function{"getLineBreak", "id:i", reinterpret_cast<void*>(GetLineBreak)},
         ani_native_function{"createLine", createLineSignature.c_str(), reinterpret_cast<void*>(CreateLine)},
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(AniGlobalClass::GetInstance().lineTypeSet, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for LineTypeset, ret %{public}d", ret);
         return ret;
@@ -66,7 +58,7 @@ ani_status AniLineTypeset::AniInit(ani_vm* vm, uint32_t* result)
 ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int startIndex, ani_double width)
 {
     AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(
-        env, object, AniClassFindMethod(env, LINE_TYPESET_GET_NATIVE_KEY));
+        env, object, AniGlobalMethod::GetInstance().lineTypesetGetNative);
     if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -79,7 +71,7 @@ ani_int AniLineTypeset::GetLineBreak(ani_env* env, ani_object object, ani_int st
 ani_object AniLineTypeset::CreateLine(ani_env* env, ani_object object, ani_int startIndex, ani_int count)
 {
     AniLineTypeset* aniLineTypeSet = AniTextUtils::GetNativeFromObj<AniLineTypeset>(
-        env, object, AniClassFindMethod(env, LINE_TYPESET_GET_NATIVE_KEY));
+        env, object, AniGlobalMethod::GetInstance().lineTypesetGetNative);
     if (aniLineTypeSet == nullptr || aniLineTypeSet->lineTypography_ == nullptr) {
         TEXT_LOGE("Line typography is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");

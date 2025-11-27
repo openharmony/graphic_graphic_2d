@@ -24,13 +24,6 @@ namespace OHOS::Text::ANI {
 namespace {
 constexpr int32_t RESOURCE_STRING = 10003;
 constexpr int32_t RESOURCE_RAWFILE = 30000;
-constexpr CacheKey GLOBAL_RESOURCE_ID_KEY{ANI_GLOBAL_RESOURCE, "<get>id", ":l"};
-constexpr CacheKey GLOBAL_RESOURCE_BUNDLE_NAME_KEY{
-    ANI_GLOBAL_RESOURCE, "<get>bundleName", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey GLOBAL_RESOURCE_MODULE_NAME_KEY{
-    ANI_GLOBAL_RESOURCE, "<get>moduleName", ANI_WRAP_RETURN_C(ANI_STRING)};
-constexpr CacheKey GLOBAL_RESOURCE_PARAMS_KEY{ANI_GLOBAL_RESOURCE, "<get>params", ANI_WRAP_RETURN_C(ANI_ARRAY)};
-constexpr CacheKey GLOBAL_RESOURCE_TYPE_KEY{ANI_GLOBAL_RESOURCE, "<get>type", ANI_WRAP_RETURN_C(ANI_INT)};
 } // namespace
 
 AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
@@ -40,16 +33,16 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    env->Object_CallMethod_Long(obj, AniClassFindMethod(env, GLOBAL_RESOURCE_ID_KEY), &aniId);
-    env->Object_CallMethod_Ref(obj, AniClassFindMethod(env, GLOBAL_RESOURCE_BUNDLE_NAME_KEY), &aniBundleName);
-    env->Object_CallMethod_Ref(obj, AniClassFindMethod(env, GLOBAL_RESOURCE_MODULE_NAME_KEY), &aniModuleName);
+    env->Object_CallMethod_Long(obj, AniGlobalMethod::GetInstance().globalResourceId, &aniId);
+    env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().globalResourceBundleName, &aniBundleName);
+    env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().globalResourceModuleName, &aniModuleName);
     AniTextUtils::ReadOptionalArrayField(
-        env, obj, AniClassFindMethod(env, GLOBAL_RESOURCE_PARAMS_KEY), result.params, [](ani_env* env, ani_ref ref) {
+        env, obj, AniGlobalMethod::GetInstance().globalResourceParams, result.params, [](ani_env* env, ani_ref ref) {
             std::string utf8Str;
             AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
             return utf8Str;
         });
-    AniTextUtils::ReadOptionalIntField(env, obj, AniClassFindMethod(env, GLOBAL_RESOURCE_TYPE_KEY), aniType);
+    AniTextUtils::ReadOptionalIntField(env, obj, AniGlobalMethod::GetInstance().globalResourceType, aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);

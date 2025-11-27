@@ -18,179 +18,78 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Text::ANI {
-namespace {
-AniRefCache g_nsCache;
-AniRefCache g_classCache;
-AniRefCache g_enumCache;
-
-std::unordered_map<CacheKey, ani_method, CacheKeyHash> g_methodCache;
-std::unordered_map<CacheKey, ani_function, CacheKeyHash> g_functionCache;
-std::shared_mutex g_methodMutex;
-std::shared_mutex g_functionMutex;
-}
-
-ani_ref ToGlobalRef(ani_env* env, ani_ref local)
-{
-    ani_ref global = nullptr;
-    ani_status status = env->GlobalReference_Create(local, &global);
-    if (status != ANI_OK) {
-        TEXT_LOGE("Failed to create global reference, status %{public}d", status);
-    }
-    return global;
-}
 ani_namespace AniFindNamespace(ani_env* env, const char* descriptor)
 {
-    {
-        std::shared_lock<std::shared_mutex> lock(g_nsCache.mtx);
-        auto it = g_nsCache.store.find(descriptor);
-        if (it != g_nsCache.store.end()) {
-            return static_cast<ani_namespace>(it->second);
-        }
-    }
-
     ani_namespace ns = nullptr;
     ani_status status = env->FindNamespace(descriptor, &ns);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find namespace: %{public}s, status: %{public}d", descriptor, status);
+        TEXT_LOGE("Failed to find namespace: %{public}s, status %{public}d", descriptor, status);
         return nullptr;
     }
-
-    {
-        std::unique_lock<std::shared_mutex> lock(g_nsCache.mtx);
-        auto it = g_nsCache.store.find(descriptor);
-        if (it == g_nsCache.store.end()) {
-            ani_ref global = ToGlobalRef(env, ns);
-            if (global != nullptr) {
-                g_nsCache.store.emplace(descriptor, global);
-            }
-        }
+    ani_ref ref = nullptr;
+    status = env->GlobalReference_Create(ns, &ref);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to create global reference for namespace: %{public}s, status %{public}d", descriptor, status);
+        return nullptr;
     }
-    return ns;
+    return static_cast<ani_namespace>(ref);
 }
 
 ani_class AniFindClass(ani_env* env, const char* descriptor)
 {
-    {
-        std::shared_lock<std::shared_mutex> lock(g_classCache.mtx);
-        auto it = g_classCache.store.find(descriptor);
-        if (it != g_classCache.store.end()) {
-            return static_cast<ani_class>(it->second);
-        }
-    }
-
     ani_class cls = nullptr;
     ani_status status = env->FindClass(descriptor, &cls);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find class: %{public}s, status: %{public}d", descriptor, status);
+        TEXT_LOGE("Failed to find class: %{public}s, status %{public}d", descriptor, status);
         return nullptr;
     }
-
-    {
-        std::unique_lock<std::shared_mutex> lock(g_classCache.mtx);
-        auto it = g_classCache.store.find(descriptor);
-        if (it == g_classCache.store.end()) {
-            ani_ref global = ToGlobalRef(env, cls);
-            if (global != nullptr) {
-                g_classCache.store.emplace(descriptor, global);
-            }
-        }
+    ani_ref ref = nullptr;
+    status = env->GlobalReference_Create(cls, &ref);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to create global reference for class: %{public}s, status %{public}d", descriptor, status);
+        return nullptr;
     }
-    return cls;
+    return static_cast<ani_class>(ref);
 }
 
 ani_enum AniFindEnum(ani_env* env, const char* descriptor)
 {
-    {
-        std::shared_lock<std::shared_mutex> lock(g_enumCache.mtx);
-        auto it = g_enumCache.store.find(descriptor);
-        if (it != g_enumCache.store.end()) {
-            return static_cast<ani_enum>(it->second);
-        }
-    }
-
-    ani_enum en = nullptr;
-    ani_status status = env->FindEnum(descriptor, &en);
+    ani_enum enumObj = nullptr;
+    ani_status status = env->FindEnum(descriptor, &enumObj);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find enum: %{public}s, status: %{public}d", descriptor, status);
+        TEXT_LOGE("Failed to find enum: %{public}s, status %{public}d", descriptor, status);
         return nullptr;
     }
-
-    {
-        std::unique_lock<std::shared_mutex> lock(g_enumCache.mtx);
-        auto it = g_enumCache.store.find(descriptor);
-        if (it == g_enumCache.store.end()) {
-            ani_ref global = ToGlobalRef(env, en);
-            if (global != nullptr) {
-                g_enumCache.store.emplace(descriptor, global);
-            }
-        }
+    ani_ref ref = nullptr;
+    status = env->GlobalReference_Create(enumObj, &ref);
+    if (status != ANI_OK) {
+        TEXT_LOGE("Failed to create global reference for enum: %{public}s, status %{public}d", descriptor, status);
+        return nullptr;
     }
-    return en;
+    return static_cast<ani_enum>(ref);
 }
 
-ani_method AniClassFindMethod(ani_env* env, const CacheKey& key)
+ani_method AniClassFindMethod(ani_env* env, const ani_class cls, const CacheKey& key)
 {
-    {
-        std::shared_lock<std::shared_mutex> lock(g_methodMutex);
-        auto it = g_methodCache.find(key);
-        if (it != g_methodCache.end()) {
-            return it->second;
-        }
-    }
-
-    ani_class cls = AniFindClass(env, std::string(key.d).c_str());
-    if (cls == nullptr) {
-        return nullptr;
-    }
-
     ani_method method = nullptr;
     ani_status status = env->Class_FindMethod(cls, std::string(key.n).c_str(), std::string(key.s).c_str(), &method);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find method: %{public}s %{public}s %{public}s, status: %{public}d",
+        TEXT_LOGE("Failed to find method: %{public}s::%{public}s::%{public}s, status %{public}d",
             std::string(key.d).c_str(), std::string(key.n).c_str(), std::string(key.s).c_str(), status);
         return nullptr;
-    }
-
-    {
-        std::unique_lock<std::shared_mutex> lock(g_methodMutex);
-        auto it = g_methodCache.find(key);
-        if (it == g_methodCache.end()) {
-            g_methodCache.emplace(key, method);
-        }
     }
     return method;
 }
 
-ani_function AniNamespaceFindFunction(ani_env* env, const CacheKey& key)
+ani_function AniNamespaceFindFunction(ani_env* env, const ani_namespace ns, const CacheKey& key)
 {
-    {
-        std::shared_lock<std::shared_mutex> lock(g_functionMutex);
-        auto it = g_functionCache.find(key);
-        if (it != g_functionCache.end()) {
-            return it->second;
-        }
-    }
-
-    ani_namespace ns = AniFindNamespace(env, std::string(key.d).c_str());
-    if (ns == nullptr) {
-        return nullptr;
-    }
-
     ani_function function = nullptr;
     ani_status status =
         env->Namespace_FindFunction(ns, std::string(key.n).c_str(), std::string(key.s).c_str(), &function);
     if (status != ANI_OK) {
-        TEXT_LOGE("Failed to find function: %{public}s %{public}s %{public}s, status: %{public}d",
+        TEXT_LOGE("Failed to find function: %{public}s::%{public}s::%{public}s, status %{public}d",
             std::string(key.d).c_str(), std::string(key.n).c_str(), std::string(key.s).c_str(), status);
         return nullptr;
-    }
-
-    {
-        std::unique_lock<std::shared_mutex> lock(g_functionMutex);
-        auto it = g_functionCache.find(key);
-        if (it == g_functionCache.end()) {
-            g_functionCache.emplace(key, function);
-        }
     }
     return function;
 }
