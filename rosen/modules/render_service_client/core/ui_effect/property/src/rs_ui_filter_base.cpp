@@ -265,7 +265,7 @@ std::shared_ptr<RSNGFilterBase> ConvertVariableRadiusBlurFilterPara(std::shared_
 std::shared_ptr<RSNGFilterBase> ConvertBezierWarpFilterPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::BEZIER_WARP);
-    if (filter == nullptr) {
+    if (filter == nullptr || filterPara == nullptr) {
         return nullptr;
     }
     auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
