@@ -90,7 +90,7 @@ private:
     Drawing::BackendTexture mBackendTexture_;
     NativeBufferUtils::VulkanCleanupHelper* mVulkanCleanupHelper;
     pid_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
-    BufferInfoCache bufferInfoCache_;
+    BufferInfoCache bufferInfoCache_{};
 };
 
 class RSVkImageManager : public RSImageManager {
