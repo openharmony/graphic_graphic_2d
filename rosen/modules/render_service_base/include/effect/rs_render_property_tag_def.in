@@ -23,9 +23,9 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(Blur, RadiusY, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(DispDistort, Factor, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(DispDistort, Mask, MASK_PTR);
 
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorA, Vector4f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorB, Vector4f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SoundWave, ColorC, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ColorA, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ColorB, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ColorC, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, ColorProgress, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, Intensity, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(SoundWave, AlphaA, float);
@@ -151,20 +151,6 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(MaskTransition, Inverse, bool);
 DECLARE_ANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Radius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(VariableRadiusBlur, Mask, MASK_PTR);
 
-// Gasify
-DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);
-
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Color0, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Color1, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ColorGradientEffect, Color2, Vector4f);
@@ -219,7 +205,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, ReflectionFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, RefractionFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, MaterialFactor, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, CornerRadius, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Enable, bool);
+DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Enable, bool);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Rate, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, LightUpDegree, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, CubicCoeff, float);
@@ -228,18 +214,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Saturation, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, PosRGB, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, NegRGB, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(HarmoniumEffect, Fraction, float);
-
-// SDFUnionOpShape
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeX, SHAPE_PTR);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeY, SHAPE_PTR);
-
-// SDFSmoothUnionOpShape
-DECLARE_ANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX, SHAPE_PTR);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY, SHAPE_PTR);
-
-// SDFRRectShape
-DECLARE_ANIMATABLE_PROPERTY_TAG(SDFRRectShape, RRect, RRect);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, LTWH, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(AIBarGlow, StretchFactor, float);
@@ -282,6 +256,39 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, GradientEnd, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, EffectAlpha, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GradientFlowColors, Progress, float);
 
+// SDFUnionOpShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeX, SHAPE_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFUnionOpShape, ShapeY, SHAPE_PTR);
+
+// SDFSmoothUnionOpShape
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX, SHAPE_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY, SHAPE_PTR);
+
+// SDFRRectShape
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFRRectShape, RRect, RRect);
+
+// SDFTransformShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Matrix, Matrix3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFTransformShape, Shape, SHAPE_PTR);
+
+// SDFPixelmapShape
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFPixelmapShape, Image, std::shared_ptr<Media::PixelMap>);
+
+// Gasify
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Scale, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyScaleTwist, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(GasifyBlur, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(GasifyBlur, Mask, std::shared_ptr<Media::PixelMap>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(Gasify, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, SourceImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(Gasify, Mask, std::shared_ptr<Media::PixelMap>);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BlurParams, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, WeightsEdl, Vector2f);
@@ -309,6 +316,19 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightPos, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightNeg, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BorderSize, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, CornerRadius, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, Shape, std::shared_ptr<RSNGRenderShapeBase>);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color0, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color1, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color2, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color3, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationFrequency, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationAmplitude, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationSeed, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, GradientX, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, GradientY, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint0, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint1, Vector2f);
@@ -328,15 +348,3 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle5, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle6, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle7, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle8, Vector2f);
-
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color0, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color1, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color2, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color3, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationFrequency, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationAmplitude, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, RotationSeed, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, GradientX, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, GradientY, Vector4f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Progress, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
