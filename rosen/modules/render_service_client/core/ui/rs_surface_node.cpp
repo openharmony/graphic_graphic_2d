@@ -140,7 +140,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         // codes for arkui-x
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
         if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
-            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface") ||
+            (surfaceNodeConfig.SurfaceNodeName == "xcomponentSurface")) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
                 .additionalData = nullptr,
@@ -771,9 +772,7 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         return;
     }
 #ifdef ROSEN_IOS
-    if (texture->GetSurfaceExtConfig().additionalData == nullptr) {
-        texture->UpdateSurfaceExtConfig(config);
-    }
+    texture->UpdateSurfaceExtConfig(config);
 #endif
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u", GetId(), config.type);
     std::unique_ptr<RSCommand> command =
