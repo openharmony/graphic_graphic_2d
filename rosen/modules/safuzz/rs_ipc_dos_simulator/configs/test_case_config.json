@@ -2316,6 +2316,27 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID_TEST_001",
+    "interfaceName": "NOTIFY_WINDOW_EXPECTED_BY_WINDOW_ID",
+    "inputParams": "WriteUint32;WriteUint64AndEventInfoPairVector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME_TEST_001",
+    "interfaceName": "NOTIFY_WINDOW_EXPECTED_BY_VSYNC_NAME",
+    "inputParams": "WriteUint32;WriteStringAndEventInfoPairVector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT_TEST_001",
+    "interfaceName": "NOTIFY_APP_STRATEGY_CONFIG_CHANGE_EVENT",
+    "inputParams": "WriteString;WriteUint32;WriteStringAndStringPairVector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "NOTIFY_REFRESH_RATE_EVENT_TEST_001",
     "interfaceName": "NOTIFY_REFRESH_RATE_EVENT",
     "inputParams": "WriteString;WriteBool;WriteUint32;WriteUint32;WriteString",
