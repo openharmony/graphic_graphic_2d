@@ -53,40 +53,40 @@ public:
     void SetWeightsEdl(Vector2f& weightsEdl)
     {
         weightsEdl_ = weightsEdl; 
-    } 
+    }
 
     const Vector2f GetWeightsEdl() const
-    { 
+    {
         return weightsEdl_;
     }
 
     void SetBgRates(Vector2f& bgRates)
     {
-        bgRates_ = bgRates; 
+        bgRates_ = bgRates;
     }
 
     const Vector2f GetBgRates() const
-    { 
+    {
         return bgRates_;
     }
 
     void SetBgKBS(Vector3f& bgKBS)
     {
-        bgKBS_ = bgKBS; 
+        bgKBS_ = bgKBS;
     }
 
     const Vector3f GetBgKBS() const
-    { 
+    {
         return bgKBS_;
     }
 
     void SetBgPos(Vector3f& bgPos)
-    { 
+    {
         bgPos_ = bgPos;
     }
 
     const Vector3f GetBgPos() const
-    { 
+    {
         return bgPos_;
     }
 
@@ -216,7 +216,7 @@ public:
     }
 
     const Vector2f GetEdLightParams() const
-    { 
+    {
         return edLightParams_;
     }
 
