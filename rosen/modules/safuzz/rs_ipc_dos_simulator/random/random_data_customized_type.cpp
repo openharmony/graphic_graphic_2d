@@ -559,7 +559,7 @@ EventInfo RandomDataCustomizedType::GetRandomEventInfo()
     uint32_t maxRefreshRate = RandomDataBasicType::GetRandomUint32();
     std::string description = RandomDataBasicType::GetRandomString();
     EventInfo eventInfo { eventName, eventStatus, minRefreshRate, maxRefreshRate, description };
-    return eventInfo
+    return eventInfo;
 }
 
 std::vector<std::pair<uint64_t, EventInfo>> RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector()

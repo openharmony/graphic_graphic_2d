@@ -213,6 +213,22 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateModeChangeCallba
     return true;
 }
 
+bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    HgmRefreshRateUpdateCallback callback = [](int32_t) {
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr sleep 6s");
+        usleep(DELAY);
+    };
+    sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateUpdateCallback(callback);
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
 bool MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
@@ -261,22 +277,6 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector(Mess
             SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector WriteString failed");
             return false;
         }
-    }
-    return true;
-}
-
-bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr(MessageParcel& messageParcel,
-    const TestCaseParams& /* testCaseParams */)
-{
-    HgmRefreshRateUpdateCallback callback = [](int32_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr sleep 6s");
-        usleep(DELAY);
-    };
-    sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateUpdateCallback(callback);
-    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
-        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr "
-            "WriteRemoteObject failed");
-        return false;
     }
     return true;
 }
