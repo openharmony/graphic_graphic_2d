@@ -22,6 +22,7 @@
 #include "command/rs_node_command.h"
 #include "command/rs_node_showing_command.h"
 #include "command/rs_surface_node_command.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -100,6 +101,11 @@ public:
     // RSFrameRateLinkerCommand params
     static ComponentScene GetRandomComponentScene();
     static FrameRateRange GetRandomFrameRateRange();
+
+    static EventInfo GetRandomEventInfo();
+    static std::vector<std::pair<uint64_t, EventInfo>> GetRandomUint64AndEventInfoPairVector();
+    static std::vector<std::pair<std::string, EventInfo>> GetRandomStringAndEventInfoPairVector();
+    static std::vector<std::pair<std::string, std::string>> GetRandomStringAndStringPairVector();
 
     static Drawing::Point GetRandomDrawingPoint();
     static Drawing::Color GetRandomDrawingColor();

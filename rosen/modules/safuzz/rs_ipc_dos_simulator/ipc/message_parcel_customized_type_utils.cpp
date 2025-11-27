@@ -54,6 +54,9 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(HgmConfigChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(HgmRefreshRateModeChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(HgmRefreshRateUpdateCallbackSptr),
+    DECLARE_WRITE_RANDOM(Uint64AndEventInfoPairVector),
+    DECLARE_WRITE_RANDOM(StringAndEventInfoPairVector),
+    DECLARE_WRITE_RANDOM(StringAndStringPairVector),
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     DECLARE_WRITE_RANDOM(PointerLuminanceChangeCallbackSptr),
 #endif
@@ -222,6 +225,58 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSp
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr "
             "WriteRemoteObject failed");
         return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::vector<std::pair<uint64_t, EventInfo>> dataVec =
+        RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector();
+    for (const auto& data : dataVec) {
+        if (!messageParcel.WriteUint64(data.first)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector WriteUint64 failed");
+            return false;
+        }
+        if (!data.second.Serialize(messageParcel)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector "
+                "WriteEventInfo failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::vector<std::pair<std::string, EventInfo>> dataVec =
+        RandomDataCustomizedType::GetRandomStringAndEventInfoPairVector();
+    for (const auto& data : dataVec) {
+        if (!messageParcel.WriteString(data.first)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector WriteString failed");
+            return false;
+        }
+        if (!data.second.Serialize(messageParcel)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector "
+                "WriteEventInfo failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::vector<std::pair<std::string, std::string>> dataVec =
+        RandomDataCustomizedType::GetRandomStringAndStringPairVector();
+    for (const auto& data : dataVec) {
+        if (!messageParcel.WriteString(data.first) || !messageParcel.WriteString(data.second)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector WriteString failed");
+            return false;
+        }
     }
     return true;
 }

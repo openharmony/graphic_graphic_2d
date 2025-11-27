@@ -551,6 +551,55 @@ FrameRateRange RandomDataCustomizedType::GetRandomFrameRateRange()
     return frameRateRange;
 }
 
+EventInfo RandomDataCustomizedType::GetRandomEventInfo()
+{
+    std::string eventName = RandomDataBasicType::GetRandomString();
+    bool eventStatus = RandomDataBasicType::GetRandomBool();
+    uint32_t minRefreshRate = RandomDataBasicType::GetRandomUint32();
+    uint32_t maxRefreshRate = RandomDataBasicType::GetRandomUint32();
+    std::string description = RandomDataBasicType::GetRandomString();
+    return { eventName, eventStatus, minRefreshRate, maxRefreshRate, description };
+}
+
+std::vector<std::pair<uint64_t, EventInfo>> RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector()
+{
+    std::vector<std::pair<uint64_t, EventInfo>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        uint64_t x = RandomDataBasicType::GetRandomUint64();
+        EventInfo y = GetRandomEventInfo();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
+std::vector<std::pair<std::string, EventInfo>> RandomDataCustomizedType::GetRandomStringAndEventInfoPairVector()
+{
+    std::vector<std::pair<std::string, EventInfo>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        std::string x = RandomDataBasicType::GetRandomString();
+        EventInfo y = GetRandomEventInfo();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
+std::vector<std::pair<std::string, std::string>> RandomDataCustomizedType::GetRandomStringAndStringPairVector()
+{
+    std::vector<std::pair<std::string, std::string>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        std::string x = RandomDataBasicType::GetRandomString();
+        std::string y = RandomDataBasicType::GetRandomString();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
 Drawing::Point RandomDataCustomizedType::GetRandomDrawingPoint()
 {
     return Drawing::Point(RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat());
