@@ -430,6 +430,34 @@ int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_Colo
  */
 int32_t OH_NativeImage_AcquireLatestNativeWindowBuffer(OH_NativeImage* image,
     OHNativeWindowBuffer** nativeWindowBuffer, int* fenceFd);
+
+/**
+ * @brief Check whether the texture releated to the <b>OH_NativeImage</b> has been released.\n
+ * This interface is a non-thread-safe type interface.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @param isReleased Indicates whether the texture releated to the <b>OH_NativeImage</b> has been released.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
+ * @since 23
+ * @version 1.0
+ */
+int32_t OH_NativeImage_IsReleased(OH_NativeImage* image, bool* isReleased);
+
+/**
+ * @brief Clean all <b>OHNativeWindowBuffer</b> caches of the <b>OHNativeWindow</b> for the <b>OH_NativeImage</b>,\n
+ * and detach the OH_NativeImage from the Opengl ES context.\n
+ * This interface is a non-thread-safe type interface.\n
+ *
+ * @syscap SystemCapability.Graphic.Graphic2D.NativeImage
+ * @param image Indicates the pointer to a <b>OH_NativeImage</b> instance.
+ * @return {@link NATIVE_ERROR_OK} 0 - Success.
+ *     {@link NATIVE_ERROR_INVALID_ARGUMENTS} 40001000 - image is NULL.
+ * @since 23
+ * @version 1.0
+ */
+int32_t OH_NativeImage_Release(OH_NativeImage* image);
 #ifdef __cplusplus
 }
 #endif
