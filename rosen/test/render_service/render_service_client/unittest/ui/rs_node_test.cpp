@@ -7286,6 +7286,28 @@ HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AddChildTest005
+ * @tc.desc: Test AddChild with invalid shadow child
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
+{
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(true, true);
+    auto rsUIContext = uiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto trueChild = RSCanvasNode::Create();
+    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
+        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
+
+    EXPECT_EQ(trueChild->lazyLoad_, true);
+    rsNode->AddChild(shadowChild, 1);
+    EXPECT_EQ(trueChild->lazyLoad_, true);
+}
+
+/**
  * @tc.name: MoveChild
  * @tc.desc: test results of MoveChild
  * @tc.type: FUNC

@@ -1868,6 +1868,7 @@ protected:
     void DumpModifiers(std::string& out) const;
 
     mutable bool lazyLoad_ = false;
+    bool shadowNodeFlag_ = false;
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;

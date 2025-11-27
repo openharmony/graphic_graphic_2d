@@ -160,7 +160,6 @@ const std::set<std::pair<uint16_t, uint16_t>> RSNode::createNodeCommandTypes_{
 const std::set<std::pair<uint16_t, uint16_t>> RSNode::lazyLoadCommandTypes_{
     {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY},
     {RSCommandType::BASE_NODE, RSNodeCommandType::SET_UICONTEXT_TOKEN},
-    {RSCommandType::RS_NODE, RSNodeCommandType::SET_NODE_NAME},
     {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY}
 };
 
@@ -3328,6 +3327,7 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 
 void RSNode::SetDrawNode()
 {
+    LoadRenderNodeIfNeed();
     if (isDrawNode_) {
         return;
     }
@@ -3620,11 +3620,12 @@ void RSNode::AddChild(SharedPtr child, int index)
     if (frameNodeId_ < 0) {
         child->SetDrawNode();
     }
-    child->LoadRenderNodeIfNeed();
-    if (SharedPtr childInMap = GetNodeInMap(child->GetId())) {
-        if (childInMap != child) {
+    if (child->shadowNodeFlag_) {
+        if (SharedPtr childInMap = GetNodeInMap(child->GetId())) {
             childInMap->LoadRenderNodeIfNeed();
         }
+    } else {
+        child->LoadRenderNodeIfNeed();
     }
     AddChildInner(child, index);
 }
