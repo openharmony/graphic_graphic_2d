@@ -232,6 +232,38 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
 }
 
 /*
+* Function: CommitAndGetReleaseFence002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call CommitAndGetReleaseFence()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence002, Function | MediumTest| Level1)
+{
+    EXPECT_CALL(*hdiDeviceMock_,
+        CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    int32_t skipState = 0;
+    bool needFlush = false;
+
+    // Setup buffer cache to verify clearing
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    HdiOutputTest::hdiOutput_->bufferCache_.push_back(buffer);
+
+    // Setup layer to verify ResetBufferCache call (branch coverage)
+    std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(0);
+    HdiOutputTest::hdiOutput_->layerIdMap_[0] = hdiLayer;
+
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false),
+        GRAPHIC_DISPLAY_FAILURE);
+
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->bufferCache_.size(), 0);
+
+    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
+}
+
+/*
 * Function: CheckAndUpdateClientBufferCahce001
 * Type: Function
 * Rank: Important(1)

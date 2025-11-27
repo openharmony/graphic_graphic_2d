@@ -950,5 +950,10 @@ void HdiLayer::ClearBufferCache()
     CheckRet(ret, "ClearLayerBuffer");
     bufferCleared_ = true;
 }
+
+void HdiLayer::ResetBufferCache()
+{
+    bufferCache_.clear();
+}
 } // namespace Rosen
 } // namespace OHOS

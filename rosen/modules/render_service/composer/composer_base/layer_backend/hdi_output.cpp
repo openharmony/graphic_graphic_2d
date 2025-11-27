@@ -600,8 +600,17 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
     CHECK_DEVICE_NULL(device_);
     layersId_.clear();
     fences_.clear();
-    return device_->CommitAndGetReleaseFence(
+    int32_t ret = device_->CommitAndGetReleaseFence(
         screenId_, fbFence, skipState, needFlush, layersId_, fences_, isValidated);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        for (const auto& [id, layer] : layerIdMap_) {
+            if (layer) {
+                layer->ResetBufferCache();
+            }
+        }
+        bufferCache_.clear();
+    }
+    return ret;
 }
 
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
