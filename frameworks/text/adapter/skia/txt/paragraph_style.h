@@ -98,6 +98,7 @@ public:
     float paragraphSpacing{0.0f};
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
+    bool compressHeadPunctuation{false};
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
         relayoutChangeBitmap;
     size_t defaultTextStyleUid { 0 };

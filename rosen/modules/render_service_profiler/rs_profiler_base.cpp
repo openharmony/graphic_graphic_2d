@@ -1132,7 +1132,7 @@ static void SetupCanvasDrawingRenderNode(RSRenderNode& node)
     }
 
     if ((width > 0) && (height > 0)) {
-        static_cast<RSCanvasDrawingRenderNode&>(node).ResetSurface(width, height);
+        static_cast<RSCanvasDrawingRenderNode&>(node).ResetSurface(width, height, 0);
     }
 }
 

@@ -3252,6 +3252,17 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     }
 }
 
+void RSNode::ExcludedFromNodeGroup(bool isExcluded)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    if (isExcludedFromNodeGroup_ == isExcluded) {
+        return;
+    }
+    isExcludedFromNodeGroup_ = isExcluded;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSExcludedFromNodeGroup>(GetId(), isExcluded);
+    AddCommand(command, IsRenderServiceNode());
+}
+
 void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));

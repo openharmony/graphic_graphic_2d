@@ -54,6 +54,14 @@ void RSNodeCommandHelper::MarkNodeGroup(RSContext& context, NodeId nodeId, bool 
     }
 }
 
+void RSNodeCommandHelper::ExcludedFromNodeGroup(RSContext& context, NodeId nodeId, bool isExcluded)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        node->ExcludedFromNodeGroup(isExcluded);
+    }
+}
+
 void RSNodeCommandHelper::MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary)
 {
     auto& nodeMap = context.GetNodeMap();

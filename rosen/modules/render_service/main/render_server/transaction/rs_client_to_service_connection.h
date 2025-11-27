@@ -61,6 +61,9 @@ private:
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks() noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacksAndPendingBuffer() noexcept;
+#endif
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces

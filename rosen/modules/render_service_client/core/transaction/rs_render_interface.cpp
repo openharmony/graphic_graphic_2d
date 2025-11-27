@@ -367,5 +367,25 @@ void RSRenderInterface::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     return renderPiplineClient_->SetScreenFrameGravity(id, gravity);
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    // Canvas callback memory attribution only works in unified render mode
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        return;
+    }
+    renderPiplineClient_->RegisterCanvasCallback(callback);
+}
+
+int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    // Canvas pre-allocated buffer only works in unified render mode
+    if (!RSSystemProperties::GetUniRenderEnabled()) {
+        return INVALID_ARGUMENTS;
+    }
+    return renderPiplineClient_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+}
+#endif
 }
 }

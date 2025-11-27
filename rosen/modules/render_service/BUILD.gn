@@ -301,6 +301,7 @@ ohos_shared_library("librender_service") {
       "core/feature/uifirst/rs_sub_thread_cache.cpp",
       "core/feature/uifirst/rs_uifirst_frame_rate_control.cpp",
       "core/feature/uifirst/rs_uifirst_manager.cpp",
+      "core/memory/rs_canvas_dma_buffer_cache.cpp",
       "core/memory/rs_memory_manager.cpp",
       "core/pipeline/main_thread/rs_uni_render_listener.cpp",
       "core/pipeline/main_thread/rs_uni_render_visitor.cpp",

@@ -34,6 +34,9 @@
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
 #include "ipc_callbacks/iapplication_agent.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
+#endif
 #include "ipc_callbacks/rs_iself_drawing_node_rect_change_callback.h"
 #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
@@ -125,6 +128,13 @@ public:
     virtual void SetScreenFrameGravity(ScreenId id, int32_t gravity) = 0;
 
     virtual void RemoveToken() = 0;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    virtual void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) = 0;
+
+    virtual int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
+#endif
 };
 
 } // namespace Rosen

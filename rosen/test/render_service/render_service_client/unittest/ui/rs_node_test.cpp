@@ -6853,6 +6853,29 @@ HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExcludedFromNodeGroup
+ * @tc.desc: test results of ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, ExcludedFromNodeGroup, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->ExcludedFromNodeGroup(true);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+    EXPECT_TRUE(rsNode->isExcludedFromNodeGroup_);
+
+    rsNode->ExcludedFromNodeGroup(false);
+    EXPECT_FALSE(rsNode->isExcludedFromNodeGroup_);
+    rsNode->ExcludedFromNodeGroup(false);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->ExcludedFromNodeGroup(true);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
  * @tc.name: MarkRepaintBoundary
  * @tc.desc: test results of MarkRepaintBoundary
  * @tc.type: FUNC

@@ -1767,5 +1767,15 @@ bool RSSystemProperties::GetScaleImageAsyncEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
+
+bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
+{
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", true);
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+{
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_render_dma", false);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -58,6 +58,7 @@ bool TypographyStyle::operator==(const TypographyStyle &rhs) const
         this->paragraphSpacing == rhs.paragraphSpacing &&
         this->isEndAddParagraphSpacing == rhs.isEndAddParagraphSpacing &&
         this->isTrailingSpaceOptimized == rhs.isTrailingSpaceOptimized &&
+        this->compressHeadPunctuation == rhs.compressHeadPunctuation &&
         this->enableAutoSpace == rhs.enableAutoSpace;
 }
 
