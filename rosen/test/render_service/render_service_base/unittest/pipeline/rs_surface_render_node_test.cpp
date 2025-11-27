@@ -1107,6 +1107,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId001, TestSize.Level2)
     ASSERT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId nodeId = node->GetId();
     pid_t pid = ExtractPid(nodeId);
     rsContext->GetMutableNodeMap().renderNodeMap_[pid][nodeId] = node;
@@ -1130,6 +1131,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId002, TestSize.Level2)
     ASSERT_NE(childNode, nullptr);
     ASSERT_NE(parentNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
     NodeId parentNodeId = parentNode->GetId();
@@ -2286,8 +2288,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest001, TestSize.Level1)
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(leashWindowNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
     NodeId leashWindowNodeId = leashWindowNode->GetId();
@@ -2330,8 +2334,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(leashWindowNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
     NodeId leashWindowNodeId = leashWindowNode->GetId();

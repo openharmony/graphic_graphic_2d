@@ -2792,7 +2792,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RRect rrect;
     nodeTest->renderProperties_.rrect_ = rrect;
     nodeTest->UpdateDrawableVecV2();
-    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum + 1);
+    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum);
 }
 
 /**
