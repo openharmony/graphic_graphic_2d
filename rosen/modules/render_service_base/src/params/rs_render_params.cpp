@@ -204,6 +204,42 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     needSync_ = true;
 }
 
+void RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->ExcludedFromNodeGroup(isExcluded)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::IsExcludedFromNodeGroup() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->IsExcludedFromNodeGroup();
+    }
+    return false;
+}
+
+void RSRenderParams::SetHasChildExcludedFromNodeGroup(bool isExcluded)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetHasChildExcludedFromNodeGroup(isExcluded)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::HasChildExcludedFromNodeGroup() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->HasChildExcludedFromNodeGroup();
+    }
+    return false;
+}
+
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
 {
     if (drawingCacheIncludeProperty_ == includeProperty) {
@@ -474,6 +510,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
+    if (renderGroupCache_) {
+        target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
+    }
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;

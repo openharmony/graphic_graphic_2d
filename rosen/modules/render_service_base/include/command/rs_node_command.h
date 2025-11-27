@@ -83,6 +83,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_GROUP = 0x0400,
     MARK_NODE_SINGLE_FRAME_COMPOSER = 0x0401,
     MARK_SUGGEST_OPINC_NODE = 0x0402,
+    EXCLUDED_FROM_NODE_GROUP = 0x403,
 
     MARK_UIFIRST_NODE = 0x0500,
     MARK_UIFIRST_NODE_FORCE = 0x0501,
@@ -136,6 +137,7 @@ public:
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
+    static void ExcludedFromNodeGroup(RSContext& context, NodeId nodeId, bool isExcluded);
     static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
@@ -327,6 +329,9 @@ ADD_COMMAND(RSSetUIContextToken,
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
+ADD_COMMAND(RSExcludedFromNodeGroup,
+    ARG(PERMISSION_APP, RS_NODE, EXCLUDED_FROM_NODE_GROUP,
+        RSNodeCommandHelper::ExcludedFromNodeGroup, NodeId, bool))
 ADD_COMMAND(RSMarkRepaintBoundary,
     ARG(PERMISSION_APP, RS_NODE, MARK_REPAINT_BOUNDARY,
         RSNodeCommandHelper::MarkRepaintBoundary, NodeId, bool))

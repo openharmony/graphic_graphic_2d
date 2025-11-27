@@ -2553,7 +2553,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
  */
 HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest014, TestSize.Level1)
 {
-std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->InitRenderParams();
     EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
@@ -2580,6 +2580,46 @@ std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
     EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeId(), surfaceNode->GetId());
     EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeName(), surfaceNode->GetName());
+}
+
+/**
+ * @tc.name: ExcludedFromNodeGroupTest
+ * @tc.desc: Test ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderNodeTest, ExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+
+    nodeTest->ExcludedFromNodeGroup(true);
+    EXPECT_TRUE(nodeTest->IsExcludedFromNodeGroup());
+
+    nodeTest->ExcludedFromNodeGroup(false);
+    EXPECT_FALSE(nodeTest->IsExcludedFromNodeGroup());
+}
+
+/**
+ * @tc.name: SetHasChildExcludedFromNodeGroupTest
+ * @tc.desc: Test SetHasChildExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderNodeTest, SetHasChildExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+
+    nodeTest->SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(nodeTest->HasChildExcludedFromNodeGroup());
+
+    nodeTest->SetHasChildExcludedFromNodeGroup(false);
+    EXPECT_FALSE(nodeTest->HasChildExcludedFromNodeGroup());
 }
 
 #ifndef MODIFIER_NG

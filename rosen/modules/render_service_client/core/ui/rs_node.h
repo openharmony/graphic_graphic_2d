@@ -1633,6 +1633,15 @@ public:
      */
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
+    /**
+     * @brief Mark node exclude from nodeGroup
+     *
+     * When node is marked ExcludedFromNodeGroup, it will not cached by renderGroup
+     *
+     * @param isExcluded     When true, When node and its subtree will be exluded on renderGroup cache
+     */
+    void ExcludedFromNodeGroup(bool isExcluded);
+
     // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
     // will be abandoned
@@ -2108,6 +2117,7 @@ private:
     bool extendModifierIsDirty_ { false };
 
     bool isNodeGroup_ = false;
+    bool isExcludedFromNodeGroup_ = false;
     bool isRepaintBoundary_ = false;
 
     bool isNodeSingleFrameComposer_ = false;

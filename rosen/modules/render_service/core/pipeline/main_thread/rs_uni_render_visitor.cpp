@@ -3160,6 +3160,9 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (node.ChildHasVisibleHDRContent() || node.GetHDRStatus() != HdrStatus::NO_HDR) {
         nodeParent->SetChildHasVisibleHDRContent(true);
     }
+    if (node.HasChildExcludedFromNodeGroup() || node.IsExcludedFromNodeGroup()) {
+        nodeParent->SetHasChildExcludedFromNodeGroup(true);
+    }
 }
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
