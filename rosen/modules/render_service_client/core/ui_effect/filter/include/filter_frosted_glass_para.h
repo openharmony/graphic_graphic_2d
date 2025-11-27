@@ -60,16 +60,6 @@ public:
         return weightsEdl_; 
     }
 
-    void SetBgFactor(float& bgFactor) 
-    {
-        bgFactor_ = bgFactor;
-    }
-
-    const float& GetBgFactor() const 
-    { 
-        return bgFactor_; 
-    }
-
     void SetBgRates(Vector2f& bgRates) 
     { 
         bgRates_ = bgRates; 
@@ -108,6 +98,16 @@ public:
     const Vector3f GetBgNeg() const 
     { 
         return bgNeg_; 
+    }
+
+    void SetRefractParams(Vector3f& refractParams) 
+    { 
+        refractParams_ = refractParams; 
+    }
+
+    const Vector3f GetRefractParams() const 
+    { 
+        return refractParams_; 
     }
 
     void SetSdParams(Vector3f& sdParams) 
@@ -305,11 +305,12 @@ private:
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
     // Background darken parameters
-    float bgFactor_ = 0.9f;
     Vector2f bgRates_ = Vector2f(0.0f, 0.0f);
     Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f bgNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    // Refraction parameters
+    Vector3f refractParams_ = Vector3f(0.0f, 0.0f, 0.0f);
     // Inner shadow parameters
     Vector3f sdParams_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f sdRates_ = Vector2f(0.0f, 0.0f);
