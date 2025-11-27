@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
+#include <gtest/gtest.h>
+
 #include "hdi_layer.h"
 #include "mock_hdi_device.h"
-#include <gtest/gtest.h>
 #include "surface_buffer_impl.h"
 #include "rs_render_composer_client.h"
 #include "rs_surface_layer.h"
@@ -62,7 +63,7 @@ void HdiLayerTest::SetUpTestCase()
     rsLayer_->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_NONE);
     rsLayer_->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
-    sptr<SyncFence> fence = new SyncFence(1);
+    sptr<SyncFence> fence = new SyncFence(-1);
     rsLayer_->SetBuffer(buffer, fence);
 
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
@@ -159,11 +160,13 @@ HWTEST_F(HdiLayerTest, GetReleaseFence001, Function | MediumTest| Level1)
 */
 HWTEST_F(HdiLayerTest, SetHdiLayerInfo002, Function | MediumTest| Level1)
 {
-    bool doLayerCompare = true;
-    EXPECT_CALL(*hdiDeviceMock_, SetLayerZorder(_, _, _)).WillOnce(testing::Return(0));
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(doLayerCompare), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_, SetLayerColor(_, _, _)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(false), GRAPHIC_DISPLAY_SUCCESS);
     hdiLayer_->SavePrevRSLayer();
-    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(doLayerCompare), GRAPHIC_DISPLAY_SUCCESS);
+    hdiLayer_->prevRSLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(false), GRAPHIC_DISPLAY_SUCCESS);
+    hdiLayer_->rsLayer_->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_DEVICE);
+    ASSERT_EQ(HdiLayerTest::hdiLayer_->SetHdiLayerInfo(false), GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /*
@@ -217,7 +220,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerId002, Function | MediumTest| Level1)
     uint32_t layerId = 2;
     uint64_t tunnelId = 3;
  
-    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(devId, layerId, tunnelId)).WillOnce(Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerId(devId, layerId, tunnelId)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerId(), 0);
 }
  
@@ -235,7 +238,7 @@ HWTEST_F(HdiLayerTest, SetTunnelLayerProperty001, Function | MediumTest| Level1)
     uint32_t layerId = 2;
     uint32_t property = 3;
  
-    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(devId, layerId, property)).WillOnce(Return(0));
+    EXPECT_CALL(*hdiDeviceMock_, SetTunnelLayerProperty(devId, layerId, property)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiLayerTest::hdiLayer_->SetTunnelLayerProperty(), 0);
 }
 
@@ -451,13 +454,22 @@ HWTEST_F(HdiLayerTest, SelectHitchsInfoTest, Function | MediumTest| Level1)
     ASSERT_NE(hdiLayer_, nullptr);
     std::string ret = "";
     std::vector<std::string> windowsNameTest = {"testName1", "testName2", "testName3"};
-    FPSInfo test1 = { 1, windowsNameTest };
-    FPSInfo test2 = { 1, windowsNameTest };
+    FPSInfo test1 = {1, windowsNameTest};
+    FPSInfo test2 = {1, windowsNameTest};
     hdiLayer_->presentTimeRecords_[0] = test1;
     hdiLayer_->presentTimeRecords_[1] = test2;
     hdiLayer_->SelectHitchsInfo("testName1", ret);
     ret = "";
     hdiLayer_->SelectHitchsInfo("testName2", ret);
+    EXPECT_NE(ret, "");
+    hdiLayer_->presentTimeRecords_[1].presentTime = 70 * 1000000;
+    hdiLayer_->SelectHitchsInfo("testName1", ret);
+    EXPECT_NE(ret, "");
+    hdiLayer_->presentTimeRecords_[1].presentTime = 35 * 1000000;
+    hdiLayer_->SelectHitchsInfo("testName1", ret);
+    EXPECT_NE(ret, "");
+    hdiLayer_->presentTimeRecords_[1].presentTime = 20 * 1000000;
+    hdiLayer_->SelectHitchsInfo("testName1", ret);
     EXPECT_NE(ret, "");
 }
 
@@ -707,7 +719,6 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
     hdiLayer_->bufferCache_.clear();
     hdiLayer_->bufferCache_.push_back(1);
     hdiLayer_->rsLayer_ = nullptr;
-    hdiLayer_->device_ = nullptr;
     hdiLayer_->ClearBufferCache();
 }
 

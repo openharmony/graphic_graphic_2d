@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -64,7 +64,7 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(screen);
 
-    composerAdapter_ = std::make_shared<RSUniRenderComposerAdapter>();
+    composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
     ASSERT_NE(composerAdapter_, nullptr);
 }
 
@@ -74,8 +74,10 @@ void RSUniRenderComposerAdapterTest::TearDownTestCase()
 }
 
 void RSUniRenderComposerAdapterTest::TearDown() {}
+
 void RSUniRenderComposerAdapterTest::SetUp() {}
-// must be first UITest
+
+// must be first UTTest
 HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
 {
     uint32_t width = 2560;
@@ -185,7 +187,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSi
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_NE(surfaceNode, nullptr);
-    composerAdapter_->output_ = nullptr;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
