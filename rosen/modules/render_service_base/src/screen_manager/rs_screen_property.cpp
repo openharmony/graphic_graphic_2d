@@ -216,6 +216,11 @@ RSScreenType RSScreenProperty::GetScreenType() const
     return screenType_;
 }
 
+ScreenConnectionType RSScreenProperty::GetConnectionType() const
+{
+    return connectionType_;
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 sptr<Surface> RSScreenProperty::GetProducerSurface() const
 {
@@ -500,6 +505,10 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
         ROSEN_LOGE("WriteScreenProperty: WriteUint32 screenType err.");
         return false;
     }
+    if (!data.WriteUint32(static_cast<uint32_t>(connectionType_))) {
+        ROSEN_LOGE("WriteScreenProperty: WriteUint32 connectionType_ err.");
+        return false;
+    }
     if (!data.WriteBool(isHardCursorSupport_)) {
         ROSEN_LOGE("WriteScreenProperty: WriteBool isHardCursorSupport err.");
         return false;
@@ -775,6 +784,12 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
         return false;
     }
     screenType_ = static_cast<RSScreenType>(screenType);
+    uint32_t connectionType = 0;
+    if (!data.ReadUint32(connectionType)) {
+        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUint32 connectionType err.");
+        return false;
+    }
+    connectionType_ = static_cast<ScreenConnectionType>(connectionType);
     if (!data.ReadBool(isHardCursorSupport_)) {
         ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadBool isHardCursorSupport err.");
         return false;

@@ -2404,6 +2404,16 @@ int32_t RSScreenManager::GetDisplayIdentificationData(ScreenId id, uint8_t& outP
     return screen->GetDisplayIdentificationData(outPort, edidData);
 }
 
+ScreenConnectionType RSScreenManager::GetScreenConnectionType(ScreenId id) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE;
+    }
+    return screen->GetConnectionType();
+}
+
 int32_t RSScreenManager::GetPixelFormat(ScreenId id, GraphicPixelFormat& pixelFormat) const
 {
     auto screen = GetScreen(id);

@@ -119,6 +119,8 @@ public:
     RSScreenData GetScreenData(ScreenId id) const;
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) const;
 
+    ScreenConnectionType GetScreenConnectionType(ScreenId id) const;
+
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation);
     ScreenRotation GetScreenCorrection(ScreenId id) const;
 

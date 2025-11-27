@@ -68,6 +68,7 @@ public:
     void SetCastScreenEnableSkipWindow(bool enable);
     void SetPowerStatus(ScreenPowerStatus powerStatus);
     void SetScreenType(RSScreenType screenType);
+    void SetConnectionType(ScreenConnectionType connectionType);
     void SetProducerSurface(sptr<Surface> producerSurface);
     void SetScreenScaleMode(ScreenScaleMode scaleMode);
     void SetScreenStatus(VirtualScreenStatus screenStatus);
@@ -116,6 +117,7 @@ public:
     bool GetCastScreenEnableSkipWindow() const;
     ScreenPowerStatus GetPowerStatus() const;
     RSScreenType GetScreenType() const;
+    ScreenConnectionType GetConnectionType() const;
     sptr<Surface> GetProducerSurface() const;
     ScreenScaleMode GetScreenScaleMode() const;
     VirtualScreenStatus GetScreenStatus() const;

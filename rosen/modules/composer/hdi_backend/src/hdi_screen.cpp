@@ -23,7 +23,7 @@
 #include <cstring>
 #include <securec.h>
 #include <mutex>
-#include "v1_3/include/idisplay_composer_interface.h"
+#include "v1_4/include/idisplay_composer_interface.h"
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
     do {                                                             \
@@ -302,6 +302,12 @@ int32_t HdiScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<ui
 {
     CHECK_DEVICE_NULL(device_);
     return device_->GetDisplayIdentificationData(screenId_, outPort, edidData);
+}
+
+int32_t HdiScreen::GetScreenConnectionType(GraphicDisplayConnectionType& outType) const
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->GetScreenConnectionType(screenId_, outType);
 }
 } // namespace Rosen
 } // namespace OHOS
