@@ -177,7 +177,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest002, TestSize.Level1)
     auto appSurfaceNode =
         RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(rsCanvasDrawingRenderNode.GetInstanceRootNode());
     EXPECT_NE(appSurfaceNode, nullptr);
-    rsCanvasDrawingRenderNode.ResetSurface(width, height);
+    rsCanvasDrawingRenderNode.ResetSurface(width, height, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode.stagingRenderParams_->surfaceParams_.colorSpace,
         GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 }
@@ -519,11 +519,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
     int height = 1;
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
     rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
-    rsCanvasDrawingRenderNode.ResetSurface(width, height);
+    rsCanvasDrawingRenderNode.ResetSurface(width, height, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
 
     rsCanvasDrawingRenderNode.surface_ = std::make_shared<Drawing::Surface>();
-    rsCanvasDrawingRenderNode.ResetSurface(width, height);
+    rsCanvasDrawingRenderNode.ResetSurface(width, height, height);
     ASSERT_EQ(rsCanvasDrawingRenderNode.surface_, nullptr);
 
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))

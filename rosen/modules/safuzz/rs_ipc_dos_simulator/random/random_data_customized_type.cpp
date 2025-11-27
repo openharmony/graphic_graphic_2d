@@ -664,7 +664,7 @@ ModifierNG::RSPropertyType RandomDataCustomizedType::GetRandomRSPropertyType()
 
 ModifierNG::RSModifierType RandomDataCustomizedType::GetRandomRSModifierType()
 {
-    return RandomRSRenderModifier::GetRandomRSModifier()->GetType();
+    return RandomRSRenderModifier::GetRandomRSRenderModifier()->GetType();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -50,6 +50,9 @@
 #ifdef RS_ENABLE_GPU
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "memory/rs_canvas_dma_buffer_cache.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -777,5 +780,30 @@ void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
     };
     mainThread_->PostTask(task);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSClientToRenderConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+}
+
+int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    if (ExtractPid(nodeId) != remotePid_) {
+        RS_LOGE("SubmitCanvasPreAllocatedBuffer: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d",
+            nodeId, remotePid_);
+        return INVALID_ARGUMENTS;
+    }
+    auto task = [nodeId, buffer, resetSurfaceIndex]() {
+        bool success = RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
+        return success ? SUCCESS : INVALID_ARGUMENTS;
+    };
+    return mainThread_->ScheduleTask(task).get();
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

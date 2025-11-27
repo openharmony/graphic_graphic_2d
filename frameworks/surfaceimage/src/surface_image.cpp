@@ -106,6 +106,7 @@ void SurfaceImage::UpdateBasicInfo(const sptr<SurfaceBuffer>& buffer, int64_t ti
     CM_ColorSpaceType colorSpaceType = CM_COLORSPACE_NONE;
     MetadataHelper::ConvertColorSpaceInfoToType(colorSpaceInfo, colorSpaceType);
     ConvertColorSpaceTypeToNativeBufferColorSpace(static_cast<int32_t>(colorSpaceType), &colorSpace_);
+    isReleased_ = false;
 }
 
 void SurfaceImage::UpdateSurfaceInfo(sptr<SurfaceBuffer> buffer, const sptr<SyncFence> &acquireFence,
@@ -616,13 +617,21 @@ SurfaceError SurfaceImage::ReleaseTextImage()
     currentTimeStamp_ = 0;
     currentSurfaceImage_ = UINT_MAX;
     colorSpace_ = OH_COLORSPACE_NONE;
+    isReleased_ = true;
     return ret;
 }
 
-int32_t SurfaceImage::GetColorSpace(OH_NativeBuffer_ColorSpace* colorSpace)
+SurfaceError SurfaceImage::GetColorSpace(OH_NativeBuffer_ColorSpace* colorSpace)
 {
     std::lock_guard<std::mutex> lockGuard(opMutex_);
     *colorSpace = colorSpace_;
+    return OHOS::SURFACE_ERROR_OK;
+}
+
+SurfaceError SurfaceImage::isReleased(bool* isReleased)
+{
+    std::lock_guard<std::mutex> lockGuard(opMutex_);
+    *isReleased = isReleased_;
     return OHOS::SURFACE_ERROR_OK;
 }
 } // namespace OHOS

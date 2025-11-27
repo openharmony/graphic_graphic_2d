@@ -37,7 +37,7 @@ ModifierNG::RSModifierType RandomRSRenderModifier::GetRandomRSModifierType()
 
 std::shared_ptr<ModifierNG::RSRenderModifier> RandomRSRenderModifier::GetRandomRSRenderModifier()
 {
-    auto modifierType = GetRandomRSRenderModifier();
+    auto modifierType = GetRandomRSModifierType();
     auto& constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(modifierType)];
     while (constructor == nullptr) {
         constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(modifierType)];
@@ -47,7 +47,19 @@ std::shared_ptr<ModifierNG::RSRenderModifier> RandomRSRenderModifier::GetRandomR
         SAFUZZ_LOGE("RandomRSRenderModifier::GetRandomRSRenderModifier constructor return nullptr");
         return nullptr;
     }
-    renderModifier->id_ = RandomEngine::GetRandomUint64();
+    renderModifier->id_ = RandomData::GetRandomUint64();
+
+    static constexpr uint16_t PROPERTY_SIZE_MAX = static_cast<uint16_t>(RandomRSPropertyType::MAX) - 1;
+    static constexpr uint16_t PROPERTY_SIZE_MIN = static_cast<uint16_t>(RandomRSPropertyType::INVALID) + 1;
+    uint16_t count = RandomEngine::GetRandomIndex(PROPERTY_SIZE_MAX, PROPERTY_SIZE_MIN);
+    for (uint16_t i = 0; i < count; ++i) {
+        auto renderPropertiesBase = RandomRSRenderPropertyBase::GetRandomRSRenderPropertyBase();
+        if (renderPropertiesBase == nullptr) {
+            continue;
+        }
+        ModifierNG::RSPropertyType propertyType = RandomRSRenderModifier::GetRandomRSPropertyType();
+        renderModifier->AttachProperty(propertyType, renderPropertiesBase);
+    }
     return renderModifier;
 }
 

@@ -580,5 +580,29 @@ void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     }
     renderPipeline->SetScreenFrameGravity(id, gravity);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSRenderPipelineClient::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::RegisterCanvasCallback renderPipeline is nullptr!");
+        return;
+    }
+
+    renderPipeline->RegisterCanvasCallback(callback);
+}
+
+int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (renderPipeline == nullptr) {
+        ROSEN_LOGE("RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer renderPipeline is nullptr!");
+        return RENDER_SERVICE_NULL;
+    }
+    return renderPipeline->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+}
+#endif // ROSEN_OHOS && RS_ENABLE_VK
 } // namespace Rosen
 } // namespace OHOS

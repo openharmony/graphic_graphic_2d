@@ -20,6 +20,7 @@
 
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "render_service/core/transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_test_util.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
@@ -523,4 +524,62 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
     EXPECT_TRUE(bundleName.empty());
 }
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: RegisterCanvasCallbackAndCleanTest
+ * @tc.desc: Test RegisterCanvasCallback and CleanCanvasCallbacksAndPendingBuffer functions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    pid_t testPid = 12345;
+    sptr<RSIConnectionToken> token1 = new IRemoteStub<RSIConnectionToken>();
+    auto clientToServiceConnection = new RSClientToServiceConnection(
+        testPid, nullptr, mainThread, CreateOrGetScreenManager(), token1->AsObject(), nullptr);
+    ASSERT_NE(clientToServiceConnection, nullptr);
+
+    sptr<RSIConnectionToken> token2 = new IRemoteStub<RSIConnectionToken>();
+    auto clientToRenderConnection = new RSClientToRenderConnection(
+        testPid, nullptr, mainThread, CreateOrGetScreenManager(), token2->AsObject(), nullptr);
+    ASSERT_NE(clientToRenderConnection, nullptr);
+
+    // Test RegisterCanvasCallback with valid callback
+    sptr<RSICanvasSurfaceBufferCallback> mockCallback = nullptr;
+    // Since we cannot create a concrete implementation easily in the test,
+    // we test with nullptr first to verify the function executes
+    clientToRenderConnection->RegisterCanvasCallback(mockCallback);
+    // No assertion needed - just verify it doesn't crash
+
+    // Test CleanCanvasCallbacksAndPendingBuffer
+    // This should clean up the registered callback for the remote pid
+    clientToServiceConnection->CleanCanvasCallbacksAndPendingBuffer();
+
+    // Verify cleanup was successful by checking that re-registering works
+    clientToRenderConnection->RegisterCanvasCallback(mockCallback);
+    // No assertion needed - just verify it doesn't crash
+
+    // Test error handling when mainThread is nullptr
+    sptr<RSIConnectionToken> token3 = new IRemoteStub<RSIConnectionToken>();
+    auto clientToServiceConnectionWithNullThread = new RSClientToServiceConnection(
+        testPid, nullptr, nullptr, CreateOrGetScreenManager(), token3->AsObject(), nullptr);
+    ASSERT_NE(clientToServiceConnectionWithNullThread, nullptr);
+
+    sptr<RSIConnectionToken> token4 = new IRemoteStub<RSIConnectionToken>();
+    auto clientToRenderConnectionWithNullThread = new RSClientToRenderConnection(
+        testPid, nullptr, nullptr, CreateOrGetScreenManager(), token4->AsObject(), nullptr);
+    ASSERT_NE(clientToRenderConnectionWithNullThread, nullptr);
+
+    // Test RegisterCanvasCallback with nullptr mainThread
+    clientToRenderConnectionWithNullThread->RegisterCanvasCallback(mockCallback);
+    // No assertion needed - just verify it doesn't crash
+
+    // Test CleanCanvasCallbacksAndPendingBuffer with nullptr mainThread - should return early without crash
+    clientToServiceConnectionWithNullThread->CleanCanvasCallbacksAndPendingBuffer();
+    // No assertion needed - just verify it doesn't crash
+}
+#endif
 } // namespace OHOS::Rosen

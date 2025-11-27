@@ -905,9 +905,9 @@ bool AniCanvas::GetVertices(ani_env* env, ani_object verticesObj, float* vertice
         ani_double vertex;
         ani_ref vertexRef;
         if (ANI_OK !=  env->Object_CallMethodByName_Ref(
-            verticesObj, "$_get", "I:Lstd/core/Object;", &vertexRef, (ani_int)i) ||
+            verticesObj, "$_get", "i:Y", &vertexRef, (ani_int)i) ||
             ANI_OK !=  env->Object_CallMethodByName_Double(
-                static_cast<ani_object>(vertexRef), "unboxed", ":D", &vertex)) {
+                static_cast<ani_object>(vertexRef), "toDouble", ":d", &vertex)) {
             delete []vertices;
             return false;
         }
@@ -922,9 +922,9 @@ bool AniCanvas::GetVerticesUint16(ani_env* env, ani_object verticesObj, uint16_t
         ani_int vertex;
         ani_ref vertexRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-                verticesObj, "$_get", "i:C{std.core.Object}", &vertexRef, (ani_int)i) ||
+            verticesObj, "$_get", "i:Y", &vertexRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(vertexRef), "unboxed", ":i", &vertex)) {
+                static_cast<ani_object>(vertexRef), "toInt", ":i", &vertex)) {
             ROSEN_LOGE("AniCanvas::GetVerticesUint16 vertices is invalid");
             return false;
         }
@@ -943,7 +943,7 @@ bool AniCanvas::GetColorsUint32(ani_env* env, ani_object colorsObj, uint32_t* co
         ani_int color;
         ani_ref colorRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-                colorsObj, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
+            colorsObj, "$_get", "i:Y", &colorRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
                 static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
             ROSEN_LOGE("AniCanvas::GetColorsUint32 colors is invalid");
@@ -990,8 +990,8 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_object colorsObj, int32_t col
         ani_int color;
         ani_ref colorRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(
-            colorsObj, "$_get", "i:C{std.core.Object}", &colorRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
+            colorsObj, "$_get", "i:Y", &colorRef, (ani_int)i) ||
+            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "toInt", ":i", &color)) {
             delete []colors;
             AniThrowError(env, "Incorrect DrawPixelMapMesh parameter color type.");
             return;

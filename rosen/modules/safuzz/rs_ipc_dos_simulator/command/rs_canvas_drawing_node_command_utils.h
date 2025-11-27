@@ -25,7 +25,7 @@ namespace Rosen {
 class RSCanvasDrawingNodeCommandUtils {
 public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSCanvasDrawingNodeCreate, Uint64, Bool);
-    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSCanvasDrawingNodeResetSurface, Uint64, Int32, Int32);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSCanvasDrawingNodeResetSurface, Uint64, Int32, Int32, Uint32);
 };
 } // namespace Rosen
 } // namespace OHOS

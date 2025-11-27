@@ -677,7 +677,9 @@ void RSRenderNode::ResetChildRelevantFlags()
     visibleEffectChild_.clear();
     childrenRect_.Clear();
     hasChildrenOutOfRect_ = false;
+    SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
+    SetForceDisableNodeGroup(false);
     RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -3210,7 +3212,6 @@ void RSRenderNode::UpdateDisplayList()
 
     // Update index of ENV_FOREGROUND_COLOR
     stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
-
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
 
@@ -3450,6 +3451,36 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
     AddToPendingSyncList();
 }
 
+void RSRenderNode::ExcludedFromNodeGroup(bool isExcluded)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->ExcludedFromNodeGroup(isExcluded);
+#endif
+}
+
+bool RSRenderNode::IsExcludedFromNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsExcludedFromNodeGroup();
+#endif
+    return false;
+}
+
+void RSRenderNode::SetHasChildExcludedFromNodeGroup(bool isExcluded)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetHasChildExcludedFromNodeGroup(isExcluded);
+#endif
+}
+
+bool RSRenderNode::HasChildExcludedFromNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->HasChildExcludedFromNodeGroup();
+#endif
+    return false;
+}
+
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
 {
     return nodeGroupIncludeProperty_;
@@ -3481,7 +3512,7 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 
 void RSRenderNode::CheckDrawingCacheType()
 {
-    if (nodeGroupType_ == NodeGroupType::NONE) {
+    if (nodeGroupType_ == NodeGroupType::NONE || IsExcludedFromNodeGroup()) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_FOREGROUND_FILTER) {
         SetDrawingCacheType(RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
@@ -4970,7 +5001,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
-        SetForceDisableNodeGroup(true);
         auto parentNode = GetParent().lock();
         if (parentNode) {
             parentNode->SetForceDisableNodeGroup(true);

@@ -112,7 +112,8 @@ napi_value JsPen::Constructor(napi_env env, napi_callback_info info)
     } else {
         JsPen* otherPen = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, otherPen);
-        std::shared_ptr<Pen> pen = otherPen->GetPen();
+        std::shared_ptr<Pen> other = otherPen->GetPen();
+        std::shared_ptr<Pen> pen = other == nullptr ? std::make_shared<Pen>() : std::make_shared<Pen>(*other);
         if (pen != nullptr) {
             jsPen = new JsPen(pen);
         }

@@ -53,6 +53,9 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
 #include "feature/uifirst/rs_uifirst_manager.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "memory/rs_canvas_dma_buffer_cache.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -232,6 +235,9 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
             connection->CleanBrightnessInfoChangeCallbacks();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+            connection->CleanCanvasCallbacksAndPendingBuffer();
+#endif
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
@@ -1051,6 +1057,15 @@ int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, Bright
     brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
     return StatusCode::SUCCESS;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcept
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.RegisterCanvasCallback(remotePid_, nullptr);
+    bufferCache.ClearPendingBufferByPid(remotePid_);
+}
+#endif
 
 uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {

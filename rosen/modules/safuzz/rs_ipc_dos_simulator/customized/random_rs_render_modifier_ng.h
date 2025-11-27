@@ -18,14 +18,14 @@
 
 #include "customized/random_rs_render_property_base.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
-#include "modifier_ng/rs_custom_modifier.h"
+#include "modifier_ng/custom/rs_custom_modifier.h"
 #include "property/rs_properties_def.h"
 
 namespace OHOS {
 namespace Rosen {
 class RandomRSRenderModifier {
 public:
-    static std::shared_ptr<ModifierNG::RSRenderModifierNG> GetRandomRSRenderModifier();
+    static std::shared_ptr<ModifierNG::RSRenderModifier> GetRandomRSRenderModifier();
     static ModifierNG::RSPropertyType GetRandomRSPropertyType();
     static ModifierNG::RSModifierType GetRandomRSModifierType();
 };
@@ -35,7 +35,7 @@ enum class RandomRSPropertyType : uint16_t {
 #include "modifier_ng/rs_property_ng_type.in"
 #undef X
     MAX,
-}
+};
 } // namespace Rosen
 } // namespace OHOS
 
