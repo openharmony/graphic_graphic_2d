@@ -1616,6 +1616,27 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "SET_SCREEN_OFFSET_TEST_001",
+    "interfaceName": "SET_SCREEN_OFFSET",
+    "inputParams": "WriteUint64;WriteInt32;WriteInt32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_ROG_SCREEN_RESOLUTION_TEST_001",
+    "interfaceName": "SET_ROG_SCREEN_RESOLUTION",
+    "inputParams": "WriteUint64;WriteUint32;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "GET_ROG_SCREEN_RESOLUTION_TEST_001",
+    "interfaceName": "GET_ROG_SCREEN_RESOLUTION",
+    "inputParams": "WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE",
     "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",
