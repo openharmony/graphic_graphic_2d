@@ -77,6 +77,7 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(DrawingRect),
     DECLARE_WRITE_RANDOM(DrawingDrawCmdListSharedPtr),
     DECLARE_WRITE_RANDOM(RSSyncTaskSharedPtr),
+    DECLARE_WRITE_RANDOM(SharedTypefaceFd),
 };
 
 #define DECLARE_WRITE_RANDOM_TO_VECTOR(type) \
@@ -547,6 +548,18 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomRSTransactionDataToVector(
     SAFUZZ_LOGI("MessageParcelCustomizedTypeUtils::WriteRandomRSTransactionDataToVector command count: %lu",
         transactionData->GetCommandCount());
     return RSRenderServiceConnectionProxyVariant::FillParcelVectorWithTransactionData(transactionData, messageParcels);
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd(
+    MessageParcel& messageParcel, const TestCaseParams& /* testCaseParams */)
+{
+    std::shared_ptr<Drawing::Typeface> typeface = RandomTypeface::GetRandomTypeface();
+    if (typeface == nullptr) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd typeface is nullptr");
+        return false;
+    }
+    int fd = (typeface->GetFd() == INVALID_FD) ? 0 : typeface->GetFd();
+    return messageParcel.WriteFileDescriptor(fd);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -291,7 +291,7 @@ public:
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
-    int32_t RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd);
+    int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index);
     bool UnRegisterTypeface(uint32_t uniqueId);
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);

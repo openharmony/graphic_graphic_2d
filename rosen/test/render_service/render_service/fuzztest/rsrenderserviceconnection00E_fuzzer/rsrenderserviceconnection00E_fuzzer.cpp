@@ -133,6 +133,22 @@ void DoRegisterTypeface()
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     RSMarshallingHelper::Marshalling(dataParcel, typeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    MessageParcel dataParcel1;
+    MessageParcel replyParcel1;
+    MessageOption option1;
+    uint64_t uniqueId1 = static_cast<NodeId>(g_pid) << 32 | GetData<uint32_t>();
+    uint32_t size = GetData<uint32_t>();
+    auto ashmem = Ashmem::CreateAshmem("test", size);
+    ashmem->MapReadAndWriteAshmem();
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteUint64(uniqueId1);
+    dataParcel.WriteUint32(size);
+    dataParcel.WriteUint32(GetData<uint32_t>());
+    dataParcel.WriteFileDescriptor(ashmem->GetAshmemFd());
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterSharedTypeface()

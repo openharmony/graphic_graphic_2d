@@ -89,6 +89,7 @@ private:
 
     static bool WriteRandomRSTransactionDataToVector(std::vector<std::shared_ptr<MessageParcel>>& messageParcels,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomSharedTypefaceFd(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -47,6 +47,7 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
     fc->DisableSystemFont();
     fc->GetFontMgr();
     fc->LoadFont(familyName, fontData.get(), datalen);
+    fc->LoadFont(familyName, fontData.get(), datalen, fdp.ConsumeIntegral<uint8_t>());
     fc->UnloadFont(familyName);
     fc->LoadSymbolFont(familyName, fontData.get(), datalen);
     fc->LoadThemeFont(familyName, fontData.get(), datalen);
@@ -64,6 +65,7 @@ void FontCollectionFuzzTest(const uint8_t* data, size_t size)
     const char* cjkFile = "/system/fonts/NotoSansCJK-Regular.ttc";
     std::vector<uint8_t> file = GetFileData(cjkFile);
     fc->LoadFont(familyName, file.data(), file.size());
+    fc->LoadFont(familyName, file.data(), file.size(), fdp.ConsumeIntegral<uint8_t>());
     fc->UnloadFont(familyName);
 }
 } // namespace Rosen

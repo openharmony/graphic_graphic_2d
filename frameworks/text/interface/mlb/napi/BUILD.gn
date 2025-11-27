@@ -39,6 +39,7 @@ config("local_text") {
     "$graphic_2d_root/interfaces/kits/napi/graphic/text/utils",
     "$rosen_text_root/service/texgine/src",
     "$rosen_text_root",
+    "$rosen_text_root/interface/mlb",
     "$rosen_text_root/adapter/skia",
     "$graphic_2d_root/frameworks/text/service/global_config",
   ]

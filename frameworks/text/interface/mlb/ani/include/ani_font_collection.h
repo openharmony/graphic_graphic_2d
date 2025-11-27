@@ -19,6 +19,7 @@
 #include <ani.h>
 #include <memory>
 
+#include "ani_common.h"
 #include "font_collection.h"
 #include "resource_manager.h"
 
@@ -29,6 +30,9 @@ public:
     static ani_object GetGlobalInstance(ani_env* env, ani_class cls);
     static ani_object GetLocalInstance(ani_env* env, ani_class cls);
     static void LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path);
+    static void LoadFontSyncWithCheck(ani_env* env, ani_object obj, ani_string name, ani_object path, ani_object index);
+    static AniTextResult OnLoadFontSync(
+        ani_env* env, ani_object obj, ani_string name, ani_object path, int32_t index = 0);
     static void UnloadFontSync(ani_env* env, ani_object obj, ani_string name);
     static void ClearCaches(ani_env* env, ani_object obj);
     static void Constructor(ani_env* env, ani_object object);

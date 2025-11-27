@@ -70,7 +70,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromStream(std::unique_ptr<MemoryStream>
     return StaticFactory::MakeFromStream(std::move(memoryStream), fontArguments);
 }
 
-std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash)
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash, uint32_t index)
 {
 #ifdef ENABLE_OHOS_ENHANCE
     auto ashmem = std::make_unique<Ashmem>(fd, size);
@@ -81,16 +81,17 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
     }
     auto stream = std::make_unique<MemoryStream>(
         ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
-    auto tf = Typeface::MakeFromStream(std::move(stream));
+    auto tf = Typeface::MakeFromStream(std::move(stream), index);
     if (tf == nullptr) {
         return nullptr;
     }
     tf->SetFd(fd);
     if (hash == 0) {
-        hash = CalculateHash(reinterpret_cast<const uint8_t*>(ptr), size);
+        hash = CalculateHash(reinterpret_cast<const uint8_t*>(ptr), size, index);
     }
     tf->SetHash(hash);
     tf->SetSize(size);
+    tf->index_ = index;
     return tf;
 #else
     return nullptr;
@@ -98,7 +99,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
 }
 
 std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
-    const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name)
+    const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index)
 {
 #ifdef ENABLE_OHOS_ENHANCE
     int32_t fd = OHOS::AshmemCreate(name.c_str(), size);
@@ -111,16 +112,17 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     }
     auto stream = std::make_unique<MemoryStream>(
         ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
-    auto tf = Typeface::MakeFromStream(std::move(stream));
+    auto tf = Typeface::MakeFromStream(std::move(stream), index);
     if (tf == nullptr) {
         return nullptr;
     }
     tf->SetFd(fd);
     if (hash == 0) {
-        hash = CalculateHash(data, size);
+        hash = CalculateHash(data, size, index);
     }
     tf->SetHash(hash);
     tf->SetSize(size);
+    tf->index_ = index;
     return tf;
 #else
     return nullptr;
@@ -315,6 +317,11 @@ int32_t Typeface::GetFd() const
     return -1;
 }
 
+uint32_t Typeface::GetIndex() const
+{
+    return index_;
+}
+
 void Typeface::UpdateStream(std::unique_ptr<MemoryStream> stream)
 {
     if (typefaceImpl_) {
@@ -343,7 +350,7 @@ T read(const uint8_t* data, size_t size = sizeof(T))
     return result;
 }
 
-uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen)
+uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen, uint32_t index)
 {
     uint32_t hash = 0;
     size_t extraOffset = 0;
@@ -365,7 +372,7 @@ uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen)
         hash ^= SkOpts::hash(data, size, datalen);
 #endif
     }
-    return hash;
+    return hash + index;
 }
 } // namespace Drawing
 } // namespace Rosen
