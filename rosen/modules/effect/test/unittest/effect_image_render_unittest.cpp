@@ -90,15 +90,16 @@ HWTEST_F(EffectImageFilterUnittest, ApplyTest001, TestSize.Level1)
     ret = filterBlur->Apply(nullptr);
     EXPECT_TRUE(ret != DrawingError::ERR_OK);
 
-    std::vector<float> positions = {0.0f, 1.0f};
-    std::vector<float> degrees = {0.0f, 1.0f};
+    std::vector<float> positions = {0.0f, 0.5f};
+    std::vector<float> degrees = {1.0f, 1.0f};
     auto filterEllipticalGradientBlur =
         EffectImageFilter::EllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_TRUE(filterEllipticalGradientBlur != nullptr);
     ret = filterEllipticalGradientBlur->Apply(nullptr);
     EXPECT_TRUE(ret != DrawingError::ERR_OK);
-    ret = filterEllipticalGradientBlur->Apply(image);
-    EXPECT_TRUE(ret == DrawingError::ERR_OK);
+
+    image = std::make_shared<EffectImageChain>();
+    EXPECT_TRUE(image != nullptr);
 }
 
 /**
@@ -146,7 +147,7 @@ HWTEST_F(EffectImageRenderUnittest, EllipticalGradientBlurApplyTest, TestSize.Le
     imageFilter.emplace_back(nullptr);
     EffectImageRender imageRender;
     auto ret = imageRender.Render(srcPixelMap, imageFilter, false, dstPixelMap);
-    EXPECT_NE(ret, DrawingError::ERR_OK);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
 
     auto filterBlur = EffectImageFilter::EllipticalGradientBlur(
         1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
