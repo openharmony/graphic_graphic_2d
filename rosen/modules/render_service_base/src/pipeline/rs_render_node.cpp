@@ -3388,13 +3388,12 @@ bool RSRenderNode::GetGlobalPositionEnabled() const
 
 Vector2f RSRenderNode::GetOptionalBufferSize() const
 {
-    if (boundsModifierNG_ != nullptr) {
-        auto bounds = boundsModifierNG_->Getter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS);
-        return { bounds.z_, bounds.w_ };
+    auto& propeties = GetRenderProperties();
+    if (isBoundsModifierAdded_) {
+        return propeties.GetBoundsSize();
     }
-    if (frameModifierNG_ != nullptr) {
-        auto frame = frameModifierNG_->Getter<Vector4f>(ModifierNG::RSPropertyType::FRAME);
-        return { frame.z_, frame.w_ };
+    if (isFrameModifierAdded_) {
+        return propeties.GetFrameSize();
     }
     return { 0.f, 0.f };
 }
@@ -4125,9 +4124,6 @@ void RSRenderNode::UpdateRenderParams()
     bool hasSandbox = sharedTransitionParam_ && GetRenderProperties().GetSandBox();
     stagingRenderParams_->SetHasSandBox(hasSandbox);
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
-#ifdef RS_ENABLE_PREFETCH
-    __builtin_prefetch(&boundsModifierNG_, 0, 1);
-#endif
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(),
@@ -4183,7 +4179,7 @@ bool RSRenderNode::UpdateLocalDrawRect()
 
 void RSRenderNode::UpdateAbsDrawRect()
 {
-    auto absRect = GetAbsDrawRect();
+    const auto& absRect = GetAbsDrawRect();
     stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
@@ -4744,10 +4740,10 @@ void RSRenderNode::AddModifier(
     }
     // bounds and frame modifiers must be unique
     if (type == ModifierNG::RSModifierType::BOUNDS) {
-        boundsModifierNG_ = modifier;
+        isBoundsModifierAdded_ = true;
     }
     if (type == ModifierNG::RSModifierType::FRAME) {
-        frameModifierNG_ = modifier;
+        isFrameModifierAdded_ = true;
     }
     if (modifier->IsCustom()) {
         modifier->SetSingleFrameModifier(false);

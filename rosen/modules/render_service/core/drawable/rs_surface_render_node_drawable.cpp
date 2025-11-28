@@ -326,11 +326,11 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
         return resultRegion;
     }
 
-    auto visibleRegion = surfaceParams.GetVisibleRegion();
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (!uniParam) {
         return resultRegion;
     }
+    auto visibleRegion = surfaceParams.GetVisibleRegion();
     if (uniParam->IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }

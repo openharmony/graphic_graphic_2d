@@ -1201,9 +1201,9 @@ private:
     NodeId screenNodeId_ = INVALID_NODEID;
     NodeId logicalDisplayNodeId_ = INVALID_NODEID;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
-    // bounds and frame modifiers must be unique
-    std::shared_ptr<ModifierNG::RSRenderModifier> boundsModifierNG_;
-    std::shared_ptr<ModifierNG::RSRenderModifier> frameModifierNG_;
+
+    bool isBoundsModifierAdded_ = false;
+    bool isFrameModifierAdded_= false;
 
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.
