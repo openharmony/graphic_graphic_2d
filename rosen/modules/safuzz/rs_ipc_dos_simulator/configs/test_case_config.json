@@ -2395,6 +2395,13 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT_TEST_001",
+    "interfaceName": "NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT",
+    "inputParams": "WriteUint32;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "NOTIFY_HGMCONFIG_EVENT_TEST_001",
     "interfaceName": "NOTIFY_HGMCONFIG_EVENT",
     "inputParams": "WriteString;WriteBool",
