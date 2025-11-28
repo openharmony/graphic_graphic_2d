@@ -1908,7 +1908,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked003, Function | MediumTest | Level1)
     rsLayer->SetCompositionType(GraphicCompositionType::GRAPHIC_COMPOSITION_CLIENT);
 
     rsLayer->SetLayerCopybit(false);
-    static std::vector<std::string> ret = { "ArsrDoEnhance", "TryToDoCopybit" };
+    std::vector<std::string> ret = { "ArsrDoEnhance", "TryToDoCopybit" };
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
@@ -1974,7 +1974,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked004, Function | MediumTest | Level1)
     rsLayer->SetLayerCopybit(false);
     rsLayer->SetBuffer(new SurfaceBufferImpl());
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    ret = { "ArsrDoEnhance", "TryToDoCopybit" };
+    std::vector<std::string> ret = { "ArsrDoEnhance", "TryToDoCopybit" };
     EXPECT_CALL(*hdiDeviceMock_, GetSupportedLayerPerFrameParameterKey()).WillRepeatedly(testing::ReturnRef(ret));
     EXPECT_CALL(*hdiDeviceMock_,
         SetLayerPerFrameParameter(_, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
