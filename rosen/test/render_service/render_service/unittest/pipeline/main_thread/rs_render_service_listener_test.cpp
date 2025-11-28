@@ -164,7 +164,7 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
-    rsListener->SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), true);
-    rsListener->SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), false);
+    rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), true);
+    rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), false);
 }
 } // namespace OHOS::Rosen
