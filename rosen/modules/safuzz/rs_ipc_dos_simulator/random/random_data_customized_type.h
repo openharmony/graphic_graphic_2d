@@ -58,6 +58,7 @@ public:
     static std::shared_ptr<RSShader> GetRandomRSShaderSharedPtr();
     static Drawing::Matrix GetRandomDrawingMatrix();
     static std::shared_ptr<Drawing::DrawCmdList> GetRandomDrawingDrawCmdListPtr();
+    static DrawNodeType GetRandomDrawNodeType();
 
     // RSDisplayNodeCommand params
     static RSDisplayNodeConfig GetRandomRSDisplayNodeConfig();
