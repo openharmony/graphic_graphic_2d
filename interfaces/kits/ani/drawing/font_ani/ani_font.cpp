@@ -62,8 +62,8 @@ static std::string GetFontEdgingItemName(FontEdging edging)
 
 ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
 {
-        ani_object aniFontMetrics = CreateAniObject(env, "@ohos.graphics.drawing.drawing.FontMetricsInner",
-        "iddddddddddddddd:",
+    ani_object aniFontMetrics = CreateAniObjectWithCls(env, AniGlobalClass::GetInstance().fontMetrics,
+        AniGlobalMethod::GetInstance().fontMetricsCtor,
         ani_int(static_cast<int>(fontMetrics.fFlags)),
         ani_double(fontMetrics.fTop),
         ani_double(fontMetrics.fAscent),

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <ani_signature_builder.h>
 #include "ani_drawing_utils.h"
 #include "typeface_ani/ani_typeface.h"
 #include "rosen_text/font_collection.h"
@@ -22,16 +21,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-
-namespace {
-ani_ref gRectClassRef = nullptr;
-ani_method gGetLeftMethod = nullptr;
-ani_method gGetTopMethod = nullptr;
-ani_method gGetRightMethod = nullptr;
-ani_method gGetBottomMethod = nullptr;
-}
-
-using namespace arkts::ani_signature;
 
 ani_status AniThrowError(ani_env* env, const std::string& message)
 {
@@ -126,13 +115,25 @@ ani_status CreateBusinessError(ani_env* env, int32_t error, const char* message,
     return ANI_OK;
 }
 
-
 bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &color)
 {
-    ani_class colorClass;
-    env->FindClass("@ohos.graphics.common2D.common2D.Color", &colorClass);
+    ani_class colorCls = AniGlobalClass::GetInstance().colorInterface;
+    if (colorCls == nullptr) {
+        ROSEN_LOGE("GetColorQuadFromParam failed by cls is null");
+        return false;
+    }
+
+    ani_method colorGetAlpha = AniGlobalMethod::GetInstance().colorGetAlpha;
+    ani_method colorGetRed = AniGlobalMethod::GetInstance().colorGetRed;
+    ani_method colorGetGreen = AniGlobalMethod::GetInstance().colorGetGreen;
+    ani_method colorGetBlue = AniGlobalMethod::GetInstance().colorGetBlue;
+    if (colorGetAlpha == nullptr || colorGetRed == nullptr || colorGetGreen == nullptr || colorGetBlue == nullptr) {
+        ROSEN_LOGE("GetColorQuadFromParam failed by cls method is null");
+        return false;
+    }
+
     ani_boolean isColorClass;
-    env->Object_InstanceOf(obj, colorClass, &isColorClass);
+    env->Object_InstanceOf(obj, colorCls, &isColorClass);
 
     if (!isColorClass) {
         return false;
@@ -143,10 +144,10 @@ bool GetColorQuadFromColorObj(ani_env* env, ani_object obj, Drawing::ColorQuad &
     ani_int green;
     ani_int blue;
 
-    if ((env->Object_GetPropertyByName_Int(obj, "alpha", &alpha) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Int(obj, "red", &red) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Int(obj, "green", &green) != ANI_OK) ||
-        (env->Object_GetPropertyByName_Int(obj, "blue", &blue) != ANI_OK)) {
+    if ((env->Object_CallMethod_Int(obj, colorGetAlpha, &alpha) != ANI_OK) ||
+        (env->Object_CallMethod_Int(obj, colorGetRed, &red) != ANI_OK) ||
+        (env->Object_CallMethod_Int(obj, colorGetGreen, &green) != ANI_OK) ||
+        (env->Object_CallMethod_Int(obj, colorGetBlue, &blue) != ANI_OK)) {
         ROSEN_LOGE("GetColorQuadFromParam failed by Color class");
         return false;
     }
@@ -186,29 +187,13 @@ bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &col
 
 ani_status CreateColorObj(ani_env* env, const Drawing::Color& color, ani_object& obj)
 {
-    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.ColorInternal", "iiii:",
+    obj = CreateAniObjectWithCls(env, AniGlobalClass::GetInstance().color, AniGlobalMethod::GetInstance().colorCtor,
         ani_int(color.GetAlpha()),
         ani_int(color.GetRed()),
         ani_int(color.GetGreen()),
         ani_int(color.GetBlue())
     );
     return ANI_OK;
-}
-
-bool GetRectClass(ani_env* env, ani_class& rectClass)
-{
-    if (gRectClassRef) {
-        rectClass = reinterpret_cast<ani_class>(gRectClassRef);
-        return true;
-    }
-    if (env->FindClass("@ohos.graphics.common2D.common2D.Rect", &rectClass) != ANI_OK) {
-        ROSEN_LOGE("[Drawing] GetRectClass FindClass failed");
-        return false;
-    }
-    if (env->GlobalReference_Create(reinterpret_cast<ani_ref>(rectClass), &gRectClassRef) != ANI_OK) {
-        ROSEN_LOGE("[Drawing] GetRectClass GlobalReference_Create failed");
-    }
-    return true;
 }
 
 ani_status GetRectPropertyValue(ani_env* env, ani_object obj, ani_class rectClass, const RectPropertyConfig& config)
@@ -222,14 +207,22 @@ ani_status GetRectPropertyValue(ani_env* env, ani_object obj, ani_class rectClas
 
 bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 {
-    ani_class rectClass;
-    if (!GetRectClass(env, rectClass)) {
-        ROSEN_LOGE("[Drawing] GetRectFromAniRectObj GetRectClass failed");
+    ani_class rectCls = AniGlobalClass::GetInstance().rectInterface;
+    if (rectCls == nullptr) {
+        ROSEN_LOGE("GetRectFromAniRectObj failed by cls is null");
+        return false;
+    }
+    ani_method rectGetLeft = AniGlobalMethod::GetInstance().rectGetLeft;
+    ani_method rectGetTop = AniGlobalMethod::GetInstance().rectGetTop;
+    ani_method rectGetRight = AniGlobalMethod::GetInstance().rectGetRight;
+    ani_method rectGetBottom = AniGlobalMethod::GetInstance().rectGetBottom;
+    if (rectGetLeft == nullptr || rectGetTop == nullptr || rectGetRight == nullptr || rectGetBottom == nullptr) {
+        ROSEN_LOGE("GetRectFromAniRectObj failed by cls method is null");
         return false;
     }
 
     ani_boolean isRectClass;
-    env->Object_InstanceOf(obj, rectClass, &isRectClass);
+    env->Object_InstanceOf(obj, rectCls, &isRectClass);
     if (!isRectClass) {
         return false;
     }
@@ -238,18 +231,10 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
     ani_double top;
     ani_double right;
     ani_double bottom;
-    std::string leftGetter = Builder::BuildGetterName("left");
-    std::string topGetter = Builder::BuildGetterName("top");
-    std::string rightGetter = Builder::BuildGetterName("right");
-    std::string bottomGetter = Builder::BuildGetterName("bottom");
-    RectPropertyConfig leftConfig = { "left", leftGetter.c_str(), gGetLeftMethod, left };
-    RectPropertyConfig topConfig = { "top", topGetter.c_str(), gGetTopMethod, top };
-    RectPropertyConfig rightConfig = { "right", rightGetter.c_str(), gGetRightMethod, right };
-    RectPropertyConfig bottomConfig = { "bottom", bottomGetter.c_str(), gGetBottomMethod, bottom };
-    if ((GetRectPropertyValue(env, obj, rectClass, leftConfig) != ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, topConfig) != ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, rightConfig) != ANI_OK) ||
-        (GetRectPropertyValue(env, obj, rectClass, bottomConfig) != ANI_OK)) {
+    if ((env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetLeft, &left) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetTop, &top) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetRight, &right) != ANI_OK) ||
+        (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetBottom, &bottom) != ANI_OK)) {
         ROSEN_LOGE("GetRectFromAniRectObj failed");
         return false;
     }
@@ -263,7 +248,7 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
 
 ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& obj)
 {
-    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.RectInternal", "dddd:",
+    obj = CreateAniObjectWithCls(env, AniGlobalClass::GetInstance().rect, AniGlobalMethod::GetInstance().rectCtor,
         ani_double(rect.left_),
         ani_double(rect.top_),
         ani_double(rect.right_),
@@ -275,14 +260,14 @@ ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& ob
 ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point)
 {
     ani_double x = 0;
-    ani_status ret = env->Object_GetPropertyByName_Double(obj, "x", &x);
+    ani_status ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().pointGetX, &x);
     if (ret != ANI_OK) {
         ROSEN_LOGE("Param x is invalid, ret %{public}d", ret);
         return ret;
     }
 
     ani_double y = 0;
-    ret = env->Object_GetPropertyByName_Double(obj, "y", &y);
+    ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().pointGetY, &y);
     if (ret != ANI_OK) {
         ROSEN_LOGE("Param y is invalid, ret %{public}d", ret);
         return ret;
@@ -294,7 +279,7 @@ ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& po
 
 ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj)
 {
-    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.PointInternal", "dd:",
+    obj = CreateAniObjectWithCls(env, AniGlobalClass::GetInstance().point, AniGlobalMethod::GetInstance().pointCtor,
         ani_double(point.GetX()),
         ani_double(point.GetY())
     );
@@ -303,7 +288,7 @@ ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object&
 
 bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_object& obj)
 {
-    obj = CreateAniObject(env, "@ohos.graphics.common2D.common2D.PointInternal", "dd:",
+    obj = CreateAniObjectWithCls(env, AniGlobalClass::GetInstance().point, AniGlobalMethod::GetInstance().pointCtor,
         ani_double(point.GetX()),
         ani_double(point.GetY())
     );
@@ -353,6 +338,25 @@ ani_object CreateAniUndefined(ani_env* env)
     ani_ref aniRef;
     env->GetUndefined(&aniRef);
     return static_cast<ani_object>(aniRef);
+}
+
+ani_object CreateAniObjectWithCls(ani_env* env, ani_class cls, const ani_method ctor, ...)
+{
+    if (cls == nullptr || ctor == nullptr) {
+        ROSEN_LOGE("[Drawing] CreateAniObjectWithCls cls or ctor is null");
+        return CreateAniUndefined(env);
+    }
+    ani_object aniObject;
+    va_list args;
+    va_start(args, ctor);
+    if (env->Object_New_V(cls, ctor, &aniObject, args) != ANI_OK) {
+        ROSEN_LOGE("[Drawing] CreateAniObjectWithCls Object_New failed");
+        va_end(args);
+        return CreateAniUndefined(env);
+    }
+    va_end(args);
+
+    return aniObject;
 }
 
 ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ...)
