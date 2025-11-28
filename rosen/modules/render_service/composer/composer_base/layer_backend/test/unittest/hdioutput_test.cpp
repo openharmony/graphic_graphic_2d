@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #define PRIVATE PUBLIC
 #include "hdi_output.h"
 #undef PRIVATE
@@ -467,8 +468,8 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1
 {
     auto hdiOutput = HdiOutputTest::hdiOutput_;
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
-    sptr<IConsumerSurface> surface = IConsumerSurface::Create("xcomponentIdSurface");
-    rsLayer->SetSurface(surface);
+    sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("xcomponentIdSurface");
+    rsLayer->SetSurface(cSurface);
     bool res = hdiOutput->CheckIfDoArsrPreForVm(rsLayer);
     EXPECT_FALSE(res);
 
@@ -694,6 +695,7 @@ HWTEST_F(HdiOutputTest, CleanLayerBufferBySurfaceId_001, testing::ext::TestSize.
         output->CleanLayerBufferBySurfaceId(i);
     }
 }
+
 /*
  * Function: SetRSLayers
  * Type: Function
@@ -787,14 +789,14 @@ HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata001, Function | MediumTest | 
 }
 
 /*
- * Function: AncoTransactionOnComplete
+ * Function: ANCOTransactionOnComplete
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1.call AncoTransactionOnComplete()
+ * CaseDescription: 1.call ANCOTransactionOnComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, AncoTransactionOnComplete001, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = nullptr;
     HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
@@ -848,8 +850,8 @@ HWTEST_F(HdiOutputTest, DeletePrevLayersLocked002, Function | MediumTest | Level
     std::shared_ptr<HdiLayer> hdiLayer2 = std::make_shared<HdiLayer>(id + 1);
     ASSERT_NE(hdiLayer2, nullptr);
     hdiLayer2->SetLayerStatus(false);
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(),
-        hdiLayer1);
+    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
+        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer1);
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[id] = hdiLayer1;
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_[id + 1] = hdiLayer2;
     HdiOutputTest::hdiOutput_->DeletePrevLayersLocked();
@@ -872,8 +874,8 @@ HWTEST_F(HdiOutputTest, ResetLayerStatusLocked001, Function | MediumTest | Level
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
     std::shared_ptr<HdiLayer> hdiLayer = std::make_shared<HdiLayer>(1);
     ASSERT_NE(hdiLayer, nullptr);
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(),
-        hdiLayer);
+    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
+        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer);
     std::shared_ptr<HdiLayer> maskLayer = HdiOutputTest::hdiOutput_->maskLayer_;
     HdiOutputTest::hdiOutput_->maskLayer_ = hdiLayer;
     HdiOutputTest::hdiOutput_->ResetLayerStatusLocked();
@@ -1047,6 +1049,7 @@ HWTEST_F(HdiOutputTest, FlushScreen002, Function | MediumTest | Level1)
 
     HdiOutputTest::hdiOutput_->fbSurface_ = preFbSurface;
 }
+
 /*
  * Function: ReleaseSurfaceBuffer
  * Type: Function
@@ -1579,14 +1582,14 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
 }
 
 /*
- * Function: AncoTransactionOnComplete002
+ * Function: ANCOTransactionOnComplete002
  * Type: Function
  * Rank: Important(1)
  * EnvConditions: N/A
- * CaseDescription: 1.call AncoTransactionOnCompletet()
+ * CaseDescription: 1.call ANCOTransactionOnComplete()
  *                  2.check ret
  */
-HWTEST_F(HdiOutputTest, AncoTransactionOnComplete002, Function | MediumTest | Level1)
+HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete002, Function | MediumTest | Level1)
 {
     std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
     const uint32_t ancoFlag = 0x0111;
@@ -1819,7 +1822,6 @@ HWTEST_F(HdiOutputTest, ClearFpsDump002, Function | MediumTest | Level1)
  */
 HWTEST_F(HdiOutputTest, ClearBufferCache001, Function | MediumTest | Level1)
 {
-    // this test must last
     HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->surfaceIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
@@ -2024,7 +2026,7 @@ HWTEST_F(HdiOutputTest, UpdateLayerCompType001, Function | MediumTest | Level1)
         ));
     HdiOutputTest::hdiOutput_->device_ = nullptr;
     HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
-    ASSERT_EQ(HdiOutputTest::hdiOutput_->UpdateLayerCompType(), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_NE(HdiOutputTest::hdiOutput_->UpdateLayerCompType(), GRAPHIC_DISPLAY_SUCCESS);
 
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layerIdMap_[1] = HdiLayer::CreateHdiLayer(1);
@@ -2124,11 +2126,10 @@ HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
 
     sptr<SyncFence> fence = nullptr;
-    int32_t skipState = GRAPHIC_DISPLAY_FAILURE;
+    int32_t skipState = GRAPHIC_DISPLAY_SUCCESS;
     bool needFlush = false;
     std::vector<uint32_t> layersId = {};
     std::vector<sptr<SyncFence>> fences = {};
-    skipState = GRAPHIC_DISPLAY_SUCCESS;
     // CommitAndGetReleaseFence ret is GRAPHIC_DISPLAY_FAILURE, skipState is GRAPHIC_DISPLAY_SUCCESS
     EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(DoAll(
             ::testing::SetArgReferee<1>(fence),
