@@ -432,7 +432,8 @@ HWTEST_F(RSProfilerTest, LogEventStart, testing::ext::TestSize.Level1)
     sptr<RSRenderService> renderService = GetAndInitRenderService();
     RSProfiler::Init(renderService);
 
-    ArgList argList;
+    std::vector<std::string> args = { "WAITFORFINISH" };
+    ArgList argList(args);
     RSProfiler::RecordStart(argList);
 
     uint64_t curTime = 123;
@@ -480,7 +481,8 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     sptr<RSRenderService> renderService = GetAndInitRenderService();
     RSProfiler::Init(renderService);
 
-    ArgList argList;
+    std::vector<std::string> args = { "WAITFORFINISH" };
+    ArgList argList(args);
     RSProfiler::RecordStart(argList);
 
     if (RSProfiler::IsRecording()) {
@@ -492,8 +494,6 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     uint64_t syncTime = Utils::Now() + Utils::ToNanoseconds(1.0f);
     RSProfiler::LogEventVSync(syncTime);
     RSProfiler::RecordStop(argList);
-
-    while (RSProfiler::GetMode() != Mode::NONE);
 
     RSFile testFile;
 
