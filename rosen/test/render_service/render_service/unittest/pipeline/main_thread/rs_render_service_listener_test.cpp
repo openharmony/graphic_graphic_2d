@@ -150,4 +150,21 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
     rsListener->OnBufferAvailable();
     ASSERT_EQ(node->IsNotifyUIBufferAvailable(), true);
 }
+
+/**
+ * @tc.name: SetBufferInfoAndRequest001
+ * @tc.desc: Test SetBufferInfoAndRequest
+ * @tc.type: FUNC
+ * @tc.require: issue20841
+ */
+HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level1)
+{
+    std::weak_ptr<RSSurfaceRenderNode> wp;
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp);
+    std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
+    NodeId id = 0;
+    std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
+    rsListener->SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), true);
+    rsListener->SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), false);
+}
 } // namespace OHOS::Rosen

@@ -72,16 +72,16 @@ void RSRenderServiceListener::OnBufferAvailable()
             }
         }
     }
-    if (doFastCompose) {
-        return;
-    }
-    SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer());
+    SetBufferInfoAndRequest(node, surfaceHandler, surfaceHandler->GetConsumer(), doFastCompose);
 }
 
 void RSRenderServiceListener::SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
-    const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer)
+    const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer,
+    bool doFastCompose)
 {
-    uint64_t id = 0;
+    if (doFastCompose) {
+        return;
+    }
     int64_t lastConsumeTime = 0;
     uint32_t queueSize = 0;
     if (consumer != nullptr) {
