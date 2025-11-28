@@ -110,6 +110,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGGridWarpFilter>();
         }
     },
+    {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
+            return std::make_shared<RSNGFrostedGlassBlurFilter>();
+        }
+    },
 };
 
 namespace {
@@ -319,6 +323,19 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     return frostedGlassFilter;
 }
 
+std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertFrostedGlassPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto frostedGlassBlurFilter = std::static_pointer_cast<RSNGFrostedGlassBlurFilter>(filter);
+    auto frostedGlassBlurFilterPara = std::static_pointer_cast<FrostedGlassBlurPara>(filterPara);
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassBlurFilterPara->GetBlurRadius());
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(frostedGlassBlurFilterPara->GetRefractOutPx());
+    return frostedGlassBlurFilter;
+}
 }
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -335,6 +352,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::GASIFY_BLUR, ConvertGasifyBlurPara },
     { FilterPara::ParaType::GASIFY, ConvertGasifyPara },
     { FilterPara::ParaType::FROSTED_GLASS, ConvertFrostedGlassPara },
+    { FilterPara::ParaType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

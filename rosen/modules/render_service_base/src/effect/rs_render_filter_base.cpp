@@ -94,6 +94,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderGridWarpFilter>();
         }
     },
+    {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
+            return std::make_shared<RSNGRenderFrostedGlassBlurFilter>();
+        }
+    },
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
