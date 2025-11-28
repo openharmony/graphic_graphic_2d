@@ -37,6 +37,7 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     if (isInvalidNode) {
         return;
     }
+    const auto& consumer = surfaceHandler->GetConsumer();
     std::lock_guard<std::mutex> lock(mutex_);
     bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&
                              lppConsumerMap_.size() >= LPP_SURFACE_NODE_MAX_SIZE;
