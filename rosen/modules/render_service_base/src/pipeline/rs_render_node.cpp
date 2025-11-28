@@ -2270,6 +2270,7 @@ void RSRenderNode::SetParentSubTreeDirty()
     auto parentNode = parent_.lock();
     if (parentNode && !parentNode->IsSubTreeDirty()) {
         parentNode->SetSubTreeDirty(true);
+        parentNode->SetForcePrepare(true);        
         parentNode->SetParentSubTreeDirty();
     }
 }

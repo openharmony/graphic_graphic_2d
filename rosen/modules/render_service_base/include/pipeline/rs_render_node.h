@@ -191,6 +191,14 @@ public:
     {
         isSubTreeDirty_ = val;
     }
+    void SetForcePrepare(bool isForcePrepare)
+    {
+        isForcePrepare_ = isForcePrepare;
+    }
+    bool IsForcePrepare() const
+    {
+        return isForcePrepare_;
+    }
     bool IsTreeStateChangeDirty() const
     {
         return isTreeStateChangeDirty_;
@@ -1173,6 +1181,7 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    bool isForcePrepare_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
