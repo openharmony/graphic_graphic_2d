@@ -582,4 +582,48 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
     // No assertion needed - just verify it doesn't crash
 }
 #endif
+
+/**
+ * @tc.name: SetVirtualScreenTypeBlackList001
+ * @tc.desc: test SetVirtualScreenTypeBlackList while screenManager isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20886
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetVirtualScreenTypeBlackList001, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    int32_t repCode;
+    std::vector<NodeType> typeList = {};
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(INVALID_SCREEN_ID, typeList, repCode), ERR_OK);
+
+    typeList.push_back(static_cast<NodeType>(RSSurfaceNodeType::DEFAULT));
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(INVALID_SCREEN_ID, typeList, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: SetVirtualScreenTypeBlackList002
+ * @tc.desc: test SetVirtualScreenTypeBlackList while screenManager is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20886
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetVirtualScreenTypeBlackList002, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection =
+        new RSClientToServiceConnection(0, nullptr, mainThread, nullptr, token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    int32_t repCode;
+    std::vector<NodeType> typeList = {};
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(
+        INVALID_SCREEN_ID, typeList, repCode), ERR_INVALID_VALUE);
+}
 } // namespace OHOS::Rosen
