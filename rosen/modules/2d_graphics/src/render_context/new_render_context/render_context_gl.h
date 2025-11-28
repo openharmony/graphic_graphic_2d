@@ -19,10 +19,15 @@
 #include <memory>
 
 #include "common/rs_rect.h"
+#include "render_context/render_context.h"
+
+#ifdef ROSEN_IOS
+#include "../render_context_egl_defines.h"
+#else
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "GLES3/gl32.h"
-#include "render_context/render_context.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +70,27 @@ public:
         return eglDisplay_;
     }
 
+#ifdef ROSEN_IOS
+    std::shared_ptr<Drawing::ColorSpace> ColorSpace() const { return color_space_; }
+    bool UpdateStorageSizeIfNecessary();
+    bool ResourceMakeCurrent();
+    static const EGLContext GetResourceContext();
+#endif
+
+protected:
+#ifdef ROSEN_IOS
+    std::shared_ptr<Drawing::ColorSpace> color_space_ = nullptr;
+    void *layer_ = nullptr;
+    static EGLContext resourceContext;
+    static std::mutex resourceContextMutex;
+
+    uint32_t framebuffer_ = 0;
+    uint32_t colorbuffer_ = 0;
+    int32_t storage_width_ = 0;
+    int32_t storage_height_ = 0;
+    bool valid_ = false;
+#endif
+
 private:
     bool IsEglContextReady() const
     {
@@ -72,10 +98,12 @@ private:
     }
 
     void CreatePbufferSurface();
+#ifndef ROSEN_IOS
     static PFNEGLSETDAMAGEREGIONKHRPROC GetEGLSetDamageRegionKHRFunc();
     static bool CheckEglExtension(const char* extensions, const char* extension);
     static EGLDisplay GetPlatformEglDisplay(EGLenum platform, void* native_display, const EGLint* attrib_list);
     int ColorTypeToGLFormat(Drawing::ColorType colorType);
+#endif
 
     EGLConfig config_;
     EGLNativeWindowType nativeWindow_;
