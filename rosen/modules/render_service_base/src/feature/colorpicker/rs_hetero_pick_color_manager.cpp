@@ -29,14 +29,6 @@ RSHeteroPickColorManager& RSHeteroPickColorManager::Instance()
     return instance;
 }
 
-RSHeteroPickColorManager::RSHeteroPickColorManager()
-{
-}
-
-RSHeteroPickColorManager::~RSHeteroPickColorManager()
-{
-}
-
 bool RSHeteroPickColorManager::GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
     Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image)
 {

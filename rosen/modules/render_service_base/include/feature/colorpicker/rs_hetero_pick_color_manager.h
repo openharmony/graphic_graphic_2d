@@ -32,8 +32,8 @@ namespace Rosen {
 class RSHeteroPickColorManager {
 public:
     static RSHeteroPickColorManager& Instance();
-    RSHeteroPickColorManager();
-    ~RSHeteroPickColorManager();
+    RSHeteroPickColorManager() = default;
+    ~RSHeteroPickColorManager() = default;
 
     bool GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
         Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image);
