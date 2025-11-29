@@ -83,6 +83,7 @@ namespace {
 */
 HWTEST_F(HdiBackendSysTest, Repaint001, Function | MediumTest| Level3)
 {
+    ASSERT_NE(output_, nullptr);
     // Repaint before SetHdiBackendDevice
     output_->Repaint();
 

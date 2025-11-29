@@ -55,7 +55,9 @@ namespace {
 HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 {
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegHotPlugCallback(nullptr, nullptr), GRAPHIC_DISPLAY_SUCCESS);
-    uint32_t screenId = 0, screenModeId = 0, screenLightLevel = 0;
+    uint32_t screenId = 0;
+    uint32_t screenModeId = 0;
+    uint32_t screenLightLevel = 0;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegScreenVBlankCallback(screenId, nullptr, nullptr),
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
