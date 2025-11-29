@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "feature/colorpicker/rs_color_picker_thread.h"
+#include "feature/colorpicker/rs_hetero_pick_color_manager.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
@@ -58,30 +59,38 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         return colorPicked_;
     }
     lastUpdateTime_ = currTime;
-    
-    auto colorPickTask = [snapshot, nodeId, strategy, weakThis = weak_from_this()]() {
-        auto manager = weakThis.lock();
-        if (!manager) {
-            RS_LOGD("RSColorPickerThread manager not valid, return");
-            return;
-        }
-        Drawing::ColorQuad colorPicked;
-#if defined(RS_ENABLE_UNI_RENDER)
-        if (RSPropertyDrawableUtils::PickColor(RSColorPickerThread::Instance().GetShareGPUContext(), snapshot,
-#else
-        if (RSPropertyDrawableUtils::PickColor(nullptr, snapshot,
-#endif
-            colorPicked, strategy)) {
-            if (manager->colorPicked_.exchange(colorPicked) != colorPicked) {
-                RSColorPickerThread::Instance().NotifyNodeDirty(nodeId);
-            }
-            RS_LOGD("RSColorPickerThread colorPicked_:0x%{public}" PRIX64, static_cast<uint64_t>(colorPicked));
-            RS_TRACE_NAME_FMT("RSColorPickerThread colorPicked_:%d", colorPicked);
-        } else {
-            RS_LOGE("RSColorPickerThread colorPick failed");
-        }
+
+    auto ptr = std::static_pointer_cast<RSColorPickerManager>(shared_from_this());
+    auto updateColor = [ptr, nodeId](Drawing::ColorQuad& newColor) {
+        ptr->colorPicked_ = newColor;
+        RSColorPickerThread::Instance().NotifyNodeDirty(nodeId);
     };
-    RSColorPickerThread::Instance().PostTask(colorPickTask, TASK_DELAY_TIME);
+    if (!RSHeteroPickColorManager::Instance().GetColor(updateColor, drawingSurface, snapshot)) {
+        auto colorPickTask = [snapshot, nodeId, strategy, weakThis = weak_from_this()]() {
+            auto manager = weakThis.lock();
+            if (!manager) {
+                RS_LOGD("RSColorPickerThread manager not valid, return");
+                return;
+            }
+            Drawing::ColorQuad colorPicked;
+    #if defined(RS_ENABLE_UNI_RENDER)
+            if (RSPropertyDrawableUtils::PickColor(RSColorPickerThread::Instance().GetShareGPUContext(), snapshot,
+    #else
+            if (RSPropertyDrawableUtils::PickColor(nullptr, snapshot,
+    #endif
+                colorPicked, strategy)) {
+                if (manager->colorPicked_.exchange(colorPicked) != colorPicked) {
+                    RSColorPickerThread::Instance().NotifyNodeDirty(nodeId);
+                }
+                RS_LOGD("RSColorPickerThread colorPicked_:0x%{public}" PRIX64, static_cast<uint64_t>(colorPicked));
+                RS_TRACE_NAME_FMT("RSColorPickerThread colorPicked_:%d", colorPicked);
+            } else {
+                RS_LOGE("RSColorPickerThread colorPick failed");
+            }
+        };
+        RSColorPickerThread::Instance().PostTask(colorPickTask, TASK_DELAY_TIME);
+    }
+
     return colorPicked_;
 }
 } // OHOS::Rosen

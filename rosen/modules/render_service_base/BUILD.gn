@@ -390,6 +390,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/capture/rs_ui_capture_helper.cpp",
     "src/feature/colorpicker/rs_color_picker_manager.cpp",
     "src/feature/colorpicker/rs_color_picker_thread.cpp",
+    "src/feature/colorpicker/rs_hetero_pick_color_manager.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",
@@ -643,6 +644,11 @@ ohos_source_set("render_service_base_src") {
 
   if (graphic_2d_feature_subtree_parallel_enable) {
     include_dirs += [ "$graphic_2d_ext_root/subtree" ]
+  }
+
+  if (graphic_2d_feature_mhc_enable) {
+    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
+    sources += graphic_2d_mhc_configs.librender_service_mhc_sources
   }
 
   if (use_video_processing_engine) {
