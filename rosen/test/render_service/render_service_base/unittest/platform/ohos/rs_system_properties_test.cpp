@@ -263,7 +263,7 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetRenderNodeLazyLoadEnabled, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), true);
+    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), false);
 }
 
 /**

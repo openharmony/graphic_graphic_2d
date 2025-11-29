@@ -1364,7 +1364,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSUpdatePropertyDrawCmdListNG*100",
+    "commandList": "RSSetUIContextToken*100",
     "commandListRepeat": 1
   },
   {
@@ -1373,7 +1373,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSModifierNGAttachProperty*100",
+    "commandList": "RSUpdatePropertyDrawCmdListNG*100",
     "commandListRepeat": 1
   },
   {
@@ -1382,7 +1382,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSModifierNGDetachProperty*100",
+    "commandList": "RSModifierNGAttachProperty*100",
     "commandListRepeat": 1
   },
   {
@@ -1391,7 +1391,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSSurfaceNodeSetSurfaceBufferOpaque*100",
+    "commandList": "RSModifierNGDetachProperty*100",
     "commandListRepeat": 1
   },
   {
@@ -1400,7 +1400,7 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
-    "commandList": "RSDisplayNodeForceCloseHdr*100",
+    "commandList": "RSSurfaceNodeSetSurfaceBufferOpaque*100",
     "commandListRepeat": 1
   },
   {
@@ -1409,9 +1409,19 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
+    "commandList": "RSDisplayNodeForceCloseHdr*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_163",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
     "commandList": "RSSurfaceNodeSetFrameGravityNewVersionEnabled*100",
     "commandListRepeat": 1
   },
+
 
   {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
@@ -2366,6 +2376,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK_TEST_001",
+    "interfaceName": "UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK",
+    "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "GET_DISPLAY_IDENTIFICATION_DATA_TEST_001",
     "interfaceName": "GET_DISPLAY_IDENTIFICATION_DATA",
     "inputParams": "WriteUint64",
@@ -2441,6 +2458,13 @@
     "inputParams": "WriteUint32;WriteUint32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT_TEST_001",
+    "interfaceName": "NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT",
+    "inputParams": "WriteUint32;WriteString;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   },
   {
     "testCaseDesc": "NOTIFY_HGMCONFIG_EVENT_TEST_001",

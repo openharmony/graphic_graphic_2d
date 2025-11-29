@@ -79,29 +79,6 @@ HWTEST_F(RSSurfaceFpsManagerTest, GetSurfaceFps, TestSize.Level1)
 }
 
 /**
- * @tc.name: RecordPresentTime
- * @tc.desc: test results of RecordPresentTime
- * @tc.type:FUNC
- * @tc.require: IBE7GI
- */
-HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTime, TestSize.Level1)
-{
-    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    NodeId id = 1000;
-    std::string name = "surfacefps0";
-    uint64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    NodeId uid = 1001;
-    uint32_t seqNum = 0;
-    surfaceFpsManager.RegisterSurfaceFps(id, name);
-    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(id, timestamp, seqNum));
-    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(uid, timestamp, seqNum));
-    seqNum = 1;
-    EXPECT_TRUE(surfaceFpsManager.RecordPresentTime(id, timestamp, seqNum));
-    surfaceFpsManager.UnregisterSurfaceFps(id);
-}
-
-/**
  * @tc.name: DumpAndClearDump
  * @tc.desc: test results of DumpAndClearDump
  * @tc.type:FUNC
@@ -215,5 +192,105 @@ HWTEST_F(RSSurfaceFpsManagerTest, ProcessParamAndIsSurface, TestSize.Level1)
     EXPECT_TRUE(option == "-name");
     EXPECT_TRUE(argStr == "DisplayNode");
     EXPECT_FALSE(surfaceFpsManager.IsSurface(option, argStr));
+}
+/**
+ * @tc.name: RecordPresentTimeOnceTest
+ * @tc.desc: test results of RecordPresentTime
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeOnceTest, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    NodeId id = 1000; // id 1000
+    uint64_t vsyncId = 1; // vsyncid 1
+    std::string name = "surfacefps0";
+    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t flushTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    surfaceFpsManager.RecordFlushTime(id, vsyncId, flushTimestamp);
+    int32_t presentFd = 10; // fd 10
+    surfaceFpsManager.RecordPresentFd(id, vsyncId, presentFd);
+    uint64_t presentTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    surfaceFpsManager.RecordPresentTime(id, presentFd, presentTimestamp);
+    std::string result("");
+    surfaceFpsManager.Dump(result, id);
+    EXPECT_TRUE(result.find(std::to_string(flushTimestamp)) != std::string::npos);
+    EXPECT_TRUE(result.find(std::to_string(presentTimestamp)) != std::string::npos);
+    surfaceFpsManager.UnregisterSurfaceFps(id);
+}
+/**
+ * @tc.name: RecordPresentTimeLoopTest
+ * @tc.desc: test results of RecordPresentTime
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeLoopTest, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    NodeId id = 1000; // id 1000
+    uint64_t vsyncId = 1; // vsyncid 1
+    std::string name = "surfacefps0";
+    uint32_t count = 400; // 400 次
+    int32_t presentFd = 10; // fd 10
+    surfaceFpsManager.RegisterSurfaceFps(id, name);
+    uint64_t flushTimestamp, presentTimestamp;
+    uint64_t firstFlushTimestamp, firstPresentTimestamp;
+
+    for (int i = 0; i < count; i++) {
+        vsyncId += i;
+        flushTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        surfaceFpsManager.RecordFlushTime(id, vsyncId, flushTimestamp);
+        if (i == 0) {
+            firstFlushTimestamp = flushTimestamp;
+        }
+        presentFd += i;
+        surfaceFpsManager.RecordPresentFd(id, vsyncId, presentFd);
+
+        presentTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        surfaceFpsManager.RecordPresentTime(id, presentFd, presentTimestamp);
+        if (i == 0) {
+            firstPresentTimestamp = presentTimestamp;
+        }
+    }
+
+    std::string result("");
+    surfaceFpsManager.Dump(result, id);
+    EXPECT_TRUE(result.find(std::to_string(firstFlushTimestamp)) == std::string::npos);
+    EXPECT_TRUE(result.find(std::to_string(firstPresentTimestamp)) == std::string::npos);
+    EXPECT_TRUE(result.find(std::to_string(flushTimestamp)) != std::string::npos);
+    EXPECT_TRUE(result.find(std::to_string(presentTimestamp)) != std::string::npos);
+    surfaceFpsManager.UnregisterSurfaceFps(id);
+}
+/**
+ * @tc.name: RecordPresentTimeForUniRenderTest
+ * @tc.desc: test results of RecordPresentTime
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSurfaceFpsManagerTest, RecordPresentTimeForUniRenderTest, TestSize.Level1)
+{
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    NodeId id1 = 1000; // id 1000
+    NodeId id2 = 2000; // id 2000
+    uint64_t vsyncId = 1; // vsyncid 1
+    std::string name1 = "surfacefps0";
+    std::string name2 = "surfacefps1";
+    surfaceFpsManager.RegisterSurfaceFps(id1, name1);
+    surfaceFpsManager.RegisterSurfaceFps(id2, name2);
+    uint64_t flushTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    surfaceFpsManager.RecordFlushTime(id2, vsyncId, flushTimestamp);
+    int32_t presentFd = 10; // fd 10
+    surfaceFpsManager.RecordPresentFdForUniRender(vsyncId, presentFd);
+    uint64_t presentTimestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    surfaceFpsManager.RecordPresentTimeForUniRender(presentFd, presentTimestamp);
+    std::string result("");
+    surfaceFpsManager.Dump(result, id2);
+    EXPECT_TRUE(result.find(std::to_string(flushTimestamp)) != std::string::npos);
+    EXPECT_TRUE(result.find(std::to_string(presentTimestamp)) != std::string::npos);
+    surfaceFpsManager.UnregisterSurfaceFps(id1);
+    surfaceFpsManager.UnregisterSurfaceFps(id2);
 }
 }

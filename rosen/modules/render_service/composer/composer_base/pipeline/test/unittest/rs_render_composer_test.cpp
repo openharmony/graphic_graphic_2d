@@ -945,20 +945,21 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
     sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
 
     BufferRequestConfig requestConfig = {
-        .width = 0x100,
-        .height = 0x100,
-        .strideAlignment = 0x8,
-        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
-        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
-        .timeout = 0,
+        .width = 0x100, .height = 0x100, .strideAlignment = 0x8, .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA, .timeout = 0
     };
 
     EXPECT_EQ(sProducer->RequestBuffer(buffer, requestFence, requestConfig), GSERROR_OK);
     l3->SetBuffer(buffer);
     layers.emplace_back(l3);
     ASSERT_EQ(layers.size(), 4);
-
-    rsRenderComposer_->RecordTimestamp(layers);
+    uint64_t vsyncId = 1;
+    auto output = HdiOutput::CreateHdiOutput(0);
+    rsRenderComposer_->RecordTimestamp(vsyncId, output, layers);
+    ASSERT_EQ(layers.size(), 4);
+    
+    l3->SetUniRenderFlag(true);
+    rsRenderComposer_->RecordTimestamp(vsyncId, output, layers);
     ASSERT_EQ(layers.size(), 4);
 }
 

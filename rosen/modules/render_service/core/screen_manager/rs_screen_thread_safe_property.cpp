@@ -66,6 +66,7 @@ sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
     cloned->skipWindow_ = property_->skipWindow_;
     cloned->powerStatus_ = property_->powerStatus_;
     cloned->screenType_ = property_->screenType_;
+    cloned->connectionType_ = property_->connectionType_;
     cloned->producerSurface_ = property_->producerSurface_;
     cloned->scaleMode_ = property_->scaleMode_;
     cloned->screenStatus_ = property_->screenStatus_;
@@ -318,8 +319,12 @@ void RSScreenThreadSafeProperty::SetPowerStatus(ScreenPowerStatus powerStatus)
 
 void RSScreenThreadSafeProperty::SetScreenType(RSScreenType screenType)
 {
-    UniqueLock lock(propertyMutex_);
     property_->screenType_ = screenType;
+}
+
+void RSScreenThreadSafeProperty::SetConnectionType(ScreenConnectionType connectionType)
+{
+    property_->connectionType_ = connectionType;
 }
 
 void RSScreenThreadSafeProperty::SetProducerSurface(sptr<Surface> producerSurface)
@@ -597,8 +602,12 @@ ScreenPowerStatus RSScreenThreadSafeProperty::GetPowerStatus() const
 
 RSScreenType RSScreenThreadSafeProperty::GetScreenType() const
 {
-    SharedLock lock(propertyMutex_);
     return property_->screenType_;
+}
+
+ScreenConnectionType RSScreenThreadSafeProperty::GetConnectionType() const
+{
+    return property_->connectionType_;
 }
 
 sptr<Surface> RSScreenThreadSafeProperty::GetProducerSurface() const

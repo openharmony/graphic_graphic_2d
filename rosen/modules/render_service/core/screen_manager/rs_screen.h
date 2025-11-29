@@ -58,6 +58,7 @@ public:
 
     bool IsVirtual() const;
     RSScreenType GetScreenType() const;
+    ScreenConnectionType GetConnectionType() const;
 
     int32_t SetResolution(uint32_t width, uint32_t height);
     void SetRogResolution(uint32_t width, uint32_t height);

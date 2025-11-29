@@ -75,6 +75,7 @@ public:
     bool EnableSkipWindow() const;
     ScreenPowerStatus GetScreenPowerStatus() const;
     RSScreenType GetScreenType() const;
+    ScreenConnectionType GetConnectionType() const;
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<Surface> GetProducerSurface() const;
 #endif
@@ -129,6 +130,7 @@ private:
     bool skipWindow_ = false;
     ScreenPowerStatus powerStatus_ = ScreenPowerStatus::INVALID_POWER_STATUS;
     RSScreenType screenType_ = RSScreenType::UNKNOWN_TYPE_SCREEN;
+    ScreenConnectionType connectionType_ = ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE;
 
 #ifndef ROSEN_CROSS_PLATFORM
     sptr<Surface> producerSurface_ = nullptr; // has value if the screen is virtual

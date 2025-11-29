@@ -301,21 +301,33 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     }
     auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
     auto frostedGlassFilterPara = std::static_pointer_cast<FrostedGlassPara>(filterPara);
-    frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(frostedGlassFilterPara->GetBorderSize());
     frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(frostedGlassFilterPara->GetBlurParams());
-    frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(frostedGlassFilterPara->GetCornerRadius());
-    frostedGlassFilter->Setter<FrostedGlassBorderWidthTag>(frostedGlassFilterPara->GetBorderWidth());
-    frostedGlassFilter->Setter<FrostedGlassOffsetTag>(frostedGlassFilterPara->GetOffset());
-    frostedGlassFilter->Setter<FrostedGlassDownSampleFactorTag>(frostedGlassFilterPara->GetDownSampleFactor());
-    frostedGlassFilter->Setter<FrostedGlassBgFactorTag>(frostedGlassFilterPara->GetBgFactor());
-    frostedGlassFilter->Setter<FrostedGlassInnerShadowParamsTag>(frostedGlassFilterPara->GetInnerShadowParams());
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(frostedGlassFilterPara->GetWeightsEmboss());
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(frostedGlassFilterPara->GetWeightsEdl());
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(frostedGlassFilterPara->GetBgRates());
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(frostedGlassFilterPara->GetBgKBS());
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(frostedGlassFilterPara->GetBgPos());
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(frostedGlassFilterPara->GetBgNeg());
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(frostedGlassFilterPara->GetRefractParams());
     frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(frostedGlassFilterPara->GetSdParams());
-    frostedGlassFilter->Setter<FrostedGlassRefractOutPxTag>(frostedGlassFilterPara->GetRefractOutPx());
-    frostedGlassFilter->Setter<FrostedGlassEnvParamsTag>(frostedGlassFilterPara->GetEnvParams());
-    frostedGlassFilter->Setter<FrostedGlassEdgeLightAngleParamsTag>(frostedGlassFilterPara->GetEdgeLightAngleParams());
-    frostedGlassFilter->Setter<FrostedGlassEdgeLightBlurParamsTag>(frostedGlassFilterPara->GetEdgeLightBlurParams());
-    frostedGlassFilter->Setter<FrostedGlassEdgeLightDirParamsTag>(frostedGlassFilterPara->GetEdgeLightDirParams());
-    frostedGlassFilter->Setter<FrostedGlassHlParamsTag>(frostedGlassFilterPara->GetHlParams());
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(frostedGlassFilterPara->GetSdRates());
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(frostedGlassFilterPara->GetSdKBS());
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(frostedGlassFilterPara->GetSdPos());
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(frostedGlassFilterPara->GetSdNeg());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(frostedGlassFilterPara->GetEnvLightParams());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(frostedGlassFilterPara->GetEnvLightRates());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(frostedGlassFilterPara->GetEnvLightKBS());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(frostedGlassFilterPara->GetEnvLightPos());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(frostedGlassFilterPara->GetEnvLightNeg());
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(frostedGlassFilterPara->GetEdLightParams());
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(frostedGlassFilterPara->GetEdLightAngles());
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(frostedGlassFilterPara->GetEdLightDir());
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(frostedGlassFilterPara->GetEdLightRates());
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(frostedGlassFilterPara->GetEdLightKBS());
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(frostedGlassFilterPara->GetEdLightPos());
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(frostedGlassFilterPara->GetEdLightNeg());
+    frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(frostedGlassFilterPara->GetBorderSize());
+    frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(frostedGlassFilterPara->GetCornerRadius());
     return frostedGlassFilter;
 }
 

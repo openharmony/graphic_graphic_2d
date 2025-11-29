@@ -232,6 +232,38 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence001, Function | MediumTest| Leve
 }
 
 /*
+* Function: CommitAndGetReleaseFence002
+* Type: Function
+* Rank: Important(1)
+* EnvConditions: N/A
+* CaseDescription: 1. call CommitAndGetReleaseFence()
+*                  2. check ret
+*/
+HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence002, Function | MediumTest| Level1)
+{
+    EXPECT_CALL(*hdiDeviceMock_,
+        CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
+    sptr<SyncFence> fbFence = SyncFence::INVALID_FENCE;
+    int32_t skipState = 0;
+    bool needFlush = false;
+
+    // Setup buffer cache to verify clearing
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    HdiOutputTest::hdiOutput_->bufferCache_.push_back(buffer);
+
+    // Setup layer to verify ResetBufferCache call (branch coverage)
+    std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(0);
+    HdiOutputTest::hdiOutput_->layerIdMap_[0] = hdiLayer;
+
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false),
+        GRAPHIC_DISPLAY_FAILURE);
+
+    ASSERT_EQ(HdiOutputTest::hdiOutput_->bufferCache_.size(), 0);
+
+    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
+}
+
+/*
 * Function: CheckAndUpdateClientBufferCahce001
 * Type: Function
 * Rank: Important(1)
@@ -1720,6 +1752,29 @@ HWTEST_F(HdiOutputTest, SetAncoSrcRect, Function | MediumTest | Level3)
     EXPECT_EQ(srcRect.y, srcRectRet.y);
     EXPECT_EQ(srcRect.w, srcRectRet.w);
     EXPECT_EQ(srcRect.h, srcRectRet.h);
+}
+/*
+ * Function: UpdateInfosAfterCommit
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call UpdateInfosAfterCommit()
+ *                  2.check ret
+ */
+class MockSyncFence : public OHOS::SyncFence {
+public:
+    explicit MockSyncFence(int32_t fenceFd) : OHOS::SyncFence(fenceFd) {}
+    virtual ~MockSyncFence() = default;
+    MOCK_METHOD0(SyncFileReadTimestamp, ns_sec_t());
+};
+HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | MediumTest | Level1)
+{
+    sptr<MockSyncFence> fbFence = new MockSyncFence(1); //  Fd 1
+    int64_t timeStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    EXPECT_CALL(*fbFence, SyncFileReadTimestamp()).WillRepeatedly(testing::Return(timeStamp));
+    ASSERT_EQ(hdiOutput_->UpdateInfosAfterCommit(fbFence), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(hdiOutput_->GetCurrentFramePresentFd(), fbFence->Get());
 }
 } // namespace
 } // namespace Rosen

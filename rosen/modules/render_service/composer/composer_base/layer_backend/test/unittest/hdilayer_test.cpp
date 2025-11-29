@@ -96,6 +96,11 @@ void HdiLayerTest::SetUpTestCase()
 void HdiLayerTest::TearDownTestCase() {}
 
 namespace {
+class MockSurfaceBuffer : public SurfaceBufferImpl {
+public:
+    MOCK_CONST_METHOD0(GetBufferHandle, BufferHandle*());
+};
+
 /*
 * Function: SetHdiDeviceMock001
 * Type: Function
@@ -421,7 +426,17 @@ HWTEST_F(HdiLayerTest, SetLayerBuffer, Function | MediumTest| Level1)
     auto res = hdiLayer->SetLayerBuffer();
     EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
 
+    BufferRequestConfig requestConfig = {
+        .width = 0x100,
+        .height = 0x100,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+        .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DCI_P3,
+    };
     sptr<SurfaceBuffer> newBuffer = new SurfaceBufferImpl();
+    newBuffer->Alloc(requestConfig);
     sptr<SyncFence> newFence = new SyncFence(-1);
     prevRSLayer->SetBuffer(newBuffer, newFence);
     rsLayer->SetBuffer(newBuffer, newFence);
@@ -435,10 +450,17 @@ HWTEST_F(HdiLayerTest, SetLayerBuffer, Function | MediumTest| Level1)
     res = hdiLayer->SetLayerBuffer();
 
     sptr<SurfaceBuffer> oldBuffer = new SurfaceBufferImpl();
+    oldBuffer->Alloc(requestConfig);
     sptr<SyncFence> oldFence = new SyncFence(-1);
     prevRSLayer->SetBuffer(oldBuffer, oldFence);
     res = hdiLayer->SetLayerBuffer();
     EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
+
+    auto mockBuffer = new MockSurfaceBuffer();
+    EXPECT_CALL(*mockBuffer, GetBufferHandle()).WillRepeatedly(testing::Return(nullptr));
+    rsLayer->SetBuffer(mockBuffer, newFence);
+    res = hdiLayer->SetLayerBuffer();
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 /**

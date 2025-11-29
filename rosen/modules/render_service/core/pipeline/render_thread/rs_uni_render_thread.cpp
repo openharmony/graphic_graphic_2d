@@ -58,6 +58,7 @@
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #ifdef RES_SCHED_ENABLE
 #include <iservice_registry.h>
+#include "concurrent_task_client.h"
 #include "if_system_ability_manager.h"
 #include "system_ability_definition.h"
 #endif
@@ -261,6 +262,11 @@ void RSUniRenderThread::Start()
         }
     };
     RSTaskDispatcher::GetInstance().RegisterTaskDispatchFunc(tid_, taskDispatchFunc);
+#ifdef RES_SCHED_ENABLE
+    int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(tid_,
+        OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
+    RS_LOGI("RSUniRenderThread SetSystemQoS, qosRes = %{public}d", qosRes);
+#endif
 
     if (!rootNodeDrawable_) {
         const std::shared_ptr<RSBaseRenderNode> rootNode =
