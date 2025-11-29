@@ -2125,7 +2125,7 @@ HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
     HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
 
-    sptr<SyncFence> fence = nullptr;
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
     int32_t skipState = GRAPHIC_DISPLAY_SUCCESS;
     bool needFlush = false;
     std::vector<uint32_t> layersId = {};
