@@ -95,7 +95,7 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
     ADD_PROPERTY_TAG(ColorGradientEffect, BlendK)
 );
 
-DECLARE_FILTER(FrostedGlassEffect, FROSTED_GLASS,
+DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, BlurParam),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
