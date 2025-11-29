@@ -71,6 +71,7 @@ bool RSMemorySnapshotFuzzTest(const uint8_t* data, size_t size)
     bool isTotalOver = GetData<bool>();
     instance.UpdateGpuMemoryInfo(gpuInfo, pidInfo, isTotalOver);
     instance.GetMemorySnapshot(pidInfo);
+    instance.FillMemorySnapshot(pidInfo);
     
     instance.RemoveCpuMemory(GetData<pid_t>(), GetData<size_t>());
     instance.RemoveCpuMemory(tempPid, tempSize);
