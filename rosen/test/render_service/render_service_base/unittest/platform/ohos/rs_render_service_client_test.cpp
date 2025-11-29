@@ -1294,7 +1294,7 @@ HWTEST_F(RSServiceClientTest, SetDualScreenState002, TestSize.Level1)
 
     RSRenderServiceConnectHub::Destroy();
     auto ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
-    EXPECT_EQ(ret, StatusCode::CLIENT_TO_SERVICE_NULL);
+    EXPECT_EQ(ret, StatusCode::RENDER_SERVICE_NULL);
     RSRenderServiceConnectHub::Init();
     ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
     EXPECT_EQ(ret, StatusCode::SUCCESS);

@@ -1441,8 +1441,7 @@ int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenS
             [=]() {return screenManager_->SetDualScreenState(id, status); });
     } else if (mainThread_ != nullptr) {
         return mainThread_->ScheduleTask(
-            [=]() { return screenManager_->SetDualScreenState(id, status); }.get();
-        );
+            [=]() { return screenManager_->SetDualScreenState(id, status); }).get();
     } else {
         RS_LOGE("%{public}s mainThread_ is null, id: %{public}" PRIu64, __func__, id);
         return StatusCode::MAIN_THREAD_NULL;

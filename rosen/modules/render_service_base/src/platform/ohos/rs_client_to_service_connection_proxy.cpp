@@ -1906,6 +1906,11 @@ int32_t RSClientToServiceConnectionProxy::SetDualScreenState(ScreenId id, DualSc
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
+        ROSEN_LOGE("SetDualScreenState: SendRequest error: %{public}d", err);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    int32_t ret{0};
+    if (!reply.ReadInt32(ret)) {
         ROSEN_LOGE("SetDualScreenState: Read ret failed");
         return StatusCode::READ_PARCEL_ERR;
     }

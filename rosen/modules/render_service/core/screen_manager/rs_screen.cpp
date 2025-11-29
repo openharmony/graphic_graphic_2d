@@ -702,11 +702,6 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
         return StatusCode::VIRTUAL_SCREEN;
     }
     uint64_t value = static_cast<uint64_t>(status);
-    if (value >= static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_STATUS_BUTT)) {
-        RS_LOGW("%{public}s: invalid status: %{public}" PRIu64, __func__, value);
-        return StatusCode::INVALID_ARGUMENTS;
-    }
-
     auto id = property_.GetId();
     RS_TRACE_NAME_FMT("Screen_%llu SetDualScreenState %u", id, value);
     int32_t ret = hdiScreen_->SetDisplayProperty(value);

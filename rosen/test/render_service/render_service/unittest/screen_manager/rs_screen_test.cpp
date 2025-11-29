@@ -2682,17 +2682,7 @@ HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
         EXPECT_EQ(virtualScreen->SetDualScreenState(status), StatusCode::VIRTUAL_SCREEN);
     }
 
-    // case 3: invalid DualScreenStatus
-    {
-        DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_STATUS_BUTT;
-        auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-        auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
-        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
-        EXPECT_EQ(rsScreen->SetDualScreenState(status), StatusCode::INVALID_ARGUMENTS);
-    }
-
-    // case 4: mock hdi error
+    // case 3: mock hdi error
     {
         DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_STATUS_BUTT;
         auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
@@ -2702,7 +2692,7 @@ HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
         EXPECT_EQ(rsScreen->SetDualScreenState(status), StatusCode::HDI_ERROR);
     }
 
-    // case 5
+    // case 4
     {
         DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_ENTER;
         auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);

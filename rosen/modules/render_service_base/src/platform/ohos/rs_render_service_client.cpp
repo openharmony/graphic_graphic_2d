@@ -864,7 +864,7 @@ int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus 
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
-        return StatusCode::CLIENT_TO_SERVICE_NULL;
+        return StatusCode::RENDER_SERVICE_NULL;
     }
 
     return clientToService->SetDualScreenState(id, status);

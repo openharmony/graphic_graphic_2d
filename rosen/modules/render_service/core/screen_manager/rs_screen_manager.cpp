@@ -1633,7 +1633,7 @@ int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width
     return screen->SetResolution(width, height);
 }
 
-int32_t SetDualScreenState(ScreenId id, DualScreenStatus status)
+int32_t RSScreenManager::SetDualScreenState(ScreenId id, DualScreenStatus status)
 {
     auto screen = GetScreen(id);
     if (screen == nullptr) {

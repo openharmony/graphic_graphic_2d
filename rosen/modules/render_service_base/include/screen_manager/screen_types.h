@@ -205,7 +205,6 @@ typedef enum : uint32_t {
     IPC_ERROR,
     HDI_ERR_NOT_SUPPORT,
     MAIN_THREAD_NULL,
-    CLIENT_TO_SERVICE_NULL,
 } StatusCode;
 
 typedef enum : uint32_t {
@@ -214,11 +213,11 @@ typedef enum : uint32_t {
     VIRTUAL_SCREEN_INVALID_STATUS,
 } VirtualScreenStatus;
 
-typedef enum : uint64_t {
+enum classb DualScreenStatus : uint64_t {
     DUAL_SCREEN_ENTER = 0,
     DUAL_SCREEN_EXIT,
     DUAL_SCREEN_STATUS_BUTT,
-} DualScreenStatus;
+};
 
 /*
  * @brief Enumerates screen color key types supported by hardware acceleration.
