@@ -101,7 +101,21 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
-static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {};
+static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {
+    {
+        RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect){
+            auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
+            auto blurRadius = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRadiusRenderTag>()->Get();
+            auto refractOutPx = frostedGlass->Getter<OHOS::Rosen::FrostedGlassBlurRefractOutPxRenderTag>()->Get();
+            const float maxRefractOutPx = 500.0f;
+            float outStep = std::max(blurRadius + std::max(std::min(refractOutPx, maxRefractOutPx), 0.0f), 0.0f);
+            auto snapshotRect = rect;
+            snapshotRect.SetAll(rect.GetLeft() - outStep, rect.GetTop() - outStep,
+                rect.GetWidth() + outStep * 2, rect.GetHeight() + outStep * 2);
+            return snapshotRect;
+        }
+    }
+};
 
 using FilterGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
 static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {};
