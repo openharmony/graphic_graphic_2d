@@ -1753,6 +1753,29 @@ HWTEST_F(HdiOutputTest, SetAncoSrcRect, Function | MediumTest | Level3)
     EXPECT_EQ(srcRect.w, srcRectRet.w);
     EXPECT_EQ(srcRect.h, srcRectRet.h);
 }
+/*
+ * Function: UpdateInfosAfterCommit
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1.call UpdateInfosAfterCommit()
+ *                  2.check ret
+ */
+class MockSyncFence : public OHOS::SyncFence {
+public:
+    explicit MockSyncFence(int32_t fenceFd) : OHOS::SyncFence(fenceFd) {}
+    virtual ~MockSyncFence() = default;
+    MOCK_METHOD0(SyncFileReadTimestamp, ns_sec_t());
+};
+HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | MediumTest | Level1)
+{
+    sptr<MockSyncFence> fbFence = new MockSyncFence(1); //  Fd 1
+    int64_t timeStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
+    EXPECT_CALL(*fbFence, SyncFileReadTimestamp()).WillRepeatedly(testing::Return(timeStamp));
+    ASSERT_EQ(hdiOutput_->UpdateInfosAfterCommit(fbFence), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(hdiOutput_->GetCurrentFramePresentFd(), fbFence->Get());
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

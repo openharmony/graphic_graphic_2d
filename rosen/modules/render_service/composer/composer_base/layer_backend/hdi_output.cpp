@@ -613,18 +613,33 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
     return ret;
 }
 
+void HdiOutput::UpdateThirdFrameAheadPresentFence(sptr<SyncFence> &fbFence)
+{
+    RS_TRACE_NAME_FMT("presentFenceIndex_ = %d", presentFenceIndex_);
+    if (historicalPresentfences_.size() == NUMBER_OF_HISTORICAL_FRAMES) {
+        thirdFrameAheadPresentFence_ = historicalPresentfences_[presentFenceIndex_];
+        historicalPresentfences_[presentFenceIndex_] = fbFence;
+        presentFenceIndex_ = (presentFenceIndex_ + 1) % NUMBER_OF_HISTORICAL_FRAMES;
+    } else {
+        historicalPresentfences_.push_back(fbFence);
+    }
+}
+
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 {
     RS_TRACE_NAME("HdiOutput::UpdateInfosAfterCommit");
     std::unique_lock<std::mutex> lock(mutex_);
-    if (thirdFrameAheadPresentFence_ == nullptr) {
-        return GRAPHIC_DISPLAY_NULL_PTR;
-    }
     UpdatePrevRSLayerLocked();
 
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
+    if (thirdFrameAheadPresentFence_ == nullptr) {
+        return GRAPHIC_DISPLAY_NULL_PTR;
+    }
+    thirdFrameAheadPresentFenceFd_ = -1;
+    thirdFrameAheadPresentTime_ = SyncFence::FENCE_PENDING_TIMESTAMP;
+
     RS_TRACE_BEGIN("HdiOutput::SyncFileReadTimestamp");
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     RS_TRACE_END();
@@ -647,6 +662,8 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         if (presentTimeUpdated && uniRenderLayer) {
             RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %lld", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
+            thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
+            thirdFrameAheadPresentTime_ = timestamp;
         }
     }
 
@@ -654,14 +671,8 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (startSample) {
         ret = StartVSyncSampler();
     }
-    RS_TRACE_NAME_FMT("presentFenceIndex_ = %d", presentFenceIndex_);
-    if (historicalPresentfences_.size() == NUMBER_OF_HISTORICAL_FRAMES) {
-        thirdFrameAheadPresentFence_ = historicalPresentfences_[presentFenceIndex_];
-        historicalPresentfences_[presentFenceIndex_] = fbFence;
-        presentFenceIndex_ = (presentFenceIndex_ + 1) % NUMBER_OF_HISTORICAL_FRAMES;
-    } else {
-        historicalPresentfences_.push_back(fbFence);
-    }
+    UpdateThirdFrameAheadPresentFence(fbFence);
+    curPresentFd_ = fbFence->Get();
     return ret;
 }
 
