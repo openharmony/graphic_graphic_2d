@@ -75,7 +75,12 @@ private:
     static float GetSpecialValue(napi_env env, napi_value argValue);
     static napi_value CreateHarmoniumEffect(napi_env env, napi_callback_info info);
     static napi_value CreateFrostedGlassEffect(napi_env env, napi_callback_info info);
-
+    static bool FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
+    static bool FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
+    static bool FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
+    static bool FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para);
+    static bool BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
+        std::shared_ptr<FrostedGlassEffectPara>& outPara);
     std::shared_ptr<VisualEffect> m_EffectObj = nullptr;
 };
 } // namespace Rosen

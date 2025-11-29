@@ -36,7 +36,7 @@ public:
         blurParam_ = blurParam;
     }
 
-    const float GetBlurParam() const
+    float GetBlurParam() const
     {
         return blurParam_;
     }

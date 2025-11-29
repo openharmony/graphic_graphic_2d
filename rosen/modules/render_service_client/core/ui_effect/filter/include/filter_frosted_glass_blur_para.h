@@ -32,7 +32,7 @@ public:
         radius_ = radius;
     }
 
-    const float GetBlurRadius() const
+    float GetBlurRadius() const
     {
         return radius_;
     }
@@ -42,7 +42,7 @@ public:
         refractOutPx_ = refractOutPx;
     }
 
-    const float GetRefractOutPx() const
+    float GetRefractOutPx() const
     {
         return refractOutPx_;
     }

@@ -838,130 +838,130 @@ napi_value EffectNapi::CreateColorGradientEffect(napi_env env, napi_callback_inf
     return thisVar;
 }
 
-bool FilterNapi::FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para)
+bool EffectNapi::FillFrostedGlassCommon(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para)
 {
     if (!para) {
-        FILTER_LOG_E("FillFrostedGlassCommon: para is nullptr");
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: para is nullptr");
         return false;
     }
 
     double blurParam;
-    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_0], blurParam)), false,
-        FILTER_LOG_E("FillFrostedGlassCommon: blurParam parse fail");
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsDoubleValue(env, argv[NUM_0], blurParam), false,
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: blurParam parse fail"));
     para->SetBlurParam(static_cast<float>(blurParam));
 
     Vector2f weightsEmboss;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_1], weightsEmboss), false,
-        FILTER_LOG_E("FillFrostedGlassCommon: weightsEmboss parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: weightsEmboss parse fail"));
     para->SetWeightsEmboss(weightsEmboss);
 
     Vector2f weightsEdl;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_2], weightsEdl), false,
-        FILTER_LOG_E("FillFrostedGlassCommon: weightsEdl parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: weightsEdl parse fail"));
     para->SetWeightsEdl(weightsEdl);
     return true;
 }
 
-bool FilterNapi::FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para)
+bool EffectNapi::FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para)
 {
     if (!para) {
-        FILTER_LOG_E("FillFrostedGlassInner: para is nullptr");
+        UIEFFECT_LOG_E("FillFrostedGlassInner: para is nullptr");
         return false;
     }
 
     Vector2f bgRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_3], bgRates), false,
-        FILTER_LOG_E("FillFrostedGlassCommon: bgRates parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: bgRates parse fail"));
     para->SetBgRates(bgRates);
 
     Vector3f bgKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_4], bgKBS), false,
-        FILTER_LOG_E("FillFrostedGlassInner: bgKBS parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: bgKBS parse fail"));
     para->SetBgKBS(bgKBS);
 
     Vector3f bgPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_5], bgPos), false,
-        FILTER_LOG_E("FillFrostedGlassInner: bgPos parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: bgPos parse fail"));
     para->SetBgPos(bgPos);
 
     Vector3f bgNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_6], bgNeg), false,
-        FILTER_LOG_E("FillFrostedGlassInner: bgNeg parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: bgNeg parse fail"));
     para->SetBgNeg(bgNeg);
 
     Vector3f refractParams;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_7], refractParams), false,
-        FILTER_LOG_E("FillFrostedGlassInner: refractParams parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: refractParams parse fail"));
     para->SetRefractParams(refractParams);
 
     return true;
 }
 
-bool FilterNapi::FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para)
+bool EffectNapi::FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para)
 {
     if (!para) {
-        FILTER_LOG_E("FillFrostedGlassInner: para is nullptr");
+        UIEFFECT_LOG_E("FillFrostedGlassInner: para is nullptr");
         return false;
     }
 
     Vector3f sdParams;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_8], sdParams), false,
-        FILTER_LOG_E("FillFrostedGlassCommon: sdParams parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: sdParams parse fail"));
     para->SetSdParams(sdParams);
 
     Vector2f sdRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_9], sdRates), false,
-        FILTER_LOG_E("FillFrostedGlassInner: sdRates parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: sdRates parse fail"));
     para->SetSdRates(sdRates);
 
     Vector3f sdKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_10], sdKBS), false,
-        FILTER_LOG_E("FillFrostedGlassInner: sdKBS parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: sdKBS parse fail"));
     para->SetSdKBS(sdKBS);
 
     Vector3f sdPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_11], sdPos), false,
-        FILTER_LOG_E("FillFrostedGlassInner: sdPos parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: sdPos parse fail"));
     para->SetSdPos(sdPos);
 
     Vector3f sdNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_12], sdNeg), false,
-        FILTER_LOG_E("FillFrostedGlassInner: sdPos parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: sdPos parse fail"));
     para->SetSdNeg(sdNeg);
 
     return true;
 }
 
-bool FilterNapi::FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para)
+bool EffectNapi::FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassEffectPara>& para)
 {
     if (!para) {
-        FILTER_LOG_E("FillFrostedGlassInner: para is nullptr");
+        UIEFFECT_LOG_E("FillFrostedGlassInner: para is nullptr");
         return false;
     }
 
     Vector2f envLightParams;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_13], envLightParams), false,
-        FILTER_LOG_E("FillFrostedGlassInner: envLightParams parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: envLightParams parse fail"));
     para->SetEnvLightParams(envLightParams);
 
     Vector2f envLightRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_14], envLightRates), false,
-        FILTER_LOG_E("FillFrostedGlassCommon: envLightRates parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassCommon: envLightRates parse fail"));
     para->SetEnvLightRates(envLightRates);
 
     Vector3f sdKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_15], sdKBS), false,
-        FILTER_LOG_E("FillFrostedGlassInner: sdKBS parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: sdKBS parse fail"));
     para->SetEnvLightKBS(sdKBS);
 
     Vector3f envLightPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_16], envLightPos), false,
-        FILTER_LOG_E("FillFrostedGlassInner: envLightPos parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: envLightPos parse fail"));
     para->SetEnvLightPos(envLightPos);
 
     Vector3f envLightNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_17], envLightNeg), false,
-        FILTER_LOG_E("FillFrostedGlassInner: envLightNeg parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassInner: envLightNeg parse fail"));
     para->SetEnvLightNeg(envLightNeg);
 
     return true;
@@ -984,14 +984,17 @@ bool EffectNapi::BuildFrostedGlassEffectPara(napi_env env, napi_value* argv,
     UIEFFECT_NAPI_CHECK_RET_D(FillFrostedGlassEnv(env, argv, outPara), false,
         UIEFFECT_LOG_E("BuildFrostedGlassEffectPara: FillFrostedGlassEnv fail"));
 
-    UIEFFECT_NAPI_CHECK_RET_D(FillFrostedGlassEdl(env, argv, outPara), false,
-        UIEFFECT_LOG_E("BuildFrostedGlassEffectPara: FillFrostedGlassHighlight fail"));
-
     return true;
 }
 
 napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info info)
 {
+    if (!UIEffectNapiUtils::IsSystemApp()) {
+        UIEFFECT_LOG_E("CreateFrostedGlassEffect failed, is not system app");
+        napi_throw_error(env, std::to_string(ERR_NOT_SYSTEM_APP).c_str(),
+            "EffectNapi CreateFrostedGlassEffect failed, is not system app");
+        return nullptr;
+    }
     constexpr size_t requireArgc = NUM_25;
 
     napi_status status;
@@ -1007,16 +1010,14 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
     UIEFFECT_NAPI_CHECK_RET_D(BuildFrostedGlassEffectPara(env, argv, para), nullptr,
         UIEFFECT_LOG_E("EffectNapi::CreateFrostedGlassEffect build para fail"));
 
-    Filter* filterObj = nullptr;
-    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+    VisualEffect* visualEffectObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&visualEffectObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && visualEffectObj != nullptr, nullptr,
         UIEFFECT_LOG_E("EffectNapi::CreateFrostedGlassEffect napi_unwrap fail"));
 
-    filterObj->AddPara(para);
+    visualEffectObj->AddPara(para);
     return thisVar;
 }
-
-
 
 napi_value EffectNapi::CreateHarmoniumEffect(napi_env env, napi_callback_info info)
 {
