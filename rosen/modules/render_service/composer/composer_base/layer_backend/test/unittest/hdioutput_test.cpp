@@ -254,6 +254,7 @@ HWTEST_F(HdiOutputTest, CommitAndGetReleaseFence002, Function | MediumTest| Leve
     // Setup layer to verify ResetBufferCache call (branch coverage)
     std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(0);
     HdiOutputTest::hdiOutput_->layerIdMap_[0] = hdiLayer;
+    HdiOutputTest::hdiOutput_->layerIdMap_[1] = nullptr;
 
     ASSERT_EQ(HdiOutputTest::hdiOutput_->CommitAndGetReleaseFence(fbFence, skipState, needFlush, false),
         GRAPHIC_DISPLAY_FAILURE);
