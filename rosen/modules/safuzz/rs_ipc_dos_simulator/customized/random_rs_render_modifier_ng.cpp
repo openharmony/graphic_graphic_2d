@@ -40,6 +40,7 @@ std::shared_ptr<ModifierNG::RSRenderModifier> RandomRSRenderModifier::GetRandomR
     auto modifierType = GetRandomRSModifierType();
     auto& constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(modifierType)];
     while (constructor == nullptr) {
+        modifierType = GetRandomRSModifierType();
         constructor = ModifierNG::RSRenderModifier::ConstructorLUT_[static_cast<uint16_t>(modifierType)];
     }
     auto renderModifier = constructor();
