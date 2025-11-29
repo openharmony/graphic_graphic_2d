@@ -2822,7 +2822,7 @@ HWTEST_F(RSInterfacesTest, SetDualScreenState002, Function | SmallTest | Level2)
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    auto ret = rsInterfaces->SetDualScreenState(INVALID_SCREEN_ID, DualScreenStatus::DUAL_SCREEN_ENTER);
+    auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
     EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
 }
 
@@ -2834,12 +2834,12 @@ HWTEST_F(RSInterfacesTest, SetDualScreenState002, Function | SmallTest | Level2)
 * CaseDescription: 1. call SetDualScreenState with valid screen id, but invalid status
 *                  2. check
 */
-HWTEST_F(RSInterfacesTest, SetDualScreenState002, Function | SmallTest | Level2)
+HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
 {
     auto screenId = rsInterfaces->GetDefaultScreenId();
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
 
-    auto ret = rsInterfaces->SetDualScreenState(INVALID_SCREEN_ID, DualScreenStatus::DUAL_SCREEN_STATUS_BUTT);
+    auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_STATUS_BUTT);
     EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
 }
 } // namespace Rosen
