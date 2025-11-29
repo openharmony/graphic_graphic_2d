@@ -28,6 +28,8 @@ namespace OHOS::Text::ANI {
 class AniParagraphStyleConverter final {
 public:
     static std::unique_ptr<OHOS::Rosen::TypographyStyle> ParseParagraphStyleToNative(ani_env* env, ani_object obj);
+    static void ParseSimpleParagraphStyleToNative(
+        ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle);
     static void ParseParagraphStyleStrutStyleToNative(
         ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle);
     static void ParseTextTabToNative(ani_env* env, ani_object obj, OHOS::Rosen::TextTab& textTab);

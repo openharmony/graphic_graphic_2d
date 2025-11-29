@@ -134,6 +134,8 @@ struct RS_EXPORT TypographyStyle {
     double minLineHeight{0.0f};
     double lineSpacing{0.0f};
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
+    bool includeFontPadding{false};
+    bool fallbackLineSpacing{false};
 };
 } // namespace Rosen
 } // namespace OHOS

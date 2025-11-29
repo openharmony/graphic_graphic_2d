@@ -483,6 +483,8 @@ void HandleExtentParagraphStyleProperties(napi_env env, napi_value argValue, Typ
     SetBoolValueFromJS(env, argValue, "compressHeadPunctuation", pographyStyle.compressHeadPunctuation);
     SetEnumValueFromJS(env, argValue, "verticalAlign", pographyStyle.verticalAlignment);
     SetDoubleValueFromJS(env, argValue, "lineSpacing", pographyStyle.lineSpacing);
+    SetBoolValueFromJS(env, argValue, "includeFontPadding", pographyStyle.includeFontPadding);
+    SetBoolValueFromJS(env, argValue, "fallbackLineSpacing", pographyStyle.fallbackLineSpacing);
 }
 
 bool GetPlaceholderSpanFromJS(napi_env env, napi_value argValue, PlaceholderSpan& placeholderSpan)
