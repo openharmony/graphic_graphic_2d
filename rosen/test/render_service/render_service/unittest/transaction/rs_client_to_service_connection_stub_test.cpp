@@ -2262,7 +2262,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetDualScreenStateTest001, TestSiz
 {
     sptr<RSClientToServiceConnectionStub> connectionStub =
         new RSClientToServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE);
 
     // case 1: only write descriptor
     {

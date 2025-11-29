@@ -1607,7 +1607,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
  * @tc.name: SetDualScreenState Test
  * @tc.desc: Test SetDualScreenState
  * @tc.type:FUNC
- * @tc.require: issueI9KXXE
+ * @tc.require:
  */
 HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState001, TestSize.Level1)
 {
@@ -1617,12 +1617,12 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState001, TestSize.L
 }
 
 /**
- * @tc.name: SetScreenActiveMode Test
- * @tc.desc: Test SetScreenActiveMode with mock remoteObject
+ * @tc.name: SetDualScreenState Test
+ * @tc.desc: Test SetDualScreenState with mock remoteObject
  * @tc.type:FUNC
- * @tc.require: issueI9KXXE
+ * @tc.require:
  */
-HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenActiveMode, TestSize.Level1)
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState002, TestSize.Level1)
 {
     ScreenId id = 1;
     sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;

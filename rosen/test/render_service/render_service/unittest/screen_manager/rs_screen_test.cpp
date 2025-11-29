@@ -2677,13 +2677,14 @@ HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
     // case 2: virtual screen
     {
         DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_ENTER;
-        auto VirtualScreenConfigs config;
+        VirtualScreenConfigs config;
         auto virtualScreen = std::make_shared<RSScreen>(config);
         EXPECT_EQ(virtualScreen->SetDualScreenState(status), StatusCode::VIRTUAL_SCREEN);
     }
 
     // case 3: mock hdi error
     {
+        ScreenId screenId = mockScreenId_;
         DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_STATUS_BUTT;
         auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
         auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
@@ -2694,6 +2695,7 @@ HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
 
     // case 4
     {
+        ScreenId screenId = mockScreenId_;
         DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_ENTER;
         auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
         auto rsScreen = std::make_shared<RSScreen>(hdiOutput);

@@ -213,7 +213,7 @@ typedef enum : uint32_t {
     VIRTUAL_SCREEN_INVALID_STATUS,
 } VirtualScreenStatus;
 
-enum classb DualScreenStatus : uint64_t {
+enum class DualScreenStatus : uint64_t {
     DUAL_SCREEN_ENTER = 0,
     DUAL_SCREEN_EXIT,
     DUAL_SCREEN_STATUS_BUTT,
