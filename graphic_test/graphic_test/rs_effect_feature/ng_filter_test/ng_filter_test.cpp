@@ -220,6 +220,14 @@ std::vector<std::array<Vector2f, GRID_WARP_PARAMS_COUNT>> gridWarpParams = {
     },
 };
 
+std::vector<Vector2f> blurparamsParamsForMaterialFilter = {
+    Vector2f{48.0f, 4.0f},
+    Vector2f{-48.0f, 4.0f},
+    Vector2f{std::numeric_limits<float>::max(), 4.0f},
+    Vector2f{std::numeric_limits<float>::min(), 4.0f},
+    Vector2f{std::numeric_limits<float>::infinity(), 4.0f}
+};
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,
@@ -609,6 +617,65 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgKBSTest)
         backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_Frosted_Glass_Material_Filter_Test)
+{
+    int columnCount = 1;
+    int rowCount = static_cast<int>(blurparamsParamsForMaterialFilter.size() + 1);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+        if (i == blurparamsParamsForMaterialFilter.size()) {
+            filter = nullptr;
+        } else {
+            frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(blurparamsParamsForMaterialFilter[i]);
+            frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+            frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+            frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+            frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
+            frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
+            frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
+            frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
+            frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
+            frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
+            frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
+            frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
+            frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
+            frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
+            frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
+            frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
+            frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
+            frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
+            frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
+            frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+            frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(defaultBorderSize);
+            frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(DEFAULT_CORNER_RADIUS);
+        }
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        float shrinkX = 25.f;
+        float shrinkY = 25.f;
+        Rosen::Vector4f materialNodeBounds(x + shrinkX, y + shrinkY, sizeX - 2 * shrinkX, sizeY - 2 * shrinkY);
+        auto materialNode = Rosen::RSCanvasNode::Create();
+        materialNode->SetBounds(materialNodeBounds);
+        materialNode->SetFrame(materialNodeBounds);
+        materialNode->SetMaterialNGFilter(frostedGlassFilter);
+        GetRootNode()->AddChild(materialNode);
+        RegisterNode(materialNode);
     }
 }
 
