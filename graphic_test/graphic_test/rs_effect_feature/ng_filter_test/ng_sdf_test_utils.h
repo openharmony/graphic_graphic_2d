@@ -89,7 +89,7 @@ const std::vector<Matrix3f> matrix3fParams1 = {
     Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -50.0f, 0.0f, 0.0f, 1.0f}, // translateY
     Matrix3f{1.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f}, // scaleX
     Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.5f, 0.0f, 0.0f, 0.0f, 1.0f}, // scaleY
-    Matrix3f{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}, // invaid
+    Matrix3f{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}, // invalid
 };
 
 const std::vector<Matrix3f> matrix3fParams2 = {
@@ -104,8 +104,8 @@ const std::vector<Matrix3f> matrix3fParams2 = {
 
 const std::vector<Matrix3f> matrix3fParams3 = {
     // scale_x, skew_x, trans_x, skew_y, scale_y, trans_y, persp_0, persp_1, persp_2
-    Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0003f, 0.0f, 1.0f}, // perpX
-    Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0003f, 1.0f}, // perpY
+    Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0003f, 0.0f, 1.0f}, // perspX
+    Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0003f, 1.0f}, // perspY
     Matrix3f{1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0003f, 0.0003f, 1.0f}, // perspXY
     Matrix3f{1.5f, 0.577f, -20.0f, 0.577f, 1.5f, -20.0f, 0.0f, 0.0f, 1.0f}, // combination1
     Matrix3f{0.5f, 1.17f, -100.0f, 1.17f, 0.5f, -30.0f, 0.0f, 0.0f, 1.0f}, // combination2
