@@ -103,8 +103,7 @@ public:
             case RSNGEffectType::GRID_WARP: return "GridWarp";
             case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
             case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
-            default:
-                return "UNKNOWN";
+            default: return "UNKNOWN";
         }
     }
 

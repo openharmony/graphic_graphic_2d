@@ -103,7 +103,7 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
 static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {
     {
-        RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect){
+        RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
             auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
             auto blurRadius = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRadiusRenderTag>()->Get();
             auto refractOutPx = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRefractOutPxRenderTag>()->Get();
