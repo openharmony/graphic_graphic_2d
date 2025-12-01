@@ -136,7 +136,18 @@ RSDrawable::Ptr RSClipToBoundsDrawable::OnGenerate(const RSRenderNode& node)
 bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
 {
     const RSProperties& properties = node.GetRenderProperties();
-    if (properties.GetClipBounds() != nullptr) {
+    stagingGeContainer_ = nullptr;
+    if (auto sdfShape = properties.GetSDFShape()) {
+        stagingType_ = RSClipToBoundsType::CLIP_SDF;
+        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
+        std::shared_ptr<Drawing::GEShaderShape> geShape =
+            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
+            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
+        stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingGeContainer_->AddToChainedFilter(geFilter);
+    } else if (properties.GetClipBounds() != nullptr) {
         stagingType_ = RSClipToBoundsType::CLIP_PATH;
         stagingDrawingPath_ = properties.GetClipBounds()->GetDrawingPath();
     } else if (properties.GetClipToRRect()) {
@@ -155,18 +166,6 @@ bool RSClipToBoundsDrawable::OnUpdate(const RSRenderNode& node)
         stagingType_ = RSClipToBoundsType::CLIP_RECT;
         stagingBoundsRect_ = RSPropertyDrawableUtils::Rect2DrawingRect(properties.GetBoundsRect());
     }
-
-    if (auto sdfShape = properties.GetSDFShape()) {
-        stagingType_ = RSClipToBoundsType::CLIP_SDF;
-        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
-        std::shared_ptr<Drawing::GEShaderShape> geShape =
-            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
-        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
-            Drawing::GE_SHADER_SDF_CLIP, Drawing::DrawingPaintType::BRUSH);
-        geFilter->SetParam(Drawing::GE_SHADER_SDF_CLIP_SHAPE, geShape);
-        geContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        geContainer_->AddToChainedFilter(geFilter);
-    }
     stagingNodeId_ = node.GetId();
     needSync_ = true;
     return true;
@@ -183,6 +182,7 @@ void RSClipToBoundsDrawable::OnSync()
     type_ = stagingType_;
     nodeId_ = stagingNodeId_;
     isClipRRectOptimization_ = stagingIsClipRRectOptimization_;
+    geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
 }
 
@@ -207,8 +207,10 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
                 break;
             }
             case RSClipToBoundsType::CLIP_IRECT: {
-                canvas->ClipIRect(Drawing::RectI(static_cast<int>(ptr->boundsRect_.GetLeft()),
-                    static_cast<int>(ptr->boundsRect_.GetTop()), static_cast<int>(ptr->boundsRect_.GetRight()),
+                canvas->ClipIRect(Drawing::RectI(
+                    static_cast<int>(ptr->boundsRect_.GetLeft()),
+                    static_cast<int>(ptr->boundsRect_.GetTop()),
+                    static_cast<int>(ptr->boundsRect_.GetRight()),
                     static_cast<int>(ptr->boundsRect_.GetBottom())), Drawing::ClipOp::INTERSECT);
                 break;
             }
@@ -216,19 +218,22 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
                 canvas->ClipRect(ptr->boundsRect_, Drawing::ClipOp::INTERSECT, false);
                 break;
             }
-            case RSClipToBoundsType::CLIP_SDF: {
-                if (ptr->geContainer_) { // add lambda by sdfClip
-                    Drawing::Rect rectRelative { 0.0f, 0.0f, rect->GetWidth(), rect->GetHeight() };
-                    RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = ptr->geContainer_,
-                        rect = rectRelative](Drawing::Canvas *canvas) {
-                        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-                        geRender->DrawShaderEffect(*canvas, *geContainer, rect);
-                    };
-                    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
-                    Drawing::SaveLayerOps slo(rect, nullptr);
-                    paintFilterCanvas->SaveLayer(slo);
-                    paintFilterCanvas->CustomSaveLayer(customFunc);
+            case RSClipToBoundsType::CLIP_SDF: { // add lambda by sdfClip
+                bool invalid = !ptr->geContainer_ || rect == nullptr;
+                if (invalid) {
+                    ROSEN_LOGE("Clip SDF failed, geContainer or rect is nullptr");
+                    return;
                 }
+                Drawing::Rect rectRelative { 0.0f, 0.0f, rect->GetWidth(), rect->GetHeight() };
+                RSPaintFilterCanvas::DrawFunc customFunc = [geContainer = ptr->geContainer_,
+                    rect = rectRelative](Drawing::Canvas& canvas) {
+                    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+                    geRender->DrawShaderEffect(canvas, *geContainer, rect);
+                };
+                auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+                Drawing::SaveLayerOps slo(rect, nullptr);
+                paintFilterCanvas->SaveLayer(slo);
+                paintFilterCanvas->CustomSaveLayer(customFunc);
                 break;
             }
             default:

@@ -1916,10 +1916,9 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1
     paintFilterCanvas.SaveClipRRect(nullptr);
     auto data = paintFilterCanvas.customStack_.top();
     paintFilterCanvas.customStack_.pop();
-    data.second(nullptr);
 
     auto canvasTest = std::make_unique<Drawing::Canvas>();
-    data.second(nullptr);
+    paintFilterCanvas.DrawCustomFunc(canvasTest.get(), data.second);
 
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     Drawing::RectI drawRect(0, 0, 50, 50);
@@ -1937,7 +1936,8 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1
     paintFilterCanvas.SaveClipRRect(clipRRectData);
     data = paintFilterCanvas.customStack_.top();
     paintFilterCanvas.customStack_.pop();
-    data.second(canvasTest.get());
+    paintFilterCanvas.DrawCustomFunc(canvasTest.get(), data.second);
+    paintFilterCanvas.DrawCustomFunc(nullptr, data.second);
 
     paintFilterCanvas.CustomRestore(1);
     EXPECT_EQ(paintFilterCanvas.customStack_.size(), 0);
