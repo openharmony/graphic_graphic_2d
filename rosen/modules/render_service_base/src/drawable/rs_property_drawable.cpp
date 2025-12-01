@@ -419,7 +419,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
             if (rect) {
                 auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-                filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect),
+                filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
                     snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
             }
             int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();

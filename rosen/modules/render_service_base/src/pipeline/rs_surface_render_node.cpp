@@ -2206,11 +2206,19 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
                 effectNode->SetRotationChanged(isRotationChanged);
             }
         }
-        if (node->GetRenderProperties().GetBackgroundFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
-        }
-        if (node->GetRenderProperties().GetFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
+        using DrawablePair = std::pair<bool, RSDrawableSlot>;
+        const size_t cachedDrawableSize = 3;
+        std::array<DrawablePair, cachedDrawableSize> filterCacheParas = {
+            DrawablePair{node->GetRenderProperties().GetBackgroundFilter() != nullptr,
+                RSDrawableSlot::BACKGROUND_FILTER},
+            DrawablePair{node->GetRenderProperties().GetMaterialFilter() != nullptr, RSDrawableSlot::MATERIAL_FILTER},
+            DrawablePair{node->GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+        };
+        for (auto& p : filterCacheParas) {
+            if (p.first) {
+                node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()),
+                    p.second);
+            }
         }
         node->UpdateFilterCacheWithSelfDirty();
     }
@@ -3628,11 +3636,14 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
     RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",
         GetId(), region.ToString().c_str());
     drawBehindWindowRegion_ = region;
-    auto filterDrawable = GetFilterDrawable(false);
-    if (!filterDrawable) {
-        return;
-    }
-    filterDrawable->SetDrawBehindWindowRegion(region);
+    auto invokeFunc = [region] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+        if (!filterDrawable) {
+            return;
+        }
+        filterDrawable->SetDrawBehindWindowRegion(region);
+    };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
 }
 
 RectI RSSurfaceRenderNode::GetFilterRect() const

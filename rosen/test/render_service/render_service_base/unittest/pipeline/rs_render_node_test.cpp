@@ -3088,6 +3088,12 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawRectAndDirtyRegion001, TestSize.Level1)
     bgProperties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
     backgroundNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
     ASSERT_FALSE(backgroundNode.IsBackgroundInAppOrNodeSelfDirty());
+    // material filter
+    RSRenderNode materialNode(id, context);
+    auto& materialProperties = materialNode.GetMutableRenderProperties();
+    materialProperties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    materialNode.UpdateDrawRectAndDirtyRegion(rsDirtyManager, false, RectI(), Drawing::Matrix());
+    ASSERT_FALSE(materialNode.IsBackgroundInAppOrNodeSelfDirty());
 }
 
 /**
@@ -3135,10 +3141,15 @@ HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWithInvisible, TestSize.Leve
 {
     RSRenderNode node(id, context);
     auto& properties = node.GetMutableRenderProperties();
+    node.MarkForceClearFilterCacheWithInvisible();
     properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
     properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    properties.GetEffect().materialFilter_ = std::make_shared<RSFilter>();
     node.MarkForceClearFilterCacheWithInvisible();
-    ASSERT_TRUE(true);
+    auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
+    node.MarkForceClearFilterCacheWithInvisible();
+    ASSERT_TRUE(filterDrawable->stagingCacheManager_->stagingForceClearCache_);
 }
 
 /**
@@ -3460,6 +3471,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
 {
     auto renderNode = std::make_shared<RSRenderNode>(1);
     ASSERT_NE(renderNode, nullptr);
+    renderNode->UpdateFilterCacheWithBackgroundDirty();
     renderNode->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA), true);
 
     renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
@@ -3467,10 +3479,15 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
     EXPECT_NE(backgroundFilterDrawable, nullptr);
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]
         = backgroundFilterDrawable;
+    auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    renderNode->GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
+    renderNode->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
+    renderNode->MarkForceClearFilterCacheWithInvisible();
     renderNode->UpdateFilterCacheWithBackgroundDirty();
-
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+    EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(filterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
 }
 
 /**
@@ -3488,6 +3505,33 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutAlphaDirtyTest, TestSi
     EXPECT_NE(backgroundColorDrawable, nullptr);
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
         = backgroundColorDrawable;
+
+    renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    EXPECT_NE(backgroundFilterDrawable, nullptr);
+    renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]
+        = backgroundFilterDrawable;
+    renderNode->UpdateFilterCacheWithBackgroundDirty();
+
+    EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+}
+
+/**
+ * @tc.name: NotForceClearFilterCacheWithoutBackBackgoundImageDirtyTest
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundDirty
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackBackgoundImageDirtyTest, TestSize.Level1)
+{
+    auto renderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(renderNode, nullptr);
+
+    auto backgroundImageDrawable = std::make_shared<DrawableV2::RSBackgroundImageDrawable>();
+    EXPECT_NE(backgroundImageDrawable, nullptr);
+    renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_IMAGE)]
+        = backgroundImageDrawable;
 
     renderNode->dirtySlots_.emplace(RSDrawableSlot::BACKGROUND_FILTER);
     auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();

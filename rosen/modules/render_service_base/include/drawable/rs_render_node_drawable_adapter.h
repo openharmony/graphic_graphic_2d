@@ -360,6 +360,7 @@ protected:
     std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> materialFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
     std::function<void()> purgeFunc_;
 #ifdef ROSEN_OHOS
