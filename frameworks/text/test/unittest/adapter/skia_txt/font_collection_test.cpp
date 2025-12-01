@@ -568,5 +568,22 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest019, TestSi
     auto typeface = fontCollection_->LoadFont(familyName1, sansData_.data(), sansData_.size(), 100);
     EXPECT_EQ(typeface, nullptr);
 }
+
+/*
+ * @tc.name: OH_Drawing_FontCollectionTest020
+ * @tc.desc: test for load same ttf font
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest020, TestSize.Level0)
+{
+    std::string familyName1 = "familyname1";
+    // 100 is an invalid index
+    auto typeface = fontCollection_->LoadFont(familyName1, sansData_.data(), sansData_.size());
+    EXPECT_NE(typeface, nullptr);
+    auto typeface1 = fontCollection_->LoadFont(familyName1, sansData_.data(), sansData_.size());
+    EXPECT_NE(typeface1, nullptr);
+    EXPECT_EQ(typeface->GetFamilyName(), typeface1->GetFamilyName());
+    fontCollection_->UnloadFont(familyName1);
+}
 } // namespace Rosen
 } // namespace OHOS

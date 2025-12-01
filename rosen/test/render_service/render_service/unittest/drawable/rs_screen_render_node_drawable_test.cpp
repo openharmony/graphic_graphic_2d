@@ -651,13 +651,9 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, OnDrawTest009, TestSize.Level1)
     EXPECT_NE(screenDrawable_->drawSkipType_, DrawSkipType::RENDER_ENGINE_NULL);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);
     // when enableVisibleRect is true;
-    auto screenInfo = params->GetScreenInfo();
-    screenInfo.enableVisibleRect = true;
-    params->screenInfo_ = screenInfo;
-
-    auto screenManager = CreateOrGetScreenManager();
+    params->screenProperty_.enableVisibleRect_ = true;
     const Rect& visibleRect = { 1, 1, 1, 1 };
-    screenManager->SetMirrorScreenVisibleRect(screenInfo.id, visibleRect);
+    params->screenProperty_.mainScreenVisibleRect_ = visibleRect;
     screenDrawable_->OnDraw(canvas);
     EXPECT_EQ(RSUniRenderThread::Instance().GetVisibleRect().left_, visibleRect.x);
     EXPECT_EQ(screenDrawable_->drawSkipType_, DrawSkipType::REQUEST_FRAME_FAIL);

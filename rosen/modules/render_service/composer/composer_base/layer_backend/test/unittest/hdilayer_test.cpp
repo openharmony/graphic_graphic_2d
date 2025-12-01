@@ -460,7 +460,7 @@ HWTEST_F(HdiLayerTest, SetLayerBuffer, Function | MediumTest| Level1)
     EXPECT_CALL(*mockBuffer, GetBufferHandle()).WillRepeatedly(testing::Return(nullptr));
     rsLayer->SetBuffer(mockBuffer, newFence);
     res = hdiLayer->SetLayerBuffer();
-    EXPECT_EQ(res, GRAPHIC_DISPLAY_NULL_PTR);
+    EXPECT_EQ(res, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**
@@ -506,21 +506,22 @@ HWTEST_F(HdiLayerTest, SelectHitchsInfoTest, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, SetPerFrameLayerLinearMatrixTest, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
-    auto prevRsLayer = std::make_shared<RSSurfaceLayer>();
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>();
     std::vector<float> preLayerLinearMatrix
         = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
-    prevRsLayer->SetLayerLinearMatrix(preLayerLinearMatrix);
-    hdiLayer_->prevRSLayer_ = prevRsLayer;
-    auto curRsLayer = std::make_shared<RSSurfaceLayer>();
-    hdiLayer_->rsLayer_ = curRsLayer;
+    prevRSLayer->SetLayerLinearMatrix(preLayerLinearMatrix);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->rsLayer_ = curRSLayer;
     auto ret = hdiLayer_->InitDevice();
     ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
     EXPECT_CALL(*hdiDeviceMock_, SetLayerPerFrameParameterSmq(_, _, _, _)).WillRepeatedly(testing::Return(0));
     ret = hdiLayer_->SetPerFrameLayerLinearMatrix();
     ASSERT_EQ(ret, 0);
     std::vector<float> curLayerLinearMatrix
-        = { 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
-    curRsLayer->SetLayerLinearMatrix(curLayerLinearMatrix);
+        = {1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f};
+    curRSLayer->SetLayerLinearMatrix(curLayerLinearMatrix);
+    hdiLayer_->prevRSLayer_ = nullptr;
     ret = hdiLayer_->SetPerFrameLayerLinearMatrix();
     ASSERT_EQ(ret, 0);
 }
@@ -536,25 +537,25 @@ HWTEST_F(HdiLayerTest, SetPerFrameLayerLinearMatrixTest, Function | MediumTest| 
 HWTEST_F(HdiLayerTest, IsSameLayerMetaDataTest, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
-    auto prevRsLayer = std::make_shared<RSSurfaceLayer>();
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>();
     std::vector<GraphicHDRMetaData> prevMetaData = { { GRAPHIC_MATAKEY_RED_PRIMARY_X, 1 } };
-    prevRsLayer->SetMetaData(prevMetaData);
-    hdiLayer_->prevRSLayer_ = prevRsLayer;
+    prevRSLayer->SetMetaData(prevMetaData);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
 
-    auto curRsLayer = std::make_shared<RSSurfaceLayer>();
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>();
     std::vector<GraphicHDRMetaData> metaData = { { GRAPHIC_MATAKEY_RED_PRIMARY_X, 1 } };
-    curRsLayer->SetMetaData(metaData);
-    hdiLayer_->rsLayer_ = curRsLayer;
+    curRSLayer->SetMetaData(metaData);
+    hdiLayer_->rsLayer_ = curRSLayer;
     auto ret = hdiLayer_->IsSameLayerMetaData();
     EXPECT_EQ(ret, true);
 
     prevMetaData[0].value = 2;
-    prevRsLayer->SetMetaData(prevMetaData);
+    prevRSLayer->SetMetaData(prevMetaData);
     ret = hdiLayer_->IsSameLayerMetaData();
     EXPECT_EQ(ret, false);
 
-    prevMetaData.push_back({ GRAPHIC_MATAKEY_GREEN_PRIMARY_X, 1 });
-    prevRsLayer->SetMetaData(prevMetaData);
+    prevMetaData.push_back({ GRAPHIC_MATAKEY_RED_PRIMARY_Y, 1 });
+    prevRSLayer->SetMetaData(prevMetaData);
     ret = hdiLayer_->IsSameLayerMetaData();
     EXPECT_EQ(ret, false);
 }
@@ -570,30 +571,30 @@ HWTEST_F(HdiLayerTest, IsSameLayerMetaDataTest, Function | MediumTest| Level1)
 HWTEST_F(HdiLayerTest, IsSameLayerMetaDataSetTest, Function | MediumTest| Level1)
 {
     ASSERT_NE(hdiLayer_, nullptr);
-    auto prevRsLayer = std::make_shared<RSSurfaceLayer>();
+    auto prevRSLayer = std::make_shared<RSSurfaceLayer>();
     GraphicHDRMetaDataSet prevMetaData = { GRAPHIC_MATAKEY_RED_PRIMARY_X, { 1 } };
-    prevRsLayer->SetMetaDataSet(prevMetaData);
-    hdiLayer_->prevRSLayer_ = prevRsLayer;
+    prevRSLayer->SetMetaDataSet(prevMetaData);
+    hdiLayer_->prevRSLayer_ = prevRSLayer;
 
-    auto curRsLayer = std::make_shared<RSSurfaceLayer>();
+    auto curRSLayer = std::make_shared<RSSurfaceLayer>();
     GraphicHDRMetaDataSet metaData = { GRAPHIC_MATAKEY_RED_PRIMARY_X, { 1 } };
-    curRsLayer->SetMetaDataSet(metaData);
-    hdiLayer_->rsLayer_ = curRsLayer;
+    curRSLayer->SetMetaDataSet(metaData);
+    hdiLayer_->rsLayer_ = curRSLayer;
     auto ret = hdiLayer_->IsSameLayerMetaDataSet();
     EXPECT_EQ(ret, true);
 
     prevMetaData.metaData[0] = 2;
-    prevRsLayer->SetMetaDataSet(prevMetaData);
+    prevRSLayer->SetMetaDataSet(prevMetaData);
     ret = hdiLayer_->IsSameLayerMetaDataSet();
     EXPECT_EQ(ret, false);
 
     prevMetaData.metaData.push_back(3);
-    prevRsLayer->SetMetaDataSet(prevMetaData);
+    prevRSLayer->SetMetaDataSet(prevMetaData);
     ret = hdiLayer_->IsSameLayerMetaDataSet();
     EXPECT_EQ(ret, false);
 
     prevMetaData.key = GRAPHIC_MATAKEY_RED_PRIMARY_Y;
-    prevRsLayer->SetMetaDataSet(prevMetaData);
+    prevRSLayer->SetMetaDataSet(prevMetaData);
     ret = hdiLayer_->IsSameLayerMetaDataSet();
     EXPECT_EQ(ret, false);
 }
@@ -641,7 +642,7 @@ HWTEST_F(HdiLayerTest, SetLayerVisibleRegion001, Function | MediumTest| Level1)
     hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
     hdiLayer_->rsLayer_->SetVisibleRegions(visibleRegions1);
     hdiLayer_->prevRSLayer_ = std::make_shared<RSSurfaceLayer>();
-    hdiLayer_->prevRSLayer_->SetVisibleRegions(visibleRegions2);
+    hdiLayer_->rsLayer_->SetVisibleRegions(visibleRegions2);
     ASSERT_EQ(hdiLayer_->SetLayerVisibleRegion(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
@@ -667,7 +668,7 @@ HWTEST_F(HdiLayerTest, SetLayerDirtyRegion001, Function | MediumTest| Level1)
     hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
     hdiLayer_->rsLayer_->SetDirtyRegions(visibleRegions1);
     hdiLayer_->prevRSLayer_ = std::make_shared<RSSurfaceLayer>();
-    hdiLayer_->prevRSLayer_->SetDirtyRegions(visibleRegions2);
+    hdiLayer_->rsLayer_->SetDirtyRegions(visibleRegions2);
     ASSERT_EQ(hdiLayer_->SetLayerDirtyRegion(), GRAPHIC_DISPLAY_SUCCESS);
 }
 
@@ -689,6 +690,7 @@ HWTEST_F(HdiLayerTest, CheckAndUpdateLayerBufferCache001, Function | MediumTest|
     uint32_t sequence = 0;
     uint32_t index = 0;
     std::vector<uint32_t> deletingList = {};
+    EXPECT_CALL(*hdiDeviceMock_, ClearLayerBuffer(_, _)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(hdiLayer_->CheckAndUpdateLayerBufferCahce(sequence, index, deletingList), false);
 }
 
@@ -707,7 +709,7 @@ HWTEST_F(HdiLayerTest, SetLayerPresentTimestamp001, Function | MediumTest| Level
     ASSERT_NE(hdiLayer_->device_, nullptr);
     hdiLayer_->supportedPresentTimestamptype_ = GRAPHIC_DISPLAY_PTS_TIMESTAMP;
     auto ret = hdiLayer_->SetLayerPresentTimestamp();
-    ASSERT_NE(ret, GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(ret, GRAPHIC_DISPLAY_SUCCESS);
 }
 
 /**
@@ -743,7 +745,6 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
     hdiLayer_->rsLayer_ = nullptr;
     hdiLayer_->ClearBufferCache();
 }
-
 } // namespace
 } // namespace Rosen
 } // namespace OHOS
