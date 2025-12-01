@@ -393,8 +393,8 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
             properties.GetFgBrightnessParams().value());
         stagingIsDangerous_ = false;
     } else if (blendMode && blendMode != static_cast<int>(RSColorBlendMode::NONE) &&
-                !(blendMode == static_cast<int>(RSColorBlendMode::SRC_OVER) &&
-                    stagingBlendApplyType_ == static_cast<int>(RSColorBlendApplyType::FAST))) {
+               !(blendMode == static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+                 stagingBlendApplyType_ == static_cast<int>(RSColorBlendApplyType::FAST))) {
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
             stagingPropertyDescription_ = "BlendMode, blendMode: " + std::to_string(blendMode) +
                 " blendApplyType: " + std::to_string(stagingBlendApplyType_);
