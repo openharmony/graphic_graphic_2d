@@ -1575,7 +1575,10 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
                 parentNode ? parentNode->GetId() : 0);
-            LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
+            if (surfaceHandler->GetSourceType() ==
+                static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
+                LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
+            }
             if (comsumeResult) {
                 HandleTunnelLayerId(surfaceHandler, surfaceNode);
                 if (!isUniRender_) {

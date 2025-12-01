@@ -67,6 +67,8 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetRegionToBeMagnified, Uint64, Vector4i);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetFrameGravityNewVersionEnabled, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSurfaceBufferOpaque, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAncoSrcCrop, Uint64, Rect);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetContainerWindowTransparent, Uint64, Bool);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1427,11 +1427,45 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
+    "commandList": "RSSurfaceNodeSetAncoSrcCrop*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_165",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSUpdateOcclusionCullingStatus*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_166",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetDrawNodeType*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_167",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSurfaceNodeSetContainerWindowTransparent*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_169",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
     "commandList": "RSMarkRepaintBoundary*100",
     "commandListRepeat": 1
   },
-
-
   {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
@@ -2584,6 +2618,20 @@
     "testCaseDesc": "SET_COLOR_FOLLOW_TEST_001",
     "interfaceName": "SET_COLOR_FOLLOW",
     "inputParams": "WriteString;WriteBool;",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_GPU_CRC_DIRTY_ENABLED_PIDLIST_TEST_001",
+    "interfaceName": "SET_GPU_CRC_DIRTY_ENABLED_PIDLIST",
+    "inputParams": "WriteInt32Vector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_VIRTUAL_SCREEN_TYPE_BLACKLIST_TEST_001",
+    "interfaceName": "SET_VIRTUAL_SCREEN_TYPE_BLACKLIST",
+    "inputParams": "WriteUint64;WriteUInt8Vector;WriteInt32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   }

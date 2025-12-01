@@ -401,6 +401,7 @@ public:
 
     static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
+    static bool GetDefaultMemClearEnabled();
 
 private:
     RSSystemProperties() = default;

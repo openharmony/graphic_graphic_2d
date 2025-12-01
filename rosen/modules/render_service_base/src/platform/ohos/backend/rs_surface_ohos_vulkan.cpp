@@ -20,7 +20,9 @@
 #include "common/rs_exception_check.h"
 #include "hetero_hdr/rs_hdr_pattern_manager.h"
 #include "hetero_hdr/rs_hdr_vulkan_task.h"
-
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
+#endif
 #if defined(ROSEN_OHOS)
 #include "cpp/ffrt_dynamic_graph.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
@@ -535,6 +537,10 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface.drawingSurface, frameIdVec);
 
+#ifdef MHC_ENABLE
+    RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
+#endif
+
 #if defined(ROSEN_OHOS)
     RSHpaeScheduler::GetInstance().WaitBuildTask();
     uint64_t preFrameId = RSHpaeScheduler::GetInstance().GetHpaeFrameId();
@@ -572,6 +578,10 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         mSkContext->EndFrame();
     }
     RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
+    
+#ifdef MHC_ENABLE
+    RSMhcManager::Instance().MHCSubmitTask();
+#endif
 
     int fenceFd = -1;
     if (mReservedFlushFd != -1) {

@@ -2824,6 +2824,51 @@ HWTEST_F(RSMainThreadTest, ConsumeAndUpdateAllNodes005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ConsumeAndUpdateLowPowerVideoNode001
+ * @tc.desc: Test ConsumeAndUpdateAllNodes with OH_SURFACE_SOURCE_LOWPOWERVIDEO
+ * @tc.type: FUNC
+ * @tc.require: issueIANQPF
+ */
+HWTEST_F(RSMainThreadTest, ConsumeAndUpdateLowPowerVideoNode001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    mainThread->timestamp_ = 1000;
+
+    // Clear node maps
+    mainThread->context_->GetMutableNodeMap().renderNodeMap_.clear();
+    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+
+    int64_t desiredPresentTimestamp = 1000000000;
+    uint64_t vsyncRsTimestamp = mainThread->vsyncRsTimestamp_.load(); // record
+    mainThread->vsyncRsTimestamp_.store(desiredPresentTimestamp);
+
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    EXPECT_EQ(mainThread->context_->GetMutableNodeMap().RegisterRenderNode(rsSurfaceRenderNode), true);
+
+    // Mock the source type to OH_SURFACE_SOURCE_LOWPOWERVIDEO
+    auto surfaceHandler = rsSurfaceRenderNode->GetMutableRSSurfaceHandler();
+    surfaceHandler->SetSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO); // Mock source type
+
+    auto surfaceConsumer = surfaceHandler->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    sptr<IBufferConsumerListener> listener = new RSRenderServiceListener(rsSurfaceRenderNode);
+    EXPECT_EQ(surfaceConsumer->RegisterConsumerListener(listener), SURFACE_ERROR_OK);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    sptr<Surface> psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO);
+    psurf->SetQueueSize(5);
+    SurfaceFlushBuffers(psurf, 5, desiredPresentTimestamp);
+
+    mainThread->ConsumeAndUpdateAllNodes();
+
+    mainThread->vsyncRsTimestamp_.store(vsyncRsTimestamp);
+}
+
+/**
  * @tc.name: CollectInfoForHardwareComposer003
  * @tc.desc: CollectInfoForHardwareComposer003 Test
  * @tc.type: FUNC
