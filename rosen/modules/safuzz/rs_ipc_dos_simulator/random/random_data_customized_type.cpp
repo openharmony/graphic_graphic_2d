@@ -469,6 +469,16 @@ std::optional<Drawing::Matrix> RandomDataCustomizedType::GetRandomOptionalDrawin
     return RandomDrawingMatrix::GetRandomDrawingMatrix();
 }
 
+Rect RandomDataCustomizedType::GetRandomRect()
+{
+    int32_t x = RandomDataBasicType::GetRandomInt32();
+    int32_t y = RandomDataBasicType::GetRandomInt32();
+    int32_t w = RandomDataBasicType::GetRandomInt32();
+    int32_t h = RandomDataBasicType::GetRandomInt32();
+    Rect rect{x, y, w, h};
+    return rect;
+}
+
 AnimationCallbackEvent RandomDataCustomizedType::GetRandomAnimationCallbackEvent()
 {
     static constexpr int ANIMATION_CALLBACK_EVENT_INDEX_MAX = 2;
