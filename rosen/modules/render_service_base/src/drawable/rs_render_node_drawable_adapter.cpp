@@ -39,8 +39,6 @@
 
 namespace OHOS::Rosen::DrawableV2 {
 static const size_t CMD_LIST_COUNT_WARNING_LIMIT = 5000;
-constexpr size_t CACHE_FILTER_DRAWABLE_SIZE = 3;
-using RSCacheDrawableArray = std::array<std::shared_ptr<DrawableV2::RSFilterDrawable>, CACHE_FILTER_DRAWABLE_SIZE>;
 
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
 std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_;
@@ -696,9 +694,7 @@ void RSRenderNodeDrawableAdapter::TryClearSurfaceOnSync()
 
 bool RSRenderNodeDrawableAdapter::IsFilterCacheValidForOcclusion() const
 {
-    RSCacheDrawableArray filterDrawables{compositingFilterDrawable_, backgroundFilterDrawable_,
-        materialFilterDrawable_};
-    return std::any_of(filterDrawables.begin(), filterDrawables.end(),
+    return std::any_of(filterDrawables_.begin(), filterDrawables_.end(),
         [] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
             return filterDrawable && filterDrawable->IsFilterCacheValidForOcclusion();
         });
@@ -711,11 +707,9 @@ const RectI RSRenderNodeDrawableAdapter::GetFilterCachedRegion() const
         ROSEN_LOGD("blur is disabled");
         return rect;
     }
-    RSCacheDrawableArray filterDrawables{compositingFilterDrawable_, backgroundFilterDrawable_,
-        materialFilterDrawable_};
-    for (const auto& filterDrawable : filterDrawables) {
-        if (filterDrawable) {
-            rect = rect.JoinRect(filterDrawable->GetFilterCachedRegion());
+    for (auto iter = filterDrawables_.rbegin(); iter != filterDrawables_.rend(); ++iter) {
+        if (*iter) {
+            return (*iter)->GetFilterCachedRegion();
         }
     }
     return rect;

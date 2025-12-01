@@ -373,6 +373,8 @@ protected:
     
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
+    const static size_t MAX_FILTER_CACHE_TYPES = 3;
+    using RSCacheDrawableArray = std::array<std::shared_ptr<DrawableV2::RSFilterDrawable>, MAX_FILTER_CACHE_TYPES>;
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
                             std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
@@ -387,6 +389,7 @@ private:
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
     std::atomic<bool> isOnDraw_ = false;
+    RSCacheDrawableArray filterDrawables_{};
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSScreenRenderNode;

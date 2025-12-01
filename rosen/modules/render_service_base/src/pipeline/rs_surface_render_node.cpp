@@ -60,7 +60,7 @@ namespace Rosen {
 // set the offset value to prevent the situation where the float number
 // with the suffix 0.000x is still rounded up.
 constexpr float RECT_CEIL_DEVIATION = 0.001;
-
+constexpr size_t MAX_FILTER_CACHE_TYPES = 3;
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -2207,8 +2207,7 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
             }
         }
         using DrawablePair = std::pair<bool, RSDrawableSlot>;
-        const size_t cachedDrawableSize = 3;
-        std::array<DrawablePair, cachedDrawableSize> filterCacheParas = {
+        std::array<DrawablePair, MAX_FILTER_CACHE_TYPES> filterCacheParas = {
             DrawablePair{node->GetRenderProperties().GetBackgroundFilter() != nullptr,
                 RSDrawableSlot::BACKGROUND_FILTER},
             DrawablePair{node->GetRenderProperties().GetMaterialFilter() != nullptr, RSDrawableSlot::MATERIAL_FILTER},
@@ -3596,14 +3595,11 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
     RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",
         GetId(), region.ToString().c_str());
     drawBehindWindowRegion_ = region;
-    auto invokeFunc = [region] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
-        if (!filterDrawable) {
-            return;
-        }
-        filterDrawable->SetDrawBehindWindowRegion(region);
-    };
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
+    auto filterDrawable = GetFilterDrawable(false);
+    if (!filterDrawable) {
+        return;
+    }
+    filterDrawable->SetDrawBehindWindowRegion(region);
 }
 
 RectI RSSurfaceRenderNode::GetFilterRect() const

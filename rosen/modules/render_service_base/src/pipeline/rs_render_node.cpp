@@ -97,7 +97,7 @@ static uint32_t g_setIsOntheTreeCnt = 0;
 constexpr size_t CACHE_FILTER_DRAWABLE_SIZE = 3;
 } // namespace
 
-using RSCacheFilterPara = std::pair<bool, RSDrawableSlot>;
+using RSCacheFilterPara = std::pair<bool, RSDrawableSlot>; // first: update condition, second: slot
 using RSCacheFilterParaArray = std::array<RSCacheFilterPara, CACHE_FILTER_DRAWABLE_SIZE>;
 
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
@@ -2358,8 +2358,8 @@ bool RSRenderNode::IsFilterCacheValid() const
         RSDrawableSlot::BACKGROUND_FILTER, RSDrawableSlot::MATERIAL_FILTER};
     for (auto& slot : cacheDrawableSlots) {
         auto filterDrawable = GetFilterDrawable(slot);
-        if (filterDrawable != nullptr && filterDrawable->IsFilterCacheValid()) {
-            return true;
+        if (filterDrawable != nullptr) {
+            return filterDrawable->IsFilterCacheValid();
         }
     }
     return false;
@@ -2487,14 +2487,15 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
     }
     auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
             dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
-            dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE) || dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER);
+            dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE) ||
+            dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER);
     const auto& properties = GetRenderProperties();
 
     RSCacheFilterParaArray filterCacheHandles {
-        RSCacheFilterPara{properties.GetBackgroundFilter() != nullptr && (rotationClear || bgDirty),
-            RSDrawableSlot::BACKGROUND_FILTER},
         RSCacheFilterPara{properties.GetMaterialFilter() != nullptr && rotationClear,
             RSDrawableSlot::MATERIAL_FILTER},
+        RSCacheFilterPara{properties.GetBackgroundFilter() != nullptr && (rotationClear || bgDirty),
+            RSDrawableSlot::BACKGROUND_FILTER},
         RSCacheFilterPara{properties.GetFilter() != nullptr &&
             (rotationStatusChanged || !dirtySlots_.empty()), RSDrawableSlot::COMPOSITING_FILTER}
     };
@@ -2520,14 +2521,14 @@ void RSRenderNode::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeI
             filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
         }
     };
-    if (properties.GetBackgroundFilter()) {
-        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    }
     if (properties.GetMaterialFilter()) {
         RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     }
+    if (properties.GetBackgroundFilter()) {
+        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    }
     if (properties.GetFilter()) {
-        auto filterDrawable = GetFilterDrawable(true);
+        auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
         }
@@ -2668,14 +2669,13 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
-    if (properties.GetBackgroundFilter()) {
-        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    }
     if (properties.GetMaterialFilter()) {
         RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     }
-
-    auto filterDrawable = GetFilterDrawable(true);
+    if (properties.GetBackgroundFilter()) {
+        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    }
+    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
     if (filterDrawable != nullptr) {
         auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
         auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
@@ -2742,10 +2742,10 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
     }
     const auto& properties = GetRenderProperties();
     RSCacheFilterParaArray filterDrawableVec {
-        RSCacheFilterPara{properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow(),
-            RSDrawableSlot::BACKGROUND_FILTER},
         RSCacheFilterPara{properties.GetMaterialFilter(),
             RSDrawableSlot::MATERIAL_FILTER},
+        RSCacheFilterPara{properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow(),
+            RSDrawableSlot::BACKGROUND_FILTER},
         RSCacheFilterPara{properties.GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
     };
     for (auto& p : filterDrawableVec) {
@@ -2811,8 +2811,8 @@ void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
 {
 #ifdef RS_ENABLE_GPU
     RSCacheFilterParaArray filterDrawableVec {
-        RSCacheFilterPara{GetRenderProperties().GetBackgroundFilter() != nullptr, RSDrawableSlot::BACKGROUND_FILTER},
         RSCacheFilterPara{GetRenderProperties().GetMaterialFilter() != nullptr,  RSDrawableSlot::MATERIAL_FILTER},
+        RSCacheFilterPara{GetRenderProperties().GetBackgroundFilter() != nullptr, RSDrawableSlot::BACKGROUND_FILTER},
         RSCacheFilterPara{GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
     };
     for (auto& p : filterDrawableVec) {
@@ -4308,7 +4308,7 @@ void RSRenderNode::NodeDrawLargeAreaBlur(std::pair<bool, bool>& nodeDrawLargeAre
 {
     bool flagPredict = false;
     bool flagCurrent = false;
-    std::vector<RSDrawableSlot> drawableSlotTypes = {RSDrawableSlot::BACKGROUND_FILTER, RSDrawableSlot::MATERIAL_FILTER,
+    std::vector<RSDrawableSlot> drawableSlotTypes = {RSDrawableSlot::MATERIAL_FILTER, RSDrawableSlot::BACKGROUND_FILTER,
         RSDrawableSlot::COMPOSITING_FILTER};
     for (auto slotType : drawableSlotTypes) {
         auto drawable = GetFilterDrawable(slotType);
@@ -4354,9 +4354,10 @@ void RSRenderNode::OnSync()
     }
 
 #ifdef RS_ENABLE_GPU
-    renderDrawable_->backgroundFilterDrawable_ = GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER);
-    renderDrawable_->materialFilterDrawable_ = GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER);
-    renderDrawable_->compositingFilterDrawable_ = GetFilterDrawable(true);
+    renderDrawable_->filterDrawables_ = {
+        GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER),
+        GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER),
+        GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER)};
     if (stagingRenderParams_->NeedSync()) {
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
@@ -4462,13 +4463,13 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
 {
 #ifdef RS_ENABLE_GPU
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter()) {
-        if (auto filterDrawable = GetFilterDrawable(false)) {
+    if (properties.GetMaterialFilter()) {
+        if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER)) {
             filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
         }
     }
-    if (properties.GetMaterialFilter()) {
-        if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER)) {
+    if (properties.GetBackgroundFilter()) {
+        if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER)) {
             filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
         }
     }
