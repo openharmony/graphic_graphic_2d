@@ -58,7 +58,8 @@ SPText::RectWidthStyle Convert(const TextRectWidthStyle& style)
     return static_cast<SPText::RectWidthStyle>(style);
 }
 
-void ConvertStrutStyle(const TypographyStyle& style, SPText::ParagraphStyle& paragraphStyle) {
+void ConvertStrutStyle(const TypographyStyle& style, SPText::ParagraphStyle& paragraphStyle)
+{
     paragraphStyle.strutEnabled = style.useLineStyle;
     paragraphStyle.strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight);
     paragraphStyle.strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth);

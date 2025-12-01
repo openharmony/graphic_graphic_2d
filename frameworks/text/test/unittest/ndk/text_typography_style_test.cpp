@@ -1383,7 +1383,7 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest002, TestSi
 
 /*
  * @tc.name: TypographStyleIncludeFontPaddingTest003
- * @tc.desc: Test for simple text breakShapedTextIntoLines branch when open includeFontPadding
+ * @tc.desc: Test for Burmese text breakShapedTextIntoLines branch when open includeFontPadding
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest003, TestSize.Level0)
@@ -1666,13 +1666,387 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest010, TestSi
 }
 
 /*
+ * @tc.name: TypographStyleIncludeFontPaddingTest011
+ * @tc.desc: Test for tibetan language text breakShapedTextIntoLines branch when open includeFontPadding
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest011, TestSize.Level0)
+{
+    const char* text = "ག་གནས་ཀྱི་འདུགཡུལ";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 100
+    OH_Drawing_SetTextStyleFontSize(textStyle, 100);
+    // Test for layout width 300
+    double layoutWidth = 300;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    // Expect line count 3
+    EXPECT_EQ(totalLineCnt, 3);
+    double firstLineHeight = skiaParagraph->lines()[0].height();
+    double middleLineHeight = skiaParagraph->lines()[1].height();
+    double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
+    // First line expect height is 130
+    EXPECT_DOUBLE_EQ(firstLineHeight, 130);
+    // Second line expect height is 117
+    EXPECT_DOUBLE_EQ(middleLineHeight, 117);
+    // Last line expect height is 120
+    EXPECT_DOUBLE_EQ(lastLineHeight, 120);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest012
+ * @tc.desc: Test Devanagari text breaking when open includeFontPadding
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest012, TestSize.Level0)
+{
+    const char* text = "यह एक परीक्षण वाक्य है जो कई पंक्तियों में टूट जाएगा";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 80
+    OH_Drawing_SetTextStyleFontSize(textStyle, 80);
+    // Test for layout width 300
+    double layoutWidth = 300;
+    OH_Drawing_Typography* typography =
+        CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t lineCount = skiaParagraph->lineNumber();
+    // Expect line count 6
+    EXPECT_EQ(lineCount, 6);
+    double firstLineHeight = skiaParagraph->lines()[0].height();
+    double middleLineHeight = skiaParagraph->lines()[1].height();
+    double lastLineHeight = skiaParagraph->lines()[lineCount - 1].height();
+    // First line expect height is 117
+    EXPECT_DOUBLE_EQ(firstLineHeight, 117);
+    // Second line expect height is 107
+    EXPECT_DOUBLE_EQ(middleLineHeight, 107);
+    // Last line expect height is 109
+    EXPECT_DOUBLE_EQ(lastLineHeight, 109);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest013
+ * @tc.desc: Test Thai script line break when open includeFontPadding
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest013, TestSize.Level0)
+{
+    const char* text =
+        "ภาษาไทยไม่มีการเว้นวรรคทำให้ต้องตัดคำตามพจนานุกรม";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 80
+    OH_Drawing_SetTextStyleFontSize(textStyle, 80);
+    // Test for layout width 280
+    double layoutWidth = 280;
+    OH_Drawing_Typography* typography =
+        CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t lineCount = skiaParagraph->lineNumber();
+    // Expect line count 9
+    EXPECT_EQ(lineCount, 9);
+    double firstLineHeight = skiaParagraph->lines()[0].height();
+    double middleLineHeight = skiaParagraph->lines()[1].height();
+    double lastLineHeight = skiaParagraph->lines()[lineCount - 1].height();
+    // First line expect height is 131
+    EXPECT_DOUBLE_EQ(firstLineHeight, 131);
+    // Second line expect height is 121
+    EXPECT_DOUBLE_EQ(middleLineHeight, 121);
+    // Last line expect height is 123
+    EXPECT_DOUBLE_EQ(lastLineHeight, 123);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest014
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Japanese)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest014, TestSize.Level0)
+{
+    const char* text = "こんにちは";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 19
+    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line run height is 16.407999038696289
+    EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest015
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Korean)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest015, TestSize.Level0)
+{
+    const char* text = "안녕하세요";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
+    // Expect run height is 20.271999359130859
+    EXPECT_DOUBLE_EQ(runHeight, 20.271999359130859);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest016
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Thai)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest016, TestSize.Level0)
+{
+    const char* text = "สวัสดี";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 23
+    EXPECT_DOUBLE_EQ(lineHeight, 23);
+    // Expect run height is 21.153999328613281
+    EXPECT_DOUBLE_EQ(runHeight, 21.153999328613281);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest017
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Chinese)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest017, TestSize.Level0)
+{
+    const char* text = "你好世界";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 19
+    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line run height is 16.407999038696289
+    EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest018
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Emoji)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest018, TestSize.Level0)
+{
+    const char* text = "😀😁😂🤣😃";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 19
+    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line run height is 16.440366744995117
+    EXPECT_DOUBLE_EQ(runHeight, 16.440366744995117);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest019
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Symbols)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest019, TestSize.Level0)
+{
+    const char* text = "∑∏√∞≈≠≤≥";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 19
+    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line run height is 16.407999038696289
+    EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest020
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Tibetan)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest020, TestSize.Level0)
+{
+    const char* text = "བོད་ཡིག";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 19
+    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line run height is 16.407999038696289
+    EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest021
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Uyghur)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest021, TestSize.Level0)
+{
+    const char* text = "ئۇيغۇرچە";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 23
+    EXPECT_DOUBLE_EQ(lineHeight, 23);
+    // Expect line run height is 21.027999877929688
+    EXPECT_DOUBLE_EQ(runHeight, 21.027999877929688);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest022
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Burmese)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest022, TestSize.Level0)
+{
+    const char* text = "မင်္ဂလာပါ";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 33
+    EXPECT_DOUBLE_EQ(lineHeight, 33);
+    // Expect line run height is 30.576000213623047
+    EXPECT_DOUBLE_EQ(runHeight, 30.576000213623047);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleIncludeFontPaddingTest023
+ * @tc.desc: Test for positionShapedTextIntoLine branch when open includeFontPadding (Russian)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest023, TestSize.Level0)
+{
+    const char* text = "межстрочного";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(DEFAULT_LAYOUT_WIDTH, text, typoStyle, nullptr);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
+        skia::textlayout::LineMetricStyle::Typographic);
+    double lineHeight = skiaParagraph->lines()[0].height();
+    // Expect line height is 19
+    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line run height is 16.407999038696289
+    EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
  * @tc.name: TypographStyleFallbackLineSpacing001
- * @tc.desc: Test for maxLineHeight and minLineHeight shorter than run height when open fallbackLineSpacing
+ * @tc.desc: Test for maxLineHeight and minLineHeight for English when open fallbackLineSpacing
  * @tc.type: FUNC
  */
 HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing001, TestSize.Level0)
 {
-    const char* text = "max/minLineHeight&fallbackLineSpacing测试";
+    const char* text = "max/minLineHeight&fallbackLineSpacing test";
     OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
     ASSERT_NE(typoStyle, nullptr);
     OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(
@@ -1830,6 +2204,411 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing005, TestSize.
     OH_Drawing_GetTypographyStyleAttributeBool(typoStyle,
         OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, &fallbackLineSpacing);
     EXPECT_EQ(fallbackLineSpacing, true);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing006
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Chinese when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing006, TestSize.Level0)
+{
+    const char* text = "测试行高回退中文场景";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect line height is 59
+    double expectLineHeight = 59;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing007
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Emoji when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing007, TestSize.Level0)
+{
+    const char* text = "😀😁😂🤣😃😄😅😆";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect line height is 59
+    double expectLineHeight = 59;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing008
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Tibetan when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing008, TestSize.Level0)
+{
+    const char* text = "བོད་ཡིག་སྡེ་ཚན་ཚོགས་སྦྱོང་།";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect line height is 59
+    double expectLineHeight = 59;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing009
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Uyghur when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing009, TestSize.Level0)
+{
+    const char* text = "ئۇيغۇرچە يېزىقنى سىناش";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect run height is 76
+    double expectRunHeight = 76;
+    // Expect line height is 75
+    double expectLineHeight = 75;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectRunHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing010
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Burmese when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing010, TestSize.Level0)
+{
+    const char* text = "မြန်မာစာ စမ်းသပ်မှု";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect run height is 110
+    double expectRunHeight = 110;
+    // Expect line height is 109
+    double expectLineHeight = 109;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectRunHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing011
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Japanese when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing011, TestSize.Level0)
+{
+    const char* text = "日本語フォールバック行間のテスト";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect line height is 59
+    double expectLineHeight = 59;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing012
+ * @tc.desc: Test for maxLineHeight and minLineHeight for Russian when open fallbackLineSpacing
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing012, TestSize.Level0)
+{
+    const char* text = "Тест межстрочного интервала";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    // Test for font size 50
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    // Test for line limit 30
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    // Test for layout width 80
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect line height is 59
+    double expectLineHeight = 59;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing013
+ * @tc.desc: Test for maxLineHeight and minLineHeight when open fallbackLineSpacing (Korean)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing013, TestSize.Level0)
+{
+    const char* text = "한글 테스트";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect run height is 73
+    double expectRunHeight = 73;
+    // Expect line height is 72
+    double expectLineHeight = 72;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectRunHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleFallbackLineSpacing014
+ * @tc.desc: Test for maxLineHeight and minLineHeight when open fallbackLineSpacing (Thai)
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing014, TestSize.Level0)
+{
+    const char* text = "การทดสอบ ภาษาไทย";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_SetTypographyStyleAttributeBool(typoStyle,
+        OH_Drawing_TypographyStyleAttributeId::TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, true);
+    ASSERT_TRUE(errorCode == OH_Drawing_ErrorCode::OH_DRAWING_SUCCESS);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    OH_Drawing_SetTextStyleFontSize(textStyle, 50);
+    double lineLimit = 30;
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, lineLimit);
+    OH_Drawing_SetTextStyleAttributeDouble(textStyle,
+        OH_Drawing_TextStyleAttributeId::TEXT_STYLE_ATTR_D_LINE_HEIGHT_MINIMUM, lineLimit);
+    double layoutWidth = 80;
+    OH_Drawing_Typography* typography = CreateParagraphWithCustomStyle(layoutWidth, text, typoStyle, textStyle);
+    ASSERT_NE(typography, nullptr);
+    skia::textlayout::ParagraphImpl* skiaParagraph = GetSkiaParagraph(typography);
+    size_t totalLineCnt = skiaParagraph->lineNumber();
+    double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
+        skia::textlayout::LineMetricStyle::CSS);
+    // Expect line height is 76
+    double expectLineHeight = 76;
+    EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
+    for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
+        EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
+    }
+    OH_Drawing_DestroyTypography(typography);
+}
+
+/*
+ * @tc.name: TypographStyleDestroyPositionAndAffinity001
+ * @tc.desc: Test for destroy nullptr for OH_Drawing_DestroyPositionAndAffinity
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleDestroyPositionAndAffinity001, TestSize.Level0)
+{
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_DestroyPositionAndAffinity(nullptr);
+    OH_Drawing_DestroyTypographyStyle(typoStyle);
+}
+
+/*
+ * @tc.name: TypographStyleDestroyPositionAndAffinity002
+ * @tc.desc: Test for destroy positionAndAffinity object
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkTypographyStyleTest, TypographStyleDestroyPositionAndAffinity002, TestSize.Level0)
+{
+    const char* text = "Destroy positionAndAffinity";
+    OH_Drawing_TypographyStyle* typoStyle = OH_Drawing_CreateTypographyStyle();
+    ASSERT_NE(typoStyle, nullptr);
+    OH_Drawing_TypographyCreate* handler =
+        OH_Drawing_CreateTypographyHandler(typoStyle, OH_Drawing_CreateFontCollection());
+    ASSERT_NE(handler, nullptr);
+    OH_Drawing_TextStyle* textStyle = OH_Drawing_CreateTextStyle();
+    ASSERT_NE(textStyle, nullptr);
+    OH_Drawing_TypographyHandlerPushTextStyle(handler, textStyle);
+    OH_Drawing_TypographyHandlerAddText(handler, text);
+    OH_Drawing_Typography* typography = OH_Drawing_CreateTypography(handler);
+    ASSERT_NE(typography, nullptr);
+    // Test for layout width 500
+    double layoutWidth = 500;
+    OH_Drawing_TypographyLayout(typography, layoutWidth);
+    OH_Drawing_PositionAndAffinity* positionAndAffinity =
+        OH_Drawing_TypographyGetGlyphPositionAtCoordinateWithCluster(typography, 0, 1);
+    ASSERT_NE(positionAndAffinity, nullptr);
+    OH_Drawing_DestroyPositionAndAffinity(positionAndAffinity);
+    OH_Drawing_DestroyTypography(typography);
+    OH_Drawing_DestroyTypographyHandler(handler);
+    OH_Drawing_DestroyTextStyle(textStyle);
     OH_Drawing_DestroyTypographyStyle(typoStyle);
 }
 } // namespace OHOS

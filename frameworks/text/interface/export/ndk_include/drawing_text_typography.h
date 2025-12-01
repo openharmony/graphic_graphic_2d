@@ -623,7 +623,7 @@ typedef enum OH_Drawing_TypographyStyleAttributeId {
      */
     TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION = 5,
     /**
-     * Include font padding
+     * Font padding
      * @since 23
      */
     TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING = 6,
