@@ -88,6 +88,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyShort),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetFreeze),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetNodeName),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIContextToken),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeGroup),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSExcludedFromNodeGroup),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkNodeSingleFrameComposer),

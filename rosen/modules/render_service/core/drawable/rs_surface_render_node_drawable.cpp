@@ -41,7 +41,6 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
-#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
@@ -1346,15 +1345,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }
 
-bool RSSurfaceRenderNodeDrawable::RecordTimestamp(NodeId id, uint32_t seqNum)
-{
-    uint64_t currentTime = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    return surfaceFpsManager.RecordPresentTime(id, currentTime, seqNum);
-}
-
 bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
                                                 RSRenderThreadParams& uniParam,
                                                 RSSurfaceRenderParams& surfaceParams, bool isCapture)
@@ -1446,8 +1436,6 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
 #endif
     if (params.buffer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
-    } else {
-        RecordTimestamp(surfaceParams.GetId(), params.buffer->GetSeqNum());
     }
     auto bgColor = surfaceParams.GetBackgroundColor();
     if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {

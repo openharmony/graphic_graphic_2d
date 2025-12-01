@@ -516,7 +516,8 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         lastTypeBlackList_ != currentTypeBlackList_ || params.IsSpecialLayerChanged() ||
         lastSecExemption_ != curSecExemption_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
         (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged())) ||
-        curScreenParams->GetHasMirroredScreenChanged();
+        curScreenParams->GetHasMirroredScreenChanged() ||
+        !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty();
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyNeedRefresh_ = false;

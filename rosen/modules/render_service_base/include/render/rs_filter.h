@@ -94,6 +94,7 @@ public:
         GASIFY_BLUR,
         GASIFY,
         FROSTED_GLASS,
+        FROSTED_GLASS_BLUR,
     };
     FilterType GetFilterType() const
     {

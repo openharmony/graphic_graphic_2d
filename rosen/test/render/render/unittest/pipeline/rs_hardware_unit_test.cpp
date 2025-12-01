@@ -468,7 +468,9 @@ HWTEST_F(RSHardwareUnitTest, RecordTimestamp, TestSize.Level1)
 
     auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     surfaceFpsManager.RegisterSurfaceFps(layer1->GetNodeId(), layer1->GetSurface()->GetName());
-    hardwareThread.RecordTimestamp(layers);
+    uint64_t vsyncId = 1;
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    hardwareThread.RecordTimestamp(vsyncId, output, layers);
     surfaceFpsManager.UnregisterSurfaceFps(layer1->GetNodeId());
 }
 

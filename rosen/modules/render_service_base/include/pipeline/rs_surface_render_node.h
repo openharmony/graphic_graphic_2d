@@ -1325,28 +1325,11 @@ public:
         hwcDelayDirtyFlag_ = hwcDelayDirtyFlag;
     }
 
-    bool GetSurfaceCacheContentStatic()
-    {
-        return surfaceCacheContentStatic_;
-    }
-
     bool GetUifirstContentDirty()
     {
         bool uifirstContentDirty = uifirstContentDirty_;
         uifirstContentDirty_ = false;
         return uifirstContentDirty;
-    }
-
-    void UpdateSurfaceCacheContentStatic();
-
-    void UpdateSurfaceCacheContentStatic(
-        const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
-    // temperory limit situation:
-    // subtree no drawingcache and geodirty
-    // contentdirty 1 specifically for buffer update
-    bool IsContentDirtyNodeLimited() const
-    {
-        return drawingCacheNodes_.empty() && dirtyGeoNodeNum_ == 0 && dirtyContentNodeNum_ <= 1;
     }
 
     size_t GetLastFrameChildrenCnt()
@@ -1784,7 +1767,6 @@ private:
     void UpdateRenderParams() override;
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
-    bool IsCurFrameSwitchToPaint();
 
     bool isForcedClipHole() const;
 
@@ -1878,8 +1860,6 @@ private:
     bool isTargetUIFirstDfxEnabled_ = false;
     bool hasSharedTransitionNode_ = false;
     bool lastFrameShouldPaint_ = true;
-    // node only have translate and scale changes
-    bool surfaceCacheContentStatic_ = false;
     bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
@@ -1957,9 +1937,6 @@ private:
     SurfaceId surfaceId_ = 0;
     SurfaceId tunnelLayerId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
-    size_t dirtyContentNodeNum_ = 0;
-    size_t dirtyGeoNodeNum_ = 0;
-    size_t dirtynodeNum_ = 0;
     struct GamutCollector
     {
         int bt2020Num_ = 0;

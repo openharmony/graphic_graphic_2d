@@ -1095,19 +1095,19 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetN
 
 namespace {
 static constexpr char SDF_CONTENT_LIGHT_SHADER_STRING[](R"(
-    uniform shader Light;
+    uniform shader light;
     uniform shader sdf;
 
     mediump vec4 main(vec2 coord)
     {
         vec4 lightColor = Light.eval(coord);
         vec4 sdfColor = sdf.eval(coord);
-        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor.a)) * mix(1.0, sdfColor.a, step(-1.0, sdfColor.a));
+        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor.a)) * mix(1.0, -sdfColor.a, step(-1.0, sdfColor.a));
     }
 )");
 
 static constexpr char SDF_BORDER_LIGHT_SHADER_STRING[](R"(
-    uniform shader Light;
+    uniform shader light;
     uniform shader sdf;
     uniform float borderWidth;
 
@@ -1127,7 +1127,7 @@ bool RSPointLightDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
     if (!sdfLightBuilder || !lightShaderEffect) {
         return false;
     }
-    sdfLightBuilder->SetChild("Light", lightShaderEffect);
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
     sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
     lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(lightShaderEffect);
@@ -1190,7 +1190,7 @@ bool RSPointLightDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
     if (!sdfLightBuilder || !lightShaderEffect) {
         return false;
     }
-    sdfLightBuilder->SetChild("Light", lightShaderEffect);
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
     sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
     sdfLightBuilder->SetUniform("borderWidth", borderWidth_);
     lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);

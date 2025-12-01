@@ -175,9 +175,6 @@ public:
      * If its pid is in activeProcessPids_ set, return true
      */
     bool CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot);
-    // check if active instance only move or scale it's main window surface without rearrangement
-    // instanceNodeId should be MainWindowType, or it cannot grep correct app's info
-    void CheckAndUpdateInstanceContentStaticStatus(std::shared_ptr<RSSurfaceRenderNode> instanceNode) const;
 
     void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -521,7 +518,6 @@ private:
 
     uint32_t GetRefreshRate() const;
     uint32_t GetDynamicRefreshRate() const;
-    void SkipCommandByNodeId(std::vector<std::unique_ptr<RSTransactionData>>& transactionVec, pid_t pid);
     static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);
     static void OnDrawingCacheDfxSwitchCallback(const char *key, const char *value, void *context);
     static void OnFmtTraceSwitchCallback(const char *key, const char *value, void *context);
@@ -548,14 +544,8 @@ private:
         std::shared_ptr<TransactionDataMap>& transactionDataEffective, std::string& transactionFlags);
 
     bool IsResidentProcess(pid_t pid) const;
-    bool IsNeedSkip(NodeId instanceRootNodeId, pid_t pid);
     uint32_t GetForceCommitReason() const;
     void RegisterHwcEvent();
-
-    // UIFirst
-    bool CheckParallelSubThreadNodesStatus();
-    void CacheCommands();
-    bool CheckSubThreadNodeStatusIsDoing(NodeId appNodeId) const;
 
     // used for informing hgm the bundle name of SurfaceRenderNodes
     void InformHgmNodeInfo();
@@ -565,7 +555,6 @@ private:
 
     void SetFocusLeashWindowId();
     void ProcessHgmFrameRate(uint64_t timestamp);
-    bool IsLastFrameUIFirstEnabled(NodeId appNodeId) const;
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
@@ -742,7 +731,6 @@ private:
 
     TransactionDataMap cachedTransactionDataMap_;
     TransactionDataIndexMap effectiveTransactionDataIndexMap_;
-    std::map<pid_t, std::vector<std::unique_ptr<RSTransactionData>>> cachedSkipTransactionDataMap_;
     std::unordered_map<pid_t, uint64_t> transactionDataLastWaitTime_;
 
     int64_t requestNextVsyncTime_ = -1;
@@ -824,11 +812,6 @@ private:
 
     std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
 
-    // UIFirst
-    std::list<std::shared_ptr<RSSurfaceRenderNode>> subThreadNodes_;
-    std::unordered_map<NodeId, bool> cacheCmdSkippedNodes_;
-    std::unordered_map<pid_t, std::pair<std::vector<NodeId>, bool>> cacheCmdSkippedInfo_;
-    std::set<std::shared_ptr<RSBaseRenderNode>> oldDisplayChildren_;
     // for ui first
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;

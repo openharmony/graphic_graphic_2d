@@ -13,13 +13,10 @@
  * limitations under the License.
  */
 
+#include "effect/rs_render_shape_base.h"
+#include "ng_sdf_test_utils.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_mask_base.h"
-#include "ui_effect/property/include/rs_ui_shape_base.h"
-#include "effect/rs_render_shape_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -39,62 +36,6 @@ private:
     const int screenHeight = 2000;
     const int filterParaTypeCount = static_cast<int>(FilterPara::ParaType::CONTENT_LIGHT);
 };
-
-using ShapeCreator = std::function<std::shared_ptr<RSNGShapeBase>()>;
-static std::unordered_map<RSNGEffectType, ShapeCreator> creatorShape = {
-    {RSNGEffectType::SDF_UNION_OP_SHAPE,
-        [] { return std::make_shared<RSNGSDFUnionOpShape>(); }},
-    {RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE,
-        [] { return std::make_shared<RSNGSDFSmoothUnionOpShape>(); }},
-    {RSNGEffectType::SDF_RRECT_SHAPE,
-        [] { return std::make_shared<RSNGSDFRRectShape>(); }}
-};
-
-
-static std::shared_ptr<RSNGShapeBase> CreateShape(RSNGEffectType type)
-{
-    auto it = creatorShape.find(type);
-    return it != creatorShape.end() ? it->second() : nullptr;
-}
-
-static void InitSmoothUnionShapes(
-    std::shared_ptr<RSNGShapeBase>& rootShape, RRect rRectX, RRect rRectY, float spacing)
-{
-    rootShape = CreateShape(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
-    auto sdfUnionRootShape = std::static_pointer_cast<RSNGSDFSmoothUnionOpShape>(rootShape);
-
-    auto childShapeX = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
-    auto rRectChildShapeX = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeX);
-    rRectChildShapeX->Setter<SDFRRectShapeRRectTag>(rRectX);
-    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeXTag>(childShapeX);
-
-    auto childShapeY = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
-    auto rRectChildShapeY = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeY);
-    rRectChildShapeY->Setter<SDFRRectShapeRRectTag>(rRectY);
-    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(childShapeY);
-
-    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(spacing);
-}
-
-std::vector<RRect> rectXParams = {
-    RRect{RectT<float>{50, 150, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{100, 200, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{150, 250, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{150, 250, 150, 150}, 2.0f, 2.0f},
-    RRect{RectT<float>{100, 200, 0, 10}, 1.0f, 1.0f}, // invalid
-    RRect{RectT<float>{150, 250, 0, 10}, 1.0f, 1.0f}, // invalid
-};
-
-std::vector<RRect> rectYParams = {
-    RRect{RectT<float>{200, 300, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{200, 300, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{200, 300, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{180, 280, 150, 150}, 1.0f, 1.0f},
-    RRect{RectT<float>{200, 300, 150, 150}, 2.0f, 2.0f},
-    RRect{RectT<float>{200, 300, 0, 10}, 1.0f, 1.0f}, // invalid
-};
-
-std::vector<float> sdfShapeSpacingParams = {0.0f, 30.0f, 50.0f, 100.0f, 500000.0f, -5.0f};
 
 GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Shadow_Test_1)
 {

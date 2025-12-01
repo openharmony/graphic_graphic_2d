@@ -163,3 +163,8 @@ DECLARE_FILTER(GridWarp, GRID_WARP,
     ADD_PROPERTY_TAG(GridWarp, RotationAngle7),
     ADD_PROPERTY_TAG(GridWarp, RotationAngle8)
 );
+
+DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
+    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
+);

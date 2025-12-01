@@ -2637,46 +2637,6 @@ void RSSurfaceRenderNode::ResetAbilityNodeIds()
     abilityNodeIds_.clear();
 }
 
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic()
-{
-    dirtyContentNodeNum_ = 0;
-    dirtyGeoNodeNum_ = 0;
-    dirtynodeNum_ = 0;
-    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() && !IsCurFrameSwitchToPaint();
-}
-
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
-    const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds)
-{
-    dirtyContentNodeNum_ = 0;
-    dirtyGeoNodeNum_ = 0;
-    dirtynodeNum_ = activeNodeIds.size();
-    surfaceCacheContentStatic_ = (IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst()) &&
-        !IsCurFrameSwitchToPaint();
-    if (dirtynodeNum_ == 0) {
-        RS_LOGD("Clear surface %{public}" PRIu64 " dirtynodes surfaceCacheContentStatic_:%{public}d",
-            GetId(), surfaceCacheContentStatic_);
-        return;
-    }
-    for (auto [id, subNode] : activeNodeIds) {
-        auto node = subNode.lock();
-        if (node == nullptr || (id == GetId() && surfaceCacheContentStatic_)) {
-            continue;
-        }
-        // classify active nodes except instance surface itself
-        if (node->IsContentDirty() && !node->IsNewOnTree() && !node->GetRenderProperties().IsGeoDirty()) {
-            dirtyContentNodeNum_++;
-        } else {
-            dirtyGeoNodeNum_++;
-        }
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%" PRIu64 "] "
-        "contentStatic: %d, dirtyContentNode: %zu, dirtyGeoNode: %zu",
-        GetName().c_str(), GetId(), surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
-    // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
-    surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
-}
-
 void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode> childNode)
 {
     childHardwareEnabledNodes_.erase(std::remove_if(childHardwareEnabledNodes_.begin(),
@@ -3650,14 +3610,6 @@ RectI RSSurfaceRenderNode::GetFilterRect() const
 RectI RSSurfaceRenderNode::GetBehindWindowRegion() const
 {
     return drawBehindWindowRegion_;
-}
-
-bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
-{
-    bool shouldPaint = ShouldPaint();
-    bool changed = shouldPaint && !lastFrameShouldPaint_;
-    lastFrameShouldPaint_ = shouldPaint;
-    return changed;
 }
 
 void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)

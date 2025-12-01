@@ -1359,6 +1359,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_157",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetUIContextToken*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -2314,6 +2323,13 @@
     "testCaseDesc": "REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK_TEST_001",
     "interfaceName": "REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK",
     "inputParams": "WriteSelfDrawingNodeRectChangeCallbackSptr",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK_TEST_001",
+    "interfaceName": "UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK",
+    "inputParams": "",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
