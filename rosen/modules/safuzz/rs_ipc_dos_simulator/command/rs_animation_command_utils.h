@@ -33,6 +33,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCancel, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSAnimationCallback, Uint64, Uint64, Uint64, AnimationCallbackEvent);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCreateCurve, Uint64, RSRenderCurveAnimationSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSAnimationCreateParticleNG, Uint64, Uint64, RSRenderParticleAnimationSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCreateKeyframe, Uint64, RSRenderKeyframeAnimationSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCreatePath, Uint64, RSRenderPathAnimationSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAnimationCreateTransition, Uint64, RSRenderTransitionSharedPtr);

@@ -55,6 +55,9 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSBaseNodeCommand, RSBaseNodeClearChild),
 
     /********** RSNodeCommand **********/
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSAddModifierNG),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSRemoveModifierNG),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSRemoveAllModifiersNG),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyBool),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyFloat),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyInt),
@@ -81,6 +84,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVector4f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyRRect),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyDrawCmdList),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyDrawCmdListNG),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVectorFloat),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVectorVector2f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyPixelMap),
@@ -103,6 +107,8 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUnregisterGeometryTransitionNodePair),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSDumpClientNodeTree),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSCommitDumpClientNodeTree),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSModifierNGAttachProperty),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSModifierNGDetachProperty),
 
     /********** RSCanvasNodeCommand **********/
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeCreate),
@@ -151,6 +157,9 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetHardwareEnableHint),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeAttachToWindowContainer),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeDetachFromWindowContainer),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetRegionToBeMagnified),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetSurfaceBufferOpaque),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetFrameGravityNewVersionEnabled),
 
     /********** RSProxyNodeCommand **********/
     DECLARE_ADD_RANDOM(RSProxyNodeCommand, RSProxyNodeCreate),
@@ -174,6 +183,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeAddToTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeRemoveFromTree),
     DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeClearModifiersByPid),
+    DECLARE_ADD_RANDOM(RSDisplayNodeCommand, RSDisplayNodeForceCloseHdr),
 
     /********** RSEffectNodeCommand **********/
     DECLARE_ADD_RANDOM(RSEffectNodeCommand, RSEffectNodeCreate),
@@ -204,6 +214,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSInteractiveAnimatorFinish),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSInteractiveAnimatorReverse),
     DECLARE_ADD_RANDOM(RSAnimationCommand, RSInteractiveAnimatorSetFraction),
+    DECLARE_ADD_RANDOM(RSAnimationCommand, RSAnimationCreateParticleNG),
 
     /********** RSNodeShowingCommand **********/
     DECLARE_ADD_RANDOM(RSNodeShowingCommand, RSNodeGetShowingPropertyAndCancelAnimation),

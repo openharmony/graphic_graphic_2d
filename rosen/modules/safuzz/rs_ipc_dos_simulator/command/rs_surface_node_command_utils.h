@@ -64,6 +64,9 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetHardwareEnableHint, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeAttachToWindowContainer, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeDetachFromWindowContainer, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetRegionToBeMagnified, Uint64, Vector4i);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetFrameGravityNewVersionEnabled, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSurfaceBufferOpaque, Uint64, Bool);
 };
 } // namespace Rosen
 } // namespace OHOS
