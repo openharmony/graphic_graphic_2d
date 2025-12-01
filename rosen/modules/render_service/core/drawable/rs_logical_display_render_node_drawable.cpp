@@ -186,6 +186,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
                 WiredScreenProjection(*params, processor);
                 lastBlackList_ = currentBlackList_;
+                lastEnableVisibleRect_ = enableVisibleRect_;
+                lastVisibleRect_ = curVisibleRect_;
                 uniParam->SetSecurityDisplay(false);
                 return;
             }
@@ -195,6 +197,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
             DrawMirrorScreen(*params, processor);
+            lastEnableVisibleRect_ = enableVisibleRect_;
             lastVisibleRect_ = curVisibleRect_;
             lastTypeBlackList_ = currentTypeBlackList_;
             lastSecExemption_ = curSecExemption_;
@@ -512,6 +515,7 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
         lastTypeBlackList_ != currentTypeBlackList_ || params.IsSpecialLayerChanged() ||
         lastSecExemption_ != curSecExemption_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
+        lastEnableVisibleRect_ != enableVisibleRect_ ||
         (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged())) ||
         curScreenParams->GetHasMirroredScreenChanged() ||
         !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty();
@@ -628,7 +632,8 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForW
     auto syncDirtyManager = curScreenDrawable.GetSyncDirtyManager();
     // reset dirty rect as mirrored wired screen size when first time connection or matrix changed
     bool needRefresh = !(lastCanvasMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirroredParams->GetMatrix()) ||
-        uniParam->GetForceMirrorScreenDirty() || (enableVisibleRect_ && lastVisibleRect_ != curVisibleRect_) ||
+        uniParam->GetForceMirrorScreenDirty() || lastEnableVisibleRect_ != enableVisibleRect_ ||
+        (enableVisibleRect_ && lastVisibleRect_ != curVisibleRect_) ||
         lastBlackList_ != currentBlackList_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_;
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
