@@ -1631,6 +1631,14 @@ bool RSSystemProperties::GetVKImageUseEnabled()
     return enable;
 }
 
+bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.vkimage_adapt_wallpaper", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;

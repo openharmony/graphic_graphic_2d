@@ -374,6 +374,7 @@ public:
     static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();
+    static bool GetVKImageAdaptationForWallpaperEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();

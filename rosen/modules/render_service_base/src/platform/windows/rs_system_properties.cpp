@@ -741,6 +741,11 @@ bool RSSystemProperties::GetVKImageUseEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
+{
+    return false;
+}
+
 void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;
