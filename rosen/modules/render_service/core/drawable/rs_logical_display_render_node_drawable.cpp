@@ -343,7 +343,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
         RSRenderNodeDrawable::OnCapture(canvas);
         // paintFilterCanvas is offScreen create Canvas
-        DrawAdditionalContent(*paintFilterCanvas, RSUniRenderThread::GetCaptureParam().isMirror_);
+        DrawAdditionalContent(*paintFilterCanvas);
     } else {
         canvas.Clear(Drawing::Color::COLOR_BLACK);
         DrawHardwareEnabledNodes(canvas, *params);
@@ -406,14 +406,14 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
     }
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas)
 {
     RS_TRACE_FUNC();
-    DrawWatermarkIfNeed(canvas, isOffScreenCanvas);
+    DrawWatermarkIfNeed(canvas);
     RSRefreshRateDfx(*this).OnDraw(canvas);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas)
 {
     if (!RSUniRenderThread::Instance().GetWatermarkFlag()) {
         return;
@@ -434,18 +434,16 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
         return;
     }
     RS_TRACE_FUNC();
-    canvas.Save();
-    canvas.ResetMatrix();
-
+    RSAutoCanvasRestore acr(&canvas);
     Drawing::Matrix invertMatrix;
-    if (isOffScreenCanvas && params->GetMatrix().Invert(invertMatrix)) {
+    if (params->GetMatrix().Invert(invertMatrix)) {
         canvas.ConcatMatrix(invertMatrix);
     }
 
     auto rotation = params->GetScreenRotation();
     auto screenCorrection = screenManager->GetScreenCorrection(params->GetScreenId());
-    auto mainWidth = params->GetFrameRect().GetWidth();
-    auto mainHeight = params->GetFrameRect().GetHeight();
+    auto mainWidth = params->GetFixedWidth();
+    auto mainHeight = params->GetFixedHeight();
 
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
         screenCorrection != ScreenRotation::ROTATION_0) {
@@ -454,7 +452,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
             static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
 
-    if ((static_cast<int32_t>(rotation) - static_cast<int32_t>(params->GetNodeRotation())) % 2) {
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(mainWidth, mainHeight);
     }
     if (rotation != ScreenRotation::ROTATION_0) {
@@ -478,7 +476,6 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
     canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
-    canvas.Restore();
 }
 
 void RSLogicalDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
@@ -860,6 +857,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(RSLogicalDisplayR
 
     bool displayP3Enable = curScreenParam->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     DrawCurtainScreen();
+    mirroredDrawable.DrawWatermarkIfNeed(*curCanvas_);
     // 1.f: wired screen not use hdr, use default value 1.f
     RSUniRenderUtil::SwitchColorFilter(*curCanvas_, 1.f, displayP3Enable);
 
