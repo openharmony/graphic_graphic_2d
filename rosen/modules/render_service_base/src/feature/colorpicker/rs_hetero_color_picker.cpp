@@ -40,12 +40,12 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
         Drawing::HpsStatisticsType::MEAN);
     std::vector<std::shared_ptr<Drawing::HpsEffectParameter>> hpsParams = { hpsStats };
     if (!outCanvas->DrawImageEffectHPS(*image, hpsParams)) {
-        RS_LOGE("[HeteroPickColor]:DrawImageEffectHPS failed");
+        RS_LOGE("[HeteroColorPicker]:DrawImageEffectHPS failed");
         return false;
     }
     auto imageSnapshot = colorSurface->GetImageSnapshot();
     if (!imageSnapshot) {
-        RS_LOGE("[HeteroPickColor]:GetImageSnapshot failed");
+        RS_LOGE("[HeteroColorPicker]:GetImageSnapshot failed");
         return false;
     }
     auto backendTexture = colorSurface->GetBackendTexture();
@@ -63,13 +63,13 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
             origin,
             info,
             nullptr)) {
-            RS_LOGE("[HeteroPickColor]:BuildFromTexture failed");
+            RS_LOGE("[HeteroColorPicker]:BuildFromTexture failed");
             return;
         }
         Drawing::Bitmap dst;
         dst.Build(colorImage->GetImageInfo());
         if (!colorImage->ReadPixels(dst, 0, 0)) {
-            RS_LOGE("[HeteroPickColor]:ReadPixels failed");
+            RS_LOGE("[HeteroColorPicker]:ReadPixels failed");
             return;
         }
         auto currentColor = dst.GetColor(0, 0);
@@ -77,7 +77,7 @@ bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)
     });
     return registerRes;
 #else
-    RS_LOGE("[HeteroPickColor]:MHC is disabled");
+    RS_LOGE("[HeteroColorPicker]:MHC is disabled");
     return false;
 #endif
 }
