@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
 
@@ -477,6 +478,12 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDraw
 {
     auto ptr = std::static_pointer_cast<const RSForegroundFilterRestoreDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (ptr->foregroundFilter_ && ptr->foregroundFilter_->IsDrawingFilter() && rect) {
+            auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(ptr->foregroundFilter_);
+            drawingFilter->SetGeometry(canvas->GetTotalMatrix(), canvas->GetDeviceClipBounds(),
+                rect->GetWidth(), rect->GetHeight());
+        }
+
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
         RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
@@ -1088,19 +1095,19 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetN
 
 namespace {
 static constexpr char SDF_CONTENT_LIGHT_SHADER_STRING[](R"(
-    uniform shader Light;
+    uniform shader light;
     uniform shader sdf;
 
     mediump vec4 main(vec2 coord)
     {
         vec4 lightColor = Light.eval(coord);
         vec4 sdfColor = sdf.eval(coord);
-        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor.a)) * mix(1.0, sdfColor.a, step(-1.0, sdfColor.a));
+        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor.a)) * mix(1.0, -sdfColor.a, step(-1.0, sdfColor.a));
     }
 )");
 
 static constexpr char SDF_BORDER_LIGHT_SHADER_STRING[](R"(
-    uniform shader Light;
+    uniform shader light;
     uniform shader sdf;
     uniform float borderWidth;
 
@@ -1120,7 +1127,7 @@ bool RSPointLightDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
     if (!sdfLightBuilder || !lightShaderEffect) {
         return false;
     }
-    sdfLightBuilder->SetChild("Light", lightShaderEffect);
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
     sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
     lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);
     brush.SetShaderEffect(lightShaderEffect);
@@ -1183,7 +1190,7 @@ bool RSPointLightDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
     if (!sdfLightBuilder || !lightShaderEffect) {
         return false;
     }
-    sdfLightBuilder->SetChild("Light", lightShaderEffect);
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
     sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
     sdfLightBuilder->SetUniform("borderWidth", borderWidth_);
     lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);

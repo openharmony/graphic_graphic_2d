@@ -29,6 +29,7 @@
 #include "customized/random_rs_image.h"
 #include "customized/random_rs_mask.h"
 #include "customized/random_rs_path.h"
+#include "customized/random_rs_render_modifier_ng.h"
 #include "customized/random_rs_render_particle.h"
 #include "customized/random_rs_render_property_base.h"
 #include "customized/random_rs_shader.h"
@@ -365,6 +366,16 @@ Vector4f RandomDataCustomizedType::GetRandomVector4f()
     return vector;
 }
 
+Vector4<int> RandomDataCustomizedType::GetRandomVector4i()
+{
+    int x = RandomDataBasicType::GetRandomInt();
+    int y = RandomDataBasicType::GetRandomInt();
+    int z = RandomDataBasicType::GetRandomInt();
+    int w = RandomDataBasicType::GetRandomInt();
+    Vector4<int> vector(x, y, z, w);
+    return vector;
+}
+
 Quaternion RandomDataCustomizedType::GetRandomQuaternion()
 {
     float x = RandomDataBasicType::GetRandomFloat();
@@ -456,6 +467,16 @@ std::optional<Drawing::Matrix> RandomDataCustomizedType::GetRandomOptionalDrawin
         return std::nullopt;
     }
     return RandomDrawingMatrix::GetRandomDrawingMatrix();
+}
+
+Rect RandomDataCustomizedType::GetRandomRect()
+{
+    int32_t x = RandomDataBasicType::GetRandomInt32();
+    int32_t y = RandomDataBasicType::GetRandomInt32();
+    int32_t w = RandomDataBasicType::GetRandomInt32();
+    int32_t h = RandomDataBasicType::GetRandomInt32();
+    Rect rect{x, y, w, h};
+    return rect;
 }
 
 AnimationCallbackEvent RandomDataCustomizedType::GetRandomAnimationCallbackEvent()
@@ -639,6 +660,21 @@ std::vector<std::shared_ptr<EmitterUpdater>> RandomDataCustomizedType::GetRandom
 std::shared_ptr<ParticleNoiseFields> RandomDataCustomizedType::GetRandomSmallParticleNoiseFieldsSharedPtr()
 {
     return GetRandomParticleNoiseFieldsSharedPtr("small");
+}
+
+std::shared_ptr<ModifierNG::RSRenderModifier> RandomDataCustomizedType::GetRandomRSRenderModifierSharedPtr()
+{
+    return RandomRSRenderModifier::GetRandomRSRenderModifier();
+}
+
+ModifierNG::RSPropertyType RandomDataCustomizedType::GetRandomRSPropertyType()
+{
+    return RandomRSRenderModifier::GetRandomRSPropertyType();
+}
+
+ModifierNG::RSModifierType RandomDataCustomizedType::GetRandomRSModifierType()
+{
+    return RandomRSRenderModifier::GetRandomRSRenderModifier()->GetType();
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -60,6 +60,12 @@ rosen/modules/render_service_base/include/command/ @white-dragon-tiger
 etc/graphic.para.dac @white-dragon-tiger
 rosen/modules/safuzz/ @siyuan_zhou
 
+[transaction]
+rosen/modules/render_service_client/core/transaction/rs_transaction.h @chuchengcheng
+rosen/modules/render_service_client/core/transaction/rs_transaction.cpp @chuchengcheng
+rosen/modules/render_service_base/src/transaction/rs_transaction_data.cpp @chuchengcheng
+rosen/modules/render_service_base/include/transaction/rs_transaction_data.h @chuchengcheng
+
 [animation]
 interfaces/kits/napi/graphic/animation/window_animation_manager/ @comicchang
 rosen/modules/animation/window_animation/ @comicchang

@@ -70,6 +70,7 @@
 #endif
 
 #ifdef RES_SCHED_ENABLE
+#include "concurrent_task_client.h"
 #include "system_ability_definition.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
@@ -162,6 +163,11 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
             threadTid_ = gettid();
         }).wait();
     }
+#ifdef RES_SCHED_ENABLE
+    int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(threadTid_,
+        OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
+    RS_LOGI("RSRenderComposer SetSystemQoS qosRes = %{public}d", qosRes);
+#endif
 #ifdef RS_ENABLE_GPU
     // report composer tid to sched deadline
     RsFrameReport::GetInstance().ReportComposerInfo(screenId_, threadTid_);
@@ -340,7 +346,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         RSTvMetadataManager::CombineMetadataForAllLayers(layers);
 #endif
         hdiOutput_->Repaint();
-        RecordTimestamp(layers);
+        RecordTimestamp(param.vsyncId, hdiOutput_, layers);
     }
     hdiOutput_->ReleaseLayers(releaseFence_);
     RSUniRenderThread::Instance().NotifyScreenNodeBufferReleased(screenId_);
@@ -461,21 +467,28 @@ void RSRenderComposer::EndCheck(RSTimer timer)
     }
 }
 
-void RSRenderComposer::RecordTimestamp(const std::vector<std::shared_ptr<RSLayer>>& layers)
+void RSRenderComposer::RecordTimestamp(uint64_t vsyncId,
+    const std::shared_ptr<HdiOutput> output,
+    const std::vector<std::shared_ptr<RSLayer>>& layers)
 {
-    uint64_t currentTime = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    for (const auto& layer : layers) {
+    for (auto& layer : layers) {
         if (layer == nullptr) {
-            continue;
-        }
-        if (layer->GetBuffer() == nullptr) {
             continue;
         }
         uint64_t id = layer->GetNodeId();
         auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-        surfaceFpsManager.RecordPresentTime(id, currentTime, layer->GetBuffer()->GetSeqNum());
+        if (layer->GetBuffer() == nullptr) {
+            continue;
+        }
+        if (layer->GetUniRenderFlag()) {
+            surfaceFpsManager.RecordPresentFdForUniRender(vsyncId, output->GetCurrentFramePresentFd());
+            surfaceFpsManager.RecordPresentTimeForUniRender(output->GetThirdFrameAheadPresentFd(),
+                output->GetThirdFrameAheadPresentTime());
+        } else {
+            surfaceFpsManager.RecordPresentFd(id, vsyncId, output->GetCurrentFramePresentFd());
+            surfaceFpsManager.RecordPresentTime(id, output->GetThirdFrameAheadPresentFd(),
+                output->GetThirdFrameAheadPresentTime());
+        }
     }
 }
 

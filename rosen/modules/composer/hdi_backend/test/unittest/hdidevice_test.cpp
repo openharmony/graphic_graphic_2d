@@ -55,7 +55,9 @@ namespace {
 HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 {
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegHotPlugCallback(nullptr, nullptr), GRAPHIC_DISPLAY_SUCCESS);
-    uint32_t screenId = 1, screenModeId = 0, screenLightLevel = 0;
+    uint32_t screenId = 0;
+    uint32_t screenModeId = 0;
+    uint32_t screenLightLevel = 0;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegScreenVBlankCallback(screenId, nullptr, nullptr),
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
@@ -102,6 +104,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(hdiDeviceMock_->PrepareScreenLayers(screenId, needFlush), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
+    screenId = UINT32_MAX;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenCompChange(screenId, layersId, types), GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *buffer = nullptr;
     sptr<SyncFence> fence = nullptr;
@@ -115,7 +118,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> damageRects = { {0, 0, 0, 0} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicColorGamut> gamuts;
     EXPECT_CALL(*hdiDeviceMock_,
         GetScreenSupportedColorGamuts(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
@@ -143,7 +146,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1;
+    uint32_t screenId = UINT32_MAX;
     GraphicHDRCapability info;
     EXPECT_CALL(*hdiDeviceMock_,
         GetHDRCapabilityInfos(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
@@ -164,7 +167,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0, zorder = 0;
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 0;
     GraphicLayerAlpha alpha;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
@@ -222,6 +225,38 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 }
 
 /*
+* Function: SetTunnelLayerId
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerId
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetTunnelLayerId, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX;
+    uint32_t layerId = 0;
+    uint64_t tunnelId = 0;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTunnelLayerId(screenId, layerId, tunnelId), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetTunnelLayerProperty
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerProperty
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetTunnelLayerProperty, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX;
+    uint32_t layerId = 0;
+    uint32_t property = 0;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTunnelLayerProperty(screenId, layerId, property), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
 * Function: LayerFuncs002
 * Type: Function
 * Rank: Important(3)
@@ -231,7 +266,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0;
+    uint32_t screenId = UINT32_MAX, layerId = 0;
     GraphicPresentTimestamp timestamp;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
@@ -261,7 +296,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs003, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0, zorder = 1;
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
@@ -328,7 +363,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs003, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs004, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0, zorder = 1;
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
@@ -395,7 +430,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs004, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs005, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0, zorder = 1;
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
@@ -463,7 +498,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs005, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs006, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0, zorder = 1;
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
     GraphicLayerAlpha alpha;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};

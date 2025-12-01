@@ -685,9 +685,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             const auto& mirroredScreenProperty = mirroredRenderParams->GetScreenProperty();
             offsetX_ = mirroredScreenProperty.GetOffsetX();
             offsetY_ = mirroredScreenProperty.GetOffsetY();
-            RSUniRenderThread::Instance().SetEnableVisibleRect(screenInfo.enableVisibleRect);
-            if (screenInfo.enableVisibleRect) {
-                const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
+            bool enableVisibleRect = screenProperty.GetEnableVisibleRect();
+            RSUniRenderThread::Instance().SetEnableVisibleRect(enableVisibleRect);
+            if (enableVisibleRect) {
+                const auto& rect = screenProperty.GetVisibleRect();
                 auto curVisibleRect = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
                 RSUniRenderThread::Instance().SetVisibleRect(curVisibleRect);
             }

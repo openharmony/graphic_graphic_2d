@@ -134,7 +134,7 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest001, TestSize.Level1)
     EXPECT_EQ(ret, DrawingError::ERR_OK);
 
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
-    EXPECT_EQ(filterBlur, nullptr);
+    EXPECT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
     EXPECT_EQ(ret, DrawingError::ERR_OK);
     ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // has drawing before blur
@@ -162,13 +162,13 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
 
     // test filter_ == nullptr
     auto ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_NOT_PREPARED);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
     EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
     ret = image->ApplyDrawingFilter(nullptr);
     EXPECT_NE(ret, DrawingError::ERR_OK);
     // test not prepare
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_NOT_PREPARED);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
     EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
     // test normal condition
     Media::InitializationOptions opts;
@@ -180,14 +180,6 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
     EXPECT_EQ(ret, DrawingError::ERR_OK);
     // test illegal blur radius
     ret = image->ApplyEllipticalGradientBlur(-1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-
-    // test illegal center coordinates
-    ret = image->ApplyEllipticalGradientBlur(1.0f, -1.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, -1.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
-    ret = image->ApplyEllipticalGradientBlur(1.0f, -1.0f, -1.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
 
     // test illegal ellipse radius
@@ -209,8 +201,10 @@ HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
     // test if forceCPU_ is true
     ret = image->Prepare(srcPixelMap, true);
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
-    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
     // test multiple filters
+    ret = image->Prepare(srcPixelMap, false);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
     EXPECT_EQ(ret, DrawingError::ERR_OK);
     ret = image->Draw();

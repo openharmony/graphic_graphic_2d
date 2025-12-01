@@ -156,11 +156,11 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
     }
-    ClearBufferCache();
+    ResetBufferCache();
     bufferCache_.reserve(bufferCacheCountMax_);
     layerId_ = layerId;
 
-    HLOGD("Create hwc layer succeed, layerId is %{public}u", layerId_);
+    HLOGI("Create hwc layer succeed, layerId is %{public}u", layerId_);
 
     CheckRet(device_->GetSupportedPresentTimestampType(screenId_, layerId_, supportedPresentTimestamptype_),
              "GetSupportedPresentTimestamp");
@@ -184,7 +184,7 @@ void HdiLayer::CloseLayer()
         HLOGE("Close hwc layer[%{public}u] failed, ret is %{public}d", layerId_, retCode);
     }
 
-    HLOGD("Close hwc layer succeed, layerId is %{public}u", layerId_);
+    HLOGI("Close hwc layer succeed, layerId is %{public}u", layerId_);
 }
 
 int32_t HdiLayer::SetLayerAlpha()
@@ -278,7 +278,7 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
         for (uint32_t i = 0; i < bufferCacheSize; i++) {
             deletingList.push_back(i);
         }
-        ClearBufferCache();
+        ResetBufferCache();
     }
     index = (uint32_t)bufferCache_.size();
     bufferCache_.push_back(sequence);
@@ -323,6 +323,9 @@ int32_t HdiLayer::SetLayerBuffer()
         layerBuffer.handle = nullptr;
     } else {
         layerBuffer.handle = currBuffer_->GetBufferHandle();
+        if (layerBuffer.handle == nullptr) {
+            HLOGE("Get buffer handle failed.");
+        }
     }
 
     bufferCleared_ = false;
@@ -934,16 +937,15 @@ void HdiLayer::ClearBufferCache()
     if (bufferCache_.empty()) {
         return;
     }
-    if (rsLayer_ == nullptr || device_ == nullptr) {
-        return;
-    }
-    if (rsLayer_->GetBuffer() != nullptr) {
-        currBuffer_ = rsLayer_->GetBuffer();
-    }
     RS_TRACE_NAME_FMT("HdiOutput::ClearBufferCache, screenId=%u, layerId=%u, bufferCacheSize=%zu", screenId_, layerId_,
         bufferCache_.size());
+    ResetBufferCache();
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
+}
+
+void HdiLayer::ResetBufferCache()
+{
     bufferCache_.clear();
     bufferCleared_ = true;
 }

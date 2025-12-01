@@ -122,7 +122,6 @@ void RSRenderComposerManager::PreAllocateProtectedBuffer(ScreenId screenId, sptr
         }
         renderComposer = iter->second;
     }
-
     auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     renderComposerAgent->PreAllocateProtectedBuffer(buffer);
 }

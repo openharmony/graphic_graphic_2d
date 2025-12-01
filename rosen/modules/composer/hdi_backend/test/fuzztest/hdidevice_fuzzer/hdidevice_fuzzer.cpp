@@ -59,6 +59,8 @@ namespace OHOS {
         GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
         uint32_t maskInfo = GetData<uint32_t>();
+        uint64_t tunnelId = GetData<uint64_t>();
+        uint32_t property = GetData<uint32_t>();
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
@@ -67,6 +69,8 @@ namespace OHOS {
         std::vector<uint8_t> metaDatas2 = {metaData2};
         device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
         device->SetLayerTunnelHandle(screenId, layerId, nullptr);
+        device->SetTunnelLayerId(screenId, layerId, tunnelId);
+        device->SetTunnelLayerProperty(screenId, layerId, property);
         device->GetPresentTimestamp(screenId, layerId, timestamp);
         device->SetLayerMaskInfo(screenId, layerId, maskInfo);
 
@@ -87,7 +91,7 @@ namespace OHOS {
         // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
         fenceFd = ((fenceFd >= 0 && fenceFd <= 2) ? DEFAULT_FENCE : fenceFd);
         sptr<SyncFence> fence = new SyncFence(fenceFd);
-        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
+        GraphicLayerAlpha alpha = {0};
         GraphicIRect layerRect = GetData<GraphicIRect>();
         GraphicTransformType ttype = GetData<GraphicTransformType>();
         GraphicIRect visible = GetData<GraphicIRect>();

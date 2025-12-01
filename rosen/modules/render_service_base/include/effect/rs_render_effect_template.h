@@ -101,8 +101,9 @@ public:
             case RSNGEffectType::FROSTED_GLASS: return "FrostedGlass";
             case RSNGEffectType::CIRCLE_FLOWLIGHT: return "CircleFlowlight";
             case RSNGEffectType::GRID_WARP: return "GridWarp";
-            default:
-                return "UNKNOWN";
+            case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
+            case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
+            default: return "UNKNOWN";
         }
     }
 
@@ -413,7 +414,7 @@ public:
         CalculateHashInner(hash_);
         return hash_;
     }
-    
+
     void CalculateHashInner(uint32_t& hash) override
     {
         std::apply(

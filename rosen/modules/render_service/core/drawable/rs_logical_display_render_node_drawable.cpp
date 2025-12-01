@@ -186,6 +186,8 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             if (params->GetCompositeType() == CompositeType::UNI_RENDER_COMPOSITE) {
                 WiredScreenProjection(*params, processor);
                 lastBlackList_ = currentBlackList_;
+                lastEnableVisibleRect_ = enableVisibleRect_;
+                lastVisibleRect_ = curVisibleRect_;
                 uniParam->SetSecurityDisplay(false);
                 return;
             }
@@ -195,6 +197,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             curSecExemption_ = params->GetSecurityExemption();
             uniParam->SetSecExemption(curSecExemption_);
             DrawMirrorScreen(*params, processor);
+            lastEnableVisibleRect_ = enableVisibleRect_;
             lastVisibleRect_ = curVisibleRect_;
             lastTypeBlackList_ = currentTypeBlackList_;
             lastSecExemption_ = curSecExemption_;
@@ -343,7 +346,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 
         RSRenderNodeDrawable::OnCapture(canvas);
         // paintFilterCanvas is offScreen create Canvas
-        DrawAdditionalContent(*paintFilterCanvas, RSUniRenderThread::GetCaptureParam().isMirror_);
+        DrawAdditionalContent(*paintFilterCanvas);
     } else {
         canvas.Clear(Drawing::Color::COLOR_BLACK);
         DrawHardwareEnabledNodes(canvas, *params);
@@ -406,14 +409,14 @@ void RSLogicalDisplayRenderNodeDrawable::DrawExpandDisplay(RSLogicalDisplayRende
     }
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawAdditionalContent(RSPaintFilterCanvas& canvas)
 {
     RS_TRACE_FUNC();
-    DrawWatermarkIfNeed(canvas, isOffScreenCanvas);
+    DrawWatermarkIfNeed(canvas);
     RSRefreshRateDfx(*this).OnDraw(canvas);
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas)
+void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas)
 {
     if (!RSUniRenderThread::Instance().GetWatermarkFlag()) {
         return;
@@ -434,18 +437,16 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
         return;
     }
     RS_TRACE_FUNC();
-    canvas.Save();
-    canvas.ResetMatrix();
-
+    RSAutoCanvasRestore acr(&canvas);
     Drawing::Matrix invertMatrix;
-    if (isOffScreenCanvas && params->GetMatrix().Invert(invertMatrix)) {
+    if (params->GetMatrix().Invert(invertMatrix)) {
         canvas.ConcatMatrix(invertMatrix);
     }
 
     auto rotation = params->GetScreenRotation();
     auto screenCorrection = screenManager->GetScreenCorrection(params->GetScreenId());
-    auto mainWidth = params->GetFrameRect().GetWidth();
-    auto mainHeight = params->GetFrameRect().GetHeight();
+    auto mainWidth = params->GetFixedWidth();
+    auto mainHeight = params->GetFixedHeight();
 
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
         screenCorrection != ScreenRotation::ROTATION_0) {
@@ -454,7 +455,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
             static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
 
-    if ((static_cast<int32_t>(rotation) - static_cast<int32_t>(params->GetNodeRotation())) % 2) {
+    if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
         std::swap(mainWidth, mainHeight);
     }
     if (rotation != ScreenRotation::ROTATION_0) {
@@ -478,7 +479,6 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWatermarkIfNeed(RSPaintFilterCanvas
     canvas.DrawImageRect(*image, srcRect, dstRect, Drawing::SamplingOptions(),
         Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
-    canvas.Restore();
 }
 
 void RSLogicalDisplayRenderNodeDrawable::UpdateDisplayDirtyManager(std::shared_ptr<RSDirtyRegionManager> dirtyManager,
@@ -515,8 +515,10 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
         lastTypeBlackList_ != currentTypeBlackList_ || params.IsSpecialLayerChanged() ||
         lastSecExemption_ != curSecExemption_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
+        lastEnableVisibleRect_ != enableVisibleRect_ ||
         (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged())) ||
-        curScreenParams->GetHasMirroredScreenChanged();
+        curScreenParams->GetHasMirroredScreenChanged() ||
+        !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty();
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyNeedRefresh_ = false;
@@ -630,7 +632,8 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForW
     auto syncDirtyManager = curScreenDrawable.GetSyncDirtyManager();
     // reset dirty rect as mirrored wired screen size when first time connection or matrix changed
     bool needRefresh = !(lastCanvasMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirroredParams->GetMatrix()) ||
-        uniParam->GetForceMirrorScreenDirty() || (enableVisibleRect_ && lastVisibleRect_ != curVisibleRect_) ||
+        uniParam->GetForceMirrorScreenDirty() || lastEnableVisibleRect_ != enableVisibleRect_ ||
+        (enableVisibleRect_ && lastVisibleRect_ != curVisibleRect_) ||
         lastBlackList_ != currentBlackList_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_;
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
@@ -859,6 +862,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawWiredMirrorOnDraw(RSLogicalDisplayR
 
     bool displayP3Enable = curScreenParam->GetNewColorSpace() == GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     DrawCurtainScreen();
+    mirroredDrawable.DrawWatermarkIfNeed(*curCanvas_);
     // 1.f: wired screen not use hdr, use default value 1.f
     RSUniRenderUtil::SwitchColorFilter(*curCanvas_, 1.f, displayP3Enable);
 

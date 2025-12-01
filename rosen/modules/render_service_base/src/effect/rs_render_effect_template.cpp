@@ -112,7 +112,7 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     const auto matrixData = matrix.GetData();
     Drawing::Matrix drawingMatrix;
     drawingMatrix.SetMatrix(matrixData[Matrix3f::Index::SCALE_X], matrixData[Matrix3f::Index::SKEW_X],
-                            matrixData[Matrix3f::Index::TRANS_X], matrixData[Matrix3f::Index::SKEW_X],
+                            matrixData[Matrix3f::Index::TRANS_X], matrixData[Matrix3f::Index::SKEW_Y],
                             matrixData[Matrix3f::Index::SCALE_Y], matrixData[Matrix3f::Index::TRANS_Y],
                             matrixData[Matrix3f::Index::PERSP_0], matrixData[Matrix3f::Index::PERSP_1],
                             matrixData[Matrix3f::Index::PERSP_2]);

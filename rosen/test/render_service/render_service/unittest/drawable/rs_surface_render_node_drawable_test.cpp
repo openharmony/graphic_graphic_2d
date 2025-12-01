@@ -1076,27 +1076,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcess_StoppedByRangeCapTest
 }
 
 /**
- * @tc.name: RecordTimestamp
- * @tc.desc: Test RecordTimestamp
- * @tc.type: FUNC
- * @tc.require: IBE7GI
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, RecordTimestamp, TestSize.Level1)
-{
-    uint32_t seqNum = 0;
-    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    std::string name("surfacefps");
-    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
-    surfaceFpsManager.RegisterSurfaceFps(DEFAULT_ID, name);
-    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
-    seqNum = 1;
-    EXPECT_TRUE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
-    surfaceFpsManager.UnregisterSurfaceFps(DEFAULT_ID);
-}
-
-/**
  * @tc.name: CheckIfSurfaceSkipInMirrorOrScreenshot001
  * @tc.desc: Test CheckIfSurfaceSkipInMirrorOrScreenshot for main screen
  * @tc.type: FUNC

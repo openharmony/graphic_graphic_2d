@@ -134,7 +134,6 @@ NapiTextResult NapiAsyncWork::Enqueue(napi_env env, sptr<ContextBase> contextBas
 }
 
 void NapiAsyncWork::GenerateOutput(sptr<ContextBase> contextBase)
-
 {
     TEXT_ERROR_CHECK(contextBase, return, "Context is null");
     napi_value result[RESULT_ALL] = {nullptr};

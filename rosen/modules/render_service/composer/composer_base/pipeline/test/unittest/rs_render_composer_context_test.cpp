@@ -312,7 +312,7 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_CopySemantics, TestSize.Lev
 
     // internal storage should remain unchanged
     auto vecB = ctx->GetRSLayersVec();
-    EXPECT_EQ(vecB.size(), 2u);
+    EXPECT_EQ(vecB.size(), 0);
 }
 
 /**

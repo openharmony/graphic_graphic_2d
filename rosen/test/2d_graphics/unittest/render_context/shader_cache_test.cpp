@@ -373,7 +373,7 @@ HWTEST_F(ShaderCacheTest, StoreTest, TestSize.Level1)
 
 /**
 *@tc.name: GetAndCalMaxUniRenderSizeTest_001
-*@tc.desc: Verify the return value of the GetMaxUniRenderSize and CalMaxUniRenderSize founction.
+*@tc.desc: Verify the GetMaxUniRenderSize and CalMaxUniRenderSize founction with default UniRenderSize.
 *@tc.type: FUNC
 *@tc.require:
 *@tc.author:
@@ -388,7 +388,7 @@ HWTEST_F(ShaderCacheTest, GetAndCalMaxUniRenderSizeTest_001, TestSize.Level1)
  
 /**
 *@tc.name: GetAndCalMaxUniRenderSizeTest_002
-*@tc.desc: Verify the return value of the GetMaxUniRenderSize and CalMaxUniRenderSize founction.
+*@tc.desc: Verify the GetMaxUniRenderSize and CalMaxUniRenderSize founction with positive number.
 *@tc.type: FUNC
 *@tc.require:
 *@tc.author:
@@ -405,7 +405,7 @@ HWTEST_F(ShaderCacheTest, GetAndCalMaxUniRenderSizeTest_002, TestSize.Level1)
  
 /**
 *@tc.name: GetAndCalMaxUniRenderSizeTest_003
-*@tc.desc: Verify the return value of the GetMaxUniRenderSize and CalMaxUniRenderSize founction.
+*@tc.desc: Verify the GetMaxUniRenderSize and CalMaxUniRenderSize founction with negative number.
 *@tc.type: FUNC
 *@tc.require:
 *@tc.author:

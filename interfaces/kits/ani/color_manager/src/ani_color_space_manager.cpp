@@ -36,7 +36,7 @@ namespace {
     ani_enum gEnumType = nullptr;
     ani_field gNativePtrField = nullptr;
     ani_method gMakePointMethod = nullptr;
-    std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_enum_item> gNativeToEnumMap;
+    std::unordered_map<OHOS::ColorManager::ColorSpaceName, ani_ref> gNativeToEnumMap;
 }
 
 static ani_error CreateAniError(ani_env* env, std::string&& errMsg, ani_double code)
@@ -257,9 +257,15 @@ ani_status AniColorSpaceManager::AniColorSpaceManagerInit(ani_env *env)
     }
 
     ani_enum_item enumItem = nullptr;
+    ani_ref saveEnumItem = nullptr;
     for (auto& iter : NATIVE_TO_STRING_MAP) {
         env->Enum_GetEnumItemByName(gEnumType, iter.second.c_str(), &enumItem);
-        gNativeToEnumMap.emplace(iter.first, enumItem);
+        ani_status status = env->GlobalReference_Create(reinterpret_cast<ani_ref>(enumItem), &saveEnumItem);
+        if (status == ANI_OK) {
+            gNativeToEnumMap.emplace(iter.first, saveEnumItem);
+        } else {
+            ACMLOGI("Failed to cache enumItem: %{public}s", iter.second.c_str());
+        }
     }
 
     if (ANI_OK != CacheNativePtr(env)) {
@@ -336,7 +342,7 @@ ani_enum_item AniColorSpaceManager::OnGetColorSpaceName(ani_env *env, ani_object
     auto iter = gNativeToEnumMap.find(csName);
     if (iter != gNativeToEnumMap.end()) {
         ACMLOGD("[ANI]get color space name %{public}u", csName);
-        return iter->second;
+        return reinterpret_cast<ani_enum_item>(iter->second);
     }
     ACMLOGE("[ANI]get color space name %{public}u, but not in api type", csName);
     std::string errMsg = "BusinessError 401: Parameter error, the type of colorspace " +

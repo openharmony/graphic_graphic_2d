@@ -737,13 +737,15 @@ RectF RSFilterDrawable::GetRelativeRect(const std::unique_ptr<FilterRectInfo>& r
 
 void RSFilterDrawable::UpdateFilterRectInfo(const RectF& bound, const std::shared_ptr<RSFilter>& filter)
 {
+    stagingRelativeRectInfo_ = nullptr;
     if (filter == nullptr) {
         return;
     }
 
     auto snapshotRect = filter->GetRect(bound, EffectRectType::SNAPSHOT);
     auto drawRect = filter->GetRect(bound, EffectRectType::DRAW);
-    bool needGenerateRectInfo = !snapshotRect.IsNearEqual(bound) || !drawRect.IsNearEqual(bound);
+    bool needGenerateRectInfo = !bound.IsEmpty() &&
+        (!snapshotRect.IsNearEqual(bound) || !drawRect.IsNearEqual(bound));
     if (needGenerateRectInfo) {
         return;
     }

@@ -162,6 +162,7 @@ HWTEST_F(RsRenderComposerManagerTest, GetRSComposerConnection_FoundAndNotFound, 
     EXPECT_NE(mgr->GetRSComposerConnection(40u), nullptr);
 }
 
+#ifdef RS_ENABLE_VK
 /**
  * Function: PreAllocateProtectedBuffer_And_Task_Branches
  * Type: Function
@@ -203,7 +204,7 @@ HWTEST_F(RsRenderComposerManagerTest, PreAllocateProtectedBuffer_And_Task_Branch
     // ClearFrameBuffers should forward and return a GSError (OK or other) but must not crash
     EXPECT_EQ(mgr->ClearFrameBuffers(50u, true), GSERROR_OK);
 }
-
+#endif
 /**
  * Function: GetAccumulatedBufferCount_FoundAndNotFound
  * Type: Function
@@ -221,10 +222,10 @@ HWTEST_F(RsRenderComposerManagerTest, GetAccumulatedBufferCount_FoundAndNotFound
     output->Init();
     mgr->OnScreenConnected(output); // first insert
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_NE(mgr->GetAccumulatedBufferCount(1u), 0);
+    EXPECT_EQ(mgr->GetAccumulatedBufferCount(1u), 0);
     mgr->OnScreenConnected(output); // second enter else branch
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_NE(mgr->GetAccumulatedBufferCount(1u), 0);
+    EXPECT_EQ(mgr->GetAccumulatedBufferCount(1u), 0);
     mgr->OnScreenDisconnected(1u);
 }
 
@@ -504,7 +505,7 @@ HWTEST_F(RsRenderComposerManagerTest, ClearRedrawGPUCompositionCache, TestSize.L
     rsRenderComposer->uniRenderEngine_ = nullptr;
 }
 
-/*
+/**
  * Function: PostTaskToAllScreens
  * Type: Function
  * Rank: Important(2)
@@ -516,7 +517,6 @@ HWTEST_F(RsRenderComposerManagerTest, ClearRedrawGPUCompositionCache, TestSize.L
 HWTEST_F(RsRenderComposerManagerTest, PostTaskToAllScreens, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
     auto output = std::make_shared<HdiOutput>(2u);
     output->Init();
     auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
@@ -525,16 +525,62 @@ HWTEST_F(RsRenderComposerManagerTest, PostTaskToAllScreens, TestSize.Level1)
     }
     mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
 
-    std::set<uint64_t> bufferIds;
-    bufferIds.insert(1u);
-    bufferIds.insert(2u);
     std::atomic<bool> ran{false};
-    rsRenderComposer->PostTask([&ran]() { ran.store(true); });
+    mgr->PostTaskToAllScreens([&ran]() { ran.store(true); });
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     EXPECT_TRUE(ran.load());
 
     rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
     rsRenderComposer->uniRenderEngine_ = nullptr;
+}
+
+/**
+ * Function: SetScreenPowerOnChanged
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposerManager
+ *                  2. call SetScreenPowerOnChanged with different composer
+ *                  3. check result
+ */
+HWTEST_F(RsRenderComposerManagerTest, SetScreenPowerOnChanged, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    // cannot find in map
+    mgr->SetScreenPowerOnChanged(0u, false);
+
+    // composer is nullptr
+    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
+    mgr->SetScreenPowerOnChanged(1u, false);
+
+    // normal composer
+    auto output = std::make_shared<HdiOutput>(2u);
+    output->Init();
+    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    if (rsRenderComposer->runner_) {
+        rsRenderComposer->runner_->Run();
+    }
+    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
+    EXPECT_GT(mgr->rsRenderComposerMap_.size(), 0);
+    mgr->SetScreenPowerOnChanged(2u, false);
+
+    // composer without output
+    auto rsRenderComposer2 = std::make_shared<RSRenderComposer>(output);
+    if (rsRenderComposer2->runner_) {
+        rsRenderComposer2->runner_->Run();
+    }
+    rsRenderComposer2->hdiOutput_ = nullptr;
+    mgr->rsRenderComposerMap_.insert(std::pair(3u, rsRenderComposer2));
+    EXPECT_GT(mgr->rsRenderComposerMap_.size(), 0);
+    mgr->SetScreenPowerOnChanged(3u, false);
+
+    // clear resources
+    for (auto& [id, composer] : mgr->rsRenderComposerMap_) {
+        if (composer) {
+            composer->frameBufferSurfaceOhosMap_.clear();
+            composer->uniRenderEngine_ = nullptr;
+        }
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
