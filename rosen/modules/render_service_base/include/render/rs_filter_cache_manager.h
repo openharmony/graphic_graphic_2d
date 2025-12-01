@@ -121,6 +121,8 @@ public:
     void SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterCacheManager>& cacheManager);
     bool WouldDrawLargeAreaBlur();
     bool WouldDrawLargeAreaBlurPrecisely();
+    // Returns true if the interval is successfully reduced, returns false otherwise.
+    bool ReduceCacheUpdateInterval();
 
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const {

@@ -2355,6 +2355,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 
     isCachedSurfaceUpdated_ = false;
     if (needTraverseNodeTree) {
+        // Once exiting DoDirectComposition, clear the nodes collected for DoDirectComposition
+        aibarNodes_.clear();
         RSUniRenderThread::Instance().PostTask([] {
             RSUniRenderThread::Instance().ResetClearMemoryTask();
         });
@@ -2430,6 +2432,31 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 #endif
 }
 
+namespace {
+bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& nodeSet)
+{
+    if (RSSystemProperties::GetAIBarDirectCompositeFullEnabled()) {
+        return false;
+    }
+
+    bool aibarNeedUpdate = false;
+    for (auto& weakPtr : nodeSet) {
+        auto nodePtr = weakPtr.lock();
+        if (nodePtr == nullptr) {
+            continue;
+        }
+        // try to reduce the cache interval, i.e., consume the cache
+        if (!nodePtr->ForceReduceAIBarCacheInterval()) {
+            // consume cache failed, we need to update cache, which means DoDirectComposition should be disabled
+            aibarNeedUpdate = true;
+            break;
+        }
+    }
+
+    return aibarNeedUpdate;
+}
+} // namespace
+
 bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT)
 {
     auto children = rootNode->GetChildrenList();
@@ -2465,6 +2492,14 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     if (screenInfo.state != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("DoDirectComposition: ScreenState error!");
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenState error");
+        return false;
+    }
+
+    auto screenId = screenNode->GetScreenId();
+    // check just before CreateProcessor, otherwise the cache interval will be reduced twice
+    if (auto nodeSetIter = aibarNodes_.find(screenId);
+        nodeSetIter != aibarNodes_.end() && CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second)) {
+        RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by aibar need update cache");
         return false;
     }
 
@@ -2507,7 +2542,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RSHardwareThread::Instance().DumpEventQueue();
     }
 #ifdef RS_ENABLE_GPU
-    auto screenId = screenNode->GetScreenId();
+    
     for (auto& surfaceNode : hardwareEnabledNodes_) {
         if (surfaceNode == nullptr) {
             RS_LOGE("DoDirectComposition: surfaceNode is null!");

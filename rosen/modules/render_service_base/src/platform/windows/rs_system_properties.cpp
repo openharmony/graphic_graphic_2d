@@ -764,6 +764,11 @@ bool RSSystemProperties::GetAIBarOptEnabled()
     return true;
 }
 
+bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSupportScreenFreezeEnabled()
 {
     return false;
