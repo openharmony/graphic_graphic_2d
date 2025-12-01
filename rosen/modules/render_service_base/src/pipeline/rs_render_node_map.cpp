@@ -295,6 +295,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             if (auto parent = pair.second->GetParent().lock()) {
                 parent->RemoveChildFromFulllist(pair.second->GetId());
             }
+            // delete attachedInfo when clearing surfaceNodeMap to avoid incorrect attached nodes
+            pair.second->GetAttachedInfo() = std::nullopt;
             pair.second->RemoveFromTree(false);
         }
         return shouldErase;
