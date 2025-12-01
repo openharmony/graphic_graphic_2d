@@ -207,7 +207,8 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdateCacheSurfaceDirtyManager, TestSize.
  */
 HWTEST_F(RSSurfaceRenderNodeThreeTest, SetIsOnTheTree, TestSize.Level1)
 {
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
+    auto rsContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     NodeId instanceRootNodeId = 1;
     NodeId firstLevelNodeId = 1;
     NodeId cacheNodeId = 1;
@@ -408,19 +409,6 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, GetChildHardwareEnabledNodes, TestSize.Le
     node->AddChildHardwareEnabledNode(childNode);
     node->ResetChildHardwareEnabledNodes();
     ASSERT_EQ(node->GetChildHardwareEnabledNodes().size(), 0);
-}
-
-/**
- * @tc.name: UpdateSurfaceCacheContentStatic
- * @tc.desc: test results of UpdateSurfaceCacheContentStatic
- * @tc.type: FUNC
- * @tc.require: issueI9L0VL
- */
-HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdateSurfaceCacheContentStatic001, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateSurfaceCacheContentStatic();
-    ASSERT_EQ(node->dirtyContentNodeNum_, 0);
 }
 
 /**

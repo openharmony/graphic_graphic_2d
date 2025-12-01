@@ -507,6 +507,11 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return false;
 }
 
+bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     return true;
@@ -796,6 +801,11 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
 {
     return {};
@@ -821,6 +831,21 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
 }
 
 bool RSSystemProperties::GetRSNodeExceedKillEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
     return false;
 }

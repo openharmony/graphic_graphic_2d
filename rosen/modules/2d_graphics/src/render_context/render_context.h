@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,22 +29,49 @@
 #endif
 
 #include "draw/surface.h"
-#include "image/gpu_context.h"
 #include "memory_handler.h"
+#include "shader_cache.h"
 #include "surface_type.h"
-#include "effect/color_space.h"
 
-#define GLES_VERSION 2
 namespace OHOS {
 namespace Rosen {
 class RenderContext {
 public:
-    RenderContext();
-    virtual ~RenderContext();
-    void CreateCanvas(int width, int height);
-    std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height);
+    static std::shared_ptr<RenderContext> Create();
+    virtual ~RenderContext() = default;
 
-    void InitializeEglContext();
+    virtual bool Init() = 0;
+    virtual bool AbandonContext() = 0;
+    virtual std::string GetShaderCacheSize() const = 0;
+    virtual std::string CleanAllShaderCache() const = 0;
+    virtual bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr) = 0;
+
+    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut);
+
+    // EGL special function
+    virtual std::shared_ptr<Drawing::Surface> AcquireSurface(int width, int height) { return nullptr; }
+    virtual void RenderFrame() { return; }
+    virtual void DamageFrame(const std::vector<RectI> &rects) { return; }
+    virtual void ClearRedundantResources() { return; }
+    virtual void CreateShareContext() { return; }
+    virtual void DestroyShareContext() { return; }
+    virtual int32_t QueryEglBufferAge() { return 0; }
+
+    void SetUniRenderMode(bool isUni)
+    {
+        isUniRender_ = isUni;
+    }
+
+    void SetCacheDir(const std::string& filePath)
+    {
+        cacheDir_ = filePath;
+    }
+
+    void SetDrGPUContext(std::shared_ptr<Drawing::GPUContext> drawingContext)
+    {
+        drGPUContext_ = drawingContext;
+    }
+
     Drawing::GPUContext* GetDrGPUContext() const
     {
         return drGPUContext_.get();
@@ -58,40 +85,6 @@ public:
     std::shared_ptr<Drawing::Surface> GetSurface() const
     {
         return surface_;
-    }
-    virtual bool SetUpGpuContext(std::shared_ptr<Drawing::GPUContext> drawingContext = nullptr);
-
-#ifdef RS_ENABLE_VK
-    void AbandonContext();
-#endif
-
-    EGLSurface CreateEGLSurface(EGLNativeWindowType eglNativeWindow);
-    void DestroyEGLSurface(EGLSurface surface);
-    void MakeCurrent(EGLSurface surface, EGLContext context = EGL_NO_CONTEXT);
-    void SwapBuffers(EGLSurface surface) const;
-    void RenderFrame();
-    EGLint QueryEglBufferAge();
-    void DamageFrame(int32_t left, int32_t top, int32_t width, int32_t height);
-    void DamageFrame(const std::vector<RectI> &rects);
-    void ClearRedundantResources();
-    void CreatePbufferSurface();
-    void ShareMakeCurrent(EGLContext shareContext);
-    void ShareMakeCurrentNoSurface(EGLContext shareContext);
-    void SetAndMakeCurrentShareContex(EGLContext shareContext);
-    void MakeSelfCurrent();
-    EGLSurface GetEGLSurface() const
-    {
-        return eglSurface_;
-    }
-
-    EGLContext GetEGLContext() const
-    {
-        return eglContext_;
-    }
-
-    EGLDisplay GetEGLDisplay() const
-    {
-        return eglDisplay_;
     }
 
     void SetColorSpace(GraphicColorGamut colorSpace)
@@ -116,106 +109,18 @@ public:
     }
 #endif
 
-    bool IsEglContextReady() const
-    {
-        return eglContext_ != EGL_NO_DISPLAY;
-    }
-
-    void SetCacheDir(const std::string& filePath)
-    {
-        cacheDir_ = filePath;
-    }
-
-    void SetUniRenderMode(bool isUni)
-    {
-        isUniRenderMode_ = isUni;
-    }
-#if defined(RS_ENABLE_VK)
-    bool CheckShaderCacheOverSoftLimit() const;
-#endif
-#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
-    virtual std::string GetShaderCacheSize() const;
-
-    virtual std::string CleanAllShaderCache() const;
-#endif
-    EGLContext CreateShareContext();
-#ifdef ROSEN_IOS
-    std::shared_ptr<Drawing::ColorSpace> ColorSpace() const { return color_space_; }
-    bool UpdateStorageSizeIfNecessary();
-    bool ResourceMakeCurrent();
-    static const EGLContext GetResourceContext();
-#endif
-    static std::shared_ptr<Drawing::ColorSpace> ConvertColorGamutToColorSpace(GraphicColorGamut colorGamut);
-
 protected:
+    RenderContext() = default;
+
     std::shared_ptr<Drawing::GPUContext> drGPUContext_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;
-
-    EGLNativeWindowType nativeWindow_;
-
-    EGLDisplay eglDisplay_ = EGL_NO_DISPLAY;
-    EGLContext eglContext_ = EGL_NO_CONTEXT;
-    EGLSurface eglSurface_ = EGL_NO_SURFACE;
-    EGLSurface pbufferSurface_= EGL_NO_SURFACE;
-#ifdef ROSEN_IOS
-    std::shared_ptr<Drawing::ColorSpace> color_space_ = nullptr;
-    void *layer_ = nullptr;
-    static EGLContext resourceContext;
-    static std::mutex resourceContextMutex;
-
-    uint32_t framebuffer_ = 0;
-    uint32_t colorbuffer_ = 0;
-    int32_t storage_width_ = 0;
-    int32_t storage_height_ = 0;
-    bool valid_ = false;
-#endif
-    EGLConfig config_;
-    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
-
-    bool isUniRenderMode_ = false;
-    const std::string UNIRENDER_CACHE_DIR = "/data/service/el0/render_service";
-    std::string cacheDir_;
-    std::shared_ptr<MemoryHandler> mHandler_;
     std::mutex shareContextMutex_;
-
-#ifdef RS_ENABLE_GL
-    void InitGrContextOptions(Drawing::GPUContextOptions &options);
-#endif
-};
-
-class RenderContextFactory {
-public:
-    static RenderContextFactory& GetInstance();
-
-    ~RenderContextFactory()
-    {
-        if (context_ != nullptr) {
-            delete context_;
-        }
-        context_ = nullptr;
-    }
-
-    RenderContext* CreateEngine()
-    {
-        if (context_ == nullptr) {
-            context_ = new RenderContext();
-        }
-
-        return context_;
-    }
-
-    RenderContext* CreateNewEngine()
-    {
-        return context_;
-    }
-
-private:
-    RenderContextFactory() : context_(nullptr) {}
-    RenderContextFactory(const RenderContextFactory&) = delete;
-    RenderContextFactory& operator=(const RenderContextFactory&) = delete;
-
-    RenderContext* context_;
+    bool isUniRender_ = false;
+    bool isUniRenderMode_ = false;
+    std::string cacheDir_ = "";
+    std::shared_ptr<MemoryHandler> mHandler_ = nullptr;
+    int32_t pixelFormat_ = GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888;
+    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 };
 } // namespace Rosen
 } // namespace OHOS

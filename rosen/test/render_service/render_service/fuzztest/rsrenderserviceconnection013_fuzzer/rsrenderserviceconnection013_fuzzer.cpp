@@ -89,12 +89,12 @@ int Initialize()
     DVSyncFeatureParam dvsyncParam;
     auto appVSyncDistributor = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
     g_toServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        impl::RSScreenManager::GetInstance(), g_token->AsObject(), appVSyncDistributor);
+        RSScreenManager::GetInstance(), g_token->AsObject(), appVSyncDistributor);
     g_toServiceConnectionStub = g_toServiceConnection;
 #ifdef RS_ENABLE_VK
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif
-    RSHardwareThread::Instance().Start();
+    // RSHardwareThread::Instance().Start();
     return 0;
 }
 

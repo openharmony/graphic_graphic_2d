@@ -27,11 +27,10 @@ public:
     RSVBlankIdleCorrector() = default;
     ~RSVBlankIdleCorrector() noexcept = default;
 
-    void SetScreenVBlankIdle(ScreenId id);
-    void ProcessScreenConstraint(uint64_t timestamp, uint64_t constraintRelativeTime);
+    void SetScreenVBlankIdle();
+    void ProcessScreenConstraint(ScreenId screenId, uint64_t timestamp, uint64_t constraintRelativeTime);
 private:
     int32_t idleFrameCount_ = 0;
-    ScreenId currIdleScreenId_ = 0;
     bool isVBlankIdle_ = false;
 };
 

@@ -16,6 +16,7 @@
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "memory/rs_memory_snapshot.h"
 #include "render/rs_image_cache.h"
+#include "rs_trace.h"
 #include "pixel_map.h"
 #include "params/rs_render_params.h"
 
@@ -225,6 +226,9 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
 void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
     NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd)
 {
+    if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
+        return;
+    }
     if (rsImage != nullptr) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
         if (drawableAdapter == nullptr) {
@@ -238,6 +242,11 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
 
 void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
 {
+    if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
+        return;
+    }
+    RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}" PRIu64,
+        surfaceNodeId);
     ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];
     for (auto& [img_wptr, imageOp] : rsImageVec) {
         if (auto img = img_wptr.lock()) {

@@ -33,6 +33,7 @@
 #include "scoped_trace_fmt.h"
 
 #ifdef COMPOSER_SCHED_ENABLE
+#include "concurrent_task_client.h"
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
 #include "system_ability_definition.h"
@@ -217,6 +218,9 @@ void VSyncGenerator::ListenerVsyncEventCB(int64_t occurTimestamp, int64_t nextTi
 void VSyncGenerator::ThreadLoop()
 {
 #ifdef COMPOSER_SCHED_ENABLE
+    int qosRes = OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().SetSystemQoS(gettid(),
+        OHOS::ConcurrentTask::SystemQoSLevel::SYSTEM_QOS_EIGHT);
+    VLOGI("VSyncGenerator SetSystemQoS qosRes = %{public}d", qosRes);
     SubScribeSystemAbility();
 #endif
     // set thread priorty

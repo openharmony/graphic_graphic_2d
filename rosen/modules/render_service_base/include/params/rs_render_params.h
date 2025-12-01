@@ -16,6 +16,8 @@
 #ifndef RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 #define RENDER_SERVICE_BASE_PARAMS_RS_RENDER_PARAMS_H
 
+#include "feature/render_group/rs_render_group_cache.h"
+
 #include "common/rs_common_def.h"
 #include "common/rs_occlusion_region.h"
 #include "common/rs_rect.h"
@@ -288,6 +290,12 @@ public:
         return drawingCacheType_;
     }
 
+    void ExcludedFromNodeGroup(bool isExcluded);
+    bool IsExcludedFromNodeGroup() const;
+
+    void SetHasChildExcludedFromNodeGroup(bool isExcluded);
+    bool HasChildExcludedFromNodeGroup() const;
+
     void OpincSetIsSuggest(bool isSuggest);
     bool OpincIsSuggest() const
     {
@@ -335,6 +343,14 @@ public:
         return canvasDrawingNodeSurfaceChanged_;
     }
     void SetCanvasDrawingSurfaceChanged(bool changeFlag);
+
+    uint32_t GetCanvasDrawingResetSurfaceIndex() const
+    {
+        return canvasDrawingResetSurfaceIndex_;
+    }
+
+    void SetCanvasDrawingResetSurfaceIndex(uint32_t index);
+
     SurfaceParam GetCanvasDrawingSurfaceParams()
     {
         return surfaceParams_;
@@ -509,30 +525,8 @@ public:
     }
 
     // [Attention] Only used in PC window resize scene now
-    void EnableWindowKeyFrame(bool enable);
-    // [Attention] Only used in PC window resize scene now
-    bool IsWindowKeyFrameEnabled() const
-    {
-        return windowKeyframeEnabled_;
-    }
-    void SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
-    // [Attention] Only used in PC window resize scene now
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetLinkedRootNodeDrawable()
-    {
-        return linkedRootNodeDrawable_;
-    }
-    void SetNeedSwapBuffer(bool needSwapBuffer);
-    // [Attention] Only used in PC window resize scene now
-    bool GetNeedSwapBuffer() const
-    {
-        return needSwapBuffer_;
-    }
-    void SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect);
-    // [Attention] Only used in PC window resize scene now
-    const Drawing::RectF& GetCacheNodeFrameRect() const
-    {
-        return cacheNodeFrameRect_;
-    }
+    void SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr GetWindowKeyFrameNodeDrawable();
 
     void SetIsOnTheTree(bool isOnTheTree);
     bool GetIsOnTheTree() const;
@@ -572,9 +566,11 @@ private:
     bool shouldPaint_ = false;
     bool contentEmpty_  = false;
     std::atomic_bool canvasDrawingNodeSurfaceChanged_ = false;
+    std::atomic_uint32_t canvasDrawingResetSurfaceIndex_ = 0;
     bool alphaOffScreen_ = false;
     Drawing::Rect shadowRect_;
     RSDrawingCacheType drawingCacheType_ = RSDrawingCacheType::DISABLED_CACHE;
+    std::unique_ptr<RSRenderGroupCache> renderGroupCache_ = nullptr;
     DirtyRegionInfoForDFX dirtyRegionInfoForDFX_;
     std::shared_ptr<RSFilter> foregroundFilterCache_ = nullptr;
     bool isOpincSuggestFlag_ = false;
@@ -599,10 +595,7 @@ private:
     bool hasUnobscuredUEC_ = false;
 
     // [Attention] Only used in PC window resize scene now
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr linkedRootNodeDrawable_;
-    bool windowKeyframeEnabled_ = false;
-    bool needSwapBuffer_ = false;
-    Drawing::RectF cacheNodeFrameRect_;
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr windowKeyFrameNodeDrawable_;
     bool isRepaintBoundary_ = false;
 
     // used for DFX

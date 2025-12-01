@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -65,8 +65,8 @@ bool RSSurfaceOhosFuzzTest(const uint8_t* data, size_t size)
     auto rsSurfaceFrameOhosRaster = RSSurfaceFrameOhosRaster(GetData<int32_t>(), GetData<int32_t>());
 #if ACE_ENABLE_GL
     if (!RSSystemProperties::IsUseVulkan()) {
-        RenderContext renderContext;
-        rsSurfaceFrameOhosRaster.SetRenderContext(&renderContext);
+        auto renderContext = RenderContext::Create();
+        rsSurfaceFrameOhosRaster.SetRenderContext(renderContext);
     }
 #endif
     (void)rsSurfaceFrameOhosRaster.GetBufferAge();

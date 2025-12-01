@@ -26,7 +26,7 @@ public:
     RSScreenChangeCallbackStubMock() = default;
     virtual ~RSScreenChangeCallbackStubMock() = default;
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason) override {};
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
 };
 
 class RSScreenChangeCallbackStubTest : public testing::Test {

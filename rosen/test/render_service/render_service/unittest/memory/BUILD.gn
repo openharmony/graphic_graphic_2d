@@ -25,6 +25,7 @@ group("unittest") {
 ohos_unittest("RenderServiceMemoryTest") {
   module_out_path = module_output_path
   sources = [
+    "rs_canvas_dma_buffer_cache_test.cpp",
     "rs_memory_manager_test.cpp",
     "rs_skia_memory_tracer_test.cpp",
   ]

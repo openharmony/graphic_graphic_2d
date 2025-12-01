@@ -23,11 +23,11 @@ group("unittest") {
     ":RSCanvasDrawingRenderNodeDrawableTest",
     ":RSCanvasRenderNodeDrawableTest",
     ":RSDirtyRectsDFXTest",
-    ":RSScreenRenderNodeDrawableTest",
     ":RSEffectRenderNodeDrawableTest",
     ":RSRenderNodeDrawableAdapterTest",
     ":RSRenderNodeDrawableTest",
     ":RSRootRenderNodeDrawableTest",
+    ":RSScreenRenderNodeDrawableTest",
     ":RSSkpCaptureDFXTest",
     ":RSSurfaceRenderNodeDrawableTest",
   ]
@@ -271,6 +271,13 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    
   ]
 
   if (graphic_2d_feature_subtree_parallel_enable) {

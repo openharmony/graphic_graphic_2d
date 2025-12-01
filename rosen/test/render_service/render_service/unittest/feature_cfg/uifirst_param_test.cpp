@@ -108,5 +108,21 @@ HWTEST_F(UIFirstParamTest, SetUIFirstEnableWindowThreshold, Function | SmallTest
     uifirstParam.SetUIFirstEnableWindowThreshold(2);
     EXPECT_EQ(uifirstParam.GetUIFirstEnableWindowThreshold(), 2);
 }
+
+/**
+ * @tc.name: SetClearCacheThreshold
+ * @tc.desc: Verify the SetClearCacheThreshold function
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(UIFirstParamTest, SetClearCacheThreshold, Function | SmallTest | Level1)
+{
+    UIFirstParam uifirstParam;
+    uifirstParam.SetClearCacheThreshold(0);
+    EXPECT_EQ(uifirstParam.GetClearCacheThreshold(), 0);
+
+    uifirstParam.SetClearCacheThreshold(10);
+    EXPECT_EQ(uifirstParam.GetClearCacheThreshold(), 10);
+}
 } // namespace Rosen
 } // namespace OHOS

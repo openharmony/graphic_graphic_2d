@@ -239,6 +239,23 @@ public:
      */
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    /**
+     * @brief Register Canvas SurfaceBuffer callback for memory attribution.
+     * @param callback is the Canvas SurfaceBuffer callback.
+     */
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    /**
+     * @brief Submit Canvas pre-allocated buffer to RS.
+     * @param nodeId is the canvas node id.
+     * @param buffer is the pre-allocated DMA buffer.
+     * @param resetSurfaceIndex is the index of ResetSurface.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
+
 private:
     RSRenderInterface();
     ~RSRenderInterface() noexcept;

@@ -26,6 +26,15 @@
 #include "transaction/rs_marshalling_helper.h"
 #include "utils/data.h"
 
+#ifdef ROSEN_OHOS
+#include "buffer_utils.h"
+#endif
+#include "recording/mask_cmd_list.h"
+
+#include "property/rs_properties_def.h"
+
+#include "rs_profiler.h"
+
 using namespace testing;
 using namespace testing::ext;
 
@@ -110,8 +119,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithout
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
-    const size_t pixelMapSize = 80;
+    const size_t position = 88; // or 92
+    const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -133,8 +142,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithou
     options.size.width = 860;
     options.size.height = 520;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
-    const size_t pixelMapSize = 80;
+    const size_t position = 88;
+    const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -156,8 +165,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithoutPr
     options.size.width = 2123;
     options.size.height = 1987;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 92;
-    const size_t pixelMapSize = 80;
+    const size_t position = 88;
+    const size_t pixelMapSize = 84;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -221,8 +230,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithSmallPixelMapWithPro
     options.size.width = 1;
     options.size.height = 1;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 100;
-    const size_t pixelMapSize = 88;
+    const size_t position = 96;
+    const size_t pixelMapSize = 92;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -243,8 +252,8 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithMediumPixelMapWithPr
     options.size.width = 860;
     options.size.height = 520;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 100;
-    const size_t pixelMapSize = 88;
+    const size_t position = 96;
+    const size_t pixelMapSize = 92;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
@@ -265,12 +274,136 @@ HWTEST_F(RSMarshallingHelperReliabilityTest, ConsistencyWithBigPixelMapWithProfi
     options.size.width = 2123;
     options.size.height = 1987;
     options.pixelFormat = Media::PixelFormat::RGBA_8888;
-    const size_t position = 100;
-    const size_t pixelMapSize = 88;
+    const size_t position = 96;
+    const size_t pixelMapSize = 92;
 
     std::shared_ptr pixelMap = Media::PixelMap::Create(options);
     EXPECT_TRUE(pixelMap != nullptr);
     EXPECT_TRUE(CheckConsistencyWithPixelMap(pixelMap, position, pixelMapSize));
+}
+
+HWTEST(RSMarshallingHelperTest, UnmarshallingEmpty, Level1)
+{
+    Parcel parcel;
+    uint64_t val = 0;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(val, 0);
+}
+
+HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusId0, Level1)
+{
+    Parcel parcel;
+    uint64_t val = 0;
+    parcel.WriteUint64(val);
+    val = 42;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, 0);
+}
+
+HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusId, Level1)
+{
+    Parcel parcel;
+    uint64_t val = 42;
+    parcel.WriteUint64(val);
+    val = 0;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, 42);
+}
+
+HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusIdNoChangeIfZero0, Level1)
+{
+    Parcel parcel;
+    uint64_t val = 0;
+    parcel.WriteUint64(val);
+    val = 42;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, 0);
+}
+
+HWTEST(RSMarshallingHelperTest, UnmarshallingPidPlusIdNoChangeIfZero, Level1)
+{
+    Parcel parcel;
+    uint64_t val = 42;
+    parcel.WriteUint64(val);
+    val = 0;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, 42);
+}
+
+class RSMarshallingHelperMockParcelTest : public testing::Test {
+public:
+    static void SetUpTestCase()
+    {
+        RSProfiler::testing_ = true;
+        RSProfiler::SetMode(Mode::READ);
+    }
+
+    static void TearDownTestCase()
+    {
+        RSProfiler::testing_ = false;
+        RSProfiler::SetMode(Mode::NONE);
+    }
+
+    void SetUp() override
+    {
+        parcel = new (parcelMemory + 1) Parcel;
+    }
+
+    void TearDown() override
+    {
+        parcel->~Parcel();
+    }
+
+private:
+    Parcel* parcel;
+    uint8_t parcelMemory[sizeof(Parcel) + 1];
+
+    static constexpr const uint64_t FLAG = 1uLL << 62u;
+};
+
+HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusId0, Level1)
+{
+    uint64_t val = 0;
+    parcel->WriteUint64(val);
+    val = 42;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(*parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, FLAG | 0);
+}
+
+HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusId, Level1)
+{
+    uint64_t val = 42;
+    parcel->WriteUint64(val);
+    val = 0;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusId(*parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, FLAG | 42);
+}
+
+HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusIdNoChangeIfZero0, Level1)
+{
+    uint64_t val = 0;
+    parcel->WriteUint64(val);
+    val = 42;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(*parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, 0);
+}
+
+HWTEST_F(RSMarshallingHelperMockParcelTest, UnmarshallingPidPlusIdNoChangeIfZero, Level1)
+{
+    uint64_t val = 42;
+    parcel->WriteUint64(val);
+    val = 0;
+    bool ret = RSMarshallingHelper::UnmarshallingPidPlusIdNoChangeIfZero(*parcel, val);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(val, FLAG | 42);
 }
 
 } // namespace Rosen

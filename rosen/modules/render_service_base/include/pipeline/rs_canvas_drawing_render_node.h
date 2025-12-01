@@ -59,7 +59,7 @@ public:
 
     void AddDirtyType(ModifierNG::RSModifierType modifierType) override;
     void ClearOp();
-    void ResetSurface(int width, int height);
+    void ResetSurface(int width, int height, uint32_t resetSurfaceIndex);
     bool IsNeedProcess() const;
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);

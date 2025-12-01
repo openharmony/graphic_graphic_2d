@@ -29,7 +29,7 @@ public:
     virtual ~RSIScreenChangeCallback() noexcept = default;
 
     virtual void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason = ScreenChangeReason::DEFAULT) = 0;
+        ScreenChangeReason reason = ScreenChangeReason::DEFAULT, sptr<IRemoteObject> obj = nullptr) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

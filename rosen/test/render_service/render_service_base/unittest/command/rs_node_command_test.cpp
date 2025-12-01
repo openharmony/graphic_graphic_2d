@@ -99,6 +99,26 @@ HWTEST_F(RSNodeCommandTest, MarkNodeGroupTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExcludedFromNodeGroupTest
+ * @tc.desc: ExcludedFromNodeGroup test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, ExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = static_cast<NodeId>(-1);
+    bool isExcluded = false;
+    RSNodeCommandHelper::ExcludedFromNodeGroup(context, nodeId, isExcluded);
+    nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    isExcluded = true;
+    RSNodeCommandHelper::ExcludedFromNodeGroup(context, nodeId, isExcluded);
+    auto canvasNode = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(canvasNode, nullptr);
+    EXPECT_TRUE(canvasNode->IsExcludedFromNodeGroup());
+}
+
+/**
  * @tc.name: MarkUifirstNodeTest
  * @tc.desc: MarkUifirstNode test.
  * @tc.type: FUNC

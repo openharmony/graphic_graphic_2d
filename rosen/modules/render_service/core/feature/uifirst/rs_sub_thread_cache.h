@@ -231,6 +231,21 @@ public:
     void SetUifirstSurfaceCacheContentStatic(bool staticContent);
     bool GetUifirstSurfaceCacheContentStatic() const;
 
+    uint32_t GetCacheReuseCount() const
+    {
+        return cacheReuseCount_;
+    }
+
+    void AddCacheReuseCount()
+    {
+        cacheReuseCount_++;
+    }
+
+    void ResetCacheReuseCount()
+    {
+        cacheReuseCount_ = 0;
+    }
+
 private:
     void ClearCacheSurface(bool isClearCompletedCacheSurface = true);
     bool DrawUIFirstCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable, RSPaintFilterCanvas& rscanvas,
@@ -294,6 +309,8 @@ private:
     std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheBehindWindowData_ = nullptr;
     std::shared_ptr<RSPaintFilterCanvas::CacheBehindWindowData> cacheCompletedBehindWindowData_ = nullptr;
     bool uifirstSurfaceCacheContentStatic_ = true;
+
+    uint32_t cacheReuseCount_ = 0;
 };
 } // DrawableV2
 } // OHOS::Rosen

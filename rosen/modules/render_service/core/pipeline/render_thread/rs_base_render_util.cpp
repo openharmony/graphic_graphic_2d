@@ -1056,9 +1056,10 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
             consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     }
-    if (consumer->GetSurfaceSourceType() == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
+    OHSurfaceSource sourceType =  consumer->GetSurfaceSourceType();
+    surfaceHandler.SetSourceType(static_cast<uint32_t>(sourceType));
+    if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
         RS_TRACE_NAME_FMT("lpp node: %" PRIu64 "", surfaceHandler.GetNodeId());
-        surfaceHandler.SetSourceType(static_cast<uint32_t>(consumer->GetSurfaceSourceType()));
     }
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
@@ -1923,23 +1924,6 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
         auto iter = pairToEnumMap.find({angle, flip});
         return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
-}
-
-int RSBaseRenderUtil::GetAccumulatedBufferCount()
-{
-    return std::max(acquiredBufferCount_ - 1, 0);
-}
-
-void RSBaseRenderUtil::IncAcquiredBufferCount()
-{
-    ++acquiredBufferCount_;
-    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
-}
-
-void RSBaseRenderUtil::DecAcquiredBufferCount()
-{
-    --acquiredBufferCount_;
-    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
 }
 
 pid_t RSBaseRenderUtil::GetLastSendingPid()

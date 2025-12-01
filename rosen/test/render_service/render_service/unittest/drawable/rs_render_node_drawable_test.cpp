@@ -43,7 +43,12 @@ public:
     static std::shared_ptr<RSRenderNodeDrawable> CreateDrawable();
 };
 
-void RSRenderNodeDrawableTest::SetUpTestCase() {}
+void RSRenderNodeDrawableTest::SetUpTestCase()
+{
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
+}
 void RSRenderNodeDrawableTest::TearDownTestCase() {}
 void RSRenderNodeDrawableTest::SetUp() {}
 void RSRenderNodeDrawableTest::TearDown() {}

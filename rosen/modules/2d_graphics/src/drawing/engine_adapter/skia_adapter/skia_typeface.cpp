@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,6 +94,15 @@ size_t SkiaTypeface::GetTableData(uint32_t tag, size_t offset, size_t length, vo
         return 0;
     }
     return skTypeface_->getTableData(tag, offset, length, data);
+}
+
+bool SkiaTypeface::GetBold() const
+{
+    if (!skTypeface_) {
+        LOGD("skTypeface nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+        return false;
+    }
+    return skTypeface_->isBold();
 }
 
 bool SkiaTypeface::GetItalic() const

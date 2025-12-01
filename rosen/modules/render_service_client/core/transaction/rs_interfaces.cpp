@@ -81,11 +81,12 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int flags,
     std::vector<NodeId> whiteList)
 {
-    return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
+    return renderServiceClient_->CreateVirtualScreen(
+        name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -436,7 +437,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
         }
         RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
             tf->GetFamilyName().c_str(), tf->GetHash());
-        return renderServiceClient_->RegisterTypeface(tf->GetHash(), tf->GetSize(), tf->GetFd());
+        return renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",

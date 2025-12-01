@@ -376,7 +376,7 @@ protected:
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
     std::optional<size_t> lastOpItemOffset_ = std::nullopt;
-    std::recursive_mutex mutex_;
+    mutable std::recursive_mutex mutex_;
     std::map<size_t, std::shared_ptr<Image>> imageMap_;
     std::vector<std::pair<size_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;

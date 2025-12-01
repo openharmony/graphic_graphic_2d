@@ -1177,6 +1177,45 @@ HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathIsInterpolate046, Test
     OH_Drawing_PathDestroy(path1);
     OH_Drawing_PathDestroy(path2);
 }
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathIsInverseFillType047
+ * @tc.desc: test for OH_Drawing_PathIsInverseFillType.
+ * @tc.type: FUNC
+ * @tc.require: 20648
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathIsInverseFillType047, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    bool isInverseFillType = false;
+    EXPECT_EQ(OH_Drawing_PathIsInverseFillType(nullptr, &isInverseFillType), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsInverseFillType(path1, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsInverseFillType(path1, &isInverseFillType), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isInverseFillType, false);
+    OH_Drawing_PathDestroy(path1);
+}
+
+/*
+ * @tc.name: NativeDrawingPathTest_PathToggleInverseFillType048
+ * @tc.desc: test for OH_Drawing_PathToggleInverseFillType.
+ * @tc.type: FUNC
+ * @tc.require: 20648
+ */
+HWTEST_F(NativeDrawingPathTest, NativeDrawingPathTest_PathToggleInverseFillType048, TestSize.Level1)
+{
+    OH_Drawing_Path* path1 = OH_Drawing_PathCreate();
+    bool isInverseFillType = false;
+    EXPECT_EQ(OH_Drawing_PathToggleInverseFillType(nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_PathIsInverseFillType(path1, &isInverseFillType), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isInverseFillType, false);
+    EXPECT_EQ(OH_Drawing_PathToggleInverseFillType(path1), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PathIsInverseFillType(path1, &isInverseFillType), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isInverseFillType, true);
+    EXPECT_EQ(OH_Drawing_PathToggleInverseFillType(path1), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_PathIsInverseFillType(path1, &isInverseFillType), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isInverseFillType, false);
+    OH_Drawing_PathDestroy(path1);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

@@ -803,6 +803,31 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable008, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RSUseEffectDrawable009
+ * @tc.desc: Test CreateDrawFunc
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable009, TestSize.Level1)
+{
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    filterCanvas->SetIsParallelCanvas(true);
+
+    auto rect = std::make_shared<Drawing::Rect>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffect(true);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffectType(0);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(rsRenderNode);
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_NE(drawFunc, nullptr);
+}
+
+/**
  * @tc.name: RSDynamicLightUpDrawable001
  * @tc.desc: Test OnSync
  * @tc.type:FUNC

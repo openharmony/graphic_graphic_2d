@@ -817,7 +817,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSScreenRenderNode&
     return params;
 }
 
-BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
+BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
     if (layer == nullptr) {
@@ -894,7 +894,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
+        "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
     return params;
 }
 

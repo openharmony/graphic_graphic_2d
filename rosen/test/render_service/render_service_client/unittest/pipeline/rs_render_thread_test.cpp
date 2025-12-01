@@ -35,11 +35,15 @@ public:
 };
 
 void RSRenderThreadTest::SetUpTestCase() {}
-void RSRenderThreadTest::TearDownTestCase() {}
+void RSRenderThreadTest::TearDownTestCase()
+{
+    RSRenderThread::Instance().Stop();
+}
 void RSRenderThreadTest::SetUp() {}
 void RSRenderThreadTest::TearDown() {}
 
 /**
+
  * @tc.name: Detach001
  * @tc.desc: test results of Detach
  * @tc.type:FUNC
@@ -424,5 +428,26 @@ HWTEST_F(RSRenderThreadTest, GetIsRunning001, TestSize.Level1)
 {
     RSRenderThread::Instance().running_.store(true);
     ASSERT_TRUE(RSRenderThread::Instance().GetIsRunning());
+}
+
+/**
+ * @tc.name: CreateAndInitRenderContextIfNeedTest
+ * @tc.desc: test results of CreateAndInitRenderContextIfNeed
+ * @tc.type: FUNC
+ * @tc.require: issueIA61E9
+ */
+HWTEST_F(RSRenderThreadTest, CreateAndInitRenderContextIfNeedTest2, TestSize.Level1)
+{
+    auto thread = std::make_shared<RSRenderThread>();
+    thread->renderContext_ = nullptr;
+    thread->cacheDir_ = "";
+    thread->CreateAndInitRenderContextIfNeed();
+    EXPECT_NE(thread->renderContext_, nullptr);
+
+    thread->renderContext_ = nullptr;
+    thread->cacheDir_ = "testDir";
+    thread->CreateAndInitRenderContextIfNeed();
+    EXPECT_NE(thread->renderContext_, nullptr);
+    thread->renderContext_ = nullptr;
 }
 } // namespace OHOS::Rosen

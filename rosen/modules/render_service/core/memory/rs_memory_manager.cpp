@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -607,7 +607,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
 
     /* ShaderCache */
     log.AppendFormat("\n---------------\nShader Caches:\n");
-    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
     if (!isLite) {

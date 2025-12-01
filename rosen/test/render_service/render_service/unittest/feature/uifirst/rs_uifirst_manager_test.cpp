@@ -1862,16 +1862,14 @@ HWTEST_F(RSUifirstManagerTest, CommonPendingNodePurgeTest, TestSize.Level1)
 
     ScreenId screenId = 1;
     auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+    screenManager->powerOffNeedProcessOneFrame_ = false;
 
-    bool powerStatus = screenManagerImpl.screenPowerStatus_[screenId];
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    bool powerStatus = screenManager->screenPowerStatus_[screenId];
+    screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
     EXPECT_FALSE(uifirstManager_.CommonPendingNodePurge(iter));
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
     EXPECT_TRUE(uifirstManager_.CommonPendingNodePurge(iter));
-    screenManagerImpl.screenPowerStatus_[screenId] = powerStatus;
+    screenManager->screenPowerStatus_[screenId] = powerStatus;
 }
 
 /**
@@ -3343,5 +3341,114 @@ HWTEST_F(RSUifirstManagerTest, ProcessMarkedNodeSubThreadCacheTest, TestSize.Lev
     uifirstManager_.ProcessMarkedNodeSubThreadCache();
     ASSERT_TRUE(rsSubThreadCache.cacheSurface_ == nullptr);
     ASSERT_EQ(uifirstManager_.markedClearCacheNodes_.size(), 0);
+}
+
+/**
+ * @tc.name: ShouldAutoCleanCacheTest001
+ * @tc.desc: Test auto clear cache not enabled in single mode
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSUifirstManagerTest, ShouldAutoCleanCacheTest001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RsSubThreadCache subThreadCache;
+    subThreadCache.ResetCacheReuseCount();
+    uifirstManager_.clearCacheThreshold_ = 10;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::SINGLE;
+
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 0);
+}
+
+/**
+ * @tc.name: ShouldAutoCleanCacheTest002
+ * @tc.desc: Test auto clear cache not enabled when threshold<=0
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSUifirstManagerTest, ShouldAutoCleanCacheTest002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RsSubThreadCache subThreadCache;
+    subThreadCache.ResetCacheReuseCount();
+    uifirstManager_.clearCacheThreshold_ = 0;
+    uifirstManager_.uifirstType_ = UiFirstCcmType::MULTI;
+
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 0);
+}
+
+/**
+ * @tc.name: ShouldAutoCleanCacheTest003
+ * @tc.desc: Test auto clear cache not enabled property is false
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSUifirstManagerTest, ShouldAutoCleanCacheTest003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RsSubThreadCache subThreadCache;
+    subThreadCache.ResetCacheReuseCount();
+    uifirstManager_.clearCacheThreshold_ = 5;
+    int autoClearEnabled = RSSystemProperties::GetUIFirstAutoClearCacheEnabled();
+    system::SetParameter("rosen.ui.first.auto.clearcache.enabled", "0");
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 0);
+    system::SetParameter("rosen.ui.first.auto.clearcache.enabled", std::to_string(autoClearEnabled));
+}
+
+/**
+ * @tc.name: ShouldAutoCleanCacheTest004
+ * @tc.desc: Test no need to clear cache when cachesurface is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSUifirstManagerTest, ShouldAutoCleanCacheTest004, TestSize.Level1)
+{
+    NodeId id = 1;
+    RsSubThreadCache subThreadCache;
+    subThreadCache.ResetCacheReuseCount();
+    uifirstManager_.clearCacheThreshold_ = 5;
+
+    subThreadCache.cacheSurface_ = nullptr;
+    uifirstManager_.subthreadProcessingNode_.clear();
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 0);
+}
+
+/**
+ * @tc.name: ShouldAutoCleanCacheTest005
+ * @tc.desc: Test auto clear cache
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSUifirstManagerTest, ShouldAutoCleanCacheTest005, TestSize.Level1)
+{
+    NodeId id = 1;
+    RsSubThreadCache subThreadCache;
+    subThreadCache.ResetCacheReuseCount();
+    uifirstManager_.clearCacheThreshold_ = 3;
+    uifirstManager_.markedClearCacheNodes_.clear();
+    uifirstManager_.subthreadProcessingNode_.clear();
+    subThreadCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+
+    // reuse count is 1
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 1);
+    ASSERT_TRUE(uifirstManager_.markedClearCacheNodes_.empty());
+
+    uifirstManager_.subthreadProcessingNode_.insert({ id, nullptr });
+    // reuse count is 2
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 2);
+    ASSERT_TRUE(uifirstManager_.markedClearCacheNodes_.empty());
+
+    // cache reuse reach threshold
+    uifirstManager_.ShouldAutoCleanCache(id, subThreadCache);
+    ASSERT_EQ(subThreadCache.GetCacheReuseCount(), 3);
+    ASSERT_FALSE(uifirstManager_.markedClearCacheNodes_.empty());
+
+    uifirstManager_.subthreadProcessingNode_.clear();
 }
 }

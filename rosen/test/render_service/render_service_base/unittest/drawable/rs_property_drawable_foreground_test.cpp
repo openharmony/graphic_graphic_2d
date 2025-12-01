@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_foreground.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_visual_effect_container.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
@@ -558,6 +559,74 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateDrawFuncAndRunTest001
+ * @tc.desc: CreateDrawFuncAndRun test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
+        std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
+    auto drawFunction = foregroundFilterRestoreDrawable->CreateDrawFunc();
+    EXPECT_NE(drawFunction, nullptr);
+
+    // initialize drawing filter
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    std::shared_ptr<RSDrawingFilter> drawingFilter =
+        std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    drawingFilter->SetImageFilter(imageFilter);
+
+    // create and sync a foreground filter
+    std::shared_ptr<RSFilter> stagingForegroundFilter = drawingFilter;
+    EXPECT_NE(stagingForegroundFilter, nullptr);
+    foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
+
+    // initial state
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+    }
+
+    Drawing::Canvas canvasTest;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    drawFunction(&paintFilterCanvas, nullptr);
+    // rect == nullptr, still initial width/height
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+    }
+
+    const auto width = 100.0f;
+    const auto height = 100.0f;
+    Drawing::Rect rect(0.0f, 0.0f, width, height);
+    drawFunction(&paintFilterCanvas, &rect);
+    // properly initialized
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, width);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, height);
+    }
+
+    // in case foregroundFilter_ happens to be nullptr
+    foregroundFilterRestoreDrawable->foregroundFilter_ = nullptr;
+    drawFunction(&paintFilterCanvas, &rect); // should not crash or anything
+
+    // RSFilter is used instead of RSDrawingFilter
+    stagingForegroundFilter = std::make_shared<RSFilter>();
+    foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
+    drawFunction(&paintFilterCanvas, &rect);
+}
+
+/**
  * @tc.name: GetShaderTest001
  * @tc.desc: GetPhongShaderBuilder GetFeatheringBoardLightShaderBuilder test
  * @tc.type: FUNC
@@ -717,8 +786,411 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
     border->SetRadiusFour({1.f, 1.f, 1.f, 1.f});
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
-    EXPECT_TRUE(foregroundFilter->HasBorder());
-    EXPECT_EQ(foregroundFilter->GetBorderColor(), drawingColor);
-    EXPECT_EQ(foregroundFilter->GetBorderWidth(), borderWidth);
+    EXPECT_FALSE(foregroundFilter->HasBorder());
+    EXPECT_EQ(border->widths_.size(), 1);
+}
+
+/**
+ * @tc.name: DrawBorderLightTest001
+ * @tc.desc: DrawBorderLight test with sdf shader effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderLightTest001, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilder = pointLightDrawableTest->GetPhongShaderBuilder();
+    EXPECT_NE(lightBuilder, nullptr);
+    Drawing::Pen pen;
+    std::array<float, DrawableV2::MAX_LIGHT_SOURCES> lightIntensityArray = {0.5f, 0.6f, 0.7f};
+
+    pointLightDrawableTest->sdfShaderEffect_ = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->DrawBorderLight(canvas, lightBuilder, pen, lightIntensityArray);
+}
+
+/**
+ * @tc.name: DrawContentLightTest001
+ * @tc.desc: DrawContentLight test with sdf shader effect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawContentLightTest001, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    Drawing::Canvas canvas;
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> lightBuilder = pointLightDrawableTest->GetPhongShaderBuilder();
+    EXPECT_NE(lightBuilder, nullptr);
+    Drawing::Brush brush;
+    std::array<float, DrawableV2::MAX_LIGHT_SOURCES> lightIntensityArray = {0.5f, 0.65f, 0.7f};
+
+    pointLightDrawableTest->sdfShaderEffect_ = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->DrawContentLight(canvas, lightBuilder, brush, lightIntensityArray);
+}
+
+/**
+ * @tc.name: DrawSDFBorderLightTest001
+ * @tc.desc: DrawSDFBorderLight with null lightShaderEffect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFBorderLightTest001, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas1;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect1 = nullptr;
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_CONTENT;
+    EXPECT_FALSE(pointLightDrawableTest->DrawSDFBorderLight(canvas1, lightShaderEffect1));
+}
+
+/**
+ * @tc.name: DrawSDFBorderLightTest002
+ * @tc.desc: DrawSDFBorderLight with different BLEND illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFBorderLightTest002, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas2;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect2 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas2, lightShaderEffect2));
+
+    Drawing::Canvas canvas3;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect3 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas3, lightShaderEffect3));
+
+    Drawing::Canvas canvas11;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect11 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas11, lightShaderEffect11));
+}
+
+/**
+ * @tc.name: DrawSDFBorderLightTest003
+ * @tc.desc: DrawSDFBorderLight with INVALID or NONE illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFBorderLightTest003, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas4;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect4 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::INVALID;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas4, lightShaderEffect4));
+
+    Drawing::Canvas canvas5;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect5 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::NONE;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas5, lightShaderEffect5));
+}
+
+/**
+ * @tc.name: DrawSDFBorderLightTest004
+ * @tc.desc: DrawSDFBorderLight with base illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFBorderLightTest004, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas6;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect6 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas6, lightShaderEffect6));
+
+    Drawing::Canvas canvas7;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect7 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas7, lightShaderEffect7));
+
+    Drawing::Canvas canvas8;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect8 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas8, lightShaderEffect8));
+
+    Drawing::Canvas canvas9;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect9 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas9, lightShaderEffect9));
+
+    Drawing::Canvas canvas10;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect10 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas10, lightShaderEffect10));
+
+    Drawing::Canvas canvas12;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect12 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas12, lightShaderEffect12));
+
+    Drawing::Canvas canvas13;
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect13 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFBorderLight(canvas13, lightShaderEffect13));
+}
+
+/**
+ * @tc.name: DrawSDFContentLightTest001
+ * @tc.desc: DrawSDFContentLightTest with null lightShaderEffect
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest001, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas1;
+    Drawing::Brush brush1;
+    brush1.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect1 = nullptr;
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_CONTENT;
+    EXPECT_FALSE(pointLightDrawableTest->DrawSDFContentLight(canvas1, lightShaderEffect1, brush1));
+    EXPECT_FALSE(brush1.IsAntiAlias());
+    EXPECT_EQ(brush1.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_EQ(nullptr, brush1.GetShaderEffect());
+}
+
+/**
+ * @tc.name: DrawSDFContentLightTest002
+ * @tc.desc: DrawSDFContentLightTest with different BLEND illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest002, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas2;
+    Drawing::Brush brush2;
+    brush2.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect2 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas2, lightShaderEffect2, brush2));
+    EXPECT_TRUE(brush2.IsAntiAlias());
+    EXPECT_EQ(brush2.GetBlendMode(), Drawing::BlendMode::OVERLAY);
+    EXPECT_NE(nullptr, brush2.GetShaderEffect());
+
+    Drawing::Canvas canvas3;
+    Drawing::Brush brush3;
+    brush3.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect3 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas3, lightShaderEffect3, brush3));
+    EXPECT_TRUE(brush3.IsAntiAlias());
+    EXPECT_EQ(brush3.GetBlendMode(), Drawing::BlendMode::OVERLAY);
+    EXPECT_NE(nullptr, brush3.GetShaderEffect());
+
+    Drawing::Canvas canvas11;
+    Drawing::Brush brush11;
+    brush11.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect11 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas11, lightShaderEffect11, brush11));
+    EXPECT_FALSE(brush11.IsAntiAlias());
+    EXPECT_EQ(brush11.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush11.GetShaderEffect());
+}
+
+/**
+ * @tc.name: DrawSDFContentLightTest003
+ * @tc.desc: DrawSDFContentLightTest with INVALID or NONE illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest003, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas4;
+    Drawing::Brush brush4;
+    brush4.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect4 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::INVALID;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas4, lightShaderEffect4, brush4));
+    EXPECT_FALSE(brush4.IsAntiAlias());
+    EXPECT_EQ(brush4.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush4.GetShaderEffect());
+
+    Drawing::Canvas canvas5;
+    Drawing::Brush brush5;
+    brush5.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect5 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::NONE;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas5, lightShaderEffect5, brush5));
+    EXPECT_FALSE(brush5.IsAntiAlias());
+    EXPECT_EQ(brush5.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush5.GetShaderEffect());
+}
+
+/**
+ * @tc.name: DrawSDFContentLightTest004
+ * @tc.desc: DrawSDFContentLightTest with different BLOOM illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest004, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas9;
+    Drawing::Brush brush9;
+    brush9.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect9 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas9, lightShaderEffect9, brush9));
+    EXPECT_FALSE(brush9.IsAntiAlias());
+    EXPECT_EQ(brush9.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush9.GetShaderEffect());
+
+    Drawing::Canvas canvas10;
+    Drawing::Brush brush10;
+    brush10.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect10 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas10, lightShaderEffect10, brush10));
+    EXPECT_FALSE(brush10.IsAntiAlias());
+    EXPECT_EQ(brush10.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush10.GetShaderEffect());
+}
+
+/**
+ * @tc.name: DrawSDFContentLightTest005
+ * @tc.desc: DrawSDFContentLightTest with base illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas6;
+    Drawing::Brush brush6;
+    brush6.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect6 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas6, lightShaderEffect6, brush6));
+    EXPECT_FALSE(brush6.IsAntiAlias());
+    EXPECT_EQ(brush6.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush6.GetShaderEffect());
+
+    Drawing::Canvas canvas7;
+    Drawing::Brush brush7;
+    brush7.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect7 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas7, lightShaderEffect7, brush7));
+    EXPECT_FALSE(brush7.IsAntiAlias());
+    EXPECT_EQ(brush7.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush7.GetShaderEffect());
+
+    Drawing::Canvas canvas8;
+    Drawing::Brush brush8;
+    brush8.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect8 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas8, lightShaderEffect8, brush8));
+    EXPECT_FALSE(brush8.IsAntiAlias());
+    EXPECT_EQ(brush8.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush8.GetShaderEffect());
+}
+
+/**
+ * @tc.name: DrawSDFContentLightTest006
+ * @tc.desc: DrawSDFContentLightTest with FEATHERING_BORDER or NORMAL_BORDER_CONTENT illuminatedType
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest006, TestSize.Level1) {
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvas12;
+    Drawing::Brush brush12;
+    brush12.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect12 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas12, lightShaderEffect12, brush12));
+    EXPECT_FALSE(brush12.IsAntiAlias());
+    EXPECT_EQ(brush12.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush12.GetShaderEffect());
+
+    Drawing::Canvas canvas13;
+    Drawing::Brush brush13;
+    brush13.SetAntiAlias(false);
+    std::shared_ptr<Drawing::ShaderEffect> lightShaderEffect13 = std::make_shared<Drawing::ShaderEffect>();
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
+    EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas13, lightShaderEffect13, brush13));
+    EXPECT_FALSE(brush13.IsAntiAlias());
+    EXPECT_EQ(brush13.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
+    EXPECT_NE(nullptr, brush13.GetShaderEffect());
+}
+
+/**
+ * @tc.name: RSPointLightDrawableOnUpdateTest001
+ * @tc.desc: OnGenerate and OnUpdate test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSPointLightDrawableOnUpdateTest001, TestSize.Level1)
+{
+    RSRenderNode renderNodeTest(0);
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+    std::shared_ptr<RSIlluminated> illuminated = std::make_shared<RSIlluminated>();
+    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_ = illuminated;
+    EXPECT_NE(renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_, nullptr);
+    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_->illuminatedType_ =
+        IlluminatedType::NORMAL_BORDER_CONTENT;
+    EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
+
+    renderNodeTest.renderProperties_.GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
+
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    renderNodeTest.GetMutableRenderProperties().SetSDFShape(sdfShape);
+    EXPECT_NE(pointLightDrawableTest->OnGenerate(renderNodeTest), nullptr);
+}
+
+/**
+ * @tc.name: DrawLightTest003
+ * @tc.desc: DrawLight test with sdf and IlluminatedType::FEATHERING_BORDER
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest003, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
+        std::make_shared<DrawableV2::RSPointLightDrawable>();
+    EXPECT_NE(pointLightDrawableTest, nullptr);
+
+    Drawing::Canvas canvasTest;
+    pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
+    pointLightDrawableTest->sdfShaderEffect_ = std::make_shared<Drawing::ShaderEffect>();
+    EXPECT_NE(pointLightDrawableTest->sdfShaderEffect_, nullptr);
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
+        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->DrawLight(&canvasTest);
 }
 } // namespace OHOS::Rosen

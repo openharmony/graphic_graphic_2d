@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -385,6 +385,26 @@ HWTEST_F(RegionTest, QuickRejectTest001, TestSize.Level1)
     region.SetRect(rectI);
     region2.SetRect(otherRectI);
     ASSERT_FALSE(region2.QuickReject(region));
+}
+
+/**
+ * @tc.name: QuickContainsTest001
+ * @tc.desc: test for region QuickContains.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(RegionTest, QuickContainsTest001, TestSize.Level1)
+{
+    Region region1;
+    RectI rectI1(100, 100, 300, 300);
+    Region region2;
+    RectI rectI2(200, 200, 400, 400);
+    region1.SetRect(rectI1);
+    region2.SetRect(rectI2);
+    region1.Op(region2, RegionOp::UNION);
+    EXPECT_EQ(region1.QuickContains(RectI{100, 100, 200, 200}), false);
+    EXPECT_EQ(region2.QuickContains(RectI{200, 200, 300, 300}), true);
+    EXPECT_EQ(region2.QuickContains(RectI{200, 200, 500, 500}), false);
 }
 
 /**

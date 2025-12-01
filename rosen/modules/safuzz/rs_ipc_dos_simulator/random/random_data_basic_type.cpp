@@ -24,6 +24,7 @@
 #include "common/rs_common_def.h"
 #include "random/random_engine.h"
 #include "sandbox_utils.h"
+#include "tools/common_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -179,7 +180,9 @@ double RandomDataBasicType::GetRandomDouble()
 {
     double data = 0;
     std::string s_str = RandomEngine::GetRandomDouble();
-    data = std::stod(s_str.c_str());
+    if (auto opt = CommonUtils::StringToDouble(s_str); opt.has_value()) {
+        data = opt.value();
+    }
     return data;
 }
 
@@ -187,7 +190,9 @@ float RandomDataBasicType::GetRandomFloat()
 {
     float data = 0;
     std::string s_str = RandomEngine::GetRandomFloat();
-    data = std::stof(s_str.c_str());
+    if (auto opt = CommonUtils::StringToFloat(s_str); opt.has_value()) {
+        data = opt.value();
+    }
     return data;
 }
 
@@ -312,7 +317,9 @@ std::vector<float> RandomDataBasicType::GetRandomFloatVector()
     std::vector<float> data;
     std::vector<std::string> recvlist = RandomEngine::GetRandomFloatVector();
     for (size_t i = 0; i < recvlist.size(); i++) {
-        data.push_back(std::stof(recvlist[i].c_str()));
+        if (auto opt = CommonUtils::StringToFloat(recvlist[i]); opt.has_value()) {
+            data.push_back(opt.value());
+        }
     }
     return data;
 }
@@ -322,7 +329,9 @@ std::vector<double> RandomDataBasicType::GetRandomDoubleVector()
     std::vector<double> data;
     std::vector<std::string> recvlist = RandomEngine::GetRandomDoubleVector();
     for (size_t i = 0; i < recvlist.size(); i++) {
-        data.push_back(std::stod(recvlist[i].c_str()));
+        if (auto opt = CommonUtils::StringToDouble(recvlist[i]); opt.has_value()) {
+            data.push_back(opt.value());
+        }
     }
     return data;
 }

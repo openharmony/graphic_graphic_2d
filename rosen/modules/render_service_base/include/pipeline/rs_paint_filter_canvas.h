@@ -157,9 +157,10 @@ public:
         uint32_t saveCount_ = 0;
     };
 
+    using DrawFunc = std::function<void(Drawing::Canvas* canvas)>;
+
+    uint32_t CustomSaveLayer(DrawFunc customFunc);
     uint32_t SaveClipRRect(std::shared_ptr<ClipRRectData> data);
-    void RestoreClipRRect(uint32_t saveCount);
-    void DrawOptimizationClipRRect(Drawing::Canvas* canvas, std::shared_ptr<ClipRRectData> data);
 
     /**
      * @brief DDK Draw HPS Effect on image
@@ -199,8 +200,11 @@ protected:
     virtual bool OnFilter() const = 0;
     virtual bool OnFilterWithBrush(Drawing::Brush& brush) const = 0;
     virtual Drawing::Brush* GetFilteredBrush() const = 0;
+    void CustomRestore(uint32_t saveCount);
+    void DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc drawFunc);
+
     Drawing::Canvas* canvas_ = nullptr;
-    std::stack<std::shared_ptr<RSPaintFilterCanvasBase::ClipRRectData>> clipRRectStack_;
+    std::stack<std::pair<uint32_t, DrawFunc>> customStack_;
 };
 
 // This class is used to filter the paint before drawing. currently, it is used to filter the alpha and foreground
@@ -233,6 +237,8 @@ public:
     void RestoreEnv();
     int GetEnvSaveCount() const;
     void RestoreEnvToCount(int count);
+    void SetColorPicked(ColorPlaceholder placeholder, Drawing::ColorQuad color);
+    Drawing::ColorQuad GetColorPicked(ColorPlaceholder placeholder) const;
 
     // blendmode and blender related
     void SaveLayer(const Drawing::SaveLayerOps& saveLayerOps) override;
@@ -462,6 +468,16 @@ public:
         return culledEntireSubtree_;
     }
 
+    void SaveDamageRegionrects(const std::vector<RectI>& drawAreas)
+    {
+        damageRegionRects = drawAreas;
+    }
+
+    const std::vector<RectI>& GetDamageRegionrects() const
+    {
+        return damageRegionRects;
+    }
+
 protected:
     using Env = struct {
         Color envForegroundColor_;
@@ -469,6 +485,7 @@ protected:
         std::shared_ptr<CachedEffectData> behindWindowData_;
         std::shared_ptr<Drawing::Blender> blender_;
         bool hasOffscreenLayer_;
+        std::map<ColorPlaceholder, Drawing::ColorQuad> pickedColorMap_;
     };
 
     bool OnFilter() const override;
@@ -499,6 +516,9 @@ protected:
         brush.SetAlphaF(alpha);
         return &brush;
     }
+
+    bool CopyCachedEffectData(std::shared_ptr<CachedEffectData>& dstEffectData,
+        const std::shared_ptr<CachedEffectData>& srcEffectData, const RSPaintFilterCanvas& srcCanvas);
 
 private:
     bool isParallelCanvas_ = false;
@@ -545,6 +565,7 @@ private:
     uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
     uint8_t subTreeDrawStatus_ = DEFAULT_STATE;
+    std::vector<RectI> damageRegionRects;
 };
 
 #ifdef RS_ENABLE_VK

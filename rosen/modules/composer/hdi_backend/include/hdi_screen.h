@@ -21,7 +21,6 @@
 #include <refbase.h>
 #include <mutex>
 
-#include "hdi_layer.h"
 #include "hdi_device.h"
 
 namespace OHOS {
@@ -61,6 +60,7 @@ public:
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uint32_t type);
     bool GetDisplayPropertyForHardCursor(uint32_t screenId);
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const;
+    int32_t GetScreenConnectionType(GraphicDisplayConnectionType& outType) const;
 
     static void OnVsync(uint32_t sequence, uint64_t ns, void *data);
 

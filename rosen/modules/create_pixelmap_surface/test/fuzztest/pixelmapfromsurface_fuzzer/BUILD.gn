@@ -29,6 +29,8 @@ ohos_fuzztest("PixelMapFromSurfaceFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
   ]
   cflags = [
     "-g",

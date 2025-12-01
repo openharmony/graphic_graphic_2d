@@ -27,7 +27,6 @@
 
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
-#include "feature/window_keyframe/rs_window_keyframe_node_info.h"
 #include "common/rs_special_layer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_dirty_region_manager.h"
@@ -57,6 +56,8 @@ public:
     void QuickPrepareScreenRenderNode(RSScreenRenderNode& node) override;
     void QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node) override;
     void QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node) override;
+    void QuickPrepareUnionRenderNode(RSUnionRenderNode& node) override;
+    void QuickPrepareWindowKeyFrameRenderNode(RSWindowKeyFrameRenderNode& node) override;
     void QuickPrepareChildren(RSRenderNode& node) override;
 
     void PrepareChildren(RSRenderNode& node) override {};
@@ -234,6 +235,10 @@ private:
     void PrepareForMultiScreenViewSurfaceNode(RSSurfaceRenderNode& node);
     void PrepareForMultiScreenViewDisplayNode(RSScreenRenderNode& node);
 
+    bool CheckSkipAndUpdateForegroundSurfaceRenderNode(RSSurfaceRenderNode& node);
+    bool CheckSkipBackgroundSurfaceRenderNode(RSSurfaceRenderNode& node);
+    bool CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& node);
+
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
@@ -296,10 +301,13 @@ private:
     }
 
     void UpdateRotationStatusForEffectNode(RSEffectRenderNode& node);
+    void UpdateFilterRegionInSkippedSurfaceNode(const RSRenderNode& rootNode, RSDirtyRegionManager& dirtyManager);
     void CheckFilterNodeInSkippedSubTreeNeedClearCache(const RSRenderNode& node, RSDirtyRegionManager& dirtyManager);
     void UpdateSubSurfaceNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
     void CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node);
     void CollectEffectInfo(RSRenderNode& node);
+
+    void CollectUnionInfo(RSRenderNode& node);
 
     void UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& node);
     void UpdateVirtualDisplaySecurityExemption(
@@ -345,6 +353,7 @@ private:
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
+    bool isBgWindowTraversalStarted_ = false;
     bool isCompleteRenderEnabled_ = false;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     bool doAnimate_ = false;
@@ -360,6 +369,7 @@ private:
     std::shared_ptr<RSDirtyRegionManager> curSurfaceDirtyManager_;
     std::shared_ptr<RSDirtyRegionManager> curScreenDirtyManager_;
     std::shared_ptr<RSSurfaceRenderNode> curSurfaceNode_;
+    std::shared_ptr<RSUnionRenderNode> curUnionNode_;
     RSSpecialLayerManager specialLayerManager_;
 
     bool hasFingerprint_ = false;
@@ -471,9 +481,6 @@ private:
     uint32_t nodePreparedSeqNum_ = 0;
     uint32_t nodePostPreparedSeqNum_ = 0;
 
-    // Used for PC window resize scene
-    RSWindowKeyframeNodeInfo windowKeyFrameNodeInf_;
-
     // used in uifirst for checking whether leashwindow or its parent should paint or not
     bool globalShouldPaint_ = true;
 
@@ -486,6 +493,7 @@ private:
     NodeId offscreenCanvasNodeId_ = INVALID_NODEID;
 
     int32_t rsScreenNodeChildNum_ = 0;
+    size_t rsScreenNodeNum_ = 0;
 
     ScreenState screenState_ = ScreenState::UNKNOWN;
     

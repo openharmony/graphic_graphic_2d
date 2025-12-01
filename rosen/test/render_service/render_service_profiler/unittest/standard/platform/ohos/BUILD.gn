@@ -35,6 +35,18 @@ ohos_unittest("RSIRenderServiceIpcInterfaceCodeTest") {
   sources = [ "rs_irender_service_connection_ipc_interface_code_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [ "hilog:libhilog" ]
+
+  deps += [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+  ]
+
+  external_deps += [
+    "c_utils:utils",
+    "ipc:ipc_core",
+  ]
 }
 
 ## Build rs_test_common.a {{{
@@ -74,17 +86,8 @@ ohos_static_library("rs_test_common") {
 
   public_configs = [ ":rs_test_common_public_config" ]
 
-  public_deps = [
-    "$graphic_2d_root/rosen/modules/composer:libcomposer",
-    "$graphic_2d_root/rosen/modules/render_service:librender_service",
-    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
-    "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
-  ]
-
-  public_external_deps = [
-    "c_utils:utils",
+  external_deps = [
     "eventhandler:libeventhandler",
-    "ipc:ipc_core",
   ]
 
   subsystem_name = "graphic"

@@ -90,7 +90,35 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderFrostedGlassFilter>();
         }
     },
+    {RSNGEffectType::GRID_WARP, [] {
+            return std::make_shared<RSNGRenderGridWarpFilter>();
+        }
+    },
+    {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
+            return std::make_shared<RSNGRenderFrostedGlassBlurFilter>();
+        }
+    },
 };
+
+using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
+static std::unordered_map<RSNGEffectType, FilterGetSnapshotRect> getSnapshotRectLUT = {
+    {
+        RSNGEffectType::FROSTED_GLASS_BLUR, [](std::shared_ptr<RSNGRenderFilterBase> filter, RectF rect) {
+            auto frostedGlassBlur = std::static_pointer_cast<RSNGRenderFrostedGlassBlurFilter>(filter);
+            auto blurRadius = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRadiusRenderTag>()->Get();
+            auto refractOutPx = frostedGlassBlur->Getter<OHOS::Rosen::FrostedGlassBlurRefractOutPxRenderTag>()->Get();
+            const float maxRefractOutPx = 500.0f;
+            float outStep = std::max(blurRadius + std::max(std::min(refractOutPx, maxRefractOutPx), 0.0f), 0.0f);
+            auto snapshotRect = rect;
+            snapshotRect.SetAll(rect.GetLeft() - outStep, rect.GetTop() - outStep,
+                rect.GetWidth() + outStep * 2, rect.GetHeight() + outStep * 2);
+            return snapshotRect;
+        }
+    }
+};
+
+using FilterGetDrawRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;
+static std::unordered_map<RSNGEffectType, FilterGetDrawRect> getDrawRectLUT = {};
 
 std::shared_ptr<RSNGRenderFilterBase> RSNGRenderFilterBase::Create(RSNGEffectType type)
 {
@@ -208,6 +236,31 @@ void RSNGRenderFilterHelper::SetRotationAngle(std::shared_ptr<RSNGRenderFilterBa
             contentLightFilter->Setter<ContentLightRotationAngleRenderTag>(rotationAngle);
         }
         current =  current->nextEffect_;
+    }
+}
+
+RectF RSNGRenderFilterHelper::CalcRect(const std::shared_ptr<RSNGRenderFilterBase>& filter, const RectF& bound,
+    EffectRectType rectType)
+{
+    if (filter == nullptr) {
+        return RectF();
+    }
+
+    switch (rectType) {
+        case EffectRectType::SNAPSHOT: {
+            auto iter = getSnapshotRectLUT.find(filter->GetType());
+            return iter == getSnapshotRectLUT.end() ? bound : iter->second(filter, bound);
+        }
+        case EffectRectType::DRAW: {
+            auto current = filter;
+            while (current->nextEffect_) {
+                current = current->nextEffect_;
+            }
+            auto iter = getDrawRectLUT.find(current->GetType());
+            return iter == getDrawRectLUT.end() ? bound : iter->second(filter, bound);
+        }
+        default:
+            return RectF();
     }
 }
 } // namespace Rosen

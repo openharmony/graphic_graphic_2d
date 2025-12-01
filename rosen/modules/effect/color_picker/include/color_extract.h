@@ -48,6 +48,7 @@ public:
     // Save the ARGB val of picture.
     std::vector<uint32_t> colorVal_;
     uint32_t colorValLen_ = 0;
+    uint32_t fullyTransparentPixelNum_ = 0;
     uint32_t grayMsd_ = 0;
     float contrastToWhite_ = 0;
 
@@ -61,6 +62,9 @@ public:
     int distinctColorCount_ = 0;
     std::vector<uint32_t> colors_;
     Media::PixelFormat format_ = Media::PixelFormat::RGBA_8888;
+
+    static constexpr int SCALED_WIDTH = 100;
+    static constexpr int SCALED_HEIGHT = 100;
 
     static constexpr uint8_t ARGB_MASK = 0xFF;
     static constexpr uint8_t ARGB_A_SHIFT = 24;

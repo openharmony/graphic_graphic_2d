@@ -425,6 +425,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
         out += ", DrawSkipType:" + std::to_string(static_cast<int>(drawSkipType_.load()));
     }
     out += ", ChildrenIndex:" + std::to_string(drawCmdIndex_.childrenIndex_);
+    DumpSubDrawableTree(out);
     out += "\n";
 
     // Dump children drawable(s)
@@ -625,6 +626,9 @@ bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 
 void RSRenderNodeDrawableAdapter::ClearResource()
 {
+    if (toClearDrawableVec_.empty() && toClearCmdListVec_.empty()) {
+        return;
+    }
     RS_TRACE_NAME_FMT("ClearResource count drawable %d, cmdList %d",
         toClearDrawableVec_.size(), toClearCmdListVec_.size());
     toClearDrawableVec_.clear();

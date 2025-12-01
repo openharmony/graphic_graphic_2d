@@ -153,6 +153,9 @@ RSScreenRenderNodeDrawable::RSScreenRenderNodeDrawable(std::shared_ptr<const RSR
 
 RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
 {
+    auto params = static_cast<RSScreenRenderParams*>(GetRenderParams().get());
+    auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
+    RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
     RSPointerWindowManager::Instance().RemoveCommitResult(GetId());
 }
 
@@ -373,7 +376,7 @@ bool RSScreenRenderNodeDrawable::CheckScreenNodeSkip(
             processor->CreateLayerForRenderThread(*surfaceDrawable);
         }
     }
-    if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
+    if (!RSRenderComposerManager::GetInstance().WaitComposerTaskExecute(params.GetScreenId())) {
         RS_LOGW("RSScreenRenderNodeDrawable::CheckScreenNodeSkip: hardwareThread task has too many to Execute");
     }
     processor->ProcessScreenSurfaceForRenderThread(*this);
@@ -597,8 +600,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetCompositeType(params->GetCompositeType());
     params->SetDirtyAlignEnabled(uniParam->IsDirtyAlignEnabled());
     ScreenId paramScreenId = params->GetScreenId();
-    offsetX_ = params->GetScreenOffsetX();
-    offsetY_ = params->GetScreenOffsetY();
+    const auto& screenProperty = params->GetScreenProperty();
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
     curDisplayScreenId_ = paramScreenId;
     RS_LOGD("RSScreenRenderNodeDrawable::OnDraw curScreenId=[%{public}" PRIu64 "], "
         "offsetX=%{public}d, offsetY=%{public}d", paramScreenId, offsetX_, offsetY_);
@@ -622,10 +626,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     // so that need change whether equal vsync period and whether use virtual dirty
     if (screenInfo.skipFrameStrategy == SKIP_FRAME_BY_REFRESH_RATE) {
         bool isEqualVsyncPeriod = (vsyncRefreshRate == screenInfo.expectedRefreshRate);
-        if (screenInfo.isEqualVsyncPeriod != isEqualVsyncPeriod) {
-            screenInfo.isEqualVsyncPeriod = isEqualVsyncPeriod;
-            screenManager->SetEqualVsyncPeriod(paramScreenId, isEqualVsyncPeriod);
-        }
+        params->SetIsEqualVsyncPeriod(isEqualVsyncPeriod);
+    } else if (screenInfo.skipFrameStrategy == SKIP_FRAME_BY_INTERVAL) {
+        bool isEqualVsyncPeriod = (screenInfo.skipFrameInterval == 1);
+        params->SetIsEqualVsyncPeriod(isEqualVsyncPeriod);
     }
     screenManager->RemoveForceRefreshTask();
 
@@ -651,7 +655,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         screenManager->PostForceRefreshTask();
         return;
     }
-    if (!screenInfo.isEqualVsyncPeriod) {
+    if (!params->IsEqualVsyncPeriod()) {
         uniParam->SetVirtualDirtyRefresh(true);
     }
 
@@ -678,11 +682,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
         if (mirroredRenderParams) {
-            offsetX_ = mirroredRenderParams->GetScreenOffsetX();
-            offsetY_ = mirroredRenderParams->GetScreenOffsetY();
-            RSUniRenderThread::Instance().SetEnableVisibleRect(screenInfo.enableVisibleRect);
-            if (screenInfo.enableVisibleRect) {
-                const auto& rect = screenManager->GetMirrorScreenVisibleRect(paramScreenId);
+            const auto& mirroredScreenProperty = mirroredRenderParams->GetScreenProperty();
+            offsetX_ = mirroredScreenProperty.GetOffsetX();
+            offsetY_ = mirroredScreenProperty.GetOffsetY();
+            bool enableVisibleRect = screenProperty.GetEnableVisibleRect();
+            RSUniRenderThread::Instance().SetEnableVisibleRect(enableVisibleRect);
+            if (enableVisibleRect) {
+                const auto& rect = screenProperty.GetVisibleRect();
                 auto curVisibleRect = Drawing::RectI(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
                 RSUniRenderThread::Instance().SetVisibleRect(curVisibleRect);
             }
@@ -874,6 +880,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     curCanvas_->SetScreenId(paramScreenId);
     curCanvas_->SetHdrOn(isHdrOn);
     curCanvas_->SetDisableFilterCache(params->GetZoomed());
+    if (uniParam->IsPartialRenderEnabled() && (!uniParam->IsRegionDebugEnabled())) {
+        curCanvas_->SaveDamageRegionrects(damageRegionrects);
+    }
 
 #ifdef DDGR_ENABLE_FEATURE_OPINC
     if (RSOpincDrawCache::IsAutoCacheEnable()) {
@@ -977,7 +986,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
-    if (!RSMainThread::Instance()->WaitHardwareThreadTaskExecute()) {
+    if (!RSRenderComposerManager::GetInstance().WaitComposerTaskExecute(screenInfo.id)) {
         RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute");
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -114,7 +114,7 @@ public:
 
     static RSInterfaces* rsInterfaces_;
     static RSRenderInterface* rsRenderInterfaces_;
-    static RenderContext* renderContext_;
+    static std::shared_ptr<RenderContext> renderContext_;
     static RSDisplayNodeConfig defaultConfig_;
     static RSDisplayNodeConfig mirrorConfig_;
     static std::shared_ptr<RSSurfaceNode> surfaceNode_;
@@ -122,7 +122,7 @@ public:
 };
 RSInterfaces* RSSurfaceCaptureTaskTest::rsInterfaces_ = nullptr;
 RSRenderInterface* RSSurfaceCaptureTaskTest::rsRenderInterfaces_ = nullptr;
-RenderContext* RSSurfaceCaptureTaskTest::renderContext_ = nullptr;
+std::shared_ptr<RenderContext> RSSurfaceCaptureTaskTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSSurfaceCaptureTaskTest::defaultConfig_ = {INVALID_SCREEN_ID, false, INVALID_SCREEN_ID};
 RSDisplayNodeConfig RSSurfaceCaptureTaskTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskTest::surfaceNode_ = nullptr;
@@ -213,8 +213,8 @@ void RSSurfaceCaptureTaskTest::InitRenderContext()
     }
     if (renderContext_ == nullptr) {
         HiLog::Info(LOG_LABEL, "%s: init renderContext_", __func__);
-        renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
-        renderContext_->InitializeEglContext();
+        renderContext_ = RenderContext::Create();
+        renderContext_->Init();
     }
 #endif // ACE_ENABLE_GL
 }

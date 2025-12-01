@@ -323,7 +323,6 @@ class DPMM {
         static const uint32_t VERT_OFFSET = 1;
         static const uint32_t VERT_SIZE = 34;
         static const uint32_t COLOR_SIZE = 20;
-        static const uint32_t DATA_LENGTH = 16;
         static constexpr float VERTICES[34] = {
             0.0, 0.8,
             1.0, 1.0, 1.0, 2.0, 1.0, 3.0, 1.0, 4.0,
@@ -387,7 +386,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh001, T
     code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM::MESH_WIDTH, DPMM::MESH_HEIGHT, nullptr,
         DPMM::VERT_SIZE, DPMM::VERT_OFFSET, DPMM::COLORS, DPMM::COLOR_SIZE, DPMM::COLOR_OFFSET);
     EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-    // test verticesSize!= ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
+    // test verticesSize != ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
     code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM::MESH_WIDTH, DPMM::MESH_HEIGHT,
         DPMM::VERTICES, 1, DPMM::VERT_OFFSET, DPMM::COLORS, DPMM::COLOR_SIZE, DPMM::COLOR_OFFSET);
     EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
@@ -456,7 +455,7 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh002, T
     code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM::MESH_WIDTH, DPMM::MESH_HEIGHT, nullptr,
         DPMM::VERT_SIZE, DPMM::VERT_OFFSET, DPMM::COLORS, DPMM::COLOR_SIZE, DPMM::COLOR_OFFSET);
     EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
-    // test verticesSize!= ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
+    // test verticesSize != ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
     code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM::MESH_WIDTH, DPMM::MESH_HEIGHT,
         DPMM::VERTICES, 1, DPMM::VERT_OFFSET, DPMM::COLORS, DPMM::COLOR_SIZE, DPMM::COLOR_OFFSET);
     EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
@@ -645,6 +644,540 @@ HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh005, T
     code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM::MESH_WIDTH, DPMM::MESH_HEIGHT,
         DPMM::VERTICES, DPMM::VERT_SIZE, DPMM::VERT_OFFSET, DPMM::COLORS, DPMM::COLOR_SIZE, DPMM::COLOR_OFFSET);
     EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    cCanvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+class DPMM2 {
+    public:
+        static const uint32_t MESH_WIDTH = 2;
+        static const uint32_t ERROR_MESH_WIDTH = -1;
+        static const uint32_t MESH_HEIGHT = 2;
+        static const uint32_t ERROR_MESH_HEIGHT = -1;
+        static const uint32_t COLOR_OFFSET = 3;
+        static const uint32_t VERT_OFFSET = 2;
+        static const uint32_t VERT_SIZE = 22;
+        static const uint32_t ERROR_VERT_SIZE = -1;
+        static const uint32_t COLOR_SIZE = 12;
+        static const uint32_t ERROR_COLOR_SIZE = -1;
+        static constexpr float VERTICES[22] = {
+            0.0, 0.8, 0.0, 1.2,
+            1.0, 1.0, 1.0, 2.0, 1.0, 3.0,
+            2.0, 1.0, 2.0, 2.0, 2.0, 3.0,
+            3.0, 1.0, 3.0, 2.0, 3.0, 3.0,
+        };
+        static const uint32_t COLOR_GREEN = 0xff008000;
+        static const uint32_t COLOR_BLUE = 0xff0000ff;
+        static const uint32_t COLOR_WHITE = 0xffffffff;
+        static const uint32_t COLOR_RED = 0xffff0000;
+        static const uint32_t COLOR_BLACK = 0xff000000;
+        static constexpr uint32_t COLORS[12] = {
+            COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_WHITE,
+            COLOR_WHITE, COLOR_WHITE, COLOR_WHITE, COLOR_WHITE,
+            COLOR_BLACK, COLOR_BLACK, COLOR_BLACK, COLOR_BLACK,
+        };
+};
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh006
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh006, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    // test Dont Attach Brush and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test canvas is null and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(nullptr, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test pixelMap is null and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, nullptr, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshWidth = 0 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, 0, DPMM2::MESH_HEIGHT, DPMM2::VERTICES,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = 0 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, 0, DPMM2::VERTICES,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh007
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh007, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test vertices is nullptr and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT, nullptr,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test verticesSize != ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, 1, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test COLORS is nullptr, than it is success
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, nullptr, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test COLORS != nullptr and colorsSize != (meshWidth + 1) * (meshHeight + 1) + colorsOffset, than it is false
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, 1, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test success
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh008
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh008, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test meshWidth = -1 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::ERROR_MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = -1 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::ERROR_MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test verticesSize != -1 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::ERROR_VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test COLORS != nullptr and colorsSize != -1, than it is false
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::ERROR_COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh009
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh009, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    // recordingCanvas
+    auto recordingCanvas = new RecordingCanvas(100, 100);
+    OH_Drawing_Canvas* canvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    // test Dont Attach Brush and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test canvas is null and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(nullptr, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test pixelMap is null and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, nullptr, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshWidth = 0 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, 0, DPMM2::MESH_HEIGHT, DPMM2::VERTICES,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = 0 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, 0, DPMM2::VERTICES,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh010
+ * @tc.desc: test for OH_Drawing_CanvasDrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh010, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    // recordingCanvas
+    auto recordingCanvas = new RecordingCanvas(100, 100);
+    OH_Drawing_Canvas* canvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
+    EXPECT_NE(canvas, nullptr);
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test vertices is nullptr and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        nullptr, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test verticesSize != ((meshWidth + 1) * (meshHeight + 1) + vertOffset) * 2 and failed
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, 1, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test COLORS is nullptr, than it is success
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, nullptr, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test colorsSize != (meshWidth + 1) * (meshHeight + 1) + colorsOffset, than it is false
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, 1, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test success
+    code = OH_Drawing_CanvasDrawPixelMapMesh(canvas, drPixelMap, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh011
+ * @tc.desc: test for DrawingCanvasUtils::DrawPixelMapMeshInternal.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh011, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    auto recordingCanvas = new RecordingCanvas(100, 100);
+    OH_Drawing_Canvas* canvas = reinterpret_cast<OH_Drawing_Canvas*>(recordingCanvas);
+    EXPECT_NE(canvas, nullptr);
+    auto cCanvas = reinterpret_cast<Canvas*>(canvas);
+    std::shared_ptr<Media::PixelMap> p = reinterpret_cast<OH_PixelmapNative*>(drPixelMap)->GetInnerPixelmap();
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    // test Dont Attach Brush and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test meshWidth = 0 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, 0, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = 0 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, 0,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test vertices is nullptr and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        nullptr, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_ALLOCATION_FAILED);
+    // test COLORS is nullptr and success
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test success
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    cCanvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh012
+ * @tc.desc: test for DrawingCanvasUtils::DrawPixelMapMeshInternal.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh012, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    auto cCanvas = reinterpret_cast<Canvas*>(canvas);
+    std::shared_ptr<Media::PixelMap> p = reinterpret_cast<OH_PixelmapNative*>(drPixelMap)->GetInnerPixelmap();
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    // test Dont Attach Brush and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test meshWidth = 0 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, 0, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = 0 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, 0,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test vertices is nullptr and failed
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        nullptr, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_ALLOCATION_FAILED);
+    // test COLORS is nullptr and success
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, nullptr);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test success
+    code = DrawingCanvasUtils::DrawPixelMapMeshInternal(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::COLORS);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    cCanvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh013
+ * @tc.desc: test for DrawingCanvasUtils::DrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh013, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    auto cCanvas = reinterpret_cast<Canvas*>(canvas);
+    std::shared_ptr<Media::PixelMap> p = reinterpret_cast<OH_PixelmapNative*>(drPixelMap)->GetInnerPixelmap();
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    // test Dont Attach Brush and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test canvas is null and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(nullptr, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test pixelMap is null and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, nullptr, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    cCanvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh014
+ * @tc.desc: test for DrawingCanvasUtils::DrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh014, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    auto cCanvas = reinterpret_cast<Canvas*>(canvas);
+    std::shared_ptr<Media::PixelMap> p = reinterpret_cast<OH_PixelmapNative*>(drPixelMap)->GetInnerPixelmap();
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test meshWidth = 0 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, 0, DPMM2::MESH_HEIGHT, DPMM2::VERTICES,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = 0 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::MESH_WIDTH, 0, DPMM2::VERTICES,
+        DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE, DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test vertices is nullptr and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        nullptr, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test COLORS is nullptr and success
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, nullptr, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    // test success
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_SUCCESS);
+    OH_Drawing_CanvasDetachBrush(canvas);
+    OH_Drawing_BrushDestroy(brush);
+    brush = nullptr;
+    OH_Drawing_CanvasDestroy(canvas);
+    canvas = nullptr;
+    cCanvas = nullptr;
+    OH_Drawing_PixelMapDissolve(drPixelMap);
+    OH_PixelmapNative_Release(pixelMap);
+    OH_PixelmapInitializationOptions_Release(options);
+}
+
+/*
+ * @tc.name: NativeDrawingCanvasTest_DrawPixelMapMesh015
+ * @tc.desc: test for DrawingCanvasUtils::DrawPixelMapMesh.
+ * @tc.type: FUNC
+ * @tc.require: 20517
+ */
+HWTEST_F(NativeDrawingCanvasTest, NativeDrawingCanvasTest_DrawPixelMapMesh015, TestSize.Level1)
+{
+    OH_Pixelmap_InitializationOptions* options = nullptr;
+    OH_PixelmapNative* pixelMap = nullptr;
+    OH_Drawing_PixelMap* drPixelMap = CreateOHDrawingPixelMap(options, pixelMap);
+    EXPECT_NE(drPixelMap, nullptr);
+    OH_Drawing_Canvas* canvas = OH_Drawing_CanvasCreateWithPixelMap(drPixelMap);
+    EXPECT_NE(canvas, nullptr);
+    auto cCanvas = reinterpret_cast<Canvas*>(canvas);
+    std::shared_ptr<Media::PixelMap> p = reinterpret_cast<OH_PixelmapNative*>(drPixelMap)->GetInnerPixelmap();
+    OH_Drawing_ErrorCode code = OH_DRAWING_SUCCESS;
+    OH_Drawing_Brush* brush = OH_Drawing_BrushCreate();
+    EXPECT_NE(brush, nullptr);
+    OH_Drawing_CanvasAttachBrush(canvas, brush);
+    // test meshWidth = -1 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::ERROR_MESH_WIDTH, DPMM2::MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    // test meshHeight = -1 and failed
+    code = DrawingCanvasUtils::DrawPixelMapMesh(cCanvas, p, DPMM2::MESH_WIDTH, DPMM2::ERROR_MESH_HEIGHT,
+        DPMM2::VERTICES, DPMM2::VERT_SIZE, DPMM2::VERT_OFFSET, DPMM2::COLORS, DPMM2::COLOR_SIZE,
+        DPMM2::COLOR_OFFSET);
+    EXPECT_EQ(code, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     OH_Drawing_CanvasDetachBrush(canvas);
     OH_Drawing_BrushDestroy(brush);
     brush = nullptr;

@@ -636,15 +636,15 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                     surface = Surface::CreateSurfaceAsProducer(bufferProducer);
                 }
             }
-            ScreenId mirrorId{INVALID_SCREEN_ID};
+            ScreenId associatedScreenId{INVALID_SCREEN_ID};
             int32_t flags{0};
             std::vector<NodeId> whiteList;
-            if (!data.ReadUint64(mirrorId) || !data.ReadInt32(flags) || !data.ReadUInt64Vector(&whiteList)) {
+            if (!data.ReadUint64(associatedScreenId) || !data.ReadInt32(flags) || !data.ReadUInt64Vector(&whiteList)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN read ScreenId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
+            ScreenId id = CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
             if (!reply.WriteUint64(id)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN Write id failed!");
                 ret = ERR_INVALID_REPLY;
@@ -2288,8 +2288,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             uint64_t id{0};
             int32_t fd{-1};
             uint32_t size{0};
+            uint32_t index{0};
             int32_t needUpdate{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(size)) {
+            if (!data.ReadUint64(id) || !data.ReadUint32(size) || !data.ReadUint32(index)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -2303,7 +2304,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             // safe check
             if (IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, id);
-                result = RegisterTypeface(id, size, fd, needUpdate);
+                result = RegisterTypeface(id, size, fd, needUpdate, index);
             } else {
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);
@@ -3194,6 +3195,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.skipProcessFramesNumber) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.commandCount) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.consumeBufferSize) ||
+                !reply.WriteInt32(globalDirtyRegionInfo.frameAnimationCount) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.mostSendingPidWhenDisplayNodeSkip)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_GLOBAL_DIRTY_REGION_INFO Write globalDirtyRegionInfo "
                         "failed!");

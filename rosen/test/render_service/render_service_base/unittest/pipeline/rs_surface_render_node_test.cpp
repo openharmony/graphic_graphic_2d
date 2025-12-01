@@ -859,51 +859,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSurfaceCacheContentStatic
- * @tc.desc: Set dirty subNode and check if surfacenode static
- * @tc.type:FUNC
- * @tc.require:I8W7ZS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(subNode, nullptr);
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    std::shared_ptr<RSRenderNode> nullNode = nullptr;
-    activeNodeIds[subNode->GetId()] = nullNode;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    activeNodeIds[subNode->GetId()] = subNode;
-    node->AddChild(subNode, 0);
-    subNode->isContentDirty_ = true;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    ASSERT_EQ(node->GetSurfaceCacheContentStatic(), false);
-    ASSERT_EQ(node->IsContentDirtyNodeLimited(), true);
-}
-
-/**
- * @tc.name: IsContentDirtyNodeLimited
- * @tc.desc: Set content dirty subnode new on the tree and check if it is in count
- * @tc.type:FUNC
- * @tc.require:I8XIJH
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(subnode, nullptr);
-    node->AddChild(subnode, 0);
-    subnode->isContentDirty_ = true;
-    subnode->isNewOnTree_ = true;
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds = {{subnode->GetId(), subnode}};
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    ASSERT_EQ(node->IsContentDirtyNodeLimited(), false);
-}
-
-/**
  * @tc.name: SetSkipLayer001
  * @tc.desc: Test SetSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
@@ -1107,6 +1062,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId001, TestSize.Level2)
     ASSERT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId nodeId = node->GetId();
     pid_t pid = ExtractPid(nodeId);
     rsContext->GetMutableNodeMap().renderNodeMap_[pid][nodeId] = node;
@@ -1130,6 +1086,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId002, TestSize.Level2)
     ASSERT_NE(childNode, nullptr);
     ASSERT_NE(parentNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
     NodeId parentNodeId = parentNode->GetId();
@@ -2286,8 +2243,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest001, TestSize.Level1)
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(leashWindowNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
     NodeId leashWindowNodeId = leashWindowNode->GetId();
@@ -2330,8 +2289,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(leashWindowNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
     NodeId leashWindowNodeId = leashWindowNode->GetId();
@@ -2594,26 +2555,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetNeedCacheSurface, TestSize.Level1)
     testNode->SetNeedCacheSurface(false);
     surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
-}
-
-/**
- * @tc.name: IsCurFrameSwitchToPaint
- * @tc.desc: test if node switch from not paint to paint
- * @tc.type: FUNC
- * @tc.require: issueIB6GWC
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsCurFrameSwitchToPaint, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->shouldPaint_ = true;
-    node->lastFrameShouldPaint_ = true;
-    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
-    node->shouldPaint_ = false;
-    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
-    node->shouldPaint_ = true;
-    ASSERT_TRUE(node->IsCurFrameSwitchToPaint());
 }
 
 /**

@@ -191,10 +191,19 @@ public:
     {
         isSubTreeDirty_ = val;
     }
+    bool IsTreeStateChangeDirty() const
+    {
+        return isTreeStateChangeDirty_;
+    }
+    void SetTreeStateChangeDirty(bool val)
+    {
+        isTreeStateChangeDirty_ = val;
+    }
     void SetParentSubTreeDirty();
-    bool IsTreeStateChangeDirty() const;
-    void SetTreeStateChangeDirty(bool val);
-    void SetParentTreeStateChangeDirty();
+    // set when tree state changed or in uicapture task for each parent node recursively
+    void SetParentTreeStateChangeDirty(bool isUpdateAllParentNode = false);
+    // set in uicapture task for each child node recursively
+    void SetChildrenTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
@@ -256,7 +265,12 @@ public:
 
     inline RectI GetFilterRegion() const
     {
-        return filterRegion_;
+        return filterRegionInfo_ != nullptr ? filterRegionInfo_->filterRegion_ : RectI();
+    }
+
+    inline RectI GetDefaultFilterRegion() const
+    {
+        return filterRegionInfo_ != nullptr ? filterRegionInfo_->defaultFilterRegion_ : RectI();
     }
 
     inline bool HasForceSubmit() const
@@ -679,6 +693,12 @@ public:
         GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
+    void ExcludedFromNodeGroup(bool isExcluded);
+    bool IsExcludedFromNodeGroup() const;
+
+    void SetHasChildExcludedFromNodeGroup(bool isExcluded);
+    bool HasChildExcludedFromNodeGroup() const;
+
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     bool IsNodeGroupIncludeProperty() const;
@@ -739,7 +759,12 @@ public:
     void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false);
 
     virtual RectI GetFilterRect() const;
+    RectI GetAbsRect() const;
     void CalVisibleFilterRect(const std::optional<RectI>& clipRect);
+    void CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
+        const std::optional<RectI>& clipRect);
+    void UpdateFilterRectInfo();
+    std::shared_ptr<RSFilter> GetRSFilterWithSlot(RSDrawableSlot slot) const;
 
     void SetIsTextureExportNode(bool isTextureExportNode)
     {
@@ -934,7 +959,7 @@ public:
 
     void ProcessBehindWindowOnTreeStateChanged();
     void ProcessBehindWindowAfterApplyModifiers();
-    void UpdateDrawableBehindWindow();
+    void UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType type);
     virtual bool NeedUpdateDrawableBehindWindow() const { return false; }
     virtual bool NeedDrawBehindWindow() const { return false; }
     virtual void AddChildBlurBehindWindow(NodeId id) {}
@@ -995,6 +1020,7 @@ public:
     bool IsNodeMemClearEnable();
     virtual void AfterTreeStatueChanged() {}
 
+    RectI GetFilterDrawableSnapshotRegion() const;
 protected:
     void ResetDirtyStatus();
 
@@ -1049,7 +1075,7 @@ protected:
     void UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot);
     void ExpandDirtyRegionWithFilterRegion(RSDirtyRegionManager& dirtyManager)
     {
-        dirtyManager.MergeDirtyRect(filterRegion_);
+        dirtyManager.MergeDirtyRect(GetFilterRegion());
         isDirtyRegionUpdated_ = true;
     }
     // if true, it means currently it's in partial render mode and this node is intersect with dirtyRegion
@@ -1083,7 +1109,6 @@ protected:
     std::shared_ptr<RSSingleFrameComposer> singleFrameComposer_ = nullptr;
     std::unique_ptr<RSRenderParams> stagingRenderParams_;
     RSPaintFilterCanvas::SaveStatus renderNodeSaveCount_;
-    RectI filterRegion_;
 
     ModifierNG::ModifierDirtyTypes dirtyTypesNG_;
     ModifierNG::ModifierDirtyTypes curDirtyTypesNG_;
@@ -1173,9 +1198,9 @@ private:
     NodeId screenNodeId_ = INVALID_NODEID;
     NodeId logicalDisplayNodeId_ = INVALID_NODEID;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
-    // bounds and frame modifiers must be unique
-    std::shared_ptr<ModifierNG::RSRenderModifier> boundsModifierNG_;
-    std::shared_ptr<ModifierNG::RSRenderModifier> frameModifierNG_;
+
+    bool isBoundsModifierAdded_ = false;
+    bool isFrameModifierAdded_= false;
 
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.
@@ -1212,6 +1237,11 @@ private:
     // used in old pipline
     RectI oldRectFromRenderProperties_;
     // for blur cache
+    struct FilterRegionInfo {
+        RectI filterRegion_;
+        RectI defaultFilterRegion_;
+    };
+    std::unique_ptr<FilterRegionInfo> filterRegionInfo_;
     RectI lastFilterRegion_;
     std::vector<SharedPtr> cloneCrossNodeVec_;
     bool hasVisitedCrossNode_ = false;
@@ -1260,6 +1290,15 @@ private:
     bool needUseCmdlistDrawRegion_ = false;
     RectF cmdlistDrawRegion_;
 
+    FilterRegionInfo& GetFilterRegionInfo()
+    {
+        if (filterRegionInfo_ == nullptr) {
+            filterRegionInfo_ = std::make_unique<FilterRegionInfo>();
+        }
+
+        return *filterRegionInfo_;
+    }
+
     void SetParent(WeakPtr parent);
     void ResetParent();
     void UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect);
@@ -1283,6 +1322,7 @@ private:
     void CollectAndUpdateLocalForegroundEffectRect();
     void CollectAndUpdateLocalDistortionEffectRect();
     void CollectAndUpdateLocalMagnifierEffectRect();
+    void CollectAndUpdateLocalEffectRect();
     // update drawrect based on self's info
     void UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect);
     bool UpdateSelfDrawRect(RectF& selfDrawingNodeDirtyRect);
@@ -1307,6 +1347,7 @@ private:
 
     void InitRenderDrawableAndDrawableVec();
     RSDrawable::Vec& GetDrawableVec(const char*) const;
+    void ResetFilterInfo();
     friend class DrawFuncOpItem;
     friend class RSContext;
     friend class RSMainThread;

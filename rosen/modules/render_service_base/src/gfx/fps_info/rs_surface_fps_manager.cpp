@@ -101,15 +101,50 @@ std::shared_ptr<RSSurfaceFps> RSSurfaceFpsManager::GetSurfaceFpsByPid(pid_t pid)
     return nullptr;
 }
 
-bool RSSurfaceFpsManager::RecordPresentTime(NodeId id, uint64_t timestamp, uint32_t seqNum)
+bool RSSurfaceFpsManager::RecordFlushTime(NodeId id, uint64_t vsyncId, uint64_t timestamp)
 {
     const auto& surfaceFps = GetSurfaceFps(id);
     if (surfaceFps == nullptr) {
         return false;
     }
-    return surfaceFps->RecordPresentTime(timestamp, seqNum);
+    return surfaceFps->RecordFlushTime(vsyncId, timestamp);
 }
-
+bool RSSurfaceFpsManager::RecordPresentFd(NodeId id, uint64_t vsyncId, int32_t presentFd)
+{
+    const auto& surfaceFps = GetSurfaceFps(id);
+    if (surfaceFps == nullptr) {
+        return false;
+    }
+    return surfaceFps->RecordPresentFd(vsyncId, presentFd);
+}
+bool RSSurfaceFpsManager::RecordPresentTime(NodeId id, int32_t presentFd, uint64_t timestamp)
+{
+    const auto& surfaceFps = GetSurfaceFps(id);
+    if (surfaceFps == nullptr) {
+        return false;
+    }
+    return surfaceFps->RecordPresentTime(presentFd, timestamp);
+}
+void RSSurfaceFpsManager::RecordPresentFdForUniRender(uint64_t vsyncId, int32_t presentFd)
+{
+    std::shared_lock<std::shared_mutex> lock(smtx);
+    for (auto [id, surfaceFps] : surfaceFpsMap_) {
+        if (surfaceFps != nullptr) {
+            // some nodes do not record the flush time，continue processing the next node
+            (void)surfaceFps->RecordPresentFd(vsyncId, presentFd);
+        }
+    }
+}
+void RSSurfaceFpsManager::RecordPresentTimeForUniRender(int32_t presentFd, uint64_t timestamp)
+{
+    std::shared_lock<std::shared_mutex> lock(smtx);
+    for (auto [id, surfaceFps] : surfaceFpsMap_) {
+        if (surfaceFps != nullptr) {
+            // some nodes do not record the flush time, continue processing the next node
+            (void)surfaceFps->RecordPresentTime(presentFd, timestamp);
+        }
+    }
+}
 void RSSurfaceFpsManager::Dump(std::string& result, const std::string& name)
 {
     bool isUnique(false);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -64,7 +64,7 @@ shared_ptr<RSSurfaceNode> surfaceNode1;
 shared_ptr<RSSurfaceNode> surfaceNode2;
 
 #ifdef RS_ENABLE_GPU
-    RenderContext* rc_ = nullptr;
+    std::shared_ptr<RenderContext> rc_ = nullptr;
 #endif
 
 bool WriteToPng(const string &fileName, const WriteToPngParam &param)
@@ -119,10 +119,10 @@ void RenderContextInit()
 #ifdef RS_ENABLE_GPU
     cout << "RS_ENABLE_GPU is true" << endl;
     cout << "Init RenderContext start" << endl;
-    rc_ = RenderContextFactory::GetInstance().CreateEngine();
+    rc_ = RenderContext::Create();
     if (rc_) {
         cout << "Init RenderContext success" << endl;
-        rc_->InitializeEglContext();
+        rc_->Init();
     } else {
         cout << "Init RenderContext failed, RenderContext is nullptr" << endl;
     }

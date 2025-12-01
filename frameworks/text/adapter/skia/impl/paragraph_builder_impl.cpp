@@ -19,6 +19,7 @@
 
 #include "common_utils/string_util.h"
 #include "text_font_utils.h"
+#include "draw/color.h"
 #include "modules/skparagraph/include/ParagraphStyle.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_impl.h"
@@ -183,16 +184,22 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     }
     skStyle.setReplaceTabCharacters(true);
     skStyle.setTextSplitRatio(txt.textSplitRatio);
+    SetRemainingParagraphProperties(skStyle, txt);
+
+    return skStyle;
+}
+
+void ParagraphBuilderImpl::SetRemainingParagraphProperties(skt::ParagraphStyle& skStyle, const ParagraphStyle& txt)
+{
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
     skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
     skStyle.setParagraphSpacing(txt.paragraphSpacing);
     skStyle.setIsEndAddParagraphSpacing(txt.isEndAddParagraphSpacing);
+    skStyle.setCompressHeadPunctuation(txt.compressHeadPunctuation);
     skStyle.setTrailingSpaceOptimized(txt.isTrailingSpaceOptimized);
     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
     skStyle.setVerticalAlignment(static_cast<skt::TextVerticalAlign>(txt.verticalAlignment));
     skStyle.setLineSpacing(txt.lineSpacing);
-
-    return skStyle;
 }
 
 skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
@@ -274,6 +281,7 @@ void ParagraphBuilderImpl::CopyTextStylePaint(const TextStyle& txt, skia::textla
     } else {
         PaintRecord paint;
         paint.SetColor(txt.color);
+        paint.color.SetPlaceholder(static_cast<ColorPlaceholder>(txt.colorPlaceholder));
         paint.isSymbolGlyph = txt.isSymbolGlyph;
         paint.symbol.familyName_ = txt.fontFamilies.empty() ? "" : txt.fontFamilies[0];
         paint.symbol.SetSymbolColor(txt.symbol.GetSymbolColor());

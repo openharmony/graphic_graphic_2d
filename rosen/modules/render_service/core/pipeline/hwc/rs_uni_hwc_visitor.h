@@ -15,6 +15,7 @@
 #ifndef RS_UNI_HWC_VISITOR_H
 #define RS_UNI_HWC_VISITOR_H
 
+#include "hwc_param.h"
 #include "pipeline/main_thread/rs_uni_render_visitor.h"
 
 namespace OHOS {
@@ -110,7 +111,6 @@ private:
         Drawing::Matrix& accumulatedMatrix);
     void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
-    void UpdateRenderResolutionDstRectForDrm(RSSurfaceRenderNode& node, RectI& dstRect);
     bool IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
 
     // indicates if hardware composer is totally disabled

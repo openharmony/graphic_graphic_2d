@@ -204,6 +204,42 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     needSync_ = true;
 }
 
+void RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->ExcludedFromNodeGroup(isExcluded)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::IsExcludedFromNodeGroup() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->IsExcludedFromNodeGroup();
+    }
+    return false;
+}
+
+void RSRenderParams::SetHasChildExcludedFromNodeGroup(bool isExcluded)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetHasChildExcludedFromNodeGroup(isExcluded)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::HasChildExcludedFromNodeGroup() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->HasChildExcludedFromNodeGroup();
+    }
+    return false;
+}
+
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
 {
     if (drawingCacheIncludeProperty_ == includeProperty) {
@@ -395,6 +431,7 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
     target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
+    target->canvasDrawingResetSurfaceIndex_ = canvasDrawingResetSurfaceIndex_.load();
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
     }
@@ -417,6 +454,15 @@ bool RSRenderParams::IsRepaintBoundary() const
 void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
 {
     isRepaintBoundary_ = isRepaintBoundary;
+}
+
+void RSRenderParams::SetCanvasDrawingResetSurfaceIndex(uint32_t index)
+{
+    if (index == canvasDrawingResetSurfaceIndex_) {
+        return;
+    }
+    canvasDrawingResetSurfaceIndex_.store(index);
+    needSync_ = true;
 }
 
 void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
@@ -464,6 +510,9 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
+    if (renderGroupCache_) {
+        target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
+    }
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
@@ -499,10 +548,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
 
     // [Attention] Only used in PC window resize scene now
-    target->windowKeyframeEnabled_ = windowKeyframeEnabled_;
-    target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
-    target->needSwapBuffer_ = needSwapBuffer_;
-    target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
+    target->windowKeyFrameNodeDrawable_ = windowKeyFrameNodeDrawable_;
 
     // used for DFX
     target->isOnTheTree_ = isOnTheTree_;
@@ -604,41 +650,16 @@ void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdap
 }
 
 // [Attention] Only used in PC window resize scene now
-void RSRenderParams::EnableWindowKeyFrame(bool enable)
+void RSRenderParams::SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
-    if (windowKeyframeEnabled_ == enable) {
-        return;
-    }
-
-    windowKeyframeEnabled_ = enable;
+    windowKeyFrameNodeDrawable_ = drawable;
     needSync_ = true;
 }
 
 // [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetWindowKeyFrameNodeDrawable()
 {
-    linkedRootNodeDrawable_ = drawable;
-    needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetNeedSwapBuffer(bool needSwapBuffer)
-{
-    if (needSwapBuffer_ == needSwapBuffer) {
-        return;
-    }
-    needSwapBuffer_ = needSwapBuffer;
-    needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect)
-{
-    if (cacheNodeFrameRect_ == cacheNodeFrameRect) {
-        return;
-    }
-    cacheNodeFrameRect_ = cacheNodeFrameRect;
-    needSync_ = true;
+    return windowKeyFrameNodeDrawable_;
 }
 
 // used for DFX

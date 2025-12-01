@@ -278,6 +278,7 @@ public:
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetUIFirstBehindWindowFilterEnabled();
+    static bool GetUIFirstAutoClearCacheEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();
@@ -388,6 +389,7 @@ public:
     static bool GetSupportScreenFreezeEnabled();
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
+    static bool GetPreparePhaseQuickSkipEnabled();
 
     static bool GetBootCompleted();
 
@@ -396,6 +398,10 @@ public:
     static bool GetNodeMemClearEnabled();
 
     static bool GetRSNodeExceedKillEnabled();
+
+    static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
+    static bool GetCanvasDrawingNodeRenderDmaEnabled();
+    static bool GetDefaultMemClearEnabled();
 
 private:
     RSSystemProperties() = default;

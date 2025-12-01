@@ -40,12 +40,16 @@ HWTEST_F(RSDisplayNodeCommandTypeTest, FixDisplayNodeCommand, Level1 | Standard)
     auto value = 0;
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_CREATE), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ID), value++);
-    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SECURITY_DISPLAY), value++);
     value++;
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SECURITY_DISPLAY), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_DISPLAY_MODE), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_SCREEN_ROTATION), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_BOOT_ANIMATION), value++);
+    value++;
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_ADD_TO_TREE), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_REMOVE_FROM_TREE), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_CLEAR_MODIFIERS_BY_PID), value++);
     EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_VIRTUAL_SCREEN_MUTE_STATUS), value++);
+    EXPECT_EQ(static_cast<uint16_t>(DISPLAY_NODE_SET_FORCE_CLOSE_HDR), value++);
 }
 } // namespace OHOS::Rosen

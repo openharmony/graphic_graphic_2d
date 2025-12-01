@@ -29,7 +29,6 @@ LppVideoHandler& LppVideoHandler::Instance()
 void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     uint64_t vsyncId, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     std::shared_ptr<RSSurfaceHandler> surfaceHandler;
     bool isInvalidNode = UNLIKELY(surfaceNode == nullptr) ||
                          surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::BACKGROUND ||
@@ -39,10 +38,7 @@ void LppVideoHandler::ConsumeAndUpdateLppBuffer(
         return;
     }
     const auto& consumer = surfaceHandler->GetConsumer();
-    surfaceHandler->SetSourceType(static_cast<uint32_t>(consumer->GetSurfaceSourceType()));
-    if (consumer->GetSurfaceSourceType() != OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
-        return;
-    }
+    std::lock_guard<std::mutex> lock(mutex_);
     bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&
                              lppConsumerMap_.size() >= LPP_SURFACE_NODE_MAX_SIZE;
     if (needRemoveTopNode) {
@@ -124,7 +120,7 @@ void LppVideoHandler::JudgeRequestVsyncForLpp(uint64_t vsyncId)
     }
 }
 
-void LppVideoHandler::AddLppLayerId(const std::vector<LayerInfoPtr>& layers)
+void LppVideoHandler::AddLppLayerId(const std::vector<RSLayerPtr>& layers)
 {
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -146,7 +142,7 @@ void LppVideoHandler::SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay)
     hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
 }
 
-void LppVideoHandler::RemoveLayerId(const std::vector<LayerInfoPtr>& layers)
+void LppVideoHandler::RemoveLayerId(const std::vector<RSLayerPtr>& layers)
 {
     for (const auto& layer : layers) {
         bool isLppLayer = layer != nullptr &&

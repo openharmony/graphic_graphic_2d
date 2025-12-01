@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,20 @@ HWTEST_F(SkiaTypefaceTest, GetTableData001, TestSize.Level1)
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface1->GetTableData(tag, 0, size, tableData.get());
     ASSERT_TRUE(retTableData == size);
+}
+
+/**
+ * @tc.name: GetBold001
+ * @tc.desc: Test GetBold
+ * @tc.type: FUNC
+ * @tc.require:20650
+ */
+HWTEST_F(SkiaTypefaceTest, GetBold001, TestSize.Level1)
+{
+    auto typeface1 = SkiaTypeface::MakeDefault();
+    ASSERT_TRUE(!typeface1->GetBold());
+    auto typeface2 = std::make_shared<SkiaTypeface>(nullptr);
+    ASSERT_TRUE(!typeface2->GetBold());
 }
 
 /**

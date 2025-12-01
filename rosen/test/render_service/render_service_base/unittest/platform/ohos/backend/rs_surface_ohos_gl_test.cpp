@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,11 +52,16 @@ HWTEST_F(RSSurfaceOhosGlTest, FlushFrame001, TestSize.Level1)
     std::unique_ptr<RSSurfaceFrame> frame = nullptr;
     rsSurface.SetUiTimeStamp(frame, uiTimestamp);
     EXPECT_FALSE(rsSurface.FlushFrame(frame, uiTimestamp));
+
+    rsSurface.SetRenderContext(nullptr);
+    EXPECT_FALSE(rsSurface.FlushFrame(frame, uiTimestamp));
+    rsSurface.SetRenderContext(RenderContext::Create());
+    EXPECT_TRUE(rsSurface.FlushFrame(frame, uiTimestamp));
     {
         sptr<Surface> producer = nullptr;
         RSSurfaceOhosGl rsSurface(producer);
-        RenderContext renderContext;
-        rsSurface.SetRenderContext(&renderContext);
+        auto renderContext = RenderContext::Create();
+        rsSurface.SetRenderContext(renderContext);
         ASSERT_TRUE(rsSurface.FlushFrame(frame, uiTimestamp));
     }
 }
@@ -73,7 +78,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer001, TestSize.Level1)
     RSSurfaceOhosGl rsSurface(producer);
     rsSurface.ClearBuffer();
 
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     ASSERT_TRUE(renderContext);
     rsSurface.SetRenderContext(renderContext);
     rsSurface.ClearBuffer();
@@ -97,9 +102,9 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
     RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef RS_ENABLE_GPU
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     if (renderContext) {
-        renderContext->InitializeEglContext();
+        renderContext->Init();
         rsSurface.SetRenderContext(renderContext);
         int32_t width = 1;
         int32_t height = 1;
@@ -117,9 +122,9 @@ HWTEST_F(RSSurfaceOhosGlTest, ClearBuffer002, TestSize.Level1)
         sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
         RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef RS_ENABLE_GPU
-        RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+        auto renderContext = RenderContext::Create();
         if (renderContext) {
-            renderContext->InitializeEglContext();
+            renderContext->Init();
             rsSurface.SetRenderContext(renderContext);
             int32_t width = 1;
             int32_t height = 1;
@@ -147,7 +152,7 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge001, TestSize.Level1)
     RSSurfaceOhosGl rsSurface(producer);
     rsSurface.ResetBufferAge();
 
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     rsSurface.SetRenderContext(renderContext);
     rsSurface.ResetBufferAge();
 
@@ -171,9 +176,9 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
     sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
     RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef RS_ENABLE_GPU
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     if (renderContext) {
-        renderContext->InitializeEglContext();
+        renderContext->Init();
         rsSurface.SetRenderContext(renderContext);
         int32_t width = 1;
         int32_t height = 1;
@@ -192,9 +197,9 @@ HWTEST_F(RSSurfaceOhosGlTest, ResetBufferAge002, TestSize.Level1)
         sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(bp);
         RSSurfaceOhosGl rsSurface(pSurface);
 #ifdef RS_ENABLE_GPU
-        RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+        auto renderContext = RenderContext::Create();
         if (renderContext) {
-            renderContext->InitializeEglContext();
+            renderContext->Init();
             rsSurface.SetRenderContext(renderContext);
             int32_t width = 1;
             int32_t height = 1;
@@ -229,7 +234,7 @@ HWTEST_F(RSSurfaceOhosGlTest, RequestFrame001, TestSize.Level1)
     bool useAFBC = true;
     rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC);
 
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     rsSurface.SetRenderContext(renderContext);
     rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC);
 
@@ -237,6 +242,11 @@ HWTEST_F(RSSurfaceOhosGlTest, RequestFrame001, TestSize.Level1)
     rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC);
 
     rsSurface.mEglSurface = EGL_NO_CONTEXT;
+    ASSERT_EQ(rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC), nullptr);
+
+    rsSurface.SetRenderContext(nullptr);
+    ASSERT_EQ(rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC), nullptr);
+    rsSurface.SetRenderContext(renderContext);
     ASSERT_EQ(rsSurface.RequestFrame(width, height, uiTimestamp, useAFBC), nullptr);
 }
 } // namespace Rosen

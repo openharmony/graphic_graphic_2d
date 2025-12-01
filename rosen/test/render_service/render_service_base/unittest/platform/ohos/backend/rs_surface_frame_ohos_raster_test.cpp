@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,8 +49,8 @@ HWTEST_F(RSSurfaceFrameOhosRasterTest, SetDamageRegion001, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosRaster raster(width, height);
-    std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
-    raster.SetRenderContext(renderContext.get());
+    auto renderContext = RenderContext::Create();
+    raster.SetRenderContext(renderContext);
     raster.SetDamageRegion(0, 0, 2, 1);
     ASSERT_EQ(raster.flushConfig_.damage.x, 0);
 }

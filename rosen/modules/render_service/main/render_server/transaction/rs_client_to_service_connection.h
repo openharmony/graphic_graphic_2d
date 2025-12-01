@@ -23,9 +23,9 @@
 #include "hgm_config_callback_manager.h"
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
+#include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "zidl/rs_client_to_service_connection_stub.h"
 #include "vsync_distributor.h"
@@ -61,6 +61,9 @@ private:
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks() noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacksAndPendingBuffer() noexcept;
+#endif
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -98,7 +101,7 @@ private:
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
 
@@ -262,7 +265,7 @@ private:
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
-    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate) override;
+    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;

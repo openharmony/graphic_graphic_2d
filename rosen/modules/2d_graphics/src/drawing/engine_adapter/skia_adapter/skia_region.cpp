@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -161,6 +161,12 @@ bool SkiaRegion::QuickReject(const Region& region) const
         return false;
     }
     return skRegion_->quickReject(*skRegion);
+}
+
+bool SkiaRegion::QuickContains(const RectI& rectI) const
+{
+    auto skIRect = SkIRect::MakeLTRB(rectI.GetLeft(), rectI.GetTop(), rectI.GetRight(), rectI.GetBottom());
+    return skRegion_->quickContains(skIRect);
 }
 
 void SkiaRegion::Translate(int32_t x, int32_t y)

@@ -161,7 +161,7 @@ hb_blob_t* GetTable(hb_face_t* face, hb_tag_t tag, void* userData)
                           });
 }
 
-HBFace CreateHbFace(const Typeface& typeface)
+HBFace FontHarfbuzz::CreateHbFace(const Typeface& typeface)
 {
     int index = 0;
     HBFace face;

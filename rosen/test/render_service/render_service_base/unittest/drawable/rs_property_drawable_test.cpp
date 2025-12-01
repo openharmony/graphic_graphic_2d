@@ -17,6 +17,8 @@
 
 #include "common/rs_obj_geometry.h"
 #include "drawable/rs_property_drawable.h"
+#include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
@@ -201,6 +203,31 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableCreateDrawFuncTest, TestS
 
     clipToBoundsDrawable->type_ = RSClipToBoundsType::INVALID;
     clipToBoundsDrawable->CreateDrawFunc()(&canvas, &rect);
+}
+
+/**
+ * @tc.name: RSClipToBoundsDrawableTestSDF
+ * @tc.desc: Test RSClipToBoundsDrawable with sdf
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableTestSDF, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSClipToBoundsDrawable>();
+    drawable->type_ = RSClipToBoundsType::CLIP_SDF;
+    Drawing::Canvas canvas;
+    // 1.0f, 1.0f, 2.0f, 2.0f is left top right bottom
+    Drawing::Rect rect { 1.0f, 1.0f, 2.0f, 2.0f };
+    drawable->CreateDrawFunc()(&canvas, &rect);
+    EXPECT_EQ(drawable->geContainer_, nullptr);
+
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+    drawable->OnUpdate(node);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    drawable->CreateDrawFunc()(&paintFilterCanvas, &rect);
+    EXPECT_NE(drawable->geContainer_, nullptr);
 }
 
 /**

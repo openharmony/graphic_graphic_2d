@@ -388,7 +388,7 @@ void DoGetScreenHDRStatus()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
     OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     OHOS::Rosen::mainThread_->handler_ =
@@ -407,7 +407,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 #ifdef RS_ENABLE_VK
     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif
-    OHOS::Rosen::RSHardwareThread::Instance().Start();
+    // OHOS::Rosen::RSHardwareThread::Instance().Start();
     return 0;
 }
 

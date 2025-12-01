@@ -98,4 +98,31 @@ HWTEST_F(UIFirstParamParseTest, ParseUIFirstSingleParamTest, TestSize.Level1)
     res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
     ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
 }
+
+/**
+ * @tc.name: ParseClearCacheThresholdTest
+ * @tc.desc: Test parse ClearCacheThreshold param
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(UIFirstParamParseTest, ParseClearCacheThresholdTest, TestSize.Level1)
+{
+    UIFirstParamParse uifirstParamParse;
+    string name = "ClearThreshold";
+    string value = "test";
+    UIFirstParam::SetClearCacheThreshold(0);
+    auto res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(UIFirstParam::GetClearCacheThreshold(), 0);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    name = "ClearCacheThreshold";
+    res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(UIFirstParam::GetClearCacheThreshold(), 0);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+
+    value = "10";
+    res = uifirstParamParse.ParseUIFirstSingleParam(name, value);
+    ASSERT_EQ(UIFirstParam::GetClearCacheThreshold(), 10);
+    ASSERT_EQ(res, ParseErrCode::PARSE_EXEC_SUCCESS);
+}
 }

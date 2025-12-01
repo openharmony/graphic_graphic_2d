@@ -186,6 +186,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
         nodePtr->SetIsNodeToBeCaptured(false);
         rsSubThreadCache.ResetUifirst();
     }
+    rsSubThreadCache.ResetCacheReuseCount();
 }
 
 void RSUifirstManager::ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr)
@@ -662,6 +663,23 @@ bool RSUifirstManager::HandlePurgeBehindWindow(PendingPostNodeMap::iterator& it)
     }
 }
 
+void RSUifirstManager::ShouldAutoCleanCache(NodeId id, DrawableV2::RsSubThreadCache& subThreadCache)
+{
+    if (GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE || clearCacheThreshold_ <= 0 ||
+        !RSSystemProperties::GetUIFirstAutoClearCacheEnabled()) {
+        return;
+    }
+    if (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end() &&
+        !subThreadCache.CheckCacheSurface()) {
+        RS_LOGD("cachesurface already cleared. id:%{public}" PRIu64, id);
+        return;
+    }
+    subThreadCache.AddCacheReuseCount();
+    if (subThreadCache.GetCacheReuseCount() >= clearCacheThreshold_) {
+        AddMarkedClearCacheNode(id);
+    }
+}
+
 void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRenderNode>& node, bool staticContent,
     DrawableV2::RsSubThreadCache& subThreadCache)
 {
@@ -692,6 +710,7 @@ void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRen
     }
 
     subThreadCache.SetUifirstSurfaceCacheContentStatic(staticContent);
+    ShouldAutoCleanCache(node->GetId(), subThreadCache);
 }
 
 bool RSUifirstManager::CommonPendingNodePurge(PendingPostNodeMap::iterator& it)
@@ -759,6 +778,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
             RS_TRACE_NAME_FMT("Purge GetForceDrawWithSkipped name: %s %" PRIu64,
                 node->GetName().c_str(), drawable->GetId());
             ++it;
+            subThreadCache.ResetCacheReuseCount();
             continue;
         }
         RS_TRACE_NAME_FMT("Purge node name: %s, PurgeEnable:%d, HasCachedTexture:%d, staticContent: [%d %d] %" PRIu64,
@@ -771,6 +791,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
         }
 
         ++it;
+        subThreadCache.ResetCacheReuseCount();
     }
 }
 
@@ -2306,9 +2327,11 @@ void RSUifirstManager::ReadUIFirstCcmParam()
 #endif
     SetUiFirstType(UIFirstParam::GetUIFirstType());
     uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();
+    clearCacheThreshold_ = UIFirstParam::GetClearCacheThreshold();
     RS_LOGI("ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-        " uifirstType_=%{public}d uiFirstEnableWindowThreshold_=%{public}d",
-        isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_);
+        " uifirstType_=%{public}d uiFirstEnableWindowThreshold_=%{public}d clearCacheThreshold=%{public}d",
+        isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_,
+        clearCacheThreshold_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -2502,10 +2525,13 @@ void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
                 (pendingPostCardNodes_.find(markedNode) != pendingPostCardNodes_.end())) {
                 continue;
             }
-            RS_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache id:%" PRIu64, markedNode);
-            RS_LOGI("ProcessMarkedNodeSubThreadCache id:%{public}" PRIu64, markedNode);
+            RS_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache id:%" PRIu64 " name:%s",
+                markedNode, drawable->GetName().c_str());
+            RS_LOGI("ProcessMarkedNodeSubThreadCache id:%{public}" PRIu64 " name:%{public}s",
+                markedNode, drawable->GetName().c_str());
             auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
             rsSubThreadCache.ClearCacheSurfaceOnly();
+            rsSubThreadCache.ResetCacheReuseCount();
         }
     }
     markedClearCacheNodes_.clear();

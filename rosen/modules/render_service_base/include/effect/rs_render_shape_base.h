@@ -87,6 +87,15 @@ DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
     ADD_PROPERTY_TAG(SDFRRectShape, RRect)
 );
 
+DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
+    ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
+    ADD_PROPERTY_TAG(SDFTransformShape, Shape)
+);
+
+DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,
+    ADD_PROPERTY_TAG(SDFPixelmapShape, Image)
+);
+
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHAPE
 

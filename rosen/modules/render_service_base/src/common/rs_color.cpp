@@ -45,22 +45,28 @@ RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha, Graphi
     colorSpace_ = colorSpace;
 }
 
+RSColor::RSColor(ColorPlaceholder ph) noexcept : placeholder_(ph) {}
+
 bool RSColor::operator==(const RSColor& rhs) const
 {
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_ &&
-        colorSpace_ == rhs.colorSpace_;
+        colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_;
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 {
     return (std::abs(red_ - other.red_) <= threshold) && (std::abs(green_ - other.green_) <= threshold) &&
            (std::abs(blue_ - other.blue_) <= threshold) && (std::abs(alpha_ - other.alpha_) <= threshold) &&
-           (colorSpace_ == other.colorSpace_);
+           (colorSpace_ == other.colorSpace_) && (placeholder_ == other.placeholder_);
 }
 
 RSColor RSColor::operator+(const RSColor& rhs) const
 {
-    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_, rhs.colorSpace_);
+    if (*this == RSColor(0, 0, 0, 0) && rhs.IsPlaceholder()) {
+        return RSColor(rhs.placeholder_);
+    } else {
+        return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    }
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
@@ -255,6 +261,11 @@ void RSColor::ConvertToSRGBColorSpace()
 #endif
 }
 
+Drawing::Color RSColor::ConvertToDrawingColor() const
+{
+    return IsPlaceholder() ? Drawing::Color(GetPlaceholder()) : Drawing::Color(AsArgbInt());
+}
+
 void RSColor::Dump(std::string& out) const
 {
     constexpr int32_t colorStrWidth = 8;
@@ -272,6 +283,9 @@ void RSColor::Dump(std::string& out) const
         default:
             out += " colorSpace: OTHER]";
             break;
+    }
+    if (placeholder_ != ColorPlaceholder::NONE) {
+        out += " placeholder[" + std::to_string(static_cast<int>(placeholder_)) + "]";
     }
 }
 } // namespace Rosen

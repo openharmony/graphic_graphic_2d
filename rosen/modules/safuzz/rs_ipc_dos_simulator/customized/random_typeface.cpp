@@ -15,6 +15,10 @@
 
 #include "customized/random_typeface.h"
 
+#include <filesystem>
+
+#include "file_ex.h"
+#include "common/safuzz_log.h"
 #include "random/random_data.h"
 #include "random/random_engine.h"
 
@@ -224,24 +228,49 @@ const std::vector<std::string> FONTS = {
     "Roboto-Regular.ttf",
     "ShuS-SC.ttf",
 };
+constexpr int DEFAULT_FONT_INDEX = 8;
 
-Drawing::FontStyle::Slant GetRandomSlant()
+std::string GetFontFilePath(int index)
 {
-    static constexpr int FONT_STYLE_SLANT_INDEX_MAX = 2;
-    int randomIndex = RandomEngine::GetRandomIndex(FONT_STYLE_SLANT_INDEX_MAX);
-    return static_cast<Drawing::FontStyle::Slant>(randomIndex);
+    std::string filePath = std::string("/system/fonts/") + FONTS[index];
+    if (!std::filesystem::exists(filePath)) {
+        filePath = std::string("/system/fonts/") + FONTS[DEFAULT_FONT_INDEX];
+    }
+    return filePath;
+}
+
+std::shared_ptr<Drawing::Typeface> GetRandomTypefaceInner()
+{
+    int index = RandomEngine::GetRandomIndex(FONTS.size() - 1);
+    std::string filePath = GetFontFilePath(index);
+    std::vector<char> content;
+    // The maximum file size is 32 MB.
+    if (!LoadBufferFromFile(filePath, content)) {
+        SAFUZZ_LOGI("Failed to read file %s", filePath.c_str());
+        return nullptr;
+    }
+
+    if (filePath.find("ttc") != std::string::npos) {
+        static constexpr int TTC_MAX_INDEX = 5;
+        uint32_t ttcIndex = static_cast<uint32_t>(RandomEngine::GetRandomIndex(TTC_MAX_INDEX));
+        return Drawing::Typeface::MakeFromAshmem(
+            reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "safuzz", ttcIndex);
+    } else {
+        return Drawing::Typeface::MakeFromAshmem(
+            reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "safuzz");
+    }
 }
 } // namespace
 
 std::shared_ptr<Drawing::Typeface> RandomTypeface::GetRandomTypeface()
 {
-    int index = RandomEngine::GetRandomIndex(FONTS.size() - 1);
-    std::string familyName = FONTS[index];
-    int weight = RandomData::GetRandomUint8();
-    int width = RandomData::GetRandomUint8();
-    Drawing::FontStyle::Slant slant = GetRandomSlant();
-    Drawing::FontStyle fontStyle = Drawing::FontStyle(weight, width, slant);
-    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromName(familyName.c_str(), fontStyle);
+    std::shared_ptr<Drawing::Typeface> typeface = GetRandomTypefaceInner();
+    if (typeface == nullptr) {
+        typeface = GetRandomTypefaceInner();
+    }
+    if (typeface == nullptr) {
+        typeface = Drawing::Typeface::MakeDefault();
+    }
     return typeface;
 }
 } // namespace Rosen

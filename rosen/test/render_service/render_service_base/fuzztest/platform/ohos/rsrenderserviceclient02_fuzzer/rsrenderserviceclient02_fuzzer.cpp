@@ -268,7 +268,7 @@ bool DoRegisterTypeface(const uint8_t* data, size_t size)
     uint64_t uid = GetData<uint64_t>();
 
     renderServiceClient->RegisterTypeface(typeface);
-    renderServiceClient->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
+    renderServiceClient->RegisterTypeface(typeface, GetData<uint32_t>());
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     renderServiceClient->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, callback);
     renderServiceClient->SetAppWindowNum(num);

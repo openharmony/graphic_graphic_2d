@@ -20,7 +20,7 @@
 #include <mutex>
 #include <scoped_bytrace.h>
 #include <securec.h>
-#include "v1_3/include/idisplay_composer_interface.h"
+#include "v1_4/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
@@ -37,7 +37,8 @@ using namespace OHOS::HDI::Display::Composer::V1_0;
 using namespace OHOS::HDI::Display::Composer::V1_1;
 using namespace OHOS::HDI::Display::Composer::V1_2;
 using namespace OHOS::HDI::Display::Composer::V1_3;
-using IDisplayComposerInterfaceSptr = sptr<Composer::V1_3::IDisplayComposerInterface>;
+using namespace OHOS::HDI::Display::Composer::V1_4;
+using IDisplayComposerInterfaceSptr = sptr<Composer::V1_4::IDisplayComposerInterface>;
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -69,7 +70,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 bool HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = Composer::V1_3::IDisplayComposerInterface::Get();
+        g_composer = Composer::V1_4::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return false;
@@ -140,7 +141,7 @@ int32_t HdiDeviceImpl::GetScreenCapability(uint32_t screenId, GraphicDisplayCapa
 {
     CHECK_FUNC(g_composer);
     DisplayCapability hdiInfo;
-    uint32_t propertyId = DisplayPropertyID::DISPLAY_PROPERTY_ID_SKIP_VALIDATE;
+    uint32_t propertyId = Composer::V1_4::DisplayPropertyID::DISPLAY_PROPERTY_ID_SKIP_VALIDATE;
     uint64_t propertyValue;
     int32_t ret = g_composer->GetDisplayCapability(screenId, hdiInfo);
     if (ret == GRAPHIC_DISPLAY_SUCCESS) {
@@ -447,6 +448,17 @@ int32_t HdiDeviceImpl::GetDisplayIdentificationData(uint32_t screenId, uint8_t& 
 {
     CHECK_FUNC(g_composer);
     return g_composer->GetDisplayIdentificationData(screenId, outPort, edidData);
+}
+
+int32_t HdiDeviceImpl::GetScreenConnectionType(uint32_t screenId, GraphicDisplayConnectionType& outType)
+{
+    CHECK_FUNC(g_composer);
+    Composer::V1_4::DisplayConnectionType displayConnectionType;
+    int32_t ret = g_composer->GetDisplayConnectionType(screenId, displayConnectionType);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        outType = static_cast<GraphicDisplayConnectionType>(displayConnectionType);
+    }
+    return ret;
 }
 /* set & get device screen info end */
 

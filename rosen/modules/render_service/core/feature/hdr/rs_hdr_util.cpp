@@ -22,6 +22,7 @@
 #include "hdi_layer_info.h"
 #include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "utils/system_properties.h"
@@ -183,15 +184,16 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit context is null");
         return;
     }
-    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(surfaceNode.GetScreenNodeId());
-    if (!screenNode) {
-        RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit screenNode is null");
+    auto displayNode =
+        context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(surfaceNode.GetLogicalDisplayNodeId());
+    if (!displayNode) {
+        RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit displayNode is null");
         return;
     }
-    float brightnessFactor = screenNode->GetRenderProperties().GetHDRBrightnessFactor();
+    float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
     if (ROSEN_NE(surfaceNode.GetHDRBrightnessFactor(), brightnessFactor)) {
         RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRBrightnessFactor: %{public}f, "
-            "screenNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
+            "displayNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
             surfaceNode.GetHDRBrightnessFactor(), brightnessFactor, surfaceNode.GetId());
         surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
         surfaceNode.SetContentDirty();
@@ -377,14 +379,31 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     if (!node.GetIsLuminanceStatusChange()) {
         return;
     }
-    auto& hdrNodeList = node.GetHDRNodeList();
+    auto childList = node.GetChildrenList();
+    if (childList.empty()) {
+        return;
+    }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    for (const auto& nodeId : hdrNodeList) {
-        auto canvasNode = nodeMap.GetRenderNode(nodeId);
-        if (!canvasNode) {
+    for (const auto& child : childList) {
+        auto childPtr = child.lock();
+        if (!childPtr) {
+            RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty child is null");
             continue;
         }
-        canvasNode->SetContentDirty();
+        auto displayNode = childPtr->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        if (!displayNode) {
+            RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty child is not displayNode");
+            continue;
+        }
+        const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+        for (const auto& [nodeId, _] : hdrNodeMap) {
+            auto canvasNode = nodeMap.GetRenderNode(nodeId);
+            if (!canvasNode) {
+                RS_LOGD("RSHdrUtil::LuminanceChangeSetDirty canvasNode is not on the tree");
+                continue;
+            }
+            canvasNode->SetContentDirty();
+        }
     }
 }
 

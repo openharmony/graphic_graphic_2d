@@ -156,8 +156,6 @@ private:
     /* draw local magnification region */
     void DrawMagnificationRegion(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
-    bool RecordTimestamp(NodeId id, uint32_t seqNum);
-
     bool DrawCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, const RSSurfaceRenderParams& surfaceParams);
 
     void ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams);

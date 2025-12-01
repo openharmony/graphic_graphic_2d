@@ -319,12 +319,12 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto appVSyncDistributor = new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
     OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(getpid(), nullptr, nullptr,
-        OHOS::Rosen::impl::RSScreenManager::GetInstance(), OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
+        OHOS::Rosen::RSScreenManager::GetInstance(), OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
     OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
 #ifdef RS_ENABLE_VK
     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif
-    OHOS::Rosen::RSHardwareThread::Instance().Start();
+    // OHOS::Rosen::RSHardwareThread::Instance().Start();
     return 0;
 }
 

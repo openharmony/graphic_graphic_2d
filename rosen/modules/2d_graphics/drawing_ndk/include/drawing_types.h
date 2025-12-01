@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -88,6 +88,13 @@ typedef struct OH_Drawing_Brush OH_Drawing_Brush;
  * @version 1.0
  */
 typedef struct OH_Drawing_Path OH_Drawing_Path;
+
+/**
+ * @brief Defines a lattice, which divides an image into a rectangular grid.
+ *
+ * @since 23
+ */
+typedef struct OH_Drawing_Lattice OH_Drawing_Lattice;
 
 /**
  * @brief Defines a bitmap, which is a memory that contains the pixel data of a shape.

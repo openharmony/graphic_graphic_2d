@@ -55,7 +55,9 @@ namespace {
 HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 {
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegHotPlugCallback(nullptr, nullptr), GRAPHIC_DISPLAY_SUCCESS);
-    uint32_t screenId = 1, screenModeId = 0, screenLightLevel = 0;
+    uint32_t screenId = 0;
+    uint32_t screenModeId = 0;
+    uint32_t screenLightLevel = 0;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->RegScreenVBlankCallback(screenId, nullptr, nullptr),
               GRAPHIC_DISPLAY_SUCCESS);
     bool enabled = false, needFlush = false;
@@ -99,6 +101,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(hdiDeviceMock_->PrepareScreenLayers(screenId, needFlush), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<uint32_t> layersId;
     std::vector<int32_t> types;
+    screenId = UINT32_MAX;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetScreenCompChange(screenId, layersId, types), GRAPHIC_DISPLAY_SUCCESS);
     BufferHandle *buffer = nullptr;
     sptr<SyncFence> fence = nullptr;
@@ -112,7 +115,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientBuffer(screenId, buffer, cacheIndex, fence),
               GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicIRect> damageRects = { {0, 0, 0, 0} };
-    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
+    ASSERT_EQ(HdiDeviceTest::hdiDevice_->SetScreenClientDamage(screenId, damageRects), GRAPHIC_DISPLAY_SUCCESS);
     std::vector<GraphicColorGamut> gamuts;
     EXPECT_CALL(*hdiDeviceMock_,
         GetScreenSupportedColorGamuts(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
@@ -140,7 +143,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1;
+    uint32_t screenId = UINT32_MAX;
     GraphicHDRCapability info;
     EXPECT_CALL(*hdiDeviceMock_,
         GetHDRCapabilityInfos(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
@@ -161,7 +164,7 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs002, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0, zorder = 0;
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 0;
     GraphicLayerAlpha alpha;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
     GraphicIRect layerRect = {0, 0, 0, 0};
@@ -219,6 +222,38 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 }
 
 /*
+* Function: SetTunnelLayerId
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerId
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetTunnelLayerId, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX;
+    uint32_t layerId = 0;
+    uint64_t tunnelId = 0;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTunnelLayerId(screenId, layerId, tunnelId), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
+* Function: SetTunnelLayerProperty
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetTunnelLayerProperty
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, SetTunnelLayerProperty, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX;
+    uint32_t layerId = 0;
+    uint32_t property = 0;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTunnelLayerProperty(screenId, layerId, property), GRAPHIC_DISPLAY_SUCCESS);
+}
+
+/*
 * Function: LayerFuncs002
 * Type: Function
 * Rank: Important(3)
@@ -228,7 +263,7 @@ HWTEST_F(HdiDeviceTest, LayerFuncs001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
 {
-    uint32_t screenId = 1, layerId = 0;
+    uint32_t screenId = UINT32_MAX, layerId = 0;
     GraphicPresentTimestamp timestamp;
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetPresentTimestamp(screenId, layerId, timestamp),
               GRAPHIC_DISPLAY_NOT_SUPPORT);
@@ -246,6 +281,276 @@ HWTEST_F(HdiDeviceTest, LayerFuncs002, Function | MediumTest| Level3)
               GRAPHIC_DISPLAY_FAILURE);
     }
     EXPECT_EQ(HdiDeviceTest::hdiDevice_->CloseLayer(screenId, layerId), GRAPHIC_DISPLAY_FAILURE);
+}
+
+/*
+* Function: LayerFuncs003
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call LayerFuncs
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, LayerFuncs003, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
+    GraphicLayerAlpha alpha;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect layerRect = {0, 0, 0, 0};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicTransformType type = GRAPHIC_ROTATE_90;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> dirtyRegions = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+              GRAPHIC_DISPLAY_SUCCESS);
+    BufferHandle *handle = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    std::vector<uint32_t> deletingList = {};
+    uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
+    GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    handle = new BufferHandle();
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.acquireFence = new SyncFence(10);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.cacheIndex = 0;
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_CLIENT;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect crop = {0, 0, 0, 0};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    bool isPreMulti = false;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<float> matrix = { 0.0 };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    std::vector<GraphicHDRMetaData> metaData;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    std::vector<uint8_t> metaDatas;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicExtDataHandle *extDataHandle = nullptr;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+}
+
+/*
+* Function: LayerFuncs004
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call LayerFuncs
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, LayerFuncs004, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
+    GraphicLayerAlpha alpha;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect layerRect = {0, 0, 0, 0};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicTransformType type = GRAPHIC_FLIP_H_ROT90;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> dirtyRegions = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+              GRAPHIC_DISPLAY_SUCCESS);
+    BufferHandle *handle = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    std::vector<uint32_t> deletingList = {};
+    uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
+    GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    handle = new BufferHandle();
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.acquireFence = new SyncFence(10);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.cacheIndex = 0;
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_DEVICE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect crop = {0, 0, 1, 1};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    bool isPreMulti = false;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<float> matrix = { 0.0 };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    std::vector<GraphicHDRMetaData> metaData;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    std::vector<uint8_t> metaDatas;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicExtDataHandle *extDataHandle = nullptr;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+}
+
+/*
+* Function: LayerFuncs005
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call LayerFuncs
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, LayerFuncs005, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
+    GraphicLayerAlpha alpha;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect layerRect = {0, 0, 0, 0};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicTransformType type = GRAPHIC_FLIP_H_ROT90;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> dirtyRegions = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+              GRAPHIC_DISPLAY_SUCCESS);
+    BufferHandle *handle = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    std::vector<uint32_t> deletingList = {};
+    uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
+    GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    handle = new BufferHandle();
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.acquireFence = new SyncFence(10);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.cacheIndex = 0;
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_DEVICE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect crop = {0, 0, 1, 1};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    bool isPreMulti = false;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<float> matrix =
+        { 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    std::vector<GraphicHDRMetaData> metaData;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    std::vector<uint8_t> metaDatas;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicExtDataHandle *extDataHandle = nullptr;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+}
+
+/*
+* Function: LayerFuncs006
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call LayerFuncs
+*                  2. check ret
+*/
+HWTEST_F(HdiDeviceTest, LayerFuncs006, Function | MediumTest| Level3)
+{
+    uint32_t screenId = UINT32_MAX, layerId = 0, zorder = 1;
+    GraphicLayerAlpha alpha;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerAlpha(screenId, layerId, alpha), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect layerRect = {0, 0, 0, 0};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerSize(screenId, layerId, layerRect), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicTransformType type = GRAPHIC_FLIP_H_ROT90;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetTransformMode(screenId, layerId, type), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> visibles = { {0, 0, 1, 1} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerVisibleRegion(screenId, layerId, visibles), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<GraphicIRect> dirtyRegions = { {0, 0, 2, 2} };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerDirtyRegion(screenId, layerId, dirtyRegions),
+              GRAPHIC_DISPLAY_SUCCESS);
+    BufferHandle *handle = nullptr;
+    sptr<SyncFence> acquireFence = nullptr;
+    std::vector<uint32_t> deletingList = {};
+    uint32_t cacheIndex = INVALID_BUFFER_CACHE_INDEX;
+    GraphicLayerBuffer layerBuffer = {handle, cacheIndex, acquireFence, deletingList};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    handle = new BufferHandle();
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.acquireFence = new SyncFence(10);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_PARAM_ERR);
+    layerBuffer.cacheIndex = 0;
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetLayerBuffer(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetLayerBuffer(screenId, layerId, layerBuffer), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicCompositionType cmpType = GRAPHIC_COMPOSITION_DEVICE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCompositionType(screenId, layerId, cmpType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicBlendType blendType = GRAPHIC_BLEND_NONE;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerBlendType(screenId, layerId, blendType), GRAPHIC_DISPLAY_SUCCESS);
+    GraphicIRect crop = {0, 0, 1, 1};
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerCrop(screenId, layerId, crop), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerZorder(screenId, layerId, zorder), GRAPHIC_DISPLAY_SUCCESS);
+    bool isPreMulti = false;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerPreMulti(screenId, layerId, isPreMulti), GRAPHIC_DISPLAY_SUCCESS);
+    std::vector<float> matrix =
+        { 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorTransform(screenId, layerId, matrix),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicColorDataSpace colorSpace = GRAPHIC_COLOR_DATA_SPACE_UNKNOWN;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetLayerColorDataSpace(screenId, layerId, colorSpace),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    std::vector<GraphicHDRMetaData> metaData;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaData(screenId, layerId, metaData), GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicHDRMetadataKey key = GRAPHIC_MATAKEY_RED_PRIMARY_X;
+    std::vector<uint8_t> metaDatas;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerMetaDataSet(screenId, layerId, key, metaDatas),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicExtDataHandle *extDataHandle = nullptr;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->SetLayerTunnelHandle(screenId, layerId, extDataHandle),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
+    GraphicPresentTimestampType presentTimesType = GRAPHIC_DISPLAY_PTS_UNSUPPORTED;
+    EXPECT_EQ(HdiDeviceTest::hdiDevice_->GetSupportedPresentTimestampType(screenId, layerId, presentTimesType),
+              GRAPHIC_DISPLAY_NOT_SUPPORT);
 }
 } // namespace
 } // namespace Rosen

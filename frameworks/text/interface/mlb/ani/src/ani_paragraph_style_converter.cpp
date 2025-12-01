@@ -74,6 +74,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
 
     AniTextUtils::ReadOptionalBoolField(env, obj, "trailingSpaceOptimized", paragraphStyle->isTrailingSpaceOptimized);
     AniTextUtils::ReadOptionalBoolField(env, obj, "autoSpace", paragraphStyle->enableAutoSpace);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "compressHeadPunctuation", paragraphStyle->compressHeadPunctuation);
     AniTextUtils::ReadOptionalEnumField(env, obj, "verticalAlign", paragraphStyle->verticalAlignment);
 
     return paragraphStyle;

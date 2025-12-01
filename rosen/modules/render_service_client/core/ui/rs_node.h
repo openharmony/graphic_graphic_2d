@@ -1107,6 +1107,15 @@ public:
      */
     void SetOutlineRadius(const Vector4f& radius);
 
+    /**
+     * @brief Sets color picker params of the node
+     *
+     * @param placeholder The handle to receive realtime color.
+     * @param strategy Strategy type to handle the color picked.
+     * @param interval Color picker task interval in ms, minimum is 500ms.
+     */
+    void SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval);
+
     // UIEffect
     /**
      * @brief Sets the background filter for the UI.
@@ -1624,6 +1633,15 @@ public:
      */
     void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
 
+    /**
+     * @brief Mark node exclude from nodeGroup
+     *
+     * When node is marked ExcludedFromNodeGroup, it will not cached by renderGroup
+     *
+     * @param isExcluded     When true, When node and its subtree will be exluded on renderGroup cache
+     */
+    void ExcludedFromNodeGroup(bool isExcluded);
+
     // Mark opinc node
     void MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate = false);
     // will be abandoned
@@ -1850,6 +1868,7 @@ protected:
     void DumpModifiers(std::string& out) const;
 
     mutable bool lazyLoad_ = false;
+    bool shadowNodeFlag_ = false;
     bool isRenderServiceNode_;
     bool isTextureExportNode_ = false;
     bool skipDestroyCommandInDestructor_ = false;
@@ -1933,7 +1952,7 @@ protected:
      *
      * @param flag true if the node is on the tree; false otherwise.
      */
-    void SetIsOnTheTree(bool flag);
+    virtual void SetIsOnTheTree(bool flag);
 
     bool IsCreateNodeCommand(const RSCommand& command) const
     {
@@ -1945,6 +1964,57 @@ protected:
     {
         return lazyLoadCommandTypes_.find(std::make_pair(command.GetType(), command.GetSubType())) !=
             lazyLoadCommandTypes_.end();
+    }
+
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
+        // Create corresponding modifier if not exist
+        if (modifier == nullptr) {
+            modifier = std::make_shared<ModifierType>();
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+            modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
+            AddModifier(modifier);
+        } else {
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value);
+            NotifyPageNodeChanged();
+        }
+    }
+
+    /**
+     * @brief Sets a property value for a specific modifier.
+     *
+     * If property already exists, it will be updated.
+     * If property does not exist, it will be created.
+     *
+     * @param value The value to assign to the property.
+     * @param animatable The property is animatable or not.
+     */
+    template<typename ModifierType, auto Setter, typename T>
+    void SetPropertyNG(T value, bool animatable)
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        auto modifier = GetModifierCreatedBySetter(ModifierType::Type);
+        // Create corresponding modifier if not exist
+        if (modifier == nullptr) {
+            modifier = std::make_shared<ModifierType>();
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+            modifiersNGCreatedBySetter_.emplace(ModifierType::Type, modifier);
+            AddModifier(modifier);
+        } else {
+            (*std::static_pointer_cast<ModifierType>(modifier).*Setter)(value, animatable);
+            NotifyPageNodeChanged();
+        }
     }
 
 private:
@@ -1963,29 +2033,6 @@ private:
     void SetParent(WeakPtr parent);
     void RemoveChildByNode(SharedPtr child);
     virtual void CreateRenderNodeForTextureExportSwitch() {};
-
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param value The value to assign to the property.
-     */
-    template<typename ModifierType, auto Setter, typename T>
-    void SetPropertyNG(T value);
-
-    /**
-     * @brief Sets a property value for a specific modifier.
-     *
-     * If property already exists, it will be updated.
-     * If property does not exist, it will be created.
-     *
-     * @param value The value to assign to the property.
-     * @param animatable The property is animatable or not.
-     */
-    template<typename ModifierType, auto Setter, typename T>
-    void SetPropertyNG(T value, bool animatable);
 
     /**
      * @brief Sets a UIFilter property value for a specific modifier.
@@ -2071,6 +2118,7 @@ private:
     bool extendModifierIsDirty_ { false };
 
     bool isNodeGroup_ = false;
+    bool isExcludedFromNodeGroup_ = false;
     bool isRepaintBoundary_ = false;
 
     bool isNodeSingleFrameComposer_ = false;

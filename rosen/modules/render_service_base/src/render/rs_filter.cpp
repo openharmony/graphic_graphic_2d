@@ -69,5 +69,21 @@ float RSFilter::RadiusVp2Sigma(float radiusVp, float dipScale)
     return radiusPx > 0.0f ? BLUR_SIGMA_SCALE * radiusPx + 0.5f : 0.0f;
 }
 
+RectF RSFilter::GetRect(const RectF& bound, EffectRectType type) const
+{
+    switch (type) {
+        case EffectRectType::TOTAL: {
+            return CalcRect(bound, EffectRectType::SNAPSHOT).JoinRect(CalcRect(bound, EffectRectType::DRAW));
+        }
+        case EffectRectType::SNAPSHOT:
+        case EffectRectType::DRAW: {
+            return CalcRect(bound, type);
+        }
+        default: {
+            RS_LOGE("RSFilter::GetRect unsupport effect rect type: %{public}d", static_cast<uint8_t>(type));
+            return RectF();
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

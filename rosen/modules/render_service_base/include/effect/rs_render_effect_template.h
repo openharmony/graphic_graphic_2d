@@ -90,6 +90,8 @@ public:
             case RSNGEffectType::SDF_UNION_OP_SHAPE: return "SDFUnionOpShape";
             case RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE: return "SDFSmoothUnionOpShape";
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
+            case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
+            case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
@@ -97,8 +99,11 @@ public:
             case RSNGEffectType::IMAGE_MASK: return "ImageMask";
             case RSNGEffectType::USE_EFFECT_MASK: return "UseEffectMask";
             case RSNGEffectType::FROSTED_GLASS: return "FrostedGlass";
-            default:
-                return "UNKNOWN";
+            case RSNGEffectType::CIRCLE_FLOWLIGHT: return "CircleFlowlight";
+            case RSNGEffectType::GRID_WARP: return "GridWarp";
+            case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
+            case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
+            default: return "UNKNOWN";
         }
     }
 
@@ -141,6 +146,9 @@ private:
         const std::string& desc, const RRect& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const Matrix3f& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<Drawing::Image> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, float value);
@@ -165,6 +173,8 @@ private:
 
     static void CalculatePropTagHashImpl(uint32_t& hash, const RRect& value);
 
+    static void CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value);
+
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value);
 
 #ifdef USE_M133_SKIA
@@ -182,6 +192,8 @@ public:
     virtual ~RSNGRenderEffectBase() = default;
     virtual RSNGEffectType GetType() const = 0;
     virtual bool Marshalling(Parcel& parcel) const = 0;
+    virtual bool SetValue(const std::shared_ptr<Derived>& other, RSRenderNode& node,
+        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Detach() = 0;
     virtual void Dump(std::string& out) const = 0;
@@ -202,6 +214,18 @@ public:
     }
 
 protected:
+    inline void SetNextEffect(const std::shared_ptr<Derived>& effect, RSRenderNode& node,
+        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier)
+    {
+        if (nextEffect_) {
+            nextEffect_->Detach();
+        }
+        nextEffect_ = effect;
+        if (nextEffect_) {
+            nextEffect_->Attach(node, modifier);
+        }
+    }
+
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 
     virtual void DumpProperties(std::string& out) const {}
@@ -319,6 +343,27 @@ public:
         return RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN);
     }
 
+    bool SetValue(const std::shared_ptr<Base>& other, RSRenderNode& node,
+        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
+    {
+        if (other == nullptr || GetType() != other->GetType()) {
+            return false;
+        }
+
+        auto otherDown = std::static_pointer_cast<RSNGRenderEffectTemplate>(other);
+        auto& otherProps = otherDown->GetProperties();
+        std::apply([&otherProps](const auto&... args) {
+                (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);
+            },
+            properties_);
+
+        auto& otherNextEffect = otherDown->nextEffect_;
+        if (!Base::nextEffect_ || !Base::nextEffect_->SetValue(otherNextEffect, node, modifier)) {
+            Base::SetNextEffect(otherNextEffect, node, modifier);
+        }
+        return true;
+    }
+
     void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
     {
         RS_OPTIONAL_TRACE_FMT("RSNGRenderEffectTemplate::Attach, Type:%s",
@@ -369,7 +414,7 @@ public:
         CalculateHashInner(hash_);
         return hash_;
     }
-    
+
     void CalculateHashInner(uint32_t& hash) override
     {
         std::apply(
@@ -381,6 +426,11 @@ public:
         if (Base::nextEffect_) {
             Base::nextEffect_->CalculateHashInner(hash);
         }
+    }
+
+    const std::tuple<PropertyTags...>& GetProperties() const
+    {
+        return properties_;
     }
 
 protected:

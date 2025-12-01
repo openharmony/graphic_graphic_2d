@@ -298,6 +298,12 @@ typedef enum {
     SKIP_FRAME_BY_REFRESH_RATE,
     SKIP_FRAME_BY_ACTIVE_REFRESH_RATE,
 } SkipFrameStrategy;
+
+typedef enum : uint32_t {
+    DISPLAY_CONNECTION_TYPE_INTERNAL = 0,
+    DISPLAY_CONNECTION_TYPE_EXTERNAL,
+    INVALID_DISPLAY_CONNECTION_TYPE,
+} ScreenConnectionType;
 } // namespace Rosen
 } // namespace OHOS
 

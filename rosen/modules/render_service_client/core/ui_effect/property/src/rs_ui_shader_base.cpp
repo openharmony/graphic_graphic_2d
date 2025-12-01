@@ -19,6 +19,7 @@
 
 #include "ui_effect/effect/include/border_light_effect_para.h"
 #include "ui_effect/effect/include/color_gradient_effect_para.h"
+#include "ui_effect/effect/include/frosted_glass_effect_para.h"
 #include "ui_effect/effect/include/harmonium_effect_para.h"
 
 namespace OHOS {
@@ -67,7 +68,14 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGGradientFlowColors>();
         }
     },
-
+    {RSNGEffectType::CIRCLE_FLOWLIGHT, [] {
+            return std::make_shared<RSNGCircleFlowlight>();
+        }
+    },
+    {RSNGEffectType::FROSTED_GLASS_EFFECT, [] {
+            return std::make_shared<RSNGFrostedGlassEffect>();
+        }
+    },
 };
 
 namespace {
@@ -162,6 +170,45 @@ std::shared_ptr<RSNGShaderBase> ConvertColorGradientEffectPara(std::shared_ptr<V
     return colorGradientEffect;
 }
 
+std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
+{
+    auto effect = RSNGShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
+    if (effect == nullptr || effectPara == nullptr) {
+        ROSEN_LOGE("ConvertFrostedGlassEffectPara effect or effectPara is nullptr");
+        return nullptr;
+    }
+    auto frostedGlassEffect = std::static_pointer_cast<RSNGFrostedGlassEffect>(effect);
+    auto frostedGlassEffectPara = std::static_pointer_cast<FrostedGlassEffectPara>(effectPara);
+    frostedGlassEffect->Setter<FrostedGlassEffectBlurParamTag>(frostedGlassEffectPara->GetBlurParam());
+    frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(frostedGlassEffectPara->GetWeightsEmboss());
+    frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(frostedGlassEffectPara->GetWeightsEdl());
+    frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(frostedGlassEffectPara->GetBgRates());
+    frostedGlassEffect->Setter<FrostedGlassEffectBgKBSTag>(frostedGlassEffectPara->GetBgKBS());
+    frostedGlassEffect->Setter<FrostedGlassEffectBgPosTag>(frostedGlassEffectPara->GetBgPos());
+    frostedGlassEffect->Setter<FrostedGlassEffectBgNegTag>(frostedGlassEffectPara->GetBgNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectRefractParamsTag>(frostedGlassEffectPara->GetRefractParams());
+    frostedGlassEffect->Setter<FrostedGlassEffectSdParamsTag>(frostedGlassEffectPara->GetSdParams());
+    frostedGlassEffect->Setter<FrostedGlassEffectSdRatesTag>(frostedGlassEffectPara->GetSdRates());
+    frostedGlassEffect->Setter<FrostedGlassEffectSdKBSTag>(frostedGlassEffectPara->GetSdKBS());
+    frostedGlassEffect->Setter<FrostedGlassEffectSdPosTag>(frostedGlassEffectPara->GetSdPos());
+    frostedGlassEffect->Setter<FrostedGlassEffectSdNegTag>(frostedGlassEffectPara->GetSdNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightParamsTag>(frostedGlassEffectPara->GetEnvLightParams());
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightRatesTag>(frostedGlassEffectPara->GetEnvLightRates());
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightKBSTag>(frostedGlassEffectPara->GetEnvLightKBS());
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightPosTag>(frostedGlassEffectPara->GetEnvLightPos());
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightNegTag>(frostedGlassEffectPara->GetEnvLightNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightParamsTag>(frostedGlassEffectPara->GetEdLightParams());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightAnglesTag>(frostedGlassEffectPara->GetEdLightAngles());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightDirTag>(frostedGlassEffectPara->GetEdLightDir());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightRatesTag>(frostedGlassEffectPara->GetEdLightRates());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightKBSTag>(frostedGlassEffectPara->GetEdLightKBS());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightPosTag>(frostedGlassEffectPara->GetEdLightPos());
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightNegTag>(frostedGlassEffectPara->GetEdLightNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectBorderSizeTag>(frostedGlassEffectPara->GetBorderSize());
+    frostedGlassEffect->Setter<FrostedGlassEffectCornerRadiusTag>(frostedGlassEffectPara->GetCornerRadius());
+    return frostedGlassEffect;
+}
+
 std::shared_ptr<RSNGShaderBase> ConvertHarmoniumEffectPara(std::shared_ptr<VisualEffectPara> effectPara)
 {
     auto effect = RSNGShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
@@ -219,6 +266,7 @@ static std::unordered_map<VisualEffectPara::ParaType, ShaderConvertor> convertor
     { VisualEffectPara::ParaType::COLOR_GRADIENT_EFFECT, ConvertColorGradientEffectPara },
     { VisualEffectPara::ParaType::BORDER_LIGHT_EFFECT, ConvertBorderLightPara },
     { VisualEffectPara::ParaType::HARMONIUM_EFFECT, ConvertHarmoniumEffectPara },
+    { VisualEffectPara::ParaType::FROSTED_GLASS_EFFECT, ConvertFrostedGlassEffectPara },
 };
 
 std::shared_ptr<RSNGShaderBase> RSNGShaderBase::Create(RSNGEffectType type)

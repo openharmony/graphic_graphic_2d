@@ -28,6 +28,12 @@ ohos_fuzztest("RSRenderServiceSecurityUtilsFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
   ]
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",

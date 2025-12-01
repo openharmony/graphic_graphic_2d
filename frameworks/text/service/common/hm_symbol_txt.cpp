@@ -39,15 +39,14 @@ static const std::map<uint32_t, Drawing::DrawingEffectStrategy> EFFECT_TYPES = {
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (const auto& color : colorList) {
         auto gradient = std::make_shared<SymbolGradient>();
-        std::vector<Drawing::ColorQuad> colors;
         Drawing::Color color1;
         color1.SetRgb(color.r, color.g, color.b, color.a);
-        colors.push_back(color1.CastToColorQuad());
-        gradient->SetColors(colors);
+        gradient->SetColors({ color1 });
         gradients.push_back(gradient);
     }
     symbolColor_.gradients = gradients;
@@ -56,15 +55,12 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::DrawingSColor>& colo
 void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (auto color : colorList) {
         auto gradient = std::make_shared<SymbolGradient>();
-        std::vector<Drawing::ColorQuad> colors;
-        Drawing::Color color1;
-        color1.SetRgb(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
-        colors.push_back(color1.CastToColorQuad());
-        gradient->SetColors(colors);
+        gradient->SetColors({ color });
         gradients.push_back(gradient);
     }
     symbolColor_.gradients = gradients;
@@ -73,14 +69,13 @@ void HMSymbolTxt::SetRenderColor(const std::vector<Drawing::Color>& colorList)
 void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     auto gradient = std::make_shared<SymbolGradient>();
-    std::vector<Drawing::ColorQuad> colors;
     Drawing::Color color1;
     color1.SetRgb(color.GetRed(), color.GetGreen(), color.GetBlue(), color.GetAlpha());
-    colors.push_back(color1.CastToColorQuad());
-    gradient->SetColors(colors);
+    gradient->SetColors({ color1 });
     gradients.push_back(gradient);
     symbolColor_.gradients = gradients;
 }
@@ -88,14 +83,13 @@ void HMSymbolTxt::SetRenderColor(const Drawing::Color& color)
 void HMSymbolTxt::SetRenderColor(const Drawing::DrawingSColor& colorList)
 {
     symbolColor_.colorType = SymbolColorType::COLOR_TYPE;
+    std::unique_lock<std::shared_mutex> writeLock(gradientsMutex_);
     symbolColor_.gradients.clear();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     auto gradient = std::make_shared<SymbolGradient>();
-    std::vector<Drawing::ColorQuad> colors;
     Drawing::Color color1;
     color1.SetRgb(colorList.r, colorList.g, colorList.b, colorList.a);
-    colors.push_back(color1.CastToColorQuad());
-    gradient->SetColors(colors);
+    gradient->SetColors({ color1 });
     gradients.push_back(gradient);
     symbolColor_.gradients = gradients;
 }
@@ -128,17 +122,29 @@ void HMSymbolTxt::SetSymbolEffect(const uint32_t& effectStrategy)
 std::vector<Drawing::DrawingSColor> HMSymbolTxt::GetRenderColor() const
 {
     std::vector<Drawing::DrawingSColor> colorList;
+    std::shared_lock<std::shared_mutex> readLock(gradientsMutex_);
     for (const auto& gradient : symbolColor_.gradients) {
         bool isInvalid = gradient == nullptr || gradient->GetColors().empty();
         if (isInvalid) {
             continue;
         }
-        auto gradientColor = gradient->GetColors()[0];
-        Drawing::Color color(gradientColor);
+        auto color = gradient->GetColors()[0];
         Drawing::DrawingSColor scolor = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
         colorList.push_back(scolor);
     }
     return colorList;
+}
+
+std::vector<ColorPlaceholder> HMSymbolTxt::GetRenderColorPlaceholder() const
+{
+    std::vector<ColorPlaceholder> placeholderList;
+    for (const auto& gradient : symbolColor_.gradients) {
+        if (gradient == nullptr || gradient->GetColors().empty()) {
+            continue;
+        }
+        placeholderList.push_back(gradient->GetColors()[0].GetPlaceholder());
+    }
+    return placeholderList;
 }
 
 Drawing::DrawingSymbolRenderingStrategy HMSymbolTxt::GetRenderMode() const
@@ -267,6 +273,23 @@ void HMSymbolTxt::SetFirstActive(bool isFirstActive)
 bool HMSymbolTxt::GetFirstActive() const
 {
     return isFirstActive_;
+}
+
+void HMSymbolTxt::CloneSelf(const HMSymbolTxt& other)
+{
+    symbolColor_ = other.symbolColor_;
+    renderMode_ = other.renderMode_;
+    effectStrategy_ = other.effectStrategy_;
+    symbolUid_ = other.symbolUid_;
+    animationMode_ = other.animationMode_;
+    repeatCount_ = other.repeatCount_;
+    animationStart_ = other.animationStart_;
+    visualMap_ = other.visualMap_;
+    commonSubType_ = other.commonSubType_;
+    symbolType_ = other.symbolType_;
+    relayoutChangeBitmap_ = other.relayoutChangeBitmap_;
+    symbolShadow_ = other.symbolShadow_;
+    isFirstActive_ = other.isFirstActive_;
 }
 } // namespace Rosen
 } // namespace OHOS

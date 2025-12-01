@@ -22,8 +22,12 @@ ohos_fuzztest("HdiScreenFuzzTest") {
   fuzz_config_file = "$graphic_2d_root/rosen/modules/composer/hdi_backend/test/fuzztest/hdiscreen_fuzzer"
   module_out_path = module_output_path
 
-  include_dirs =
-      [ "$graphic_2d_root/rosen/modules/composer/hdi_backend/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter",
+  ]
   cflags = [
     "-g",
     "-O0",
@@ -41,6 +45,7 @@ ohos_fuzztest("HdiScreenFuzzTest") {
     "graphic_surface:surface",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "skia:skia_canvaskit",
   ]
 }
 

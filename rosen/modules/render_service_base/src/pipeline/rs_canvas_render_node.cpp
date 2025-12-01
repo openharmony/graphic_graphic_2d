@@ -26,7 +26,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
-#include "pipeline/rs_screen_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "property/rs_properties_painter.h"
@@ -103,6 +103,7 @@ void RSCanvasRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& visitor)
 
 void RSCanvasRenderNode::OnTreeStateChanged()
 {
+    NodeId displayNodeId = GetLogicalDisplayNodeId();
     if (!IsOnTheTree()) {
         // clear node groups cache when node is removed from tree
         if (GetCacheType() == CacheType::CONTENT) {
@@ -110,12 +111,30 @@ void RSCanvasRenderNode::OnTreeStateChanged()
             SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
         }
         needClearSurface_ = true;
+        displayNodeId = preDisplayNodeId_;
         AddToPendingSyncList();
     }
+    UpdateHDRNodeOnTreeState(displayNodeId);
+    preDisplayNodeId_ = GetLogicalDisplayNodeId();
     RSRenderNode::OnTreeStateChanged();
 
     // When the canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
     ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
+}
+
+void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
+{
+    // Need to count upper or lower trees of HDR nodes
+    bool isOnTheTree = IsOnTheTree();
+    NodeId instanceRootNodeId = GetInstanceRootNodeId();
+    if (GetHDRPresent()) {
+        SetHdrNum(isOnTheTree, instanceRootNodeId, HDRComponentType::IMAGE);
+        UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
+    }
+    if (GetRenderProperties().IsHDRUIBrightnessValid()) {
+        SetHdrNum(isOnTheTree, instanceRootNodeId, HDRComponentType::UICOMPONENT);
+        UpdateDisplayHDRNodeMap(isOnTheTree, displayNodeId);
+    }
 }
 
 void RSCanvasRenderNode::Process(const std::shared_ptr<RSNodeVisitor>& visitor)
@@ -257,24 +276,24 @@ void RSCanvasRenderNode::InternalDrawContent(RSPaintFilterCanvas& canvas, bool n
     }
 }
 
-// When the HDR node status changed, update the node list in the ancestor display node.
+// When the HDR node status changed, update the node map in the ancestor display node.
 // Support to add animation on canvas nodes when display node is forced to close HDR.
-void RSCanvasRenderNode::UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const
+void RSCanvasRenderNode::UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const
 {
     auto context = GetContext().lock();
     if (!context) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateScreenHDRNodeList Invalid context");
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeMap Invalid context");
         return;
     }
-    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(screenNodeId);
-    if (!screenNode) {
-        ROSEN_LOGE("RSCanvasRenderNode::UpdateScreenHDRNodeList Invalid screenNode");
+    auto displayNode = context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId);
+    if (!displayNode) {
+        ROSEN_LOGE("RSCanvasRenderNode::UpdateDisplayHDRNodeMap Invalid displayNode");
         return;
     }
-    if (flag) {
-        screenNode->InsertHDRNode(GetId());
+    if (isIncrease) {
+        displayNode->IncreaseHDRNode(GetId());
     } else {
-        screenNode->RemoveHDRNode(GetId());
+        displayNode->DecreaseHDRNode(GetId());
     }
 }
 
@@ -285,7 +304,7 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
     }
     if (IsOnTheTree()) {
         SetHdrNum(hasHdrPresent, GetInstanceRootNodeId(), HDRComponentType::IMAGE);
-        UpdateScreenHDRNodeList(hasHdrPresent, GetScreenNodeId());
+        UpdateDisplayHDRNodeMap(hasHdrPresent, GetLogicalDisplayNodeId());
     }
     UpdateHDRStatus(HdrStatus::HDR_PHOTO, hasHdrPresent);
     hasHdrPresent_ = hasHdrPresent;
@@ -327,23 +346,6 @@ void RSCanvasRenderNode::ModifyWindowWideColorGamutNum(bool isOnTree, GraphicCol
             parentSurface->ReduceCanvasGamutNum(gamut);
         }
     }
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSCanvasRenderNode::SetLinkedRootNodeId(NodeId rootNodeId)
-{
-    if (!RSSystemProperties::GetWindowKeyFrameEnabled()) {
-        RS_LOGW("RSCanvasRenderNode::SetLinkedRootNodeId WindowKeyFrame feature disabled");
-        return;
-    }
-
-    linkedRootNodeId_ = rootNodeId;
-}
-
-// [Attention] Only used in PC window resize scene now
-NodeId RSCanvasRenderNode::GetLinkedRootNodeId() const
-{
-    return linkedRootNodeId_;
 }
 
 } // namespace Rosen

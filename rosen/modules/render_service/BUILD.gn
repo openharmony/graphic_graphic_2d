@@ -142,9 +142,8 @@ ohos_shared_library("librender_service") {
     "core/feature/param_manager/rs_param_manager.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
-    "core/feature/window_keyframe/rs_window_keyframe_buffer.cpp",
-    "core/feature/window_keyframe/rs_window_keyframe_node_info.cpp",
     "core/feature/watermark/rs_surface_watermark.cpp",
+    "core/feature/window_keyframe/rs_window_keyframe_node_drawable.cpp",
     "core/feature/chipset_vsync/rs_chipset_vsync.cpp",
     "core/pipeline/hardware_thread/rs_realtime_refresh_rate_manager.cpp",
     "core/pipeline/hwc/rs_hwc_context.cpp",
@@ -166,6 +165,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/slr_scale/rs_slr_scale.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
+    "core/screen_manager/rs_screen_thread_safe_property.cpp",
     "core/system/rs_system_parameters.cpp",
     "core/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
@@ -192,6 +192,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/extend_feature/speciallayer_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/surface_capture_param.cpp",
     "core/feature_cfg/feature_param/extend_feature/ui_capture_param.cpp",
+    "core/feature_cfg/feature_param/extend_feature/gpu_cache_param.cpp",
     "core/feature_cfg/feature_param/feature_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/accessibility_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/dirtyregion_param.cpp",
@@ -201,6 +202,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/feature_param/performance_feature/occlusion_culling_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/opinc_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/rotateoffscreen_param.cpp",
+    "core/feature_cfg/feature_param/performance_feature/smart_cache_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/socperf_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/subtree_parallel_param.cpp",
     "core/feature_cfg/feature_param/performance_feature/uifirst_param.cpp",
@@ -217,6 +219,7 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/extend_feature_parser/speciallayer_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/surface_capture_param_parse.cpp",
     "core/feature_cfg/xml_parser/extend_feature_parser/ui_capture_param_parse.cpp",
+    "core/feature_cfg/xml_parser/extend_feature_parser/gpu_cache_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/accessibility_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/dirtyregion_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/dvsync_param_parse.cpp",
@@ -225,12 +228,30 @@ ohos_shared_library("librender_service") {
     "core/feature_cfg/xml_parser/performance_feature_parser/occlusion_culling_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/opinc_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/rotateoffscreen_param_parse.cpp",
+    "core/feature_cfg/xml_parser/performance_feature_parser/smart_cache_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/socperf_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/subtree_parallel_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/uifirst_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/vrate_param_parse.cpp",
     "core/feature_cfg/xml_parser/performance_feature_parser/video_metadata_param_parse.cpp",
     "core/feature_cfg/xml_parser/xml_parser_base.cpp",
+  ]
+
+  #composer
+  sources += [
+    "composer/composer_base/connection/rs_render_to_composer_connection.cpp",
+    "composer/composer_base/layer_backend/hdi_backend.cpp",
+    "composer/composer_base/layer_backend/hdi_layer.cpp",
+    "composer/composer_base/layer_backend/hdi_output.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_agent.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_context.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_manager.cpp",
+    "composer/composer_base/pipeline/rs_render_composer.cpp",
+    "composer/composer_base/transaction/rs_layer_transaction_data.cpp",
+    "composer/composer_base/transaction/rs_layer_transaction_handler.cpp",
+    "composer/composer_client/layer/rs_surface_layer.cpp",
+    "composer/composer_client/pipeline/rs_layer_context.cpp",
+    "composer/composer_client/pipeline/rs_render_composer_client.cpp",
   ]
 
   #blurPredict
@@ -263,6 +284,7 @@ ohos_shared_library("librender_service") {
       "core/drawable/rs_root_render_node_drawable.cpp",
       "core/drawable/rs_screen_render_node_drawable.cpp",
       "core/drawable/rs_surface_render_node_drawable.cpp",
+      "core/drawable/rs_union_render_node_drawable.cpp",
       "core/feature/capture/rs_surface_capture_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_solo_task_parallel.cpp",
       "core/feature/capture/rs_ui_capture_task_parallel.cpp",
@@ -279,8 +301,8 @@ ohos_shared_library("librender_service") {
       "core/feature/uifirst/rs_sub_thread_cache.cpp",
       "core/feature/uifirst/rs_uifirst_frame_rate_control.cpp",
       "core/feature/uifirst/rs_uifirst_manager.cpp",
+      "core/memory/rs_canvas_dma_buffer_cache.cpp",
       "core/memory/rs_memory_manager.cpp",
-      "core/pipeline/hardware_thread/rs_hardware_thread.cpp",
       "core/pipeline/main_thread/rs_uni_render_listener.cpp",
       "core/pipeline/main_thread/rs_uni_render_visitor.cpp",
       "core/pipeline/render_thread/rs_draw_frame.cpp",
@@ -367,6 +389,15 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/ressched/include",
     "$graphic_2d_root/utils/log",
     "$graphic_2d_root/utils/socketpair/export",
+    # composer file begin
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    # composer file end
   ]
 
   public_deps += [
@@ -375,6 +406,10 @@ ohos_shared_library("librender_service") {
 
   if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {
     include_dirs += graphic_2d_subtree_configs.librender_service_subtree_include
+  }
+
+  if (graphic_2d_feature_mhc_enable) {
+    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
   }
 
   deps = [
@@ -493,6 +528,7 @@ ohos_shared_library("librender_service") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
+    "qos_manager:concurrent_task_client",
   ]
   if (graphic_2d_feature_rs_enable_uni_render) {
     external_deps += [ "ability_runtime:ability_manager" ]
@@ -583,6 +619,11 @@ ohos_executable("render_service") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
   ]
 
   deps = [
@@ -609,4 +650,13 @@ ohos_executable("render_service") {
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"
+}
+
+group("test") {
+  testonly = true
+
+  deps = [
+    "composer/composer_base/layer_backend/test:test",
+    "composer/composer_base/pipeline/test:test",
+  ]
 }

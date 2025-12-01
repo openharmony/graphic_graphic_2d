@@ -42,6 +42,7 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#include "render/rs_drawing_filter.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -274,7 +275,7 @@ bool RSBackgroundColorDrawable::OnUpdate(const RSRenderNode& node)
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
     Drawing::Brush brush;
     if (bgColor.GetColorSpace() == GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
-        brush.SetColor(Drawing::Color(bgColor.AsArgbInt()));
+        brush.SetColor(bgColor.ConvertToDrawingColor());
     } else {
         // Currently, only P3 wide color space is supported, and it will be expanded soon.
         brush.SetColor(bgColor.GetColor4f(),
@@ -621,6 +622,9 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeName_ = node.GetNodeName();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter != nullptr) {
+        const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+        RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+            drawingFilter, node.GetId());
         RecordFilterInfos(rsFilter);
         needSync_ = true;
         stagingFilter_ = rsFilter;
@@ -819,6 +823,10 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
             (effectData == nullptr || effectData->cachedImage_ == nullptr)) {
             ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+            if (paintFilterCanvas->GetIsParallelCanvas()) {
+                ROSEN_LOGE("RSPropertyDrawableUtils::DrawUseEffect is parallel canvas, disable fallback");
+                return;
+            }
             auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
             if (!drawable) {
                 return;
@@ -956,6 +964,9 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
     if (!rsFilter) {
         return false;
     }
+    const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+        drawingFilter, node.GetId());
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
@@ -963,5 +974,37 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+    EffectRectType type, const RectF& bound) const
+{
+    RectF rect = GetRenderRelativeRect(type, bound);
+    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
+
+    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        return Drawing::RectI();
+    }
+
+    RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+        std::ceil(absRect.GetHeight()));
+    effectRect = effectRect.IntersectRect(deviceRect);
+    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+}
+
+void RSMaterialFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
+    const std::optional<RectI>& clipRect, const RectF& defaultRelativeRect)
+{
+    if (stagingRelativeRectInfo_ == nullptr) {
+        return;
+    }
+    stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
+    stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

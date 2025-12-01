@@ -326,6 +326,12 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
                 (unsigned long long)pid);
             pair.second->FilterModifiersByPid(pid);
         }
+        if (ExtractPid(pair.first) == pid && pair.second) {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.first);
+            }
+            pair.second->RemoveFromTree(false);
+        }
         return ExtractPid(pair.first) == pid;
     });
     RS_TRACE_END();

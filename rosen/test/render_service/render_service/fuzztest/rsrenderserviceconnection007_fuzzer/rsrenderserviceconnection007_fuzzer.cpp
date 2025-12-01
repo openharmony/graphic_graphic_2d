@@ -278,7 +278,7 @@ void DoSetScreenSwitchingNotifyCallback()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ =  OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    OHOS::Rosen::screenManagerPtr_ =  OHOS::Rosen::RSScreenManager::GetInstance();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
     OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     OHOS::Rosen::mainThread_->handler_ =

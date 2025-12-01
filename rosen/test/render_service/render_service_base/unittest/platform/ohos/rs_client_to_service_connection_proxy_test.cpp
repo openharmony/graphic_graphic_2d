@@ -1058,7 +1058,7 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterSharedTypeface, TestSize.
     int32_t needUpdate;
     pid_t pid = getpid();
     uint64_t id = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
-    EXPECT_TRUE(proxy->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate));
+    EXPECT_TRUE(proxy->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate, 0));
     EXPECT_EQ(needUpdate, 0);
     EXPECT_TRUE(proxy->UnRegisterTypeface(typeface->GetHash()));
 }
