@@ -691,7 +691,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureParam captureParam;
-    captureParam.needCaptureSpecialLayer_ = true;
+    captureParam.needCaptureSpecialLayer = true;
     auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
