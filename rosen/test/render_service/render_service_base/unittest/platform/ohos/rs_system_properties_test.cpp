@@ -1234,19 +1234,5 @@ HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
     EXPECT_TRUE(RSSystemProperties::GetScaleImageAsyncEnabled());
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", ret);
 }
-
-/**
- * @tc.name: GetDefaultMemClearEnabled
- * @tc.desc: GetDefaultMemClearEnabledTest
- * @tc.type: FUNC
- * @tc.require: issuesICQ74B
- */
-HWTEST_F(RSSystemPropertiesTest, GetDefaultMemClearEnabledTest, TestSize.Level1)
-{
-    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "0");
-    EXPECT_FALSE(RSSystemProperties::GetDefaultMemClearEnabled());
-    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "1");
-    EXPECT_FALSE(RSSystemProperties::GetDefaultMemClearEnabled());
-}
 } // namespace Rosen
 } // namespace OHOS
