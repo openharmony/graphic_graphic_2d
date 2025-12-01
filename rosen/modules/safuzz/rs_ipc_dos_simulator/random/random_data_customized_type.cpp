@@ -676,5 +676,12 @@ ModifierNG::RSModifierType RandomDataCustomizedType::GetRandomRSModifierType()
 {
     return RandomRSRenderModifier::GetRandomRSRenderModifier()->GetType();
 }
+
+DrawNodeType RandomDataCustomizedType::GetRandomDrawNodeType()
+{
+    static constexpr int DRAW_NODE_TYPE_MAX = 3;
+    int randomIndex = RandomEngine::GetRandomIndex(DRAW_NODE_TYPE_MAX);
+    return static_cast<DrawNodeType>(randomIndex);
+}
 } // namespace Rosen
 } // namespace OHOS
