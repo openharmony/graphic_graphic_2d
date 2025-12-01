@@ -84,6 +84,7 @@ public:
 #endif
     static RSSurfaceNodeAbilityState GetRandomRSSurfaceNodeAbilityState();
     static std::optional<Drawing::Matrix> GetRandomOptionalDrawingMatrix();
+    static Rect GetRandomRect();
 
     // RSAnimationCommand params
     static AnimationCallbackEvent GetRandomAnimationCallbackEvent();
