@@ -82,7 +82,10 @@ HWTEST_F(HdiBackendTest, RegScreenHotplug001, Function | MediumTest| Level3)
 HWTEST_F(HdiBackendTest, RegScreenHotplug002, Function | MediumTest| Level3)
 {
     auto func = [](OutputPtr &, bool, void*) -> void {};
+    EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_OK);
+    EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(-1));
+    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenHotplug(func, nullptr), ROSEN_ERROR_API_FAILED);
 }
 
 /*
@@ -108,8 +111,11 @@ HWTEST_F(HdiBackendTest, RegScreenRefresh001, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiBackendTest, RegScreenRefresh002, Function | MediumTest| Level3)
 {
+    EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     auto func = [](uint32_t, void*) -> void {};
     ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(func, nullptr), ROSEN_ERROR_OK);
+    EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(-1));
+    ASSERT_EQ(HdiBackendTest::hdiBackend_->RegScreenRefresh(func, nullptr), ROSEN_ERROR_API_FAILED);
 }
 
 /*
@@ -173,10 +179,13 @@ HWTEST_F(HdiBackendTest, SetVsyncSamplerEnabled, Function | MediumTest| Level3)
 */
 HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
 {
+    EXPECT_CALL(*hdiDeviceMock_, Destroy());
     hdiBackend_->ResetDevice();
     hdiBackend_->OnScreenHotplug(-1, true);
     auto iter = hdiBackend_->outputs_.find(-1);
     EXPECT_EQ(iter, hdiBackend_->outputs_.end());
+    hdiBackend_->ResetDevice();
+    EXPECT_EQ(hdiBackend_->outputs_.size(), 0);
 }
 
 /*
@@ -189,10 +198,16 @@ HWTEST_F(HdiBackendTest, ResetDevice, Function | MediumTest| Level3)
  */
 HWTEST_F(HdiBackendTest, RegScreenVBlankIdleCallback001, Function | MediumTest | Level3)
 {
+    hdiBackend_->device_ = hdiDeviceMock_;
     RosenError res = hdiBackend_->RegScreenVBlankIdleCallback(nullptr, nullptr);
     EXPECT_EQ(res, ROSEN_ERROR_INVALID_ARGUMENTS);
-    auto func = [](uint32_t deviceId, uint64_t ns, void* data) -> void {};
+    auto func = [](uint32_t devId, uint64_t ns, void* data) -> void {};
+    EXPECT_CALL(*hdiDeviceMock_, RegScreenVBlankIdleCallback(_, _)).WillRepeatedly(testing::Return(0));
     res = hdiBackend_->RegScreenVBlankIdleCallback(func, nullptr);
+    EXPECT_EQ(res, ROSEN_ERROR_OK);
+    EXPECT_CALL(*hdiDeviceMock_, RegScreenVBlankIdleCallback(_, _)).WillRepeatedly(testing::Return(-1));
+    res = hdiBackend_->RegScreenVBlankIdleCallback(func, nullptr);
+    EXPECT_EQ(res, ROSEN_ERROR_API_FAILED);
 }
 
 /*
@@ -284,8 +299,11 @@ HWTEST_F(HdiBackendTest, OnHdiBackendHotPlugEvent, Function | MediumTest| Level3
     EXPECT_NE(data, nullptr);
     data->OnHdiBackendHotPlugEvent(0, false, nullptr);
     EXPECT_NE(data, nullptr);
-    data->OnHdiBackendHotPlugEvent(0, true, nullptr);
+    data->OnHdiBackendHotPlugEvent(1, true, data);
     EXPECT_NE(data, nullptr);
+    data->onScreenHotplugCb_ = nullptr;
+    data->OnHdiBackendHotPlugEvent(1, false, nullptr);
+    EXPECT_EQ(data->outputs_.find(1), data->outputs_.end());
 }
 
 /*
@@ -322,10 +340,13 @@ HWTEST_F(HdiBackendTest, OnScreenRefresh, Function | MediumTest| Level3)
     EXPECT_NE(data, nullptr);
     data->OnScreenRefresh(0);
     std::atomic<bool> ran{false};
-    auto onScreenRefreshFunc = [&ran](uint32_t, void*) { ran.store(true); };
+    auto onScreenRefreshFunc = [&ran](uint32_t, void*) -> void { ran.store(true); };
+    EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_EQ(data->RegScreenRefresh(onScreenRefreshFunc, data), ROSEN_ERROR_OK);
     data->OnScreenRefresh(0);
     EXPECT_TRUE(ran.load());
+    data->onScreenRefreshCb_ = nullptr;
+    data->OnScreenRefresh(0);
 }
 
 } // namespace
