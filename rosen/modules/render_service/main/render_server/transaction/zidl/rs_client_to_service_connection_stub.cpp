@@ -1345,9 +1345,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t ret = SetDualScreenState(id, static_cast<DualScreenStatus>(status));
-            if (!reply.WriteInt32(ret)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_DUAL_SCREEN_STATE write ret failed!");
+            int32_t retCode = SetDualScreenState(id, static_cast<DualScreenStatus>(status));
+            if (!reply.WriteInt32(retCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_DUAL_SCREEN_STATE write retCode failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

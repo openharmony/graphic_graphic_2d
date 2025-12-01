@@ -703,7 +703,7 @@ int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
     }
     uint64_t value = static_cast<uint64_t>(status);
     auto id = property_.GetId();
-    RS_TRACE_NAME_FMT("Screen_%llu SetDualScreenState %u", id, value);
+    RS_TRACE_NAME_FMT("Screen_%llu SetDualScreenState %llu", id, value);
     int32_t ret = hdiScreen_->SetDisplayProperty(value);
     if (ret < 0) {
         RS_LOGE("%{public}s: failed to set DualScreenStatus. ret: %{public}d", __func__, ret);
