@@ -95,7 +95,7 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
         ani_native_function{"getIdeographicBaseline", ":d", reinterpret_cast<void*>(GetIdeographicBaseline)},
         ani_native_function{"getRectsForRange", GET_RECTS_SIGN.c_str(), reinterpret_cast<void*>(GetRectsForRange)},
         ani_native_function{
-            "getRectsForPlaceholders", ":C{escompat.Array}", reinterpret_cast<void*>(GetRectsForPlaceholders)},
+            "getRectsForPlaceholders", ":C{std.core.Array}", reinterpret_cast<void*>(GetRectsForPlaceholders)},
         ani_native_function{"getGlyphPositionAtCoordinate", GET_GLYPH_POSITION_AT_COORDINATE_SIGN.c_str(),
             reinterpret_cast<void*>(GetGlyphPositionAtCoordinate)},
         ani_native_function{
@@ -107,7 +107,7 @@ std::vector<ani_native_function> AniParagraph::InitMethods(ani_env* env)
         ani_native_function{
             "getActualTextRange", GET_ACTUAL_TEXT_RANGE_SIGN.c_str(), reinterpret_cast<void*>(GetActualTextRange)},
         ani_native_function{"getTextLines", GET_TEXT_LINES_SIGN.c_str(), reinterpret_cast<void*>(GetTextLines)},
-        ani_native_function{"getLineMetrics", ":C{escompat.Array}", reinterpret_cast<void*>(GetLineMetrics)},
+        ani_native_function{"getLineMetrics", ":C{std.core.Array}", reinterpret_cast<void*>(GetLineMetrics)},
         ani_native_function{"nativeGetLineMetricsAt", "i:C{@ohos.graphics.text.text.LineMetrics}",
             reinterpret_cast<void*>(GetLineMetricsAt)},
     };

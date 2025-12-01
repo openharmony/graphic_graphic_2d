@@ -272,7 +272,7 @@ ani_object AniMatrix::GetAll(ani_env* env, ani_object obj)
     aniMatrix->GetMatrix()->GetAll(buffer);
 
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
+    if (ANI_OK != env->FindClass("std.core.Array", &arrayCls)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Find class failed.");
         return CreateAniUndefined(env);
     }
@@ -498,8 +498,8 @@ ani_boolean AniMatrix::IsIdentity(ani_env* env, ani_object obj)
 ani_object GetPointArray(ani_env* env, const std::vector<Drawing::Point>& points, uint32_t count)
 {
     ani_class arrayCls = nullptr;
-    if (ANI_OK != env->FindClass("escompat.Array", &arrayCls)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "FindClass escompat.Array Failed");
+    if (ANI_OK != env->FindClass("std.core.Array", &arrayCls)) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "FindClass std.core.Array Failed");
         return CreateAniUndefined(env);
     }
     ani_method arrayCtor;

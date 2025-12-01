@@ -190,7 +190,7 @@ bool AniTool::GetParamsArray(ani_env* env, ani_object obj, const char* name, std
         return false;
     }
     ani_class paramsClass;
-    if (env->FindClass("escompat.Array", &paramsClass) != ANI_OK) {
+    if (env->FindClass("std.core.Array", &paramsClass) != ANI_OK) {
         return false;
     }
     ani_object paramsObj = static_cast<ani_object>(paramsRef);
