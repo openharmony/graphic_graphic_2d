@@ -839,7 +839,7 @@ bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
     return false;
 }
 
-bool RSSystemProperties::GetDefualtMemClearEnabled()
+bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
     return false;
 }

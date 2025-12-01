@@ -1236,17 +1236,17 @@ HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDefualtMemClearEnabled
- * @tc.desc: GetDefualtMemClearEnabledTest
+ * @tc.name: GetDefaultMemClearEnabled
+ * @tc.desc: GetDefaultMemClearEnabledTest
  * @tc.type: FUNC
  * @tc.require: issuesICQ74B
  */
-HWTEST_F(RSSystemPropertiesTest, GetDefualtMemClearEnabledTest, TestSize.Level1)
+HWTEST_F(RSSystemPropertiesTest, GetDefaultMemClearEnabledTest, TestSize.Level1)
 {
-    system::SetParameter("persist.sys.graphic.defualt.mem.clear.enabled", "0");
-    EXPECT_FALSE(RSSystemProperties::GetDefualtMemClearEnabled());
-    system::SetParameter("persist.sys.graphic.defualt.mem.clear.enabled", "1");
-    EXPECT_TRUE(RSSystemProperties::GetDefualtMemClearEnabled());
+    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "0");
+    EXPECT_FALSE(RSSystemProperties::GetDefaultMemClearEnabled());
+    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "1");
+    EXPECT_TRUE(RSSystemProperties::GetDefaultMemClearEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS
