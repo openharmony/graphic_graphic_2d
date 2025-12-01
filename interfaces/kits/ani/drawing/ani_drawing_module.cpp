@@ -14,6 +14,7 @@
  */
 
 #include "ani_drawing_utils.h"
+#include "ani_drawing_cache_utils.h"
 #include "lattice_ani/ani_lattice.h"
 #include "brush_ani/ani_brush.h"
 #include "canvas_ani/ani_canvas.h"
@@ -131,7 +132,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         return ANI_ERROR;
     }
 
-    if (AniCleanerInit(env) != ANI_OK ||
+    if (OHOS::Rosen::Drawing::InitAniGlobalRef(env) != ANI_OK ||
+        AniCleanerInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniBrush::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniCanvas::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniColorFilter::AniInit(env) != ANI_OK ||

@@ -17,7 +17,6 @@
 #define OHOS_ANI_DRAWING_UTILS_H
 
 #include <ani.h>
-#include <hilog/log.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -28,26 +27,9 @@
 #include "text/font_types.h"
 #include "utils/point.h"
 #include "utils/rect.h"
-
-#ifdef ROSEN_OHOS
-
-#undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001400
-
-#undef LOG_TAG
-#define LOG_TAG "AniDrawing"
-
-#define ROSEN_LOGI(format, ...)              \
-    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGD(format, ...)               \
-    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGE(format, ...)               \
-    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
-#else
-#define ROSEN_LOGI(format, ...)
-#define ROSEN_LOGD(format, ...)
-#define ROSEN_LOGE(format, ...)
-#endif
+#include "ani_drawing_cache_utils.h"
+#include "ani_drawing_log.h"
+#include "ani_drawing_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -82,11 +64,6 @@ constexpr size_t ARGC_NINE = 9;
 constexpr int MAX_PAIRS_PATHVERB = 4;
 constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
 constexpr int RGBA_MAX = 255;
-constexpr const char* ANI_DOUBLE_STRING = "std.core.Double";
-constexpr const char* ANI_INT_STRING = "std.core.Int";
-constexpr const char* ANI_CLASS_MATRIX_NAME = "@ohos.graphics.drawing.drawing.Matrix";
-constexpr const char* ANI_CLASS_COLORFILTER_NAME = "@ohos.graphics.drawing.drawing.ColorFilter";
-constexpr const char* ANI_CLASS_PATH_NAME = "@ohos.graphics.drawing.drawing.Path";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
@@ -131,6 +108,8 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
 }
 
 ani_object CreateAniUndefined(ani_env* env);
+
+ani_object CreateAniObjectWithCls(ani_env* env, ani_class cls, const ani_method ctor, ...);
 
 ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ...);
 

@@ -163,6 +163,7 @@ ohos_shared_library("drawing_ani") {
   ]
   sources = [
     "ani_drawing_utils.cpp",
+    "ani_drawing_cache_utils.cpp",
     "lattice_ani/ani_lattice.cpp",
     "matrix_ani/ani_matrix.cpp",
     "path_iterator_ani/ani_path_iterator.cpp",
