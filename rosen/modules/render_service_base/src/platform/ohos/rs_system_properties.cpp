@@ -1780,9 +1780,9 @@ bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
 
 bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
-    static bool enable =
+    static bool defaultMemClearEnabled =
         std::atoi((system::GetParameter("persist.sys.graphic.default.mem.clear.enabled", "1")).c_str()) != 0;
-    return enable;
+    return defaultMemClearEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS
