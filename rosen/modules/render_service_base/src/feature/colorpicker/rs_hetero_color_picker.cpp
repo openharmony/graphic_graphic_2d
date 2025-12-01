@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "feature/colorpicker/rs_hetero_pick_color_manager.h"
+#include "feature/colorpicker/rs_hetero_color_picker.h"
 #ifdef MHC_ENABLE
 #include "rs_mhc_manager.h"
 #endif
@@ -23,13 +23,13 @@
 namespace OHOS {
 namespace Rosen {
 
-RSHeteroPickColorManager& RSHeteroPickColorManager::Instance()
+RSHeteroColorPicker& RSHeteroColorPicker::Instance()
 {
-    static RSHeteroPickColorManager instance;
+    static RSHeteroColorPicker instance;
     return instance;
 }
 
-bool RSHeteroPickColorManager::GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
+bool RSHeteroColorPicker::GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
     Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image)
 {
     auto colorSurface = surface->MakeSurface(1, 1);

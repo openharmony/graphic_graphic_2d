@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_HETERO_PICK_COLOR_MANAGER_H
-#define RS_HETERO_PICK_COLOR_MANAGER_H
+#ifndef RS_HETERO_COLOR_PICKER_H
+#define RS_HETERO_COLOR_PICKER_H
 
 #include "image/image.h"
 #include "draw/canvas.h"
@@ -29,11 +29,11 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSHeteroPickColorManager {
+class RSHeteroColorPicker {
 public:
-    static RSHeteroPickColorManager& Instance();
-    RSHeteroPickColorManager() = default;
-    ~RSHeteroPickColorManager() = default;
+    static RSHeteroColorPicker& Instance();
+    RSHeteroColorPicker() = default;
+    ~RSHeteroColorPicker() = default;
 
     bool GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
         Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image);
@@ -41,4 +41,4 @@ public:
 
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_HETERO_PICK_COLOR_MANAGER_H
+#endif // RS_HETERO_COLOR_PICKER_H

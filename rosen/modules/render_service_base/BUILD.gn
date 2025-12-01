@@ -390,7 +390,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/capture/rs_ui_capture_helper.cpp",
     "src/feature/colorpicker/rs_color_picker_manager.cpp",
     "src/feature/colorpicker/rs_color_picker_thread.cpp",
-    "src/feature/colorpicker/rs_hetero_pick_color_manager.cpp",
+    "src/feature/colorpicker/rs_hetero_color_picker.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.cpp",

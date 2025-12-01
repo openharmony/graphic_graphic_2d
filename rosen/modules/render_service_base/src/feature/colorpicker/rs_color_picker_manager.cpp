@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "feature/colorpicker/rs_color_picker_thread.h"
-#include "feature/colorpicker/rs_hetero_pick_color_manager.h"
+#include "feature/colorpicker/rs_hetero_color_picker.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
@@ -65,7 +65,7 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         ptr->colorPicked_ = newColor;
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId);
     };
-    if (!RSHeteroPickColorManager::Instance().GetColor(updateColor, drawingSurface, snapshot)) {
+    if (!RSHeteroColorPicker::Instance().GetColor(updateColor, drawingSurface, snapshot)) {
         auto colorPickTask = [snapshot, nodeId, strategy, weakThis = weak_from_this()]() {
             auto manager = weakThis.lock();
             if (!manager) {
