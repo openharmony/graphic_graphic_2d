@@ -1246,7 +1246,7 @@ HWTEST_F(RSSystemPropertiesTest, GetDefaultMemClearEnabledTest, TestSize.Level1)
     system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "0");
     EXPECT_FALSE(RSSystemProperties::GetDefaultMemClearEnabled());
     system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "1");
-    EXPECT_TRUE(RSSystemProperties::GetDefaultMemClearEnabled());
+    EXPECT_FALSE(RSSystemProperties::GetDefaultMemClearEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

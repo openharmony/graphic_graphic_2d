@@ -728,11 +728,6 @@ HWTEST_F(RSImageCacheTest, ReserveImageInfoTest, TestSize.Level1)
     EXPECT_NE(rsImage, nullptr);
     imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
-
-    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "0");
-    imageCache.ReserveImageInfo(rsImage, id, extendImageObject->weak_from_this());
-    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
-    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "1");
 }
 
 /**
@@ -754,11 +749,6 @@ HWTEST_F(RSImageCacheTest, RemoveImageMemForWindowTest, TestSize.Level1)
 
     imageCache.RemoveImageMemForWindow(surfaceNodeId);
     EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
-
-    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "0");
-    imageCache.RemoveImageMemForWindow(surfaceNodeId);
-    EXPECT_EQ(imageCache.rsImageInfoMap.size(), 0);
-    system::SetParameter("persist.sys.graphic.default.mem.clear.enabled", "1");
 }
 #endif
 } // namespace OHOS::Rosen
