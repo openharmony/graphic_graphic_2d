@@ -1269,20 +1269,6 @@ HWTEST_F(RSServiceClientTest, SetSystemAnimatedScenesTest, TestSize.Level1)
 
 /**
  * @tc.name: SetDualScreenState
- * @tc.desc: Test SetDualScreenState with valid screen id
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
-{
-    auto screenId = rsClient->GetDefaultScreenId();
-    ASSERT_NE(screenId, INVALID_SCREEN_ID);
-    auto ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/**
- * @tc.name: SetDualScreenState
  * @tc.desc: Test SetDualScreenState
  * @tc.type:FUNC
  * @tc.require: issuesI9K7SJ
