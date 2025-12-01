@@ -103,6 +103,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUnregisterGeometryTransitionNodePair),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSDumpClientNodeTree),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSCommitDumpClientNodeTree),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkRepaintBoundary),
 
     /********** RSCanvasNodeCommand **********/
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeCreate),
