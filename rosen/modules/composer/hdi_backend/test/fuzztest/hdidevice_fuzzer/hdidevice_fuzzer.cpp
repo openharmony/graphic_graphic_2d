@@ -23,7 +23,7 @@ using namespace OHOS::Rosen;
 
 namespace OHOS {
     namespace {
-        constexpr int DEFAULT_FENCE = 100;
+        constexpr int DEFAULT_FENCE = -1;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -87,11 +87,14 @@ namespace OHOS {
         GraphicColorGamut gamut = GetData<GraphicColorGamut>();
         uint32_t screenId = GetData<uint32_t>();
         uint32_t layerId = GetData<uint32_t>();
-        int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
-        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
-        fenceFd = ((fenceFd >= 0 && fenceFd <= 2) ? DEFAULT_FENCE : fenceFd);
-        sptr<SyncFence> fence = new SyncFence(fenceFd);
-        GraphicLayerAlpha alpha = {0};
+        sptr<SyncFence> fence = new SyncFence(DEFAULT_FENCE);
+        GraphicLayerAlpha alpha = {
+            .enGlobalAlpha = GetData<bool>(),
+            .enPixelAlpha = GetData<bool>(),
+            .alpha0 = GetData<uint8_t>(),
+            .alpha1 = GetData<uint8_t>(),
+            .gAlpha = GetData<uint8_t>()
+        };
         GraphicIRect layerRect = GetData<GraphicIRect>();
         GraphicTransformType ttype = GetData<GraphicTransformType>();
         GraphicIRect visible = GetData<GraphicIRect>();
@@ -146,12 +149,7 @@ namespace OHOS {
         // get data
         uint32_t screenId = GetData<uint32_t>();
         bool needFlush = GetData<bool>();
-        int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
-        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
-        if (fenceFd >= 0 && fenceFd <= 2) {
-            fenceFd = DEFAULT_FENCE;
-        }
-        sptr<SyncFence> fence = new SyncFence(fenceFd);
+        sptr<SyncFence> fence = new SyncFence(DEFAULT_FENCE);
         uint32_t cacheIndex = GetData<uint32_t>();
         GraphicIRect damageRect = GetData<GraphicIRect>();
         std::vector<GraphicIRect> damageRects = { damageRect };
