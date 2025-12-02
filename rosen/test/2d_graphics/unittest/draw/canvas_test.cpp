@@ -356,6 +356,49 @@ HWTEST_F(CanvasTest, CanvasDrawShadowStyleTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasGetLocalShadowBoundTest001
+ * @tc.desc: Test for GetLocalShadowBounds function.
+ * @tc.type: FUNC
+ * @tc.require: I719NQ
+ */
+HWTEST_F(CanvasTest, CanvasGetLocalShadowBoundTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    Rect rect;
+    ASSERT_TRUE(canvas != nullptr);
+    Path path;
+    path.AddRoundRect({500, 500, 1000, 1000}, 50.f, 50.f);
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(0.8, 0, 0, 0, 1.5, 0, 0.01, -0.003, 1);
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    ASSERT_TRUE(canvas->GetLocalShadowBounds(
+        matrix, path, planeParams, devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect));
+}
+
+
+/**
+ * @tc.name: CanvasGetLocalShadowBoundTest002
+ * @tc.desc: Test for GetLocalShadowBounds function.
+ * @tc.type: FUNC
+ * @tc.require: I719NQ
+ */
+HWTEST_F(CanvasTest, CanvasGetLocalShadowBoundTest002, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    Rect rect;
+    ASSERT_TRUE(canvas != nullptr);
+    Path path;
+    path.AddRoundRect({500, 500, 1000, 1000}, 50.f, 50.f);
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    ASSERT_TRUE(canvas->GetLocalShadowBounds(
+        matrix, path, planeParams, devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == false);
+}
+
+/**
  * @tc.name: CanvasDrawRegionTest001
  * @tc.desc: Test for drawing Region on the Canvas.
  * @tc.type: FUNC

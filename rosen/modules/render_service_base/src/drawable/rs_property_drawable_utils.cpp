@@ -17,6 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
+#include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
@@ -1690,6 +1691,45 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectBy
     absDrawRect.Intersect(deviceRect);
 
     return {absImageRect, absDrawRect};
+}
+
+void RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
+    const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId)
+{
+    if (!drawingFilter) {
+        return;
+    }
+    const auto& renderFilter = drawingFilter->GetNGRenderFilter();
+    if (!renderFilter || renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
+        return;
+    }
+    const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, use sdfShape, node %{public}" PRIu64,
+        nodeId);
+        filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
+        return;
+    }
+    RRect sdfRRect{};
+    if (properties.GetClipToRRect()) {
+        auto rrect = properties.GetClipRRect();
+        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+    } else if (!properties.GetCornerRadius().IsZero()) {
+        auto rrect = properties.GetRRect();
+        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+    } else {
+        sdfRRect.rect_ = properties.GetBoundsRect();
+    }
+    auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    if (!sdfRRectShape) {
+        return;
+    }
+    ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, rrect %{public}s, node %{public}" PRIu64,
+        sdfRRect.rect_.ToString().c_str(), nodeId);
+    sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
+    filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
 }
 
 } // namespace Rosen

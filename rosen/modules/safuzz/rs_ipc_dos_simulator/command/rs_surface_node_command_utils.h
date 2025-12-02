@@ -33,6 +33,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetBootAnimation, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetGlobalPositionEnabled, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSecurityLayer, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSourceVirtualDisplayId, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSkipLayer, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSnapshotSkipLayer, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetFingerprint, Uint64, Bool);
@@ -63,6 +64,11 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetHardwareEnableHint, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeAttachToWindowContainer, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeDetachFromWindowContainer, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetRegionToBeMagnified, Uint64, Vector4i);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetFrameGravityNewVersionEnabled, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetSurfaceBufferOpaque, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAncoSrcCrop, Uint64, Rect);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetContainerWindowTransparent, Uint64, Bool);
 };
 } // namespace Rosen
 } // namespace OHOS

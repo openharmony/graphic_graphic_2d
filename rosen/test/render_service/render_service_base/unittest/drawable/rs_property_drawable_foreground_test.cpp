@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include "drawable/rs_property_drawable_foreground.h"
 #include "effect/rs_render_shape_base.h"
+#include "ge_visual_effect_container.h"
 #include "pipeline/rs_render_node.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_foreground_effect_filter.h"
@@ -558,6 +559,74 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CreateDrawFuncAndRunTest001
+ * @tc.desc: CreateDrawFuncAndRun test
+ * @tc.type: FUNC
+ * @tc.require:issueI9SCBR
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
+        std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
+    EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
+    auto drawFunction = foregroundFilterRestoreDrawable->CreateDrawFunc();
+    EXPECT_NE(drawFunction, nullptr);
+
+    // initialize drawing filter
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    uint32_t hash = 1;
+    std::shared_ptr<RSDrawingFilter> drawingFilter =
+        std::make_shared<RSDrawingFilter>(imageFilter, shaderFilters, hash);
+    drawingFilter->SetImageFilter(imageFilter);
+
+    // create and sync a foreground filter
+    std::shared_ptr<RSFilter> stagingForegroundFilter = drawingFilter;
+    EXPECT_NE(stagingForegroundFilter, nullptr);
+    foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
+
+    // initial state
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+    }
+
+    Drawing::Canvas canvasTest;
+    RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
+    drawFunction(&paintFilterCanvas, nullptr);
+    // rect == nullptr, still initial width/height
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, 0.0f);
+    }
+
+    const auto width = 100.0f;
+    const auto height = 100.0f;
+    Drawing::Rect rect(0.0f, 0.0f, width, height);
+    drawFunction(&paintFilterCanvas, &rect);
+    // properly initialized
+    for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
+        EXPECT_EQ(filter->GetCanvasInfo().geoWidth, width);
+        EXPECT_EQ(filter->GetCanvasInfo().geoHeight, height);
+    }
+
+    // in case foregroundFilter_ happens to be nullptr
+    foregroundFilterRestoreDrawable->foregroundFilter_ = nullptr;
+    drawFunction(&paintFilterCanvas, &rect); // should not crash or anything
+
+    // RSFilter is used instead of RSDrawingFilter
+    stagingForegroundFilter = std::make_shared<RSFilter>();
+    foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
+    foregroundFilterRestoreDrawable->needSync_ = true;
+    foregroundFilterRestoreDrawable->OnSync();
+    drawFunction(&paintFilterCanvas, &rect);
+}
+
+/**
  * @tc.name: GetShaderTest001
  * @tc.desc: GetPhongShaderBuilder GetFeatheringBoardLightShaderBuilder test
  * @tc.type: FUNC
@@ -892,7 +961,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest001, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_CONTENT;
     EXPECT_FALSE(pointLightDrawableTest->DrawSDFContentLight(canvas1, lightShaderEffect1, brush1));
     EXPECT_FALSE(brush1.IsAntiAlias());
-    EXPECT_EQ(brush1.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush1.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_EQ(nullptr, brush1.GetShaderEffect());
 }
 
@@ -934,7 +1003,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest002, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLEND_BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas11, lightShaderEffect11, brush11));
     EXPECT_FALSE(brush11.IsAntiAlias());
-    EXPECT_EQ(brush11.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush11.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush11.GetShaderEffect());
 }
 
@@ -956,7 +1025,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest003, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::INVALID;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas4, lightShaderEffect4, brush4));
     EXPECT_FALSE(brush4.IsAntiAlias());
-    EXPECT_EQ(brush4.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush4.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush4.GetShaderEffect());
 
     Drawing::Canvas canvas5;
@@ -966,7 +1035,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest003, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NONE;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas5, lightShaderEffect5, brush5));
     EXPECT_FALSE(brush5.IsAntiAlias());
-    EXPECT_EQ(brush5.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush5.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush5.GetShaderEffect());
 }
 
@@ -988,7 +1057,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest004, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas9, lightShaderEffect9, brush9));
     EXPECT_FALSE(brush9.IsAntiAlias());
-    EXPECT_EQ(brush9.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush9.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush9.GetShaderEffect());
 
     Drawing::Canvas canvas10;
@@ -998,7 +1067,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest004, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BLOOM_BORDER_CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas10, lightShaderEffect10, brush10));
     EXPECT_FALSE(brush10.IsAntiAlias());
-    EXPECT_EQ(brush10.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush10.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush10.GetShaderEffect());
 }
 
@@ -1020,7 +1089,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas6, lightShaderEffect6, brush6));
     EXPECT_FALSE(brush6.IsAntiAlias());
-    EXPECT_EQ(brush6.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush6.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush6.GetShaderEffect());
 
     Drawing::Canvas canvas7;
@@ -1030,7 +1099,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas7, lightShaderEffect7, brush7));
     EXPECT_FALSE(brush7.IsAntiAlias());
-    EXPECT_EQ(brush7.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush7.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush7.GetShaderEffect());
 
     Drawing::Canvas canvas8;
@@ -1040,7 +1109,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest005, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas8, lightShaderEffect8, brush8));
     EXPECT_FALSE(brush8.IsAntiAlias());
-    EXPECT_EQ(brush8.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush8.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush8.GetShaderEffect());
 }
 
@@ -1062,7 +1131,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest006, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas12, lightShaderEffect12, brush12));
     EXPECT_FALSE(brush12.IsAntiAlias());
-    EXPECT_EQ(brush12.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush12.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush12.GetShaderEffect());
 
     Drawing::Canvas canvas13;
@@ -1072,7 +1141,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawSDFContentLightTest006, TestSize.
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
     EXPECT_TRUE(pointLightDrawableTest->DrawSDFContentLight(canvas13, lightShaderEffect13, brush13));
     EXPECT_FALSE(brush13.IsAntiAlias());
-    EXPECT_EQ(brush13.GetBlendMode(), Drawing::BlendMode::CLEAR);
+    EXPECT_EQ(brush13.GetBlendMode(), Drawing::BlendMode::SRC_OVER);
     EXPECT_NE(nullptr, brush13.GetShaderEffect());
 }
 

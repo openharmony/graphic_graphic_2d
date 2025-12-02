@@ -48,6 +48,12 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomHgmRefreshRateUpdateCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomUint64AndEventInfoPairVector(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomStringAndEventInfoPairVector(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomStringAndStringPairVector(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     static bool WriteRandomPointerLuminanceChangeCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
@@ -83,6 +89,7 @@ private:
 
     static bool WriteRandomRSTransactionDataToVector(std::vector<std::shared_ptr<MessageParcel>>& messageParcels,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomSharedTypefaceFd(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
 };
 } // namespace Rosen
 } // namespace OHOS

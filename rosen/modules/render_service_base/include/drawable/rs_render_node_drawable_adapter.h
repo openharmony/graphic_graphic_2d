@@ -330,6 +330,8 @@ protected:
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
     void DrawImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t index) const;
 
+    virtual void DumpSubDrawableTree(std::string& out) const {}
+
     // Register utils
     using Generator = Ptr (*)(std::shared_ptr<const RSRenderNode>);
     template<RSRenderNodeType type, Generator generator>

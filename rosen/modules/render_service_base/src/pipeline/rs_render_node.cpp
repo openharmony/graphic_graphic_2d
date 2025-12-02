@@ -548,25 +548,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         ClearCloneCrossNode();
     }
 
-    // Need to count upeer or lower trees of HDR nodes
-    if (GetType() == RSRenderNodeType::CANVAS_NODE) {
-        auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
-        if (canvasNode != nullptr &&
-            (canvasNode->GetHDRPresent() || canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
-            NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
-            ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
-                       " parent'S id:%{public}" PRIu64 " ",
-                canvasNode->GetId(), canvasNode->GetNodeName().c_str(), parentNodeId);
-            if (canvasNode->GetHDRPresent()) {
-                SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
-                canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
-            }
-            if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
-                SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
-            }
-        }
-    }
-
     if (enableHdrEffect_) {
         NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
         ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDREffect Node[id:%{public}" PRIu64 " name:%{public}s]"
@@ -696,7 +677,9 @@ void RSRenderNode::ResetChildRelevantFlags()
     visibleEffectChild_.clear();
     childrenRect_.Clear();
     hasChildrenOutOfRect_ = false;
+    SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
+    SetForceDisableNodeGroup(false);
     RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
@@ -2293,22 +2276,23 @@ void RSRenderNode::SetParentSubTreeDirty()
     }
 }
 
-bool RSRenderNode::IsTreeStateChangeDirty() const
-{
-    return isTreeStateChangeDirty_;
-}
-
-void RSRenderNode::SetTreeStateChangeDirty(bool val)
-{
-    isTreeStateChangeDirty_ = val;
-}
-
-void RSRenderNode::SetParentTreeStateChangeDirty()
+void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
 {
     auto parentNode = parent_.lock();
-    if (parentNode && !parentNode->IsTreeStateChangeDirty()) {
+    if (!parentNode) {
+        return;
+    }
+    if (parentNode && (isUpdateAllParentNode || !parentNode->IsTreeStateChangeDirty())) {
         parentNode->SetTreeStateChangeDirty(true);
-        parentNode->SetParentTreeStateChangeDirty();
+        parentNode->SetParentTreeStateChangeDirty(isUpdateAllParentNode);
+    }
+}
+
+void RSRenderNode::SetChildrenTreeStateChangeDirty()
+{
+    auto sortedChildren = GetSortedChildren();
+    for (auto& child : *sortedChildren) {
+        child->SetTreeStateChangeDirty(true);
     }
 }
 
@@ -3228,7 +3212,6 @@ void RSRenderNode::UpdateDisplayList()
 
     // Update index of ENV_FOREGROUND_COLOR
     stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
-
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
 
@@ -3405,13 +3388,12 @@ bool RSRenderNode::GetGlobalPositionEnabled() const
 
 Vector2f RSRenderNode::GetOptionalBufferSize() const
 {
-    if (boundsModifierNG_ != nullptr) {
-        auto bounds = boundsModifierNG_->Getter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS);
-        return { bounds.z_, bounds.w_ };
+    auto& propeties = GetRenderProperties();
+    if (isBoundsModifierAdded_) {
+        return propeties.GetBoundsSize();
     }
-    if (frameModifierNG_ != nullptr) {
-        auto frame = frameModifierNG_->Getter<Vector4f>(ModifierNG::RSPropertyType::FRAME);
-        return { frame.z_, frame.w_ };
+    if (isFrameModifierAdded_) {
+        return propeties.GetFrameSize();
     }
     return { 0.f, 0.f };
 }
@@ -3468,6 +3450,36 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
     AddToPendingSyncList();
 }
 
+void RSRenderNode::ExcludedFromNodeGroup(bool isExcluded)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->ExcludedFromNodeGroup(isExcluded);
+#endif
+}
+
+bool RSRenderNode::IsExcludedFromNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsExcludedFromNodeGroup();
+#endif
+    return false;
+}
+
+void RSRenderNode::SetHasChildExcludedFromNodeGroup(bool isExcluded)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetHasChildExcludedFromNodeGroup(isExcluded);
+#endif
+}
+
+bool RSRenderNode::HasChildExcludedFromNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->HasChildExcludedFromNodeGroup();
+#endif
+    return false;
+}
+
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
 {
     return nodeGroupIncludeProperty_;
@@ -3499,7 +3511,7 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 
 void RSRenderNode::CheckDrawingCacheType()
 {
-    if (nodeGroupType_ == NodeGroupType::NONE) {
+    if (nodeGroupType_ == NodeGroupType::NONE || IsExcludedFromNodeGroup()) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_FOREGROUND_FILTER) {
         SetDrawingCacheType(RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
@@ -4142,9 +4154,6 @@ void RSRenderNode::UpdateRenderParams()
     bool hasSandbox = sharedTransitionParam_ && GetRenderProperties().GetSandBox();
     stagingRenderParams_->SetHasSandBox(hasSandbox);
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
-#ifdef RS_ENABLE_PREFETCH
-    __builtin_prefetch(&boundsModifierNG_, 0, 1);
-#endif
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(),
@@ -4200,7 +4209,7 @@ bool RSRenderNode::UpdateLocalDrawRect()
 
 void RSRenderNode::UpdateAbsDrawRect()
 {
-    auto absRect = GetAbsDrawRect();
+    const auto& absRect = GetAbsDrawRect();
     stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
@@ -4761,10 +4770,10 @@ void RSRenderNode::AddModifier(
     }
     // bounds and frame modifiers must be unique
     if (type == ModifierNG::RSModifierType::BOUNDS) {
-        boundsModifierNG_ = modifier;
+        isBoundsModifierAdded_ = true;
     }
     if (type == ModifierNG::RSModifierType::FRAME) {
-        frameModifierNG_ = modifier;
+        isFrameModifierAdded_ = true;
     }
     if (modifier->IsCustom()) {
         modifier->SetSingleFrameModifier(false);
@@ -4783,12 +4792,16 @@ void RSRenderNode::RemoveModifier(ModifierNG::RSModifierType type, ModifierId id
 {
     const auto& modifiersIt = modifiersNG_.find(type);
     if (modifiersIt == modifiersNG_.end()) {
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::RemoveModifier modifierNG_ not find, ModifierId %{public}"
+            PRIu64 ", ModifierType %{public}hu", id, type);
         return;
     }
     auto& slot = modifiersIt->second;
     auto it =
         std::find_if(slot.begin(), slot.end(), [id](const auto& modifier) -> bool { return modifier->GetId() == id; });
     if (it == slot.end()) {
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::RemoveModifier slot not find, ModifierId %{public}"
+            PRIu64 ", ModifierType %{public}hu", id, type);
         return;
     }
     (*it)->OnDetachModifier();
@@ -4988,7 +5001,6 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
     if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
-        SetForceDisableNodeGroup(true);
         auto parentNode = GetParent().lock();
         if (parentNode) {
             parentNode->SetForceDisableNodeGroup(true);

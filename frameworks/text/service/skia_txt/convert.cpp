@@ -96,6 +96,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.tab = Convert(style.tab);
     paragraphStyle.paragraphSpacing = style.paragraphSpacing;
     paragraphStyle.isEndAddParagraphSpacing = style.isEndAddParagraphSpacing;
+    paragraphStyle.compressHeadPunctuation = style.compressHeadPunctuation;
     paragraphStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
     paragraphStyle.defaultTextStyleUid = style.defaultTextStyleUid;
     paragraphStyle.halfLeading = style.halfLeading;

@@ -5313,7 +5313,7 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    EXPECT_EQ(rsNode->lazyLoad_, false);
     rsNode->LoadRenderNodeIfNeed();
     EXPECT_EQ(rsNode->lazyLoad_, false);
 }
@@ -5327,7 +5327,7 @@ HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    EXPECT_EQ(rsNode->lazyLoad_, false);
 
     constexpr int commandSize{1024};
     for (int i = 0; i < commandSize; ++i) {
@@ -6853,6 +6853,29 @@ HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExcludedFromNodeGroup
+ * @tc.desc: test results of ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, ExcludedFromNodeGroup, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->ExcludedFromNodeGroup(true);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+    EXPECT_TRUE(rsNode->isExcludedFromNodeGroup_);
+
+    rsNode->ExcludedFromNodeGroup(false);
+    EXPECT_FALSE(rsNode->isExcludedFromNodeGroup_);
+    rsNode->ExcludedFromNodeGroup(false);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->ExcludedFromNodeGroup(true);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
  * @tc.name: MarkRepaintBoundary
  * @tc.desc: test results of MarkRepaintBoundary
  * @tc.type: FUNC
@@ -7257,7 +7280,29 @@ HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
     auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), trueChild->GetId(),
         trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
 
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
+    rsNode->AddChild(shadowChild, 1);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
+}
+
+/**
+ * @tc.name: AddChildTest005
+ * @tc.desc: Test AddChild with invalid shadow child
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
+{
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(true, true);
+    auto rsUIContext = uiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto trueChild = RSCanvasNode::Create();
+    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
+        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
+
+    EXPECT_EQ(trueChild->lazyLoad_, false);
     rsNode->AddChild(shadowChild, 1);
     EXPECT_EQ(trueChild->lazyLoad_, false);
 }

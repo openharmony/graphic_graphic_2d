@@ -61,6 +61,9 @@ private:
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks() noexcept;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void CleanCanvasCallbacksAndPendingBuffer() noexcept;
+#endif
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -98,7 +101,7 @@ private:
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
 
@@ -262,7 +265,7 @@ private:
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
-    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate) override;
+    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
@@ -315,6 +318,8 @@ private:
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
     ErrCode ReportJankStats() override;
+
+    void UpdateAnimationOcclusionStatus(const std::string& sceneId, bool isStart);
 
     ErrCode ReportEventResponse(DataBaseRs info) override;
 

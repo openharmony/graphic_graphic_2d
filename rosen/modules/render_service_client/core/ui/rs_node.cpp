@@ -160,7 +160,6 @@ const std::set<std::pair<uint16_t, uint16_t>> RSNode::createNodeCommandTypes_{
 const std::set<std::pair<uint16_t, uint16_t>> RSNode::lazyLoadCommandTypes_{
     {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY},
     {RSCommandType::BASE_NODE, RSNodeCommandType::SET_UICONTEXT_TOKEN},
-    {RSCommandType::RS_NODE, RSNodeCommandType::SET_NODE_NAME},
     {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY}
 };
 
@@ -2134,7 +2133,8 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         }
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 
@@ -2323,6 +2323,7 @@ void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& material
 {
     if (!materialFilter) {
         ROSEN_LOGW("RSNode::SetMaterialNGFilter filter is nullptr");
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_FILTER);
         if (modifier != nullptr) {
             modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_NG_FILTER);
@@ -3251,6 +3252,17 @@ void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty
     }
 }
 
+void RSNode::ExcludedFromNodeGroup(bool isExcluded)
+{
+    CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    if (isExcludedFromNodeGroup_ == isExcluded) {
+        return;
+    }
+    isExcludedFromNodeGroup_ = isExcluded;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSExcludedFromNodeGroup>(GetId(), isExcluded);
+    AddCommand(command, IsRenderServiceNode());
+}
+
 void RSNode::MarkNodeSingleFrameComposer(bool isNodeSingleFrameComposer)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
@@ -3316,6 +3328,7 @@ void RSNode::MarkUifirstNode(bool isForceFlag, bool isUifirstEnable)
 
 void RSNode::SetDrawNode()
 {
+    LoadRenderNodeIfNeed();
     if (isDrawNode_) {
         return;
     }
@@ -3608,11 +3621,12 @@ void RSNode::AddChild(SharedPtr child, int index)
     if (frameNodeId_ < 0) {
         child->SetDrawNode();
     }
-    child->LoadRenderNodeIfNeed();
-    if (SharedPtr childInMap = GetNodeInMap(child->GetId())) {
-        if (childInMap != child) {
+    if (child->shadowNodeFlag_) {
+        if (SharedPtr childInMap = GetNodeInMap(child->GetId())) {
             childInMap->LoadRenderNodeIfNeed();
         }
+    } else {
+        child->LoadRenderNodeIfNeed();
     }
     AddChildInner(child, index);
 }
@@ -3996,6 +4010,7 @@ void RSNode::DumpTree(int depth, std::string& out) const
 
 void RSNode::DumpModifiers(std::string& out) const
 {
+    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
     std::string modifierInfo;
     const auto& modifiers = modifiersNG_;
     for (const auto& [id, modifier] : modifiers) {
@@ -4226,11 +4241,16 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
     if (modifier->IsCustom()) {
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
     }
-    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+
+    std::shared_ptr<ModifierNG::RSRenderModifier> renderModifier = nullptr;
+    {
+        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        renderModifier = modifier->CreateRenderModifier();
+    }
+    std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, renderModifier);
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);
     if (NeedForcedSendToRemote()) {
-        std::unique_ptr<RSCommand> cmdForRemote =
-            std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+        std::unique_ptr<RSCommand> cmdForRemote = std::make_unique<RSAddModifierNG>(id_, renderModifier);
         AddCommand(cmdForRemote, true, GetFollowType(), id_);
     }
 }
@@ -4245,8 +4265,8 @@ void RSNode::RemoveModifier(const std::shared_ptr<ModifierNG::RSModifier> modifi
             return;
         }
         modifiersNG_.erase(modifier->GetId());
+        modifier->OnDetach(); // Detach properties of modifier here
     }
-    modifier->OnDetach(); // Detach properties of modifier here
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSRemoveModifierNG>(id_, modifier->GetType(), modifier->GetId());
     AddCommand(command, IsRenderServiceNode(), GetFollowType(), id_);

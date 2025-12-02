@@ -92,17 +92,17 @@ void RSHardwareUnitTest::SetUpTestCase()
 void RSHardwareUnitTest::TearDownTestCase() {}
 void RSHardwareUnitTest::TearDown()
 {
-    screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::impl::RSScreenManager& screenManager =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager_);
+    screenManager_ = OHOS::Rosen::RSScreenManager::GetInstance();
+    OHOS::Rosen::RSScreenManager& screenManager =
+        static_cast<OHOS::Rosen::RSScreenManager&>(*screenManager_);
     screenManager.screens_.erase(screenId_);
     auto& hardwareThread = RSHardwareThread::Instance();
     hardwareThread.hgmHardwareUtils_.setRateRetryMap_.clear();
 }
 void RSHardwareUnitTest::SetUp()
 {
-    screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
+    screenManager_ = OHOS::Rosen::RSScreenManager::GetInstance();
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId_));
     screenId_ = rsScreen->Id();
     screenManager_->MockHdiScreenConnected(rsScreen);
     CreateComposerAdapterWithScreenInfo(DEFAULT_WIDTH, DEFAULT_HEIGHT,
@@ -468,7 +468,9 @@ HWTEST_F(RSHardwareUnitTest, RecordTimestamp, TestSize.Level1)
 
     auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     surfaceFpsManager.RegisterSurfaceFps(layer1->GetNodeId(), layer1->GetSurface()->GetName());
-    hardwareThread.RecordTimestamp(layers);
+    uint64_t vsyncId = 1;
+    OutputPtr output = HdiOutput::CreateHdiOutput(0);
+    hardwareThread.RecordTimestamp(vsyncId, output, layers);
     surfaceFpsManager.UnregisterSurfaceFps(layer1->GetNodeId());
 }
 
@@ -527,10 +529,10 @@ HWTEST_F(RSHardwareUnitTest, PerformSetActiveMode, TestSize.Level1)
 
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
-    OHOS::Rosen::impl::RSScreenManager::instance_ = nullptr;
+    OHOS::Rosen::RSScreenManager::instance_ = nullptr;
     hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
 
-    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManager;
+    OHOS::Rosen::RSScreenManager::instance_ = screenManager;
     hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
     hardwareThread.hgmHardwareUtils_.PerformSetActiveMode(output, 0, 0);
 
@@ -566,9 +568,11 @@ HWTEST_F(RSHardwareUnitTest, PerformSetActiveMode_002, TestSize.Level1)
 {
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
-    sptr<Mock::RSScreenManagerMock> screenManagerMock = Mock::RSScreenManagerMock::GetInstance();
-    EXPECT_CALL(*screenManagerMock, SetScreenActiveMode(_, _))
-        .WillRepeatedly(testing::Return(StatusCode::SET_RATE_ERROR));
+    EXPECT_CALL(*hdiDeviceMock_, SetScreenMode).WillRepeatedly(testing::Return(-1));
+    auto screen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId_));
+    screen->hdiScreen_->device_ = hdiDeviceMock_;
+    screen->supportedModes_.resize(6);
+    screenManager->screens_[screenId_] = screen;
 
     auto& hardwareThread = RSHardwareThread::Instance();
     OutputPtr output = HdiOutput::CreateHdiOutput(screenId_);
@@ -577,7 +581,6 @@ HWTEST_F(RSHardwareUnitTest, PerformSetActiveMode_002, TestSize.Level1)
     ASSERT_NE(outputInvalid, nullptr);
     hardwareThread.hgmHardwareUtils_.hgmRefreshRates_ = HgmRefreshRates::SET_RATE_120;
     hardwareThread.hgmHardwareUtils_.setRateRetryMap_.erase(screenId_);
-    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManagerMock;
     auto& hgmCore = HgmCore::Instance();
     int32_t rate = 3;
 
@@ -607,7 +610,6 @@ HWTEST_F(RSHardwareUnitTest, PerformSetActiveMode_002, TestSize.Level1)
         ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].first, false);
         ASSERT_EQ(hardwareThread.hgmHardwareUtils_.setRateRetryMap_[screenId_].second, MAX_SETRATE_RETRY_COUNT);
     }
-    OHOS::Rosen::impl::RSScreenManager::instance_ = screenManager;
 }
 
 /**

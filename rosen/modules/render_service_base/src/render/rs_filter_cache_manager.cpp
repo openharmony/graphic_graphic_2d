@@ -415,6 +415,10 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
 
 void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
 {
+    if (hpaeCacheManager_) {
+        hpaeCacheManager_->InvalidateFilterCache(clearType);
+    }
+
     if (clearType == FilterCacheType::BOTH) {
         cachedSnapshot_.reset();
         cachedFilteredSnapshot_.reset();
@@ -515,12 +519,8 @@ void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if (stagingIsAIBarInteractWithHWC_) {
+    if (stagingIsAIBarInteractWithHWC_ || stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
         ReduceCacheUpdateInterval();
-    } else {
-        if (stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
-            ReduceCacheUpdateInterval();
-        }
     }
     stagingIsAIBarInteractWithHWC_ = false;
 }

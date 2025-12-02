@@ -191,10 +191,19 @@ public:
     {
         isSubTreeDirty_ = val;
     }
+    bool IsTreeStateChangeDirty() const
+    {
+        return isTreeStateChangeDirty_;
+    }
+    void SetTreeStateChangeDirty(bool val)
+    {
+        isTreeStateChangeDirty_ = val;
+    }
     void SetParentSubTreeDirty();
-    bool IsTreeStateChangeDirty() const;
-    void SetTreeStateChangeDirty(bool val);
-    void SetParentTreeStateChangeDirty();
+    // set when tree state changed or in uicapture task for each parent node recursively
+    void SetParentTreeStateChangeDirty(bool isUpdateAllParentNode = false);
+    // set in uicapture task for each child node recursively
+    void SetChildrenTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
@@ -684,6 +693,12 @@ public:
         GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
+    void ExcludedFromNodeGroup(bool isExcluded);
+    bool IsExcludedFromNodeGroup() const;
+
+    void SetHasChildExcludedFromNodeGroup(bool isExcluded);
+    bool HasChildExcludedFromNodeGroup() const;
+
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     bool IsNodeGroupIncludeProperty() const;
@@ -1183,9 +1198,9 @@ private:
     NodeId screenNodeId_ = INVALID_NODEID;
     NodeId logicalDisplayNodeId_ = INVALID_NODEID;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
-    // bounds and frame modifiers must be unique
-    std::shared_ptr<ModifierNG::RSRenderModifier> boundsModifierNG_;
-    std::shared_ptr<ModifierNG::RSRenderModifier> frameModifierNG_;
+
+    bool isBoundsModifierAdded_ = false;
+    bool isFrameModifierAdded_= false;
 
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.

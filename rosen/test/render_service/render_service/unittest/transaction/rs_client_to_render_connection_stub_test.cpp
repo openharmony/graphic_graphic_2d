@@ -22,6 +22,9 @@
 #include "limit_number.h"
 #include "mock_hdi_device.h"
 #include "sandbox_utils.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
+#endif
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
@@ -103,7 +106,7 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
     screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
@@ -122,6 +125,19 @@ public:
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+class RSCanvasSurfaceBufferCallbackStubMock : public RSCanvasSurfaceBufferCallbackStub {
+public:
+    RSCanvasSurfaceBufferCallbackStubMock() = default;
+    virtual ~RSCanvasSurfaceBufferCallbackStubMock() = default;
+    void OnCanvasSurfaceBufferChanged(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override {}
+    bool IsProxyObject() const override
+    {
+        return true;
+    }
+};
+#endif
 
 void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data)
 {
@@ -150,7 +166,7 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
 HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, TestSize.Level1)
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
 
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
@@ -250,7 +266,7 @@ public:
     RSScreenChangeCallbackStubMock() = default;
     virtual ~RSScreenChangeCallbackStubMock() = default;
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason) override {};
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
 };
 
 
@@ -828,4 +844,41 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, NO_ERROR);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: RegisterCanvasCallbackTest
+ * @tc.desc: Test REGISTER_CANVAS_CALLBACK with various scenarios
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSize.Level1)
+{
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
+
+    // Scenario 1: Cannot read enableReadRemoteObject - should fail with ERR_INVALID_DATA
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    // Scenario 2: enableReadRemoteObject = false, callback will be nullptr
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteBool(false);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+
+    // Scenario 3: enableReadRemoteObject = true with valid callback
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteBool(true);
+    sptr<RSICanvasSurfaceBufferCallback> callback = new RSCanvasSurfaceBufferCallbackStubMock();
+    data3.WriteRemoteObject(callback->AsObject());
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data3, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+#endif
 } // namespace OHOS::Rosen

@@ -969,17 +969,15 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
         auto screenManager = CreateOrGetScreenManager();
-        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+        screenManager->powerOffNeedProcessOneFrame_ = false;
 
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
         EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
         EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
     }
 }
@@ -995,20 +993,18 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
         auto screenManager = CreateOrGetScreenManager();
-        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
     }
 }

@@ -562,7 +562,7 @@ ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
@@ -611,8 +611,8 @@ ScreenId RSClientToServiceConnectionProxy::CreateVirtualScreen(
             return INVALID_SCREEN_ID;
         }
     }
-    if (!data.WriteUint64(mirrorId)) {
-        ROSEN_LOGE("CreateVirtualScreen: WriteUint64 mirrorId err.");
+    if (!data.WriteUint64(associatedScreenId)) {
+        ROSEN_LOGE("CreateVirtualScreen: WriteUint64 associatedScreenId err.");
         return INVALID_SCREEN_ID;
     }
     if (!data.WriteInt32(flags)) {
@@ -3224,7 +3224,8 @@ bool RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     return result;
 }
 
-int32_t RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate)
+int32_t RSClientToServiceConnectionProxy::RegisterTypeface(
+    uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -3240,6 +3241,10 @@ int32_t RSClientToServiceConnectionProxy::RegisterTypeface(uint64_t id, uint32_t
     }
     if (!data.WriteUint32(size)) {
         RS_LOGE("RegisterTypeface: WriteUint32 size err.");
+        return -1;
+    }
+    if (!data.WriteUint32(index)) {
+        RS_LOGE("RegisterTypeface: WriteUint32 index err.");
         return -1;
     }
     if (!data.WriteFileDescriptor(fd)) {

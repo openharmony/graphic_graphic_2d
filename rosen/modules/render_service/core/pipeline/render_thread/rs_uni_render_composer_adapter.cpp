@@ -70,7 +70,7 @@ bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offs
         RS_LOGE("RSUniRenderComposerAdapter::Init: ScreenManager is nullptr");
         return false;
     }
-    output_ = screenManager->GetOutput(ToScreenPhysicalId(screenInfo.id));
+    output_ = screenManager->GetOutput(screenInfo.id);
     if (output_ == nullptr) {
         RS_LOGE("RSUniRenderComposerAdapter::Init: output_ is nullptr");
         return false;

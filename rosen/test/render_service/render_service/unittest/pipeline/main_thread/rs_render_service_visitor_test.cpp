@@ -850,7 +850,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode009, TestSize.Level1
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
-    auto rsScreen = std::make_shared<impl::RSScreen>(0, false, HdiOutput::CreateHdiOutput(0), nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(0));
     ASSERT_NE(rsScreen, nullptr);
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
@@ -878,7 +878,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode010, TestSize.Level1
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
 
-    auto rsScreen = std::make_shared<impl::RSScreen>(0, false, HdiOutput::CreateHdiOutput(0), nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(0));
     auto csurface = IConsumerSurface::Create();
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);

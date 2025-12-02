@@ -506,7 +506,7 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
         image, attr.src, attr.dst, Drawing::SamplingOptions(), brush.GetColor().GetAlphaF() * attr.brushAlpha,
         brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_};
 
-    bool kawaseHpsProcess = geRender->ApplyHpsGEImageEffect(canvas, *visualEffectContainer_,
+    auto [hasDrawnOnCanvas, kawaseHpsProcess] = geRender->ApplyHpsGEImageEffect(canvas, *visualEffectContainer_,
         context, outImage, brush);
     if (outImage == nullptr) {
         ROSEN_LOGD("RSDrawingFilter::ApplyHpsImageEffect ApplyHpsGEEffect failed");
@@ -514,7 +514,7 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
     if (kawaseHpsProcess) {
         canSkipMaskColor_ = maskColorForHPS != RgbPalette::Transparent();
     }
-    return kawaseHpsProcess;
+    return hasDrawnOnCanvas;
 }
 
 void RSDrawingFilter::DrawKawaseEffect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& outImage,

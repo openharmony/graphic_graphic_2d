@@ -335,6 +335,48 @@ HWTEST_F(SkiaCanvasTest, DrawShadowStyle001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: GetLocalShadowBounds001
+ * @tc.desc: Get Local Shadow Bounds Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, GetLocalShadowBounds001, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
+    Path path;
+    path.AddRect({500, 500, 1000, 1000});
+    Matrix ctm;
+    ctm.SetMatrix(1, 0, 0, 0, 1.5, 0, 0.001, 0, 1);
+    Rect rect;
+    Point3 planeParams = {0, 50, 50};
+    Point3 devLightPos = {1.f, 2.f, 100.f};
+    ASSERT_TRUE(skiaCanvas.GetLocalShadowBounds(ctm, path, planeParams,
+        devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == false);
+}
+
+/**
+ * @tc.name: GetLocalShadowBounds002
+ * @tc.desc: Get Local Shadow Bounds Test
+ * @tc.type: FUNC
+ * @tc.require: issuel#I6Q4ZH
+ */
+HWTEST_F(SkiaCanvasTest, GetLocalShadowBounds002, TestSize.Level1)
+{
+    SkiaCanvas skiaCanvas;
+    ASSERT_TRUE(skiaCanvas.ExportSkCanvas() != nullptr);
+    Path path;
+    path.AddRect({500, 500, 1000, 1000});
+    Matrix ctm;
+    ctm.SetMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    Rect rect;
+    Point3 planeParams = {0, 50, 50};
+    Point3 devLightPos = {1.f, 2.f, 100.f};
+    ASSERT_TRUE(skiaCanvas.GetLocalShadowBounds(ctm, path, planeParams,
+        devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == false);
+}
+
+/**
  * @tc.name: DrawBitmap001
  * @tc.desc:
  * @tc.type: FUNC

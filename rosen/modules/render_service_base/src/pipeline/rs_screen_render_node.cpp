@@ -20,6 +20,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #include "params/rs_screen_render_params.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
@@ -204,8 +205,10 @@ void RSScreenRenderNode::UpdateRenderParams()
     }
     screenParams->childDisplayCount_ = GetChildrenCount();
     screenParams->screenInfo_ = screenInfo_;
+    screenParams->screenProperty_ = screenProperty_;
     screenParams->logicalDisplayNodeDrawables_ = std::move(logicalDisplayNodeDrawables_);
     screenParams->SetHasMirroredScreenChanged(hasMirroredScreenChanged_);
+    screenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
     screenParams->roundCornerSurfaceDrawables_.clear();
     if (rcdSurfaceNodeTop_ && rcdSurfaceNodeTop_->GetRenderDrawable() != nullptr) {
         screenParams->roundCornerSurfaceDrawables_.push_back(rcdSurfaceNodeTop_->GetRenderDrawable());
@@ -495,9 +498,34 @@ void RSScreenRenderNode::SetForceCloseHdr(bool isForceCloseHdr)
     isForceCloseHdr_ = isForceCloseHdr;
 }
 
+// ScreeNode disable HDR only when all children displayNode disable HDR
 bool RSScreenRenderNode::GetForceCloseHdr() const
 {
-    return ROSEN_EQ(GetRenderProperties().GetHDRBrightnessFactor(), 0.0f);
+    auto childList = GetChildrenList();
+    if (childList.empty()) {
+        return false;
+    }
+    // Todo: This condition will be removed after EDR is adapted
+    if (static_cast<HdrStatus>(GetDisplayHdrStatus() & HdrStatus::HDR_EFFECT) == HdrStatus::HDR_EFFECT) {
+        return false;
+    }
+    for (const auto& child : childList) {
+        auto childPtr = child.lock();
+        if (!childPtr) {
+            RS_LOGE("RSScreenRenderNode::GetForceCloseHdr child is null");
+            return false;
+        }
+        auto displayNode = childPtr->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        if (!displayNode) {
+            RS_LOGE("RSScreenRenderNode::GetForceCloseHdr child is not displayNode");
+            return false;
+        }
+        bool disableHDR = ROSEN_EQ(displayNode->GetRenderProperties().GetHDRBrightnessFactor(), 0.0f);
+        if (!disableHDR) {
+            return false;
+        }
+    }
+    return true;
 }
 
 Occlusion::Region RSScreenRenderNode::GetDisappearedSurfaceRegionBelowCurrent(NodeId currentSurface) const
@@ -563,5 +591,26 @@ bool RSScreenRenderNode::GetForceFreeze() const
 {
     return forceFreeze_ && RSSystemProperties::GetSupportScreenFreezeEnabled();
 }
+
+void RSScreenRenderNode::CheckSurfaceChanged()
+{
+#ifndef ROSEN_CROSS_PLATFORM
+    if (!screenProperty_.IsVirtual()) {
+        return;
+    }
+    auto& [lastHasSurface, lastSurfaceId] = virtualSurfaceState_;
+    auto curSurface = screenProperty_.GetProducerSurface();
+    bool curHasSurface = (curSurface != nullptr);
+    if (lastHasSurface != curHasSurface || (curHasSurface && lastSurfaceId != curSurface->GetUniqueId())) {
+        lastHasSurface = curHasSurface;
+        lastSurfaceId = curSurface ? curSurface->GetUniqueId() : UINT64_MAX;
+        isVirtualSurfaceChanged_ = true;
+        return;
+    }
+
+    isVirtualSurfaceChanged_ = false;
+#endif
+}
+
 } // namespace Rosen
 } // namespace OHOS

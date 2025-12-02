@@ -35,6 +35,9 @@
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
 #endif
+#ifdef MHC_ENABLE
+#include "rs_mhc_manager.h"
+#endif
 #include "rs_render_composer_manager.h"
 #include "rs_uni_render_thread.h"
 
@@ -89,6 +92,9 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSHeteroHDRManager::Instance().PostHDRSubTasks();
+#ifdef MHC_ENABLE
+    RSMhcManager::Instance().UpdateFrameId();
+#endif
     RSUifirstManager::Instance().PostUifistSubTasks();
     UnblockMainThread();
     RsFrameReport::GetInstance().CheckUnblockMainThreadPoint();

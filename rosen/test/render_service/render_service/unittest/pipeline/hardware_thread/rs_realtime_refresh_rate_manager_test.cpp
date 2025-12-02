@@ -177,10 +177,10 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetScreenCurrentRefreshRate001, TestS
 
     hgmscreen->SetSelfOwnedScreenFlag(false);
     instance.GetScreenCurrentRefreshRate(screenId);
-    auto tmp = impl::RSScreenManager::instance_;
-    impl::RSScreenManager::instance_ = nullptr;
+    auto tmp = RSScreenManager::instance_;
+    RSScreenManager::instance_ = nullptr;
     ASSERT_EQ(OHOS::Rosen::CreateOrGetScreenManager(), nullptr);
     instance.GetScreenCurrentRefreshRate(screenId);
-    impl::RSScreenManager::instance_ = tmp;
+    RSScreenManager::instance_ = tmp;
 }
 }

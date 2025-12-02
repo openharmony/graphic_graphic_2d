@@ -165,6 +165,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/slr_scale/rs_slr_scale.cpp",
     "core/screen_manager/rs_screen.cpp",
     "core/screen_manager/rs_screen_manager.cpp",
+    "core/screen_manager/rs_screen_thread_safe_property.cpp",
     "core/system/rs_system_parameters.cpp",
     "core/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
@@ -300,6 +301,7 @@ ohos_shared_library("librender_service") {
       "core/feature/uifirst/rs_sub_thread_cache.cpp",
       "core/feature/uifirst/rs_uifirst_frame_rate_control.cpp",
       "core/feature/uifirst/rs_uifirst_manager.cpp",
+      "core/memory/rs_canvas_dma_buffer_cache.cpp",
       "core/memory/rs_memory_manager.cpp",
       "core/pipeline/main_thread/rs_uni_render_listener.cpp",
       "core/pipeline/main_thread/rs_uni_render_visitor.cpp",
@@ -404,6 +406,10 @@ ohos_shared_library("librender_service") {
 
   if (graphic_2d_feature_subtree_parallel_enable && defined(graphic_2d_subtree_configs.subtree_root)) {
     include_dirs += graphic_2d_subtree_configs.librender_service_subtree_include
+  }
+
+  if (graphic_2d_feature_mhc_enable) {
+    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
   }
 
   deps = [
@@ -522,6 +528,7 @@ ohos_shared_library("librender_service") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",
+    "qos_manager:concurrent_task_client",
   ]
   if (graphic_2d_feature_rs_enable_uni_render) {
     external_deps += [ "ability_runtime:ability_manager" ]

@@ -1574,9 +1574,33 @@ HWTEST_F(RSRenderNodeTest, RSRenderNodeDirtyTest003, TestSize.Level1)
     EXPECT_NE(child2, nullptr);
     child2->parent_ = child1;
 
-    child2->SetParentTreeStateChangeDirty();
+    child2->SetParentTreeStateChangeDirty(true);
     EXPECT_TRUE(child1->IsTreeStateChangeDirty());
     EXPECT_TRUE(parent->IsTreeStateChangeDirty());
+}
+
+/**
+ * @tc.name: SetChildrenTreeStateChangeDirty
+ * @tc.desc: SetChildrenTreeStateChangeDirty test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetChildrenTreeStateChangeDirtyTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> parent = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(parent, nullptr);
+    std::shared_ptr<RSRenderNode> child1 = std::make_shared<RSRenderNode>(1);
+    EXPECT_NE(child1, nullptr);
+    parent->AddChild(child1, -1);
+    child1->parent_ = parent;
+    std::shared_ptr<RSRenderNode> child2 = std::make_shared<RSRenderNode>(2);
+    EXPECT_NE(child2, nullptr);
+    child2->SetTreeStateChangeDirty(true);
+    child2->parent_ = child1;
+    parent->AddChild(child1, -1);
+
+    parent->SetChildrenTreeStateChangeDirty();
+    EXPECT_TRUE(child2->IsTreeStateChangeDirty());
 }
 
 /**
@@ -2529,7 +2553,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest013, TestSize
  */
 HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoBeforeChildrenTest014, TestSize.Level1)
 {
-std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->InitRenderParams();
     EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
@@ -2556,6 +2580,46 @@ std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     nodeTest->UpdateDrawingCacheInfoBeforeChildren(false);
     EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeId(), surfaceNode->GetId());
     EXPECT_EQ(nodeTest->stagingRenderParams_->GetInstanceRootNodeName(), surfaceNode->GetName());
+}
+
+/**
+ * @tc.name: ExcludedFromNodeGroupTest
+ * @tc.desc: Test ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderNodeTest, ExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+
+    nodeTest->ExcludedFromNodeGroup(true);
+    EXPECT_TRUE(nodeTest->IsExcludedFromNodeGroup());
+
+    nodeTest->ExcludedFromNodeGroup(false);
+    EXPECT_FALSE(nodeTest->IsExcludedFromNodeGroup());
+}
+
+/**
+ * @tc.name: SetHasChildExcludedFromNodeGroupTest
+ * @tc.desc: Test SetHasChildExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderNodeTest, SetHasChildExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(nodeTest, nullptr);
+    nodeTest->InitRenderParams();
+    EXPECT_NE(nodeTest->stagingRenderParams_, nullptr);
+
+    nodeTest->SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(nodeTest->HasChildExcludedFromNodeGroup());
+
+    nodeTest->SetHasChildExcludedFromNodeGroup(false);
+    EXPECT_FALSE(nodeTest->HasChildExcludedFromNodeGroup());
 }
 
 #ifndef MODIFIER_NG
@@ -2768,7 +2832,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
     RRect rrect;
     nodeTest->renderProperties_.rrect_ = rrect;
     nodeTest->UpdateDrawableVecV2();
-    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum + 1);
+    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum);
 }
 
 /**

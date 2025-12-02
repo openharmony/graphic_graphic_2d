@@ -47,7 +47,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Color_Test)
 
     std::vector<uint32_t> colorList = { 0xffffffff, 0xff000000, 0xffff0000, 0xff00ff00, 0xff0000ff, 0x7f000000,
         0x3f000000, 0x00000000 };
-    for (int i = 0; i < colorList.size(); i++) {
+    for (int i = 0; i < static_cast<int>(colorList.size()); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
@@ -221,7 +221,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Brightness_Fract_T
     auto sizeY = screenHeight / rowCount;
 
     std::vector<float> brightnessFractList = { 0, 0.5, 1, 200 };
-    for (int i = 0; i < brightnessFractList.size(); i++) {
+    for (int i = 0; i < static_cast<int>(brightnessFractList.size()); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround =
@@ -248,7 +248,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, Grey_Coef_Test)
 
     std::vector<Vector2f> greyCoefList = { { -10, -10 }, { -1, -1 }, { 0, 0 }, { 0.5, 0.5 }, { 1, 1 }, { 10, 10 } };
 
-    for (int i = 0; i < greyCoefList.size(); i++) {
+    for (int i = 0; i < static_cast<int>(greyCoefList.size()); i++) {
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround =

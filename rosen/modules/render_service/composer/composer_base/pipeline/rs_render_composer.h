@@ -128,7 +128,8 @@ private:
     std::string GetSurfaceNameInLayers(const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::string GetSurfaceNameInLayersForTrace(const std::vector<std::shared_ptr<RSLayer>>& layers);
     bool IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLayer>>& layers);
-    void RecordTimestamp(const std::vector<std::shared_ptr<RSLayer>>& layers);
+    void RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output,
+        const std::vector<std::shared_ptr<RSLayer>>& layers);
     void ProcessComposerFrame(RefreshRateParam param, uint32_t currentRate, bool hasGameScene);
     void AddRefreshRateCount();
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -157,6 +158,7 @@ private:
     int exceptionCnt_ = 0;
     ExceptionCheck exceptionCheck_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
+    bool isDisconnected_ = false;
     friend class RSRenderComposerAgent;
 };
 } // namespace OHOS::Rosen

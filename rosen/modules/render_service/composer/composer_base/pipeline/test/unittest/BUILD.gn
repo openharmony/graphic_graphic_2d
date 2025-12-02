@@ -67,7 +67,7 @@ template("rs_render_composer_unittest") {
       defines += [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
     }
     if (use_video_processing_engine) {
-      defines = [ "USE_VIDEO_PROCESSING_ENGINE" ]
+      defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
       external_deps += [ "video_processing_engine:videoprocessingengine" ]
     }
     subsystem_name = "graphic"

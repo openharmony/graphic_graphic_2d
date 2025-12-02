@@ -414,7 +414,6 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     nativeSurfaceInfo->nativeWindowBuffer = nativeWindowBuffer;
     std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBuffer(context.get(),
         imageInfoForRenderTarget, *nativeSurfaceInfo);
-    DestroyNativeWindowBuffer(nativeWindowBuffer);
     return newSurface;
 }
 

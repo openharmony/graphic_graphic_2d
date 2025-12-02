@@ -42,6 +42,7 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#include "render/rs_drawing_filter.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -621,6 +622,9 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeName_ = node.GetNodeName();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter != nullptr) {
+        const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+        RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+            drawingFilter, node.GetId());
         RecordFilterInfos(rsFilter);
         needSync_ = true;
         stagingFilter_ = rsFilter;
@@ -819,6 +823,10 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
             (effectData == nullptr || effectData->cachedImage_ == nullptr)) {
             ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+            if (paintFilterCanvas->GetIsParallelCanvas()) {
+                ROSEN_LOGE("RSPropertyDrawableUtils::DrawUseEffect is parallel canvas, disable fallback");
+                return;
+            }
             auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
             if (!drawable) {
                 return;
@@ -956,6 +964,9 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
     if (!rsFilter) {
         return false;
     }
+    const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+        drawingFilter, node.GetId());
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;

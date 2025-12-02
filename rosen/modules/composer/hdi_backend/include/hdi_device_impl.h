@@ -19,6 +19,7 @@
 #include "hdi_device.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 #include "v1_3/include/idisplay_composer_interface.h"
+#include "v1_4/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,6 +66,7 @@ public:
     int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState, bool &needFlush,
         std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences, bool isValidated) override;
     int32_t GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
+    int32_t GetScreenConnectionType(uint32_t screenId, GraphicDisplayConnectionType& outType) override;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */

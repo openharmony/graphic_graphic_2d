@@ -92,6 +92,13 @@ public:
 
     ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder) override;
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+
+    int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
+#endif
+
     void RemoveToken() override {};
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 

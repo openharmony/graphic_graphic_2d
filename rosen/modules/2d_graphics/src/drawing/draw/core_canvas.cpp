@@ -323,6 +323,17 @@ void CoreCanvas::DrawPathWithStencil(const Path& path, uint32_t stencilVal)
     DRAW_API_WITH_PAINT(DrawPathWithStencil, path, stencilVal);
 }
 
+bool CoreCanvas::GetLocalShadowBounds(const Matrix& ctm, const Path& path, const Point3& planeParams,
+    const Point3& devLightPos, scalar lightRadius, ShadowFlags flag, bool isLimitElevation, Rect& rect)
+{
+#ifdef DRAWING_DISABLE_API
+    if (DrawingConfig::IsDisabled(DrawingConfig::DrawingDisableFlag::DISABLE_GET_SHADOW_BOUNDS)) {
+        return false;
+    }
+#endif
+    return impl_->GetLocalShadowBounds(ctm, path, planeParams, devLightPos, lightRadius, flag, isLimitElevation, rect);
+}
+
 void CoreCanvas::DrawBackground(const Brush& brush)
 {
 #ifdef DRAWING_DISABLE_API

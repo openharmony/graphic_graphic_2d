@@ -104,7 +104,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, hdiOutput_, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
     screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
@@ -159,7 +159,7 @@ public:
     RSScreenChangeCallbackStubMock() = default;
     virtual ~RSScreenChangeCallbackStubMock() = default;
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason) override {};
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override {};
 };
 
 
@@ -426,6 +426,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS)),
         ERR_INVALID_DATA);
@@ -2147,4 +2149,106 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkStub001, Test
     res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
 }
 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest001
+ * @tc.desc: Test SetSystemAnimatedScenes when ReadBool and ReadUint32 fail
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest002
+ * @tc.desc: Test SetSystemAnimatedScenes when data is ReadBool fail
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(0);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest003
+ * @tc.desc: Test SetSystemAnimatedScenes when ReadUint32 fail
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteBool(true);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest004
+ * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(0);
+    data.WriteBool(true);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest005
+ * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint32(0);
+    data.WriteBool(true);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(connectionStub_);
+    ASSERT_NE(clientToServiceConnection, nullptr);
+    auto mainThread = clientToServiceConnection->mainThread_;
+    clientToServiceConnection->mainThread_ = nullptr;
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+ 
+    clientToServiceConnection->mainThread_ = mainThread;
+}
 } // namespace OHOS::Rosen

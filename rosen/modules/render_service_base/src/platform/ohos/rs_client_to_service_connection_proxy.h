@@ -56,13 +56,12 @@ public:
 
     std::vector<ScreenId> GetAllScreenIds() override;
 
-    // mirrorId: decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
     ScreenId CreateVirtualScreen(
         const std::string &name,
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId = 0,
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
 
@@ -237,7 +236,7 @@ public:
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
-    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate) override;
+    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     ErrCode SetScreenSkipFrameInterval(uint64_t id, uint32_t skipFrameInterval, int32_t& resCode) override;

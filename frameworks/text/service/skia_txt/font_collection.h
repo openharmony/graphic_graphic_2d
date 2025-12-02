@@ -37,7 +37,6 @@ public:
     uint32_t GetHash() const;
     const std::string& GetAlias() const;
     const std::shared_ptr<Drawing::Typeface>& GetTypeface() const;
-    void UpdateTypefaceAshmem(int32_t fd, uint32_t size);
     bool operator==(const TypefaceWithAlias& other) const;
 
     struct Hasher {
@@ -68,7 +67,7 @@ public:
     void DisableFallback() override;
     void DisableSystemFont() override;
     std::shared_ptr<Drawing::Typeface> LoadFont(
-        const std::string& familyName, const uint8_t* data, size_t datalen) override;
+        const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index = 0) override;
     std::shared_ptr<Drawing::Typeface> LoadThemeFont(
         const std::string& familyName, const uint8_t* data, size_t datalen) override;
     std::vector<std::shared_ptr<Drawing::Typeface>> LoadThemeFont(
@@ -96,7 +95,7 @@ private:
     };
     RegisterError RegisterTypeface(TypefaceWithAlias& ta);
     static std::shared_ptr<Drawing::Typeface> CreateTypeface(
-        const std::string& familyName, const uint8_t* data, size_t datalen);
+        const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index = 0);
     enum class LocalActionType { ADD, DEL };
     bool CheckLocalFontCollectionSize(uint64_t size);
     void ChangeLocalFontCollectionSize(LocalActionType type, uint64_t size);

@@ -16,7 +16,6 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 
 #include "common/rs_optional_trace.h"
-#include "frame_report.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -40,17 +39,6 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
-    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
-    surfaceHandler->IncreaseAvailableBuffer();
-    auto consumer = surfaceHandler->GetConsumer();
-    if (consumer) {
-        uint64_t uniqueId = consumer->GetUniqueId();
-        bool isActiveGame = FrameReport::GetInstance().IsActiveGameWithUniqueId(uniqueId);
-        if (isActiveGame) {
-            std::string name = node->GetName();
-            FrameReport::GetInstance().SetPendingBufferNum(name, surfaceHandler->GetAvailableBufferCount());
-        }
-    }
 
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
@@ -67,6 +55,9 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
 
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    surfaceHandler->IncreaseAvailableBuffer();
+    auto consumer = surfaceHandler->GetConsumer();
     if (consumer) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);

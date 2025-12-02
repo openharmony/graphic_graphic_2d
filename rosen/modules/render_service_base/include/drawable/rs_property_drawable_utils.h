@@ -124,6 +124,8 @@ public:
         const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect, RoundingStrategyType roundingStrategy);
     RSB_EXPORT static std::tuple<Drawing::RectI, Drawing::RectI> GetAbsRectByStrategyForImage(
         const Drawing::Surface* surface, const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect);
+    static void ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
+        const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId);
 
 private:
     static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);

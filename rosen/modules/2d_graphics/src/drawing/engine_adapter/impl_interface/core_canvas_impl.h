@@ -99,6 +99,8 @@ public:
     virtual void DrawPathWithStencil(const Path& path, uint32_t stencilVal, const Paint& paint) = 0;
 
     virtual void DrawBackground(const Brush& brush) = 0;
+    virtual bool GetLocalShadowBounds(const Matrix& ctm, const Path& path, const Point3& planeParams,
+        const Point3& devLightPos, scalar lightRadius, ShadowFlags flag, bool isLimitElevation, Rect& rect) = 0;
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) = 0;
     virtual void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos,

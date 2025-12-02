@@ -577,6 +577,16 @@ public:
         copybitTag_ = copybitTag;
     }
 
+    void SetStableSkipReached(bool isStableSkipReached)
+    {
+        isStableSkipReached_ = isStableSkipReached;
+    }
+
+    bool IsStableSkipReached()
+    {
+        return isStableSkipReached_;
+    }
+
     void CollectSurface(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
     void CollectSelfDrawingChild(const std::shared_ptr<RSBaseRenderNode>& node, std::vector<NodeId>& vec) override;
@@ -599,7 +609,7 @@ public:
     void SetHwcChildrenDisabledState();
 
     void SetContextBounds(const Vector4f bounds);
-    virtual bool CheckParticipateInOcclusion();
+    virtual bool CheckParticipateInOcclusion(bool isAnimationOcclusionScenes);
 
     void OnApplyModifiers() override;
 
@@ -853,16 +863,6 @@ public:
     void SetOcclusionVisibleWithoutFilter(bool visible)
     {
         isOcclusionVisibleWithoutFilter_ = visible;
-    }
-
-    void SetOcclusionInSpecificScenes(bool isOcclusionInSpecificScenes)
-    {
-        isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
-    }
-
-    bool GetOcclusionInSpecificScenes() const
-    {
-        return isOcclusionInSpecificScenes_;
     }
 
     const Occlusion::Region& GetVisibleRegion() const
@@ -1315,28 +1315,11 @@ public:
         hwcDelayDirtyFlag_ = hwcDelayDirtyFlag;
     }
 
-    bool GetSurfaceCacheContentStatic()
-    {
-        return surfaceCacheContentStatic_;
-    }
-
     bool GetUifirstContentDirty()
     {
         bool uifirstContentDirty = uifirstContentDirty_;
         uifirstContentDirty_ = false;
         return uifirstContentDirty;
-    }
-
-    void UpdateSurfaceCacheContentStatic();
-
-    void UpdateSurfaceCacheContentStatic(
-        const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds);
-    // temperory limit situation:
-    // subtree no drawingcache and geodirty
-    // contentdirty 1 specifically for buffer update
-    bool IsContentDirtyNodeLimited() const
-    {
-        return drawingCacheNodes_.empty() && dirtyGeoNodeNum_ == 0 && dirtyContentNodeNum_ <= 1;
     }
 
     size_t GetLastFrameChildrenCnt()
@@ -1774,7 +1757,6 @@ private:
     void UpdateRenderParams() override;
     void UpdateChildHardwareEnabledNode(NodeId id, bool isOnTree);
     std::unordered_set<NodeId> GetAllSubSurfaceNodeIds() const;
-    bool IsCurFrameSwitchToPaint();
 
     bool isForcedClipHole() const;
 
@@ -1812,7 +1794,6 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
-    bool isOcclusionInSpecificScenes_ = false;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
@@ -1868,8 +1849,6 @@ private:
     bool isTargetUIFirstDfxEnabled_ = false;
     bool hasSharedTransitionNode_ = false;
     bool lastFrameShouldPaint_ = true;
-    // node only have translate and scale changes
-    bool surfaceCacheContentStatic_ = false;
     bool uifirstContentDirty_ = false;
     // point window
     bool isHardCursor_ = false;
@@ -1894,6 +1873,7 @@ private:
     
     bool subThreadAssignable_ = false;
     bool oldNeedDrawBehindWindow_ = false;
+    bool isStableSkipReached_ = false;
     RectI skipFrameDirtyRect_;
     bool UIExtensionUnobscured_ = false;
     std::atomic<bool> isNotifyRTBufferAvailable_ = false;
@@ -1946,9 +1926,6 @@ private:
     SurfaceId surfaceId_ = 0;
     SurfaceId tunnelLayerId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
-    size_t dirtyContentNodeNum_ = 0;
-    size_t dirtyGeoNodeNum_ = 0;
-    size_t dirtynodeNum_ = 0;
     struct GamutCollector
     {
         int bt2020Num_ = 0;

@@ -38,6 +38,7 @@
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -2457,6 +2458,7 @@ void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
             node->UpdateHDRStatus(HdrStatus::HDR_UICOMPONENT, newHDRUIStatus);
             if (node->IsOnTheTree()) {
                 node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+                node->UpdateDisplayHDRNodeMap(newHDRUIStatus, node->GetLogicalDisplayNodeId());
             }
         }
     }
@@ -2587,25 +2589,26 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto node = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(backref_.lock());
-    if (node == nullptr) {
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(backref_.lock());
+    if (displayNode == nullptr) {
+        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
         return;
     }
-    auto& hdrNodeList = node->GetHDRNodeList();
-    auto context = node->GetContext().lock();
+    auto context = displayNode->GetContext().lock();
     if (!context) {
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
         return;
     }
-    EraseIf(hdrNodeList, [context, factor](const auto& nodeId) -> bool {
+    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+    for (const auto& [nodeId, _] : hdrNodeMap) {
         auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
         if (!canvasNode) {
-            return true;
+            RS_LOGD("RSHdrUtil::SetHDRBrightnessFactor canvasNode is not on the tree");
+            continue;
         }
         canvasNode->SetContentDirty();
         canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
-        return false;
-    });
+    }
 }
 
 void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)

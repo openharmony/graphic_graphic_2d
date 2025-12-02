@@ -143,11 +143,12 @@ public:
     void HardCursorCreateLayer(std::shared_ptr<RSProcessor> processor, NodeId screenNodeId);
     bool GetHardCursorNeedCommit(NodeId screenNodeId);
 
-    bool CheckHardCursorSupport(uint32_t screenId);
+    bool CheckHardCursorSupport(ScreenId screenId);
     bool HasMirrorDisplay() const;
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetHardCursorDrawable(NodeId id);
     static void CheckHardCursorValid(const RSSurfaceRenderNode& node);
 private:
+    std::shared_ptr<RSScreenRenderNode> GetScreenRenderNode(ScreenId screenId);
     bool isNeedForceCommitByPointer_{ false };
     std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>> hardCursorDrawableVec_;
     std::map<NodeId, std::shared_ptr<RSSurfaceRenderNode>> hardCursorNodeMap_;

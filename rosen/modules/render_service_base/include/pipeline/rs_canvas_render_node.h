@@ -56,6 +56,8 @@ public:
     void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
     void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
+    void UpdateDisplayHDRNodeMap(bool isIncrease, NodeId displayNodeId) const;
+
     RSB_EXPORT void ProcessShadowBatching(RSPaintFilterCanvas& canvas);
 
     RSRenderNodeType GetType() const override
@@ -75,8 +77,6 @@ public:
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
 
-    void UpdateScreenHDRNodeList(bool flag, NodeId screenNodeId) const;
-
 protected:
     explicit RSCanvasRenderNode(NodeId id,
         const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
@@ -84,6 +84,7 @@ protected:
 private:
     void ApplyDrawCmdModifier(ModifierNG::RSModifierContext& context, ModifierNG::RSModifierType type);
     void InternalDrawContent(RSPaintFilterCanvas& canvas, bool needApplyMatrix);
+    void UpdateHDRNodeOnTreeState(NodeId displayNodeId);
 
     void PropertyDrawableRender(RSPaintFilterCanvas& canvas, bool includeProperty);
     void DrawShadow(ModifierNG::RSModifierContext& context, RSPaintFilterCanvas& canvas);
@@ -97,6 +98,7 @@ private:
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;
     uint32_t colorGamut_ = 0;
+    NodeId preDisplayNodeId_ = INVALID_NODEID;
     GraphicColorGamut graphicColorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
 };
 } // namespace Rosen
