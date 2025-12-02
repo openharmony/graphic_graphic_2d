@@ -109,7 +109,7 @@ public:
     void HandleLightFactorStatus(pid_t pid, int32_t state);
     void HandlePackageEvent(pid_t pid, const std::vector<std::string>& packageList);
     void HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
-    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
     void HandleDynamicModeEvent(bool enableDynamicModeEvent);
 
     void CleanVote(pid_t pid);
