@@ -65,7 +65,15 @@ constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
 
-bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType);
+bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
+{
+    if (sourceType != TouchSourceType::SOURCE_TYPE_MOUSE &&
+        sourceType != TouchSourceType::SOURCE_TYPE_TOUCHPAD) {
+        return false;
+    }
+    return touchStatus == TOUCH_MOVE || touchStatus == TOUCH_BUTTON_DOWN || touchStatus == TOUCH_BUTTON_UP ||
+           touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
+}
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -813,16 +821,6 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
             HandleTouchTask(pid, touchStatus, touchCnt);
         }
     });
-}
-
-bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
-{
-    if (sourceType != TouchSourceType::SOURCE_TYPE_MOUSE &&
-        sourceType != TouchSourceType::SOURCE_TYPE_TOUCHPAD) {
-        return false;
-    }
-    return touchStatus == TOUCH_MOVE || touchStatus == TOUCH_BUTTON_DOWN || touchStatus == TOUCH_BUTTON_UP ||
-           touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
 }
 
 void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt)
