@@ -42,6 +42,8 @@ napi_value JsRegion::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("setRect", JsRegion::SetRect),
         DECLARE_NAPI_FUNCTION("setRegion", JsRegion::SetRegion),
         DECLARE_NAPI_FUNCTION("setPath", JsRegion::SetPath),
+        DECLARE_NAPI_FUNCTION("isRect", JsRegion::IsRect),
+        DECLARE_NAPI_FUNCTION("quickContains", JsRegion::QuickContains),
         DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsRegion::RegionTransferDynamic),
     };
 
@@ -482,6 +484,50 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
     }
 
     return CreateJsValue(env, m_region->SetPath(*jsPath->GetPath(), *jsClip->GetRegion()));
+}
+
+napi_value JsRegion::IsRect(napi_env env, napi_callback_info info)
+{
+    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    return (me != nullptr) ? me->OnIsRect(env, info) : nullptr;
+}
+
+napi_value JsRegion::OnIsRect(napi_env env, napi_callback_info info)
+{
+    if (m_region == nullptr) {
+        ROSEN_LOGE("JsRegion::OnIsRect region is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    return CreateJsValue(env, m_region->IsRect());
+}
+
+napi_value JsRegion::QuickContains(napi_env env, napi_callback_info info)
+{
+    JsRegion* me = CheckParamsAndGetThis<JsRegion>(env, info);
+    return (me != nullptr) ? me->OnQuickContains(env, info) : nullptr;
+}
+
+napi_value JsRegion::OnQuickContains(napi_env env, napi_callback_info info)
+{
+    if (m_region == nullptr) {
+        ROSEN_LOGE("JsRegion::OnQuickContains region is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    napi_value argv[ARGC_FOUR] = {nullptr};
+    CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_FOUR);
+
+    int32_t left = 0;
+    GET_INT32_PARAM(ARGC_ZERO, left);
+    int32_t top = 0;
+    GET_INT32_PARAM(ARGC_ONE, top);
+    int32_t right = 0;
+    GET_INT32_PARAM(ARGC_TWO, right);
+    int32_t bottom = 0;
+    GET_INT32_PARAM(ARGC_THREE, bottom);
+    Drawing::RectI rectI = Drawing::RectI(left, top, right, bottom);
+    return CreateJsValue(env, m_region->QuickContains(rectI));
 }
 
 napi_value JsRegion::CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region)

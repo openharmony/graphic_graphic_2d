@@ -49,6 +49,9 @@ ani_status AniRegion::AniInit(ani_env *env)
         ani_native_function { "setPath", "C{@ohos.graphics.drawing.drawing.Path}"
             "C{@ohos.graphics.drawing.drawing.Region}:z", reinterpret_cast<void*>(SetPath) },
         ani_native_function { "isPointContained", "ii:z", reinterpret_cast<void*>(IsPointContained) },
+        ani_native_function { "isRect", ":z", reinterpret_cast<void*>(IsRect) },
+        ani_native_function { "quickContains", "iiii:z", reinterpret_cast<void*>(QuickContains) },
+        ani_native_function { "offset", "ii:", reinterpret_cast<void*>(Offset) },
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -233,6 +236,41 @@ ani_boolean AniRegion::IsPointContained(ani_env* env, ani_object obj, ani_int dx
         return false;
     }
     return aniRegion->GetRegion()->Contains(dx, dy);
+}
+
+ani_boolean AniRegion::IsRect(ani_env* env, ani_object obj)
+{
+    auto aniRegion = GetNativeFromObj<AniRegion>(env, obj);
+    if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRegion::IsRect aniRegion is nullptr.");
+        return false;
+    }
+    return aniRegion->GetRegion()->IsRect();
+}
+
+ani_boolean AniRegion::QuickContains(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+    ani_int bottom)
+{
+    auto aniRegion = GetNativeFromObj<AniRegion>(env, obj);
+    if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRegion::QuickContains aniRegion is nullptr.");
+        return false;
+    }
+    RectI rectI = Drawing::RectI(left, top, right, bottom);
+    return aniRegion->GetRegion()->QuickContains(rectI);
+}
+
+void AniRegion::Offset(ani_env* env, ani_object obj, ani_int dx, ani_int dy)
+{
+    auto aniRegion = GetNativeFromObj<AniRegion>(env, obj);
+    if (aniRegion == nullptr || aniRegion->GetRegion() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+            "AniRegion::Offset aniRegion is nullptr.");
+        return;
+    }
+    aniRegion->GetRegion()->Translate(dx, dy);
 }
 
 ani_object AniRegion::RegionTransferStatic(
