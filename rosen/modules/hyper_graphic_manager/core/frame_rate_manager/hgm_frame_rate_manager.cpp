@@ -64,6 +64,8 @@ constexpr int DISPLAY_SUCCESS = 1;
 constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+
+bool HgmFrameRateManager::IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType);
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -819,7 +821,7 @@ bool HgmFrameRateManager::IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t so
         sourceType != TouchSourceType::SOURCE_TYPE_TOUCHPAD) {
         return false;
     }
-    return touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP ||
+    return touchStatus == TOUCH_MOVE || touchStatus == TOUCH_BUTTON_DOWN || touchStatus == TOUCH_BUTTON_UP ||
         touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
 }
 
