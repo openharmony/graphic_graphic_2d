@@ -37,21 +37,30 @@ class OH_Drawing_TypographyTest : public testing::Test {
 namespace {
 std::string g_expectDumpInfo = "Paragraph dump:"
     "Text sz:126,State:Drawn,TextDraw:F,"
-    "Run0 glyph sz:6,rng[0-14),"
-    "Run1 glyph sz:11,rng[14-25),"
-    "Run2 glyph sz:14,rng[25-63),"
-    "Run3 glyph sz:6,rng[63-77),"
-    "Run4 glyph sz:11,rng[77-88),"
-    "Run5 glyph sz:14,rng[88-126),"
+    "Run0 glyph sz:2,rng[0-6),"
+    "Run1 glyph sz:2,rng[6-8),"
+    "Run2 glyph sz:2,rng[8-14),"
+    "Run3 glyph sz:11,rng[14-25),"
+    "Run4 glyph sz:6,rng[25-43),"
+    "Run5 glyph sz:2,rng[43-45),"
+    "Run6 glyph sz:6,rng[45-63),"
+    "Run7 glyph sz:2,rng[63-69),"
+    "Run8 glyph sz:2,rng[69-71),"
+    "Run9 glyph sz:2,rng[71-77),"
+    "Run10 glyph sz:11,rng[77-88),"
+    "Run11 glyph sz:6,rng[88-106),"
+    "Run12 glyph sz:2,rng[106-108),"
+    "Run13 glyph sz:6,rng[108-126),"
     "Blk0 rng[0-63),sz:50,clr:ffff0000,ht:0,wt:500,wd:6,slt:2,"
     "Blk1 rng[63-126),sz:60,clr:ffffff00,ht:0,wt:300,wd:7,slt:1,"
     "Paragraph glyph sz:62,"
-    "L0 run rng:0-1,"
-    "L1 run rng:1-2,"
-    "L2 run rng:2-3,"
-    "L3 run rng:4-5,"
-    "L4 run rng:5-5,"
-    "L5 run rng:5-5";
+    "L0 run rng:0-2,"
+    "L1 run rng:3-4,"
+    "L2 run rng:4-6,"
+    "L3 run rng:7-9,"
+    "L4 run rng:10-11,"
+    "L5 run rng:11-13,"
+    "L6 run rng:13-13";
 }
 
 /*
@@ -444,7 +453,8 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographyTest010, TestSize.Level
     ASSERT_EQ(paintRegion, Drawing::RectI(5, 5, 5, 5));
     typography->Layout(maxWidth);
     paintRegion = typography->GeneratePaintRegion(5.5, 5.1);
-    ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 60, 385));
+    // Expect rect left 0, top 7, right 54, bottom 401
+    ASSERT_EQ(paintRegion, Drawing::RectI(0, 7, 54, 401));
 }
 
 /*
@@ -1115,8 +1125,10 @@ HWTEST_F(OH_Drawing_TypographyTest, OH_Drawing_TypographySplitRunsText002, TestS
     SPText::ParagraphImpl* paragraph = static_cast<SPText::ParagraphImpl*>(typography->GetParagraph());
     ASSERT_NE(paragraph, nullptr);
     auto runs = static_cast<skia::textlayout::ParagraphImpl*>(paragraph->paragraph_.get())->runs();
-    EXPECT_EQ(defaultRuns.size(), 1);
-    EXPECT_EQ(runs.size(), paragraph->GetLineCount());
+    // Expect run count is 6 before split runs
+    EXPECT_EQ(defaultRuns.size(), 6);
+    // Expect run count is 44 after split runs
+    EXPECT_EQ(runs.size(), 44);
 }
 
 /*

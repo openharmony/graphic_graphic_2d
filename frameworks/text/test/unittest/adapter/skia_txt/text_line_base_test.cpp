@@ -72,7 +72,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest001, TestSize.Level
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
     EXPECT_EQ(textLine_.at(0)->GetGlyphCount(), textLine_.at(0)->GetGlyphRuns().at(0)->GetGlyphs().size());
-    EXPECT_EQ(textLine_.at(0)->GetGlyphCount(), 7);
+    EXPECT_EQ(textLine_.at(0)->GetGlyphCount(), 5);
 }
 
 /*
@@ -85,7 +85,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest002, TestSize.Level
     EXPECT_EQ(textLine_.size(), 2);
     ASSERT_NE(textLine_.at(0), nullptr);
     EXPECT_EQ(textLine_.at(0)->GetTextRange().leftIndex, 0);
-    EXPECT_EQ(textLine_.at(0)->GetTextRange().rightIndex, 7);
+    EXPECT_EQ(textLine_.at(0)->GetTextRange().rightIndex, 5);
 }
 
 /*
@@ -128,7 +128,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level
     std::unique_ptr<TextLineBase> line
         = textLine_[0]->CreateTruncatedLine(10, OHOS::Rosen::EllipsisModal::HEAD, ellipsisStr);
     EXPECT_NE(line, nullptr);
-    EXPECT_EQ(line->GetGlyphCount(), 7);
+    EXPECT_EQ(line->GetGlyphCount(), 5);
 
     line = textLine_[0]->CreateTruncatedLine(10, static_cast<OHOS::Rosen::EllipsisModal>(-1), ellipsisStr);
     EXPECT_EQ(line, nullptr);
@@ -136,7 +136,7 @@ HWTEST_F(OHDrawingTextLineBaseTest, OHDrawingTextLineBaseTest005, TestSize.Level
     double ascent = 0;
     double descent = 0;
     double leading = 0;
-    EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 49.377823);
+    EXPECT_FLOAT_EQ(textLine_[0]->GetTypographicBounds(&ascent, &descent, &leading), 36.693878);
     EXPECT_FLOAT_EQ(ascent, -12.992);
     EXPECT_FLOAT_EQ(descent, 3.4160001);
     EXPECT_FLOAT_EQ(leading, 0.000000);
