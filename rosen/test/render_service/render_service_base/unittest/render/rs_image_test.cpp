@@ -1303,19 +1303,24 @@ HWTEST_F(RSImageTest, DrawImageRepeatOffScreenTest, TestSize.Level1)
     auto rsImage = std::make_shared<RSImage>();
     auto sampling = Drawing::SamplingOptions();
     Drawing::Canvas drawingCanvas;
+    int minX = 0;
+    int maxX = 1;
+    int minY = 0;
+    int maxY = 1;
  
     // imageLine null
-    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas);
+    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas, minX, maxX, minY, maxY);
     EXPECT_NE(rsImage, nullptr);
  
     // imageLine not null
     rsImage->image_ = std::make_shared<Drawing::Image>();
-    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas);
+    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas, minX, maxX, minY, maxY);
     EXPECT_NE(rsImage, nullptr);
  
     // needDrawLine true
     rsImage->imageRepeat_  = ImageRepeat::REPEAT_X;
-    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas);
+    maxX = 10;
+    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas, minX, maxX, minY, maxY);
  
     // canvas Surface not null
     Media::InitializationOptions opts;
@@ -1325,11 +1330,11 @@ HWTEST_F(RSImageTest, DrawImageRepeatOffScreenTest, TestSize.Level1)
     surfacePtr->impl_ = std::make_shared<Drawing::SkiaSurface>();
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvas.surface_ = surfacePtr.get();
-    rsImage->DrawImageRepeatOffScreen(sampling, canvas);
+    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas, minX, maxX, minY, maxY);
  
     // get offScreenCanvas null
     rsImage->dstRect_ = RectF(0, 0, 100, 100);
     rsImage->frameRect_ = RectF(0, 0, 100, 100);
-    rsImage->DrawImageRepeatOffScreen(sampling, canvas);
+    rsImage->DrawImageRepeatOffScreen(sampling, drawingCanvas, minX, maxX, minY, maxY);
 }
 } // namespace OHOS::Rosen
