@@ -2504,26 +2504,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     return true;
 }
 
-bool RSMainThread::ExistBufferIsVisibleAndUpdate()
-{
-    bool bufferNeedUpdate = false;
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
-        if (surfaceNode == nullptr) {
-            RS_LOGD("[%{public}s]: surfaceNode is null", __func__);
-            continue;
-        }
-        if (surfaceNode->GetRSSurfaceHandler() == nullptr) {
-            continue;
-        }
-        if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
-            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
-            bufferNeedUpdate = true;
-            break;
-        }
-    }
-    return bufferNeedUpdate;
-}
-
 pid_t RSMainThread::GetDesktopPidForRotationScene() const
 {
     return desktopPidForRotationScene_;
