@@ -2157,6 +2157,9 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkStub001, Test
  */
 HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEvent, TestSize.Level1)
 {
+    MessageOption option;
+    MessageParcel reply;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
     int32_t touchStatus{0};
     int32_t touchCnt{0};
     MessageParcel data4;
@@ -2173,7 +2176,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEvent, TestSize.Level1)
     data5.WriteInt32(touchCnt);
     int sourceType = -1;
     data5.WriteInt32(sourceType);
-    connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    int res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
 }
 
 /**
