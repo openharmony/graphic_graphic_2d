@@ -265,8 +265,6 @@ private:
     }
     void SyncHgmConfigUpdateCallback();
 
-    bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType);
-
     std::atomic<uint32_t> currRefreshRate_ = 0;
 
     // concurrency protection >>>
