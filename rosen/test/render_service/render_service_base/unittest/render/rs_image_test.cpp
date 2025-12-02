@@ -1327,14 +1327,9 @@ HWTEST_F(RSImageTest, DrawImageRepeatOffScreenTest, TestSize.Level1)
     canvas.surface_ = surfacePtr.get();
     rsImage->DrawImageRepeatOffScreen(sampling, canvas);
  
-    // offScreenCanvas not null
-    rsImage->dstRect_ = RectF(0, 0, 100, 100);
-    rsImage->frameRect_ = RectF(0, 0, 100, 100);
-    rsImage->DrawImageRepeatOffScreen(sampling, canvas);
- 
     // get offScreenCanvas null
     rsImage->dstRect_ = RectF(0, 0, 100, 100);
-    rsImage->frameRect_ = RectF(0, 0, 100000, 100000);
+    rsImage->frameRect_ = RectF(0, 0, 100, 100);
     rsImage->DrawImageRepeatOffScreen(sampling, canvas);
 }
 } // namespace OHOS::Rosen

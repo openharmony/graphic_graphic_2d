@@ -162,7 +162,7 @@ private:
     void DrawImageRect(
             Drawing::Canvas& canvas, const Drawing::Rect& rect, const Drawing::SamplingOptions& samplingOptions);
     void DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
-    void CalcRepeatBounds(RectF& dstRect, int& minX, int& maxX, int& minY, int& maxY);
+    void CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY);
     void DrawImageOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas, const bool hdrImageDraw);
     bool CanDrawRectWithImageShader(const Drawing::Canvas& canvas) const;
@@ -175,7 +175,8 @@ private:
     void ApplyImageOrientation(Drawing::Canvas& canvas);
     void RsImageDraw(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
         const bool hdrImageDraw);
-    void DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas);
+    void DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+        int& minX, int& maxX, int& minY, int& maxY);
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
