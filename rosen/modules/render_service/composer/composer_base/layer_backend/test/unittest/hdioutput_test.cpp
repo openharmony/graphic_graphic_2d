@@ -1860,23 +1860,38 @@ HWTEST_F(HdiOutputTest, ClearBufferCache001, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->layerIdMap_.clear();
     HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
 
+    // Test case 1: bufferCache_ is empty, should return early
     HdiOutputTest::hdiOutput_->bufferCache_.clear();
     HdiOutputTest::hdiOutput_->ClearBufferCache();
+    ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
+
+    // Test case 2: bufferCache_ is not empty, device_ is nullptr
+    auto preDevice = HdiOutputTest::hdiOutput_->device_;
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(new SurfaceBufferImpl());
     ASSERT_NE(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
+    HdiOutputTest::hdiOutput_->device_ = nullptr;
+    HdiOutputTest::hdiOutput_->ClearBufferCache();
+    ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
 
+    // Test case 3: bufferCache_ is not empty, device_ is not nullptr, ClearClientBuffer returns success
     EXPECT_CALL(*hdiDeviceMock_,
         ClearClientBuffer(_)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     HdiOutputTest::hdiOutput_->device_ = nullptr;
     HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
     HdiOutputTest::hdiOutput_->bufferCache_.push_back(new SurfaceBufferImpl());
     HdiOutputTest::hdiOutput_->ClearBufferCache();
+    ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
 
+    // Test case 4: bufferCache_ is not empty, device_ is not nullptr, ClearClientBuffer returns failure
     EXPECT_CALL(*hdiDeviceMock_,
         ClearClientBuffer(_)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_FAILURE));
     HdiOutputTest::hdiOutput_->device_ = nullptr;
     HdiOutputTest::hdiOutput_->SetHdiOutputDevice(hdiDeviceMock_);
+    HdiOutputTest::hdiOutput_->bufferCache_.push_back(new SurfaceBufferImpl());
     HdiOutputTest::hdiOutput_->ClearBufferCache();
+    ASSERT_EQ(static_cast<int32_t>(HdiOutputTest::hdiOutput_->bufferCache_.size()), 0);
+
+    HdiOutputTest::hdiOutput_->device_ = preDevice;
 }
 
 /*

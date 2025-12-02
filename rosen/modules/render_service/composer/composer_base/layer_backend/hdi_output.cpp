@@ -608,7 +608,7 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
                 layer->ClearBufferCache();
             }
         }
-        bufferCache_.clear();
+        ClearBufferCache();
     }
     return ret;
 }
