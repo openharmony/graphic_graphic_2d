@@ -1718,7 +1718,9 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
 bool RSUniRenderVisitor::IsParticipateInOcclusion(RSSurfaceRenderNode& node)
 {
     auto mainThread = RSMainThread::Instance();
-    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || node.IsFocusedNode(focusedLeashWindowId_);
+    auto firstLevelNodeId = node.GetFirstLevelNodeId();
+    // need confirm the current node or first level node is focused
+    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || (firstLevelNodeId == focusedLeashWindowId_);
     // specific animation effects can enable occlusion, including three-finger swipe up and quick app launch/exit.
     bool isAnimationOcclusionScenes =
         (isFocus && mainThread->GetIsAnimationOcclusion()) || mainThread->GetIsRegularAnimation();
