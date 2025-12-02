@@ -60,7 +60,7 @@ namespace Rosen {
 // set the offset value to prevent the situation where the float number
 // with the suffix 0.000x is still rounded up.
 constexpr float RECT_CEIL_DEVIATION = 0.001;
-
+constexpr size_t MAX_FILTER_CACHE_TYPES = 3;
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -2218,11 +2218,18 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
                 effectNode->SetRotationChanged(isRotationChanged);
             }
         }
-        if (node->GetRenderProperties().GetBackgroundFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
-        }
-        if (node->GetRenderProperties().GetFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
+        using DrawablePair = std::pair<bool, RSDrawableSlot>;
+        std::array<DrawablePair, MAX_FILTER_CACHE_TYPES> filterCacheParas = {
+            DrawablePair{node->GetRenderProperties().GetBackgroundFilter() != nullptr,
+                RSDrawableSlot::BACKGROUND_FILTER},
+            DrawablePair{node->GetRenderProperties().GetMaterialFilter() != nullptr, RSDrawableSlot::MATERIAL_FILTER},
+            DrawablePair{node->GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+        };
+        for (auto& p : filterCacheParas) {
+            if (p.first) {
+                node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()),
+                    p.second);
+            }
         }
         node->UpdateFilterCacheWithSelfDirty();
     }
