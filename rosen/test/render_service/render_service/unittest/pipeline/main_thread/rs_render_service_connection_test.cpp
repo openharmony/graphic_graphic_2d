@@ -185,6 +185,41 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateAnimationOcclusionStatus001
+ * @tc.desc: test update animation occlusion status
+ * @tc.type: FUNC
+ * @tc.require: issues20843
+ */
+HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestSize.Level1)
+{
+    RSMainThread* mainThread = new RSMainThread();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+
+    // case 1: mainThread null
+    {
+        sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
+            0, nullptr, nullptr, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
+        connection->UpdateAnimationOcclusionStatus(sceneId, true);
+        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
+    }
+
+    // case 2: mainThread not null
+    {
+        mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
+        sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
+            0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
+        connection->UpdateAnimationOcclusionStatus(sceneId, false);
+        sleep(1);
+        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
+        delete mainThread;
+    }
+}
+
+/**
  * @tc.name: SetSurfaceSystemWatermarkTest001
  * @tc.desc: SetSurfaceSystemWatermarkTest001
  * @tc.type: FUNC

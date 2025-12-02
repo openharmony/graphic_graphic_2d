@@ -60,6 +60,7 @@
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
+#include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -2684,6 +2685,10 @@ void RSMainThread::CheckSystemSceneStatus()
             break;
         }
     }
+    if (isAnimationOcclusion_.first == true &&
+        curTime - static_cast<uint64_t>(isAnimationOcclusion_.second) > MAX_SYSTEM_SCENE_STATUS_TIME) {
+        isAnimationOcclusion_.first = false;
+    }
 }
 
 void RSMainThread::CallbackDrawContextStatusToWMS(bool isUniRender)
@@ -2842,8 +2847,6 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (curSurface && !curSurface->IsLeashWindow()) {
-            curSurface->SetOcclusionInSpecificScenes(rsVsyncRateReduceManager_.GetVRateDeviceSupport()
-                                                    && !threeFingerScenesList_.empty());
             calculator(curSurface, true);
         }
     }
@@ -3688,6 +3691,28 @@ bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
         return true;
     }
     return false;
+}
+
+void RSMainThread::SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart)
+{
+    if (!DirtyRegionParam::IsAnimationOcclusionEnable() || !RSSystemProperties::GetAnimationOcclusionEnabled()) {
+        return;
+    }
+    uint64_t curTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    auto id = RSUifirstFrameRateControl::Instance().GetSceneId(sceneId);
+    switch (id) {
+        // currently, occlusion is only enabled in these three animation scenes
+        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
+        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
+        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
+            isAnimationOcclusion_.first = isStart;
+            isAnimationOcclusion_.second = curTime;
+            break;
+        default:
+            break;
+    }
 }
 
 void RSMainThread::SendCommands()
