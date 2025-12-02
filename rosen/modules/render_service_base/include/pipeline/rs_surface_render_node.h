@@ -972,6 +972,16 @@ public:
     }
     GraphicBlendType GetBlendType()
     {
+        if ((GetAncoFlags() & static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE)) ==
+            static_cast<uint32_t>(AncoFlags::ANCO_SFV_NODE) &&
+            surfaceHandler_ && surfaceHandler_->GetConsumer()) {
+            GraphicAlphaType alphaType = GraphicAlphaType::GRAPHIC_ALPHATYPE_UNKNOWN;
+            if (surfaceHandler_->GetConsumer()->GetAlphaType(alphaType) == GSERROR_OK &&
+                alphaType == GraphicAlphaType::GRAPHIC_ALPHATYPE_OPAQUE) {
+                return GRAPHIC_BLEND_NONE;
+            }
+        }
+
         return blendType_;
     }
 #endif
