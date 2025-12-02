@@ -2251,4 +2251,36 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, Te
  
     clientToServiceConnection->mainThread_ = mainThread;
 }
+
+/**
+ * @tc.name: SetSystemAnimatedScenesTest005
+ * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
+{
+    MessageParcel data1;
+    MessageParcel reply;
+    MessageOption option;
+    int32_t touchStatus{0};
+    int32_t touchCount{0};
+    int32_t sourceType = 2;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
+
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data1.WriteInt32(touchStatus);
+    data1.WriteInt32(touchCount);
+    data1.WriteInt32(sourceType);
+    connectionStub_->OnRemoteRequest(code, data1, reply, option);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteInt32(touchStatus);
+    data2.WriteInt32(touchCount);
+    sourceType = -1;
+    data2.WriteInt32(sourceType);
+    connectionStub_->OnRemoteRequest(code, data2, reply, option);
+}
 } // namespace OHOS::Rosen
