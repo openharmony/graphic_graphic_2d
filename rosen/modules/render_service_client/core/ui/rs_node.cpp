@@ -1475,6 +1475,12 @@ void RSNode::SetRSUIContext(std::shared_ptr<RSUIContext> rsUIContext)
         return;
     }
 
+    if (!animations_.empty()) {
+        ROSEN_LOGE("When RSNode has animations, the RSUIContext should not be modified! nodeId[%{public}" PRIu64"], "
+            "preUIContext[%{public}" PRIu64 "], rsUIContext[%{public}" PRIu64 "]",
+            id_, preUIContext->GetToken(), rsUIContext->GetToken());
+    }
+
     // if have old rsContext, should remove nodeId from old nodeMap and travel child
     if (preUIContext != nullptr) {
         // step1 remove node from old context
@@ -2133,7 +2139,8 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
         }
         if (visualEffectPara->GetParaType() == VisualEffectPara::BORDER_LIGHT_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::COLOR_GRADIENT_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
+            visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 

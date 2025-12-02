@@ -554,14 +554,60 @@ HWTEST_F(RSUIDirectorTest, PostFrameRateTask, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetRequestVsyncCallback
- * @tc.desc:
- * @tc.type:FUNC
+ * @tc.name: SetRequestVsyncCallbackTest001
+ * @tc.desc: SetRequestVsyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
  */
-HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallback, TestSize.Level1)
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallback001, TestSize.Level1)
 {
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
+    const std::function<void()>& callback = []() { std::cout << "for test" << std::endl; };
+    director->SetRequestVsyncCallback(callback);
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallbackTest002
+ * @tc.desc: SetRequestVsyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest002, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    director->SetRequestVsyncCallback(nullptr);
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallbackTest003
+ * @tc.desc: SetRequestVsyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // test rsUIContext_ is not null
+    director->rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    const std::function<void()>& callback = []() { std::cout << "for test" << std::endl; };
+    director->SetRequestVsyncCallback(callback);
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallbackTest004
+ * @tc.desc: SetRequestVsyncCallback Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9N1QF
+ */
+HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest004, TestSize.Level1)
+{
+    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
+    ASSERT_TRUE(director != nullptr);
+    // test rsUIContext_ is null
+    EXPECT_EQ(director->rsUIContext_, nullptr);
     const std::function<void()>& callback = []() { std::cout << "for test" << std::endl; };
     director->SetRequestVsyncCallback(callback);
 }
@@ -981,20 +1027,6 @@ HWTEST_F(RSUIDirectorTest, SetRTRenderForcedTest002, TestSize.Level1)
     std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
     ASSERT_TRUE(director != nullptr);
     director->SetRTRenderForced(true);
-}
-
-/**
- * @tc.name: SetRequestVsyncCallbackTest003
- * @tc.desc: SetRequestVsyncCallback Test
- * @tc.type: FUNC
- * @tc.require: issueI9N1QF
- */
-HWTEST_F(RSUIDirectorTest, SetRequestVsyncCallbackTest003, TestSize.Level1)
-{
-    std::shared_ptr<RSUIDirector> director = RSUIDirector::Create();
-    std::function<void()> callback = nullptr;
-    director->SetRequestVsyncCallback(callback);
-    EXPECT_TRUE(nullptr == director->requestVsyncCallback_);
 }
 
 /**

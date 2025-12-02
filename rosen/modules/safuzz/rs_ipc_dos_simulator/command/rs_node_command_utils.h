@@ -24,6 +24,9 @@ namespace OHOS {
 namespace Rosen {
 class RSNodeCommandUtils {
 public:
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAddModifierNG, Uint64, RSRenderModifierSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRemoveModifierNG, Uint64, RSModifierType, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_1(RSRemoveAllModifiersNG, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyBool, Uint64, Bool, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyFloat, Uint64, Float, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyInt, Uint64, Int, Uint64, PropertyUpdateType);
@@ -57,6 +60,8 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyRRect, Uint64, RRect, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyDrawCmdList,
                                     Uint64, DrawingDrawCmdListPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUpdatePropertyDrawCmdListNG,
+                                    Uint64, DrawingDrawCmdListPtr, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorFloat,
                                     Uint64, FloatVector, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorVector2f,
@@ -83,6 +88,14 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnregisterGeometryTransitionNodePair, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSDumpClientNodeTree, Uint64, Pid, Uint64, Uint32);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSCommitDumpClientNodeTree, Uint64, Pid, Uint32, String);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIContextToken, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkRepaintBoundary, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_5(RSModifierNGAttachProperty,
+                                    Uint64, Uint64, RSModifierType, RSPropertyType, RSRenderPropertyBaseSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSModifierNGDetachProperty,
+                                    Uint64, Uint64, RSModifierType, RSPropertyType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUpdateOcclusionCullingStatus, Uint64, Bool, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawNodeType, Uint64, DrawNodeType);
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -4056,21 +4056,74 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed002, TestSiz
 
     rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
     rsRenderThreadParams->SetWatermark(true, img);
-    displayDrawable_->DrawWatermarkIfNeed(canvas, false);
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
 
     Drawing::Matrix totalMatrix;
     totalMatrix.SetMatrix(1, 0, 0, 0, 0, 0, 0, 0, 1);
     params->SetMatrix(totalMatrix);
     rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
     rsRenderThreadParams->SetWatermark(true, img);
-    displayDrawable_->DrawWatermarkIfNeed(canvas, true);
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
 
     totalMatrix.SetMatrix(1, 2, 3, 0, 1, 4, 5, 6, 0);
     params->SetMatrix(totalMatrix);
     rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
     rsRenderThreadParams->SetWatermark(true, img);
-    displayDrawable_->DrawWatermarkIfNeed(canvas, true);
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
 }
+
+/**
+ * @tc.name: DrawWatermarkIfNeed003
+ * @tc.desc: Test DrawWatermarkIfNeed003
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeed003, TestSize.Level2)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen003";
+    uint32_t width = 400;
+    uint32_t height = 400;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+    screenManager->defaultScreenId_ = screenId;
+
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    ASSERT_TRUE(params);
+    params->SetScreenId(screenId);
+    // Create waterMask pixelMap
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    opts.editable = true;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+
+    ASSERT_TRUE(pixelMap != nullptr);
+    auto img = RSPixelMapUtil::ExtractDrawingImage(pixelMap);
+    ASSERT_TRUE(img != nullptr);
+
+    // Create canvas
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+
+    Drawing::Canvas drawingCanvas(400, 400);
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+
+    rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams->SetWatermark(true, img);
+    params->screenRotation_ = ScreenRotation::ROTATION_0;
+    displayDrawable_->DrawWatermarkIfNeed(canvas);
+}
+
 /**
  * @tc.name: GetScreenParamsTest
  * @tc.desc: Test GetScreenParams when ancestorScreenDrawable_->nodeType_ is not SCREEN_NODE

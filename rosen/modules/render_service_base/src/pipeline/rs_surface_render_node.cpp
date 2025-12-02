@@ -1832,7 +1832,7 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     SetTreatedAsTransparent(false);
     // when a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated it as a full
     // transparent layer.
-    if ((GetAnimateState() || IsParentLeashWindowInScale()) && !isOcclusionInSpecificScenes_) {
+    if (GetAnimateState() || IsParentLeashWindowInScale()) {
         SetTreatedAsTransparent(true);
         return;
     }
@@ -2448,18 +2448,21 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
         GetDirtyManager()->IsActiveSurfaceRectChanged();
 }
 
-bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
+bool RSSurfaceRenderNode::CheckParticipateInOcclusion(bool isAnimationOcclusionScenes)
 {
     // planning: Need consider others situation
     isParentScaling_ = false;
     auto nodeParent = GetParent().lock();
     if (nodeParent && nodeParent->IsScale()) {
         isParentScaling_ = true;
-        if (GetDstRectChanged() && !isOcclusionInSpecificScenes_) {
+        if (GetDstRectChanged() && !isAnimationOcclusionScenes) {
             return false;
         }
     }
-    if ((IsTransparent() && !NeedDrawBehindWindow()) || GetAnimateState() || IsRotating() || IsSubSurfaceNode()) {
+    // surface can't participate occlusion in transparent, animate, rotating, and sub surface scenes
+    // specific animate can be used for occlusion
+    if ((IsTransparent() && !NeedDrawBehindWindow()) ||
+        (GetAnimateState() && !isAnimationOcclusionScenes) || IsRotating() || IsSubSurfaceNode()) {
         return false;
     }
     return true;
@@ -2635,46 +2638,6 @@ void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId>&
 void RSSurfaceRenderNode::ResetAbilityNodeIds()
 {
     abilityNodeIds_.clear();
-}
-
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic()
-{
-    dirtyContentNodeNum_ = 0;
-    dirtyGeoNodeNum_ = 0;
-    dirtynodeNum_ = 0;
-    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() && !IsCurFrameSwitchToPaint();
-}
-
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
-    const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds)
-{
-    dirtyContentNodeNum_ = 0;
-    dirtyGeoNodeNum_ = 0;
-    dirtynodeNum_ = activeNodeIds.size();
-    surfaceCacheContentStatic_ = (IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst()) &&
-        !IsCurFrameSwitchToPaint();
-    if (dirtynodeNum_ == 0) {
-        RS_LOGD("Clear surface %{public}" PRIu64 " dirtynodes surfaceCacheContentStatic_:%{public}d",
-            GetId(), surfaceCacheContentStatic_);
-        return;
-    }
-    for (auto [id, subNode] : activeNodeIds) {
-        auto node = subNode.lock();
-        if (node == nullptr || (id == GetId() && surfaceCacheContentStatic_)) {
-            continue;
-        }
-        // classify active nodes except instance surface itself
-        if (node->IsContentDirty() && !node->IsNewOnTree() && !node->GetRenderProperties().IsGeoDirty()) {
-            dirtyContentNodeNum_++;
-        } else {
-            dirtyGeoNodeNum_++;
-        }
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%" PRIu64 "] "
-        "contentStatic: %d, dirtyContentNode: %zu, dirtyGeoNode: %zu",
-        GetName().c_str(), GetId(), surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
-    // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
-    surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
 
 void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode> childNode)
@@ -3650,14 +3613,6 @@ RectI RSSurfaceRenderNode::GetFilterRect() const
 RectI RSSurfaceRenderNode::GetBehindWindowRegion() const
 {
     return drawBehindWindowRegion_;
-}
-
-bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
-{
-    bool shouldPaint = ShouldPaint();
-    bool changed = shouldPaint && !lastFrameShouldPaint_;
-    lastFrameShouldPaint_ = shouldPaint;
-    return changed;
 }
 
 void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)

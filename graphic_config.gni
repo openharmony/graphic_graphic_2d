@@ -64,6 +64,7 @@ declare_args() {
   }
 
   graphic_2d_feature_subtree_parallel_enable = false
+  graphic_2d_feature_mhc_enable = false
 }
 
 declare_args() {
@@ -139,6 +140,10 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
 if (graphic_2d_feature_subtree_parallel_enable) {
   gpu_defines += [ "SUBTREE_PARALLEL_ENABLE" ]
+}
+
+if (graphic_2d_feature_mhc_enable) {
+  gpu_defines += [ "MHC_ENABLE" ]
 }
 
 if (graphic_2d_feature_rs_enable_eglimage || current_os == "android") {
@@ -233,6 +238,12 @@ check_subtree_ext_file_args = [
     "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
 ]
 
+check_mhc_ext_file_args = [
+  "--filename",
+  rebase_path(
+    "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni"),
+]
+
 if (path_exists("//foundation/graphic/graphic_2d_ext/dvsync/BUILD.gn")) {
   graphic_2d_feature_enable_dvsync = true
   gpu_defines += [ "RS_ENABLE_DVSYNC_2" ]
@@ -317,6 +328,15 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_confi
   graphic_2d_subtree_config = {
     import(
       "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config/gni")
+  }
+}
+
+graphic_2d_mhc_config = {}
+
+if (path_exists("//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")) {
+  graphic_2d_mhc_config = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/mhc/build/mhc_config.gni")
   }
 }
 

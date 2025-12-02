@@ -35,6 +35,8 @@ public:
 
     static int GetTileBasedAlignBits();
 
+    static bool IsAnimationOcclusionEnable();
+
 protected:
     static void SetDirtyRegionEnable(bool isEnable);
 
@@ -46,6 +48,8 @@ protected:
 
     static void SetTileBasedAlignBits(int tileBasedAlignBits);
 
+    static void SetAnimationOcclusionEnable(bool isEnable);
+
 private:
     inline static bool isDirtyRegionEnable_ = true;
     inline static bool isAdvancedDirtyRegionEnable_ = false;
@@ -54,6 +58,7 @@ private:
     inline static bool isComposeDirtyRegionEnableInPartialDisplay_ = false;
     inline static bool isTileBasedAlignEnable_ = false;
     inline static int tileBasedAlignBits_ = 128;
+    inline static bool isAnimationOcclusionEnable_ = false;
     friend class DirtyRegionParamParse;
 };
 } // namespace OHOS::Rosen

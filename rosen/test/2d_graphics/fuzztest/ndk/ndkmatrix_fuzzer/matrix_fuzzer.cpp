@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -83,8 +83,12 @@ void NativeMatrixTest002(const uint8_t* data, size_t size)
     float degree = GetObject<float>();
     float x = GetObject<float>();
     float y = GetObject<float>();
+    float kx = GetObject<float>();
+    float ky = GetObject<float>();
     float px = GetObject<float>();
     float py = GetObject<float>();
+    float sinValue = GetObject<float>();
+    float cosValue = GetObject<float>();
     float scaleX = GetObject<float>();
     float skewX = GetObject<float>();
     float transX = GetObject<float>();
@@ -109,6 +113,10 @@ void NativeMatrixTest002(const uint8_t* data, size_t size)
     OH_Drawing_MatrixPostScale(matrix, transX, transY, px, py);
     OH_Drawing_MatrixPostTranslate(nullptr, x, y);
     OH_Drawing_MatrixPostTranslate(matrix, x, y);
+    OH_Drawing_MatrixPreSkew(nullptr, kx, ky, px, py);
+    OH_Drawing_MatrixPreSkew(matrix, kx, ky, px, py);
+    OH_Drawing_MatrixSetSinCos(nullptr, sinValue, cosValue, px, py);
+    OH_Drawing_MatrixSetSinCos(matrix, sinValue, cosValue, px, py);
     OH_Drawing_MatrixReset(nullptr);
     OH_Drawing_MatrixReset(matrix);
     OH_Drawing_MatrixDestroy(matrix);
@@ -152,6 +160,16 @@ void NativeMatrixTest003(const uint8_t* data, size_t size)
 
     OH_Drawing_MatrixIsIdentity(nullptr);
     OH_Drawing_MatrixIsIdentity(matrix);
+
+    bool isAffine = false;
+    OH_Drawing_MatrixIsAffine(nullptr, &isAffine);
+    OH_Drawing_MatrixIsAffine(matrix, nullptr);
+    OH_Drawing_MatrixIsAffine(matrix, &isAffine);
+
+    bool isRectStaysRect = false;
+    OH_Drawing_MatrixRectStaysRect(nullptr, &isRectStaysRect);
+    OH_Drawing_MatrixRectStaysRect(matrix, nullptr);
+    OH_Drawing_MatrixRectStaysRect(matrix, &isRectStaysRect);
 
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_MatrixDestroy(matrixTwo);

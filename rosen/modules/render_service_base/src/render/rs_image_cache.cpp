@@ -226,6 +226,9 @@ void RSImageCache::ReleaseDrawingImageCacheByPixelMapId(uint64_t uniqueId)
 void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
     NodeId nodeId, std::weak_ptr<RSExtendImageObject> drawCmd)
 {
+    if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
+        return;
+    }
     if (rsImage != nullptr) {
         auto drawableAdapter = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
         if (drawableAdapter == nullptr) {
@@ -239,6 +242,9 @@ void RSImageCache::ReserveImageInfo(std::shared_ptr<RSImage> rsImage,
 
 void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
 {
+    if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
+        return;
+    }
     RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}" PRIu64,
         surfaceNodeId);
     ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];

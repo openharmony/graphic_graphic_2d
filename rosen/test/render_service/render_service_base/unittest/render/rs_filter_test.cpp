@@ -204,4 +204,18 @@ HWTEST_F(RSFilterTest, CreateBlurFilter002, TestSize.Level1)
     auto filter2 = RSFilter::CreateMaterialFilter(0, dipScale, BLUR_COLOR_MODE::DEFAULT, ratio);
     ASSERT_NE(filter2, nullptr);
 }
+
+/**
+ * @tc.name: GetRect001
+ * @tc.desc: test GetRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSFilterTest, GetRect001, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSFilter>();
+    RectF bound(0.f, 0.f, 10.f, 10.f);
+    EXPECT_EQ(filter->GetRect(bound, EffectRectType(UINT8_MAX)), RectF());
+    EXPECT_EQ(filter->GetRect(bound, EffectRectType::SNAPSHOT), bound);
+    EXPECT_EQ(filter->GetRect(bound, EffectRectType::DRAW), bound);
+}
 } // namespace OHOS::Rosen

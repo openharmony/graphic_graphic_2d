@@ -859,51 +859,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSurfaceCacheContentStatic
- * @tc.desc: Set dirty subNode and check if surfacenode static
- * @tc.type:FUNC
- * @tc.require:I8W7ZS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(subNode, nullptr);
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    std::shared_ptr<RSRenderNode> nullNode = nullptr;
-    activeNodeIds[subNode->GetId()] = nullNode;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    activeNodeIds[subNode->GetId()] = subNode;
-    node->AddChild(subNode, 0);
-    subNode->isContentDirty_ = true;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    ASSERT_EQ(node->GetSurfaceCacheContentStatic(), false);
-    ASSERT_EQ(node->IsContentDirtyNodeLimited(), true);
-}
-
-/**
- * @tc.name: IsContentDirtyNodeLimited
- * @tc.desc: Set content dirty subnode new on the tree and check if it is in count
- * @tc.type:FUNC
- * @tc.require:I8XIJH
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(subnode, nullptr);
-    node->AddChild(subnode, 0);
-    subnode->isContentDirty_ = true;
-    subnode->isNewOnTree_ = true;
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds = {{subnode->GetId(), subnode}};
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    ASSERT_EQ(node->IsContentDirtyNodeLimited(), false);
-}
-
-/**
  * @tc.name: SetSkipLayer001
  * @tc.desc: Test SetSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
@@ -1865,7 +1820,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, AccumulateOcclusionRegion, TestSize.Level1)
 
     auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     testNode->SetParent(parentSurfaceNode);
-    testNode->isOcclusionInSpecificScenes_ = true;
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
     EXPECT_FALSE(hasFilterCacheOcclusion);
@@ -2400,7 +2354,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckIfOcclusionReusable, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, CheckParticipateInOcclusion, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    EXPECT_FALSE(node->CheckParticipateInOcclusion());
+    EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
 }
 
 /**
@@ -2600,26 +2554,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetNeedCacheSurface, TestSize.Level1)
     testNode->SetNeedCacheSurface(false);
     surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
     ASSERT_FALSE(surfaceParams->GetNeedCacheSurface());
-}
-
-/**
- * @tc.name: IsCurFrameSwitchToPaint
- * @tc.desc: test if node switch from not paint to paint
- * @tc.type: FUNC
- * @tc.require: issueIB6GWC
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsCurFrameSwitchToPaint, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->shouldPaint_ = true;
-    node->lastFrameShouldPaint_ = true;
-    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
-    node->shouldPaint_ = false;
-    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
-    node->shouldPaint_ = true;
-    ASSERT_TRUE(node->IsCurFrameSwitchToPaint());
 }
 
 /**

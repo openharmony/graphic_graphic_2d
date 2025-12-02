@@ -263,7 +263,7 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetRenderNodeLazyLoadEnabled, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), true);
+    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), false);
 }
 
 /**
@@ -1233,6 +1233,20 @@ HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
     EXPECT_TRUE(RSSystemProperties::GetScaleImageAsyncEnabled());
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", ret);
+}
+
+/**
+ * @tc.name: GetVKImageAdaptationForWallpaperEnabled
+ * @tc.desc: GetVKImageAdaptationForWallpaperEnabledTest001
+ * @tc.type:FUNC
+ * @tc.require: issues20949
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVKImageAdaptationForWallpaperEnabledTest001, TestSize.Level1)
+{
+    system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "0");
+    EXPECT_FALSE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+    system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
+    EXPECT_TRUE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -175,6 +175,7 @@ napi_value FilterNapi::CreateFilter(napi_env env, napi_callback_info info)
         DECLARE_NAPI_FUNCTION("maskTransition", SetMaskTransition),
         DECLARE_NAPI_FUNCTION("variableRadiusBlur", SetVariableRadiusBlur),
         DECLARE_NAPI_FUNCTION("frostedGlass", SetFrostedGlass),
+        DECLARE_NAPI_FUNCTION("frostedGlassBlur", SetFrostedGlassBlur),
     };
     status = napi_define_properties(env, object, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     UIEFFECT_NAPI_CHECK_RET_DELETE_POINTER(status == napi_ok, nullptr, filterObj,
@@ -1393,6 +1394,36 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(BuildFrostedGlassPara(env, argv, para), nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass build para fail"));
  
+    Filter* filterObj = nullptr;
+    status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass napi_unwrap fail"));
+ 
+    filterObj->AddPara(para);
+    return thisVar;
+}
+
+napi_value FilterNapi::SetFrostedGlassBlur(napi_env env, napi_callback_info info)
+{
+    constexpr size_t requireArgc = NUM_2;
+ 
+    napi_status status;
+    napi_value thisVar = nullptr;
+    napi_value argv[requireArgc] = {0};
+    size_t realArgc = requireArgc;
+ 
+    UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+        FILTER_LOG_E("FilterNapi::SetFrostedGlass parsing input fail"));
+ 
+    std::shared_ptr<FrostedGlassBlurPara> para = std::make_shared<FrostedGlassBlurPara>();
+    float radius = 0.f;
+    radius = GetSpecialValue(env, argv[NUM_0]);
+    para->SetBlurRadius(radius);
+
+    float refractOutPx = 0.f;
+    refractOutPx = GetSpecialValue(env, argv[NUM_1]);
+    para->SetRefractOutPx(refractOutPx);
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,

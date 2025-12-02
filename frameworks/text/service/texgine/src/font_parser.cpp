@@ -57,9 +57,10 @@ FontParser::FontParser()
     fontSet_.insert(fontSet_.end(), prodFonts.begin(), prodFonts.end());
 }
 
-void FontParser::ProcessTable(const CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessTable(const CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor, size_t size)
 {
-    for (auto i = 0; i < cmapTable->numTables.Get(); ++i) {
+    auto count = cmapTable->numTables.Get();
+    for (auto i = 0; i < count && (sizeof(CmapTables) + (i + 1) * sizeof(EncodingRecord)) <= size; ++i) {
         const auto& record = cmapTable->encodingRecords[i];
         FontParser::PlatformId platformId = static_cast<FontParser::PlatformId>(record.platformID.Get());
         FontParser::EncodingIdWin encodingId = static_cast<FontParser::EncodingIdWin>(record.encodingID.Get());
@@ -145,12 +146,12 @@ void FontParser::SetNameString(FontParser::FontDescriptor& fontDescriptor, std::
     }
 }
 
-void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescriptor& fontDescriptor, size_t size)
 {
     auto count = nameTable->count.Get();
     auto storageOffset = nameTable->storageOffset.Get();
     const char* stringStorage = reinterpret_cast<const char*>(nameTable) + storageOffset;
-    for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < count && (sizeof(NameTable) + (i + 1) * sizeof(NameRecord)) <= size; ++i) {
         if (nameTable->nameRecord[i].stringOffset.Get() == 0 && nameTable->nameRecord[i].length.Get() == 0) {
             continue;
         }
@@ -183,7 +184,7 @@ void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescri
     }
 }
 
-void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor)
+void FontParser::ProcessTable(const PostTable* postTable, FontParser::FontDescriptor& fontDescriptor, size_t size)
 {
     if (postTable->italicAngle.Get() != 0) {
         fontDescriptor.italic = 1; // means support italics
@@ -211,7 +212,7 @@ bool FontParser::ParseOneTable(std::shared_ptr<Drawing::Typeface> typeface, Font
         TEXT_LOGE("Failed to get table, size %{public}zu, ret %{public}zu", size, readSize);
         return false;
     }
-    ProcessTable(reinterpret_cast<T*>(tableData.get()), fontDescriptor);
+    ProcessTable(reinterpret_cast<T*>(tableData.get()), fontDescriptor, size);
     return true;
 }
 

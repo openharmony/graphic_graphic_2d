@@ -305,11 +305,7 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
-#ifdef RS_ENABLE_MEMORY_DOWNTREE
-    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
-#else
     static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "0") != "0";
-#endif
     return enabled;
 }
 
@@ -328,6 +324,14 @@ AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<AdvancedDirtyRegionType>(ConvertToInt(enable, DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE));
+}
+
+bool RSSystemProperties::GetAnimationOcclusionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.animation.occlusion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
@@ -1635,6 +1639,14 @@ bool RSSystemProperties::GetVKImageUseEnabled()
     return enable;
 }
 
+bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.vkimage_adapt_wallpaper", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;
@@ -1780,6 +1792,13 @@ bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
 bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
 {
     return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_render_dma", false);
+}
+
+bool RSSystemProperties::GetDefaultMemClearEnabled()
+{
+    static bool defaultMemClearEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.default.mem.clear.enabled", "1")).c_str()) != 0;
+    return defaultMemClearEnabled;
 }
 } // namespace Rosen
 } // namespace OHOS

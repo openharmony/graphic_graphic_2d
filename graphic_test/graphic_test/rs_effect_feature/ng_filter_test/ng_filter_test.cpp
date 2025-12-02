@@ -168,56 +168,80 @@ std::vector<std::array<float, COLOR_GRADIENT_PARAMS_COUNT>> colorGradientParams 
     {999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f},
 };
 
-constexpr int GRID_WARP_PARAMS_COUNT = 18;
-std::vector<std::array<Vector2f, GRID_WARP_PARAMS_COUNT>> gridWarpParams = {
+constexpr int GRID_WARP_POINT_PARAMS_COUNT = 9;
+std::vector<std::array<Vector2f, GRID_WARP_POINT_PARAMS_COUNT>> gridWarpPointParams = {
     {
         Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
         Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
-        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
+        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }
     },
     {
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 1.0f, 0.0f },
         Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, -0.1f }, Vector2f{ 1.0f, 0.0f },
+        Vector2f{ -0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.1f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.1f }, Vector2f{ 1.0f, 1.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.1f }, Vector2f{ 1.0f, 0.0f },
+        Vector2f{ 0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.9f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 0.9f }, Vector2f{ 1.0f, 1.0f }
+    },
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
+        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f }
+    },
+    {
+        Vector2f{ -999.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 999.0f, 0.0f },
+        Vector2f{ -999.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 999.0f, 0.5f },
+        Vector2f{ -999.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 999.0f, 999.0f }
+    },
+};
+
+constexpr int GRID_WARP_ANGLE_PARAMS_COUNT = 9;
+std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAngleParams = {
+    {
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ -999.0f, -999.0f }, Vector2f{ 0.0f, 0.0f },
+        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
+    },
+    {
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
     },
     {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, -0.1f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ -0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.1f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.1f }, Vector2f{ 1.0f, 1.0f },
         Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }
     },
     {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.1f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ 0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.9f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 0.9f }, Vector2f{ 1.0f, 1.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }
     },
     {
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
     },
     {
-        Vector2f{ -999.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 999.0f, 0.0f },
-        Vector2f{ -999.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 999.0f, 0.5f },
-        Vector2f{ -999.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 999.0f, 999.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
         Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f },
         Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }
     },
+};
+
+std::vector<Vector2f> blurparamsParamsForMaterialFilter = {
+    Vector2f{48.0f, 4.0f},
+    Vector2f{-48.0f, 4.0f},
+    Vector2f{std::numeric_limits<float>::max(), 4.0f},
+    Vector2f{std::numeric_limits<float>::min(), 4.0f},
+    Vector2f{std::numeric_limits<float>::infinity(), 4.0f}
 };
 
 enum class TestDataGroupParamsType {
@@ -612,7 +636,66 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgKBSTest)
     }
 }
 
-GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_GRID_WARP_Test)
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_Frosted_Glass_Material_Filter_Test)
+{
+    int columnCount = 1;
+    int rowCount = static_cast<int>(blurparamsParamsForMaterialFilter.size() + 1);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+        if (i == blurparamsParamsForMaterialFilter.size()) {
+            filter = nullptr;
+        } else {
+            frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(blurparamsParamsForMaterialFilter[i]);
+            frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+            frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+            frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+            frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
+            frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
+            frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
+            frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
+            frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
+            frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
+            frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
+            frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
+            frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
+            frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
+            frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
+            frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
+            frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
+            frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
+            frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
+            frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
+            frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+            frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(defaultBorderSize);
+            frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(DEFAULT_CORNER_RADIUS);
+        }
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        float shrinkX = 25.f;
+        float shrinkY = 25.f;
+        Rosen::Vector4f materialNodeBounds(x + shrinkX, y + shrinkY, sizeX - 2 * shrinkX, sizeY - 2 * shrinkY);
+        auto materialNode = Rosen::RSCanvasNode::Create();
+        materialNode->SetBounds(materialNodeBounds);
+        materialNode->SetFrame(materialNodeBounds);
+        materialNode->SetMaterialNGFilter(frostedGlassFilter);
+        GetRootNode()->AddChild(materialNode);
+        RegisterNode(materialNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Grid_Warp_PointParamsTest)
 {
     int columnCount = 2;
     int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
@@ -622,28 +705,118 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_GRID_WARP_Test)
         // Create grid warp filter
         auto filter = CreateFilter(RSNGEffectType::GRID_WARP);
         auto gridWarpFilter = std::static_pointer_cast<RSNGGridWarpFilter>(filter);
-        gridWarpFilter->Setter<GridWarpGridPoint0Tag>(gridWarpParams[i][0]);
-        gridWarpFilter->Setter<GridWarpGridPoint1Tag>(gridWarpParams[i][1]);
-        gridWarpFilter->Setter<GridWarpGridPoint2Tag>(gridWarpParams[i][2]);
-        gridWarpFilter->Setter<GridWarpGridPoint3Tag>(gridWarpParams[i][3]);
-        gridWarpFilter->Setter<GridWarpGridPoint4Tag>(gridWarpParams[i][4]);
-        gridWarpFilter->Setter<GridWarpGridPoint5Tag>(gridWarpParams[i][5]);
-        gridWarpFilter->Setter<GridWarpGridPoint6Tag>(gridWarpParams[i][6]);
-        gridWarpFilter->Setter<GridWarpGridPoint7Tag>(gridWarpParams[i][7]);
-        gridWarpFilter->Setter<GridWarpGridPoint8Tag>(gridWarpParams[i][8]);
-        gridWarpFilter->Setter<GridWarpRotationAngle0Tag>(gridWarpParams[i][9]);
-        gridWarpFilter->Setter<GridWarpRotationAngle1Tag>(gridWarpParams[i][10]);
-        gridWarpFilter->Setter<GridWarpRotationAngle2Tag>(gridWarpParams[i][11]);
-        gridWarpFilter->Setter<GridWarpRotationAngle3Tag>(gridWarpParams[i][12]);
-        gridWarpFilter->Setter<GridWarpRotationAngle4Tag>(gridWarpParams[i][13]);
-        gridWarpFilter->Setter<GridWarpRotationAngle5Tag>(gridWarpParams[i][14]);
-        gridWarpFilter->Setter<GridWarpRotationAngle6Tag>(gridWarpParams[i][15]);
-        gridWarpFilter->Setter<GridWarpRotationAngle7Tag>(gridWarpParams[i][16]);
-        gridWarpFilter->Setter<GridWarpRotationAngle8Tag>(gridWarpParams[i][17]);
+        gridWarpFilter->Setter<GridWarpGridPoint0Tag>(gridWarpPointParams[i][0]);
+        gridWarpFilter->Setter<GridWarpGridPoint1Tag>(gridWarpPointParams[i][1]);
+        gridWarpFilter->Setter<GridWarpGridPoint2Tag>(gridWarpPointParams[i][2]);
+        gridWarpFilter->Setter<GridWarpGridPoint3Tag>(gridWarpPointParams[i][3]);
+        gridWarpFilter->Setter<GridWarpGridPoint4Tag>(gridWarpPointParams[i][4]);
+        gridWarpFilter->Setter<GridWarpGridPoint5Tag>(gridWarpPointParams[i][5]);
+        gridWarpFilter->Setter<GridWarpGridPoint6Tag>(gridWarpPointParams[i][6]);
+        gridWarpFilter->Setter<GridWarpGridPoint7Tag>(gridWarpPointParams[i][7]);
+        gridWarpFilter->Setter<GridWarpGridPoint8Tag>(gridWarpPointParams[i][8]);
+        gridWarpFilter->Setter<GridWarpRotationAngle0Tag>(gridWarpAngleParams[1][0]);
+        gridWarpFilter->Setter<GridWarpRotationAngle1Tag>(gridWarpAngleParams[1][1]);
+        gridWarpFilter->Setter<GridWarpRotationAngle2Tag>(gridWarpAngleParams[1][2]);
+        gridWarpFilter->Setter<GridWarpRotationAngle3Tag>(gridWarpAngleParams[1][3]);
+        gridWarpFilter->Setter<GridWarpRotationAngle4Tag>(gridWarpAngleParams[1][4]);
+        gridWarpFilter->Setter<GridWarpRotationAngle5Tag>(gridWarpAngleParams[1][5]);
+        gridWarpFilter->Setter<GridWarpRotationAngle6Tag>(gridWarpAngleParams[1][6]);
+        gridWarpFilter->Setter<GridWarpRotationAngle7Tag>(gridWarpAngleParams[1][7]);
+        gridWarpFilter->Setter<GridWarpRotationAngle8Tag>(gridWarpAngleParams[1][8]);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        backgroundTestNode->SetBackgroundNGFilter(gridWarpFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Grid_Warp_AngleParamsTest) {
+    int columnCount = 2;
+    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create grid warp filter
+        auto filter = CreateFilter(RSNGEffectType::GRID_WARP);
+        auto gridWarpFilter = std::static_pointer_cast<RSNGGridWarpFilter>(filter);
+        gridWarpFilter->Setter<GridWarpGridPoint0Tag>(gridWarpPointParams[1][0]);
+        gridWarpFilter->Setter<GridWarpGridPoint1Tag>(gridWarpPointParams[1][1]);
+        gridWarpFilter->Setter<GridWarpGridPoint2Tag>(gridWarpPointParams[1][2]);
+        gridWarpFilter->Setter<GridWarpGridPoint3Tag>(gridWarpPointParams[1][3]);
+        gridWarpFilter->Setter<GridWarpGridPoint4Tag>(gridWarpPointParams[1][4]);
+        gridWarpFilter->Setter<GridWarpGridPoint5Tag>(gridWarpPointParams[1][5]);
+        gridWarpFilter->Setter<GridWarpGridPoint6Tag>(gridWarpPointParams[1][6]);
+        gridWarpFilter->Setter<GridWarpGridPoint7Tag>(gridWarpPointParams[1][7]);
+        gridWarpFilter->Setter<GridWarpGridPoint8Tag>(gridWarpPointParams[1][8]);
+        gridWarpFilter->Setter<GridWarpRotationAngle0Tag>(gridWarpAngleParams[i][0]);
+        gridWarpFilter->Setter<GridWarpRotationAngle1Tag>(gridWarpAngleParams[i][1]);
+        gridWarpFilter->Setter<GridWarpRotationAngle2Tag>(gridWarpAngleParams[i][2]);
+        gridWarpFilter->Setter<GridWarpRotationAngle3Tag>(gridWarpAngleParams[i][3]);
+        gridWarpFilter->Setter<GridWarpRotationAngle4Tag>(gridWarpAngleParams[i][4]);
+        gridWarpFilter->Setter<GridWarpRotationAngle5Tag>(gridWarpAngleParams[i][5]);
+        gridWarpFilter->Setter<GridWarpRotationAngle6Tag>(gridWarpAngleParams[i][6]);
+        gridWarpFilter->Setter<GridWarpRotationAngle7Tag>(gridWarpAngleParams[i][7]);
+        gridWarpFilter->Setter<GridWarpRotationAngle8Tag>(gridWarpAngleParams[i][8]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        backgroundTestNode->SetBackgroundNGFilter(gridWarpFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Grid_Warp_Displacement_Distort_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create grid warp filter
+        auto filter0 = CreateFilter(RSNGEffectType::GRID_WARP);
+        auto gridWarpFilter = std::static_pointer_cast<RSNGGridWarpFilter>(filter0);
+        gridWarpFilter->Setter<GridWarpGridPoint0Tag>(gridWarpPointParams[i][0]);
+        gridWarpFilter->Setter<GridWarpGridPoint1Tag>(gridWarpPointParams[i][1]);
+        gridWarpFilter->Setter<GridWarpGridPoint2Tag>(gridWarpPointParams[i][2]);
+        gridWarpFilter->Setter<GridWarpGridPoint3Tag>(gridWarpPointParams[i][3]);
+        gridWarpFilter->Setter<GridWarpGridPoint4Tag>(gridWarpPointParams[i][4]);
+        gridWarpFilter->Setter<GridWarpGridPoint5Tag>(gridWarpPointParams[i][5]);
+        gridWarpFilter->Setter<GridWarpGridPoint6Tag>(gridWarpPointParams[i][6]);
+        gridWarpFilter->Setter<GridWarpGridPoint7Tag>(gridWarpPointParams[i][7]);
+        gridWarpFilter->Setter<GridWarpGridPoint8Tag>(gridWarpPointParams[i][8]);
+        gridWarpFilter->Setter<GridWarpRotationAngle0Tag>(gridWarpAngleParams[i][0]);
+        gridWarpFilter->Setter<GridWarpRotationAngle1Tag>(gridWarpAngleParams[i][1]);
+        gridWarpFilter->Setter<GridWarpRotationAngle2Tag>(gridWarpAngleParams[i][2]);
+        gridWarpFilter->Setter<GridWarpRotationAngle3Tag>(gridWarpAngleParams[i][3]);
+        gridWarpFilter->Setter<GridWarpRotationAngle4Tag>(gridWarpAngleParams[i][4]);
+        gridWarpFilter->Setter<GridWarpRotationAngle5Tag>(gridWarpAngleParams[i][5]);
+        gridWarpFilter->Setter<GridWarpRotationAngle6Tag>(gridWarpAngleParams[i][6]);
+        gridWarpFilter->Setter<GridWarpRotationAngle7Tag>(gridWarpAngleParams[i][7]);
+        gridWarpFilter->Setter<GridWarpRotationAngle8Tag>(gridWarpAngleParams[i][8]);
+        // Create double ripple mask
+        auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+        auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+        doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+            Vector2f{ doubleRippleMaskParams[i][0], doubleRippleMaskParams[i][1]});
+        doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+            Vector2f{ doubleRippleMaskParams[i][2], doubleRippleMaskParams[i][3]});
+        doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[i][4]);
+        doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[i][5]);
+        doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[i][6]);
+        // Create displacement distort filter
+        auto filter1 = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+        auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter1);
+        dispDistortFilter->Setter<DispDistortFactorTag>(
+            Vector2f{ displacementDistortParams[i][0], displacementDistortParams[i][1] });
+        dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg",
+            {(i % columnCount) * sizeX, (i / columnCount) * sizeY, sizeX, sizeY});
+        gridWarpFilter->Append(dispDistortFilter);
         backgroundTestNode->SetBackgroundNGFilter(gridWarpFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);

@@ -492,4 +492,28 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable002, TestSize.Level1
     drawFunc(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: OnUpdate001
+ * @tc.desc: Test OnUpdate
+ * @tc.type:FUNC
+ * @tc.require: issue20929
+ */
+HWTEST_F(RSChildrenDrawableTest, OnUpdate001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    RSProperties& properties = node.GetMutableRenderProperties();
+    auto ret = std::make_shared<DrawableV2::RSBeginBlenderDrawable>();
+    ASSERT_FALSE(ret->OnUpdate(node));
+    properties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+    ASSERT_EQ(properties.GetColorBlendMode(), static_cast<int>(RSColorBlendMode::SRC_OVER));
+    ASSERT_FALSE(ret->OnUpdate(node));
+    properties.SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
+    ASSERT_EQ(properties.GetColorBlendApplyType(), static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
+    ASSERT_TRUE(ret->OnUpdate(node));
+    properties.SetColorBlendMode(static_cast<int>(RSColorBlendMode::PLUS));
+    ASSERT_EQ(properties.GetColorBlendMode(), static_cast<int>(RSColorBlendMode::PLUS));
+    ASSERT_TRUE(ret->OnUpdate(node));
+}
 } // namespace OHOS::Rosen

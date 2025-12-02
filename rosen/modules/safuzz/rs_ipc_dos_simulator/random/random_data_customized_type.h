@@ -47,6 +47,9 @@ public:
         const std::string& sizeType = "normal");
     static Vector4<uint32_t> GetRandomUint32Vector4();
     static Vector4<Color> GetRandomColorVector4();
+    static ModifierNG::RSPropertyType GetRandomRSPropertyType();
+    static ModifierNG::RSModifierType GetRandomRSModifierType();
+    static std::shared_ptr<ModifierNG::RSRenderModifier> GetRandomRSRenderModifierSharedPtr();
     static std::shared_ptr<RSFilter> GetRandomRSFilterSharedPtr();
     static std::shared_ptr<RSImage> GetRandomRSImageSharedPtr();
     static std::shared_ptr<RSMask> GetRandomRSMaskSharedPtr();
@@ -55,6 +58,7 @@ public:
     static std::shared_ptr<RSShader> GetRandomRSShaderSharedPtr();
     static Drawing::Matrix GetRandomDrawingMatrix();
     static std::shared_ptr<Drawing::DrawCmdList> GetRandomDrawingDrawCmdListPtr();
+    static DrawNodeType GetRandomDrawNodeType();
 
     // RSDisplayNodeCommand params
     static RSDisplayNodeConfig GetRandomRSDisplayNodeConfig();
@@ -68,6 +72,7 @@ public:
     static Vector2f GetRandomVector2f();
     static Vector3f GetRandomVector3f();
     static Vector4f GetRandomVector4f();
+    static Vector4<int> GetRandomVector4i();
     static Quaternion GetRandomQuaternion();
     static RectF GetRandomRectF();
     static std::shared_ptr<RectF> GetRandomRectFSharedPtr();
@@ -80,6 +85,7 @@ public:
 #endif
     static RSSurfaceNodeAbilityState GetRandomRSSurfaceNodeAbilityState();
     static std::optional<Drawing::Matrix> GetRandomOptionalDrawingMatrix();
+    static Rect GetRandomRect();
 
     // RSAnimationCommand params
     static AnimationCallbackEvent GetRandomAnimationCallbackEvent();

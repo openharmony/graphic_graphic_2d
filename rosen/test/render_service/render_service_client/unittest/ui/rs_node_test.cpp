@@ -5313,7 +5313,7 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    EXPECT_EQ(rsNode->lazyLoad_, false);
     rsNode->LoadRenderNodeIfNeed();
     EXPECT_EQ(rsNode->lazyLoad_, false);
 }
@@ -5327,7 +5327,7 @@ HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
 HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, true);
+    EXPECT_EQ(rsNode->lazyLoad_, false);
 
     constexpr int commandSize{1024};
     for (int i = 0; i < commandSize; ++i) {
@@ -7280,7 +7280,7 @@ HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
     auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), trueChild->GetId(),
         trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
 
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
     rsNode->AddChild(shadowChild, 1);
     EXPECT_EQ(trueChild->lazyLoad_, false);
 }
@@ -7302,9 +7302,9 @@ HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
     auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
         trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
 
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
     rsNode->AddChild(shadowChild, 1);
-    EXPECT_EQ(trueChild->lazyLoad_, true);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
 }
 
 /**
@@ -7677,6 +7677,29 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
         EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
         auto rsUIContext2 = std::make_shared<RSUIContext>();
         rsNode->SetRSUIContext(rsUIContext);
+        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
+    }
+}
+
+/**
+ * @tc.name: SetRSUIContext
+ * @tc.desc: test results of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueIBX6OE
+ */
+HWTEST_F(RSNodeTest, SetRSUIContext001, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto rsUIContext = std::make_shared<RSUIContext>();
+        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+        ASSERT_NE(rsNode, nullptr);
+        auto rsUIContext2 = std::make_shared<RSUIContext>();
+        std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>();
+        rsNode->AddAnimationInner(animation);
+        // test animations_ is not empty
+        EXPECT_FALSE(rsNode->animations_.empty());
+        rsNode->SetRSUIContext(rsUIContext2);
         EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
     }
 }
