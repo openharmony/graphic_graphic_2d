@@ -323,6 +323,7 @@ namespace text {
     trailingSpaceOptimized?: boolean;
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
+    compressHeadPunctuation?: boolean;
   }
 
   export interface TextShadow {
