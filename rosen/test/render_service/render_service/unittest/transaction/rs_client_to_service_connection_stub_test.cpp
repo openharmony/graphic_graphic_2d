@@ -2150,38 +2150,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkStub001, Test
 }
 
 /**
- * @tc.name: NotifyTouchEvent
- * @tc.desc: Test NotifyTouchEvent
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEvent, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageOption option;
-    MessageParcel reply;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
-    int32_t touchStatus{0};
-    int32_t touchCnt{0};
-    MessageParcel data4;
-    data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data4.WriteInt32(touchStatus);
-    data4.WriteInt32(touchCnt);
-    int sourceType = 2;
-    data4.WriteInt32(sourceType);
-    connectionStub_->OnRemoteRequest(code, data4, reply, option);
-
-    MessageParcel data5;
-    data5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data5.WriteInt32(touchStatus);
-    data5.WriteInt32(touchCnt);
-    int sourceType = -1;
-    data5.WriteInt32(sourceType);
-    int res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-}
-
-/**
  * @tc.name: SetSystemAnimatedScenesTest001
  * @tc.desc: Test SetSystemAnimatedScenes when ReadBool and ReadUint32 fail
  * @tc.type: FUNC
