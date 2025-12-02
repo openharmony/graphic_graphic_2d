@@ -60,3 +60,9 @@ DECLARE_MASK(UseEffectMask, USE_EFFECT_MASK,
     ADD_PROPERTY_TAG(UseEffectMask, Image),
     ADD_PROPERTY_TAG(UseEffectMask, UseEffect)
 );
+
+DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
+    ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
+    ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
+);

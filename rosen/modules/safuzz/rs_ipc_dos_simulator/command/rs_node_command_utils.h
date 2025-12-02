@@ -72,6 +72,13 @@ public:
                                     Uint64, RSShadowBlenderPara, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShort,
                                     Uint64, Short, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGFilterBase,
+                                    Uint64, RSNGFilterPtr, Uint64, PropertyUpdateType);
+    // ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGShaderBase,
+    //                                 Uint64, , Uint64, PropertyUpdateType);
+    // ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGMaskBase,
+    //                                 Uint64, , Uint64, PropertyUpdateType);
+
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetFreeze, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNodeName, Uint64, String);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSMarkNodeGroup, Uint64, Bool, Bool, Bool);

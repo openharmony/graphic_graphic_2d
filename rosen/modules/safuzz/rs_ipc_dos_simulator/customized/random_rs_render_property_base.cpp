@@ -26,15 +26,15 @@ namespace Rosen {
 std::shared_ptr<RSRenderPropertyBase> RandomRSRenderPropertyBase::GetRandomRSRenderPropertyBase()
 {
     static const std::vector<std::function<std::shared_ptr<RSRenderPropertyBase>()>> randomGenerator = {
-#define DECLARE_RENDER_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME) \
+#define DECLARE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME) \
     RandomRSRenderPropertyBase::GetRandom##FUNC_NAME##PropertyBase,
-#define DECLARE_ANIMATABLE_RENDER_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME) \
+#define DECLARE_ANIMATABLE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME) \
     RandomRSRenderPropertyBase::GetRandomAnimatable##FUNC_NAME##PropertyBase,
 
 #include "customized/rs_render_property.in"
 
-#undef DECLARE_RENDER_PROPERTY
-#undef DECLARE_ANIMATABLE_RENDER_PROPERTY
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
     };
 
     int index = RandomEngine::GetRandomIndex(randomGenerator.size() - 1);
@@ -42,14 +42,14 @@ std::shared_ptr<RSRenderPropertyBase> RandomRSRenderPropertyBase::GetRandomRSRen
     return modifier;
 }
 
-#define DECLARE_RENDER_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                           \
+#define DECLARE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                           \
 template<>                                                                                 \
 std::shared_ptr<RSRenderPropertyBase> RandomRSRenderPropertyBase::GetRandom<TYPE, false>() \
 {                                                                                          \
     return RandomRSRenderPropertyBase::GetRandom##FUNC_NAME##PropertyBase();               \
 }
 
-#define DECLARE_ANIMATABLE_RENDER_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                \
+#define DECLARE_ANIMATABLE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                \
 template<>                                                                                 \
 std::shared_ptr<RSRenderPropertyBase> RandomRSRenderPropertyBase::GetRandom<TYPE, true>()  \
 {                                                                                          \
@@ -58,7 +58,22 @@ std::shared_ptr<RSRenderPropertyBase> RandomRSRenderPropertyBase::GetRandom<TYPE
 
 #include "customized/rs_render_property.in"
 
-#undef DECLARE_RENDER_PROPERTY
-#undef DECLARE_ANIMATABLE_RENDER_PROPERTY
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
+
+#define DECLARE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                           \
+template<>                                                                                 \
+TYPE RandomRSRenderPropertyBase::GetRandomValue<TYPE>() \
+{                                                                                          \
+    return RANDOM_FACTORY::GetRandom##FUNC_NAME();               \
+}
+
+#define DECLARE_ANIMATABLE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)
+
+#include "customized/rs_render_property.in"
+
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
+
 } // namespace Rosen
 } // namespace OHOS

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2025 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -15,60 +15,54 @@
 
 // declare render properties for safuzztest
 
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Vector4f, RandomData, Vector4f)
+DECLARE_PROPERTY(float, RandomData, Float)
+DECLARE_PROPERTY(Quaternion, RandomData, Quaternion)
+DECLARE_PROPERTY(Vector2f, RandomData, Vector2f)
+DECLARE_PROPERTY(Vector3f, RandomData, Vector3f)
+DECLARE_PROPERTY(Vector4f, RandomData, Vector4f)
+DECLARE_PROPERTY(Matrix3f, RandomData, Matrix3f)
+DECLARE_PROPERTY(RRect, RandomData, RRect)
+DECLARE_PROPERTY(Color, RandomData, Color)
+DECLARE_PROPERTY(Vector4<Color>, RandomData, ColorVector4)
+DECLARE_PROPERTY(std::vector<float>, RandomData, FloatVector)
+DECLARE_PROPERTY(bool, RandomData, Bool)
+DECLARE_PROPERTY(int, RandomData, Int)
+DECLARE_PROPERTY(short, RandomData, Short)
+//DECLARE_PROPERTY(Vector4<uint32_t>, VECTOR4_UINT32)
+DECLARE_PROPERTY(Drawing::DrawCmdListPtr, RandomDrawCmdList, DrawCmdList)
+DECLARE_PROPERTY(std::shared_ptr<RSShader>, RandomData, RSShaderSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<RSImage>, RandomData, RSImageSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<RSPath>, RandomData, RSPathSharedPtr)
+DECLARE_PROPERTY(Gravity, RandomData, Gravity)
+DECLARE_PROPERTY(std::shared_ptr<RSLinearGradientBlurPara>, RandomRSLinearGradientBlurPara, RSLinearGradientBlurPara)
+DECLARE_PROPERTY(std::shared_ptr<RSMagnifierParams>, RandomData, RSMagnifierParamsSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<MotionBlurParam>, RandomData, MotionBlurParamSharedPtr)
+DECLARE_PROPERTY(std::vector<std::shared_ptr<EmitterUpdater>>, RandomData, SmallEmitterUpdaterSharedPtrVector)
+DECLARE_PROPERTY(std::shared_ptr<ParticleNoiseFields>, RandomData, SmallParticleNoiseFieldsSharedPtr)
+//DECLARE_PROPERTY(std::shared_ptr<ParticleRippleFields>, PARTICLE_RIPPLE_FIELD)
+//DECLARE_PROPERTY(std::shared_ptr<ParticleVelocityFields>, PARTICLE_VELOCITY_FIELD)
+DECLARE_PROPERTY(std::shared_ptr<RSMask>, RandomRSMask, RSMask)
+//DECLARE_PROPERTY(RSWaterRipplePara, WATER_RIPPLE_PARAMS)
+DECLARE_PROPERTY(RSFlyOutPara, RandomData, RSFlyOutPara)
+DECLARE_PROPERTY(std::shared_ptr<OHOS::Media::PixelMap>, RandomData, PixelMap)
+//DECLARE_PROPERTY(RSDynamicBrightnessPara, DYNAMIC_BRIGHTNESS_PARA)
+//DECLARE_PROPERTY(std::shared_ptr<RSNGRenderFilterBase>, RandomData, RSNGFilterPtr)
+DECLARE_PROPERTY(std::shared_ptr<RSNGRenderMaskBase>, RandomData, RSNGMaskPtr)
+//DECLARE_PROPERTY(SHADER_PTR, RS_NG_RENDER_SHADER_BASE)
+//DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShapeBase>, RandomData, RSNGShapePtr)
+//DECLARE_PROPERTY(RSShadowBlenderPara, SHADOW_BLENDER_PARAMS)
+//DECLARE_PROPERTY(std::vector<Vector2f>, VECTOR_VECTOR2F)
 
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Vector3f, RandomData, Vector3f)
+DECLARE_ANIMATABLE_PROPERTY(float, RandomData, Float)
+DECLARE_ANIMATABLE_PROPERTY(Quaternion, RandomData, Quaternion)
+DECLARE_ANIMATABLE_PROPERTY(Vector2f, RandomData, Vector2f)
+DECLARE_ANIMATABLE_PROPERTY(Vector3f, RandomData, Vector3f)
+DECLARE_ANIMATABLE_PROPERTY(Vector4f, RandomData, Vector4f)
+DECLARE_ANIMATABLE_PROPERTY(Matrix3f, RandomData, Matrix3f)
+DECLARE_ANIMATABLE_PROPERTY(RRect, RandomData, RRect)
+DECLARE_ANIMATABLE_PROPERTY(Color, RandomData, Color)
+DECLARE_ANIMATABLE_PROPERTY(Vector4<Color>, RandomData, ColorVector4)
+DECLARE_ANIMATABLE_PROPERTY(Drawing::DrawCmdListPtr, RandomDrawCmdList, DrawCmdList)
 
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Vector2f, RandomData, Vector2f)
-
-DECLARE_ANIMATABLE_RENDER_PROPERTY(float, RandomData, Float)
-
-DECLARE_RENDER_PROPERTY(bool, RandomData, Bool)
-
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Quaternion, RandomData, Quaternion)
-
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Color, RandomData, Color)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSShader>, RandomRSShader, RSShader)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSImage>, RandomRSImage, RSImage)
-
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Vector4<Color>, RandomData, ColorVector4)
-
-DECLARE_RENDER_PROPERTY(Vector4<uint32_t>, RandomData, Uint32Vector4)
-
-DECLARE_RENDER_PROPERTY(Vector4f, RandomData, Vector4f)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSLinearGradientBlurPara>, RandomRSLinearGradientBlurPara, RSLinearGradientBlurPara)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<MotionBlurParam>, RandomData, MotionBlurParamSharedPtr)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSMagnifierParams>, RandomData, RSMagnifierParamsSharedPtr)
-
-DECLARE_RENDER_PROPERTY(std::vector<std::shared_ptr<EmitterUpdater>>, RandomData, SmallEmitterUpdaterSharedPtrVector)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<ParticleNoiseFields>, RandomData, SmallParticleNoiseFieldsSharedPtr)
-
-DECLARE_RENDER_PROPERTY(Gravity, RandomData, Gravity)
-
-DECLARE_ANIMATABLE_RENDER_PROPERTY(RRect, RandomData, RRect)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSPath>, RandomRSPath, RSPath)
-
-DECLARE_RENDER_PROPERTY(int, RandomData, Int)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSMask>, RandomRSMask, RSMask)
-
-DECLARE_RENDER_PROPERTY(RSWaterRipplePara, RandomData, RSWaterRipplePara)
-
-DECLARE_RENDER_PROPERTY(RSFlyOutPara, RandomData, RSFlyOutPara)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<Drawing::DrawCmdList>, RandomDrawCmdList, DrawCmdList)
-
-DECLARE_ANIMATABLE_RENDER_PROPERTY(Matrix3f, RandomData, Matrix3f)
-
-DECLARE_RENDER_PROPERTY(Matrix3f, RandomData, Matrix3f)
-
-DECLARE_RENDER_PROPERTY(RSRenderParticleVector, RandomRSRenderParticle, RSRenderParticleVector)
-
-DECLARE_RENDER_PROPERTY(std::shared_ptr<RSFilter>, RandomRSFilter, RSFilter)
+// Planning: Remove the following properties after deprecating complex shader
+DECLARE_ANIMATABLE_PROPERTY(std::vector<float>, RandomData, FloatVector)

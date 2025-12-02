@@ -28,6 +28,8 @@
 #include "customized/random_rs_gradient_blur_para.h"
 #include "customized/random_rs_image.h"
 #include "customized/random_rs_mask.h"
+#include "customized/random_rs_ng_filter.h"
+#include "customized/random_rs_ng_mask.h"
 #include "customized/random_rs_path.h"
 #include "customized/random_rs_render_modifier_ng.h"
 #include "customized/random_rs_render_particle.h"
@@ -253,7 +255,7 @@ std::shared_ptr<RSFilter> RandomDataCustomizedType::GetRandomRSFilterSharedPtr()
     return RandomRSFilter::GetRandomRSFilter();
 }
 
-std::shared_ptr<RSImage> RandomDataCustomizedType::GetRandomRSImageSharedPtr()
+std::shared_ptr<RSImage> RandomDataCustomizedType::GetSRandomRSImageharedPtr()
 {
     return RandomRSImage::GetRandomRSImage();
 }
@@ -286,6 +288,16 @@ Drawing::Matrix RandomDataCustomizedType::GetRandomDrawingMatrix()
 std::shared_ptr<Drawing::DrawCmdList> RandomDataCustomizedType::GetRandomDrawingDrawCmdListPtr()
 {
     return RandomDrawCmdList::GetRandomDrawCmdList();
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RandomDataCustomizedType::GetRandomRSNGFilterPtr()
+{
+    return RandomRSNGFilterPtr::GetRandomValue();
+}
+
+std::shared_ptr<RSNGRenderMaskBase> RandomDataCustomizedType::GetRandomRSNGMaskPtr()
+{
+    return RandomRSNGMaskPtr::GetRandomValue();
 }
 
 RSDisplayNodeConfig RandomDataCustomizedType::GetRandomRSDisplayNodeConfig()

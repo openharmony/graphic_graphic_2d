@@ -22,6 +22,8 @@
 #include "command/rs_node_command.h"
 #include "command/rs_node_showing_command.h"
 #include "command/rs_surface_node_command.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS {
@@ -58,6 +60,8 @@ public:
     static std::shared_ptr<RSShader> GetRandomRSShaderSharedPtr();
     static Drawing::Matrix GetRandomDrawingMatrix();
     static std::shared_ptr<Drawing::DrawCmdList> GetRandomDrawingDrawCmdListPtr();
+    static std::shared_ptr<RSNGRenderFilterBase> GetRandomRSNGFilterPtr();
+    static std::shared_ptr<RSNGRenderMaskBase> GetRandomRSNGMaskPtr();
     static DrawNodeType GetRandomDrawNodeType();
 
     // RSDisplayNodeCommand params
@@ -77,6 +81,7 @@ public:
     static RectF GetRandomRectF();
     static std::shared_ptr<RectF> GetRandomRectFSharedPtr();
     static RRect GetRandomRRect();
+    static std::vector<float> GetRandomVectorFloat();
     static std::vector<Vector2f> GetRandomVectorVector2f();
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();

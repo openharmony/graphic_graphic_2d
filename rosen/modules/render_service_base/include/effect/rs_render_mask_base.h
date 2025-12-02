@@ -36,6 +36,9 @@ public:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val);
 
     virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() { return nullptr; }
+
+private:
+    friend class RandomRSNGMaskPtr;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>
@@ -71,12 +74,6 @@ protected:
     using RSNGRender##MaskName = RSNGRenderMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>
 
 #include "effect/rs_render_mask_def.in"
-
-DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
-    ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
-    ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
-    ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
-);
 
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK

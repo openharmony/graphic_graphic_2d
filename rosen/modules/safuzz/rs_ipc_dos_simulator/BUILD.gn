@@ -49,6 +49,8 @@ ohos_fuzztest("RSIpcDosSimulator") {
     "customized/random_rs_gradient_blur_para.cpp",
     "customized/random_rs_image.cpp",
     "customized/random_rs_mask.cpp",
+    "customized/random_rs_ng_filter.cpp",
+    "customized/random_rs_ng_mask.cpp",
     "customized/random_rs_path.cpp",
     "customized/random_rs_render_modifier_ng.cpp",
     "customized/random_rs_render_particle.cpp",
