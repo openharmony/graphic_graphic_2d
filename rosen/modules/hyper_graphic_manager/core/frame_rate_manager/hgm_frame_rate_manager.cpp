@@ -822,7 +822,7 @@ bool HgmFrameRateManager::IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t so
         return false;
     }
     return touchStatus == TOUCH_MOVE || touchStatus == TOUCH_BUTTON_DOWN || touchStatus == TOUCH_BUTTON_UP ||
-        touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
+           touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
 }
 
 void HgmFrameRateManager::HandleTouchTask(pid_t pid, int32_t touchStatus, int32_t touchCnt)
