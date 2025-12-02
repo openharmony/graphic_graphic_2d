@@ -2241,6 +2241,7 @@ HWTEST_F(HdiOutputTest, UpdateInfosAfterCommitVerifyFramePresentFd, Function | M
     EXPECT_CALL(*fbFence, SyncFileReadTimestamp()).WillRepeatedly(testing::Return(timeStamp));
     ASSERT_EQ(hdiOutput_->UpdateInfosAfterCommit(fbFence), GRAPHIC_DISPLAY_SUCCESS);
     ASSERT_EQ(hdiOutput_->GetCurrentFramePresentFd(), fbFence->Get());
+    hdiOutput_->historicalPresentfences_.clear();
 }
 } // namespace
 } // namespace Rosen
