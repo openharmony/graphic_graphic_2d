@@ -77,6 +77,9 @@ bool DoCreate(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     return true;
 }
 
@@ -85,6 +88,9 @@ bool DoMarshalling(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     Parcel parcel;
     displayNode->Marshalling(parcel);
     return true;
@@ -95,6 +101,9 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     Parcel parcel;
     displayNode->Unmarshalling(parcel);
     return true;
@@ -105,6 +114,9 @@ bool DoSetScreenId(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     uint64_t screenId = GetData<uint64_t>();
     displayNode->SetScreenId(screenId);
     return true;
@@ -115,6 +127,9 @@ bool DoSetSecurityDisplay(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     bool isSecurityDisplay = GetData<bool>();
     displayNode->SetSecurityDisplay(isSecurityDisplay);
     return true;
@@ -125,6 +140,9 @@ bool DoSetScreenRotation(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     uint32_t rotation = GetData<uint32_t>();
     displayNode->SetScreenRotation(rotation);
     return true;
@@ -135,6 +153,9 @@ bool DoSetDisplayNodeMirrorConfig(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config = GetRSDisplayNodeConfigFromData();
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     RSDisplayNodeConfig config2 = GetRSDisplayNodeConfigFromData();
     displayNode->SetDisplayNodeMirrorConfig(config2);
     return true;
@@ -145,6 +166,9 @@ bool DoSetBootAnimation(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     bool isBootAnimation = GetData<bool>();
     displayNode->SetBootAnimation(isBootAnimation);
     return true;
@@ -155,6 +179,9 @@ bool DoCreateNode(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     RSDisplayNodeConfig config2;
     NodeId nodeId = GetData<NodeId>();
     displayNode->CreateNode(config2, nodeId);
@@ -166,6 +193,9 @@ bool DoSetVirtualScreenMuteStatus(const uint8_t* data, size_t size)
     // test
     RSDisplayNodeConfig config;
     RSDisplayNode::SharedPtr displayNode = RSDisplayNode::Create(config);
+    if (!displayNode) {
+        return false;
+    }
     bool muteStatus = GetData<bool>();
     displayNode->SetVirtualScreenMuteStatus(muteStatus);
     
