@@ -217,6 +217,26 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
     return aniTypefaceObj;
 }
 
+ani_boolean AniTypeface::IsBold(ani_env* env, ani_object obj)
+{
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+    return aniTypeface->GetTypeface()->GetBold();
+}
+
+ani_boolean AniTypeface::IsItalic(ani_env* env, ani_object obj)
+{
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+    return aniTypeface->GetTypeface()->GetItalic();
+}
+
 ani_long AniTypeface::GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
     auto aniTypeface = GetNativeFromObj<AniTypeface>(env, input);
