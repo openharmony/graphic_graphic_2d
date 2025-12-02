@@ -252,4 +252,37 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
     ret->SetCacheShaderSize(1);
     EXPECT_EQ(ret->blobSizeMax_, 1);
 }
+
+/**
+ * @tc.name: ValidFileShortBufferTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, ValidFileShortBufferTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    EXPECT_NE(ret, nullptr);
+    std::vector<uint8_t> shortBuffer(CACHE_HEAD - 1);
+    bool result = ret->ValidFile(shortBuffer.data(), sizeof(shortBuffer));
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: ValidFileLongBufferTest
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+ HWTEST_F(EglBlobTest, ValidFileLongBufferTest, Level1)
+{
+    BlobCache* ret = BlobCache::Get();
+    EXPECT_NE(ret, nullptr);
+    std::vector<uint8_t> longBuffer(32);
+    std::string magic = "CACHE_MAGIC";
+    std::copy(magic.begin(), magic.begin() + 8, longBuffer.begin());
+    uint32_t crc = 0x12345678;
+    std::copy(reinterpret_cast<uint8_t*>(&crc), reinterpret_cast<uint8_t*>(&crc) + 4, longBuffer.begin() + 8);
+    std::fill(longBuffer.begin() + 12, longBuffer.end(), 0xAA);
+    bool result = ret->ValidFile(longBuffer.data(), sizeof(longBuffer));
+    EXPECT_TRUE(result);
+}
 } // OHOS::Rosen
