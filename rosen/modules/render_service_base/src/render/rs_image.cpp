@@ -576,7 +576,7 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
         RS_LOGE("RSImage::DrawImageRepeatOffScreen get surface null");
         return;
     }
-    auto offScreenSurface = surface->MakeSurface(frameRect_.width_, dstRect.height_);
+    auto offScreenSurface = surface->MakeSurface(frameRect_.width_, dstRect_.height_);
     if (!offScreenSurface) {
         RS_LOGE("RSImage::DrawImageRepeatOffScreen make offScreenSurface null");
         return;
@@ -584,12 +584,12 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     auto offScreenCanvas = *offScreenSurface->GetCanvas();
 
     for (int i = minX; i <= maxX; ++i) {
-        auto left = dstRect.left_ + i * dstRect.width_;
-        auto right = left + dstRect.width_;
-        dst_ = Drawing::Rect(left, 0, right, dstRect.height_);
+        auto left = dstRect_.left_ + i * dstRect_.width_;
+        auto right = left + dstRect_.width_;
+        dst_ = Drawing::Rect(left, 0, right, dstRect_.height_);
         RsImageDraw(samplingOptions, offScreenCanvas, false);
     }
-    
+
     auto imageLineSrc = Drawing::Rect(0, 0, offScreenSurface->Width(), offScreenSurface->Height());
     auto imageLine = offScreenSurface->GetImageSnapshot();
     if (imageLine == nullptr) {
@@ -598,16 +598,16 @@ void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingO
     }
 
     for (int j = minY; j <= maxY; ++j) {
-        auto lineDstTop = dstRect.top_ + j * dstRect.height_;
-        dst_ = Drawing::Rect(0, lineDstTop, frameRect_.width_, lineDstTop + dstRect.height_);
+        auto lineDstTop = dstRect_.top_ + j * dstRect_.height_;
+        dst_ = Drawing::Rect(0, lineDstTop, frameRect_.width_, lineDstTop + dstRect_.height_);
         canvas.DrawImageRect(*imageLine, imageLineSrc, dst_, Drawing::SamplingOptions(),
             Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     }
 }
     
-void RSImage::CalcRepeatBounds(RectF& dstRect, int& minX, int& maxX, int& minY, int& maxY)
+void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
-    if (dstRect.width_ == 0 || dstRect.height_ == 0) {
+    if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
         return;
     }
     float left = frameRect_.left_;
@@ -623,18 +623,18 @@ void RSImage::CalcRepeatBounds(RectF& dstRect, int& minX, int& maxX, int& minY, 
         std::swap(repeat_x, repeat_y);
     }
     if (repeat_x == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
-        while (dstRect.left_ + minX * dstRect.width_ > left + eps) {
+        while (dstRect_.left_ + minX * dstRect_.width_ > left + eps) {
             --minX;
         }
-        while (dstRect.left_ + maxX * dstRect.width_ < right - eps) {
+        while (dstRect_.left_ + maxX * dstRect_.width_ < right - eps) {
             ++maxX;
         }
     }
     if (repeat_y == imageRepeat_ || ImageRepeat::REPEAT == imageRepeat_) {
-        while (dstRect.top_ + minY * dstRect.height_ > top + eps) {
+        while (dstRect_.top_ + minY * dstRect_.height_ > top + eps) {
             --minY;
         }
-        while (dstRect.top_ + maxY * dstRect.height_ < bottom - eps) {
+        while (dstRect_.top_ + maxY * dstRect_.height_ < bottom - eps) {
             ++maxY;
         }
     }
