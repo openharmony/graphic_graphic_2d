@@ -2925,10 +2925,13 @@ void RSRenderNode::RecordCurDirtyStatus()
 void RSRenderNode::AccumulateDirtyStatus()
 {
     GetMutableRenderProperties().AccumulateDirtyStatus();
-    if (curDirtyStatus_ == NodeDirty::CLEAN) {
+    if (curDirtyStatus_ != NodeDirty::CLEAN) {
+        SetDirty();
         return;
     }
-    SetDirty();
+    if (isSubTreeDirty_) {
+        SetParentSubTreeDirty();
+    }
 }
 
 void RSRenderNode::ResetAccumulateDirtyStatus()

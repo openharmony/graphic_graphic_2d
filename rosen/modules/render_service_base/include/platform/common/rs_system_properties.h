@@ -181,6 +181,7 @@ public:
     static bool GetAceTestMode();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static AdvancedDirtyRegionType GetAdvancedDirtyRegionEnabled();
+    static bool GetAnimationOcclusionEnabled();
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -374,6 +375,7 @@ public:
     static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();
+    static bool GetVKImageAdaptationForWallpaperEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();

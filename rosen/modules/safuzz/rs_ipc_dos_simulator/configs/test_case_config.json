@@ -1458,6 +1458,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_169",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSMarkRepaintBoundary*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -2625,5 +2634,19 @@
     "inputParams": "WriteUint64;WriteUInt8Vector;WriteInt32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_BEHIND_WINDOW_FILTER_ENABLED_TEST_001",
+    "interfaceName": "SET_BEHIND_WINDOW_FILTER_ENABLED",
+    "inputParams": "WriteBool",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_BEHIND_WINDOW_FILTER_ENABLED_TEST_001",
+    "interfaceName": "GET_BEHIND_WINDOW_FILTER_ENABLED",
+    "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]

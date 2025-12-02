@@ -59,6 +59,8 @@ int32_t DirtyRegionParamParse::ParseDirtyRegionInternal(xmlNode &node)
             DirtyRegionParam::SetComposeDirtyRegionEnableInPartialDisplay(isEnabled);
         } else if (name == "TileBasedAlignEnabled") {
             DirtyRegionParam::SetTileBasedAlignEnable(isEnabled);
+        } else if (name == "AnimationOcclusionEnabled") {
+            DirtyRegionParam::SetAnimationOcclusionEnable(isEnabled);
         } else {
             return PARSE_ERROR;
         }

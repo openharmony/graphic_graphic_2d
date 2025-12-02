@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -171,6 +171,30 @@ OH_Drawing_ErrorCode OH_Drawing_FontArgumentsAddVariation(OH_Drawing_FontArgumen
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_FontArgumentsDestroy(OH_Drawing_FontArguments* fontArguments);
+
+/**
+ * @brief Checks if the typeface is bold.
+ *
+ * @param typeface Indicates the pointer to an <b>OH_Drawing_Typeface</b> object.
+ * @param isBold Indicates if the typeface is bold.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if typeface or isBold is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_TypefaceIsBold(const OH_Drawing_Typeface* typeface, bool* isBold);
+
+/**
+ * @brief Checks if the typeface is italic.
+ *
+ * @param typeface Indicates the pointer to an <b>OH_Drawing_Typeface</b> object.
+ * @param isItalic Indicates if the typeface is italic.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if typeface or isItalic is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_TypefaceIsItalic(const OH_Drawing_Typeface* typeface, bool* isItalic);
 
 #ifdef __cplusplus
 }

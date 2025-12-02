@@ -319,6 +319,8 @@ private:
 
     ErrCode ReportJankStats() override;
 
+    void UpdateAnimationOcclusionStatus(const std::string& sceneId, bool isStart);
+
     ErrCode ReportEventResponse(DataBaseRs info) override;
 
     ErrCode ReportEventComplete(DataBaseRs info) override;

@@ -89,6 +89,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSDumpClientNodeTree, Uint64, Pid, Uint64, Uint32);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSCommitDumpClientNodeTree, Uint64, Pid, Uint32, String);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIContextToken, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkRepaintBoundary, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_5(RSModifierNGAttachProperty,
                                     Uint64, Uint64, RSModifierType, RSPropertyType, RSRenderPropertyBaseSharedPtr);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSModifierNGDetachProperty,
