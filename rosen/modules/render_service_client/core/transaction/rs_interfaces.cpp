@@ -540,6 +540,11 @@ void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
     renderServiceClient_->SetScreenPowerStatus(id, status);
 }
 
+int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    return renderServiceClient_->SetDualScreenState(id, status);
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)

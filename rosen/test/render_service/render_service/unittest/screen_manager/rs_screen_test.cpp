@@ -2657,4 +2657,51 @@ HWTEST_F(RSScreenTest, InitDisplayPropertyForHardCursorTest, TestSize.Level1)
     rsScreen->InitDisplayPropertyForHardCursor();
     EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
 }
+
+/*
+ * @tc.name: SetDualScreenStateTest
+ * @tc.desc: SetDualScreenState Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetDualScreenStateTest, TestSize.Level1)
+{
+    // case 1: hdiScreen_ null
+    {
+        DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_ENTER;
+        auto rsScreen = std::make_shared<RSScreen>(nullptr);
+        rsScreen->hdiScreen_ = nullptr;
+        EXPECT_EQ(rsScreen->SetDualScreenState(status), StatusCode::HDI_ERROR);
+    }
+
+    // case 2: virtual screen
+    {
+        DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_ENTER;
+        VirtualScreenConfigs config;
+        auto virtualScreen = std::make_shared<RSScreen>(config);
+        EXPECT_EQ(virtualScreen->SetDualScreenState(status), StatusCode::VIRTUAL_SCREEN);
+    }
+
+    // case 3: mock hdi error
+    {
+        ScreenId screenId = mockScreenId_;
+        DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_STATUS_BUTT;
+        auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+        auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(-1));
+        EXPECT_EQ(rsScreen->SetDualScreenState(status), StatusCode::HDI_ERROR);
+    }
+
+    // case 4
+    {
+        ScreenId screenId = mockScreenId_;
+        DualScreenStatus status = DualScreenStatus::DUAL_SCREEN_ENTER;
+        auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+        auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+        rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+        EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(_, _, _)).WillOnce(testing::Return(0));
+        EXPECT_EQ(rsScreen->SetDualScreenState(status), StatusCode::SUCCESS);
+    }
+}
 } // namespace OHOS::Rosen

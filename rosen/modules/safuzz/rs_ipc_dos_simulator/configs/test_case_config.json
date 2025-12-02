@@ -2589,6 +2589,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "SET_DUAL_SCREEN_STATE_TEST_001",
+    "interfaceName": "SET_DUAL_SCREEN_STATE",
+    "inputParams": "WriteUint64;WriteUint64",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS",
     "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",

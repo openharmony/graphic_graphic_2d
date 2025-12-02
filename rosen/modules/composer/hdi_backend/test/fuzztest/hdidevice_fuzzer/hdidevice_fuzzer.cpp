@@ -160,9 +160,12 @@ namespace OHOS {
         float maxLum = GetData<float>();
         float maxAverageLum = GetData<float>();
         float minLum = GetData<float>();
+        uint32_t propertyId = GetData<uint32_t>();
+        uint64_t propertyValue = GetData<uint64_t>();
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
+        device->SetDisplayProperty(screenId, propertyId, propertyValue);
         device->PrepareScreenLayers(screenId, needFlush);
         std::vector<uint32_t> layersId;
         std::vector<int32_t> types;

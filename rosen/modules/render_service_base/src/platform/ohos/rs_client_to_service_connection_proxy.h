@@ -162,6 +162,8 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) override;
+
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 

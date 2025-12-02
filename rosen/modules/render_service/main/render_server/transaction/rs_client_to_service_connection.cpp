@@ -1432,6 +1432,25 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     }
 }
 
+int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    if (!screenManager_) {
+        RS_LOGE("%{public}s screenManager is null, id: %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSRenderComposerManager::GetInstance().PostSyncTask(id,
+            [=]() {return screenManager_->SetDualScreenState(id, status); });
+    } else if (mainThread_ != nullptr) {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetDualScreenState(id, status); }).get();
+    } else {
+        RS_LOGE("%{public}s mainThread_ is null, id: %{public}" PRIu64, __func__, id);
+        return StatusCode::MAIN_THREAD_NULL;
+    }
+}
+
 namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,

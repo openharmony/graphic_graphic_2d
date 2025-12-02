@@ -205,6 +205,8 @@ public:
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
+    virtual int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) = 0;
+
     virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
 
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;

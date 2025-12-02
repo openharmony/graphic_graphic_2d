@@ -1633,6 +1633,16 @@ int32_t RSScreenManager::SetPhysicalScreenResolution(ScreenId id, uint32_t width
     return screen->SetResolution(width, height);
 }
 
+int32_t RSScreenManager::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screen->SetDualScreenState(status);
+}
+
 int32_t RSScreenManager::SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     if (width > MAX_VIRTUAL_SCREEN_WIDTH || height > MAX_VIRTUAL_SCREEN_HEIGHT) {

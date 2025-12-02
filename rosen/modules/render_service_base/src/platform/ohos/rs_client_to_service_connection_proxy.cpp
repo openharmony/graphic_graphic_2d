@@ -1884,6 +1884,39 @@ void RSClientToServiceConnectionProxy::SetScreenPowerStatus(ScreenId id, ScreenP
     }
 }
 
+int32_t RSClientToServiceConnectionProxy::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetDualScreenState: WriteInterfaceToken GetDescriptor err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetDualScreenState: WriteUint64 id err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUint64(static_cast<uint64_t>(status))) {
+        ROSEN_LOGE("SetDualScreenState: WriteUint64 status err.");
+        return StatusCode::WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetDualScreenState: SendRequest error: %{public}d", err);
+        return StatusCode::RS_CONNECTION_ERROR;
+    }
+    int32_t ret{0};
+    if (!reply.ReadInt32(ret)) {
+        ROSEN_LOGE("SetDualScreenState: Read ret failed");
+        return StatusCode::READ_PARCEL_ERR;
+    }
+    return ret;
+}
+
 ErrCode RSClientToServiceConnectionProxy::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
     if (app == nullptr) {

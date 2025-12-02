@@ -127,6 +127,7 @@ public:
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height);
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
     ScreenPowerStatus GetScreenPowerStatus(ScreenId id) const;

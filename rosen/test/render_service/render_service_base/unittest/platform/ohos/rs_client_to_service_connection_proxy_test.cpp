@@ -1602,5 +1602,34 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
     proxy->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     ASSERT_TRUE(proxy);
 }
+
+/**
+ * @tc.name: SetDualScreenState Test
+ * @tc.desc: Test SetDualScreenState
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState001, TestSize.Level1)
+{
+    ScreenId id = 1;
+    auto ret = proxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetDualScreenState Test
+ * @tc.desc: Test SetDualScreenState with mock remoteObject
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState002, TestSize.Level1)
+{
+    ScreenId id = 1;
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
+}
 } // namespace Rosen
 } // namespace OHOS

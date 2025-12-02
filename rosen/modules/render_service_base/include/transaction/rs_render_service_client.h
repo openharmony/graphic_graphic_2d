@@ -217,6 +217,8 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
