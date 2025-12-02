@@ -2634,5 +2634,19 @@
     "inputParams": "WriteUint64;WriteUInt8Vector;WriteInt32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_BEHIND_WINDOW_FILTER_ENABLED_TEST_001",
+    "interfaceName": "SET_BEHIND_WINDOW_FILTER_ENABLED",
+    "inputParams": "WriteBool",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_BEHIND_WINDOW_FILTER_ENABLED_TEST_001",
+    "interfaceName": "GET_BEHIND_WINDOW_FILTER_ENABLED",
+    "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]
