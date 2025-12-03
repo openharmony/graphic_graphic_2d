@@ -35,7 +35,6 @@ private:
 
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_;
     std::shared_ptr<Drawing::FontMgr> fontMgr_;
-
     static std::vector<uint8_t> symbolData_;
     static std::vector<uint8_t> cjkData_;
     static std::vector<uint8_t> sansData_;
@@ -482,7 +481,7 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSi
     auto typeface = fontCollection_->LoadFont(familyName, sansData_.data(), sansData_.size());
     ASSERT_NE(typeface, nullptr);
     EXPECT_TRUE(typeface->IsCustomTypeface());
-    EXPECT_FALSE(typeface->IsThemeTypeface());
+    EXPECT_TRUE(typeface->IsThemeTypeface());
     fontCollection_->UnloadFont(familyName);
 }
 
