@@ -913,12 +913,12 @@ bool RSInterfaces::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::str
     return renderServiceClient_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     if (!RSFrameRatePolicy::GetInstance()->GetTouchOrPointerAction(touchStatus)) {
         return;
     }
-    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
 }
 
 void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)

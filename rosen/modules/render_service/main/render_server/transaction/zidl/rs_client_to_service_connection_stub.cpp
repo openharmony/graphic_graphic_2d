@@ -3040,12 +3040,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
             int32_t touchStatus{0};
             int32_t touchCnt{0};
-            if (!data.ReadInt32(touchStatus) || !data.ReadInt32(touchCnt)) {
+            int32_t sourceType{0};
+            if (!data.ReadInt32(touchStatus) || !data.ReadInt32(touchCnt) || !data.ReadInt32(sourceType)) {
                 RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_TOUCH_EVENT Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            NotifyTouchEvent(touchStatus, touchCnt);
+            NotifyTouchEvent(touchStatus, touchCnt, sourceType);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT) : {

@@ -357,7 +357,7 @@ private:
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
 
-    ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
+    ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 

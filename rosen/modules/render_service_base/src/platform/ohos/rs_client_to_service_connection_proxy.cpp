@@ -4753,7 +4753,7 @@ bool RSClientToServiceConnectionProxy::NotifySoftVsyncRateDiscountEvent(uint32_t
     return enable;
 }
 
-ErrCode RSClientToServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+ErrCode RSClientToServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -4768,6 +4768,10 @@ ErrCode RSClientToServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, 
     }
     if (!data.WriteInt32(touchCnt)) {
         ROSEN_LOGE("NotifyTouchEvent: WriteInt32 touchCnt err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteInt32(sourceType)) {
+        ROSEN_LOGE("NotifyTouchEvent: WriteInt32 sourceType err.");
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_ASYNC);

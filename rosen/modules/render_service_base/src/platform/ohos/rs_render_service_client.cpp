@@ -1844,11 +1844,11 @@ void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string&
     }
 }
 
-void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
-        clientToService->NotifyTouchEvent(touchStatus, touchCnt);
+        clientToService->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     }
 }
 

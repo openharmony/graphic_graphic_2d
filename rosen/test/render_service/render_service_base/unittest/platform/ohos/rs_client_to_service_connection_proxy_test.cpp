@@ -1213,7 +1213,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
     proxy->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
     int32_t touchStatus = 1;
     int32_t touchCnt = 0;
-    proxy->NotifyTouchEvent(touchStatus, touchCnt);
+    int32_t sourceType = 2;
+    proxy->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     proxy->NotifyDynamicModeEvent(true);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);

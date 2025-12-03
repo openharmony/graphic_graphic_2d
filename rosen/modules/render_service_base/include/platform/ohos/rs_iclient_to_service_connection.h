@@ -343,7 +343,7 @@ public:
 
     virtual bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) = 0;
 
-    virtual ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) = 0;
+    virtual ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType) = 0;
 
     virtual void NotifyDynamicModeEvent(bool enableDynamicMode) = 0;
 

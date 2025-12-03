@@ -2150,7 +2150,7 @@
   {
     "testCaseDesc": "NOTIFY_TOUCH_EVENT_TEST_001",
     "interfaceName": "NOTIFY_TOUCH_EVENT",
-    "inputParams": "WriteUint32;WriteUint32",
+    "inputParams": "WriteInt32;WriteInt32;WriteInt32",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   },

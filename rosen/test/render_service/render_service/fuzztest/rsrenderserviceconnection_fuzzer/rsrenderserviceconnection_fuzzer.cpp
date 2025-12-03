@@ -1248,7 +1248,8 @@ bool DONotifyTouchEvent()
     }
     int32_t touchStatus = GetData<int32_t>();
     int32_t touchCnt = GetData<int32_t>();
-    rsToServiceConn_->NotifyTouchEvent(touchStatus, touchCnt);
+    int32_t sourceType = GetData<int32_t>();
+    rsToServiceConn_->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     return true;
 }
 

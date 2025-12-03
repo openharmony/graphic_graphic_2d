@@ -2791,7 +2791,7 @@ bool RSClientToServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
     return true;
 }
 
-ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     if (mainThread_ != nullptr) {
         mainThread_->HandleTouchEvent(touchStatus, touchCnt);
@@ -2799,7 +2799,7 @@ ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32
     }
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
-        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt, sourceType);
     }
     return ERR_OK;
 }
