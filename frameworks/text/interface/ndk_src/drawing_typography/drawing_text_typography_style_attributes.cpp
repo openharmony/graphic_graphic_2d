@@ -112,25 +112,25 @@ namespace OHOS::Rosen::Text {
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode setIncludeFontPadding(TypographyStyle* style, bool value)
+    OH_Drawing_ErrorCode SetIncludeFontPadding(TypographyStyle* style, bool value)
     {
         style->includeFontPadding = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode getIncludeFontPadding(const TypographyStyle* style, bool* value)
+    OH_Drawing_ErrorCode GetIncludeFontPadding(const TypographyStyle* style, bool* value)
     {
         *value = style->includeFontPadding;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode setFallbackLineSpacing(TypographyStyle* style, bool value)
+    OH_Drawing_ErrorCode SetFallbackLineSpacing(TypographyStyle* style, bool value)
     {
         style->fallbackLineSpacing = value;
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode getFallbackLineSpacing(const TypographyStyle* style, bool* value)
+    OH_Drawing_ErrorCode GetFallbackLineSpacing(const TypographyStyle* style, bool* value)
     {
         *value = style->fallbackLineSpacing;
         return OH_DRAWING_SUCCESS;
@@ -165,15 +165,15 @@ namespace OHOS::Rosen::Text {
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleBoolSetter>
         g_typographyStyleBoolSetters = {
             { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, SetCompressHeadPunctuation },
-            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, setIncludeFontPadding },
-            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, setFallbackLineSpacing },
+            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, SetIncludeFontPadding },
+            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, SetFallbackLineSpacing },
     };
 
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleBoolGetter>
         g_typographyStyleBoolGetters = {
             { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, GetCompressHeadPunctuation },
-            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, getIncludeFontPadding },
-            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, getFallbackLineSpacing },
+            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, GetIncludeFontPadding },
+            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, GetFallbackLineSpacing },
     };
 }
 

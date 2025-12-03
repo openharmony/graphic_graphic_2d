@@ -1343,8 +1343,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest001, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(
         skia::textlayout::LineMetricStyle::Typographic, skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect run height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect run height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect run height is 16.407999038696289
     EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
     OH_Drawing_DestroyTypography(typography);
@@ -1372,12 +1372,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest002, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 18
-    EXPECT_DOUBLE_EQ(firstLineHeight, 18);
+    // First line expect height is 20
+    EXPECT_DOUBLE_EQ(firstLineHeight, 20);
     // Second line expect height is 16
     EXPECT_DOUBLE_EQ(middleLineHeight, 16);
-    // Last line expect height is 17
-    EXPECT_DOUBLE_EQ(lastLineHeight, 17);
+    // Last line expect height is 18
+    EXPECT_DOUBLE_EQ(lastLineHeight, 18);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1408,12 +1408,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest003, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 116
-    EXPECT_DOUBLE_EQ(firstLineHeight, 116);
+    // First line expect height is 122
+    EXPECT_DOUBLE_EQ(firstLineHeight, 122);
     // Second line expect height is 109
     EXPECT_DOUBLE_EQ(middleLineHeight, 109);
-    // Last line expect height is 111
-    EXPECT_DOUBLE_EQ(lastLineHeight, 111);
+    // Last line expect height is 115
+    EXPECT_DOUBLE_EQ(lastLineHeight, 115);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1444,12 +1444,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest004, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 82
-    EXPECT_DOUBLE_EQ(firstLineHeight, 82);
+    // First line expect height is 88
+    EXPECT_DOUBLE_EQ(firstLineHeight, 88);
     // Second line expect height is 75
     EXPECT_DOUBLE_EQ(middleLineHeight, 75);
-    // Last line expect height is 76
-    EXPECT_DOUBLE_EQ(lastLineHeight, 76);
+    // Last line expect height is 81
+    EXPECT_DOUBLE_EQ(lastLineHeight, 81);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1485,12 +1485,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest005, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 32
-    EXPECT_DOUBLE_EQ(firstLineHeight, 32);
+    // First line expect height is 34
+    EXPECT_DOUBLE_EQ(firstLineHeight, 34);
     // Second line expect height is 30
     EXPECT_DOUBLE_EQ(middleLineHeight, 30);
-    // Last line expect height is 31
-    EXPECT_DOUBLE_EQ(lastLineHeight, 31);
+    // Last line expect height is 35
+    EXPECT_DOUBLE_EQ(lastLineHeight, 35);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1525,12 +1525,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest006, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 86
-    EXPECT_DOUBLE_EQ(firstLineHeight, 86);
+    // First line expect height is 93
+    EXPECT_DOUBLE_EQ(firstLineHeight, 93);
     // Second line expect height is 80
     EXPECT_DOUBLE_EQ(middleLineHeight, 80);
-    // Last line expect height is 81
-    EXPECT_DOUBLE_EQ(lastLineHeight, 81);
+    // Last line expect height is 85
+    EXPECT_DOUBLE_EQ(lastLineHeight, 85);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1562,12 +1562,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest007, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 46
-    EXPECT_DOUBLE_EQ(firstLineHeight, 46);
+    // First line expect height is 53
+    EXPECT_DOUBLE_EQ(firstLineHeight, 53);
     // Second line expect height is 40
     EXPECT_DOUBLE_EQ(middleLineHeight, 40);
-    // Last line expect height is 41
-    EXPECT_DOUBLE_EQ(lastLineHeight, 41);
+    // Last line expect height is 45
+    EXPECT_DOUBLE_EQ(lastLineHeight, 45);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1599,12 +1599,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest008, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 106
-    EXPECT_DOUBLE_EQ(firstLineHeight, 106);
+    // First line expect height is 113
+    EXPECT_DOUBLE_EQ(firstLineHeight, 113);
     // Second line expect height is 100
     EXPECT_DOUBLE_EQ(middleLineHeight, 100);
-    // Last line expect height is 101
-    EXPECT_DOUBLE_EQ(lastLineHeight, 101);
+    // Last line expect height is 105
+    EXPECT_DOUBLE_EQ(lastLineHeight, 105);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1637,12 +1637,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest009, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 74
-    EXPECT_DOUBLE_EQ(firstLineHeight, 74);
+    // First line expect height is 80
+    EXPECT_DOUBLE_EQ(firstLineHeight, 80);
     // Second line expect height is 100
     EXPECT_DOUBLE_EQ(middleLineHeight, 100);
-    // Last line expect height is 93
-    EXPECT_DOUBLE_EQ(lastLineHeight, 93);
+    // Last line expect height is 97
+    EXPECT_DOUBLE_EQ(lastLineHeight, 97);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1693,12 +1693,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest011, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[totalLineCnt - 1].height();
-    // First line expect height is 130
-    EXPECT_DOUBLE_EQ(firstLineHeight, 130);
+    // First line expect height is 143
+    EXPECT_DOUBLE_EQ(firstLineHeight, 143);
     // Second line expect height is 117
     EXPECT_DOUBLE_EQ(middleLineHeight, 117);
-    // Last line expect height is 120
-    EXPECT_DOUBLE_EQ(lastLineHeight, 120);
+    // Last line expect height is 128
+    EXPECT_DOUBLE_EQ(lastLineHeight, 128);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1731,12 +1731,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest012, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[lineCount - 1].height();
-    // First line expect height is 117
-    EXPECT_DOUBLE_EQ(firstLineHeight, 117);
+    // First line expect height is 127
+    EXPECT_DOUBLE_EQ(firstLineHeight, 127);
     // Second line expect height is 107
     EXPECT_DOUBLE_EQ(middleLineHeight, 107);
-    // Last line expect height is 109
-    EXPECT_DOUBLE_EQ(lastLineHeight, 109);
+    // Last line expect height is 116
+    EXPECT_DOUBLE_EQ(lastLineHeight, 116);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1770,12 +1770,12 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest013, TestSi
     double firstLineHeight = skiaParagraph->lines()[0].height();
     double middleLineHeight = skiaParagraph->lines()[1].height();
     double lastLineHeight = skiaParagraph->lines()[lineCount - 1].height();
-    // First line expect height is 131
-    EXPECT_DOUBLE_EQ(firstLineHeight, 131);
+    // First line expect height is 141
+    EXPECT_DOUBLE_EQ(firstLineHeight, 141);
     // Second line expect height is 121
     EXPECT_DOUBLE_EQ(middleLineHeight, 121);
-    // Last line expect height is 123
-    EXPECT_DOUBLE_EQ(lastLineHeight, 123);
+    // Last line expect height is 130
+    EXPECT_DOUBLE_EQ(lastLineHeight, 130);
     OH_Drawing_DestroyTypography(typography);
 }
 
@@ -1798,8 +1798,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest014, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect line run height is 16.407999038696289
     EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
     OH_Drawing_DestroyTypography(typography);
@@ -1824,8 +1824,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest015, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 22
-    EXPECT_DOUBLE_EQ(lineHeight, 22);
+    // Expect line height is 25
+    EXPECT_DOUBLE_EQ(lineHeight, 25);
     // Expect run height is 20.271999359130859
     EXPECT_DOUBLE_EQ(runHeight, 20.271999359130859);
     OH_Drawing_DestroyTypography(typography);
@@ -1850,8 +1850,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest016, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 23
-    EXPECT_DOUBLE_EQ(lineHeight, 23);
+    // Expect line height is 26
+    EXPECT_DOUBLE_EQ(lineHeight, 26);
     // Expect run height is 21.153999328613281
     EXPECT_DOUBLE_EQ(runHeight, 21.153999328613281);
     OH_Drawing_DestroyTypography(typography);
@@ -1876,8 +1876,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest017, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect line run height is 16.407999038696289
     EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
     OH_Drawing_DestroyTypography(typography);
@@ -1902,8 +1902,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest018, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect line run height is 16.440366744995117
     EXPECT_DOUBLE_EQ(runHeight, 16.440366744995117);
     OH_Drawing_DestroyTypography(typography);
@@ -1928,8 +1928,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest019, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect line run height is 16.407999038696289
     EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
     OH_Drawing_DestroyTypography(typography);
@@ -1954,8 +1954,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest020, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect line run height is 16.407999038696289
     EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
     OH_Drawing_DestroyTypography(typography);
@@ -1980,8 +1980,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest021, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 23
-    EXPECT_DOUBLE_EQ(lineHeight, 23);
+    // Expect line height is 26
+    EXPECT_DOUBLE_EQ(lineHeight, 26);
     // Expect line run height is 21.027999877929688
     EXPECT_DOUBLE_EQ(runHeight, 21.027999877929688);
     OH_Drawing_DestroyTypography(typography);
@@ -2006,8 +2006,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest022, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 33
-    EXPECT_DOUBLE_EQ(lineHeight, 33);
+    // Expect line height is 36
+    EXPECT_DOUBLE_EQ(lineHeight, 36);
     // Expect line run height is 30.576000213623047
     EXPECT_DOUBLE_EQ(runHeight, 30.576000213623047);
     OH_Drawing_DestroyTypography(typography);
@@ -2032,8 +2032,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleIncludeFontPaddingTest023, TestSi
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::Typographic,
         skia::textlayout::LineMetricStyle::Typographic);
     double lineHeight = skiaParagraph->lines()[0].height();
-    // Expect line height is 19
-    EXPECT_DOUBLE_EQ(lineHeight, 19);
+    // Expect line height is 22
+    EXPECT_DOUBLE_EQ(lineHeight, 22);
     // Expect line run height is 16.407999038696289
     EXPECT_DOUBLE_EQ(runHeight, 16.407999038696289);
     OH_Drawing_DestroyTypography(typography);
