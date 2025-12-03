@@ -29,7 +29,9 @@
 #endif
 
 #include "font_config.h"
+#ifdef ENABLE_OHOS_ENHANCE
 #include "locale_config.h"
+#endif
 #include "text/font_filetype.h"
 #include "text/font_metadata.h"
 #include "text/font_unicode_query.h"
@@ -471,7 +473,11 @@ std::vector<std::string> FontParser::GetFontFullName(const std::string& path)
 
 std::vector<std::string> FontParser::GetBcpTagList()
 {
+#ifdef ENABLE_OHOS_ENHANCE
     std::string systemLanguage = Global::I18n::LocaleConfig::GetSystemLanguage();
+#else
+    std::string systemLanguage = "";
+#endif
     auto it = g_localeToBcpTable.find(systemLanguage);
     if (it == g_localeToBcpTable.end()) {
         return {};

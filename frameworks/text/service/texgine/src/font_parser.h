@@ -126,8 +126,8 @@ public:
     static std::vector<uint32_t> GetFontTypefaceUnicode(const std::string& path, int32_t index);
     static std::vector<uint32_t> GetFontTypefaceUnicode(const void* data, size_t length, int32_t index);
     static std::vector<std::string> GetFontFullName(const std::string& path);
-    static int32_t FontParser::GetFontCount(const std::string& path);
-    static int32_t FontParser::GetFontCount(const std::vector<uint8_t>& data);
+    static int32_t GetFontCount(const std::string& path);
+    static int32_t GetFontCount(const std::vector<uint8_t>& data);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,

@@ -17,6 +17,7 @@
 #define OHOS_ROSEN_TEXT_FONT_TOOL_SET_H
 
 #include <string>
+#include <vector>
 
 namespace OHOS::Rosen {
 

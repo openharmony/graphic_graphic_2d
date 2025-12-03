@@ -53,6 +53,8 @@ ohos_unittest("texgine_unittest_part3") {
   public_configs = [ ":texgine_test_config" ]
   public_deps = [ ":common_deps" ]
 
+  external_deps = [ "i18n:intl_util" ]
+
   use_exceptions = true
 
   part_name = "graphic_2d"

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <functional>
 #include <vector>
 #include "js_fontdescriptor.h"
 
@@ -34,7 +35,10 @@ std::unordered_map<int, int> g_weightMap = {
     {900, static_cast<int>(FontWeight::W900)}
 };
 
-using FontDescriptorProperty = std::variant<int, bool, std::string>;
+using FontDescriptorProperty = std::variant<
+    std::reference_wrapper<int>,
+    std::reference_wrapper<bool>,
+    std::reference_wrapper<std::string>>;
 using FontDescriptorPropertyList = std::vector<std::pair<const char*, FontDescriptorProperty>>;
 FontDescriptorPropertyList GenerateDescriptorPropList(FontDescSharedPtr fd)
 {
@@ -162,7 +166,7 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
         auto properties = GenerateDescriptorPropList(cb->matchDesc);
         for (auto& item : properties) {
             TEXT_CHECK(std::visit([&](auto& p) -> bool {
-                TEXT_ERROR_CHECK(CheckAndConvertProperty(env, argv[0], item.first, p), return false,
+                TEXT_ERROR_CHECK(CheckAndConvertProperty(env, argv[0], item.first, p.get()), return false,
                     "Failed to convert %{public}s", item.first);
                 return true;
             }, item.second), return);
@@ -205,7 +209,7 @@ bool JsFontDescriptor::CreateAndSetProperties(napi_env env, napi_value fontDescr
     auto properties = GenerateDescriptorPropList(item);
     for (const auto& prop : properties) {
         TEXT_CHECK(std::visit([&](auto& p) -> bool {
-            TEXT_CHECK(SetProperty(env, fontDescriptor, prop.first, CreateJsValue(env, p)), return false);
+            TEXT_CHECK(SetProperty(env, fontDescriptor, prop.first, CreateJsValue(env, p.get())), return false);
             return true;
         }, prop.second), return false);
     }
