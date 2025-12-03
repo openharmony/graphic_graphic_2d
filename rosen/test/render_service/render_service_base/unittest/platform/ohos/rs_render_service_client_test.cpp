@@ -794,9 +794,9 @@ HWTEST_F(RSServiceClientTest, GetPanelPowerStatus002, TestSize.Level1)
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
     RSRenderServiceConnectHub::Destroy();
-    EXPECT_EQ(rsClient->GetPanelPowerStatus(screenId), ScreenPowerStatus::INVALID_POWER_STATUS);
+    EXPECT_EQ(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
     RSRenderServiceConnectHub::Init();
-    EXPECT_NE(rsClient->GetPanelPowerStatus(screenId), ScreenPowerStatus::INVALID_POWER_STATUS);
+    EXPECT_NE(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
 }
 
 /**

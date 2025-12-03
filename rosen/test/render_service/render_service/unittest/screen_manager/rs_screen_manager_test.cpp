@@ -1540,7 +1540,7 @@ HWTEST_F(RSScreenManagerTest, GetPanelPowerStatus_002, TestSize.Level1)
     auto screenManager = CreateOrGetScreenManager();
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, true, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
     screenManager->MockHdiScreenConnected(rsScreen);
     ASSERT_EQ(screenManager->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
 }
@@ -1557,7 +1557,7 @@ HWTEST_F(RSScreenManagerTest, GetPanelPowerStatus_003, TestSize.Level1)
     ASSERT_NE(nullptr, screenManager);
     ScreenId screenId = mockScreenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
     screenManager->MockHdiScreenConnected(rsScreen);
     ASSERT_EQ(screenManager->GetPanelPowerStatus(screenId), PanelPowerStatus::PANEL_POWER_STATUS_ON);

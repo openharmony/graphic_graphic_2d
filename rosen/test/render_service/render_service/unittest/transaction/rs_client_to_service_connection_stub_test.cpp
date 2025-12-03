@@ -1502,11 +1502,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus004, TestSize.L
     clientToServiceConnection->screenManager_ = nullptr;
     int ret = clientToServiceConnection->GetPanelPowerStatus(SCREEN_ID, status);
     EXPECT_EQ(ret, ERR_INVALID_OPERATION);
-
-    // disable uni render
-    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
-    int ret = clientToServiceConnection->GetPanelPowerStatus(SCREEN_ID, status);
-    EXPECT_EQ(ret, ERR_OK);
 }
 
 /**

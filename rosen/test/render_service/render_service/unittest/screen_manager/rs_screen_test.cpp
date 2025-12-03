@@ -1213,7 +1213,7 @@ HWTEST_F(RSScreenTest, GetPanelPowerStatus_001, testing::ext::TestSize.Level1)
 {
     ScreenId screenId = mockScreenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
     rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
 
     // simulate successful calling
@@ -1235,7 +1235,7 @@ HWTEST_F(RSScreenTest, GetPanelPowerStatus_001, testing::ext::TestSize.Level1)
 HWTEST_F(RSScreenTest, GetPanelPowerStatus_002, testing::ext::TestSize.Level1)
 {
     VirtualScreenConfigs config;
-    auto virtualScreen = std::make_shared<impl::RSScreen>(config);
+    auto virtualScreen = std::make_shared<RSScreen>(config);
     EXPECT_EQ(virtualScreen->GetPanelPowerStatus(), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
 }
 
@@ -1248,7 +1248,7 @@ HWTEST_F(RSScreenTest, GetPanelPowerStatus_003, testing::ext::TestSize.Level1)
 {
     ScreenId screenId = mockScreenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
     rsScreen->hdiScreen_ = nullptr;
     EXPECT_EQ(rsScreen->GetPanelPowerStatus(), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
 }
