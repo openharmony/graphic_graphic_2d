@@ -379,8 +379,8 @@ HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid003, TestSize.Level1)
     rsRenderNodeMap.FilterNodeByPid(1);
     RSDisplayNodeConfig config;
     auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
-    rsRenderNodeMap.logicaldisplayNodeMap_[id] = displayNode;
+    rsRenderNodeMap.logicalDisplayNodeMap_[id] = displayNode;
     rsRenderNodeMap.FilterNodeByPid(pid);
-    EXPECT_FALSE(!rsRenderNodeMap.logicaldisplayNodeMap_.empty());
+    EXPECT_FALSE(!rsRenderNodeMap.logicalDisplayNodeMap_.empty());
 }
 } // namespace OHOS::Rosen
