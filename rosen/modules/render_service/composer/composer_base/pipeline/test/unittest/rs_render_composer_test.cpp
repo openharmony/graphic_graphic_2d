@@ -1829,6 +1829,11 @@ HWTEST_F(RsRenderComposerTest, PostTask_Null_Handler, TestSize.Level1)
     EXPECT_FALSE(ran.load());
     ran.store(false);
 
+    tmpRsRenderComposer->PostTaskWithInnerDelay([&ran]() { ran.store(true); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_FALSE(ran.load());
+    ran.store(false);
+
     tmpRsRenderComposer->PostSyncTask([&ran]() { ran.store(true); });
     EXPECT_FALSE(ran.load());
     ran.store(false);
