@@ -3638,10 +3638,14 @@ void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 
 void RSProperties::SetUseUnion(bool useUnion)
 {
+    if (ROSEN_EQ(useUnion_, useUnion)) {
+        return;
+    }
     useUnion_ = useUnion;
     if (GetUseUnion()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -3652,9 +3656,13 @@ bool RSProperties::GetUseUnion() const
 
 void RSProperties::SetUnionSpacing(float spacing)
 {
+    if (ROSEN_EQ(unionSpacing_, spacing)) {
+        return;
+    }
     unionSpacing_ = spacing;
     geoDirty_ = true;
     contentDirty_ = true;
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -5160,8 +5168,12 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
 
 void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
+    if (ROSEN_EQ(renderSDFShape_, shape)) {
+        return;
+    }
     renderSDFShape_ = shape;
     isDrawn_ = true;
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
