@@ -310,7 +310,6 @@ namespace text {
     tab?: TextTab;
     trailingSpaceOptimized?: boolean;
     autoSpace?: boolean;
-    compressHeadPunctuation?: boolean;
     verticalAlign?: TextVerticalAlign;
     compressHeadPunctuation?: boolean;
   }
