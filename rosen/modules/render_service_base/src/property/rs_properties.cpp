@@ -5200,19 +5200,5 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
     return nullptr;
 }
 
-void RSProperties::OnSDFShapeChange()
-{
-    if (renderSDFShape_) {
-        if (!sdfFilter_) {
-            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
-        }
-        if (IS_UNI_RENDER) {
-            GetEffect().foregroundFilterCache_ = sdfFilter_;
-        } else {
-            GetEffect().foregroundFilter_ = sdfFilter_;
-        }
-    }
-}
-
 } // namespace Rosen
 } // namespace OHOS

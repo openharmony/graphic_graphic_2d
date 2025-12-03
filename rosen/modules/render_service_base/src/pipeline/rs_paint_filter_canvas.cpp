@@ -1870,22 +1870,23 @@ bool RSPaintFilterCanvas::GetDarkColorMode() const
 
 uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> data)
 {
-    RSPaintFilterCanvas::DrawFunc customFunc = [clipRRectData = data](Drawing::Canvas *canvas) {
-        if (canvas == nullptr || clipRRectData == nullptr) {
+    RSPaintFilterCanvas::DrawFunc customFunc = [clipRRectData = data](Drawing::Canvas& canvas) {
+        if (clipRRectData == nullptr) {
             return;
         }
-        canvas->Save();
-        canvas->ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
-        canvas->ResetMatrix();
+        canvas.Save();
+        canvas.ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
+        canvas.ResetMatrix();
         for (auto& corner : clipRRectData->data_) {
             if (corner != nullptr && corner->image_ != nullptr && !corner->rect_.IsEmpty()) {
                 Drawing::Brush brush;
                 brush.SetBlendMode(Drawing::BlendMode::SRC);
-                canvas->AttachBrush(brush);
-                canvas->DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
-                canvas->DetachBrush();
+                canvas.AttachBrush(brush);
+                canvas.DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
+                canvas.DetachBrush();
             }
         }
+        canvas.Restore();
     };
     return CustomSaveLayer(customFunc);
 }
@@ -1922,8 +1923,7 @@ void RSPaintFilterCanvasBase::DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc d
     if (canvas == nullptr) {
         return;
     }
-    drawFunc(canvas);
-    canvas->Restore();
+    drawFunc(*canvas);
 }
 
 std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::GenerateCornerData(

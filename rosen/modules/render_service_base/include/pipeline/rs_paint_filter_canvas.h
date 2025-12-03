@@ -157,7 +157,7 @@ public:
         uint32_t saveCount_ = 0;
     };
 
-    using DrawFunc = std::function<void(Drawing::Canvas* canvas)>;
+    using DrawFunc = std::function<void(Drawing::Canvas& canvas)>;
 
     uint32_t CustomSaveLayer(DrawFunc customFunc);
     uint32_t SaveClipRRect(std::shared_ptr<ClipRRectData> data);

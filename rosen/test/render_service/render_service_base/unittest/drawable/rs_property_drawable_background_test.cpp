@@ -122,7 +122,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable002, TestSize.Level1)
 /**
  * @tc.name: RSShadowDrawable003
  * @tc.desc: Shadow test with sdf filter
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
 HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable003, TestSize.Level1)
 {
@@ -133,9 +133,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable003, TestSize.Level1)
     EXPECT_NE(sdfShape, nullptr);
     node.GetMutableRenderProperties().SetSDFShape(sdfShape);
 
-    auto foregroundFilter = std::make_shared<RSSDFEffectFilter>(sdfShape);
-    node.GetMutableRenderProperties().SetForegroundFilterCache(foregroundFilter);
-    node.GetMutableRenderProperties().SetForegroundFilter(foregroundFilter);
     Color shadowColor = Color();
     node.GetMutableRenderProperties().SetShadowColor(shadowColor);
     node.GetMutableRenderProperties().SetShadowRadius(1.0f);
