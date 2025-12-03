@@ -343,7 +343,7 @@ protected:
         }
     };
 
-    const RSRenderNodeType nodeType_;
+    RSRenderNodeType nodeType_;
     // deprecated
     std::weak_ptr<const RSRenderNode> renderNode_;
     NodeId nodeId_;
