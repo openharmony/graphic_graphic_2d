@@ -33,6 +33,11 @@ protected:
 private:
     static std::vector<uint8_t> GetFileData(const std::string& path);
 
+    const char* symbolConfigFile_ = "/system/fonts/hm_symbol_config_next.json";
+    const char* cjkFamily_ = "Noto Sans CJK JP";
+    const char* sansFamily_ = "Noto Sans";
+    const char* mathFamily_ = "Noto Sans Math";
+
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_;
     std::shared_ptr<Drawing::FontMgr> fontMgr_;
     static std::vector<uint8_t> symbolData_;
@@ -41,14 +46,10 @@ private:
     static std::vector<uint8_t> mathData_;
 };
 
-const char* symbolFile_ = "/system/fonts/HMSymbolVF.ttf";
-const char* symbolConfigFile_ = "/system/fonts/hm_symbol_config_next.json";
-const char* cjkFile_ = "/system/fonts/NotoSansCJK-Regular.ttc";
-const char* sansFile_ = "/system/fonts/NotoSans[wdth,wght].ttf";
-const char* mathFile_ = "/system/fonts/NotoSansMath-Regular.ttf";
-const char* cjkFamily_ = "Noto Sans CJK JP";
-const char* sansFamily_ = "Noto Sans";
-const char* mathFamily_ = "Noto Sans Math";
+const char* SYMBOL_FILE = "/system/fonts/HMSymbolVF.ttf";
+const char* CJK_FILE = "/system/fonts/NotoSansCJK-Regular.ttc";
+const char* SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
+const char* MATH_FILE = "/system/fonts/NotoSansMath-Regular.ttf";
 
 std::vector<uint8_t> AdapterFontCollectionTest::symbolData_{};
 std::vector<uint8_t> AdapterFontCollectionTest::cjkData_{};
@@ -57,10 +58,10 @@ std::vector<uint8_t> AdapterFontCollectionTest::mathData_{};
 
 void AdapterFontCollectionTest::SetUpTestSuite()
 {
-    symbolData_ = GetFileData(symbolFile_);
-    cjkData_ = GetFileData(cjkFile_);
-    sansData_ = GetFileData(sansFile_);
-    mathData_ = GetFileData(mathFile_);
+    symbolData_ = GetFileData(SYMBOL_FILE);
+    cjkData_ = GetFileData(CJK_FILE);
+    sansData_ = GetFileData(SANS_FILE);
+    mathData_ = GetFileData(MATH_FILE);
 }
 
 void AdapterFontCollectionTest::SetUp()
@@ -160,14 +161,6 @@ HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest003, TestSize.Level
  */
 HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest004, TestSize.Level0)
 {
-    std::ifstream fileStream(symbolFile_);
-    fileStream.seekg(0, std::ios::end);
-    uint32_t bufferSize = fileStream.tellg();
-    fileStream.seekg(0, std::ios::beg);
-    std::unique_ptr buffer = std::make_unique<uint8_t[]>(bufferSize);
-    fileStream.read(reinterpret_cast<char*>(buffer.get()), bufferSize);
-    fileStream.close();
-
     fontCollection_->ClearThemeFont();
     LoadSymbolErrorCode res = fontCollection_->LoadSymbolFont("testCustomSymbol", nullptr, 0);
     EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
@@ -176,13 +169,13 @@ HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest004, TestSize.Level
     res = fontCollection_->LoadSymbolFont("testCustomSymbol", invalidBuffer, sizeof(invalidBuffer));
     EXPECT_EQ(res, LoadSymbolErrorCode::LOAD_FAILED);
 
-    res = fontCollection_->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
+    res = fontCollection_->LoadSymbolFont("testCustomSymbol", symbolData_.data(), symbolData_.size());
     EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
     auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
     EXPECT_EQ(adaptFontCollection->typefaceSet_.size(), 1);
 
     // When loading the same data repeatedly, return success without increasing the count;
-    res = fontCollection_->LoadSymbolFont("testCustomSymbol", buffer.get(), bufferSize);
+    res = fontCollection_->LoadSymbolFont("testCustomSymbol", symbolData_.data(), symbolData_.size());
     EXPECT_EQ(res, LoadSymbolErrorCode::SUCCESS);
     EXPECT_EQ(adaptFontCollection->typefaceSet_.size(), 1);
 }
