@@ -317,11 +317,6 @@ void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus 
 {
 }
 
-int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus status)
-{
-    return StatusCode::RS_CONNECTION_ERROR;
-}
-
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     return {};
