@@ -3233,7 +3233,6 @@ OH_Drawing_TextShadow *OH_Drawing_CopyTextShadow(OH_Drawing_TextShadow *shadow);
  *
  * @param positionAndAffinity Indicates the pointer to an <b>OH_Drawing_PositionAndAffinity</b> object.
  * @since 23
- * @version 1.0
  */
 void OH_Drawing_DestroyPositionAndAffinity(OH_Drawing_PositionAndAffinity* positionAndAffinity);
 #ifdef __cplusplus
