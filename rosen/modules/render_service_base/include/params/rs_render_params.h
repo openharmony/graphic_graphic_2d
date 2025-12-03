@@ -297,7 +297,7 @@ public:
         return drawingCacheType_;
     }
 
-    void ExcludedFromNodeGroup(bool isExcluded);
+    bool ExcludedFromNodeGroup(bool isExcluded);
     bool IsExcludedFromNodeGroup() const;
 
     void SetHasChildExcludedFromNodeGroup(bool isExcluded);

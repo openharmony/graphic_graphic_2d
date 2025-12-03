@@ -251,7 +251,6 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
-
     virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
 
     virtual bool UIExtensionNeedToDraw() const
@@ -325,6 +324,7 @@ protected:
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
     void CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas);
+    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
@@ -386,7 +386,6 @@ private:
     int8_t GetSkipIndex() const;
     std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;
     static void RemoveDrawableFromCache(const NodeId nodeId);
-    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
     std::atomic<bool> isOnDraw_ = false;
     RSCacheDrawableArray filterDrawables_{};

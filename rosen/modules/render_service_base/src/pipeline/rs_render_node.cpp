@@ -3532,7 +3532,10 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
 void RSRenderNode::ExcludedFromNodeGroup(bool isExcluded)
 {
 #ifdef RS_ENABLE_GPU
-    stagingRenderParams_->ExcludedFromNodeGroup(isExcluded);
+    if (stagingRenderParams_->ExcludedFromNodeGroup(isExcluded)) {
+        RS_TRACE_NAME_FMT("ExcludedFromNodeGroup id:%llu isExcluded:%d", GetId(), isExcluded);
+        SetDirty();
+    }
 #endif
 }
 

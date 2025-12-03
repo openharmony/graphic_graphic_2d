@@ -204,14 +204,16 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     needSync_ = true;
 }
 
-void RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
+bool RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
 {
     if (!renderGroupCache_) {
         renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
     }
     if (renderGroupCache_ && renderGroupCache_->ExcludedFromNodeGroup(isExcluded)) {
         needSync_ = true;
+        return true;
     }
+    return false;
 }
 
 bool RSRenderParams::IsExcludedFromNodeGroup() const

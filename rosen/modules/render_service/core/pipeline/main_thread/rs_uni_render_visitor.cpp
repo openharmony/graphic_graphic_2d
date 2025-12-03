@@ -1852,7 +1852,8 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode
         return;
     }
     node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
-    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE ||
+        (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && node.HasChildExcludedFromNodeGroup())) {
         offscreenCanvasNodeId_ = node.GetId();
     }
 }
