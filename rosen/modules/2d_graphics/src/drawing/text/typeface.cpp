@@ -364,6 +364,7 @@ uint32_t Typeface::CalculateHash(const uint8_t* data, size_t datalen, uint32_t i
             }
         }
         size_t size = extraOffset + STATIC_HEADER_LEN;
+        // prevent reading beyond the data length
         if (datalen >= extraOffset + TABLE_COUNT + sizeof(uint16_t)) {
             size += TABLE_ENTRY_LEN * read<uint16_t>(data + extraOffset + TABLE_COUNT);
         }
