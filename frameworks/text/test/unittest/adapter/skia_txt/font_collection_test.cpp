@@ -28,27 +28,41 @@ namespace Rosen {
 class OH_Drawing_FontCollectionTest : public testing::Test {
 protected:
     void SetUp() override;
+    static void SetUpTestSuite();
 
 private:
-    std::vector<uint8_t> GetFileData(const std::string& path);
-
-    const char* symbolFile_ = "/system/fonts/HMSymbolVF.ttf";
-    const char* symbolConfigFile_ = "/system/fonts/hm_symbol_config_next.json";
-    const char* cjkFile_ = "/system/fonts/NotoSansCJK-Regular.ttc";
-    const char* sansFile_ = "/system/fonts/NotoSans[wdth,wght].ttf";
-    const char* mathFile_ = "/system/fonts/NotoSansMath-Regular.ttf";
-    const char* cjkFamily_ = "Noto Sans CJK JP";
-    const char* sansFamily_ = "Noto Sans";
-    const char* mathFamily_ = "Noto Sans Math";
+    static std::vector<uint8_t> GetFileData(const std::string& path);
 
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection_;
     std::shared_ptr<Drawing::FontMgr> fontMgr_;
 
-    std::vector<uint8_t> symbolData_;
-    std::vector<uint8_t> cjkData_;
-    std::vector<uint8_t> sansData_;
-    std::vector<uint8_t> mathData_;
+    static std::vector<uint8_t> symbolData_;
+    static std::vector<uint8_t> cjkData_;
+    static std::vector<uint8_t> sansData_;
+    static std::vector<uint8_t> mathData_;
 };
+
+const char* symbolFile_ = "/system/fonts/HMSymbolVF.ttf";
+const char* symbolConfigFile_ = "/system/fonts/hm_symbol_config_next.json";
+const char* cjkFile_ = "/system/fonts/NotoSansCJK-Regular.ttc";
+const char* sansFile_ = "/system/fonts/NotoSans[wdth,wght].ttf";
+const char* mathFile_ = "/system/fonts/NotoSansMath-Regular.ttf";
+const char* cjkFamily_ = "Noto Sans CJK JP";
+const char* sansFamily_ = "Noto Sans";
+const char* mathFamily_ = "Noto Sans Math";
+
+std::vector<uint8_t> OH_Drawing_FontCollectionTest::symbolData_{};
+std::vector<uint8_t> OH_Drawing_FontCollectionTest::cjkData_{};
+std::vector<uint8_t> OH_Drawing_FontCollectionTest::sansData_{};
+std::vector<uint8_t> OH_Drawing_FontCollectionTest::mathData_{};
+
+void OH_Drawing_FontCollectionTest::SetUpTestSuite()
+{
+    symbolData_ = GetFileData(symbolFile_);
+    cjkData_ = GetFileData(cjkFile_);
+    sansData_ = GetFileData(sansFile_);
+    mathData_ = GetFileData(mathFile_);
+}
 
 void OH_Drawing_FontCollectionTest::SetUp()
 {
@@ -70,10 +84,6 @@ void OH_Drawing_FontCollectionTest::SetUp()
     ASSERT_NE(fontCollection_, nullptr);
     fontMgr_ = fontCollection_->GetFontMgr();
     ASSERT_NE(fontMgr_, nullptr);
-    symbolData_ = GetFileData(symbolFile_);
-    cjkData_ = GetFileData(cjkFile_);
-    sansData_ = GetFileData(sansFile_);
-    mathData_ = GetFileData(mathFile_);
 }
 
 std::vector<uint8_t> OH_Drawing_FontCollectionTest::GetFileData(const std::string& path)
