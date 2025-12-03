@@ -659,11 +659,13 @@ public:
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
-    void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
+    void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+        bool isForeground, bool isFilterRegionChanged);
     void UpdateFilterCacheWithBackgroundDirty();
-    virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, bool isForeground = false);
+    virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty,
+        RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER);
     virtual void UpdateFilterCacheWithSelfDirty();
-    void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, bool isForeground);
+    void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, RSDrawableSlot slot);
     bool IsBackgroundInAppOrNodeSelfDirty() const
     {
         return backgroundFilterInteractWithDirty_ || backgroundFilterRegionChanged_;
@@ -932,6 +934,11 @@ public:
 
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
+    virtual void UpdateNodeColorSpace() {};
+    void ResetNodeColorSpace();
+    void SetNodeColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetNodeColorSpace() const;
+
     void SetEnableHdrEffect(bool enableHdrEffect);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
@@ -1068,6 +1075,11 @@ protected:
 
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(RSDrawableSlot slot) const;
+
+    bool InvokeFilterDrawable(RSDrawableSlot slot,
+        std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc);
+
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);

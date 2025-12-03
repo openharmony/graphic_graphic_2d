@@ -69,6 +69,9 @@ HWTEST_F(HdiDeviceTest, DeviceFuncs001, Function | MediumTest| Level3)
     EXPECT_CALL(*hdiDeviceMock_,
         GetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
     EXPECT_EQ(hdiDeviceMock_->GetDisplayProperty(screenId, pid, pvalue), GRAPHIC_DISPLAY_SUCCESS);
+    EXPECT_CALL(*hdiDeviceMock_,
+        SetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiDeviceMock_->SetDisplayProperty(screenId, pid, pvalue), GRAPHIC_DISPLAY_SUCCESS);
     GraphicDisplayCapability dcpInfo;
     EXPECT_CALL(*hdiDeviceMock_,
         GetScreenCapability(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));

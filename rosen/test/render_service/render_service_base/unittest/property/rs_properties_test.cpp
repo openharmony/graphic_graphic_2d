@@ -19,6 +19,7 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "property/rs_point_light_manager.h"
 #include "render/rs_drawing_filter.h"
 #include "render/rs_render_maskcolor_filter.h"
@@ -2769,6 +2770,40 @@ HWTEST_F(RSPropertiesTest, SetUseEffect002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetUseUnion001
+ * @tc.desc: test results of SetUseUnion
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetUseUnion001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetUseUnion(false);
+    EXPECT_EQ(properties.filterNeedUpdate_, false);
+    EXPECT_EQ(properties.GetUseUnion(), false);
+    properties.SetUseUnion(true);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+    EXPECT_EQ(properties.GetUseUnion(), true);
+}
+
+/**
+ * @tc.name: SetUnionSpacing001
+ * @tc.desc: test results of SetUnionSpacing
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetUnionSpacing001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetUnionSpacing(0.f);
+    EXPECT_EQ(properties.filterNeedUpdate_, false);
+    EXPECT_EQ(properties.contentDirty_, false);
+    properties.SetUnionSpacing(1.f);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
+    EXPECT_EQ(properties.contentDirty_, true);
+}
+
+/**
  * @tc.name: SetUseShadowBatching002
  * @tc.desc: test results of SetUseShadowBatching
  * @tc.type: FUNC
@@ -3415,6 +3450,24 @@ HWTEST_F(RSPropertiesTest, SetColorBlendMode001, TestSize.Level1)
 {
     RSProperties properties;
     properties.SetColorBlendMode(1);
+    EXPECT_EQ(properties.contentDirty_, true);
+}
+
+/**
+ * @tc.name: SetSDFShape001
+ * @tc.desc: test results of SetSDFShape
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, SetSDFShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetSDFShape(nullptr);
+    EXPECT_EQ(properties.filterNeedUpdate_, false);
+    EXPECT_EQ(properties.contentDirty_, false);
+    auto sdfShape = std::make_shared<RSNGRenderSDFRRectShape>();
+    properties.SetSDFShape(sdfShape);
+    EXPECT_EQ(properties.filterNeedUpdate_, true);
     EXPECT_EQ(properties.contentDirty_, true);
 }
 

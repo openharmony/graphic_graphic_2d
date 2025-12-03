@@ -1042,6 +1042,7 @@ HWTEST_F(RSUniRenderVisitorTest, CheckMergeFilterDirtyWithPreDirty_002, TestSize
     NodeId id = 1;
     auto filterNode1 = std::make_shared<RSRenderNode>(++id);
     auto filterNode2 = std::make_shared<RSRenderNode>(++id);
+    filterNode1->GetMutableRenderProperties().GetEffect().materialFilter_ = std::make_shared<RSFilter>();
     filterNode1->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
     filterNode2->GetMutableRenderProperties().GetEffect().needDrawBehindWindow_ = true;
     filterNode2->GetMutableRenderProperties().GetEffect().filter_ = std::make_shared<RSFilter>();

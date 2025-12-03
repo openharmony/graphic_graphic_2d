@@ -399,6 +399,26 @@ HWTEST_F(CanvasTest, CanvasGetLocalShadowBoundTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageEffectHPSStatisticsEmptyImage
+ * @tc.desc: Test DrawImageEffectHPS Statistics Effect With EmptyImage
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(CanvasTest, DrawImageEffectHPSStatisticsEmptyImage, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Drawing::Image image;
+    Drawing::Rect srcRect = { 0.0f, 0.0f, 100.0f, 100.0f };
+    Drawing::Rect dstRect = { 0.0f, 0.0f, 1.0f, 1.0f };
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    hpsEffectParams.push_back(hpsStatisticsArgs);
+    ASSERT_TRUE(canvas->DrawImageEffectHPS(image, hpsEffectParams) == false);
+}
+
+/**
  * @tc.name: CanvasDrawRegionTest001
  * @tc.desc: Test for drawing Region on the Canvas.
  * @tc.type: FUNC
@@ -577,6 +597,10 @@ HWTEST_F(CanvasTest, HpsEffectParameterGetTypeTest001, TestSize.Level1)
     auto hpsMesaArgs = std::make_shared<Drawing::HpsMesaParameter>(srcRect, dstRect,
     10.f, 1.f, 2.f, 11.f, 12.f, 13.f, 14.f, 1, 256.f, 256.f);
     EXPECT_EQ(hpsMesaArgs->GetEffectType(), Drawing::HpsEffect::MESA);
+    // STATISTICS
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    EXPECT_EQ(hpsMesaArgs->GetEffectType(), Drawing::HpsEffect::STATISTICS);
 }
 
 /**

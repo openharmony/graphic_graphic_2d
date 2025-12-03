@@ -311,8 +311,6 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
         RS_LOGD("CheckColorSpaceWithSelfDrawingNode curScreenNode_ is nullptr");
         return;
     }
-    // currently, P3 is the only supported wide color gamut, this may be modified later.
-    node.UpdateColorSpaceWithMetadata();
     auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
     if (ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection() && appSurfaceNode
         && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
@@ -1718,7 +1716,9 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
 bool RSUniRenderVisitor::IsParticipateInOcclusion(RSSurfaceRenderNode& node)
 {
     auto mainThread = RSMainThread::Instance();
-    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || node.IsFocusedNode(focusedLeashWindowId_);
+    auto firstLevelNodeId = node.GetFirstLevelNodeId();
+    // need confirm the current node or first level node is focused
+    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || (firstLevelNodeId == focusedLeashWindowId_);
     // specific animation effects can enable occlusion, including three-finger swipe up and quick app launch/exit.
     bool isAnimationOcclusionScenes =
         (isFocus && mainThread->GetIsAnimationOcclusion()) || mainThread->GetIsRegularAnimation();
@@ -1852,7 +1852,8 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode
         return;
     }
     node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
-    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE ||
+        (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && node.HasChildExcludedFromNodeGroup())) {
         offscreenCanvasNodeId_ = node.GetId();
     }
 }
@@ -2013,6 +2014,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
+    node.ResetNodeColorSpace();
     if (node.IsInstanceOf<RSUnionRenderNode>()) {
         RSBaseRenderNode::ReinterpretCast<RSUnionRenderNode>(node.shared_from_this())->ResetVisibleUnionChildren();
     }
@@ -2656,12 +2658,18 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr
             filterNode->GetRenderProperties().GetNeedDrawBehindWindow()) {
             // backgroundfilter affected by below dirty
             effectNodeIntersectBgDirty = filterNode->UpdateFilterCacheWithBelowDirty(
-                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider, false) &&
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider) &&
                 filterNode->IsInstanceOf<RSEffectRenderNode>();
+        }
+        if (filterNode->GetRenderProperties().GetMaterialFilter()) {
+            // backgroundfilter affected by below dirty
+            effectNodeIntersectBgDirty |= filterNode->UpdateFilterCacheWithBelowDirty(
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider,
+                RSDrawableSlot::MATERIAL_FILTER) && filterNode->IsInstanceOf<RSEffectRenderNode>();
         }
         if (filterNode->GetRenderProperties().GetFilter()) {
             // foregroundfilter affected by below dirty
-            filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, true);
+            filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, RSDrawableSlot::COMPOSITING_FILTER);
         }
         RectI filterSnapshotRect = filterNode->GetAbsRect().JoinRect(filterNode->GetFilterDrawableSnapshotRegion());
         bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterSnapshotRect));
@@ -3178,6 +3186,8 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (node.HasChildExcludedFromNodeGroup() || node.IsExcludedFromNodeGroup()) {
         nodeParent->SetHasChildExcludedFromNodeGroup(true);
     }
+    node.UpdateNodeColorSpace();
+    nodeParent->SetNodeColorSpace(node.GetNodeColorSpace());
 }
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
@@ -3364,8 +3374,13 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         filterNode->MarkClearFilterCacheIfEffectChildrenChanged();
         if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
             filterNode->UpdateFilterCacheWithBelowDirty(
-                Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), false);
-            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, false);
+                Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+        }
+        if (filterNode->GetRenderProperties().GetMaterialFilter()) {
+            filterNode->UpdateFilterCacheWithBelowDirty(
+                Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), RSDrawableSlot::MATERIAL_FILTER);
+            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::MATERIAL_FILTER);
         }
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
@@ -3458,7 +3473,7 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
                 dirtyManager.GetFilterCollector().GetPendingPurgeFilterRegion()),
             curSurfaceNode_ != nullptr), false);
     // case - 3. update pending purge dirty region with foreground filter.
-    node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, true);
+    node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::COMPOSITING_FILTER);
 
     if (curSurfaceNode_) {
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);

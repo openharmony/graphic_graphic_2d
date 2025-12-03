@@ -6084,33 +6084,6 @@ HWTEST_F(RSMainThreadTest, RenderServiceAllSurafceDump01, TestSize.Level1)
 }
 
 /**
- * @tc.name: ExistBufferIsVisibleAndUpdateTest
- * @tc.desc: RenderServiceAllSurafceDump Test
- * @tc.type: FUNC
- * @tc.require: issueIC0AQO
- */
-HWTEST_F(RSMainThreadTest, ExistBufferIsVisibleAndUpdateTest, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    EXPECT_FALSE(mainThread->ExistBufferIsVisibleAndUpdate());
-    std::vector<std::shared_ptr<RSSurfaceRenderNode>> hardwareEnabledNodes;
-    NodeId id = 0;
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    sptr<SurfaceBuffer> preBuffer = SurfaceBuffer::Create();
-    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
-    Rect damageRect = {0, 0, 0, 0};
-    int64_t timestamp = 0;
-    ASSERT_NE(surfaceNode->surfaceHandler_, nullptr);
-    surfaceNode->surfaceHandler_->SetBuffer(preBuffer, acquireFence, damageRect, timestamp);
-    surfaceNode->surfaceHandler_->isCurrentFrameBufferConsumed_ = true;
-    surfaceNode->HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true);
-    hardwareEnabledNodes.push_back(surfaceNode);
-    mainThread->hardwareEnabledNodes_ = hardwareEnabledNodes;
-    EXPECT_TRUE(mainThread->ExistBufferIsVisibleAndUpdate());
-}
-
-/**
  * @tc.name: GetForceCommitReasonTest
  * @tc.desc: GetForceCommitReasonTest
  * @tc.type: FUNC

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -220,5 +220,25 @@ OH_Drawing_ErrorCode OH_Drawing_FontArgumentsDestroy(OH_Drawing_FontArguments* c
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     delete CastToFontArgumentsHelper(cFontArguments);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_TypefaceIsBold(const OH_Drawing_Typeface* cTypeface, bool* isBold)
+{
+    const Typeface* typeface = CastToTypeface(cTypeface);
+    if (typeface == nullptr || isBold == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isBold = typeface->GetBold();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_TypefaceIsItalic(const OH_Drawing_Typeface* cTypeface, bool* isItalic)
+{
+    const Typeface* typeface = CastToTypeface(cTypeface);
+    if (typeface == nullptr || isItalic == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isItalic = typeface->GetItalic();
     return OH_DRAWING_SUCCESS;
 }

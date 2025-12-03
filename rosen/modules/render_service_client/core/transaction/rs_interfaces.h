@@ -548,7 +548,15 @@ public:
      * @param status The status to set to the screen.
      */
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    
+
+    /**
+     * @brief Set dual-screen display mode.
+     * @param id Id of the screen to set.
+     * @param status The status to set to the screen, see DualScreenStatus
+     * @return 0 means success, others failed.
+     */
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
     /**
      * @brief Get active mode of the screen.
      * @param id Id of the screen to get active mode.
@@ -1039,8 +1047,9 @@ public:
      * @brief Notify touch event.
      * @param touchStatus status of touch.
      * @param touchCnt the count of touch.
+     * @param sourceType the input type from multiinput.
      */
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
 
     /**
      * @brief Notify dynamic mode event.

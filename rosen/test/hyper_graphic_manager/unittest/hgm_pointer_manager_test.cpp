@@ -171,19 +171,23 @@ HWTEST_F(HgmPointerManagerTest, HgmSetPointerActiveFPS, Function | SmallTest | L
     constexpr uint32_t delay_1100Ms = 1100;
     constexpr uint32_t delay_1300Ms = 1300;
     frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_DOWN, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_DOWN, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_MOVE, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_MOVE, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_UP, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_BUTTON_UP, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_MOVE, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::TOUCH_MOVE, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_1100Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
@@ -206,19 +210,23 @@ HWTEST_F(HgmPointerManagerTest, HgmSetAxisActiveFPS, Function | SmallTest | Leve
     constexpr uint32_t delay_1100Ms = 1100;
     constexpr uint32_t delay_200Ms = 200;
     frameRateMgr.Init(nullptr, nullptr, nullptr, nullptr);
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_BEGIN, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_BEGIN, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_UPDATE, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_UPDATE, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_END, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_END, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_110Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 
-    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_UPDATE, touchCount);
+    frameRateMgr.HandleTouchEvent(appPid, TouchStatus::AXIS_UPDATE, touchCount,
+        TouchSourceType::SOURCE_TYPE_MOUSE);
     std::this_thread::sleep_for(std::chrono::milliseconds(delay_1100Ms));
     ASSERT_EQ(frameRateMgr.pointerManager_.GetState(), PointerState::POINTER_ACTIVE_STATE);
 

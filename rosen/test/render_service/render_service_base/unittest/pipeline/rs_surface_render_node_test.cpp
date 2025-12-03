@@ -2329,6 +2329,97 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateNodeColorSpace001
+ * @tc.desc: test UpdateNodeColorSpace with appWindow node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateNodeColorSpace001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    // subTree colorspace: None/sRGB, colorSpace_: None/sRGB
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // subTree colorspace: P3, colorSpace_: None/sRGB
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: None/sRGB, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: P3, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: BT2020, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // subTree colorspace: sRGB, colorSpace_: BT2020
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+}
+
+/**
+ * @tc.name: UpdateNodeColorSpace002
+ * @tc.desc: test UpdateNodeColorSpace with selfDrawing node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateNodeColorSpace002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+
+    // subTree colorspace: None/sRGB, colorSpace_: None/sRGB
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // subTree colorspace: P3, colorSpace_: None/sRGB
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: None/sRGB, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: P3, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: BT2020, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // subTree colorspace: sRGB, colorSpace_: BT2020
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    node->nodeType_ = RSSurfaceNodeType::DEFAULT;
+    auto nodeColorSpace = node->GetNodeColorSpace();
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), nodeColorSpace);
+}
+
+/**
  * @tc.name: CheckIfOcclusionReusable
  * @tc.desc: test results of CheckIfOcclusionReusable
  * @tc.type: FUNC

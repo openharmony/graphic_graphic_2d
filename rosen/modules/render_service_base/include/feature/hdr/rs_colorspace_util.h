@@ -41,6 +41,7 @@ public:
     static GraphicColorGamut GetColorGamutFromCanvas(const Drawing::Canvas& canvas);
     static GraphicColorGamut ColorSpaceNameToGraphicGamut(OHOS::ColorManager::ColorSpaceName name);
     static GraphicColorGamut SelectBigGamut(GraphicColorGamut gamut1, GraphicColorGamut gamut2);
+    static GraphicColorGamut MapGamutToStandard(GraphicColorGamut gamut);
 
 #ifndef ROSEN_CROSS_PLATFORM
     static GraphicColorGamut PrimariesToGraphicGamut(HDIV::CM_ColorPrimaries primary);

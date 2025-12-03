@@ -764,10 +764,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
     EXPECT_NE(sdfShape, nullptr);
     node.GetMutableRenderProperties().SetSDFShape(sdfShape);
 
-    auto foregroundFilter = std::make_shared<RSSDFEffectFilter>(sdfShape);
-    node.GetMutableRenderProperties().SetForegroundFilterCache(foregroundFilter);
-    node.GetMutableRenderProperties().SetForegroundFilter(foregroundFilter);
-
     std::shared_ptr<RSBorder> border = std::make_shared<RSBorder>();
     Color borderColor = Color();
     Drawing::Color drawingColor(
@@ -778,7 +774,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
 
     Drawing::Canvas canvas;
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
-    EXPECT_FALSE(foregroundFilter->HasBorder());
 
     border->styles_.emplace_back(BorderStyle::SOLID);
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, false);
@@ -786,7 +781,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawBorderTest002, TestSize.Level1)
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
     border->SetRadiusFour({1.f, 1.f, 1.f, 1.f});
     borderDrawable->DrawBorder(node.GetRenderProperties(), canvas, border, true);
-    EXPECT_FALSE(foregroundFilter->HasBorder());
     EXPECT_EQ(border->widths_.size(), 1);
 }
 

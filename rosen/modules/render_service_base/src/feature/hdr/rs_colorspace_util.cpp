@@ -114,6 +114,23 @@ GraphicColorGamut RSColorSpaceUtil::SelectBigGamut(GraphicColorGamut gamut1, Gra
     return gamut2;
 }
 
+GraphicColorGamut RSColorSpaceUtil::MapGamutToStandard(GraphicColorGamut gamut)
+{
+    switch (gamut) {
+        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
+        case GRAPHIC_COLOR_GAMUT_DCI_P3:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
+            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+        case GRAPHIC_COLOR_GAMUT_BT2020:
+        case GRAPHIC_COLOR_GAMUT_BT2100_PQ:
+        case GRAPHIC_COLOR_GAMUT_BT2100_HLG:
+        case GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020:
+            return GRAPHIC_COLOR_GAMUT_BT2020;
+        default:
+            return GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+}
+
 #ifndef ROSEN_CROSS_PLATFORM
 GraphicColorGamut RSColorSpaceUtil::PrimariesToGraphicGamut(HDIV::CM_ColorPrimaries primary)
 {

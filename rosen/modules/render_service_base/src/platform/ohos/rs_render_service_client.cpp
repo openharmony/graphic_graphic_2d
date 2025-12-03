@@ -859,6 +859,17 @@ void RSRenderServiceClient::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus 
     clientToService->SetScreenPowerStatus(id, status);
 }
 
+int32_t RSRenderServiceClient::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return StatusCode::RENDER_SERVICE_NULL;
+    }
+
+    return clientToService->SetDualScreenState(id, status);
+}
+
 RSScreenModeInfo RSRenderServiceClient::GetScreenActiveMode(ScreenId id)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -1833,11 +1844,11 @@ void RSRenderServiceClient::NotifyXComponentExpectedFrameRate(const std::string&
     }
 }
 
-void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService != nullptr) {
-        clientToService->NotifyTouchEvent(touchStatus, touchCnt);
+        clientToService->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     }
 }
 

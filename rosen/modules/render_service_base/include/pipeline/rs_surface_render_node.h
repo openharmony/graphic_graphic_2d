@@ -945,6 +945,7 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+    void UpdateNodeColorSpace() override;
     // Only call this if the node is first level node.
     GraphicColorGamut GetFirstLevelNodeColorGamut() const;
     void SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut);
@@ -1945,7 +1946,6 @@ private:
         void DecreaseResourceGamutCount(GraphicColorGamut gamut);
         GraphicColorGamut GetCurGamut() const;
         GraphicColorGamut GetFirstLevelNodeGamut() const;
-        static GraphicColorGamut MapGamutToStandard(GraphicColorGamut gamut);
         static GraphicColorGamut DetermineGamutStandard(int pt2020Num, int p3Num);
     };
     GamutCollector gamutCollector_;

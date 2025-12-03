@@ -100,6 +100,7 @@ ohos_unittest("RSParallelRBPolicyTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_ext_root/subtree/test/unittest/rs_parallel_rb_policy_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
   ]
   deps = [
@@ -129,6 +130,7 @@ ohos_unittest("RSParallelManagerTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_ext_root/subtree/test/unittest/rs_parallel_manager_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
   ]
   deps = [
@@ -157,6 +159,7 @@ ohos_unittest("RSParallelMultiwinPolicyTest") {
   module_out_path = module_output_path
   sources = [
     "$graphic_2d_ext_root/subtree/test/unittest/rs_parallel_multiwin_policy_test.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
   ]
   deps = [

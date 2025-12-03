@@ -251,7 +251,6 @@ public:
         return lastDrawnFilterNodeId_;
     }
 
-
     virtual void SetUIExtensionNeedToDraw(bool needToDraw) {}
 
     virtual bool UIExtensionNeedToDraw() const
@@ -325,6 +324,7 @@ protected:
     void DrawAfterCacheWithProperty(Drawing::Canvas& canvas, const Drawing::Rect& rect) const;
     void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
     void CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas);
+    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
@@ -360,6 +360,7 @@ protected:
     std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
     size_t filterNodeSize_ = 0;
     std::shared_ptr<DrawableV2::RSFilterDrawable> backgroundFilterDrawable_ = nullptr;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> materialFilterDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSFilterDrawable> compositingFilterDrawable_ = nullptr;
     std::function<void()> purgeFunc_;
 #ifdef ROSEN_OHOS
@@ -372,6 +373,8 @@ protected:
     
     ClearSurfaceTask clearSurfaceTask_ = nullptr;
 private:
+    const static size_t MAX_FILTER_CACHE_TYPES = 3;
+    using RSCacheDrawableArray = std::array<std::shared_ptr<DrawableV2::RSFilterDrawable>, MAX_FILTER_CACHE_TYPES>;
     static void InitRenderParams(const std::shared_ptr<const RSRenderNode>& node,
                             std::shared_ptr<RSRenderNodeDrawableAdapter>& sharedPtr);
     static std::map<RSRenderNodeType, Generator> GeneratorMap;
@@ -383,9 +386,9 @@ private:
     int8_t GetSkipIndex() const;
     std::atomic<DrawSkipType> drawSkipType_ = DrawSkipType::NONE;
     static void RemoveDrawableFromCache(const NodeId nodeId);
-    void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
     std::atomic<bool> isOnDraw_ = false;
+    RSCacheDrawableArray filterDrawables_{};
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSScreenRenderNode;

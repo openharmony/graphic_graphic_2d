@@ -58,11 +58,15 @@ void HdiScreenTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenConstraint(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(0));
 }
 
 void HdiScreenTest::TearDownTestCase()
 {
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+
+    uint64_t propertyValue = 0;
+    ASSERT_EQ(hdiScreen_->SetDisplayProperty(propertyValue), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 namespace {

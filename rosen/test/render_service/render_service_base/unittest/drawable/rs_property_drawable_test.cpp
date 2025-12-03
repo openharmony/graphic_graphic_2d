@@ -225,6 +225,7 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableTestSDF, TestSize.Level1)
     auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
     node.GetMutableRenderProperties().SetSDFShape(sdfShape);
     drawable->OnUpdate(node);
+    drawable->OnSync();
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
     drawable->CreateDrawFunc()(&paintFilterCanvas, &rect);
     EXPECT_NE(drawable->geContainer_, nullptr);

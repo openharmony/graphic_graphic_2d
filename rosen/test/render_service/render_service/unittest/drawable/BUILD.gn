@@ -57,6 +57,7 @@ ohos_unittest("RSCanvasDrawingRenderNodeDrawableTest") {
 ohos_unittest("RSCanvasRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "rs_canvas_render_node_drawable_test.cpp",
   ]
@@ -75,6 +76,7 @@ ohos_unittest("RSCanvasRenderNodeDrawableTest") {
 ohos_unittest("RSScreenRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "rs_screen_render_node_drawable_test.cpp",
   ]

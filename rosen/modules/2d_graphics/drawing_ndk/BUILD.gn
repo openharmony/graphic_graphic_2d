@@ -84,6 +84,7 @@ template("drawing_ndk_source_set") {
       "$drawing_ndk_src_dir/drawing_memory_stream.cpp",
       "$drawing_ndk_src_dir/drawing_path.cpp",
       "$drawing_ndk_src_dir/drawing_path_effect.cpp",
+      "$drawing_ndk_src_dir/drawing_path_iterator.cpp",
       "$drawing_ndk_src_dir/drawing_pen.cpp",
       "$drawing_ndk_src_dir/drawing_pixel_map.cpp",
       "$drawing_ndk_src_dir/drawing_point.cpp",
