@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */1
+ */
 #include "boot_video_player.h"
 
 #include "boot_animation_utils.h"
@@ -44,6 +44,7 @@ BootVideoPlayer::BootVideoPlayer(const PlayerParams& params)
 #endif
     SetCallback(params.callback);
     isSoundEnabled_ = params.soundEnabled;
+    isFrameRateEnable_ = params.isFrameRateEnable;
 }
 
 void BootVideoPlayer::Play()
@@ -77,6 +78,11 @@ void BootVideoPlayer::Play()
     if (ret != 0) {
         LOGE("PlayVideo SetVideoSurface fail, errorCode: %{public}d", ret);
         return;
+    }
+
+    if (isFrameRateEnable_) {
+        ret = mediaPlayer_->SetStartFrameRateOptEnabled(true);
+        LOGI("SetStartFrameRateOptEnabled result: %{public}d", ret);
     }
 
     if (!SetVideoSound()) {
