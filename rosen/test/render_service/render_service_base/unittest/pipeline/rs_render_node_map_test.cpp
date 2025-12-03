@@ -361,4 +361,25 @@ HWTEST_F(RSRenderNodeMapTest, AttachToDisplayTest, TestSize.Level1)
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.AttachToDisplay(node, screenId, false);
 }
+
+/**
+ * @tc.name: FilterNodeByPid003
+ * @tc.desc: test results of FilterNodeByPid
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid003, TestSize.Level1)
+{
+    auto pid = getpid();
+    uint32_t curId = 1;
+    NodeId id = ((NodeId)pid << 32) | curId;
+
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.FilterNodeByPid(1);
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    rsRenderNodeMap.logicaldisplayNodeMap_[id] = displayNode;
+    rsRenderNodeMap.FilterNodeByPid(pid);
+    EXPECT_FALSE(!rsRenderNodeMap.logicaldisplayNodeMap_.empty());
+}
 } // namespace OHOS::Rosen
