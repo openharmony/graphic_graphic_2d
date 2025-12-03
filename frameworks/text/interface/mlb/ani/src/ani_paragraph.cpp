@@ -530,7 +530,7 @@ ani_ref AniParagraph::GetTextLines(ani_env* env, ani_object object)
             textLineBasePtr = nullptr;
             continue;
         }
-       ani_status ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
+        ani_status ret = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set textline item %{public}zu", index);
             delete textLineBasePtr;

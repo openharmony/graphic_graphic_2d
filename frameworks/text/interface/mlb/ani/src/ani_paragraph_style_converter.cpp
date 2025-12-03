@@ -23,10 +23,8 @@
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
 
-std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
+ani_status ParagraphStyleGetMaxLine(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
-    std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
-
     ani_ref ref = nullptr;
     ani_status ret =
         AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleMaxLines, ref);
@@ -41,10 +39,18 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
             TEXT_LOGE("Failed to get maxLines, ret %{public}d", ret);
         }
     }
+    return ret;
+}
+
+std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
+{
+    std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
+
+    ParagraphStyleGetMaxLine(env, obj, paragraphStyle);
 
     ani_ref textStyleRef = nullptr;
     TextStyle textStyle;
-    ret =
+    ani_status ret =
         AniTextUtils::ReadOptionalField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTextStyle, textStyleRef);
     if (ret == ANI_OK && textStyleRef != nullptr) {
         ret = AniTextStyleConverter::ParseTextStyleToNative(env, reinterpret_cast<ani_object>(textStyleRef), textStyle);

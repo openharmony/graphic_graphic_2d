@@ -100,8 +100,8 @@ void AniTextStyleConverter::ParseTextStyleDecorationToNative(
     ani_env* env, ani_object textStyleObj, bool reLayout, TextStyle& textStyle)
 {
     ani_ref decorationRef = nullptr;
-    ani_status status =
-        AniTextUtils::ReadOptionalField(env, textStyleObj, AniGlobalMethod::GetInstance().textStyleDecoration, decorationRef);
+    ani_status status = AniTextUtils::ReadOptionalField(
+        env, textStyleObj, AniGlobalMethod::GetInstance().textStyleDecoration, decorationRef);
     if (status == ANI_OK && decorationRef != nullptr) {
         ParseDecorationToNative(env, reinterpret_cast<ani_object>(decorationRef), reLayout, textStyle);
     }
