@@ -89,12 +89,14 @@ public:
     static std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedBlurImage(Drawing::Canvas* canvas);
 };
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_SHADER(ShaderName, ShaderType, ...) \
     using RSNGRender##ShaderName = RSNGRenderShaderTemplate<RSNGEffectType::ShaderType, __VA_ARGS__>
 
 #include "effect/rs_render_shader_def.in"
 
+#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHADER
 

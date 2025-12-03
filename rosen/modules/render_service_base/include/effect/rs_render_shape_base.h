@@ -66,36 +66,14 @@ protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
 };
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...) \
     using RSNGRender##ShapeName = RSNGRenderShapeTemplate<RSNGEffectType::ShapeType, __VA_ARGS__>
 
-// SDF OP Shape
-DECLARE_SHAPE(SDFUnionOpShape, SDF_UNION_OP_SHAPE,
-    ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeX),
-    ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeY)
-);
+#include "effect/rs_render_shape_base.h"
 
-DECLARE_SHAPE(SDFSmoothUnionOpShape, SDF_SMOOTH_UNION_OP_SHAPE,
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing),
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX),
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY)
-);
-
-// SDF shape
-DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
-    ADD_PROPERTY_TAG(SDFRRectShape, RRect)
-);
-
-DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
-    ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
-    ADD_PROPERTY_TAG(SDFTransformShape, Shape)
-);
-
-DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,
-    ADD_PROPERTY_TAG(SDFPixelmapShape, Image)
-);
-
+#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHAPE
 

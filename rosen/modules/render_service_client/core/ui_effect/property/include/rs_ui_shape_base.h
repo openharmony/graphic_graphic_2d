@@ -33,37 +33,14 @@ public:
 template<RSNGEffectType Type, typename... PropertyTags>
 using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase, Type, PropertyTags...>;
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
-
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...) \
     using RSNG##ShapeName = RSNGShapeTemplate<RSNGEffectType::ShapeType, __VA_ARGS__>
 
-// SDF OP Shape
-DECLARE_SHAPE(SDFUnionOpShape, SDF_UNION_OP_SHAPE,
-    ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeX),
-    ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeY)
-);
+#include "effect/rs_render_shape_base.h"
 
-DECLARE_SHAPE(SDFSmoothUnionOpShape, SDF_SMOOTH_UNION_OP_SHAPE,
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing),
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX),
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY)
-);
-
-// SDF shape
-DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
-    ADD_PROPERTY_TAG(SDFRRectShape, RRect)
-);
-
-DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
-    ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
-    ADD_PROPERTY_TAG(SDFTransformShape, Shape)
-);
-
-DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,
-    ADD_PROPERTY_TAG(SDFPixelmapShape, Image)
-);
-
+#undef SEPARATOR
 #undef DECLARE_SHAPE
 #undef ADD_PROPERTY_TAG
 

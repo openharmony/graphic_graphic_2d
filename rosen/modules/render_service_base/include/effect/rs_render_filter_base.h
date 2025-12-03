@@ -114,6 +114,7 @@ public:
         EffectRectType rectType);
 };
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_FILTER(FilterName, FilterType, ...) \
     using RSNGRender##FilterName##Filter = RSNGRenderFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
@@ -127,6 +128,7 @@ DECLARE_FILTER(ColorGradient, COLOR_GRADIENT,
     ADD_PROPERTY_TAG(ColorGradient, Mask)
 );
 
+#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 

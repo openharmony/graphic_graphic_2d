@@ -34,13 +34,14 @@ public:
 template<RSNGEffectType Type, typename... PropertyTags>
 using RSNGShaderTemplate = RSNGEffectTemplate<RSNGShaderBase, Type, PropertyTags...>;
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
-
 #define DECLARE_SHADER(ShaderName, ShaderType, ...) \
     using RSNG##ShaderName = RSNGShaderTemplate<RSNGEffectType::ShaderType, __VA_ARGS__>
 
 #include "effect/rs_render_shader_def.in"
 
+#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHADER
 

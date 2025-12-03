@@ -69,12 +69,14 @@ protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
 };
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_MASK(MaskName, MaskType, ...) \
     using RSNGRender##MaskName = RSNGRenderMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>
 
 #include "effect/rs_render_mask_def.in"
 
+#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK
 

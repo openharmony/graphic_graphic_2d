@@ -39,13 +39,14 @@ public:
 template<RSNGEffectType Type, typename... PropertyTags>
 using RSNGFilterTemplate = RSNGEffectTemplate<RSNGFilterBase, Type, PropertyTags...>;
 
+#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
-
 #define DECLARE_FILTER(FilterName, FilterType, ...) \
     using RSNG##FilterName##Filter = RSNGFilterTemplate<RSNGEffectType::FilterType, __VA_ARGS__>
 
 #include "effect/rs_render_filter_def.in"
 
+#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 

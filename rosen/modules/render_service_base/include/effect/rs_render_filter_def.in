@@ -14,157 +14,157 @@
  */
 
 DECLARE_FILTER(Blur, BLUR,
-    ADD_PROPERTY_TAG(Blur, RadiusX),
+    ADD_PROPERTY_TAG(Blur, RadiusX) SEPARATOR
     ADD_PROPERTY_TAG(Blur, RadiusY)
 );
 
 DECLARE_FILTER(DispDistort, DISPLACEMENT_DISTORT,
-    ADD_PROPERTY_TAG(DispDistort, Factor),
+    ADD_PROPERTY_TAG(DispDistort, Factor) SEPARATOR
     ADD_PROPERTY_TAG(DispDistort, Mask)
 );
 
 DECLARE_FILTER(SoundWave, SOUND_WAVE,
-    ADD_PROPERTY_TAG(SoundWave, ColorA),
-    ADD_PROPERTY_TAG(SoundWave, ColorB),
-    ADD_PROPERTY_TAG(SoundWave, ColorC),
-    ADD_PROPERTY_TAG(SoundWave, ColorProgress),
-    ADD_PROPERTY_TAG(SoundWave, Intensity),
-    ADD_PROPERTY_TAG(SoundWave, AlphaA),
-    ADD_PROPERTY_TAG(SoundWave, AlphaB),
-    ADD_PROPERTY_TAG(SoundWave, ProgressA),
-    ADD_PROPERTY_TAG(SoundWave, ProgressB),
+    ADD_PROPERTY_TAG(SoundWave, ColorA) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, ColorB) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, ColorC) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, ColorProgress) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, Intensity) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, AlphaA) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, AlphaB) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, ProgressA) SEPARATOR
+    ADD_PROPERTY_TAG(SoundWave, ProgressB) SEPARATOR
     ADD_PROPERTY_TAG(SoundWave, TotalAlpha)
 );
 
 DECLARE_FILTER(EdgeLight, EDGE_LIGHT,
-    ADD_PROPERTY_TAG(EdgeLight, Color),
-    ADD_PROPERTY_TAG(EdgeLight, Alpha),
-    ADD_PROPERTY_TAG(EdgeLight, Mask),
-    ADD_PROPERTY_TAG(EdgeLight, Bloom),
+    ADD_PROPERTY_TAG(EdgeLight, Color) SEPARATOR
+    ADD_PROPERTY_TAG(EdgeLight, Alpha) SEPARATOR
+    ADD_PROPERTY_TAG(EdgeLight, Mask) SEPARATOR
+    ADD_PROPERTY_TAG(EdgeLight, Bloom) SEPARATOR
     ADD_PROPERTY_TAG(EdgeLight, UseRawColor)
 );
 
 DECLARE_FILTER(Dispersion, DISPERSION,
-    ADD_PROPERTY_TAG(Dispersion, Mask),
-    ADD_PROPERTY_TAG(Dispersion, Opacity),
-    ADD_PROPERTY_TAG(Dispersion, RedOffset),
-    ADD_PROPERTY_TAG(Dispersion, GreenOffset),
+    ADD_PROPERTY_TAG(Dispersion, Mask) SEPARATOR
+    ADD_PROPERTY_TAG(Dispersion, Opacity) SEPARATOR
+    ADD_PROPERTY_TAG(Dispersion, RedOffset) SEPARATOR
+    ADD_PROPERTY_TAG(Dispersion, GreenOffset) SEPARATOR
     ADD_PROPERTY_TAG(Dispersion, BlueOffset)
 );
 
 DECLARE_FILTER(BezierWarp, BEZIER_WARP,
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint0),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint1),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint2),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint3),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint4),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint5),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint6),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint7),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint8),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint9),
-    ADD_PROPERTY_TAG(BezierWarp, ControlPoint10),
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint0) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint1) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint2) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint3) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint4) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint5) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint6) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint7) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint8) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint9) SEPARATOR
+    ADD_PROPERTY_TAG(BezierWarp, ControlPoint10) SEPARATOR
     ADD_PROPERTY_TAG(BezierWarp, ControlPoint11)
 );
 
 DECLARE_FILTER(DirectionLight, DIRECTION_LIGHT,
-    ADD_PROPERTY_TAG(DirectionLight, Mask),
-    ADD_PROPERTY_TAG(DirectionLight, Factor),
-    ADD_PROPERTY_TAG(DirectionLight, Direction),
-    ADD_PROPERTY_TAG(DirectionLight, Color),
+    ADD_PROPERTY_TAG(DirectionLight, Mask) SEPARATOR
+    ADD_PROPERTY_TAG(DirectionLight, Factor) SEPARATOR
+    ADD_PROPERTY_TAG(DirectionLight, Direction) SEPARATOR
+    ADD_PROPERTY_TAG(DirectionLight, Color) SEPARATOR
     ADD_PROPERTY_TAG(DirectionLight, Intensity)
 );
 
 DECLARE_FILTER(MaskTransition, MASK_TRANSITION,
-    ADD_PROPERTY_TAG(MaskTransition, Mask),
-    ADD_PROPERTY_TAG(MaskTransition, Factor),
+    ADD_PROPERTY_TAG(MaskTransition, Mask) SEPARATOR
+    ADD_PROPERTY_TAG(MaskTransition, Factor) SEPARATOR
     ADD_PROPERTY_TAG(MaskTransition, Inverse)
 );
 
 DECLARE_FILTER(VariableRadiusBlur, VARIABLE_RADIUS_BLUR,
-    ADD_PROPERTY_TAG(VariableRadiusBlur, Radius),
+    ADD_PROPERTY_TAG(VariableRadiusBlur, Radius) SEPARATOR
     ADD_PROPERTY_TAG(VariableRadiusBlur, Mask)
 );
 
 DECLARE_FILTER(ContentLight, CONTENT_LIGHT,
-    ADD_PROPERTY_TAG(ContentLight, Position),
-    ADD_PROPERTY_TAG(ContentLight, Color),
-    ADD_PROPERTY_TAG(ContentLight, Intensity),
+    ADD_PROPERTY_TAG(ContentLight, Position) SEPARATOR
+    ADD_PROPERTY_TAG(ContentLight, Color) SEPARATOR
+    ADD_PROPERTY_TAG(ContentLight, Intensity) SEPARATOR
     ADD_PROPERTY_TAG(ContentLight, RotationAngle)
 );
 
 DECLARE_FILTER(GasifyScaleTwist, GASIFY_SCALE_TWIST,
-    ADD_PROPERTY_TAG(GasifyScaleTwist, Progress),
-    ADD_PROPERTY_TAG(GasifyScaleTwist, SourceImage),
-    ADD_PROPERTY_TAG(GasifyScaleTwist, Scale),
+    ADD_PROPERTY_TAG(GasifyScaleTwist, Progress) SEPARATOR
+    ADD_PROPERTY_TAG(GasifyScaleTwist, SourceImage) SEPARATOR
+    ADD_PROPERTY_TAG(GasifyScaleTwist, Scale) SEPARATOR
     ADD_PROPERTY_TAG(GasifyScaleTwist, Mask)
 );
 
 DECLARE_FILTER(GasifyBlur, GASIFY_BLUR,
-    ADD_PROPERTY_TAG(GasifyBlur, Progress),
-    ADD_PROPERTY_TAG(GasifyBlur, SourceImage),
+    ADD_PROPERTY_TAG(GasifyBlur, Progress) SEPARATOR
+    ADD_PROPERTY_TAG(GasifyBlur, SourceImage) SEPARATOR
     ADD_PROPERTY_TAG(GasifyBlur, Mask)
 );
 
 DECLARE_FILTER(Gasify, GASIFY,
-    ADD_PROPERTY_TAG(Gasify, Progress),
-    ADD_PROPERTY_TAG(Gasify, SourceImage),
+    ADD_PROPERTY_TAG(Gasify, Progress) SEPARATOR
+    ADD_PROPERTY_TAG(Gasify, SourceImage) SEPARATOR
     ADD_PROPERTY_TAG(Gasify, Mask)
 );
 
 DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
-    ADD_PROPERTY_TAG(FrostedGlass, BlurParams),
-    ADD_PROPERTY_TAG(FrostedGlass, WeightsEmboss),
-    ADD_PROPERTY_TAG(FrostedGlass, WeightsEdl),
-    ADD_PROPERTY_TAG(FrostedGlass, BgRates),
-    ADD_PROPERTY_TAG(FrostedGlass, BgKBS),
-    ADD_PROPERTY_TAG(FrostedGlass, BgPos),
-    ADD_PROPERTY_TAG(FrostedGlass, BgNeg),
-    ADD_PROPERTY_TAG(FrostedGlass, RefractParams),
-    ADD_PROPERTY_TAG(FrostedGlass, SdParams),
-    ADD_PROPERTY_TAG(FrostedGlass, SdRates),
-    ADD_PROPERTY_TAG(FrostedGlass, SdKBS),
-    ADD_PROPERTY_TAG(FrostedGlass, SdPos),
-    ADD_PROPERTY_TAG(FrostedGlass, SdNeg),
-    ADD_PROPERTY_TAG(FrostedGlass, EnvLightParams),
-    ADD_PROPERTY_TAG(FrostedGlass, EnvLightRates),
-    ADD_PROPERTY_TAG(FrostedGlass, EnvLightKBS),
-    ADD_PROPERTY_TAG(FrostedGlass, EnvLightPos),
-    ADD_PROPERTY_TAG(FrostedGlass, EnvLightNeg),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightParams),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightAngles),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightDir),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightRates),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightKBS),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightPos),
-    ADD_PROPERTY_TAG(FrostedGlass, EdLightNeg),
-    ADD_PROPERTY_TAG(FrostedGlass, BorderSize),
-    ADD_PROPERTY_TAG(FrostedGlass, CornerRadius),	
+    ADD_PROPERTY_TAG(FrostedGlass, BlurParams) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, WeightsEmboss) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, WeightsEdl) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, BgRates) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, BgKBS) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, BgPos) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, BgNeg) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, RefractParams) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, SdParams) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, SdRates) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, SdKBS) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, SdPos) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, SdNeg) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EnvLightParams) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EnvLightRates) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EnvLightKBS) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EnvLightPos) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EnvLightNeg) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightParams) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightAngles) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightDir) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightRates) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightKBS) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightPos) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, EdLightNeg) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, BorderSize) SEPARATOR
+    ADD_PROPERTY_TAG(FrostedGlass, CornerRadius) SEPARATOR	
     ADD_PROPERTY_TAG(FrostedGlass, Shape)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,
-    ADD_PROPERTY_TAG(GridWarp, GridPoint0),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint1),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint2),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint3),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint4),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint5),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint6),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint7),
-    ADD_PROPERTY_TAG(GridWarp, GridPoint8),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle0),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle1),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle2),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle3),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle4),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle5),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle6),
-    ADD_PROPERTY_TAG(GridWarp, RotationAngle7),
+    ADD_PROPERTY_TAG(GridWarp, GridPoint0) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint1) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint2) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint3) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint4) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint5) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint6) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint7) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, GridPoint8) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle0) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle1) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle2) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle3) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle4) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle5) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle6) SEPARATOR
+    ADD_PROPERTY_TAG(GridWarp, RotationAngle7) SEPARATOR
     ADD_PROPERTY_TAG(GridWarp, RotationAngle8)
 );
 
 DECLARE_FILTER(FrostedGlassBlur, FROSTED_GLASS_BLUR,
-    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius),
+    ADD_PROPERTY_TAG(FrostedGlassBlur, Radius) SEPARATOR
     ADD_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx)
 );
