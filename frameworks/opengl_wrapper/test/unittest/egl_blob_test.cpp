@@ -262,8 +262,8 @@ HWTEST_F(EglBlobTest, EglBlobInit005, Level1)
 {
     BlobCache* ret = BlobCache::Get();
     EXPECT_NE(ret, nullptr);
-    std::vector<uint8_t> shortBuffer(CACHE_HEAD - 1);
-    bool result = ret->ValidFile(shortBuffer.data(), sizeof(shortBuffer));
+    uint8_t shortBuffer[CACHE_HEAD - 1];
+    bool result = ret->ValidFile(shortBuffer, sizeof(shortBuffer));
     EXPECT_FALSE(result);
 }
 
