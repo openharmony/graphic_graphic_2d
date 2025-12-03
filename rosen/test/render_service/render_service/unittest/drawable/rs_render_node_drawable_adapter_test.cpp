@@ -126,6 +126,16 @@ HWTEST(RSRenderNodeDrawableAdapterTest, OnGenerateTest, TestSize.Level1)
     renderNode->renderDrawable_ = std::make_shared<RSRenderNodeDrawable>(otherNode);
     retAdapter = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
     EXPECT_NE(retAdapter, nullptr);
+
+    auto adapterNode2 = std::make_shared<RSRenderNode>(id + 3);
+    auto adapter2 = std::make_shared<RSRenderNodeDrawable>(std::move(adapterNode2));
+    adapter2->nodeType_ = RSRenderNodeType::CANVAS_NODE;
+    EXPECT_NE(adapterNode2->GetType(), adapter2->GetNodeType());
+    wNode = adapter2;
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(id, wNode);
+    retAdapter = RSRenderNodeDrawableAdapter::OnGenerate(renderNode);
+    EXPECT_NE(retAdapter, nullptr);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
 }
 
 /**
