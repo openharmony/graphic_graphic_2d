@@ -25,7 +25,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
-class OH_Drawing_FontCollectionTest : public testing::Test {
+class AdapterFontCollectionTest : public testing::Test {
 protected:
     void SetUp() override;
     static void SetUpTestSuite();
@@ -50,12 +50,12 @@ const char* cjkFamily_ = "Noto Sans CJK JP";
 const char* sansFamily_ = "Noto Sans";
 const char* mathFamily_ = "Noto Sans Math";
 
-std::vector<uint8_t> OH_Drawing_FontCollectionTest::symbolData_{};
-std::vector<uint8_t> OH_Drawing_FontCollectionTest::cjkData_{};
-std::vector<uint8_t> OH_Drawing_FontCollectionTest::sansData_{};
-std::vector<uint8_t> OH_Drawing_FontCollectionTest::mathData_{};
+std::vector<uint8_t> AdapterFontCollectionTest::symbolData_{};
+std::vector<uint8_t> AdapterFontCollectionTest::cjkData_{};
+std::vector<uint8_t> AdapterFontCollectionTest::sansData_{};
+std::vector<uint8_t> AdapterFontCollectionTest::mathData_{};
 
-void OH_Drawing_FontCollectionTest::SetUpTestSuite()
+void AdapterFontCollectionTest::SetUpTestSuite()
 {
     symbolData_ = GetFileData(symbolFile_);
     cjkData_ = GetFileData(cjkFile_);
@@ -63,7 +63,7 @@ void OH_Drawing_FontCollectionTest::SetUpTestSuite()
     mathData_ = GetFileData(mathFile_);
 }
 
-void OH_Drawing_FontCollectionTest::SetUp()
+void AdapterFontCollectionTest::SetUp()
 {
     OHOS::Rosen::Drawing::Typeface::RegisterCallBackFunc([](auto tf) { return tf->GetFd(); });
     auto callback = [](const FontCollection* fc, const FontEventInfo& info) {
@@ -85,7 +85,7 @@ void OH_Drawing_FontCollectionTest::SetUp()
     ASSERT_NE(fontMgr_, nullptr);
 }
 
-std::vector<uint8_t> OH_Drawing_FontCollectionTest::GetFileData(const std::string& path)
+std::vector<uint8_t> AdapterFontCollectionTest::GetFileData(const std::string& path)
 {
     std::ifstream file(path, std::ios::binary);
     std::stringstream fileStream;
@@ -95,11 +95,11 @@ std::vector<uint8_t> OH_Drawing_FontCollectionTest::GetFileData(const std::strin
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest001
+ * @tc.name: AdapterFontCollectionTest001
  * @tc.desc: test for constuctor of FontCollection
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest001, TestSize.Level0)
 {
     fontCollection_->DisableFallback();
     fontCollection_->DisableSystemFont();
@@ -111,11 +111,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest001, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest002
+ * @tc.name: AdapterFontCollectionTest002
  * @tc.desc: test for register same typeface
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest002, TestSize.Level0)
 {
     auto typefaces = fontCollection_->LoadThemeFont("familyname", { { sansData_.data(), sansData_.size() } });
     auto typefaces1 = fontCollection_->LoadThemeFont("familyname", { { sansData_.data(), sansData_.size() } });
@@ -143,22 +143,22 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest002, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest003
+ * @tc.name: AdapterFontCollectionTest003
  * @tc.desc: test for ClearCaches
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest003, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest003, TestSize.Level0)
 {
     fontCollection_->ClearCaches();
     EXPECT_EQ(fontMgr_->CountFamilies(), 0);
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest004
+ * @tc.name: AdapterFontCollectionTest004
  * @tc.desc: test for LoadSymbolFont
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest004, TestSize.Level0)
 {
     std::ifstream fileStream(symbolFile_);
     fileStream.seekg(0, std::ios::end);
@@ -188,11 +188,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest004, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest005
+ * @tc.name: AdapterFontCollectionTest005
  * @tc.desc: test for LoadThemeFont with 2 fonts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest005, TestSize.Level0)
 {
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
@@ -221,11 +221,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest005, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest006
+ * @tc.name: AdapterFontCollectionTest006
  * @tc.desc: test for LoadThemeFont with 3 fonts
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest006, TestSize.Level0)
 {
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
@@ -255,11 +255,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest006, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest007
+ * @tc.name: AdapterFontCollectionTest007
  * @tc.desc: test for LoadThemeFont with 3 fonts but 1 is null
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest007, TestSize.Level0)
 {
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
@@ -290,11 +290,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest007, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest008
+ * @tc.name: AdapterFontCollectionTest008
  * @tc.desc: test for LoadFont with 1 font and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest008, TestSize.Level0)
 {
     std::string familyName = "familyname";
     auto typeface = fontCollection_->LoadFont(familyName, sansData_.data(), sansData_.size());
@@ -310,11 +310,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest008, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest009
+ * @tc.name: AdapterFontCollectionTest009
  * @tc.desc: test for LoadFont use 2 font with same family and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest009, TestSize.Level0)
 {
     std::string familyName = "familyname";
     auto sansTypeface = fontCollection_->LoadFont(familyName, sansData_.data(), sansData_.size());
@@ -334,11 +334,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest009, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest010
+ * @tc.name: AdapterFontCollectionTest010
  * @tc.desc: test for LoadFont use 2 font with different family and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest010, TestSize.Level0)
 {
     std::string familyName1 = "familyname1";
     std::string familyName2 = "familyname2";
@@ -365,11 +365,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest010, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest011
+ * @tc.name: AdapterFontCollectionTest011
  * @tc.desc: test for LoadFont use font with empty family name and unload it
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest011, TestSize.Level0)
 {
     auto sansTypeface = fontCollection_->LoadFont("", sansData_.data(), sansData_.size());
     ASSERT_NE(sansTypeface, nullptr);
@@ -384,11 +384,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest011, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest012
+ * @tc.name: AdapterFontCollectionTest012
  * @tc.desc: test for unload theme font but failed
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest012, TestSize.Level0)
 {
     fontCollection_->ClearThemeFont();
     auto typefaces = fontCollection_->LoadThemeFont(
@@ -419,11 +419,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest012, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest013
+ * @tc.name: AdapterFontCollectionTest013
  * @tc.desc: test for unload system font and empty but failed
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest013, TestSize.Level0)
 {
     EXPECT_EQ(fontCollection_->LoadFont("", nullptr, 0), nullptr);
     EXPECT_FALSE(fontCollection_->UnloadFont(""));
@@ -432,11 +432,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest013, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest014
+ * @tc.name: AdapterFontCollectionTest014
  * @tc.desc: test for load symbol config
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest014, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest014, TestSize.Level0)
 {
     std::ifstream fileStream(symbolConfigFile_);
     fileStream.seekg(0, std::ios::end);
@@ -459,11 +459,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest014, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest015
+ * @tc.name: AdapterFontCollectionTest015
  * @tc.desc: test load theme font and custom font
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest015, TestSize.Level0)
 {
     std::string familyName = "familyname";
     fontCollection_->ClearThemeFont();
@@ -486,11 +486,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest015, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest016
+ * @tc.name: AdapterFontCollectionTest016
  * @tc.desc: test for enable global font mgr
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest016, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest016, TestSize.Level0)
 {
     auto adaptFontCollection = reinterpret_cast<AdapterTxt::FontCollection*>(fontCollection_.get());
     adaptFontCollection->EnableGlobalFontMgr();
@@ -499,11 +499,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest016, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest017
+ * @tc.name: AdapterFontCollectionTest017
  * @tc.desc: test for max size in local font collection
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest017, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest017, TestSize.Level0)
 {
     std::string familyNameSans = "Sans";
     auto typeface = fontCollection_->LoadFont(familyNameSans, sansData_.data(), sansData_.size());
@@ -523,11 +523,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest017, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest018
+ * @tc.name: AdapterFontCollectionTest018
  * @tc.desc: test for load ttc font
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest018, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest018, TestSize.Level0)
 {
     std::string familyName1 = "familyname1";
     auto cTypeface = fontCollection_->LoadFont(familyName1, cjkData_.data(), cjkData_.size(), 0);
@@ -566,11 +566,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest018, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest019
+ * @tc.name: AdapterFontCollectionTest019
  * @tc.desc: test for load ttf font with invalid index
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest019, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest019, TestSize.Level0)
 {
     std::string familyName1 = "familyname1";
     // 100 is an invalid index
@@ -579,11 +579,11 @@ HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest019, TestSi
 }
 
 /*
- * @tc.name: OH_Drawing_FontCollectionTest020
+ * @tc.name: AdapterFontCollectionTest020
  * @tc.desc: test for load same ttf font
  * @tc.type: FUNC
  */
-HWTEST_F(OH_Drawing_FontCollectionTest, OH_Drawing_FontCollectionTest020, TestSize.Level0)
+HWTEST_F(AdapterFontCollectionTest, AdapterFontCollectionTest020, TestSize.Level0)
 {
     std::string familyName1 = "familyname1";
     // 100 is an invalid index
