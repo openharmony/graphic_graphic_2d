@@ -359,3 +359,35 @@ uint32_t OH_Drawing_GetFontCountFromBuffer(uint8_t* fontBuffer, size_t length)
     }
     return fileCount;
 }
+
+OH_Drawing_String* OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType fontType, size_t* num)
+{
+    auto systemFontType = static_cast<int32_t>(fontType);
+    std::unordered_set<std::string> fontPaths;
+    FontDescriptorMgrInstance.GetFontPathsByType(systemFontType, fontPaths);
+    std::unique_ptr<OH_Drawing_String[]> stringArr = std::make_unique<OH_Drawing_String[]>(fontPaths.size());
+    size_t index = 0;
+    for (const auto& path : fontPaths) {
+        std::u16string utf16String = OHOS::Str8ToStr16(path);
+        if (utf16String.empty()) {
+            TEXT_LOGE("Failed to convert string to utf16: %{public}s", path.c_str());
+            continue;
+        }
+        stringArr[index].strLen = utf16String.size() * sizeof(char16_t);
+        std::unique_ptr strData = std::make_unique<uint8_t[]>(stringArr[index].strLen);
+        if (memcpy_s(strData.get(), stringArr[index].strLen, utf16String.c_str(), stringArr[index].strLen) != EOK) {
+            TEXT_LOGE("Failed to memcpy_s length: %{public}u", stringArr[index].strLen);
+            continue;
+        }
+        stringArr[index].strData = strData.release();
+        index += 1;
+    }
+    if (index == 0) {
+        TEXT_LOGI_LIMIT3_MIN("Failed to get font path, font type: %{public}d", static_cast<int32_t>(fontType));
+        return nullptr;
+    }
+    if (num != nullptr) {
+        *num = index;
+    }
+    return stringArr.release();
+}
