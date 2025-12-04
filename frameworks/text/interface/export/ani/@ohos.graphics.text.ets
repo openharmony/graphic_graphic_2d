@@ -317,6 +317,8 @@ namespace text {
   }
 
   export interface ParagraphStyle {
+    fallbackLineSpacing?: boolean;
+    includeFontPadding?: boolean;
     textStyle?: TextStyle;
     textDirection?: TextDirection;
     align?: TextAlign;

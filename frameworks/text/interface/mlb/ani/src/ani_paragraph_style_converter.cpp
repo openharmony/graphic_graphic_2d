@@ -22,6 +22,22 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
+    ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle)
+{
+    AniTextUtils::ReadOptionalEnumField(env, obj, "textDirection", paragraphStyle->textDirection);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "align", paragraphStyle->textAlign);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "wordBreak", paragraphStyle->wordBreakType);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "breakStrategy", paragraphStyle->breakStrategy);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "textHeightBehavior", paragraphStyle->textHeightBehavior);
+    AniTextUtils::ReadOptionalEnumField(env, obj, "verticalAlign", paragraphStyle->verticalAlignment);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "trailingSpaceOptimized", paragraphStyle->isTrailingSpaceOptimized);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "autoSpace", paragraphStyle->enableAutoSpace);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "compressHeadPunctuation", paragraphStyle->compressHeadPunctuation);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "includeFontPadding", paragraphStyle->includeFontPadding);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "fallbackLineSpacing", paragraphStyle->fallbackLineSpacing);
+}
+
 std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
 {
     ani_boolean isObj = false;
@@ -56,12 +72,6 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     paragraphStyle->ellipsis = textStyle.ellipsis;
     paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
 
-    AniTextUtils::ReadOptionalEnumField(env, obj, "textDirection", paragraphStyle->textDirection);
-    AniTextUtils::ReadOptionalEnumField(env, obj, "align", paragraphStyle->textAlign);
-    AniTextUtils::ReadOptionalEnumField(env, obj, "wordBreak", paragraphStyle->wordBreakType);
-    AniTextUtils::ReadOptionalEnumField(env, obj, "breakStrategy", paragraphStyle->breakStrategy);
-    AniTextUtils::ReadOptionalEnumField(env, obj, "textHeightBehavior", paragraphStyle->textHeightBehavior);
-
     ani_ref strutStyleRef = nullptr;
     if (AniTextUtils::ReadOptionalField(env, obj, "strutStyle", strutStyleRef) == ANI_OK && strutStyleRef != nullptr) {
         ParseParagraphStyleStrutStyleToNative(env, reinterpret_cast<ani_object>(strutStyleRef), paragraphStyle);
@@ -72,10 +82,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
 
-    AniTextUtils::ReadOptionalBoolField(env, obj, "trailingSpaceOptimized", paragraphStyle->isTrailingSpaceOptimized);
-    AniTextUtils::ReadOptionalBoolField(env, obj, "autoSpace", paragraphStyle->enableAutoSpace);
-    AniTextUtils::ReadOptionalBoolField(env, obj, "compressHeadPunctuation", paragraphStyle->compressHeadPunctuation);
-    AniTextUtils::ReadOptionalEnumField(env, obj, "verticalAlign", paragraphStyle->verticalAlignment);
+    ParseSimpleParagraphStyleToNative(env, obj, paragraphStyle);
 
     return paragraphStyle;
 }
