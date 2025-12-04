@@ -17,7 +17,7 @@
 
 #include "common/rs_optional_trace.h"
 #include "parameters.h"
-#include "rs_render_composer_manager.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -37,8 +37,7 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
         return;
     }
 
-    auto frameRateMgr = hgmCore_.GetFrameRateMgr();
-    if (frameRateMgr == nullptr) {
+    if (hgmCore_.GetFrameRateMgr() == nullptr) {
         RS_LOGD("FrameRateMgr is null");
         return;
     }
@@ -47,8 +46,8 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
         RS_LOGD("ExecuteSwitchRefreshRate:rate change: %{public}u -> %{public}u", refreshRate, screenRefreshRateImme);
         refreshRate = screenRefreshRateImme;
     }
-    ScreenId curScreenId = frameRateMgr->GetCurScreenId();
-    ScreenId lastCurScreenId = frameRateMgr->GetLastCurScreenId();
+    ScreenId curScreenId = hgmCore_.GetFrameRateMgr()->GetCurScreenId();
+    ScreenId lastCurScreenId = hgmCore_.GetFrameRateMgr()->GetLastCurScreenId();
     bool shouldSetRefreshRate = (refreshRate != hgmCore_.GetScreenCurrentRefreshRate(screenId) ||
                                  lastCurScreenId != curScreenId);
     bool needRetrySetRate = false;
@@ -60,7 +59,7 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
         RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
             needRetrySetRate %{public}d", static_cast<int>(screenId), refreshRate, needRetrySetRate);
         int32_t sceneId = (lastCurScreenId != curScreenId || needRetrySetRate) ? SWITCH_SCREEN_SCENE : 0;
-        frameRateMgr->SetLastCurScreenId(curScreenId);
+        hgmCore_.GetFrameRateMgr()->SetLastCurScreenId(curScreenId);
         int32_t status = hgmCore_.SetScreenRefreshRate(screenId, sceneId, refreshRate, shouldSetRefreshRate);
         if (retryIter != setRateRetryMap_.end()) {
             retryIter->second.first = false;
@@ -92,19 +91,20 @@ void HgmHardwareUtils::UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uin
     }
 }
 
-void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output)
+void HgmHardwareUtils::PerformSetActiveMode(ScreenId screenId, std::shared_ptr<HdiOutput> output)
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        return;
-    }
     uint64_t timestamp = refreshRateParam_.frameTimestamp;
     uint64_t constraintRelativeTime = refreshRateParam_.constraintRelativeTime;
-    vblankIdleCorrector_.ProcessScreenConstraint(output->GetScreenId(), timestamp, constraintRelativeTime);
+    RSScreenManager* scmFromHgm = hgmCore_.GetScreenManager();
+    if (scmFromHgm == nullptr) {
+        RS_LOGE("%{public}s, scmFromHgm == nullptr", __func__);
+        return;
+    }
+    vblankIdleCorrector_.ProcessScreenConstraint(screenId, timestamp, constraintRelativeTime);
     HgmRefreshRates newRate = RSSystemProperties::GetHgmRefreshRatesEnabled();
     if (hgmRefreshRates_ != newRate) {
         hgmRefreshRates_ = newRate;
-        hgmCore_.SetScreenRefreshRate(screenManager->GetDefaultScreenId(), 0, static_cast<int32_t>(hgmRefreshRates_));
+        hgmCore_.SetScreenRefreshRate(scmFromHgm->GetDefaultScreenId(), 0, static_cast<int32_t>(hgmRefreshRates_));
     }
 
     std::unique_ptr<std::unordered_map<ScreenId, int32_t>> modeMap(hgmCore_.GetModesToApply());
@@ -114,22 +114,26 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
 
     RS_TRACE_NAME_FMT("HgmContext::PerformSetActiveMode setting active mode. rate: %d",
         hgmCore_.GetScreenCurrentRefreshRate(hgmCore_.GetActiveScreenId()));
-    for (auto [screenId, modeId] : *modeMap) {
-        for (auto mode : screenManager->GetScreenSupportedModes(screenId)) {
+    for (auto mapIter = modeMap->begin(); mapIter != modeMap->end(); ++mapIter) {
+        ScreenId id = mapIter->first;
+        int32_t modeId = mapIter->second;
+
+        auto supportedModes = scmFromHgm->GetScreenSupportedModes(id);
+        for (auto mode : supportedModes) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "HgmContext check modes w:%" PRId32", h:%" PRId32", rate:%" PRId32", id:%" PRId32"",
                 mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
         }
 
-        uint32_t ret = screenManager->SetScreenActiveMode(screenId, modeId);
-        if (screenId <= MAX_HAL_DISPLAY_ID) {
-            setRateRetryMap_.try_emplace(screenId, std::make_pair(false, 0));
-            UpdateRetrySetRateStatus(screenId, modeId, ret);
+        uint32_t ret = scmFromHgm->SetScreenActiveMode(id, modeId);
+        if (id <= MAX_HAL_DISPLAY_ID) {
+            setRateRetryMap_.try_emplace(id, std::make_pair(false, 0));
+            UpdateRetrySetRateStatus(id, modeId, ret);
         } else {
-            RS_LOGD("UpdateRetrySetRateStatus fail, invalid ScreenId:%{public}" PRIu64, screenId);
+            RS_LOGD("UpdateRetrySetRateStatus fail, invalid ScreenId:%{public}" PRIu64, id);
         }
 
-        auto pendingPeriod = hgmCore_.GetIdealPeriod(hgmCore_.GetScreenCurrentRefreshRate(screenId));
+        auto pendingPeriod = hgmCore_.GetIdealPeriod(hgmCore_.GetScreenCurrentRefreshRate(id));
         int64_t pendingTimestamp = static_cast<int64_t>(timestamp);
         if (auto hdiBackend = HdiBackend::GetInstance(); hdiBackend != nullptr) {
             hdiBackend->SetPendingMode(output, pendingPeriod, pendingTimestamp);
@@ -138,57 +142,75 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
     }
 }
 
-void HgmHardwareUtils::UpdateRefreshRateParam()
+void HgmHardwareUtils::UpdateRefreshRateParam(uint32_t pendingScreenRefreshRate,
+    uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime)
 {
-    // need to sync the hgm data from main thread.
-    // Temporary sync the timestamp to fix the duplicate time stamp issue.
-    bool directComposition = hgmCore_.GetDirectCompositionFlag();
-    RS_LOGI_IF(DEBUG_COMPOSER, "GetRefreshRateData period is %{public}d", directComposition);
-    if (directComposition) {
-        hgmCore_.SetDirectCompositionFlag(false);
-    }
-    if (directComposition) {
-        refreshRateParam_ = {
-            .rate = hgmCore_.GetPendingScreenRefreshRate(),
-            .frameTimestamp = hgmCore_.GetCurrentTimestamp(),
-            .actualTimestamp = hgmCore_.GetActualTimestamp(),
-            .vsyncId = hgmCore_.GetVsyncId(),
-            .constraintRelativeTime = hgmCore_.GetPendingConstraintRelativeTime(),
-            .isForceRefresh = hgmCore_.GetForceRefreshFlag(),
-            .fastComposeTimeStampDiff = hgmCore_.GetFastComposeTimeStampDiff()
-        };
-    } else {
-        refreshRateParam_ = {
-            .rate = RSUniRenderThread::Instance().GetPendingScreenRefreshRate(),
-            .frameTimestamp = RSUniRenderThread::Instance().GetCurrentTimestamp(),
-            .actualTimestamp = RSUniRenderThread::Instance().GetActualTimestamp(),
-            .vsyncId = RSUniRenderThread::Instance().GetVsyncId(),
-            .constraintRelativeTime = RSUniRenderThread::Instance().GetPendingConstraintRelativeTime(),
-            .isForceRefresh = RSUniRenderThread::Instance().GetForceRefreshFlag(),
-            .fastComposeTimeStampDiff = RSUniRenderThread::Instance().GetFastComposeTimeStampDiff()
-        };
-    }
+    refreshRateParam_ = {
+        .rate = pendingScreenRefreshRate,
+        .frameTimestamp = frameTimestamp,
+        .constraintRelativeTime = pendingConstraintRelativeTime,
+    };
 }
 
-void HgmHardwareUtils::TransactRefreshRateParam(uint32_t& currentRate, RefreshRateParam& param)
+void HgmHardwareUtils::UpdateRefreshRateParamToRenderComposer(uint32_t& currentRate,
+    uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime)
 {
-    UpdateRefreshRateParam();
-    param = refreshRateParam_;
-    ScreenId curScreenId = hgmCore_.GetActiveScreenId();
-    currentRate = hgmCore_.GetScreenCurrentRefreshRate(curScreenId);
+    RS_TRACE_NAME_FMT("%s", __func__);
+    UpdateRefreshRateParam(pendingScreenRefreshRate, frameTimestamp, pendingConstraintRelativeTime);
+    currentRate = hgmCore_.GetScreenCurrentRefreshRate(hgmCore_.GetActiveScreenId());
 }
 
-void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput)
+void HgmHardwareUtils::SwitchRefreshRate(ScreenId screenId, const std::shared_ptr<HdiOutput> hdiOutput)
 {
     RS_TRACE_NAME_FMT("%s rate:%u", __func__, refreshRateParam_.rate);
-    ScreenId screenId = hdiOutput->GetScreenId();
     auto screen = hgmCore_.GetScreen(screenId);
-    if (!screen || !screen->GetSelfOwnedScreenFlag() || refreshRateParam_.rate == 0) {
+    if (!screen || !screen->GetSelfOwnedScreenFlag() || refreshRateParam_.rate <= 0) {
         return;
     }
 
+    std::lock_guard<std::mutex> lock(switchRateMutex_);
     ExecuteSwitchRefreshRate(screenId);
-    PerformSetActiveMode(hdiOutput);
+    PerformSetActiveMode(screenId, hdiOutput);
+    AddRefreshRateCount(screenId);
+}
+
+void HgmHardwareUtils::AddRefreshRateCount(ScreenId screenId)
+{
+    uint32_t currentRefreshRate = hgmCore_.GetScreenCurrentRefreshRate(screenId);
+    auto [iter, success] = refreshRateCounts_.try_emplace(currentRefreshRate, 1);
+    if (!success) {
+        iter->second++;
+    }
+    auto frameRateMgr = hgmCore_.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
+    frameRateMgr->HandleRsFrame();
+}
+
+void HgmHardwareUtils::RefreshRateCounts(std::string& dumpString)
+{
+    if (refreshRateCounts_.empty()) {
+        RS_LOGE("RefreshData fail, refreshRateCounts_ is empty");
+        return;
+    }
+    std::map<uint32_t, uint64_t>::iterator iter;
+    for (iter = refreshRateCounts_.begin(); iter != refreshRateCounts_.end(); ++iter) {
+        dumpString.append(
+            "Refresh Rate:" + std::to_string(iter->first) + ", Count:" + std::to_string(iter->second) + ";\n");
+    }
+    RS_LOGD("RefreshRateCounts refresh rate counts info is displayed");
+}
+
+void HgmHardwareUtils::ClearRefreshRateCounts(std::string& dumpString)
+{
+    if (refreshRateCounts_.empty()) {
+        RS_LOGE("ClearRefreshData fail, refreshRateCounts_ is empty");
+        return;
+    }
+    refreshRateCounts_.clear();
+    dumpString.append("The refresh rate counts info is cleared successfully!\n");
+    RS_LOGD("RefreshRateCounts refresh rate counts info is cleared");
 }
 } // namespace Rosen
 } // namespace OHOS
