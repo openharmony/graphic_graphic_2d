@@ -373,12 +373,12 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
+        RSTypefaceCache::Instance().Dump(log);
     } else {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
         RSMainThread::Instance()->RenderServiceAllNodeDump(log);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
     }
-    RSTypefaceCache::Instance().Dump(log);
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
     memStat.DumpMemoryStatistics(&gpuTracer);
