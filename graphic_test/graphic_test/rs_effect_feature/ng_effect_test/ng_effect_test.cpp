@@ -238,7 +238,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foregroun
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
-        // Create displacement distort filter
+
+        // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
@@ -265,6 +266,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Backgroun
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
         
+        // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
@@ -288,15 +290,18 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
+        // Create double ripple mask
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
         
+        // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
             std::static_pointer_cast<RSNGMaskBase>(doubleRippleMask));
 
+        // Create rounded rect flowlight effect
         auto roundedRectFlowlight = std::make_shared<RSNGRoundedRectFlowlight>();
         SetRoundedRectFlowlightParams(roundedRectFlowlight, i);
 
@@ -317,15 +322,18 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
+        // Create double ripple mask
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
-        
+
+        // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
             std::static_pointer_cast<RSNGMaskBase>(doubleRippleMask));
-
+        
+        // Create rounded rect flowlight effect
         auto roundedRectFlowlight = std::make_shared<RSNGRoundedRectFlowlight>();
         SetRoundedRectFlowlightParams(roundedRectFlowlight, i);
 
@@ -333,7 +341,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
-        backgroundTestNode->SetForegroundShader(circleFlowlight);
+        backgroundTestNode->SetForegroundShader(roundedRectFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
     }
@@ -346,13 +354,16 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
+        // Create double ripple mask
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
 
+        // Create rounded rect flowlight effect
         auto roundedRectFlowlight = std::make_shared<RSNGRoundedRectFlowlight>();
         SetRoundedRectFlowlightParams(roundedRectFlowlight, i);
 
+        // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
@@ -364,7 +375,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
         auto node = Rosen::RSCanvasNode::Create();
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
-        node->SetBackgroundNGShader(roundedRectFlowlight);
+        node->SetBackgroundNGShader(circleFlowlight);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
@@ -377,13 +388,16 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
+        // Create double ripple mask
         auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
         auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
         SetDoubleRippleMaskParams(doubleRippleMask, i);
 
+        // Create rounded rect flowlight effect
         auto roundedRectFlowlight = std::make_shared<RSNGRoundedRectFlowlight>();
         SetRoundedRectFlowlightParams(roundedRectFlowlight, i);
 
+        // Create circle flowLight effect
         auto circleFlowlight = std::make_shared<RSNGCircleFlowlight>();
         SetCircleFlowlightParams(circleFlowlight, i);
         circleFlowlight->Setter<CircleFlowlightMaskTag>(
