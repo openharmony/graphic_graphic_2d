@@ -15,16 +15,16 @@
 
 #include <cstdint>
 #include <unordered_set>
-#include "rs_trace.h"
 #include "hdi_log.h"
 #include "hdi_output.h"
-#include "string_utils.h"
 #include "metadata_helper.h"
+#include "rs_trace.h"
+#include "string_utils.h"
+// DISPLAYENGINE
+#include "sync_fence_tracker.h"
+#include "syspara/parameters.h"
 #include "vsync_generator.h"
 #include "vsync_sampler.h"
-// DISPLAYENGINE
-#include "syspara/parameters.h"
-#include "sync_fence_tracker.h"
 
 using namespace OHOS::HDI::Display::Graphic::Common::V1_0;
 

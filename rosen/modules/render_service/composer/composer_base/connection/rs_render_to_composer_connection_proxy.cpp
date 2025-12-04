@@ -14,8 +14,8 @@
  */
 
 #include "rs_render_to_composer_connection_proxy.h"
-#include <vector>
 #include <memory>
+#include <vector>
 #include "graphic_common.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"

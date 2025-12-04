@@ -120,7 +120,7 @@ private:
     bool MarshallingScreenInfo(std::shared_ptr<OHOS::MessageParcel>& parcel);
     bool UnMarshallingPipelineParam(OHOS::MessageParcel& parcel);
     bool MarshallingPipelineParam(std::shared_ptr<OHOS::MessageParcel>& parcel);
-    void AddRsLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
+    void AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
 
     std::vector<std::tuple<RSLayerId, std::shared_ptr<RSLayerParcel>>> payload_ = {};
     uint64_t timestamp_ = 0;

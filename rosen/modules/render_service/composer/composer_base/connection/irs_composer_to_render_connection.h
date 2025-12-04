@@ -16,10 +16,10 @@
 #ifndef RENDER_SERVICE_COMPOSER_BASE_CONNECTION_IRS_COMPOSER_TO_RENDER_CONNECTION_H
 #define RENDER_SERVICE_COMPOSER_BASE_CONNECTION_IRS_COMPOSER_TO_RENDER_CONNECTION_H
 
+#include <set>
 #include "common/rs_macros.h"
 #include "graphic_common.h"
 #include <iremote_broker.h>
-#include <set>
 #include "rs_layer_common_def.h"
 #include <sync_fence.h>
 #include <surface_buffer.h>

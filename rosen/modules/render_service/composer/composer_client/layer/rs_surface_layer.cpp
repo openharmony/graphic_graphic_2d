@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-
-#include <memory>
 #include "rs_surface_layer.h"
-#include "surface_type.h"
-#include "rs_layer_parcel.h"
+#include <memory>
 #include "rs_layer_context.h"
+#include "rs_layer_parcel.h"
 #include "rs_surface_layer_parcel.h"
+#include "surface_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -55,7 +54,7 @@ RSSurfaceLayer::~RSSurfaceLayer()
     std::shared_ptr<RSLayerParcel> layerParcel =
         std::make_shared<RSDestroyRSLayerCmd>(rsLayerId_, renderLayerCmd);
 
-    bool success = AddRsLayerParcel(layerParcel, rsLayerId_);
+    bool success = AddRSLayerParcel(layerParcel, rsLayerId_);
     if (!success) {
         ROSEN_LOGE("RSSurfaceLayer::~RSSurfaceLayer failed to send destroy command, layerId: %{public}" PRIu64, GetRSLayerId());
     } else {
@@ -88,11 +87,11 @@ std::shared_ptr<RSLayerTransactionHandler> RSSurfaceLayer::GetRSLayerTransaction
     return rsLayerContext->GetRSLayerTransaction();
 }
 
-bool RSSurfaceLayer::AddRsLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId rsLayerId)
+bool RSSurfaceLayer::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId rsLayerId)
 {
     auto rsLayerTransaction = GetRSLayerTransaction();
     if (rsLayerTransaction != nullptr) {
-        rsLayerTransaction->AddRsLayerParcel(layerParcel, rsLayerId);
+        rsLayerTransaction->AddRSLayerParcel(layerParcel, rsLayerId);
         return true;
     }
     return false;
@@ -105,7 +104,7 @@ void RSSurfaceLayer::AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd)
     }
     std::shared_ptr<RSLayerParcel> layerParcel =
         std::make_shared<RSUpdateRSLayerCmd>(GetRSLayerId(), layerCmd->CreateRenderLayerCmd());
-    AddRsLayerParcel(layerParcel, GetRSLayerId());
+    AddRSLayerParcel(layerParcel, GetRSLayerId());
 }
 
 template<typename RSLayerCmdName, typename RSLayerPropertyName, typename T>

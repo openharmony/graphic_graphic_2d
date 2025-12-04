@@ -19,10 +19,9 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-
+#include "irs_render_to_composer_connection.h"
 #include "rs_layer.h"
 #include "rs_layer_transaction_handler.h"
-#include "irs_render_to_composer_connection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -65,9 +64,7 @@ public:
 
 private:
     void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer, const sptr<SyncFence>& previousReleaseFence);
-    mutable std::recursive_mutex rsLayerTransMutex_;
     std::shared_ptr<RSLayerTransactionHandler> rsLayerTransactionHandler_;
-    mutable std::mutex rsLayerMutex_;
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers_;
     sptr<IRSRenderToComposerConnection> rsComposerConnection_;
 

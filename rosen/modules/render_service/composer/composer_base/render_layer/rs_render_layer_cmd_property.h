@@ -16,31 +16,25 @@
 #ifndef RENDER_SERVICE_COMPOSER_BASE_RENDER_LAYER_RS_RENDER_LAYER_CMD_PROPERTY_H
 #define RENDER_SERVICE_COMPOSER_BASE_RENDER_LAYER_RS_RENDER_LAYER_CMD_PROPERTY_H
 
-#include <type_traits>
-#include <unistd.h>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
-#include <functional>
+#include <type_traits>
+#include <unistd.h>
 
 #include "buffer_utils.h"
-#include "message_parcel.h"
-#include "graphic_common.h"
-#include "rs_layer_cmd_type.h"
-#include "rs_layer_common_def.h"
 #include "common/rs_macros.h"
-#include "pixel_map.h"
-#include "platform/common/rs_log.h"
-
-#ifndef ROSEN_CROSS_PLATFORM
-#include "surface_buffer.h"
-#include "sync_fence.h"
-#endif
-
-#include "surface_buffer.h"
-#include "sync_fence.h"
+#include "graphic_common.h"
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
+#include "message_parcel.h"
+#include "platform/common/rs_log.h"
+#include "pixel_map.h"
+#include "rs_layer_common_def.h"
+#include "rs_layer_cmd_type.h"
+#include "surface_buffer.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {

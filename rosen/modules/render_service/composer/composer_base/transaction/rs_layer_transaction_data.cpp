@@ -300,7 +300,7 @@ void RSLayerTransactionData::Clear()
     timestamp_ = 0;
 }
 
-void RSLayerTransactionData::AddRsLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
+void RSLayerTransactionData::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
 {
     std::unique_lock<std::mutex> lock(rsLayerParcelMutex_);
     layerParcel->indexVerifier_ = payload_.size();

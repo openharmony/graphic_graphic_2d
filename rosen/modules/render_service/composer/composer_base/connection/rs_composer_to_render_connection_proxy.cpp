@@ -23,7 +23,6 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 
-
 #undef LOG_TAG
 #define LOG_TAG "RSComposerToRenderConnectionProxy"
 

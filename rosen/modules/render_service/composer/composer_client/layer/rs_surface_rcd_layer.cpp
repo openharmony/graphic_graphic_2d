@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-
-#include <memory>
 #include "rs_surface_rcd_layer.h"
-#include "surface_type.h"
+#include <memory>
 #include "rs_layer_parcel.h"
 #include "rs_layer_context.h"
 #include "rs_surface_layer_parcel.h"
+#include "surface_type.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -35,7 +34,7 @@ void RSSurfaceRCDLayer::AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd
     }
     std::shared_ptr<RSLayerParcel> layerParcel =
         std::make_shared<RSUpdateRSRCDLayerCmd>(GetRSLayerId(), layerCmd->CreateRenderLayerCmd());
-    AddRsLayerParcel(layerParcel, GetRSLayerId());
+    AddRSLayerParcel(layerParcel, GetRSLayerId());
 }
 
 void RSSurfaceRCDLayer::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)

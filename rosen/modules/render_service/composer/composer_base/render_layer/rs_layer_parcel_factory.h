@@ -17,8 +17,8 @@
 #define RENDER_SERVICE_COMPOSER_BASE_RENDER_LAYER_RS_LAYER_PARCEL_FACTORY_H
 
 #include <unordered_map>
-#include "message_parcel.h"
 #include "common/rs_macros.h"
+#include "message_parcel.h"
 
 namespace OHOS {
 namespace Rosen {

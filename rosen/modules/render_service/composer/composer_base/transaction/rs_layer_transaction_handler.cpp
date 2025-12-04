@@ -23,19 +23,19 @@ namespace Rosen {
 void RSLayerTransactionHandler::SetRSComposerConnectionProxy(const sptr<IRSRenderToComposerConnection>& rsComposerConnection)
 {
     if (rsComposerConnection == nullptr) {
-        RS_LOGE("SetRsComposerConnectionProxy connection is nullptr");
+        RS_LOGE("SetRSComposerConnectionProxy connection is nullptr");
         return;
     }
     rsComposerConnection_ = rsComposerConnection;
 }
 
-void RSLayerTransactionHandler::AddRsLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
+void RSLayerTransactionHandler::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
 {
     if (rsLayerTransactionData_ == nullptr || layerParcel == nullptr) {
-        RS_LOGE("RSLayerTransactionHandler::AddRsLayerParcel param is nullptr");
+        RS_LOGE("RSLayerTransactionHandler::AddRSLayerParcel param is nullptr");
         return;
     }
-    rsLayerTransactionData_->AddRsLayerParcel(layerParcel, layerId);
+    rsLayerTransactionData_->AddRSLayerParcel(layerParcel, layerId);
 }
 
 void RSLayerTransactionHandler::CheckScreenInfoIsChanged(ScreenInfo& screenInfo)
@@ -47,11 +47,11 @@ void RSLayerTransactionHandler::CheckScreenInfoIsChanged(ScreenInfo& screenInfo)
     }
 }
 
-void RSLayerTransactionHandler::CommitRsLayerTransaction(CommitLayerInfo& commitLayerInfo, uint64_t timestamp, const std::string& abilityName)
+void RSLayerTransactionHandler::CommitRSLayerTransaction(CommitLayerInfo& commitLayerInfo, uint64_t timestamp, const std::string& abilityName)
 {
     timestamp_ = std::max(timestamp_, timestamp);
     if (rsComposerConnection_ == nullptr || rsLayerTransactionData_->IsEmpty()) {
-        RS_LOGE("RSLayerTransactionHandler::CommitRsLayerTransaction param is nullptr");
+        RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction param is nullptr");
         return;
     }
     rsLayerTransactionData_->timestamp_ = timestamp;

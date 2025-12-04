@@ -18,13 +18,12 @@
 
 #include "common/rs_anco_type.h"
 #include "common/rs_macros.h"
+#include "hdi_display_type.h"
 #include "iconsumer_surface.h"
+#include "pipeline/rs_surface_handler.h"
+#include "rs_layer_common_def.h"
 #include "surface.h"
 #include "sync_fence.h"
-#include "hdi_display_type.h"
-#include "rs_layer_common_def.h"
-
-#include "pipeline/rs_surface_handler.h"
 
 namespace OHOS {
 namespace Rosen {

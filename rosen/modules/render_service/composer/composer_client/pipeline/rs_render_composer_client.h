@@ -18,14 +18,13 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <map>
-#include <functional>
-
-#include "rs_layer_context.h"
 #include "irs_render_to_composer_connection.h"
+#include "rs_layer_context.h"
 #include "vsync_manager_agent.h"
 
 namespace OHOS {
@@ -72,7 +71,6 @@ private:
     void NotifyComposerThreadCanExecuteTask();
     void IncUnExecuteTaskNum();
     void SubUnExecuteTaskNum();
-    std::mutex clientMutex_;
     std::shared_ptr<RSLayerContext> rsLayerContext_;
     bool isMultiProcess_;
     sptr<IRSRenderToComposerConnection> connection_;

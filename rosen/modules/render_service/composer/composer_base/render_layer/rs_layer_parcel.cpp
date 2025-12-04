@@ -15,10 +15,10 @@
 
 #include <refbase.h>
 #include "rs_layer_parcel.h"
-#include "rs_surface_layer_parcel.h"
 #include "rs_render_composer_context.h"
 #include "rs_render_surface_layer.h"
 #include "rs_render_surface_rcd_layer.h"
+#include "rs_surface_layer_parcel.h"
 
 namespace OHOS {
 namespace Rosen {

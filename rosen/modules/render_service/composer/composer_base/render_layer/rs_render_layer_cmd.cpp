@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "rs_render_layer_cmd.h"
 #include <unordered_map>
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
-#include "rs_render_layer_cmd.h"
-#include "rs_layer_marshalling_helper.h"
 #include "platform/common/rs_log.h"
+#include "rs_layer_marshalling_helper.h"
 
 namespace OHOS {
 namespace Rosen {

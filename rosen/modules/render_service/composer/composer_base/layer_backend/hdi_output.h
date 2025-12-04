@@ -17,10 +17,10 @@
 #define RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_OUTPUT_H
 
 #include <array>
-#include <list>
 #include <cstdint>
-#include <vector>
+#include <list>
 #include <unordered_map>
+#include <vector>
 
 #include "graphic_error.h"
 #include "hdi_layer.h"

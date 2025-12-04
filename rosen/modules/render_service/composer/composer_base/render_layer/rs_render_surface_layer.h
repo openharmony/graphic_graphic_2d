@@ -17,13 +17,13 @@
 #define RENDER_SERVICE_COMPOSER_BASE_RENDER_LAYER_RS_SURFACE_RENDER_LAYER_H
 
 #include <string>
-#include "surface.h"
-#include "sync_fence.h"
-#include "hdi_display_type.h"
 #include "common/rs_anco_type.h"
+#include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
 #include "rs_layer_cmd_type.h"
+#include "surface.h"
+#include "sync_fence.h"
 
 namespace OHOS {
 namespace Rosen {

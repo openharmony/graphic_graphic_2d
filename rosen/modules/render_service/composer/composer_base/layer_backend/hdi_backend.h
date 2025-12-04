@@ -17,13 +17,12 @@
 #define RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_BACKEND_H
 
 #include <functional>
-#include <unordered_map>
 #include <refbase.h>
-
-#include "hdi_device.h"
-#include "hdi_screen.h"
-#include "hdi_output.h"
+#include <unordered_map>
 #include "graphic_error.h"
+#include "hdi_device.h"
+#include "hdi_output.h"
+#include "hdi_screen.h"
 #include "surface_type.h"
 
 namespace OHOS {

@@ -18,6 +18,46 @@
 #include <memory>
 #include <unistd.h>
 
+#include "common/rs_exception_check.h"
+#include "common/rs_optional_trace.h"
+#include "common/rs_singleton.h"
+#ifdef RS_ENABLE_EGLIMAGE
+#include "feature/gpuComposition/rs_egl_image_manager.h"
+#endif // RS_ENABLE_EGLIMAGE
+#include "feature/hdr/rs_hdr_util.h"
+#include "feature/lpp/lpp_video_handler.h"
+#include "feature/round_corner_display/rs_rcd_render_manager.h"
+#include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#ifdef RS_ENABLE_TV_PQ_METADATA
+#include "feature/tv_metadata/rs_tv_metadata_manager.h"
+#endif
+#include "frame_report.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
+#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
+#include "graphic_feature_param_manager.h"
+#include "hgm_frame_rate_manager.h"
+#include "hisysevent.h"
+
+#ifdef USE_VIDEO_PROCESSING_ENGINE
+#include "metadata_helper.h"
+#endif
+#include "parameters.h"
+#include "platform/common/rs_hisysevent.h"
+#include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
+#include "platform/ohos/backend/rs_surface_ohos_gl.h"
+#include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/render_thread/rs_base_render_util.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_util.h"
+
+#include "rs_frame_report.h"
+#include "rs_trace.h"
+#include "rs_layer_cmd_type.h"
+#include "rs_layer_factory.h"
+#include "rs_render_surface_layer.h"
+#include "screen_manager/rs_screen_manager.h"
 #ifdef RS_ENABLE_EGLIMAGE
 #ifdef USE_M133_SKIA
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
@@ -25,50 +65,11 @@
 #include "src/gpu/gl/GrGLDefines.h"
 #endif
 #endif
-
-#include "frame_report.h"
-#include "hgm_frame_rate_manager.h"
-#include "hisysevent.h"
-#include "parameters.h"
-#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
-#include "rs_frame_report.h"
-#include "rs_trace.h"
-#include "rs_layer_cmd_type.h"
-#include "rs_layer_factory.h"
-#include "rs_render_surface_layer.h"
 #include "vsync_sampler.h"
-
-#include "common/rs_exception_check.h"
-#include "common/rs_optional_trace.h"
-#include "common/rs_singleton.h"
-#include "feature/hdr/rs_hdr_util.h"
-#include "feature/lpp/lpp_video_handler.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#include "pipeline/render_thread/rs_base_render_util.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_util.h"
-#include "platform/common/rs_log.h"
-#include "platform/common/rs_system_properties.h"
-#include "platform/ohos/backend/rs_surface_ohos_gl.h"
-#include "platform/ohos/backend/rs_surface_ohos_raster.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "gfx/fps_info/rs_surface_fps_manager.h"
-#include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
-#include "platform/common/rs_hisysevent.h"
-#include "graphic_feature_param_manager.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "feature/gpuComposition/rs_vk_image_manager.h"
-#endif
-
-#ifdef RS_ENABLE_EGLIMAGE
-#include "feature/gpuComposition/rs_egl_image_manager.h"
-#endif // RS_ENABLE_EGLIMAGE
-
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-#include "metadata_helper.h"
 #endif
 
 #ifdef RES_SCHED_ENABLE
@@ -77,10 +78,6 @@
 #include "if_system_ability_manager.h"
 #include <iservice_registry.h>
 #include "ressched_event_listener.h"
-#endif
-
-#ifdef RS_ENABLE_TV_PQ_METADATA
-#include "feature/tv_metadata/rs_tv_metadata_manager.h"
 #endif
 
 #undef LOG_TAG

@@ -20,7 +20,6 @@
 #include <memory>
 #include "irs_composer_to_render_connection.h"
 
-
 namespace OHOS {
 namespace Rosen {
 class RSComposerToRenderConnectionProxy : public IRemoteProxy<RSIComposerToRenderConnection> {
