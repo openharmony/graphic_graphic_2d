@@ -204,14 +204,16 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     needSync_ = true;
 }
 
-void RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
+bool RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
 {
     if (!renderGroupCache_) {
         renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
     }
     if (renderGroupCache_ && renderGroupCache_->ExcludedFromNodeGroup(isExcluded)) {
         needSync_ = true;
+        return true;
     }
+    return false;
 }
 
 bool RSRenderParams::IsExcludedFromNodeGroup() const
@@ -337,6 +339,14 @@ void RSRenderParams::UpdateHDRStatus(HdrStatus hdrStatus, bool isAdd)
     }
     hdrStatus_ = newStatus;
     needSync_ = true;
+}
+
+void RSRenderParams::SetNodeColorSpace(GraphicColorGamut colorSpace)
+{
+    if (colorSpace != nodeColorSpace_) {
+        nodeColorSpace_ = colorSpace;
+        needSync_ = true;
+    }
 }
 
 void RSRenderParams::ClearHDRVideoStatus()

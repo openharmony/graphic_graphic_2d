@@ -117,9 +117,9 @@ public:
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
         FontDescriptor& fontDescriptor);
-    static void ProcessTable(const CmapTables* cmapTable, FontDescriptor& fontDescriptor);
-    static void ProcessTable(const NameTable* nameTable, FontDescriptor& fontDescriptor);
-    static void ProcessTable(const PostTable* postTable, FontDescriptor& fontDescriptor);
+    static void ProcessTable(const CmapTables* cmapTable, FontDescriptor& fontDescriptor, size_t size);
+    static void ProcessTable(const NameTable* nameTable, FontDescriptor& fontDescriptor, size_t size);
+    static void ProcessTable(const PostTable* postTable, FontDescriptor& fontDescriptor, size_t size);
     template<typename T>
     static bool ParseOneTable(std::shared_ptr<Drawing::Typeface> typeface, FontParser::FontDescriptor& fontDescriptor);
     template<typename Tuple, size_t... Is>

@@ -384,6 +384,49 @@ HWTEST_F(RSCanvasRenderNodeTest, ModifyWindowWideColorGamutNum001, TestSize.Leve
 }
 
 /**
+ * @tc.name: UpdateNodeColorSpace
+ * @tc.desc: test UpdateNodeColorSpace
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateNodeColorSpace, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->InitRenderParams();
+    // subTree colorspace: None/sRGB, colorGamut_: None/sRGB
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // subTree colorspace: P3, colorGamut_: None/sRGB
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: None/sRGB, colorGamut_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: P3, colorGamut_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: BT2020, colorGamut_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // subTree colorspace: sRGB, colorGamut_: BT2020
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+}
+
+/**
  * @tc.name: DrawShadow
  * @tc.desc: test results of DrawShadow
  * @tc.type:FUNC

@@ -34,6 +34,7 @@ public:
     uint32_t GetUnExecuteTaskNum();
     int32_t GetAccumulatedBufferCount();
     void PostTask(const std::function<void()>& task);
+    void PostTaskWithInnerDelay(const std::function<void()>& task);
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
     void OnScreenVBlankIdleCallback(uint64_t timestamp);
     void RefreshRateCounts(std::string& dumpString);

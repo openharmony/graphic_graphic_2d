@@ -18,6 +18,7 @@
 #include <parameters.h>
 
 #include "drawable/rs_logical_display_render_node_drawable.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -610,7 +611,8 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest005, TestSize.Leve
     displayDrawable_->OnCapture(*drawingFilterCanvas_);
     EXPECT_TRUE(displayDrawable_->ShouldPaint());
     EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
-    EXPECT_NE(displayDrawable_->GetSpecialLayerType(*renderParams), NO_SPECIAL_LAYER);
+    EXPECT_NE(RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*renderParams, screenParams),
+        DisplaySpecialLayerState::NO_SPECIAL_LAYER);
 }
 
 /**
@@ -3283,43 +3285,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, FinishOffscreenRender_ScreenSur
     ASSERT_TRUE(displayDrawable_->offscreenSurface_->Bind(bitmap));
     displayDrawable_->FinishOffscreenRender(sampling);
     // Should complete without crash when offscreenSurface_ is null
-}
-
-/**
- * @tc.name: GetSpecialLayerType
- * @tc.desc: Test GetSpecialLayerType
- * @tc.type: FUNC
- * @tc.require: issueIAGR5V
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, GetSpecialLayerType, TestSize.Level1)
-{
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    int32_t result = displayDrawable_->GetSpecialLayerType(*params);
-    ASSERT_EQ(result, 0);
-    params->hasCaptureWindow_ = true;
-    result = displayDrawable_->GetSpecialLayerType(*params);
-    ASSERT_EQ(result, 2);
-    params->hasCaptureWindow_ = false;
-
-    ScreenId screenId = 1;
-    params->SetScreenId(screenId);
-    params->specialLayerManager_.SetWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST, true);
-    result = displayDrawable_->GetSpecialLayerType(*params);
-    ASSERT_EQ(result, 1);
-    RSUniRenderThread::Instance().whiteList_.insert(0);
-    result = displayDrawable_->GetSpecialLayerType(*params);
-    ASSERT_EQ(result, 1);
-
-    RSUniRenderThread::GetCaptureParam().isSnapshot_ = true;
-    result = displayDrawable_->GetSpecialLayerType(*params);
-    ASSERT_EQ(result, 0);
-    RSUniRenderThread::GetCaptureParam().isSnapshot_ = false;
-    params->specialLayerManager_.ClearScreenSpecialLayer();
-    RSUniRenderThread::Instance().whiteList_.clear();
 }
 
 /**

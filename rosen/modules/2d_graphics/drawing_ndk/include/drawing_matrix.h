@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -533,6 +533,61 @@ bool OH_Drawing_MatrixIsEqual(OH_Drawing_Matrix*, OH_Drawing_Matrix* other);
  * @version 1.0
  */
 bool OH_Drawing_MatrixIsIdentity(OH_Drawing_Matrix*);
+
+/**
+ * @brief Checks if the matrix is affine. An affine matrix preserves straight lines and has no perspective.
+ *
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param isAffine Indicates if the matrix is affine.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if matrix or isAffine is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_MatrixIsAffine(const OH_Drawing_Matrix* matrix, bool* isAffine);
+
+/**
+ * @brief Sets matrix to matrix multiplied by matrix constructed from skewing by (kx, ky) about pivot point (px, py).
+ *
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param kx Indicates the horizontal skew factor.
+ * @param ky Indicates the vertical skew factor.
+ * @param px Indicates the pivot on x-axis.
+ * @param py Indicates the pivot on y-axis.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if matrix is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_MatrixPreSkew(OH_Drawing_Matrix* matrix, float kx, float ky, float px, float py);
+
+/**
+ * @brief Checks if a rectangle will map to another rectangle after applying this matrix.
+ *
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param isRectStaysRect Indicates if the transformation keeps rectangles as rectangles.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if matrix or isRectStaysRect is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_MatrixRectStaysRect(const OH_Drawing_Matrix* matrix, bool* isRectStaysRect);
+
+/**
+ * @brief Sets the sine and cosine values for a rotation transformation around a point.
+ *
+ * @param matrix Indicates the pointer to an <b>OH_Drawing_Matrix</b> object.
+ * @param sinValue Indicates the sine of the angle of rotation.
+ * @param cosValue Indicates the cosine of the angle of rotation.
+ * @param px Indicates the x-coordinate of the point around which to rotate.
+ * @param py Indicates the y-coordinate of the point around which to rotate.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if matrix is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_MatrixSetSinCos(OH_Drawing_Matrix* matrix, float sinValue, float cosValue,
+    float px, float py);
 
 /**
  * @brief Destroys an <b>OH_Drawing_Matrix</b> object and reclaims the memory occupied by the object.

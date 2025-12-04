@@ -191,6 +191,8 @@ private:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status) override;
+
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
 
     void UnRegisterApplicationAgent(sptr<IApplicationAgent> app);
@@ -319,6 +321,8 @@ private:
 
     ErrCode ReportJankStats() override;
 
+    void UpdateAnimationOcclusionStatus(const std::string& sceneId, bool isStart);
+
     ErrCode ReportEventResponse(DataBaseRs info) override;
 
     ErrCode ReportEventComplete(DataBaseRs info) override;
@@ -353,7 +357,7 @@ private:
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
 
-    ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt) override;
+    ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType) override;
 
     void NotifyDynamicModeEvent(bool enableDynamicModeEvent) override;
 

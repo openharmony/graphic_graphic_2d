@@ -14,8 +14,10 @@
  */
 
 #include "gtest/gtest.h"
+#include "parameters.h"
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
+#include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
 #include "surface_buffer_impl.h"
 
@@ -401,16 +403,38 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
     params.ignoreAlpha = true;
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && recordingCanvas) {
+        // buffer is not deleted
         EXPECT_FALSE(params.buffer->IsBufferDeleted());
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
 
+        // buffer is deleted from cache
         params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
-        EXPECT_TRUE(params.buffer->IsBufferDeleted());
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
+            static_cast<BufferDeletedFlag>(0));
 
+        // buffer is deleted from cache and rs
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
-        EXPECT_TRUE(params.buffer->IsBufferDeleted());
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
+            static_cast<BufferDeletedFlag>(0));
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_RS,
+            static_cast<BufferDeletedFlag>(1));
+
+        // buffer is deleted from rs
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_RS,
+            static_cast<BufferDeletedFlag>(1));
+
+        // buffer is deleted from cache and GetVKImageAdaptationForWallpaperEnabled() is false
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "0");
+        EXPECT_FALSE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
+            static_cast<BufferDeletedFlag>(1));
     }
 }
 

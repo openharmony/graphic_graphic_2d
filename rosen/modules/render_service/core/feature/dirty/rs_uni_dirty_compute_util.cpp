@@ -30,6 +30,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_screen_render_params.h"
@@ -415,7 +416,8 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
         if (UNLIKELY(displayDrawable == nullptr || displayParams == nullptr)) {
             continue;
         }
-        if (displayDrawable->GetSpecialLayerType(*displayParams) != NO_SPECIAL_LAYER) {
+        if (RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*displayParams, &params) !=
+            DisplaySpecialLayerState::NO_SPECIAL_LAYER) {
             RS_TRACE_NAME("CheckVirtualExpandScreenSkip has special layer can not skip");
             return false;
         }

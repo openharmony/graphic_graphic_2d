@@ -21,6 +21,7 @@
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "params/rs_logical_display_render_params.h"
 #include "params/rs_screen_render_params.h"
@@ -322,12 +323,12 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
     }
 
     const auto& screenProperty = screenParam->GetScreenProperty();
-    auto specialLayerType = GetSpecialLayerType(*params);
+    auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*params, screenParam);
     // Screenshot blackList, exclude surfaceNode in blackList while capturing displayNode
     auto currentBlackList = RSUniRenderThread::Instance().GetBlackList();
-    if (specialLayerType != NO_SPECIAL_LAYER || UNLIKELY(noBuffer) || screenProperty.GetIsSamplingOn() ||
+    if (specialLayerType != DisplaySpecialLayerState::NO_SPECIAL_LAYER || screenProperty.GetIsSamplingOn() ||
         UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_) || screenDrawable->IsRenderSkipIfScreenOff() ||
-        !currentBlackList.empty()) {
+        !currentBlackList.empty() || UNLIKELY(noBuffer)) {
         offsetX_ = screenProperty.GetOffsetX();
         offsetY_ = screenProperty.GetOffsetY();
         RS_LOGD("RSLogicalDisplayRenderNodeDrawable::OnCapture: \
@@ -337,7 +338,7 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
             " Not using UniRender buffer. specialLayer: %d, noBuffer: %d, "
             "isSamplingOn: %d, isRenderSkipIfScreenOff: %d, blackList: %zu, "
             "offsetX: %d, offsetY: %d", __func__, params->GetScreenId(),
-            specialLayerType != NO_SPECIAL_LAYER, noBuffer, screenProperty.GetIsSamplingOn(),
+            specialLayerType != DisplaySpecialLayerState::NO_SPECIAL_LAYER, noBuffer, screenProperty.GetIsSamplingOn(),
             screenDrawable->IsRenderSkipIfScreenOff(), currentBlackList.size(), offsetX_, offsetY_);
 
         if (!UNLIKELY(RSUniRenderThread::GetCaptureParam().isMirror_)) {
@@ -497,8 +498,9 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     auto curScreenParams = static_cast<RSScreenRenderParams*>(curScreenDrawable.GetRenderParams().get());
     auto drawable = curScreenParams->GetMirrorSourceDrawable().lock();
-    if (!drawable) {
-        RS_LOGE("%{public}s mirroredDrawable nullptr", __func__);
+    auto mirrorDisplayDrawable = params.GetMirrorSourceDrawable().lock();
+    if (!drawable || !mirrorDisplayDrawable) {
+        RS_LOGE("%{public}s mirroredDrawable or mirrorDisplayDrawable nullptr", __func__);
         virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
         return mappedDamageRegion.GetRegionRectIs();
     }
@@ -510,15 +512,17 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
         virtualProcesser->SetRoiRegionToCodec(mappedDamageRegion.GetRegionRectIs());
         return mappedDamageRegion.GetRegionRectIs();
     }
-
+    auto mirrorDisplayParams =
+        static_cast<RSLogicalDisplayRenderParams*>(mirrorDisplayDrawable->GetRenderParams().get());
+    bool specialLayerChange = lastTypeBlackList_ != currentTypeBlackList_ || lastBlackList_ != currentBlackList_ ||
+        (mirrorDisplayParams && mirrorDisplayParams->IsSpecialLayerChanged()) ||
+        lastSecExemption_ != curSecExemption_ || (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ ||
+        params.HasSecLayerInVisibleRectChanged()));
     bool needRefresh = !(lastCanvasMatrix_ == canvasMatrix) || !(lastMirrorMatrix_ == mirrorParams->GetMatrix()) ||
-        uniParam->GetForceMirrorScreenDirty() || lastBlackList_ != currentBlackList_ ||
-        lastTypeBlackList_ != currentTypeBlackList_ || params.IsSpecialLayerChanged() ||
-        lastSecExemption_ != curSecExemption_ || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
-        lastEnableVisibleRect_ != enableVisibleRect_ ||
-        (enableVisibleRect_ && (lastVisibleRect_ != curVisibleRect_ || params.HasSecLayerInVisibleRectChanged())) ||
-        curScreenParams->GetHasMirroredScreenChanged() ||
-        !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty();
+        uniParam->GetForceMirrorScreenDirty() || uniParam->GetVirtualDirtyRefresh() || virtualDirtyNeedRefresh_ ||
+        curScreenParams->GetHasMirroredScreenChanged() || specialLayerChange ||
+        !curScreenDrawable.GetSyncDirtyManager()->GetCurrentFrameDirtyRegion().IsEmpty() ||
+        lastEnableVisibleRect_ != enableVisibleRect_;
     if (needRefresh) {
         curScreenDrawable.GetSyncDirtyManager()->ResetDirtyAsSurfaceSize();
         virtualDirtyNeedRefresh_ = false;
@@ -899,8 +903,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen mirror source is null");
         return;
     }
-    auto specialLayerType = GetSpecialLayerType(*mirroredParams, &params,
-        enableVisibleRect_ ? params.HasSecLayerInVisibleRect() : true);
+    auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
+        &params, mirroredScreenParams);
     auto virtualProcesser = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     if (!virtualProcesser) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen virtualProcesser is null");
@@ -922,9 +926,11 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     bool mirroredScreenIsPause =
         mirroredScreenParams->GetScreenProperty().GetVirtualScreenStatus() == VIRTUAL_SCREEN_PAUSE;
     // if specialLayer is visible and no CacheImg
-    if ((mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() && specialLayerType == HAS_SPECIAL_LAYER)
+    bool needRedraw = (mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() &&
+        specialLayerType == DisplaySpecialLayerState::HAS_SPECIAL_LAYER);
+    if (RSUniRenderThread::Instance().IsColorFilterModeOn() || mirroredScreenParams->GetHDRPresent()
         || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause ||
-        screenParams->GetHDRPresent()) {
+        screenParams->GetHDRPresent() || needRedraw) {
         MirrorRedrawDFX(true, params.GetScreenId());
         virtualProcesser->SetDrawVirtualMirrorCopy(false);
         DrawMirror(params, virtualProcesser, *uniParam);
@@ -1314,40 +1320,6 @@ void RSLogicalDisplayRenderNodeDrawable::RotateMirrorCanvas(ScreenRotation& rota
             break;
         default:
             break;
-    }
-}
-
-int32_t RSLogicalDisplayRenderNodeDrawable::GetSpecialLayerType(RSLogicalDisplayRenderParams& mainDisplayParams,
-    RSLogicalDisplayRenderParams* mirrorDisplayParams, bool isSecLayerInVisibleRect)
-{
-    auto& uniRenderThread = RSUniRenderThread::Instance();
-    const auto& specialLayerManager = mainDisplayParams.GetSpecialLayerMgr();
-    bool hasGeneralSpecialLayer = (specialLayerManager.Find(SpecialLayerType::HAS_SECURITY) &&
-        isSecLayerInVisibleRect) || specialLayerManager.Find(SpecialLayerType::HAS_SKIP) ||
-        specialLayerManager.Find(SpecialLayerType::HAS_PROTECTED) || uniRenderThread.IsColorFilterModeOn();
-    auto [_, screenParams] = GetScreenParams(mainDisplayParams);
-    if (screenParams) {
-        hasGeneralSpecialLayer |= screenParams->GetHDRPresent();
-    }
-    RS_LOGD("RSLogicalDisplayRenderNodeDrawable::SpecialLayer:%{public}" PRIu32 ", CurtainScreen:%{public}d, "
-        "HDRPresent:%{public}d, ColorFilter:%{public}d", specialLayerManager.Get(),
-        uniRenderThread.IsCurtainScreenOn(), (screenParams && screenParams->GetHDRPresent()),
-        uniRenderThread.IsColorFilterModeOn());
-    
-    ScreenId screenId = mirrorDisplayParams ? mirrorDisplayParams->GetScreenId() : mainDisplayParams.GetScreenId();
-    if (RSUniRenderThread::GetCaptureParam().isSnapshot_) {
-        hasGeneralSpecialLayer |= (specialLayerManager.Find(SpecialLayerType::HAS_SNAPSHOT_SKIP) ||
-            uniRenderThread.IsCurtainScreenOn());
-    } else {
-        hasGeneralSpecialLayer |= !uniRenderThread.GetWhiteList().empty() || !currentTypeBlackList_.empty() ||
-            specialLayerManager.FindWithScreen(screenId, SpecialLayerType::HAS_BLACK_LIST);
-    }
-    if (hasGeneralSpecialLayer) {
-        return HAS_SPECIAL_LAYER;
-    } else if (mainDisplayParams.HasCaptureWindow()) {
-        return CAPTURE_WINDOW;
-    } else {
-        return NO_SPECIAL_LAYER;
     }
 }
 

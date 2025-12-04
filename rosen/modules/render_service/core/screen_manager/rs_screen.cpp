@@ -691,6 +691,27 @@ ScreenPowerStatus RSScreen::GetPowerStatus()
     return static_cast<ScreenPowerStatus>(status);
 }
 
+int32_t RSScreen::SetDualScreenState(DualScreenStatus status)
+{
+    if (IsVirtual()) {
+        RS_LOGW("%{public}s: virtual screen not support SetDualScreenState.", __func__);
+        return StatusCode::VIRTUAL_SCREEN;
+    }
+    if (!hdiScreen_) {
+        RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+    uint64_t value = static_cast<uint64_t>(status);
+    auto id = property_.GetId();
+    RS_TRACE_NAME_FMT("Screen_%llu SetDualScreenState %llu", id, value);
+    int32_t ret = hdiScreen_->SetDisplayProperty(value);
+    if (ret < 0) {
+        RS_LOGE("%{public}s: failed to set DualScreenStatus. ret: %{public}d", __func__, ret);
+        return StatusCode::HDI_ERROR;
+    }
+    return StatusCode::SUCCESS;
+}
+
 std::shared_ptr<HdiOutput> RSScreen::GetOutput() const
 {
     return hdiOutput_;

@@ -1432,6 +1432,25 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     }
 }
 
+int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    if (!screenManager_) {
+        RS_LOGE("%{public}s screenManager is null, id: %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSRenderComposerManager::GetInstance().PostSyncTask(id,
+            [=]() {return screenManager_->SetDualScreenState(id, status); });
+    } else if (mainThread_ != nullptr) {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetDualScreenState(id, status); }).get();
+    } else {
+        RS_LOGE("%{public}s mainThread_ is null, id: %{public}" PRIu64, __func__, id);
+        return StatusCode::MAIN_THREAD_NULL;
+    }
+}
+
 namespace {
 void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
@@ -2772,7 +2791,7 @@ bool RSClientToServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
     return true;
 }
 
-ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     if (mainThread_ != nullptr) {
         mainThread_->HandleTouchEvent(touchStatus, touchCnt);
@@ -2780,7 +2799,7 @@ ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32
     }
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
-        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt, sourceType);
     }
     return ERR_OK;
 }
@@ -2842,6 +2861,7 @@ ErrCode RSClientToServiceConnection::ReportEventResponse(DataBaseRs info)
     RSUifirstManager::Instance().OnProcessEventResponse(info);
 #endif
     RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
+    UpdateAnimationOcclusionStatus(info.sceneId, true);
     return ERR_OK;
 }
 
@@ -2867,7 +2887,23 @@ ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
     renderThread_.PostTask(task);
 #endif
     RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
+    UpdateAnimationOcclusionStatus(info.sceneId, false);
     return ERR_OK;
+}
+
+void RSClientToServiceConnection::UpdateAnimationOcclusionStatus(const std::string& sceneId, bool isStart)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), sceneId, isStart]() -> void {
+        sptr<RSClientToServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->mainThread_->SetAnimationOcclusionInfo(sceneId, isStart);
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)

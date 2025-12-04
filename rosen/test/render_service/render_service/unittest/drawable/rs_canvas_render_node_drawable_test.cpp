@@ -78,11 +78,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->isOpDropped_ = false;
     drawable->isDrawingCacheEnabled_ = true;
     RSOpincManager::Instance().SetOPIncSwitch(false);
-    drawable->drawBlurForCache_ = false;
+    drawable->SetDrawBlurForCache(false);
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 
-    drawable->drawBlurForCache_ = true;
+    drawable->SetDrawBlurForCache(true);
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 }

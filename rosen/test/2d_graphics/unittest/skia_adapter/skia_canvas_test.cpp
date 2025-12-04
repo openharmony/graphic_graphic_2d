@@ -377,6 +377,26 @@ HWTEST_F(SkiaCanvasTest, GetLocalShadowBounds002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DrawImageEffectHPSStatistics
+ * @tc.desc: Test DrawImageEffectHPS Statistics Effect
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(SkiaCanvasTest, DrawImageEffectHPSStatistics, TestSize.Level1)
+{
+    auto skiaCanvas = std::make_shared<SkiaCanvas>();
+    ASSERT_TRUE(skiaCanvas != nullptr);
+    Image image;
+    Rect srcRect = { 0.0f, 0.0f, 100.0f, 100.0f };
+    Rect dstRect = { 0.0f, 0.0f, 10.0f, 10.0f };
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    hpsEffectParams.push_back(hpsStatisticsArgs);
+    ASSERT_TRUE(skiaCanvas->DrawImageEffectHPS(image, hpsEffectParams) == false);
+}
+
+/**
  * @tc.name: DrawBitmap001
  * @tc.desc:
  * @tc.type: FUNC

@@ -119,7 +119,7 @@ void RSCanvasRenderNode::OnTreeStateChanged()
     RSRenderNode::OnTreeStateChanged();
 
     // When the canvasNode is up or down the tree, it transmits color gamut information to appWindow node.
-    ModifyWindowWideColorGamutNum(IsOnTheTree(), graphicColorGamut_);
+    ModifyWindowWideColorGamutNum(IsOnTheTree(), colorGamut_);
 }
 
 void RSCanvasRenderNode::UpdateHDRNodeOnTreeState(NodeId displayNodeId)
@@ -312,19 +312,17 @@ void RSCanvasRenderNode::SetHDRPresent(bool hasHdrPresent)
 
 void RSCanvasRenderNode::SetColorGamut(uint32_t gamut)
 {
-    if (colorGamut_ == gamut) {
+    GraphicColorGamut newGamut =
+        RSColorSpaceUtil::ColorSpaceNameToGraphicGamut(static_cast<OHOS::ColorManager::ColorSpaceName>(gamut));
+    newGamut = RSColorSpaceUtil::MapGamutToStandard(newGamut);
+    if (colorGamut_ == newGamut) {
         return;
     }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    GraphicColorGamut nowGamut = graphicColorGamut_;
-    graphicColorGamut_ = RSColorSpaceUtil::ColorSpaceNameToGraphicGamut(
-        static_cast<OHOS::ColorManager::ColorSpaceName>(gamut));
     if (IsOnTheTree()) {
-        ModifyWindowWideColorGamutNum(false, nowGamut);
-        ModifyWindowWideColorGamutNum(true, graphicColorGamut_);
+        ModifyWindowWideColorGamutNum(false, colorGamut_);
+        ModifyWindowWideColorGamutNum(true, newGamut);
     }
-#endif
-    colorGamut_ = gamut;
+    colorGamut_ = newGamut;
 }
 
 uint32_t RSCanvasRenderNode::GetColorGamut()
@@ -346,6 +344,13 @@ void RSCanvasRenderNode::ModifyWindowWideColorGamutNum(bool isOnTree, GraphicCol
             parentSurface->ReduceCanvasGamutNum(gamut);
         }
     }
+}
+
+void RSCanvasRenderNode::UpdateNodeColorSpace()
+{
+    auto subTreeColorSpace = GetNodeColorSpace();
+    auto nodeColorSpace = RSColorSpaceUtil::SelectBigGamut(colorGamut_, subTreeColorSpace);
+    SetNodeColorSpace(nodeColorSpace);
 }
 
 } // namespace Rosen

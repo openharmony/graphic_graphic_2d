@@ -1234,5 +1234,19 @@ HWTEST_F(RSSystemPropertiesTest, GetScaleImageAsyncEnabledTest, TestSize.Level1)
     EXPECT_TRUE(RSSystemProperties::GetScaleImageAsyncEnabled());
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", ret);
 }
+
+/**
+ * @tc.name: GetVKImageAdaptationForWallpaperEnabled
+ * @tc.desc: GetVKImageAdaptationForWallpaperEnabledTest001
+ * @tc.type:FUNC
+ * @tc.require: issues20949
+ */
+HWTEST_F(RSSystemPropertiesTest, GetVKImageAdaptationForWallpaperEnabledTest001, TestSize.Level1)
+{
+    system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "0");
+    EXPECT_FALSE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+    system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
+    EXPECT_TRUE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+}
 } // namespace Rosen
 } // namespace OHOS

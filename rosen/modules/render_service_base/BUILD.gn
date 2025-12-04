@@ -340,7 +340,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_render_maskcolor_filter.cpp",
     "src/render/rs_render_mesa_blur_filter.cpp",
     "src/render/rs_render_water_ripple_filter.cpp",
-    "src/render/rs_sdf_effect_filter.cpp",
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",

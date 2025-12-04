@@ -33,6 +33,7 @@ group("fuzztest") {
     "ndkmemorystream_fuzzer:fuzztest",
     "ndkpath_fuzzer:fuzztest",
     "ndkpatheffect_fuzzer:fuzztest",
+    "ndkpath_iterator_fuzzer:fuzztest",
     "ndkpen_fuzzer:fuzztest",
     "ndkpixelmap_fuzzer:fuzztest",
     "ndkpoint_fuzzer:fuzztest",

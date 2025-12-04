@@ -76,6 +76,7 @@ public:
     void SetColorGamut(uint32_t colorGamut);
     uint32_t GetColorGamut();
     void ModifyWindowWideColorGamutNum(bool isOnTree, GraphicColorGamut colorGamut);
+    void UpdateNodeColorSpace() override;
 
 protected:
     explicit RSCanvasRenderNode(NodeId id,
@@ -97,9 +98,8 @@ private:
     friend class RSRenderTransition;
     friend class RSPropertiesPainter;
     bool hasHdrPresent_ = false;
-    uint32_t colorGamut_ = 0;
+    GraphicColorGamut colorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
     NodeId preDisplayNodeId_ = INVALID_NODEID;
-    GraphicColorGamut graphicColorGamut_ = GRAPHIC_COLOR_GAMUT_SRGB;
 };
 } // namespace Rosen
 } // namespace OHOS

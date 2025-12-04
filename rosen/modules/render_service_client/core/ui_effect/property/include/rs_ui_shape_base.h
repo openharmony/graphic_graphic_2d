@@ -38,7 +38,7 @@ using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase, Type, PropertyTags..
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...) \
     using RSNG##ShapeName = RSNGShapeTemplate<RSNGEffectType::ShapeType, __VA_ARGS__>
 
-#include "effect/rs_render_shape_base.h"
+#include "effect/rs_render_shape_def.in"
 
 #undef SEPARATOR
 #undef DECLARE_SHAPE

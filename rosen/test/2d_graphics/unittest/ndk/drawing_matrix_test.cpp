@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -946,6 +946,103 @@ HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixPreCo
     EXPECT_TRUE(OH_Drawing_MatrixIsEqual(matrix, result));
     OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_MatrixDestroy(other);
+    OH_Drawing_MatrixDestroy(result);
+}
+
+/*
+ * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixIsAffine029
+ * @tc.desc: test for normal use of OH_Drawing_MatrixIsAffine.
+ * @tc.type: FUNC
+ * @tc.require: 20651
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixIsAffine029, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    bool isAffine = false;
+    EXPECT_EQ(OH_Drawing_MatrixIsAffine(nullptr, &isAffine), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixIsAffine(matrix, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixIsAffine(matrix, &isAffine), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isAffine, true);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 2, 3,
+        4, 5, 6,
+        -1, 0, 1);
+    EXPECT_EQ(OH_Drawing_MatrixIsAffine(matrix, &isAffine), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isAffine, false);
+    OH_Drawing_MatrixSetMatrix(
+        matrix,
+        1, 2, 3,
+        4, 5, 6,
+        0, 0, 1);
+    EXPECT_EQ(OH_Drawing_MatrixIsAffine(matrix, &isAffine), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isAffine, true);
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/*
+ * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixPreSkew030
+ * @tc.desc: test for normal use of OH_Drawing_MatrixPreSkew.
+ * @tc.type: FUNC
+ * @tc.require: 20651
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixPreSkew030, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* result = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixSetMatrix(
+        result,
+        1, 2, -10,
+        3, 1, -12,
+        0, 0, 1);
+    EXPECT_EQ(OH_Drawing_MatrixPreSkew(nullptr, 2, 3, 4, 5), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixPreSkew(matrix, 2, 3, 4, 5), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(OH_Drawing_MatrixIsEqual(matrix, result));
+    OH_Drawing_MatrixDestroy(matrix);
+    OH_Drawing_MatrixDestroy(result);
+}
+
+/*
+ * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixRectStaysRect031
+ * @tc.desc: test for normal use of OH_Drawing_MatrixRectStaysRect.
+ * @tc.type: FUNC
+ * @tc.require: 20651
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixRectStaysRect031, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixPreScale(matrix, 2, 3, 4, 5);
+    bool isRectStaysRect;
+    EXPECT_EQ(OH_Drawing_MatrixRectStaysRect(nullptr, &isRectStaysRect), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixRectStaysRect(matrix, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixRectStaysRect(matrix, &isRectStaysRect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isRectStaysRect, true);
+
+    EXPECT_EQ(OH_Drawing_MatrixPreSkew(matrix, 2, 3, 4, 5), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_MatrixRectStaysRect(matrix, &isRectStaysRect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isRectStaysRect, false);
+    OH_Drawing_MatrixDestroy(matrix);
+}
+
+/*
+ * @tc.name: NativeDrawingMatrixTest_OH_Drawing_MatrixSetSinCos032
+ * @tc.desc: test for normal use of OH_Drawing_MatrixSetSinCos.
+ * @tc.type: FUNC
+ * @tc.require: 20651
+ */
+HWTEST_F(NativeDrawingMatrixTest, NativeDrawingMatrixTest_OH_Drawing_MatrixSetSinCos032, TestSize.Level1)
+{
+    OH_Drawing_Matrix* matrix = OH_Drawing_MatrixCreate();
+    OH_Drawing_Matrix* result = OH_Drawing_MatrixCreate();
+    OH_Drawing_MatrixSetMatrix(
+        result,
+        3, -2, 2,
+        2, 3, -18,
+        0, 0, 1);
+    EXPECT_EQ(OH_Drawing_MatrixSetSinCos(nullptr, 2, 3, 4, 5), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_MatrixSetSinCos(matrix, 2, 3, 4, 5), OH_DRAWING_SUCCESS);
+    EXPECT_TRUE(OH_Drawing_MatrixIsEqual(matrix, result));
+    OH_Drawing_MatrixDestroy(matrix);
     OH_Drawing_MatrixDestroy(result);
 }
 

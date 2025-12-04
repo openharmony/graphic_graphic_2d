@@ -304,8 +304,8 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(RSPaintF
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}" PRIu64 " marked for deletion from cache, unmapping",
             buffer->GetBufferId());
         UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
-        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
-            static_cast<BufferDeletedFlag>(0)) {
+        if (((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
+            static_cast<BufferDeletedFlag>(0)) && RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()) {
             buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         }
     }

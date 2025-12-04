@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,8 +57,8 @@ static const std::unordered_map<std::string, FontInfo> FONT_DATA = {
     {"HarmonyOS_Sans_Digit.ttf", {13, 32, 53, 160}},
     {"HarmonyOS_Sans_Digit_Medium.ttf", {13, 32, 53, 160}},
     {"HarmonyOS_Sans_Italic.ttf", {810, 32, 931, 12318}},
-    {"HarmonyOS_Sans_Naskh_Arabic.ttf", {583, 0, 64500, 65276}},
-    {"HarmonyOS_Sans_Naskh_Arabic_UI.ttf", {583, 0, 64500, 65276}},
+    {"HarmonyOS_Sans_Naskh_Arabic.ttf", {584, 0, 64500, 65276}},
+    {"HarmonyOS_Sans_Naskh_Arabic_UI.ttf", {584, 0, 64500, 65276}},
     {"HarmonyOS_Sans_Notdef.ttf", {0, 0, 0, 0}},
     {"HarmonyOS_Sans_SC.ttf", {29508, 32, 26729, 201035}},
     {"HarmonyOS_Sans_TC.ttf", {14593, 32, 29242, 65510}},

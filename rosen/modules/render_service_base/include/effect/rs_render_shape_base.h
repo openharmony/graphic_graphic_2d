@@ -71,7 +71,7 @@ protected:
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...) \
     using RSNGRender##ShapeName = RSNGRenderShapeTemplate<RSNGEffectType::ShapeType, __VA_ARGS__>
 
-#include "effect/rs_render_shape_base.h"
+#include "effect/rs_render_shape_def.in"
 
 #undef SEPARATOR
 #undef ADD_PROPERTY_TAG

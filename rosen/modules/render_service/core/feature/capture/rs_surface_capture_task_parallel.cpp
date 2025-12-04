@@ -850,12 +850,6 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
 void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDrawable& displayNodeDrawable,
     RSPaintFilterCanvas& canvas, const RSSurfaceCaptureParam& captureParam, RSPaintFilterCanvas::ScreenshotType type)
 {
-    bool secExemption = false;
-    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    if (uniParams) {
-        secExemption = uniParams->GetSecExemption();
-        uniParams->SetSecExemption(captureParam.needCaptureSpecialLayer || secExemption);
-    }
     CaptureParam param(true, false, false);
     param.needCaptureSpecialLayer_ = captureParam.needCaptureSpecialLayer;
     RSUniRenderThread::SetCaptureParam(param);
@@ -865,9 +859,6 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     RSUniRenderThread::Instance().SetBlackList(blackList);
     displayNodeDrawable.OnCapture(canvas);
     RSUniRenderThread::Instance().SetBlackList({});
-    if (uniParams) {
-        uniParams->SetSecExemption(secExemption);
-    }
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

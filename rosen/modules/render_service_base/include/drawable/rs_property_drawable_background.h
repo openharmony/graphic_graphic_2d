@@ -71,6 +71,7 @@ private:
     Drawing::Path stagingPath_;
     Color color_;
     Color stagingColor_;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
 };
 

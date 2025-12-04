@@ -470,6 +470,51 @@ HWTEST_F(RSScreenManagerTest, SetPhysicalScreenResolution_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: SetDualScreenState_001
+ * @tc.desc: Test SetDualScreenState with invalid screen id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetDualScreenState_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    ScreenId id = INVALID_SCREEN_ID;
+    int32_t ret = screenManager->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SCREEN_NOT_FOUND));
+}
+
+/*
+ * @tc.name: SetDualScreenState_002
+ * @tc.desc: Test SetDualScreenState with valid screen id
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, SetDualScreenState_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(screenManager, nullptr);
+
+    // mock HDI device
+    ScreenId id = mockScreenId_;
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(id));
+    ASSERT_NE(rsScreen, nullptr);
+    ASSERT_NE(rsScreen->hdiScreen_, nullptr);
+    ASSERT_NE(hdiDeviceMock_, nullptr);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+
+    // mount rsScreen to screen manager
+    screenManager->screens_[mockScreenId_] = rsScreen;
+    EXPECT_CALL(*hdiDeviceMock_, SetDisplayProperty(id, _, _)).WillOnce(testing::Return(0));
+    int32_t ret = screenManager->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+
+    // unmount rsScreen
+    screenManager->screens_.erase(mockScreenId_);
+}
+
+/*
  * @tc.name: SetVirtualScreenResolution_001
  * @tc.desc: Test SetVirtualScreenResolution
  * @tc.type: FUNC

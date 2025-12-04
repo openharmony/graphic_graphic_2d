@@ -691,6 +691,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureParam captureParam;
+    captureParam.needCaptureSpecialLayer = true;
     auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -701,19 +702,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     ASSERT_NE(drawable, nullptr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    RSRenderThreadParamsManager::Instance().SetRSRenderThreadParams(std::make_unique<RSRenderThreadParams>());
-    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    ASSERT_NE(uniParams, nullptr);
-    bool secExemption = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    captureParam.needCaptureSpecialLayer = false;
-    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    bool secExemption1 = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    ASSERT_EQ(secExemption, secExemption1);
-
-    captureParam.needCaptureSpecialLayer = true;
-    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    bool secExemption2 = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    ASSERT_EQ(secExemption, secExemption2);
+    EXPECT_EQ(RSUniRenderThread::GetCaptureParam().needCaptureSpecialLayer_, true);
 }
 
 /*

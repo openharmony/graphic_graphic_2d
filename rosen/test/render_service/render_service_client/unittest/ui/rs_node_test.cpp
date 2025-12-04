@@ -7682,6 +7682,29 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRSUIContext
+ * @tc.desc: test results of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueIBX6OE
+ */
+HWTEST_F(RSNodeTest, SetRSUIContext001, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto rsUIContext = std::make_shared<RSUIContext>();
+        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+        ASSERT_NE(rsNode, nullptr);
+        auto rsUIContext2 = std::make_shared<RSUIContext>();
+        std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>();
+        rsNode->AddAnimationInner(animation);
+        // test animations_ is not empty
+        EXPECT_FALSE(rsNode->animations_.empty());
+        rsNode->SetRSUIContext(rsUIContext2);
+        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
+    }
+}
+
+/**
  * @tc.name: SetSkipCheckInMultiInstance
  * @tc.desc: test results of SetSkipCheckInMultiInstance
  * @tc.type: FUNC

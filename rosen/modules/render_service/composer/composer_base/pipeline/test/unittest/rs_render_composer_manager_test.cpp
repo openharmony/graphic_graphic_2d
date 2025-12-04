@@ -162,6 +162,37 @@ HWTEST_F(RsRenderComposerManagerTest, GetRSComposerConnection_FoundAndNotFound, 
     EXPECT_NE(mgr->GetRSComposerConnection(40u), nullptr);
 }
 
+/**
+ * Function: PostTaskWithInnerDelay
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: call PostTaskWithInnerDelay
+ */
+HWTEST_F(RsRenderComposerManagerTest, PostTaskWithInnerDelay, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    
+    // composer is nullptr
+    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
+    std::atomic<bool> ran{false};
+    mgr->PostTaskWithInnerDelay(1u, [&ran]() { ran.store(true); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_FALSE(ran.load());
+
+    // normal composer
+    auto output = std::make_shared<HdiOutput>(2u);
+    output->Init();
+    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    if (rsRenderComposer->runner_) {
+        rsRenderComposer->runner_->Run();
+    }
+    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
+    mgr->PostTaskWithInnerDelay(2u, [&ran]() { ran.store(true); });
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_TRUE(ran.load());
+}
+
 #ifdef RS_ENABLE_VK
 /**
  * Function: PreAllocateProtectedBuffer_And_Task_Branches

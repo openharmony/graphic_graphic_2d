@@ -186,6 +186,13 @@ public:
         return childHasVisibleHDRContent_;
     }
 
+    void SetNodeColorSpace(GraphicColorGamut colorSpace);
+
+    GraphicColorGamut GetNodeColorSpace() const
+    {
+        return nodeColorSpace_;
+    }
+
     void SetNeedFilter(bool needFilter);
 
     inline bool NeedFilter() const
@@ -290,7 +297,7 @@ public:
         return drawingCacheType_;
     }
 
-    void ExcludedFromNodeGroup(bool isExcluded);
+    bool ExcludedFromNodeGroup(bool isExcluded);
     bool IsExcludedFromNodeGroup() const;
 
     void SetHasChildExcludedFromNodeGroup(bool isExcluded);
@@ -553,6 +560,7 @@ private:
     float hdrBrightness_ = 1.0f;
     HdrStatus hdrStatus_ = HdrStatus::NO_HDR;
     bool childHasVisibleHDRContent_ = false;
+    GraphicColorGamut nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     bool freezeFlag_ = false;
     bool childHasVisibleEffect_ = false;
     bool childHasVisibleFilter_ = false;

@@ -255,7 +255,7 @@ std::shared_ptr<RSFilter> RandomDataCustomizedType::GetRandomRSFilterSharedPtr()
     return RandomRSFilter::GetRandomRSFilter();
 }
 
-std::shared_ptr<RSImage> RandomDataCustomizedType::GetSRandomRSImageharedPtr()
+std::shared_ptr<RSImage> RandomDataCustomizedType::GetRandomRSImageSharedPtr()
 {
     return RandomRSImage::GetRandomRSImage();
 }

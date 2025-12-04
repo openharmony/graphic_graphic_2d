@@ -111,6 +111,11 @@ AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationOcclusionEnabled()
+{
+    return {};
+}
+
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     return {};
@@ -741,6 +746,11 @@ bool RSSystemProperties::GetVKImageUseEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
+{
+    return false;
+}
+
 void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;
@@ -841,7 +851,7 @@ bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
 
 bool RSSystemProperties::GetDefaultMemClearEnabled()
 {
-    return false;
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

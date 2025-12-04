@@ -38,6 +38,7 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
@@ -97,7 +98,6 @@ constexpr int EXPAND_ONE_PIX = 1;
 constexpr int MAX_ALPHA = 255;
 constexpr int TRACE_LEVEL_THREE = 3;
 constexpr float EPSILON_SCALE = 0.00001f;
-static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint64_t INPUT_HWC_LAYERS = 3;
 constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
 
@@ -311,8 +311,6 @@ void RSUniRenderVisitor::CheckColorSpaceWithSelfDrawingNode(RSSurfaceRenderNode&
         RS_LOGD("CheckColorSpaceWithSelfDrawingNode curScreenNode_ is nullptr");
         return;
     }
-    // currently, P3 is the only supported wide color gamut, this may be modified later.
-    node.UpdateColorSpaceWithMetadata();
     auto appSurfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetInstanceRootNode());
     if (ColorGamutParam::SkipOccludedNodeDuringColorGamutCollection() && appSurfaceNode
         && appSurfaceNode->IsMainWindowType() && appSurfaceNode->GetVisibleRegion().IsEmpty() && GetIsOpDropped()) {
@@ -591,7 +589,7 @@ void RSUniRenderVisitor::UpdateSpecialLayersRecord(RSSurfaceRenderNode& node)
     if (node.GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
         specialLayerType &= ~SpecialLayerType::HAS_SKIP;
     }
-    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().AddIds((specialLayerType >> SPECIAL_TYPE_NUM), node.GetId());
+    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().MergeChildren(specialLayerMgr);
     if (node.IsSpecialLayerChanged()) {
         curLogicalDisplayNode_->SetDisplaySpecialSurfaceChanged(true);
     }
@@ -756,6 +754,8 @@ void RSUniRenderVisitor::UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& no
     }
 
     UpdateVirtualDisplaySecurityExemption(node, *mirrorNode);
+    RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(
+        node, *mirrorNode, curScreenNode_->GetScreenInfo().enableVisibleRect);
     UpdateVirtualDisplayVisibleRectSecurity(node, *mirrorNode);
 }
 
@@ -918,7 +918,7 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_->SetDisplaySpecialSurfaceChanged(false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
-    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearSpecialLayerIds();
+    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Clear();
     curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
@@ -1696,11 +1696,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
         curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), node.IsContainerWindowTransparent());
     // occlusion - 3. Accumulate opaque region to occlude lower surface nodes (with/without special layer).
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
-    auto mainThread = RSMainThread::Instance();
-    node.SetOcclusionInSpecificScenes(mainThread->GetIsRegularAnimation());
-    bool occlusionInAnimation = node.GetOcclusionInSpecificScenes() || !ancestorNodeHasAnimation_;
-    bool isParticipateInOcclusion = node.CheckParticipateInOcclusion() &&
-        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_ && !node.IsAttractionAnimation();
+    bool isParticipateInOcclusion = IsParticipateInOcclusion(node);
     CollectTopOcclusionSurfacesInfo(node, isParticipateInOcclusion);
     if (isParticipateInOcclusion) {
         RS_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
@@ -1714,10 +1710,30 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
         }
     }
     needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged();
-    node.SetOcclusionInSpecificScenes(false);
     CollectOcclusionInfoForWMS(node);
     RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(
         curScreenNode_->GetScreenInfo(), node);
+}
+
+bool RSUniRenderVisitor::IsParticipateInOcclusion(RSSurfaceRenderNode& node)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto firstLevelNodeId = node.GetFirstLevelNodeId();
+    // need confirm the current node or first level node is focused
+    bool isFocus = node.IsFocusedNode(currentFocusedNodeId_) || (firstLevelNodeId == focusedLeashWindowId_);
+    // specific animation effects can enable occlusion, including three-finger swipe up and quick app launch/exit.
+    bool isAnimationOcclusionScenes =
+        (isFocus && mainThread->GetIsAnimationOcclusion()) || mainThread->GetIsRegularAnimation();
+    bool occlusionInAnimation = !node.IsAttractionAnimation() &&
+        (!ancestorNodeHasAnimation_ || isAnimationOcclusionScenes);
+    bool isParticipateInOcclusion = node.CheckParticipateInOcclusion(isAnimationOcclusionScenes) &&
+        occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_;
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::IsParticipateInOcclusion:[%s] isFocus:[%d] "
+        "isAnimationOcclusionScenes:[%d] isRegularAnimation:[%d] ancestorNodeHasAnimation:[%d] "
+        "isParticipateInOcclusion:[%d] isAttractionAnimation:[%d]",
+        node.GetName().c_str(), isFocus, isAnimationOcclusionScenes, mainThread->GetIsRegularAnimation(),
+        ancestorNodeHasAnimation_, isParticipateInOcclusion, node.IsAttractionAnimation());
+    return isParticipateInOcclusion;
 }
 
 void RSUniRenderVisitor::CollectOcclusionInfoForWMS(RSSurfaceRenderNode& node)
@@ -1838,7 +1854,8 @@ void RSUniRenderVisitor::UpdateDrawingCacheInfoBeforeChildren(RSCanvasRenderNode
         return;
     }
     node.UpdateDrawingCacheInfoBeforeChildren(isScreenRotationAnimating_);
-    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+    if (node.GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE ||
+        (node.GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE && node.HasChildExcludedFromNodeGroup())) {
         offscreenCanvasNodeId_ = node.GetId();
     }
 }
@@ -1999,6 +2016,7 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
+    node.ResetNodeColorSpace();
     if (node.IsInstanceOf<RSUnionRenderNode>()) {
         RSBaseRenderNode::ReinterpretCast<RSUnionRenderNode>(node.shared_from_this())->ResetVisibleUnionChildren();
     }
@@ -2642,12 +2660,18 @@ void RSUniRenderVisitor::CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr
             filterNode->GetRenderProperties().GetNeedDrawBehindWindow()) {
             // backgroundfilter affected by below dirty
             effectNodeIntersectBgDirty = filterNode->UpdateFilterCacheWithBelowDirty(
-                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider, false) &&
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider) &&
                 filterNode->IsInstanceOf<RSEffectRenderNode>();
+        }
+        if (filterNode->GetRenderProperties().GetMaterialFilter()) {
+            // backgroundfilter affected by below dirty
+            effectNodeIntersectBgDirty |= filterNode->UpdateFilterCacheWithBelowDirty(
+                filterInfo.isBackgroundFilterClean_ ? accumulatedDirtyRegion : belowDirtyToConsider,
+                RSDrawableSlot::MATERIAL_FILTER) && filterNode->IsInstanceOf<RSEffectRenderNode>();
         }
         if (filterNode->GetRenderProperties().GetFilter()) {
             // foregroundfilter affected by below dirty
-            filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, true);
+            filterNode->UpdateFilterCacheWithBelowDirty(belowDirtyToConsider, RSDrawableSlot::COMPOSITING_FILTER);
         }
         RectI filterSnapshotRect = filterNode->GetAbsRect().JoinRect(filterNode->GetFilterDrawableSnapshotRegion());
         bool isIntersect = belowDirtyToConsider.IsIntersectWith(Occlusion::Rect(filterSnapshotRect));
@@ -3112,6 +3136,9 @@ void RSUniRenderVisitor::ProcessFilterNodeObscured(std::shared_ptr<RSSurfaceRend
         if (filterNode == nullptr || !filterNode->HasBlurFilter()) {
             continue;
         }
+        if (filterNode->IsInstanceOf<RSEffectRenderNode>() && filterNode->GetVisibleEffectChild().empty()) {
+            continue;
+        }
         MarkBlurIntersectWithDRM(filterNode);
         auto filterRect = filterNode->GetOldDirtyInSurface();
         auto visibleRects = visibleRegion.GetRegionRectIs();
@@ -3161,6 +3188,8 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (node.HasChildExcludedFromNodeGroup() || node.IsExcludedFromNodeGroup()) {
         nodeParent->SetHasChildExcludedFromNodeGroup(true);
     }
+    node.UpdateNodeColorSpace();
+    nodeParent->SetNodeColorSpace(node.GetNodeColorSpace());
 }
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
@@ -3347,8 +3376,13 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         filterNode->MarkClearFilterCacheIfEffectChildrenChanged();
         if (filterNode->GetRenderProperties().GetBackgroundFilter()) {
             filterNode->UpdateFilterCacheWithBelowDirty(
-                Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), false);
-            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, false);
+                Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
+            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
+        }
+        if (filterNode->GetRenderProperties().GetMaterialFilter()) {
+            filterNode->UpdateFilterCacheWithBelowDirty(
+                Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()), RSDrawableSlot::MATERIAL_FILTER);
+            filterNode->UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::MATERIAL_FILTER);
         }
         RectI filterRect;
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
@@ -3441,7 +3475,7 @@ void RSUniRenderVisitor::CollectFilterInfoAndUpdateDirty(RSRenderNode& node,
                 dirtyManager.GetFilterCollector().GetPendingPurgeFilterRegion()),
             curSurfaceNode_ != nullptr), false);
     // case - 3. update pending purge dirty region with foreground filter.
-    node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, true);
+    node.UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::COMPOSITING_FILTER);
 
     if (curSurfaceNode_) {
         bool isIntersect = dirtyManager.GetCurrentFrameDirtyRegion().Intersect(globalFilterRect);

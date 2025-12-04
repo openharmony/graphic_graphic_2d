@@ -609,7 +609,7 @@ public:
     void SetHwcChildrenDisabledState();
 
     void SetContextBounds(const Vector4f bounds);
-    virtual bool CheckParticipateInOcclusion();
+    virtual bool CheckParticipateInOcclusion(bool isAnimationOcclusionScenes);
 
     void OnApplyModifiers() override;
 
@@ -865,16 +865,6 @@ public:
         isOcclusionVisibleWithoutFilter_ = visible;
     }
 
-    void SetOcclusionInSpecificScenes(bool isOcclusionInSpecificScenes)
-    {
-        isOcclusionInSpecificScenes_ = isOcclusionInSpecificScenes;
-    }
-
-    bool GetOcclusionInSpecificScenes() const
-    {
-        return isOcclusionInSpecificScenes_;
-    }
-
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
@@ -955,6 +945,7 @@ public:
 
     void SetColorSpace(GraphicColorGamut colorSpace);
     GraphicColorGamut GetColorSpace() const;
+    void UpdateNodeColorSpace() override;
     // Only call this if the node is first level node.
     GraphicColorGamut GetFirstLevelNodeColorGamut() const;
     void SetFirstLevelNodeColorGamutByResource(bool isOnTree, GraphicColorGamut gamut);
@@ -1804,7 +1795,6 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
-    bool isOcclusionInSpecificScenes_ = false;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;
@@ -1956,7 +1946,6 @@ private:
         void DecreaseResourceGamutCount(GraphicColorGamut gamut);
         GraphicColorGamut GetCurGamut() const;
         GraphicColorGamut GetFirstLevelNodeGamut() const;
-        static GraphicColorGamut MapGamutToStandard(GraphicColorGamut gamut);
         static GraphicColorGamut DetermineGamutStandard(int pt2020Num, int p3Num);
     };
     GamutCollector gamutCollector_;

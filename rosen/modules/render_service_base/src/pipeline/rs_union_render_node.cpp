@@ -87,7 +87,6 @@ void RSUnionRenderNode::ProcessSDFShape()
             SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
     }
     GetMutableRenderProperties().SetSDFShape(root);
-    GetMutableRenderProperties().OnSDFShapeChange();
     if (GetRenderProperties().GetForegroundFilterCache()) {
         SetDrawingCacheType(RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
         stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());

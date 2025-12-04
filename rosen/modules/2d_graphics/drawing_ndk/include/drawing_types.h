@@ -90,6 +90,14 @@ typedef struct OH_Drawing_Brush OH_Drawing_Brush;
 typedef struct OH_Drawing_Path OH_Drawing_Path;
 
 /**
+ * @brief Defines a pathIterator, which is used to describe a path operation iterator.
+ * You can read path operation instructions by traversing the iterator.
+ *
+ * @since 23
+ */
+typedef struct OH_Drawing_PathIterator OH_Drawing_PathIterator;
+
+/**
  * @brief Defines a lattice, which divides an image into a rectangular grid.
  *
  * @since 23

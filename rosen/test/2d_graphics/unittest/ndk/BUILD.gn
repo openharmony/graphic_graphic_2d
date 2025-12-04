@@ -34,6 +34,7 @@ ohos_unittest("2d_graphics_ndk_test") {
     "drawing_matrix_test.cpp",
     "drawing_memory_stream_test.cpp",
     "drawing_path_effect_test.cpp",
+    "drawing_path_iterator_test.cpp",
     "drawing_path_test.cpp",
     "drawing_pen_test.cpp",
     "drawing_pixel_map_test.cpp",

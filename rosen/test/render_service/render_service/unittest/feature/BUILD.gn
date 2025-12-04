@@ -162,6 +162,7 @@ ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
 ohos_unittest("RSSurfaceCaptureTaskTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "capture/rs_surface_capture_task_test.cpp",
   ]
@@ -263,6 +264,7 @@ ohos_unittest("RSHdrUtilTest") {
 ohos_unittest("RSUiCaptureTaskParallelTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "capture/rs_ui_capture_task_parallel_test.cpp",
   ]
@@ -299,6 +301,7 @@ ohos_unittest("RSUiCaptureTaskParallelTest") {
 ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "capture/rs_ui_capture_solo_task_parallel_test.cpp",
   ]
@@ -334,6 +337,7 @@ ohos_unittest("RSUiCaptureSoloTaskParallelTest") {
 ohos_unittest("RSUniUiCaptureTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "capture/rs_uni_ui_capture_test.cpp",
   ]
@@ -372,6 +376,7 @@ ohos_unittest("RSUniUiCaptureTest") {
 ohos_unittest("RSUifirstManagerTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_uifirst_manager_test.cpp",
   ]
@@ -516,6 +521,7 @@ ohos_unittest("RSSubThreadTest") {
 ohos_unittest("RSSubThreadCacheTest") {
   module_out_path = module_output_path
   sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "uifirst/rs_sub_thread_cache_test.cpp",
   ]
@@ -979,7 +985,8 @@ ohos_unittest("TvMetadataTest") {
 ## Build RSUniHwcComputeUtilTest
 ohos_unittest("RSUniHwcComputeUtilTest") {
   module_out_path = module_output_path
-  sources = [ 
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "hwc/rs_uni_hwc_compute_util_test.cpp",
   ]

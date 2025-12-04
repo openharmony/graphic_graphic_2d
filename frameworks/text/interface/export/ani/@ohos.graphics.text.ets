@@ -317,6 +317,8 @@ namespace text {
   }
 
   export interface ParagraphStyle {
+    fallbackLineSpacing?: boolean;
+    includeFontPadding?: boolean;
     textStyle?: TextStyle;
     textDirection?: TextDirection;
     align?: TextAlign;
@@ -329,6 +331,7 @@ namespace text {
     trailingSpaceOptimized?: boolean;
     autoSpace?: boolean;
     verticalAlign?: TextVerticalAlign;
+    compressHeadPunctuation?: boolean;
   }
 
   export interface TextShadow {

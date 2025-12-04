@@ -1308,10 +1308,15 @@ void RSProfiler::PushOffset(std::vector<uint32_t>& commandOffsets, uint32_t offs
 
 void RSProfiler::TransactionUnmarshallingStart(const Parcel& parcel, uint32_t parcelNumber)
 {
-    std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
-    stream.write(reinterpret_cast<const char*>(&parcelNumber), sizeof(parcelNumber));
-    SendRSLogBase(RSProfilerLogType::PARCEL_UNMARSHALLING_START, stream.str());
     g_counterParseTransactionDataStart++;
+    if (!IsEnabled()) {
+        return;
+    }
+    if (IsWriteMode()) {
+        std::stringstream stream(std::ios::in | std::ios::out | std::ios::binary);
+        stream.write(reinterpret_cast<const char*>(&parcelNumber), sizeof(parcelNumber));
+        SendRSLogBase(RSProfilerLogType::PARCEL_UNMARSHALLING_START, stream.str());
+    }
 }
 
 void RSProfiler::PushOffsets(const Parcel& parcel, uint32_t parcelNumber, std::vector<uint32_t>& commandOffsets)

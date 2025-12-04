@@ -1213,7 +1213,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetCacheEnabledForRotation, TestS
     proxy->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
     int32_t touchStatus = 1;
     int32_t touchCnt = 0;
-    proxy->NotifyTouchEvent(touchStatus, touchCnt);
+    int32_t sourceType = 2;
+    proxy->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     proxy->NotifyDynamicModeEvent(true);
     proxy->SetCacheEnabledForRotation(true);
     ASSERT_EQ(proxy->transactionDataIndex_, 0);
@@ -1601,6 +1602,35 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, AvcodecVideoStopTest, TestSize.Le
     uint32_t fps = 120;
     proxy->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
     ASSERT_TRUE(proxy);
+}
+
+/**
+ * @tc.name: SetDualScreenState Test
+ * @tc.desc: Test SetDualScreenState
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState001, TestSize.Level1)
+{
+    ScreenId id = 1;
+    auto ret = proxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
+}
+
+/**
+ * @tc.name: SetDualScreenState Test
+ * @tc.desc: Test SetDualScreenState with mock remoteObject
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState002, TestSize.Level1)
+{
+    ScreenId id = 1;
+    sptr<IRemoteObjectMock> remoteObject = new IRemoteObjectMock;
+    auto mockproxy = std::make_shared<RSClientToServiceConnectionProxy>(remoteObject);
+    EXPECT_CALL(*remoteObject, SendRequest(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    auto ret = mockproxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
 } // namespace Rosen
 } // namespace OHOS

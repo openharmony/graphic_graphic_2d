@@ -185,6 +185,41 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateAnimationOcclusionStatus001
+ * @tc.desc: test update animation occlusion status
+ * @tc.type: FUNC
+ * @tc.require: issues20843
+ */
+HWTEST_F(RSRenderServiceConnectionTest, UpdateAnimationOcclusionStatus001, TestSize.Level1)
+{
+    RSMainThread* mainThread = new RSMainThread();
+    ASSERT_NE(mainThread, nullptr);
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+
+    // case 1: mainThread null
+    {
+        sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
+            0, nullptr, nullptr, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
+        connection->UpdateAnimationOcclusionStatus(sceneId, true);
+        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
+    }
+
+    // case 2: mainThread not null
+    {
+        mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+        mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
+        sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
+            0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+        string sceneId = "LAUNCHER_APP_LAUNCH_FROM_ICON";
+        connection->UpdateAnimationOcclusionStatus(sceneId, false);
+        sleep(1);
+        ASSERT_EQ(mainThread->GetIsAnimationOcclusion(), false);
+        delete mainThread;
+    }
+}
+
+/**
  * @tc.name: SetSurfaceSystemWatermarkTest001
  * @tc.desc: SetSurfaceSystemWatermarkTest001
  * @tc.type: FUNC
@@ -582,4 +617,48 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
     // No assertion needed - just verify it doesn't crash
 }
 #endif
+
+/**
+ * @tc.name: SetVirtualScreenTypeBlackList001
+ * @tc.desc: test SetVirtualScreenTypeBlackList while screenManager isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20886
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetVirtualScreenTypeBlackList001, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    int32_t repCode;
+    std::vector<NodeType> typeList = {};
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(INVALID_SCREEN_ID, typeList, repCode), ERR_OK);
+
+    typeList.push_back(static_cast<NodeType>(RSSurfaceNodeType::DEFAULT));
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(INVALID_SCREEN_ID, typeList, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: SetVirtualScreenTypeBlackList002
+ * @tc.desc: test SetVirtualScreenTypeBlackList while screenManager is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20886
+ */
+HWTEST_F(RSRenderServiceConnectionTest, SetVirtualScreenTypeBlackList002, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection =
+        new RSClientToServiceConnection(0, nullptr, mainThread, nullptr, token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    int32_t repCode;
+    std::vector<NodeType> typeList = {};
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenTypeBlackList(
+        INVALID_SCREEN_ID, typeList, repCode), ERR_INVALID_VALUE);
+}
 } // namespace OHOS::Rosen

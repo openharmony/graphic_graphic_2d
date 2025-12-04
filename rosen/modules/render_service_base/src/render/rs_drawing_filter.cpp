@@ -233,10 +233,10 @@ void RSDrawingFilter::GenerateAndUpdateGEVisualEffect()
 }
 
 void RSDrawingFilter::SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound,
-    float geoWidth, float geoHeight)
+    const Drawing::RectF& materialDst, float geoWidth, float geoHeight)
 {
     if (visualEffectContainer_) {
-        visualEffectContainer_->SetGeometry(matrix, bound, geoWidth, geoHeight);
+        visualEffectContainer_->SetGeometry(matrix, bound, materialDst, geoWidth, geoHeight);
     }
 }
 

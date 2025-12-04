@@ -27,7 +27,6 @@ public:
  
     static bool IsExternalScreenSecure();
     static bool IsSlrScaleEnabled();
-    static bool IsRsReportHwcDead();
     static bool IsRsSetScreenPowerStatus();
     static bool IsMirrorDisplayCloseP3();
     static bool IsSkipFrameByActiveRefreshRate();
@@ -36,7 +35,6 @@ public:
 protected:
     static void SetExternalScreenSecure(bool isSecure);
     static void SetSlrScaleEnabled(bool isEnabled);
-    static void SetRsReportHwcDead(bool isEnabled);
     static void SetRsSetScreenPowerStatus(bool isEnabled);
     static void SetMirrorDisplayCloseP3(bool isEnabled);
     static void SetMipmapMode(Drawing::MipmapMode modeValue);
@@ -45,7 +43,6 @@ protected:
 private:
     inline static bool isExternalScreenSecure_ = false;
     inline static bool isSlrScaleEnabled_ = false;
-    inline static bool isRsReportHwcDead_ = false;
     inline static bool isRsSetScreenPowerStatus_ = true;
     inline static bool isMirrorDisplayCloseP3_ = true;
     inline static bool isSkipFrameByActiveRefreshRate_ = false;

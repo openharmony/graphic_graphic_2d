@@ -60,6 +60,7 @@
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
+#include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -230,7 +231,6 @@ constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
@@ -2503,26 +2503,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     return true;
 }
 
-bool RSMainThread::ExistBufferIsVisibleAndUpdate()
-{
-    bool bufferNeedUpdate = false;
-    for (auto& surfaceNode : hardwareEnabledNodes_) {
-        if (surfaceNode == nullptr) {
-            RS_LOGD("[%{public}s]: surfaceNode is null", __func__);
-            continue;
-        }
-        if (surfaceNode->GetRSSurfaceHandler() == nullptr) {
-            continue;
-        }
-        if (surfaceNode->GetRSSurfaceHandler()->IsCurrentFrameBufferConsumed() &&
-            surfaceNode->HwcSurfaceRecorder().GetLastFrameHasVisibleRegion()) {
-            bufferNeedUpdate = true;
-            break;
-        }
-    }
-    return bufferNeedUpdate;
-}
-
 pid_t RSMainThread::GetDesktopPidForRotationScene() const
 {
     return desktopPidForRotationScene_;
@@ -2684,6 +2664,10 @@ void RSMainThread::CheckSystemSceneStatus()
             break;
         }
     }
+    if (isAnimationOcclusion_.first == true &&
+        curTime - static_cast<uint64_t>(isAnimationOcclusion_.second) > MAX_SYSTEM_SCENE_STATUS_TIME) {
+        isAnimationOcclusion_.first = false;
+    }
 }
 
 void RSMainThread::CallbackDrawContextStatusToWMS(bool isUniRender)
@@ -2842,8 +2826,6 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
         auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
         if (curSurface && !curSurface->IsLeashWindow()) {
-            curSurface->SetOcclusionInSpecificScenes(rsVsyncRateReduceManager_.GetVRateDeviceSupport()
-                                                    && !threeFingerScenesList_.empty());
             calculator(curSurface, true);
         }
     }
@@ -3688,6 +3670,28 @@ bool RSMainThread::SurfaceOcclusionCallBackIfOnTreeStateChanged()
         return true;
     }
     return false;
+}
+
+void RSMainThread::SetAnimationOcclusionInfo(const std::string& sceneId, bool isStart)
+{
+    if (!DirtyRegionParam::IsAnimationOcclusionEnable() || !RSSystemProperties::GetAnimationOcclusionEnabled()) {
+        return;
+    }
+    uint64_t curTime = static_cast<uint64_t>(
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count());
+    auto id = RSUifirstFrameRateControl::Instance().GetSceneId(sceneId);
+    switch (id) {
+        // currently, occlusion is only enabled in these three animation scenes
+        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_ICON:
+        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_LAUNCH_FROM_DOCK:
+        case RSUifirstFrameRateControl::SceneId::LAUNCHER_APP_SWIPE_TO_HOME:
+            isAnimationOcclusion_.first = isStart;
+            isAnimationOcclusion_.second = curTime;
+            break;
+        default:
+            break;
+    }
 }
 
 void RSMainThread::SendCommands()

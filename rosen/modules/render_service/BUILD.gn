@@ -140,6 +140,7 @@ ohos_shared_library("librender_service") {
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
     "core/feature/param_manager/rs_param_manager.cpp",
+    "core/feature/render_group/rs_render_group_cache_drawable.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
     "core/feature/vrate/rs_vsync_rate_reduce_manager.cpp",
     "core/feature/watermark/rs_surface_watermark.cpp",

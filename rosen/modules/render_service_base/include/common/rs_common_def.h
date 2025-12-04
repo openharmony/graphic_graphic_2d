@@ -56,6 +56,7 @@ constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
+static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 
 /**
  * Bitmask enumeration for hierarchical type identification

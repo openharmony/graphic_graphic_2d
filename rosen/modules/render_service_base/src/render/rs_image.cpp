@@ -41,6 +41,7 @@ namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 constexpr int32_t DEGREE_NINETY = 90;
+constexpr int32_t REPEAT_LOOP_TIME_LIMIT = 5000;
 }
 
 RSImage::~RSImage()
@@ -527,28 +528,19 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     UploadGpu(canvas);
     bool hdrImageDraw = HDRConvert(samplingOptions, canvas);
     src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
-    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
+    uint64_t loopTime = (maxX - minX) * (maxY - minY);
+    bool isNeedOffscreen = (maxX - minX >= 1) &&  loopTime > REPEAT_LOOP_TIME_LIMIT;
+    if (!hdrImageDraw && imageRepeat_ == ImageRepeat::REPEAT && isNeedOffscreen) {
+        DrawImageRepeatOffScreen(samplingOptions, canvas, minX, maxX, minY, maxY);
+        return;
+    }
     for (int i = minX; i <= maxX; ++i) {
         auto left = dstRect_.left_ + i * dstRect_.width_;
         auto right = left + dstRect_.width_;
         for (int j = minY; j <= maxY; ++j) {
             auto top = dstRect_.top_ + j * dstRect_.height_;
             dst_ = Drawing::Rect(left, top, right, top + dstRect_.height_);
-
-            bool needCanvasRestore = isAstc || isOrientationValid_;
-            Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
-
-            if (isAstc) {
-                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
-            }
-
-            if (isOrientationValid_) {
-                ApplyImageOrientation(canvas);
-            }
-
-            if (image_) {
-                DrawImageOnCanvas(samplingOptions, canvas, hdrImageDraw);
-            }
+            RsImageDraw(samplingOptions, canvas, hdrImageDraw);
         }
     }
     if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
@@ -556,6 +548,63 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     }
 }
 
+void RSImage::RsImageDraw(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+    const bool hdrImageDraw)
+{
+    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
+    bool needCanvasRestore = isAstc || isOrientationValid_;
+    Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
+    if (isAstc) {
+        RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
+    }
+
+    if (isOrientationValid_) {
+        ApplyImageOrientation(canvas);
+    }
+
+    if (image_) {
+        DrawImageOnCanvas(samplingOptions, canvas, hdrImageDraw);
+    }
+}
+
+void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+    int& minX, int& maxX, int& minY, int& maxY)
+{
+    RS_TRACE_NAME_FMT("RSImage::DrawImageRepeatOffScreen");
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen get surface null");
+        return;
+    }
+    auto offScreenSurface = surface->MakeSurface(frameRect_.width_, dstRect_.height_);
+    if (!offScreenSurface) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen make offScreenSurface null");
+        return;
+    }
+    auto offScreenCanvas = *offScreenSurface->GetCanvas();
+
+    for (int i = minX; i <= maxX; ++i) {
+        auto left = dstRect_.left_ + i * dstRect_.width_;
+        auto right = left + dstRect_.width_;
+        dst_ = Drawing::Rect(left, 0, right, dstRect_.height_);
+        RsImageDraw(samplingOptions, offScreenCanvas, false);
+    }
+
+    auto imageLineSrc = Drawing::Rect(0, 0, offScreenSurface->Width(), offScreenSurface->Height());
+    auto imageLine = offScreenSurface->GetImageSnapshot();
+    if (imageLine == nullptr) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen imageLine null");
+        return;
+    }
+
+    for (int j = minY; j <= maxY; ++j) {
+        auto lineDstTop = dstRect_.top_ + j * dstRect_.height_;
+        dst_ = Drawing::Rect(0, lineDstTop, frameRect_.width_, lineDstTop + dstRect_.height_);
+        canvas.DrawImageRect(*imageLine, imageLineSrc, dst_, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    }
+}
+    
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
     if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {

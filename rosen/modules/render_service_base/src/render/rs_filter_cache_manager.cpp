@@ -415,6 +415,10 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
 
 void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
 {
+    if (hpaeCacheManager_) {
+        hpaeCacheManager_->InvalidateFilterCache(clearType);
+    }
+
     if (clearType == FilterCacheType::BOTH) {
         cachedSnapshot_.reset();
         cachedFilteredSnapshot_.reset();

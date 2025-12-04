@@ -41,6 +41,9 @@ public:
 
     static std::shared_ptr<Typeface> GetZhCnTypeface();
 
+    static ani_boolean IsBold(ani_env* env, ani_object obj);
+    static ani_boolean IsItalic(ani_env* env, ani_object obj);
+
     std::shared_ptr<Typeface> GetTypeface();
 
 private:
