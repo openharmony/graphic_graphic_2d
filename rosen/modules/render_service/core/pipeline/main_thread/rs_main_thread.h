@@ -446,7 +446,7 @@ public:
     }
 
 private:
-    // pid: {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
+    // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
     using DrawablesVec = std::vector<std::tuple<NodeId, NodeId,
@@ -583,8 +583,8 @@ private:
     bool IfStatusBarDirtyOnly();
 
     void StartGPUDraw();
-
     void EndGPUDraw();
+
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
