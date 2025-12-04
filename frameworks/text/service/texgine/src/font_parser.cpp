@@ -625,6 +625,11 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::GetVisibilityFontByName(
 {
     return ParseFontDescriptor(fontName, GetLanguageId(locale));
 }
+
+const std::vector<std::string>& FontParser::GetFontSet() const
+{
+    return fontSet_;
+}
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

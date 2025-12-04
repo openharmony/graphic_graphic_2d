@@ -253,9 +253,8 @@ void FontDescriptorCache::GetFontPathsByType(const int32_t& systemFontType, std:
     }
     uint32_t fontCategory = static_cast<uint32_t>(fontType);
     TextEngine::FontConfigJson fcj;
-    int res = -1;
     if (fontCategory & TextEngine::FontParser::SystemFontType::GENERIC) {
-        res = fcj.ParseFile();
+        fcj.ParseFile();
         auto fontPtr = fcj.GetFontConfigJsonInfo();
         if (fontPtr != nullptr) {
             auto rootPath = fontPtr->fontDirSet[0];
@@ -268,10 +267,7 @@ void FontDescriptorCache::GetFontPathsByType(const int32_t& systemFontType, std:
         }
     }
     if (fontCategory & TextEngine::FontParser::SystemFontType::STYLISH) {
-        if (res == -1) {
-            res = fcj.ParseFile();
-        }
-        auto list = fcj.GetFontSet();
+        auto& list = parser_.GetFontSet();
         fontPaths.insert(list.begin(), list.end());
     }
     if (fontCategory & TextEngine::FontParser::SystemFontType::INSTALLED) {
