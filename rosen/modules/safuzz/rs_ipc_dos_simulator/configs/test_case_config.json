@@ -1525,6 +1525,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "GET_PANEL_POWER_STATUS_TEST_001",
+    "interfaceName": "GET_PANEL_POWER_STATUS",
+    "inputParams": "WriteUint64;",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "CREATE_VIRTUAL_SCREEN_TEST_001",
     "interfaceName": "CREATE_VIRTUAL_SCREEN",
     "inputParams": "WriteString;WriteUint32;WriteUint32;WriteBool;WriteSurfaceSptr;WriteUint64;WriteInt32;WriteUInt64Vector",
