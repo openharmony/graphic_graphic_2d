@@ -190,6 +190,13 @@ void RSRenderComposer::PostTask(const std::function<void()>& task)
     }
 }
 
+void RSRenderComposer::PostTaskWithInnerDelay(const std::function<void()>& task)
+{
+    if (handler_) {
+        handler_->PostTask(task, delayTime_, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+}
+
 void RSRenderComposer::PostSyncTask(const std::function<void()>& task)
 {
     if (handler_) {

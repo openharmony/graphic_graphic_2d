@@ -622,6 +622,16 @@ typedef enum OH_Drawing_TypographyStyleAttributeId {
      * @since 23
      */
     TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION = 5,
+    /**
+     * Font padding
+     * @since 23
+     */
+    TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING = 6,
+    /**
+     * Fallback line spacing
+     * @since 23
+     */
+    TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING = 7,
 } OH_Drawing_TypographyStyleAttributeId;
 
 /**
@@ -3217,6 +3227,14 @@ OH_Drawing_TextStyle *OH_Drawing_CopyTextStyle(OH_Drawing_TextStyle *style);
  * @version 1.0
  */
 OH_Drawing_TextShadow *OH_Drawing_CopyTextShadow(OH_Drawing_TextShadow *shadow);
+
+/**
+ * @brief Releases the memory occupied by an <b>OH_Drawing_PositionAndAffinity</b> object.
+ *
+ * @param positionAndAffinity Indicates the pointer to an <b>OH_Drawing_PositionAndAffinity</b> object.
+ * @since 23
+ */
+void OH_Drawing_DestroyPositionAndAffinity(OH_Drawing_PositionAndAffinity* positionAndAffinity);
 #ifdef __cplusplus
 }
 #endif

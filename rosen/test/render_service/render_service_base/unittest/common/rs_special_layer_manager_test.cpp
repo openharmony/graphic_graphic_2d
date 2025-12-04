@@ -202,4 +202,49 @@ HWTEST_F(RSSpecialLayerManagerTest, SetWhiteListRootId001, TestSize.Level2)
     // restore
     RSSpecialLayerManager::ClearWhiteListRootIds();
 }
+
+/**
+ * @tc.name: AddIdsWithScreen001
+ * @tc.desc: test AddIdsWithScreen for different type
+ * @tc.type: FUNC
+ * @tc.require: issue20875
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen001, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId = 0;
+    ScreenId screenId = 0;
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::NONE, nodeId);
+    slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::NONE, nodeId);
+    ASSERT_FALSE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
+
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId);
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SECURITY, nodeId);
+    ASSERT_TRUE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
+    
+    slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId);
+    slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SECURITY, nodeId);
+    ASSERT_FALSE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: AddIdsWithScreen002
+ * @tc.desc: test a node has multiple child nodes as special layers
+ * @tc.type: FUNC
+ * @tc.require: issue20875
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen002, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    NodeId nodeId1 = 1;
+    NodeId nodeId2 = 2;
+    ScreenId screenId = 0;
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId1);
+    slManager.AddIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId2);
+    ASSERT_TRUE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
+
+    slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId1);
+    slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId2);
+    ASSERT_FALSE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
+}
 } // namespace OHOS::Rosen

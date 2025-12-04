@@ -62,6 +62,7 @@ protected:
     void ComposerProcess(RefreshRateParam param, uint32_t currentRate, bool hasGameScene,
         int64_t delayTime, std::shared_ptr<RSLayerTransactionData> transactionData);
     void PostTask(const std::function<void()>& task);
+    void PostTaskWithInnerDelay(const std::function<void()>& task);
     void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output);

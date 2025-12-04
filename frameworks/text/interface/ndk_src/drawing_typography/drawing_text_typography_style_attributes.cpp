@@ -112,6 +112,30 @@ namespace OHOS::Rosen::Text {
         return OH_DRAWING_SUCCESS;
     }
 
+    OH_Drawing_ErrorCode SetIncludeFontPadding(TypographyStyle* style, bool value)
+    {
+        style->includeFontPadding = value;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetIncludeFontPadding(const TypographyStyle* style, bool* value)
+    {
+        *value = style->includeFontPadding;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode SetFallbackLineSpacing(TypographyStyle* style, bool value)
+    {
+        style->fallbackLineSpacing = value;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetFallbackLineSpacing(const TypographyStyle* style, bool* value)
+    {
+        *value = style->fallbackLineSpacing;
+        return OH_DRAWING_SUCCESS;
+    }
+
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleSetter>
         g_typographyStyleDoubleSetters = {
             { TYPOGRAPHY_STYLE_ATTR_D_LINE_HEIGHT_MAXIMUM, SetLineHeightMaximum },
@@ -141,11 +165,15 @@ namespace OHOS::Rosen::Text {
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleBoolSetter>
         g_typographyStyleBoolSetters = {
             { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, SetCompressHeadPunctuation },
+            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, SetIncludeFontPadding },
+            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, SetFallbackLineSpacing },
     };
 
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleBoolGetter>
         g_typographyStyleBoolGetters = {
             { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, GetCompressHeadPunctuation },
+            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, GetIncludeFontPadding },
+            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, GetFallbackLineSpacing },
     };
 }
 

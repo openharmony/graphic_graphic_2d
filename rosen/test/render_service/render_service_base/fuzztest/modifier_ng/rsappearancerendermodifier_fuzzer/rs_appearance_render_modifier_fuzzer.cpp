@@ -15,6 +15,7 @@
 
 #include "rs_appearance_render_modifier_fuzzer.h"
 
+#include "pipeline/rs_render_node.h"
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_render_modifier.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
@@ -256,6 +257,9 @@ bool RSPointLightRenderModifierFuzzTest(const uint8_t* data, size_t size)
     // test
     auto modifier = std::make_shared<ModifierNG::RSPointLightRenderModifier>();
     RSProperties properties;
+    auto nodePtr = std::make_shared<RSRenderNode>(1);
+    auto weakNode_ptr = std::weak_ptr<RSRenderNode>(nodePtr);
+    properties.backref_ = weakNode_ptr;
     properties.SetLightIntensity(GetData<float>());
     modifier->ResetProperties(properties);
     return true;

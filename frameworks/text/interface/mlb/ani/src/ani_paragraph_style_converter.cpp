@@ -22,6 +22,41 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+void AniParagraphStyleConverter::ParseSimpleParagraphStyleToNative(
+    ani_env* env, ani_object obj, std::unique_ptr<OHOS::Rosen::TypographyStyle>& paragraphStyle)
+{
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textDirection,
+        AniGlobalMethod::GetInstance().paragraphStyleTextDirection, paragraphStyle->textDirection);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textAlign,
+        AniGlobalMethod::GetInstance().paragraphStyleAlign, paragraphStyle->textAlign);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::wordBreakType,
+        AniGlobalMethod::GetInstance().paragraphStyleWordBreak, paragraphStyle->wordBreakType);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::breakStrategy,
+        AniGlobalMethod::GetInstance().paragraphStyleBreakStrategy, paragraphStyle->breakStrategy);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textHeightBehavior,
+        AniGlobalMethod::GetInstance().paragraphStyleTextHeightBehavior, paragraphStyle->textHeightBehavior);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTrailingSpaceOptimized,
+        paragraphStyle->isTrailingSpaceOptimized);
+    AniTextUtils::ReadOptionalBoolField(
+        env, obj, AniGlobalMethod::GetInstance().paragraphStyleAutoSpace, paragraphStyle->enableAutoSpace);
+    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleCompressHeadPunctuation,
+        paragraphStyle->compressHeadPunctuation);
+    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textVerticalAlign,
+        AniGlobalMethod::GetInstance().paragraphStyleVerticalAlign, paragraphStyle->verticalAlignment);
+
+    AniTextUtils::ReadOptionalBoolField(env, obj, "includeFontPadding", paragraphStyle->includeFontPadding);
+    AniTextUtils::ReadOptionalBoolField(env, obj, "fallbackLineSpacing", paragraphStyle->fallbackLineSpacing);
+}
+
+std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyleToNative(ani_env* env, ani_object obj)
+{
+    ani_boolean isObj = false;
+    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_PARAGRAPH_STYLE, &isObj);
+    if (ret != ANI_OK || !isObj) {
+        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
+        return nullptr;
+    }
+    std::unique_ptr<TypographyStyle> paragraphStyle = std::make_unique<TypographyStyle>();
 
 ani_status ParagraphStyleGetMaxLine(ani_env* env, ani_object obj, std::unique_ptr<TypographyStyle>& paragraphStyle)
 {
@@ -60,16 +95,6 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
     }
     paragraphStyle->ellipsis = textStyle.ellipsis;
     paragraphStyle->ellipsisModal = textStyle.ellipsisModal;
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textDirection,
-        AniGlobalMethod::GetInstance().paragraphStyleTextDirection, paragraphStyle->textDirection);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textAlign,
-        AniGlobalMethod::GetInstance().paragraphStyleAlign, paragraphStyle->textAlign);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::wordBreakType,
-        AniGlobalMethod::GetInstance().paragraphStyleWordBreak, paragraphStyle->wordBreakType);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::breakStrategy,
-        AniGlobalMethod::GetInstance().paragraphStyleBreakStrategy, paragraphStyle->breakStrategy);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textHeightBehavior,
-        AniGlobalMethod::GetInstance().paragraphStyleTextHeightBehavior, paragraphStyle->textHeightBehavior);
 
     ani_ref strutStyleRef = nullptr;
     ret = AniTextUtils::ReadOptionalField(
@@ -84,14 +109,7 @@ std::unique_ptr<TypographyStyle> AniParagraphStyleConverter::ParseParagraphStyle
         ParseTextTabToNative(env, reinterpret_cast<ani_object>(tabRef), paragraphStyle->tab);
     }
 
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleTrailingSpaceOptimized,
-        paragraphStyle->isTrailingSpaceOptimized);
-    AniTextUtils::ReadOptionalBoolField(
-        env, obj, AniGlobalMethod::GetInstance().paragraphStyleAutoSpace, paragraphStyle->enableAutoSpace);
-    AniTextUtils::ReadOptionalBoolField(env, obj, AniGlobalMethod::GetInstance().paragraphStyleCompressHeadPunctuation,
-        paragraphStyle->compressHeadPunctuation);
-    AniTextUtils::ReadOptionalEnumField(env, obj, AniTextEnum::textVerticalAlign,
-        AniGlobalMethod::GetInstance().paragraphStyleVerticalAlign, paragraphStyle->verticalAlignment);
+    ParseSimpleParagraphStyleToNative(env, obj, paragraphStyle);
 
     return paragraphStyle;
 }

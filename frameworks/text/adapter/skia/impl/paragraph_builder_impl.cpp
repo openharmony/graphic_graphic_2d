@@ -165,6 +165,12 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     }
 
     skStyle.setTextStyle(textStyle);
+    ParagraphStyleToSkParagraphStyle(txt, skStyle);
+    return skStyle;
+}
+
+void ParagraphBuilderImpl::ParagraphStyleToSkParagraphStyle(const ParagraphStyle& txt, skt::ParagraphStyle& skStyle)
+{
     skStyle.setTextOverflower(txt.textOverflower);
     skt::StrutStyle strutStyle;
     TextStyleToSKStrutStyle(strutStyle, txt);
@@ -184,13 +190,6 @@ skt::ParagraphStyle ParagraphBuilderImpl::TextStyleToSkStyle(const ParagraphStyl
     }
     skStyle.setReplaceTabCharacters(true);
     skStyle.setTextSplitRatio(txt.textSplitRatio);
-    SetRemainingParagraphProperties(skStyle, txt);
-
-    return skStyle;
-}
-
-void ParagraphBuilderImpl::SetRemainingParagraphProperties(skt::ParagraphStyle& skStyle, const ParagraphStyle& txt)
-{
     skStyle.setTextHeightBehavior(static_cast<skt::TextHeightBehavior>(txt.textHeightBehavior));
     skStyle.setTextTab(ConvertToSkTextTab(txt.tab));
     skStyle.setParagraphSpacing(txt.paragraphSpacing);
@@ -200,6 +199,8 @@ void ParagraphBuilderImpl::SetRemainingParagraphProperties(skt::ParagraphStyle& 
     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
     skStyle.setVerticalAlignment(static_cast<skt::TextVerticalAlign>(txt.verticalAlignment));
     skStyle.setLineSpacing(txt.lineSpacing);
+    skStyle.setIncludeFontPadding(txt.includeFontPadding);
+    skStyle.setFallbackLineSpacing(txt.fallbackLineSpacing);
 }
 
 skt::TextStyle ParagraphBuilderImpl::TextStyleToSkStyle(const TextStyle& txt)
