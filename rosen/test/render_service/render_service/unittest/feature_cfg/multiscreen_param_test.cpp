@@ -66,20 +66,6 @@ HWTEST_F(MultiScreenParamTest, SetSlrScaleEnabled, Function | SmallTest | Level1
 }
 
 /**
- * @tc.name: SetRsReportHwcDead
- * @tc.desc: Verify the SetRsReportHwcDead/IsRsReportHwcDead function
- * @tc.type: FUNC
- * @tc.require: #IBOA5Q
- */
-HWTEST_F(MultiScreenParamTest, SetRsReportHwcDead, Function | SmallTest | Level1)
-{
-    MultiScreenParam::SetRsReportHwcDead(true);
-    EXPECT_TRUE(MultiScreenParam::IsRsReportHwcDead());
-    MultiScreenParam::SetRsReportHwcDead(false);
-    EXPECT_FALSE(MultiScreenParam::IsRsReportHwcDead());
-}
-
-/**
  * @tc.name: SetRsSetScreenPowerStatus
  * @tc.desc: Verify the SetRsSetScreenPowerStatus/IsRsSetScreenPowerStatus function
  * @tc.type: FUNC

@@ -456,6 +456,7 @@ void RSScreenManager::OnHwcDeadEvent()
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         for (auto it = screens_.begin(); it != screens_.end();) {
             if (it->second && !it->second->IsVirtual()) {
+                TriggerCallbacks(it->first, ScreenEvent::DISCONNECTED, ScreenChangeReason::HWCDEAD);
                 auto node = screens_.extract(it++);
                 screens.insert(std::move(node));
             } else {
@@ -587,7 +588,7 @@ void RSScreenManager::ProcessPendingConnections()
         if (!isHwcDead_) {
             NotifyScreenNodeChange(id, true);
             TriggerCallbacks(id, ScreenEvent::CONNECTED);
-        } else if (id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
+        } else {
             TriggerCallbacks(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
         }
         auto screen = GetScreen(id);

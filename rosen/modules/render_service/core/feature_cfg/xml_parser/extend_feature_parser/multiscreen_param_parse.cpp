@@ -38,12 +38,11 @@ int32_t MultiScreenParamParse::ParseFeatureParam([[maybe_unused]] FeatureParamMa
         }
     }
     RS_LOGI("MultiScreenParamParse end, isExternalScreenSecure: %{public}d, isSlrScaleEnabled: %{public}d,"
-        " isRsReportHwcDead: %{public}d, isRsSetScreenPowerStatus: %{public}d, isMirrorDisplayCloseP3: %{public}d,"
+        " isRsSetScreenPowerStatus: %{public}d, isMirrorDisplayCloseP3: %{public}d,"
         " mipMapModeValue: %{public}d, isSkipFrameByActiveRefreshRate: %{public}d",
         MultiScreenParam::IsExternalScreenSecure(), MultiScreenParam::IsSlrScaleEnabled(),
-        MultiScreenParam::IsRsReportHwcDead(), MultiScreenParam::IsRsSetScreenPowerStatus(),
-        MultiScreenParam::IsMirrorDisplayCloseP3(), MultiScreenParam::GetMipmapMode(),
-        MultiScreenParam::IsSkipFrameByActiveRefreshRate());
+        MultiScreenParam::IsRsSetScreenPowerStatus(), MultiScreenParam::IsMirrorDisplayCloseP3(),
+        MultiScreenParam::GetMipmapMode(), MultiScreenParam::IsSkipFrameByActiveRefreshRate());
     return PARSE_EXEC_SUCCESS;
 }
 
@@ -61,8 +60,6 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
             MultiScreenParam::SetExternalScreenSecure(isEnabled);
         } else if (name == "IsSlrScaleEnabled") {
             MultiScreenParam::SetSlrScaleEnabled(isEnabled);
-        } else if (name == "IsRsReportHwcDead") {
-            MultiScreenParam::SetRsReportHwcDead(isEnabled);
         } else if (name == "IsRsSetScreenPowerStatus") {
             MultiScreenParam::SetRsSetScreenPowerStatus(isEnabled);
         } else if (name == "IsMirrorDisplayCloseP3") {
