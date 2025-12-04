@@ -410,6 +410,13 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         node, callback, scaleX, scaleY, isSync, specifiedAreaRect);
 }
 
+bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(
+        node, callback, captureConfig.scaleX, captureConfig.scaleY, isSync, specifiedAreaRect);
+}
+
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
     RSInterfaces::TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node)
 {
@@ -421,6 +428,13 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
 {
     return RSRenderInterface::GetInstance().TakeUICaptureInRange(
         beginNode, endNode, useBeginNodeSize, callback, scaleX, scaleY, isSync);
+}
+
+bool TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+    bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    return RSRenderInterface::GetInstance().TakeUICaptureInRangeWithConfig(beginNode, endNode, useBeginNodeSize,
+        callback, captureConfig);
 }
 
 int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)

@@ -65,11 +65,13 @@ public:
      * @param pixelmap Indicates the pixelmap that user wants to use.
      */
     static void ProcessUiCaptureCallback(sptr<RSISurfaceCaptureCallback> callback, NodeId id,
-        const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap);
+        const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK);
 #ifdef RS_ENABLE_UNI_RENDER
     static std::function<void()> CreateSurfaceSyncCopyTask(std::shared_ptr<Drawing::Surface> surface,
         std::unique_ptr<Media::PixelMap> pixelMap, NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool needDump = false);
+        sptr<RSISurfaceCaptureCallback> callback, int32_t rotation = 0, bool needDump = false,
+        CaptureError errorCode = CaptureError::CAPTURE_OK);
 #endif
 
     static int32_t GetCaptureCount()
@@ -83,9 +85,14 @@ private:
     static void DumpInfo(NodeId id);
     bool HasEndNodeRect() const;
     bool UpdateStartAndEndNodeRect();
+    bool IsHdrCapture(OHOS::ColorManager::ColorSpaceName colorSpace);
     std::shared_ptr<Drawing::Surface> CreateSurface(const std::unique_ptr<Media::PixelMap>& pixelmap) const;
-    std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node) const;
-    std::unique_ptr<Media::PixelMap> CreatePixelMapByRect(const Drawing::Rect& specifiedAreaRect) const;
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByNode(std::shared_ptr<RSRenderNode> node);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByRect(const Drawing::Rect& specifiedAreaRect);
+    OHOS::ColorManager::ColorSpaceName SelectColorSpace(OHOS::ColorManager::ColorSpaceName capTureTargetColorSpace,
+        bool isAutoAdjust);
+    std::unique_ptr<Media::PixelMap> CreatePixelMapByColorSpace(Media::InitializationOptions& opts,
+        OHOS::ColorManager::ColorSpaceName colorSpaceName) const;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> nodeDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> endNodeDrawable_ = nullptr;
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
@@ -99,6 +106,7 @@ private:
     RectI endRect_ = {};
     bool isStartEndNodeSame_ = false;
     bool needDump_ = false;
+    CaptureError errorCode_ = CaptureError::CAPTURE_OK;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -436,6 +436,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER) &&
+        code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE) &&
         code != static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS)) {
         RS_LOGE("RSClientToRenderConnectionStub::OnRemoteRequest no permission code:%{public}u", code);
         return ERR_INVALID_STATE;
@@ -608,7 +609,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToRenderConnectionStub::TAKE_UI_CAPTURE_IN_RANGE read captureConfig failed");
                 break;
             }
-            TakeUICaptureInRange(id, cb, captureConfig);
+            RSSurfaceCapturePermissions permissions;
+            permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+                "::TAKE_UI_CAPTURE_IN_RANGE");
+            TakeUICaptureInRange(id, cb, captureConfig, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY): {
@@ -944,6 +949,7 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.REadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
@@ -955,7 +961,11 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadFloat(captureConfig.specifiedAreaRect.right_) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
-        !data.ReadUint32(captureConfig.backGroundColor)) {
+        !data.ReadUint32(captureConfig.backGroundColor) ||
+        !data.ReadUint32(captureConfig.colorSpace.first) ||
+        !data.ReadBool(captureConfig.colorSpace.second) ||
+        !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
+        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }

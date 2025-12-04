@@ -102,12 +102,31 @@ bool RSRenderInterface::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureForUI rsnode is nullpter return");
         return false;
     }
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.scaleX = scaleX;
+    captureConfig.scaleY = scaleY;
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    captureConfig.isSync = isSync;
+    captureConfig.specifiedAreaRect = specifiedAreaRect;
+    return TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
+}
+
+bool RSRenderInterface::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    if (!node) {
+        ROSEN_LOGW("RSRenderInterface::TakeSurfaceCaptureForUIWithConfig rsnode is nullpter return");
+        return false;
+    }
+    ROSEN_LOGI("RSRenderInterface::TakeSurfaceCaptureForUIWithConfig rsNode [%{public}" PRIu64
+            "]", node->GetId());
     // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
     if (node->IsTextureExportNode()) {
         ROSEN_LOGD("RSRenderInterface::TakeSurfaceCaptureForUI rsNode [%{public}" PRIu64
             "] is textureExportNode, set isSync false", node->GetId());
-        isSync = false;
+        captureConfig.isSync = false;
     }
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_NODE) ||
           (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
@@ -115,19 +134,14 @@ bool RSRenderInterface::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         ROSEN_LOGE("RSRenderInterface::TakeSurfaceCaptureForUI unsupported node type return");
         return false;
     }
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = scaleX;
-    captureConfig.scaleY = scaleY;
-    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    captureConfig.isSync = isSync;
-    captureConfig.specifiedAreaRect = specifiedAreaRect;
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        if (isSync) {
+        if (captureConfig.isSync) {
             node->SetTakeSurfaceForUIFlag();
         }
-        return renderPiplineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
+        return renderPiplineClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {},
+            captureConfig.specifiedAreaRect);
     } else {
-        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
+        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, captureConfig.scaleX, captureConfig.scaleY);
     }
 }
 
@@ -156,22 +170,6 @@ bool RSRenderInterface::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, 
         ROSEN_LOGW("RSRenderInterface::TakeUICaptureInRange beginNode is nullpter return");
         return false;
     }
-    if (!endNode) {
-        return TakeSurfaceCaptureForUI(beginNode, callback, scaleX, scaleY, isSync);
-    }
-    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
-    if (beginNode->IsTextureExportNode()) {
-        ROSEN_LOGD("RSRenderInterface::TakeUICaptureInRange beginNode [%{public}" PRIu64
-            "] is textureExportNode, set isSync false", beginNode->GetId());
-        isSync = false;
-    }
-    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
-          (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
-        ROSEN_LOGE("RSRenderInterface::TakeUICaptureInRange unsupported node type return");
-        return false;
-    }
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.scaleX = scaleX;
     captureConfig.scaleY = scaleY;
@@ -179,13 +177,41 @@ bool RSRenderInterface::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, 
     captureConfig.isSync = isSync;
     captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
     captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
+    return TakeUICaptureInRangeWithConfig(beginNode, endNode, useBeginNodeSize, callback, captureConfig);
+}
+
+bool TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+        bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    if (!beginNode) {
+        ROSEN_LOGW("RSRenderInterface::TakeUICaptureInRangeWithConfig beginNode is nullpter return");
+        return false;
+    }
+    if (!endNode) {
+        return TakeSurfaceCaptureForUI(beginNode, callback, captureConfig.scaleX,
+            captureConfig.scaleY, captureConfig.isSync);
+    }
+    if (beginNode->IsTextureExportNode()) {
+        ROSEN_LOGD("RSRenderInterface::TakeUICaptureInRange beginNode [%{public}" PRIu64
+            "] is textureExportNode, set isSync false", beginNode->GetId());
+        captureConfig.isSync = false;
+    }
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
+    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
+          (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
+          (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
+          (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
+        ROSEN_LOGE("RSRenderInterface::TakeUICaptureInRange unsupported node type return");
+        return false;
+    }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        if (isSync) {
+        if (captureConfig.isSync) {
             beginNode->SetTakeSurfaceForUIFlag();
         }
         return renderPiplineClient_->TakeUICaptureInRange(beginNode->GetId(), callback, captureConfig);
     } else {
-        return TakeSurfaceCaptureForUIWithoutUni(beginNode->GetId(), callback, scaleX, scaleY);
+        return TakeSurfaceCaptureForUIWithoutUni(beginNode->GetId(), callback,
+            captureConfig.scaleX, captureConfig.scaleY);
     }
 }
 

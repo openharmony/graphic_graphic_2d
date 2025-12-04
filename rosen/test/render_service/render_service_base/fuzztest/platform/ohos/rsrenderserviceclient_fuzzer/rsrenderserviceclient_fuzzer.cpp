@@ -230,7 +230,7 @@ bool DoTriggerSurfaceCaptureCallback(const uint8_t* data, size_t size)
     captureConfig.mainScreenRect.right_ = GetData<float>();
     captureConfig.mainScreenRect.bottom_ = GetData<float>();
 
-    renderPipelineClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelmap);
+    renderPipelineClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelmap, CaptureError::CAPTURE_OK);
     return true;
 }
 

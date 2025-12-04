@@ -117,6 +117,7 @@ private:
     int32_t finalRotationAngle_ = RS_ROTATION_0;
     // only used for RSUniRenderThread
     std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
+    CaptureError errorCode_ = CaptureError::CAPTURE_OK;
 };
 
 } // namespace Rosen

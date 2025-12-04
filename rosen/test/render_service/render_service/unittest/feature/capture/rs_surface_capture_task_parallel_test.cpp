@@ -86,7 +86,8 @@ public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) override {};
+        Media::PixelMap* pixelmap, CaptureError captureErrorCode = CaptureError::CAPTURE_OK,
+        Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
 
 class SurfaceImplMock : public Drawing::SurfaceImpl {

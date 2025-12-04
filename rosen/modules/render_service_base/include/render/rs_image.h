@@ -112,6 +112,7 @@ public:
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
+    bool IsHDRUiCapture() const;
     void SetPaint(Drawing::Paint paint);
     void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 

@@ -67,7 +67,8 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 }
 
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR)
+    std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
+    std::shared_ptr<Media::PixelMap> pixelmapHDR)
 {
     ROSEN_LOGD("RSRenderPipelineClient::Into TriggerSurfaceCaptureCallback nodeId:[%{public}" PRIu64 "]", id);
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector;
@@ -108,7 +109,9 @@ void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSu
         if (surfaceCaptureHDR) {
             surfaceCaptureHDR->SetMemoryName("RSSurfaceCaptureForCallbackHDR");
         }
-        if (captureConfig.isHdrCapture) {
+        if (captureConfig.needErrorCode) {
+            callbackVector[i]->OnSurfaceCaptureWithErrorCode(surfaceCapture, surfaceCaptureHDR, captureErrorCode);
+        } else if (captureConfig.isHdrCapture) {
             callbackVector[i]->OnSurfaceCaptureHDR(surfaceCapture, surfaceCaptureHDR);
         } else {
             callbackVector[i]->OnSurfaceCapture(surfaceCapture);
@@ -121,11 +124,11 @@ public:
     explicit SurfaceCaptureCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
-        Media::PixelMap* pixelmapHDR = nullptr) override
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
         std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, captureErrorCode, surfaceCaptureHDR);
     };
 
 private:
@@ -136,6 +139,8 @@ bool RSRenderPipelineClient::TakeSurfaceCapture(NodeId id, std::shared_ptr<Surfa
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect)
 {
+    ROSEN_LOGI("SRenderPipelineClient::TakeSurfaceCapture [%{public}" PRIu64
+            "]", id);
     auto renderPipeline = RSRenderServiceConnectHub::GetClientToRenderConnection();
     if (renderPipeline == nullptr) {
         ROSEN_LOGE("RSRenderPipelineClient::TakeSurfaceCapture renderPipeline == nullptr!");

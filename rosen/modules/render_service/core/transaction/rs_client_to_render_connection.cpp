@@ -331,7 +331,6 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
-
     std::function<void()> captureTask = [id, callback, captureConfig, blurParam, specifiedAreaRect,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
@@ -347,7 +346,7 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
                 RS_LOGE("TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
                         "], isSystemCalling: %{public}u, selfCapture: %{public}u",
                     id, isSystemCalling, selfCapture);
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_PERMISSION);
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
@@ -572,9 +571,17 @@ ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool i
 }
 
 void RSClientToRenderConnection::TakeUICaptureInRange(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    RSSurfaceCapturePermissions permissions)
 {
-    std::function<void()> captureTask = [id, callback, captureConfig]() -> void {
+    std::function<void()> captureTask = [id, callback, captureConfig,
+        isSystemCalling = permissions.isSystemCalling]() -> void {
+        if (!isSystemCalling) {
+            RS_LOGE("TakeUICaptureInRange failed, not system calling, nodeId:[%{public}" PRIu64
+                "], isSystemCalling: %{public}u", id, isSystemCalling);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_PERMISSION);
+            return;
+        }
         RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeUICaptureInRange captureTask nodeId:[%" PRIu64 "]", id);
         RS_LOGD("RSClientToRenderConnection::TakeUICaptureInRange captureTask nodeId:[%{public}" PRIu64 "]", id);
         TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});

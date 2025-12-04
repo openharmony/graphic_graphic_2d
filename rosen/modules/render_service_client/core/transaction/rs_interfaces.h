@@ -285,6 +285,16 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     /**
+     * @brief Get snapshot of surfaceNode.
+     * @param node Indicates which node, usually point to a window.
+     * @param callback When the snapshot is complete, the callback will be triggered.
+     * @param captureConfig Indicates the configuration items required for snapshot.
+     * @return return true if snaphot success, else return false.
+     */
+    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSSurfaceNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+
+    /**
      * @brief Get snapshot of surfaceNode, and security layer area is a drawn as a blur instead of white.
      * @param node Indicates which node, usually point o a window.
      * @param callback When the snapshot is complete, the callback will be triggered.
@@ -328,6 +338,16 @@ public:
     bool TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX = 1.f, float scaleY = 1.f,
         bool isSync = false, const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f));
+
+    /**
+     * @brief Get component snapshot.
+     * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
+     * @param callback When the snapshot is complete, the callback will be triggered.
+     * @param RSSurfaceCaptureConfig Indicates RSSurfaceCaptureConfig.
+     * @return return true if snaphot success, else return false.
+     */
+    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig = {});
 
     /**
      * @brief Get a list of pixelmap information, each node of the component node tree will have a pixelmap.
@@ -393,6 +413,18 @@ public:
      */
     bool TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode, bool useBeginNodeSize,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
+
+    /**
+     * @brief Get component snapshot Within the given node range.
+     * @param beginNode Indicates first child of snapshot.
+     * @param endNode Indicates end child of snapshot.
+     * @param useBeginNodeSize Indicates Whether use the size of begin node.
+     * @param callback When the snapshot is complete, the callback will be triggered.
+     * @param RSSurfaceCaptureConfig Indicates RSSurfaceCaptureConfig.
+     * @return return true if snaphot success, else return false.
+     */
+    bool TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+        bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
 
     /**
      * @brief Simplify the original interfaces set boundaries for cursor movemonet and reduce the workload.

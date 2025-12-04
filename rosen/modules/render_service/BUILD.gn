@@ -257,6 +257,11 @@ ohos_shared_library("librender_service") {
     "$rosen_root/modules/frame_load/src/rs_frame_deadline_predict.cpp",
   ]
 
+   #colorspace
+  sources += [
+    "$rosen_root/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
+  ]
+
   #dfx
   sources += [
     "core/drawable/dfx/rs_refresh_rate_dfx.cpp", 
@@ -394,6 +399,7 @@ ohos_shared_library("librender_service") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     # composer file end
+    "$graphic_2d_root/rosen/modules/render_service_base/include"
   ]
 
   public_deps += [

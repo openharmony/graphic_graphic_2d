@@ -97,7 +97,8 @@ public:
     virtual ErrCode FreezeScreen(NodeId id, bool isFreeze) = 0;
 
     virtual void TakeUICaptureInRange(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-        const RSSurfaceCaptureConfig& captureConfig) = 0;
+        const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual ErrCode SetHwcNodeBounds(
         int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
