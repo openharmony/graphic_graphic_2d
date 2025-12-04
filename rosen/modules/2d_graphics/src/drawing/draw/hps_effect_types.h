@@ -26,6 +26,7 @@ namespace OHOS {
 namespace Rosen {
 namespace Drawing {
 static constexpr float ZERO_THRESHOLD = 1e-6;
+static constexpr int MATRIX_3X3_SIZE = 9; // equals to Drawing::Matrix::MATRIX_SIZE
 
 /**
  * @enum HpsEffect
@@ -39,7 +40,16 @@ typedef enum HpsEffect {
     LINEAR_GRADIENT_BLUR,
     MESA,
     STATISTICS,
+    EDGE_LIGHT,
 } HpsEffect;
+/**
+ * @enum HpsEffect
+ * @brief Enumeration of different hps processing effects.
+ */
+typedef enum HpsMask {
+    PIXEL_MAP_MASK,
+    RADIAL_GRADIENT_MASK,
+} HpsMask;
 /**
  * @enum HpsImageStatistics
  * @brief Enumeration of different hps Image Statistics types.
@@ -55,10 +65,23 @@ class HpsEffectParameter {
 public:
     Rect src;
     Rect dst;
+    std::array<float, MATRIX_3X3_SIZE> transformMatrix = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };  // Identity matrix
     HpsEffectParameter(const Rect& s, const Rect& d)
         : src(s), dst(d) {}
     virtual ~HpsEffectParameter() = default;
     virtual HpsEffect GetEffectType() = 0;
+};
+/**
+ * @class HpsMaskParameter
+ * @brief Base class for all hps mask arguments.
+ */
+class HpsMaskParameter {
+public:
+    bool isSDFShaderMask = false;
+    HpsMaskParameter(bool isSDFShaderMask) : isSDFShaderMask(isSDFShaderMask)
+    {}
+    virtual ~HpsMaskParameter() = default;
+    virtual HpsMask GetMaskType() = 0;
 };
 /**
  * @class HpsBlurEffectParameter
@@ -183,7 +206,6 @@ public:
  */
 class HpsGradientBlurParameter : public HpsEffectParameter {
 public:
-    static constexpr int MATRIX_3X3_SIZE = 9;
     scalar blurRadius { ZERO_THRESHOLD };
     std::shared_ptr<std::vector<float>> fractionStops;
     uint32_t fractionStopsCount { 0 };
@@ -214,6 +236,75 @@ public:
     HpsEffect GetEffectType() override
     {
         return HpsEffect::STATISTICS;
+    }
+};
+/**
+ * @class HpsEdgeLightParameter
+ * @brief Arguments for the edgeLight effect.
+ */
+class HpsEdgeLightParameter : public HpsEffectParameter {
+public:
+    struct EdgeSobelParameter {
+        float edgeThreshold { ZERO_THRESHOLD };
+        float edgeIntensity { ZERO_THRESHOLD };
+        float edgeSoftThreshold { ZERO_THRESHOLD };
+        std::vector<float> edgeDetectColor;
+    };
+    float alpha { ZERO_THRESHOLD };
+    bool bloom { false };
+    bool useRawColor { false };
+    std::vector<float> color;
+    std::shared_ptr<HpsMaskParameter> mask { nullptr };
+    EdgeSobelParameter edgeSobelParams;
+    uint32_t updatedType = 0;
+    HpsEdgeLightParameter(const Rect& s, const Rect& d, float alpha, bool bloom, bool useRawColor,
+        const std::vector<float>& color, std::shared_ptr<HpsMaskParameter> mask,
+        const EdgeSobelParameter& edgeSobelParams, uint32_t updatedType)
+        : HpsEffectParameter(s, d), alpha(alpha), bloom(bloom), useRawColor(useRawColor), color(color), mask(mask),
+        edgeSobelParams(edgeSobelParams), updatedType(updatedType) {}
+    HpsEffect GetEffectType() override
+    {
+        return HpsEffect::EDGE_LIGHT;
+    }
+};
+/**
+ * @class HpsPixelMapMaskParameter
+ * @brief Arguments for the pixelMap mask.
+ */
+class HpsPixelMapMaskParameter : public HpsMaskParameter {
+public:
+    Rect visibleRegion;
+    std::array<float, MATRIX_3X3_SIZE> transformMatrix;
+    std::vector<float> fillColor;
+    std::shared_ptr<Drawing::Image> image;
+    HpsPixelMapMaskParameter(std::shared_ptr<Drawing::Image> image, const Rect& visibleRegion,
+        std::array<float, MATRIX_3X3_SIZE>& transformMatrix, const std::vector<float>& fillColor)
+        : HpsMaskParameter(false), visibleRegion(visibleRegion), transformMatrix(transformMatrix),
+          fillColor(fillColor), image(image) {}
+    HpsMask GetMaskType() override
+    {
+        return HpsMask::PIXEL_MAP_MASK;
+    }
+};
+/**
+ * @class HpsRadialGradientMaskParameter
+ * @brief Arguments for the radialGradient mask.
+ */
+class HpsRadialGradientMaskParameter : public HpsMaskParameter {
+public:
+    float centerX = 0.f;
+    float centerY = 0.f;
+    float radiusX = 0.f;
+    float radiusY = 0.f;
+    std::vector<float> colors;
+    std::vector<float> positions;
+    HpsRadialGradientMaskParameter(float centerX, float centerY, float radiusX, float radiusY,
+        const std::vector<float>& colors, const std::vector<float>& positions)
+        : HpsMaskParameter(false), centerX(centerX), centerY(centerY), radiusX(radiusX),
+          radiusY(radiusY), colors(colors), positions(positions) {}
+    HpsMask GetMaskType() override
+    {
+        return HpsMask::RADIAL_GRADIENT_MASK;
     }
 };
 }

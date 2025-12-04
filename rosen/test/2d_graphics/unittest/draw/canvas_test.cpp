@@ -601,6 +601,27 @@ HWTEST_F(CanvasTest, HpsEffectParameterGetTypeTest001, TestSize.Level1)
     auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
         Drawing::HpsStatisticsType::MEAN);
     EXPECT_EQ(hpsMesaArgs->GetEffectType(), Drawing::HpsEffect::STATISTICS);
+    // PIXEL_MAP_MASK
+    std::vector<float> colors2 = { 0, 0, 0, 0 };
+    auto sharedImage = std::make_shared<Drawing::Image>(image);
+    std::array<float, 9> transformMatrix = {0.312f, 0.0f, 0.344f, 0.0f, 0.691f, 0.154f, 0.0f, 0.0f, 1.0f};
+    auto hpsPixelMaskArgs = std::make_shared<Drawing::HpsPixelMapMaskParameter>(sharedImage, dstRect, transformMatrix,
+        colors2);
+    EXPECT_EQ(hpsPixelMaskArgs->GetMaskType(), Drawing::HpsMask::PIXEL_MAP_MASK);
+    // RADIAL_GRADIENT_MASK
+    std::vector<float> edgeColor = { 0.63922, 0.81961, 1.00, 0 };
+    std::vector<float> colors = { 1.00f, 1.00f, 0.00f };
+    std::vector<float> positions = { 0.00f, 0.91142f, 1.00f };
+    auto hpsRadialMaskArgs = std::make_shared<Drawing::HpsRadialGradientMaskParameter>(1.00,
+        0.33934, 0.92116, 0.92116, colors, positions);
+    EXPECT_EQ(hpsRadialMaskArgs->GetMaskType(), Drawing::HpsMask::RADIAL_GRADIENT_MASK);
+    // EDGE_LIGHT
+    std::vector<float> edgeDetectColor = { 0.22, 0.707, 0.875, 0.000 };
+    Drawing::HpsEdgeLightParameter::EdgeSobelParameter edgeSobelParams = { 0.1, 0.2, 0.3, edgeDetectColor };
+    auto hpsRadialArgs = std::make_shared<Drawing::HpsEdgeLightParameter>(srcRect, dstRect,
+        1, true, true, edgeColor, std::static_pointer_cast<Drawing::HpsMaskParameter>(hpsRadialMaskArgs),
+        edgeSobelParams, 1);
+    EXPECT_EQ(hpsRadialArgs->GetEffectType(), Drawing::HpsEffect::EDGE_LIGHT);
 }
 
 /**
