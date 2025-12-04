@@ -17,6 +17,7 @@
 #define FONT_METADATA_H
 
 #include <string>
+#include <unordered_map>
 
 #include <hb-ot.h>
 
