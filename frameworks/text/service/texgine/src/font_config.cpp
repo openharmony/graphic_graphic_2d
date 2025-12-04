@@ -259,7 +259,7 @@ void FontConfigJson::AnalyseFont(const cJSON* root)
             fontJson.weight = item->valueint;
         } else if (strcmp(item->string, "lang") == 0  && cJSON_IsString(item)) {
             fontJson.lang = item->valuestring;
-        } else if (strcmp(item->string, "path") == 0 && cJSON_IsString(item)) {
+        } else if (strcmp(item->string, "file") == 0 && cJSON_IsString(item)) {
             fontJson.path = item->valuestring;
         }
         item = item->next;
