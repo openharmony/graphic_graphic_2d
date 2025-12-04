@@ -45,7 +45,10 @@ group("unittest") {
     deps += [ ":RSRDOTest" ]
   }
   if (graphic_2d_feature_enable_rspipeline) {
-    deps += [ ":RSUifirstManagerTest" ]
+    deps += [
+      ":RSUifirstManagerTest",
+      ":RSUifirstManagerTest2",
+    ]
   }
   if (rs_enable_parallel_render && rs_enable_gpu) {
     deps += [
@@ -389,6 +392,24 @@ ohos_unittest("RSUifirstManagerTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+}
+
+## Build RSUifirstManagerTest2
+ohos_unittest("RSUifirstManagerTest2") {
+  module_out_path = module_output_path
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "uifirst/rs_uifirst_manager_test2.cpp",
+  ]
+  deps = [ ":rs_test_common" ]
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
   ]
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
