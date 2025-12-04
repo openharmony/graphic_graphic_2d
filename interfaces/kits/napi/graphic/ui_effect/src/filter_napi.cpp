@@ -1379,13 +1379,15 @@ bool FilterNapi::BuildFrostedGlassPara(napi_env env, napi_value* argv,
 
 napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 {
-    constexpr size_t requireArgc = NUM_27;
+    constexpr size_t requireArgc = NUM_28;
  
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argv[requireArgc] = {0};
     size_t realArgc = requireArgc;
  
+    FILTER_LOG_E("FilterNapi::SetFrostedGlasss tangrui");
+
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass parsing input fail"));
@@ -1398,7 +1400,10 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass napi_unwrap fail"));
- 
+
+    bool innerShadowEnabled = GetSpecialBoolValue(env, argv[NUM_27], true);
+    para->SetInnerShadowEnabled(innerShadowEnabled);
+
     filterObj->AddPara(para);
     return thisVar;
 }

@@ -300,6 +300,16 @@ public:
         return cornerRadius_;
     }
 
+    void SetInnerShadowEnabled(bool innerShadowEnabled)
+    {
+        innerShadowEnabled_ = innerShadowEnabled;
+    }
+
+    bool GetInnerShadowEnabled() const
+    {
+        return innerShadowEnabled_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -333,6 +343,7 @@ private:
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
     float cornerRadius_ = 0.0f;
+    bool innerShadowEnabled_ = true;
 };
 } // namespace Rosen
 } // namespace OHOS
