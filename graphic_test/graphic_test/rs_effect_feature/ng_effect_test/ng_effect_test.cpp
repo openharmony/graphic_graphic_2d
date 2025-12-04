@@ -159,6 +159,19 @@ enum class TestDataGroupParamsType {
     INVALID_DATA_MAX,
     COUNT
 };
+
+constexpr uint32_t NUM_0 = 0;
+constexpr uint32_t NUM_1 = 1;
+constexpr uint32_t NUM_2 = 2;
+constexpr uint32_t NUM_3 = 3;
+constexpr uint32_t NUM_4 = 4;
+constexpr uint32_t NUM_5 = 5;
+constexpr uint32_t NUM_6 = 6;
+constexpr uint32_t NUM_7 = 7;
+constexpr uint32_t NUM_8 = 8;
+constexpr uint32_t NUM_9 = 9;
+constexpr uint32_t NUM_10 = 10;
+constexpr uint32_t NUM_11 = 11;
 }
 
 class NGEffectTest : public RSGraphicTest {
@@ -177,53 +190,53 @@ private:
 void SetDoubleRippleMaskParams(const std::shared_ptr<RSNGDoubleRippleMask>& mask, int index)
 {
     mask->Setter<DoubleRippleMaskCenter1Tag>(
-        Vector2f{ doubleRippleMaskParams[index][0], doubleRippleMaskParams[index][1] });
+        Vector2f{ doubleRippleMaskParams[index][NUM_0], doubleRippleMaskParams[index][NUM_1] });
     mask->Setter<DoubleRippleMaskCenter2Tag>(
-        Vector2f{ doubleRippleMaskParams[index][2], doubleRippleMaskParams[index][3] });
-    mask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[index][4]);
-    mask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[index][5]);
-    mask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[index][6]);
+        Vector2f{ doubleRippleMaskParams[index][NUM_2], doubleRippleMaskParams[index][NUM_3] });
+    mask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[index][NUM_4]);
+    mask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[index][NUM_5]);
+    mask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[index][NUM_6]);
 }
 
 void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowlight>& flowlight, int index)
 {
     flowlight->Setter<RoundedRectFlowlightStartEndPositionTag>(
-        std::get<Vector2f>(roundedRectFlowlightParams[index][0]));
+        std::get<Vector2f>(roundedRectFlowlightParams[index][NUM_0]));
     flowlight->Setter<RoundedRectFlowlightWaveLengthTag>(
-        std::get<float>(roundedRectFlowlightParams[index][1]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_1]));
     flowlight->Setter<RoundedRectFlowlightWaveTopTag>(
-        std::get<float>(roundedRectFlowlightParams[index][2]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_2]));
     flowlight->Setter<RoundedRectFlowlightCornerRadiusTag>(
-        std::get<float>(roundedRectFlowlightParams[index][3]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_3]));
     flowlight->Setter<RoundedRectFlowlightBrightnessTag>(
-        std::get<float>(roundedRectFlowlightParams[index][4]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_4]));
     flowlight->Setter<RoundedRectFlowlightScaleTag>(
-        std::get<float>(roundedRectFlowlightParams[index][5]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_5]));
     flowlight->Setter<RoundedRectFlowlightSharpingTag>(
-        std::get<float>(roundedRectFlowlightParams[index][6]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_6]));
     flowlight->Setter<RoundedRectFlowlightFeatheringTag>(
-        std::get<float>(roundedRectFlowlightParams[index][7]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_7]));
     flowlight->Setter<RoundedRectFlowlightFeatheringBezierControlPointsTag>(
-        std::get<Vector4f>(roundedRectFlowlightParams[index][8]));
+        std::get<Vector4f>(roundedRectFlowlightParams[index][NUM_8]));
     flowlight->Setter<RoundedRectFlowlightGradientBezierControlPointsTag>(
-        std::get<Vector4f>(roundedRectFlowlightParams[index][9]));
+        std::get<Vector4f>(roundedRectFlowlightParams[index][NUM_9]));
     flowlight->Setter<RoundedRectFlowlightColorTag>(
-        std::get<Vector4f>(roundedRectFlowlightParams[index][10]));
+        std::get<Vector4f>(roundedRectFlowlightParams[index][NUM_10]));
     flowlight->Setter<RoundedRectFlowlightProgressTag>(
-        std::get<float>(roundedRectFlowlightParams[index][11]));
+        std::get<float>(roundedRectFlowlightParams[index][NUM_11]));
 }
 
 void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowlight, int index)
 {
-    flowlight->Setter<CircleFlowlightColor0Tag>(circleFlowlightParams[index][0]);
-    flowlight->Setter<CircleFlowlightColor1Tag>(circleFlowlightParams[index][1]);
-    flowlight->Setter<CircleFlowlightColor2Tag>(circleFlowlightParams[index][2]);
-    flowlight->Setter<CircleFlowlightColor3Tag>(circleFlowlightParams[index][3]);
-    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(circleFlowlightParams[index][4]);
-    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(circleFlowlightParams[index][5]);
-    flowlight->Setter<CircleFlowlightRotationSeedTag>(circleFlowlightParams[index][6]);
-    flowlight->Setter<CircleFlowlightGradientXTag>(circleFlowlightParams[index][7]);
-    flowlight->Setter<CircleFlowlightGradientYTag>(circleFlowlightParams[index][8]);
+    flowlight->Setter<CircleFlowlightColor0Tag>(circleFlowlightParams[index][NUM_0]);
+    flowlight->Setter<CircleFlowlightColor1Tag>(circleFlowlightParams[index][NUM_1]);
+    flowlight->Setter<CircleFlowlightColor2Tag>(circleFlowlightParams[index][NUM_2]);
+    flowlight->Setter<CircleFlowlightColor3Tag>(circleFlowlightParams[index][NUM_3]);
+    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(circleFlowlightParams[index][NUM_4]);
+    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(circleFlowlightParams[index][NUM_5]);
+    flowlight->Setter<CircleFlowlightRotationSeedTag>(circleFlowlightParams[index][NUM_6]);
+    flowlight->Setter<CircleFlowlightGradientXTag>(circleFlowlightParams[index][NUM_7]);
+    flowlight->Setter<CircleFlowlightGradientYTag>(circleFlowlightParams[index][NUM_8]);
     flowlight->Setter<CircleFlowlightProgressTag>(0.0f);
 }
 
