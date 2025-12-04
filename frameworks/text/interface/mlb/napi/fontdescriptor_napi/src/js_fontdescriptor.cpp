@@ -96,6 +96,7 @@ napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("getFontDescriptorsFromPath", JsFontDescriptor::GetFontDescriptorsFromPath),
         DECLARE_NAPI_STATIC_FUNCTION("getFontUnicodeSet", JsFontDescriptor::GetFontUnicodeSet),
         DECLARE_NAPI_STATIC_FUNCTION("getFontCount", JsFontDescriptor::GetFontCount),
+        DECLARE_NAPI_STATIC_FUNCTION("getFontPathsByType", JsFontDescriptor::GetFontPathsByType),
     };
     
     NAPI_CHECK_AND_THROW_ERROR(
@@ -460,5 +461,27 @@ napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_call
     };
 
     return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorByFullName", executor, complete).result;
+}
+
+napi_value JsFontDescriptor::GetFontPathsByType(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = { nullptr };
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_ONE ||
+        argv[0] == nullptr) {
+        TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
+        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid argument");
+    }
+    TextEngine::FontParser::SystemFontType fontType;
+
+    if (!ConvertFromJsValue(env, argv[0], fontType)) {
+        TEXT_LOGE("Failed to convert argument to SystemFontType");
+        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid system font type");
+    }
+
+    std::unordered_set<std::string> fontPaths;
+    FontDescriptorMgrInstance.GetFontPathsByType(fontType, fontPaths);
+
+    return CreateFontList(env, fontPaths);
 }
 }
