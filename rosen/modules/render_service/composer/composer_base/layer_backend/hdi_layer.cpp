@@ -19,7 +19,8 @@
 #include <securec.h>
 #include "common/rs_optional_trace.h"
 #include "hdi_log.h"
-#include "rs_surface_layer.h"
+#include "rs_render_surface_layer.h"
+#include "rs_render_surface_rcd_layer.h"
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -28,7 +29,7 @@ constexpr float THIRTY_THREE_INTERVAL_IN_MS = 33.f;
 constexpr float SIXTEEN_INTERVAL_IN_MS = 16.67f;
 constexpr float FPS_TO_MS = 1000000.f;
 constexpr size_t MATRIX_SIZE = 9;
-const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+static const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
 const std::string GENERIC_METADATA_KEY_SDR_NIT = "SDRBrightnessNit";
 const std::string GENERIC_METADATA_KEY_SDR_RATIO = "SDRBrightnessRatio";
 const std::string GENERIC_METADATA_KEY_BRIGHTNESS_NIT = "BrightnessNit";
@@ -130,18 +131,12 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
         return GRAPHIC_DISPLAY_NULL_PTR;
     }
 
-    sptr<IConsumerSurface> surface = rsLayer->GetSurface();
-    if (surface == nullptr) {
-        if (rsLayer->GetCompositionType() ==
-            GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
-            bufferCacheCountMax_ = 0;
-        } else {
-            HLOGE("Create layer failed because the consumer surface is nullptr.");
-            return GRAPHIC_DISPLAY_NULL_PTR;
-        }
+    if (rsLayer->GetCompositionType() ==
+        GraphicCompositionType::GRAPHIC_COMPOSITION_SOLID_COLOR) {
+        bufferCacheCountMax_ = 0;
     } else {
         // The number of buffers cycle in the surface is larger than the queue size.
-        surface->GetCycleBuffersNumber(bufferCacheCountMax_);
+        bufferCacheCountMax_ = rsLayer->GetCycleBuffersNum();
     }
 
     uint32_t layerId = INT_MAX;
@@ -776,7 +771,8 @@ void HdiLayer::CheckRet(int32_t ret, const char* func)
 void HdiLayer::SavePrevRSLayer()
 {
     if (prevRSLayer_ == nullptr) {
-        prevRSLayer_ = std::make_shared<RSSurfaceLayer>();
+        prevRSLayer_ = rsLayer_->IsScreenRCDLayer() ? std::make_shared<RSRenderSurfaceRCDLayer>() :
+            std::make_shared<RSRenderSurfaceLayer>();
     }
     prevRSLayer_->CopyLayerInfo(rsLayer_);
 }

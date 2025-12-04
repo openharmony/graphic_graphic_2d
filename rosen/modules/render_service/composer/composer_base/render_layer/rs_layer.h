@@ -82,6 +82,11 @@ static const std::map<GraphicBlendType, std::string> BlendTypeStrs = {
 class RSB_EXPORT RSLayer : public std::enable_shared_from_this<RSLayer> {
 public:
     virtual ~RSLayer() = default;
+    virtual RSLayerId GetRSLayerId() const = 0;
+    virtual void SetRSLayerId(RSLayerId rsLayerId) = 0;
+    virtual std::shared_ptr<RSLayerContext> GetRSLayerContext() const = 0;
+    virtual void SetRSLayerContext(std::shared_ptr<RSLayerContext> rsLayerContext) = 0;
+    virtual void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) = 0;
 
     virtual void SetAlpha(const GraphicLayerAlpha& alpha) = 0;
     virtual const GraphicLayerAlpha& GetAlpha() const = 0;
@@ -171,6 +176,8 @@ public:
 
     virtual void SetSurface(const sptr<IConsumerSurface>& surface) = 0;
     virtual sptr<IConsumerSurface> GetSurface() const = 0;
+    virtual void SetSurfaceUniqueId(uint64_t uniqueId) = 0;
+    virtual uint64_t GetSurfaceUniqueId() const = 0;
     virtual void SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence) = 0;
     virtual void SetBuffer(const sptr<SurfaceBuffer>& sbuffer) = 0;
     virtual sptr<SurfaceBuffer> GetBuffer() const = 0;
@@ -178,6 +185,15 @@ public:
     virtual sptr<SurfaceBuffer> GetPreBuffer() const = 0;
     virtual void SetAcquireFence(const sptr<SyncFence>& acquireFence) = 0;
     virtual sptr<SyncFence> GetAcquireFence() const = 0;
+    virtual void SetCycleBuffersNum(uint32_t cycleBuffersNum) = 0;
+    virtual uint32_t GetCycleBuffersNum() const = 0;
+    virtual void SetSurfaceName(std::string surfaceName) = 0;
+    virtual void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>) = 0;
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) const = 0;
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const = 0;
+    virtual std::string GetSurfaceName() const = 0;
+    virtual void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) = 0;
+    virtual GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const = 0;
     virtual void SetUseDeviceOffline(bool useOffline) = 0;
     virtual bool GetUseDeviceOffline() const = 0;
     virtual void SetIgnoreAlpha(bool ignoreAlpha) = 0;
@@ -188,6 +204,12 @@ public:
     virtual void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) = 0;
     virtual void Dump(std::string& result) const = 0;
     virtual void DumpCurrentFrameLayer() const = 0;
+    virtual bool IsScreenRCDLayer() const
+    {
+        return false;
+    };
+    virtual bool GetIsNeedComposition() const = 0;
+    virtual void SetIsNeedComposition(bool isNeedComposition) = 0;
 };
 
 using RSLayerPtr = std::shared_ptr<RSLayer>;

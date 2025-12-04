@@ -47,7 +47,7 @@ public:
 
     /* only used for mock tests */
     RosenError SetHdiBackendDevice(HdiDevice* device);
-    void StartSample(const OutputPtr &output);
+    void StartSample(const OutputPtr& output);
     /* set a temporary period used only for VSyncSampler::GetHardwarePeriod interface */
     void SetPendingMode(const OutputPtr& output, int64_t period, int64_t timestamp);
     void SetVsyncSamplerEnabled(const OutputPtr& output, bool enabled);
@@ -63,7 +63,7 @@ private:
     HdiBackend(HdiBackend&& rhs) = delete;
     HdiBackend& operator=(HdiBackend&& rhs) = delete;
 
-    HdiDevice *device_ = nullptr;
+    HdiDevice* device_ = nullptr;
     void* onHotPlugCbData_ = nullptr;
     void* onRefreshCbData_ = nullptr;
     OnScreenHotplugFunc onScreenHotplugCb_ = nullptr;

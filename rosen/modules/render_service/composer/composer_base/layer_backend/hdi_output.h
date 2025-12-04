@@ -23,10 +23,11 @@
 #include <unordered_map>
 
 #include "graphic_error.h"
-#include "surface_type.h"
 #include "hdi_layer.h"
 #include "hdi_framebuffer_surface.h"
 #include "hdi_screen.h"
+#include "irs_composer_to_render_connection.h"
+#include "surface_type.h"
 #include "vsync_sampler.h"
 
 namespace OHOS {
@@ -75,7 +76,6 @@ public:
     sptr<Surface> GetFrameBufferSurface();
     std::unique_ptr<FrameBufferEntry> GetFramebuffer();
     void Dump(std::string& result) const;
-    void DumpCurrentFrameLayers() const;
     void DumpFps(std::string& result, const std::string& arg) const;
     void DumpHitchs(std::string& result, const std::string& arg) const;
     void ClearFpsDump(std::string& result, const std::string& arg);
@@ -94,7 +94,7 @@ public:
     std::unordered_map<std::shared_ptr<RSLayer>, sptr<SyncFence>> GetLayersReleaseFence();
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
-    void ReleaseLayers(sptr<SyncFence>& releaseFence);
+    void ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo);
     int32_t GetBufferCacheSize();
     void SetVsyncSamplerEnabled(bool enabled);
     bool GetVsyncSamplerEnabled();
@@ -108,13 +108,12 @@ public:
     }
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
 
-    void SetActiveRectSwitchStatus(bool flag);
-    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& layerInfo,
-        const sptr<SyncFence>& previousReleaseFence);
+    void SetActiveRectSwitchStatus(bool flag, const GraphicIRect& activeRect);
 
     void SetMaskLayer(const std::shared_ptr<HdiLayer>& maskLayer) { maskLayer_ = maskLayer; }
     RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
     void Repaint();
+    void SetScreenBacklight(uint32_t level);
     void SetScreenPowerOnChanged(bool flag);
     int32_t GetCurrentFramePresentFd() const
     {
@@ -171,12 +170,11 @@ private:
 
     std::shared_ptr<HdiLayer> maskLayer_ = nullptr;
 
-    int32_t CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer> &rsLayer);
+    int32_t CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<RSLayer>& rsLayer);
     void DeletePrevLayersLocked();
     void ResetLayerStatusLocked();
     void ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfos) const;
     void UpdatePrevRSLayerLocked();
-    void ReleaseSurfaceBuffer(sptr<SyncFence>& releaseFence);
     void RecordCompositionTime(int64_t timeStamp);
     inline bool CheckFbSurface();
     bool CheckAndUpdateClientBufferCahce(sptr<SurfaceBuffer> buffer, uint32_t& index);

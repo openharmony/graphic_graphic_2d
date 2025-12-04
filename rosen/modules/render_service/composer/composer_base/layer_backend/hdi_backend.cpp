@@ -273,7 +273,7 @@ RosenError HdiBackend::RegHwcEventCallback(RSHwcEventCallback func, void* data)
     if (retCode != ROSEN_ERROR_OK) {
         return retCode;
     }
- 
+
     int32_t ret = device_->RegHwcEventCallback(func, data);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("RegHwcEventCallback failed, ret is %{public}d", ret);

@@ -33,5 +33,56 @@ void RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransacti
     }
     rsRenderComposerAgent_->ComposerProcess(std::move(transactionData));
 }
+
+void RSRenderToComposerConnection::ClearFrameBuffers()
+{
+    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearFrameBuffers screenId:" PRIu64, screenId_);
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::ClearFrameBuffers param illegal");
+        return;
+    }
+    rsRenderComposerAgent_->ClearFrameBuffers();
+}
+
+void RSRenderToComposerConnection::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
+{
+    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::CleanLayerBufferBySurfaceId screenId:" PRIu64, screenId_);
+    if (surfaceId == 0 || rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::CleanLayerBufferBySurfaceId param illegal");
+        return;
+    }
+    rsRenderComposerAgent_->CleanLayerBufferBySurfaceId(surfaceId);
+}
+
+void RSRenderToComposerConnection::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
+{
+    RS_TRACE_NAME_FMT("RSComposerConnection::OnScreenVBlankIdleCallback screenId:" PRIu64, screenId);
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::OnScreenVBlankIdleCallback param nullptr");
+        return;
+    }
+    rsRenderComposerAgent_->OnScreenVBlankIdleCallback(screenId, timestamp);
+}
+
+void RSRenderToComposerConnection::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+{
+    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::ClearRedrawGPUCompositionCache screenId:%" PRIu64"",
+        screenId_);
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::ClearRedrawGPUCompositionCache param illegal");
+        return;
+    }
+    rsRenderComposerAgent_->ClearRedrawGPUCompositionCache(bufferIds);
+}
+
+void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
+{
+    RS_TRACE_NAME_FMT("RSComposerConnection::SetScreenBacklight level:%" PRIu32"", level);
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::SetScreenBacklight param illegal");
+        return;
+    }
+    rsRenderComposerAgent_->SetScreenBacklight(level);
+}
 } // namespace Rosen
 } // namespace OHOS

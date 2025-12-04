@@ -15,11 +15,12 @@
 
 #include "rs_layer_transaction_handler.h"
 #include "platform/common/rs_log.h"
+#include "rs_render_to_composer_connection_proxy.h"
 #include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
-void RSLayerTransactionHandler::SetRSComposerConnection(const sptr<RSRenderToComposerConnection>& rsComposerConnection)
+void RSLayerTransactionHandler::SetRSComposerConnectionProxy(const sptr<IRSRenderToComposerConnection>& rsComposerConnection)
 {
     if (rsComposerConnection == nullptr) {
         RS_LOGE("SetRsComposerConnectionProxy connection is nullptr");
@@ -28,33 +29,45 @@ void RSLayerTransactionHandler::SetRSComposerConnection(const sptr<RSRenderToCom
     rsComposerConnection_ = rsComposerConnection;
 }
 
-void RSLayerTransactionHandler::CommitRSLayerTransaction()
+void RSLayerTransactionHandler::AddRsLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId)
 {
-    if (rsComposerConnection_ == nullptr) {
-        RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction param is nullptr");
+    if (rsLayerTransactionData_ == nullptr || layerParcel == nullptr) {
+        RS_LOGE("RSLayerTransactionHandler::AddRsLayerParcel param is nullptr");
         return;
     }
-    auto rsLayerTransactionData = std::make_unique<RSLayerTransactionData>();
-    rsLayerTransactionData->TransferData(rsLayerTransactionData_);
-    rsComposerConnection_->CommitLayers(rsLayerTransactionData);
+    rsLayerTransactionData_->AddRsLayerParcel(layerParcel, layerId);
 }
 
-void RSLayerTransactionHandler::AddLayer(const std::shared_ptr<RSLayer>& rsLayer)
+void RSLayerTransactionHandler::CheckScreenInfoIsChanged(ScreenInfo& screenInfo)
 {
-    if (rsLayerTransactionData_ == nullptr) {
-        RS_LOGE("RSLayerTransactionHandler::AddLayer param is nullptr");
-        return;
+    if (memcmp(&screenInfo_, &screenInfo, sizeof(ScreenInfo)) != 0) {
+        rsLayerTransactionData_->SetIsScreenInfoChanged(true);
+        rsLayerTransactionData_->SetScreenInfo(screenInfo);
+        screenInfo_ = screenInfo;
     }
-    rsLayerTransactionData_->AddLayer(rsLayer);
 }
 
-void RSLayerTransactionHandler::ClearAllLayers()
+void RSLayerTransactionHandler::CommitRsLayerTransaction(CommitLayerInfo& commitLayerInfo, uint64_t timestamp, const std::string& abilityName)
 {
-    if (rsLayerTransactionData_ == nullptr) {
-        RS_LOGE("RSLayerTransactionHandler::ClearAllLayers param is nullptr");
+    timestamp_ = std::max(timestamp_, timestamp);
+    if (rsComposerConnection_ == nullptr || rsLayerTransactionData_->IsEmpty()) {
+        RS_LOGE("RSLayerTransactionHandler::CommitRsLayerTransaction param is nullptr");
         return;
     }
-    rsLayerTransactionData_->ClearAllLayers();
+    rsLayerTransactionData_->timestamp_ = timestamp;
+    CheckScreenInfoIsChanged(commitLayerInfo.screenInfo);
+    rsLayerTransactionData_->SetPipelineParam(commitLayerInfo.pipelineParam);
+    rsComposerConnection_->CommitLayers(rsLayerTransactionData_);
+    rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
+}
+
+bool RSLayerTransactionHandler::IsEmpty() const
+{
+    bool isEmpty = true;
+    if (rsLayerTransactionData_) {
+        isEmpty &= rsLayerTransactionData_->IsEmpty();
+    }
+    return isEmpty;
 }
 } // namespace Rosen
 } // namespace OHOS

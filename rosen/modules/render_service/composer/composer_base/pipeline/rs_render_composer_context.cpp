@@ -19,19 +19,50 @@ namespace Rosen {
 std::vector<std::shared_ptr<RSLayer>> RSRenderComposerContext::GetRSLayersVec()
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    return std::move(layersVec_);
+    std::vector<std::shared_ptr<RSLayer>> layersVector;
+    for (const auto& pair : layersMap_) {
+        auto rsLayer = pair.second;
+        if (!rsLayer->GetIsNeedComposition()) {
+            RS_LOGD("GetRSLayersVec: layer %{public}s did not compose", rsLayer->GetSurfaceName().c_str());
+            continue;
+        }
+        layersVector.push_back(pair.second);
+    }
+    return layersVector;
 }
-
-void RSRenderComposerContext::SetRSLayersVec(std::vector<std::shared_ptr<RSLayer>>&& layersVec)
+std::shared_ptr<RSLayer> RSRenderComposerContext::GetRSRenderLayer(RSLayerId rsLayerId)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    layersVec_ = std::move(layersVec);
+    auto iter = layersMap_.find(rsLayerId);
+    return (iter != layersMap_.end()) ? iter->second : nullptr;
 }
 
-void RSRenderComposerContext::ClearAllRSLayers()
+void RSRenderComposerContext::AddRSRenderLayer(RSLayerId rsLayerId, std::shared_ptr<RSLayer> rsLayer)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    layersVec_.clear();
+    layersMap_[rsLayerId] = rsLayer;
+}
+
+void RSRenderComposerContext::RemoveRSRenderLayer(RSLayerId rsLayerId)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto iter = layersMap_.find(rsLayerId);
+    if (iter == layersMap_.end()) {
+        RS_LOGW("RemoveRSRenderLayer: layerId=%{public}" PRIu64 " not found", rsLayerId);
+        return;
+    }
+    auto surfaceName = (iter != layersMap_.end() && iter->second) ? iter->second->GetSurfaceName() : "";
+    RS_TRACE_NAME_FMT("RSRenderComposerContext::RemoveRSRenderLayer layerId: %" PRIu64 ", surfaceName: %s",
+        rsLayerId, surfaceName.c_str());
+    RS_LOGI("RemoveRSRenderLayer: removing layerId=%{public}" PRIu64 ", surfaceName=%{public}s",
+        rsLayerId, surfaceName.c_str());
+    layersMap_.erase(iter);
+}
+
+uint64_t RSRenderComposerContext::GetRSRenderLayerCount()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return layersMap_.size();
 }
 } // namespace Rosen
 } // namespace OHOS
