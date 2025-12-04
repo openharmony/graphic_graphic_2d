@@ -196,7 +196,7 @@ ani_object ProcessStringPath(ani_env* env, ani_object path)
     if (ret != ANI_OK) {
         return AniTextUtils::CreateAniArray(env, 0);
     }
-    if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
+    if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data).success) {
         TEXT_LOGE("Failed to split absolute font path");
         return AniTextUtils::CreateAniArray(env, 0);
     }
@@ -209,7 +209,7 @@ ani_object ProcessResourcePath(ani_env* env, ani_object path)
     std::unique_ptr<uint8_t[]> data;
     size_t dataLen = 0;
     AniResource resource = AniResourceParser::ParseResource(env, path);
-    if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
+    if (!AniResourceParser::ResolveResource(resource, dataLen, data).success) {
         TEXT_LOGE("Failed to resolve resource");
         return AniTextUtils::CreateAniArray(env, 0);
     }

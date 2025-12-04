@@ -29,7 +29,7 @@ public:
     virtual ~RSScreenChangeCallbackProxy() noexcept = default;
 
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason = ScreenChangeReason::DEFAULT) override;
+        ScreenChangeReason reason = ScreenChangeReason::DEFAULT, sptr<IRemoteObject> obj = nullptr) override;
 
 private:
     static inline BrokerDelegator<RSScreenChangeCallbackProxy> delegator_;

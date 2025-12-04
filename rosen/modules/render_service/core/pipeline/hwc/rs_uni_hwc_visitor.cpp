@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "hwc_param.h"
 #include "rs_uni_hwc_visitor.h"
 
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
@@ -905,6 +904,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
             const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
             for (auto& hwcNode : hwcNodes) {
                 auto hwcNodePtr = hwcNode.lock();
+                if (!hwcNodePtr) {
+                    continue;
+                }
                 CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, filterZOrder);
             }
         }
@@ -915,6 +917,9 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
         }
         for (auto hwcNode : hwcNodes) {
             auto hwcNodePtr = hwcNode.lock();
+            if (!hwcNodePtr) {
+                continue;
+            }
             CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, filterZOrder);
         }
     }
@@ -1380,8 +1385,9 @@ void RSUniHwcVisitor::UpdateDstRectByGlobalPosition(RSSurfaceRenderNode& node)
     // dstRect transform to globalposition when node is move
     if (node.GetHwcGlobalPositionEnabled()) {
         auto dstRect = node.GetDstRect();
-        dstRect.left_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetX();
-        dstRect.top_ += uniRenderVisitor_.curScreenNode_->GetScreenOffsetY();
+        const auto& screenProperty = uniRenderVisitor_.curScreenNode_->GetScreenProperty();
+        dstRect.left_ += screenProperty.GetOffsetX();
+        dstRect.top_ += screenProperty.GetOffsetY();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " dstRect:[%s]",
             node.GetName().c_str(), node.GetId(), dstRect.ToString().c_str());
         node.SetDstRect(dstRect);

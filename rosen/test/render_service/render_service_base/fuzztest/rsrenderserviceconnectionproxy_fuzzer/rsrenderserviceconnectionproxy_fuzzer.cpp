@@ -105,6 +105,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     int32_t y = GetData<int32_t>();
     int32_t w = GetData<int32_t>();
     int32_t h = GetData<int32_t>();
+    int32_t sourceType = GetData<int32_t>();
     Rect activeRect {
         .x = x,
         .y = y,
@@ -256,7 +257,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.GetBitmap(id1, bitmap, getBitmapSuccess);
     rsClientToServiceConnectionProxy.GetPixelmap(id1, pixelmap, &rect, drawCmdList, getPixelmapSuccess);
     rsClientToServiceConnectionProxy.RegisterTypeface(id1, typeface);
-    rsClientToServiceConnectionProxy.RegisterTypeface(id1, id2, screenId, resCode);
+    rsClientToServiceConnectionProxy.RegisterTypeface(id1, id2, screenId, resCode, id1);
     rsClientToServiceConnectionProxy.UnRegisterTypeface(id1);
     rsClientToServiceConnectionProxy.SetScreenSkipFrameInterval(id1, width, resCode);
     rsClientToServiceConnectionProxy.RegisterOcclusionChangeCallback(rsIOcclusionChangeCallback, repCode);
@@ -275,7 +276,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsClientToServiceConnectionProxy.NotifyPackageEvent(width, packageList);
     rsClientToServiceConnectionProxy.NotifyRefreshRateEvent(eventInfo);
     rsClientToServiceConnectionProxy.NotifySoftVsyncRateDiscountEvent(1, name, 1);
-    rsClientToServiceConnectionProxy.NotifyTouchEvent(pid1, uid);
+    rsClientToServiceConnectionProxy.NotifyTouchEvent(pid1, uid, sourceType);
     rsClientToServiceConnectionProxy.NotifyDynamicModeEvent(true);
     rsClientToServiceConnectionProxy.NotifyHgmConfigEvent(name, true);
     rsClientToServiceConnectionProxy.NotifyXComponentExpectedFrameRate(name, expectedFrameRate);

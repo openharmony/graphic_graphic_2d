@@ -489,6 +489,58 @@ HWTEST_F(RSRenderParamsTest, SetForceDisableNodeGroupTest, TestSize.Level2)
 }
 
 /**
+ * @tc.name: ExcludedFromNodeGroupTest
+ * @tc.desc: Test ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, ExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->IsExcludedFromNodeGroup());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->ExcludedFromNodeGroup(false);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_FALSE(renderParams->IsExcludedFromNodeGroup());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    renderParams->ExcludedFromNodeGroup(true);
+    EXPECT_TRUE(renderParams->IsExcludedFromNodeGroup());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: SetHasChildExcludedFromNodeGroupTest
+ * @tc.desc: Test SetHasChildExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetHasChildExcludedFromNodeGroup, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->HasChildExcludedFromNodeGroup());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->SetHasChildExcludedFromNodeGroup(false);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_FALSE(renderParams->HasChildExcludedFromNodeGroup());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    renderParams->SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(renderParams->HasChildExcludedFromNodeGroup());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
  * @tc.name: SetDrawingCacheIncludeProperty_001
  * @tc.desc: Test function SetDrawingCacheIncludeProperty
  * @tc.type:FUNC

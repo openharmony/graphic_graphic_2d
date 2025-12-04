@@ -105,6 +105,20 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
     geFilter.SetParam(desc, value);
 }
 
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const Matrix3f& value)
+{
+    Matrix3f matrix = value;
+    const auto matrixData = matrix.GetData();
+    Drawing::Matrix drawingMatrix;
+    drawingMatrix.SetMatrix(matrixData[Matrix3f::Index::SCALE_X], matrixData[Matrix3f::Index::SKEW_X],
+                            matrixData[Matrix3f::Index::TRANS_X], matrixData[Matrix3f::Index::SKEW_Y],
+                            matrixData[Matrix3f::Index::SCALE_Y], matrixData[Matrix3f::Index::TRANS_Y],
+                            matrixData[Matrix3f::Index::PERSP_0], matrixData[Matrix3f::Index::PERSP_1],
+                            matrixData[Matrix3f::Index::PERSP_2]);
+    geFilter.SetParam(desc, drawingMatrix);
+}
+
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, float value)
 {
     hash = hashFunc_(&value, sizeof(value), hash);
@@ -184,6 +198,15 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
 {
     auto imageUniqueID = value->GetUniqueID();
     hash = hashFunc_(&imageUniqueID, sizeof(imageUniqueID), hash);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value)
+{
+    Matrix3f matrix = value;
+    const auto matrixData = matrix.GetData();
+    for (size_t i = 0; i < Matrix3f::MATRIX3_SIZE; i++) {
+        hash = hashFunc_(&matrixData[i], sizeof(float), hash);
+    }
 }
 
 std::shared_ptr<Drawing::GEVisualEffect> RSNGRenderEffectHelper::CreateGEVisualEffect(RSNGEffectType type)

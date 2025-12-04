@@ -40,14 +40,6 @@ public:
     void SetAllMainAndLeashSurfaceDrawables(
         std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& allMainAndLeashSurfaces);
 
-    int32_t GetScreenOffsetX() const
-    {
-        return screenInfo_.offsetX;
-    }
-    int32_t GetScreenOffsetY() const
-    {
-        return screenInfo_.offsetY;
-    }
     uint64_t GetScreenId() const
     {
         return screenInfo_.id;
@@ -57,6 +49,8 @@ public:
     {
         return screenInfo_;
     }
+
+    const RSScreenProperty& GetScreenProperty() const { return screenProperty_; }
 
     bool IsDirtyAlignEnabled() const
     {
@@ -228,6 +222,20 @@ public:
     bool GetHasMirroredScreenChanged() const;
     void SetHasMirroredScreenChanged(bool hasMirroredScreenChanged);
 
+    bool IsVirtualSurfaceChanged() const
+    {
+        return isVirtualSurfaceChanged_;
+    }
+
+    void SetIsEqualVsyncPeriod(bool isEqualVsyncPeriod)
+    {
+        isEqualVsyncPeriod_ = isEqualVsyncPeriod;
+    }
+    bool IsEqualVsyncPeriod() const
+    {
+        return isEqualVsyncPeriod_;
+    }
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -236,6 +244,7 @@ private:
     bool isDirtyAlignEnabled_ = false;
     DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr mirrorSourceDrawable_;
     ScreenInfo screenInfo_;
+    RSScreenProperty screenProperty_;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
     uint32_t childDisplayCount_ = 0;
     bool isMirrorScreen_ = false;
@@ -252,6 +261,8 @@ private:
     bool isAccumulatedDirty_ = false;
     bool isAccumulatedHdrStatusChanged_ = false;
     bool isAccumulatedSpecialLayerStatusChanged_ = false;
+    bool isVirtualSurfaceChanged_ = false;
+    bool isEqualVsyncPeriod_ = true;
     std::unordered_set<NodeId> lastBlackList_ = {};
     bool lastSecExemption_ = false;
     float brightnessRatio_ = 1.0f;

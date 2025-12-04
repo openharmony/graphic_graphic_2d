@@ -36,6 +36,7 @@ public:
     virtual bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) = 0;
     virtual int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) = 0;
     virtual int32_t SetScreenConstraint(uint32_t screenId, uint64_t frameId, uint64_t timestamp, uint32_t type) = 0;
+    virtual int32_t SetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t propertyValue) = 0;
     virtual int32_t GetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t& propertyValue) = 0;
     virtual int32_t GetScreenCapability(uint32_t screenId, GraphicDisplayCapability &info) = 0;
     virtual int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) = 0;
@@ -68,6 +69,7 @@ public:
         bool &needFlush, std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences, bool isValidated) = 0;
     virtual int32_t GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort,
         std::vector<uint8_t>& edidData) = 0;
+    virtual int32_t GetScreenConnectionType(uint32_t screenId, GraphicDisplayConnectionType& outType) = 0;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */

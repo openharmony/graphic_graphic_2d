@@ -29,6 +29,7 @@
 #include "customized/random_rs_image.h"
 #include "customized/random_rs_mask.h"
 #include "customized/random_rs_path.h"
+#include "customized/random_rs_render_modifier_ng.h"
 #include "customized/random_rs_render_particle.h"
 #include "customized/random_rs_render_property_base.h"
 #include "customized/random_rs_shader.h"
@@ -365,6 +366,16 @@ Vector4f RandomDataCustomizedType::GetRandomVector4f()
     return vector;
 }
 
+Vector4<int> RandomDataCustomizedType::GetRandomVector4i()
+{
+    int x = RandomDataBasicType::GetRandomInt();
+    int y = RandomDataBasicType::GetRandomInt();
+    int z = RandomDataBasicType::GetRandomInt();
+    int w = RandomDataBasicType::GetRandomInt();
+    Vector4<int> vector(x, y, z, w);
+    return vector;
+}
+
 Quaternion RandomDataCustomizedType::GetRandomQuaternion()
 {
     float x = RandomDataBasicType::GetRandomFloat();
@@ -456,6 +467,16 @@ std::optional<Drawing::Matrix> RandomDataCustomizedType::GetRandomOptionalDrawin
         return std::nullopt;
     }
     return RandomDrawingMatrix::GetRandomDrawingMatrix();
+}
+
+Rect RandomDataCustomizedType::GetRandomRect()
+{
+    int32_t x = RandomDataBasicType::GetRandomInt32();
+    int32_t y = RandomDataBasicType::GetRandomInt32();
+    int32_t w = RandomDataBasicType::GetRandomInt32();
+    int32_t h = RandomDataBasicType::GetRandomInt32();
+    Rect rect{x, y, w, h};
+    return rect;
 }
 
 AnimationCallbackEvent RandomDataCustomizedType::GetRandomAnimationCallbackEvent()
@@ -551,6 +572,55 @@ FrameRateRange RandomDataCustomizedType::GetRandomFrameRateRange()
     return frameRateRange;
 }
 
+EventInfo RandomDataCustomizedType::GetRandomEventInfo()
+{
+    std::string eventName = RandomDataBasicType::GetRandomString();
+    bool eventStatus = RandomDataBasicType::GetRandomBool();
+    uint32_t minRefreshRate = RandomDataBasicType::GetRandomUint32();
+    uint32_t maxRefreshRate = RandomDataBasicType::GetRandomUint32();
+    std::string description = RandomDataBasicType::GetRandomString();
+    return { eventName, eventStatus, minRefreshRate, maxRefreshRate, description };
+}
+
+std::vector<std::pair<uint64_t, EventInfo>> RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector()
+{
+    std::vector<std::pair<uint64_t, EventInfo>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        uint64_t x = RandomDataBasicType::GetRandomUint64();
+        EventInfo y = GetRandomEventInfo();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
+std::vector<std::pair<std::string, EventInfo>> RandomDataCustomizedType::GetRandomStringAndEventInfoPairVector()
+{
+    std::vector<std::pair<std::string, EventInfo>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        std::string x = RandomDataBasicType::GetRandomString();
+        EventInfo y = GetRandomEventInfo();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
+std::vector<std::pair<std::string, std::string>> RandomDataCustomizedType::GetRandomStringAndStringPairVector()
+{
+    std::vector<std::pair<std::string, std::string>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        std::string x = RandomDataBasicType::GetRandomString();
+        std::string y = RandomDataBasicType::GetRandomString();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
 Drawing::Point RandomDataCustomizedType::GetRandomDrawingPoint()
 {
     return Drawing::Point(RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat());
@@ -590,6 +660,28 @@ std::vector<std::shared_ptr<EmitterUpdater>> RandomDataCustomizedType::GetRandom
 std::shared_ptr<ParticleNoiseFields> RandomDataCustomizedType::GetRandomSmallParticleNoiseFieldsSharedPtr()
 {
     return GetRandomParticleNoiseFieldsSharedPtr("small");
+}
+
+std::shared_ptr<ModifierNG::RSRenderModifier> RandomDataCustomizedType::GetRandomRSRenderModifierSharedPtr()
+{
+    return RandomRSRenderModifier::GetRandomRSRenderModifier();
+}
+
+ModifierNG::RSPropertyType RandomDataCustomizedType::GetRandomRSPropertyType()
+{
+    return RandomRSRenderModifier::GetRandomRSPropertyType();
+}
+
+ModifierNG::RSModifierType RandomDataCustomizedType::GetRandomRSModifierType()
+{
+    return RandomRSRenderModifier::GetRandomRSRenderModifier()->GetType();
+}
+
+DrawNodeType RandomDataCustomizedType::GetRandomDrawNodeType()
+{
+    static constexpr int DRAW_NODE_TYPE_MAX = 3;
+    int randomIndex = RandomEngine::GetRandomIndex(DRAW_NODE_TYPE_MAX);
+    return static_cast<DrawNodeType>(randomIndex);
 }
 } // namespace Rosen
 } // namespace OHOS

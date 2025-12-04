@@ -419,6 +419,17 @@ bool Path::GetMatrix(bool forceClosed, float distance, Matrix* matrix, PathMeasu
     return impl_->GetMatrix(forceClosed, distance, matrix, flag);
 }
 
+bool Path::IsInverseFillType() const
+{
+    return impl_->IsInverseFillType();
+}
+
+void Path::ToggleInverseFillType()
+{
+    uint32_t inverseFillType = static_cast<uint32_t>(GetFillStyle()) ^ 2; // 2 is Inverse bit
+    SetFillStyle(static_cast<PathFillType>(inverseFillType));
+}
+
 std::shared_ptr<Data> Path::Serialize() const
 {
     return impl_->Serialize();

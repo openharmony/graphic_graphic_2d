@@ -71,6 +71,7 @@ private:
     Drawing::Path stagingPath_;
     Color color_;
     Color stagingColor_;
+    std::shared_ptr<Drawing::GEVisualEffectContainer> stagingGeContainer_ = nullptr;
     std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ = nullptr;
 };
 
@@ -231,6 +232,10 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+        EffectRectType type, const RectF& bound) const override;
+    void CalVisibleRect(const Drawing::Matrix& absMatrix, const std::optional<RectI>& clipRect,
+        const RectF& defaultRelativeRect) override;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

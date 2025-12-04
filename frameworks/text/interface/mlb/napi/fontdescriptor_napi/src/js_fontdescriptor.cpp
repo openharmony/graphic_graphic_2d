@@ -156,7 +156,7 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
     auto complete = [env, cb](napi_value& output) {
         output = JsFontDescriptor::CreateFontDescriptorArray(env, cb->matchResult);
     };
-    return NapiAsyncWork::Enqueue(env, cb, "MatchFontDescriptors", executor, complete);
+    return NapiAsyncWork::Enqueue(env, cb, "MatchFontDescriptors", executor, complete).result;
 }
 
 bool JsFontDescriptor::SetProperty(napi_env env, napi_value object, const char* name, napi_value value)
@@ -261,7 +261,7 @@ napi_value JsFontDescriptor::GetSystemFontFullNamesByType(napi_env env, napi_cal
         output = JsFontDescriptor::CreateFontList(env, context->fontList);
     };
 
-    return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete).result;
 }
 
 napi_value JsFontDescriptor::CreateFontList(napi_env env, std::unordered_set<std::string>& fontList)
@@ -311,7 +311,7 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
                 context->fontDescriptersOutput = TextEngine::FontParser::ParserFontDescriptorsFromStream(data, size);
                 return true;
             };
-            TEXT_ERROR_CHECK(ProcessResource(context->info, pathCB, fileCB), return,
+            TEXT_ERROR_CHECK(ProcessResource(context->info, pathCB, fileCB).success, return,
                 "Failed to execute function, path is invalid");
         }
     };
@@ -321,7 +321,7 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
         output = JsFontDescriptor::CreateFontDescriptorArray(env, fontDescripters);
     };
 
-    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorsFromPath", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorsFromPath", executor, complete).result;
 }
 
 napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_callback_info info)
@@ -360,6 +360,6 @@ napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_call
         output = JsFontDescriptor::CreateFontDescriptor(env, context->resultDesc);
     };
 
-    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorByFullName", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorByFullName", executor, complete).result;
 }
 }

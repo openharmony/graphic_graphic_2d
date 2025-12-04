@@ -119,7 +119,7 @@ public:
 #ifndef ROSEN_CROSS_PLATFORM
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
-        ScreenId mirrorId, int32_t flags, std::vector<NodeId> whiteList = {});
+        ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
 
     int32_t SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface);
 
@@ -217,6 +217,8 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
     RSScreenModeInfo GetScreenActiveMode(ScreenId id);
 
     std::vector<RSScreenModeInfo> GetScreenSupportedModes(ScreenId id);
@@ -291,7 +293,7 @@ public:
     bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
-    int32_t RegisterTypeface(uint32_t hash, uint32_t size, int32_t fd);
+    int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index);
     bool UnRegisterTypeface(uint32_t uniqueId);
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData);
@@ -347,7 +349,7 @@ public:
 
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
 
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
 
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 

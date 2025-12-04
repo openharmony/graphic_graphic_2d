@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,6 +50,7 @@ public:
     bool Op(const Region& region, RegionOp op) override;
     bool QuickReject(const RectI& rectI) const override;
     bool QuickReject(const Region& region) const override;
+    bool QuickContains(const RectI& rectI) const override;
     void Translate(int32_t x, int32_t y) override;
     void Clone(const Region& other) override;
     std::shared_ptr<Data> Serialize() const override;

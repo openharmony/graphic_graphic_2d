@@ -115,7 +115,6 @@ HWTEST_F(RSDrawingFilterTest, SetImageFilter002, TestSize.Level1)
     EXPECT_TRUE(imageFilter != nullptr);
 }
 
-
 /**
  * @tc.name: ProcessImageFilter001
  * @tc.desc: test results of ProcessImageFilter
@@ -804,10 +803,11 @@ HWTEST_F(RSDrawingFilterTest, SetGeometryTest001, TestSize.Level1)
     Drawing::Canvas canvas;
     auto filter = std::make_shared<RSRenderFilterParaBase>();
     RSDrawingFilter drawingFilter(filter);
-    drawingFilter.SetGeometry(canvas, 0, 0);
+    Drawing::RectF rect;
+    drawingFilter.SetGeometry(canvas.GetTotalMatrix(), rect, rect, 0, 0);
     EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
     drawingFilter.GenerateAndUpdateGEVisualEffect();
-    drawingFilter.SetGeometry(canvas, 0, 0);
+    drawingFilter.SetGeometry(canvas.GetTotalMatrix(), rect, rect, 0, 0);
     EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
 }
 

@@ -67,7 +67,7 @@ enum class ResourceType {
     RAWFILE = 30000
 };
 
-enum class TextErrorCode : int32_t {
+enum TextErrorCode : int32_t {
     ERROR = -1,
     OK = 0,
     ERROR_NO_PERMISSION = 201, // the value do not change. It is defined on all system
@@ -351,7 +351,7 @@ inline void GetPointFromJsValue(napi_env env, napi_value argValue, Drawing::Poin
 void BindNativeFunction(napi_env env, napi_value object, const char* name, const char* moduleName, napi_callback func);
 napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& message);
 
-napi_value NapiThrowError(napi_env env, TextErrorCode err, const std::string& message);
+napi_value NapiThrowError(napi_env env, int32_t err, const std::string& message);
 
 inline std::u16string Str8ToStr16(const std::string &str)
 {
@@ -581,8 +581,8 @@ bool SplitAbsolutePath(std::string& absolutePath);
 std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std::string& bundleName,
     const std::string& moduleName);
 
-bool ProcessResource(ResourceInfo& info, std::function<bool(std::string&)> pathCB,
-    std::function<bool(const void*, size_t)> fileCB);
+NapiTextResult ProcessResource(ResourceInfo& info, std::function<NapiTextResult(std::string&)> pathCB,
+    std::function<NapiTextResult(const void*, size_t)> fileCB);
 
 bool ParseResourceType(napi_env env, napi_value value, ResourceInfo& info);
 

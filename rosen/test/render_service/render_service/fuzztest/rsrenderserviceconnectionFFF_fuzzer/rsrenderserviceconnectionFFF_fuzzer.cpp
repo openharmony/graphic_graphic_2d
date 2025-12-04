@@ -43,7 +43,7 @@ namespace OHOS {
 namespace Rosen {
 
 auto g_pid = getpid();
-auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto screenManagerPtr_ = RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 
@@ -391,7 +391,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     auto mainThread = OHOS::Rosen::RSMainThread::Instance();
     mainThread->hwcContext_ = std::make_shared<OHOS::Rosen::RSHwcContext>(
         OHOS::Rosen::HWCParam::GetSourceTuningForAppMap(), OHOS::Rosen::HWCParam::GetSolidColorLayerMap());
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = OHOS::Rosen::RSScreenManager::GetInstance();
     OHOS::Rosen::CONN = new OHOS::Rosen::RSClientToServiceConnection(
         newPid,
         nullptr,

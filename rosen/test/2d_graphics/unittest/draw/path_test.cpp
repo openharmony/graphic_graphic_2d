@@ -1350,6 +1350,21 @@ HWTEST_F(PathTest, ApproximateTest001, TestSize.Level1)
     }
 }
 
+/*
+ * @tc.name: IsInverseFillType001
+ * @tc.desc: test for IsInverseFillType and ToggleInverseFillType func.
+ * @tc.type: FUNC
+ * @tc.require: 20648
+ */
+HWTEST_F(PathTest, IsInverseFillType001, TestSize.Level1)
+{
+    Path path;
+    EXPECT_EQ(path.IsInverseFillType(), false);
+    path.ToggleInverseFillType();
+    EXPECT_EQ(path.IsInverseFillType(), true);
+    path.ToggleInverseFillType();
+    EXPECT_EQ(path.IsInverseFillType(), false);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

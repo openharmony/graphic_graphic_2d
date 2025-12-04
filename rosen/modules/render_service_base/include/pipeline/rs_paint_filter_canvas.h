@@ -157,7 +157,10 @@ public:
         uint32_t saveCount_ = 0;
     };
 
-    using DrawFunc = std::function<void(Drawing::Canvas* canvas)>;
+    // an enlargement scale for expanding snapshot and drawing areas.
+    static constexpr SkScalar MAX_CURVE_X = 1.7f;
+
+    using DrawFunc = std::function<void(Drawing::Canvas& canvas)>;
 
     uint32_t CustomSaveLayer(DrawFunc customFunc);
     uint32_t SaveClipRRect(std::shared_ptr<ClipRRectData> data);
@@ -468,6 +471,16 @@ public:
         return culledEntireSubtree_;
     }
 
+    void SaveDamageRegionrects(const std::vector<RectI>& drawAreas)
+    {
+        damageRegionRects = drawAreas;
+    }
+
+    const std::vector<RectI>& GetDamageRegionrects() const
+    {
+        return damageRegionRects;
+    }
+
 protected:
     using Env = struct {
         Color envForegroundColor_;
@@ -555,6 +568,7 @@ private:
     uint32_t threadId_;
     std::weak_ptr<Drawing::Surface> weakSurface_;
     uint8_t subTreeDrawStatus_ = DEFAULT_STATE;
+    std::vector<RectI> damageRegionRects;
 };
 
 #ifdef RS_ENABLE_VK

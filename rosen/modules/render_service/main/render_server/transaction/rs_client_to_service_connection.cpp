@@ -53,6 +53,9 @@
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
 #include "feature/uifirst/rs_uifirst_manager.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "memory/rs_canvas_dma_buffer_cache.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -184,6 +187,8 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
     RS_PROFILER_KILL_PID(remotePid_);
     nodeMap.FilterNodeByPid(remotePid_);
     RS_PROFILER_KILL_PID_END();
+
+    RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
 }
 
 void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept
@@ -230,6 +235,9 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             connection->CleanRenderNodes();
             connection->CleanFrameRateLinkers();
             connection->CleanBrightnessInfoChangeCallbacks();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+            connection->CleanCanvasCallbacksAndPendingBuffer();
+#endif
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
@@ -239,6 +247,9 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", connection->remotePid_);
             connection->mainThread_->ClearTransactionDataPidInfo(connection->remotePid_);
+            if (connection->mainThread_->IsRequestedNextVSync()) {
+                connection->mainThread_->SetDirtyFlag();
+            }
         }).wait();
     mainThread_->ScheduleTask(
         [weakThis = wptr<RSClientToServiceConnection>(this)]() {
@@ -799,7 +810,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
@@ -812,7 +823,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
         return StatusCode::SCREEN_NOT_FOUND;
     }
     auto newVirtualScreenId = screenManager_->CreateVirtualScreen(
-        name, width, height, surface, mirrorId, flags, whiteList);
+        name, width, height, surface, associatedScreenId, flags, whiteList);
     virtualScreenIds_.insert(newVirtualScreenId);
     if (surface != nullptr) {
         EventInfo event = { "VOTER_VIRTUALDISPLAY", ADD_VOTE, OLED_60_HZ, OLED_60_HZ, name };
@@ -1049,6 +1060,15 @@ int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, Bright
     brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
     return StatusCode::SUCCESS;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcept
+{
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.RegisterCanvasCallback(remotePid_, nullptr);
+    bufferCache.ClearPendingBufferByPid(remotePid_);
+}
+#endif
 
 uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
@@ -1409,6 +1429,25 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     } else {
         mainThread_->ScheduleTask(
             [=]() { screenManager_->SetScreenPowerStatus(id, status); }).wait();
+    }
+}
+
+int32_t RSClientToServiceConnection::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    if (!screenManager_) {
+        RS_LOGE("%{public}s screenManager is null, id: %{public}" PRIu64, __func__, id);
+        return StatusCode::SCREEN_MANAGER_NULL;
+    }
+    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
+    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
+        return RSRenderComposerManager::GetInstance().PostSyncTask(id,
+            [=]() {return screenManager_->SetDualScreenState(id, status); });
+    } else if (mainThread_ != nullptr) {
+        return mainThread_->ScheduleTask(
+            [=]() { return screenManager_->SetDualScreenState(id, status); }).get();
+    } else {
+        RS_LOGE("%{public}s mainThread_ is null, id: %{public}" PRIu64, __func__, id);
+        return StatusCode::MAIN_THREAD_NULL;
     }
 }
 
@@ -2288,7 +2327,8 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     return true;
 }
 
-int32_t RSClientToServiceConnection::RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate)
+int32_t RSClientToServiceConnection::RegisterTypeface(
+    uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index)
 {
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(id);
     if (tf != nullptr) {
@@ -2297,11 +2337,12 @@ int32_t RSClientToServiceConnection::RegisterTypeface(uint64_t id, uint32_t size
         return tf->GetFd();
     }
     needUpdate = 0;
-    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id));
+    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
     if (tf != nullptr) {
         RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
         return tf->GetFd();
     }
+    ::close(fd);
     RS_LOGE("RegisterTypeface: failed to register typeface");
     return -1;
 }
@@ -2750,7 +2791,7 @@ bool RSClientToServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
     return true;
 }
 
-ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     if (mainThread_ != nullptr) {
         mainThread_->HandleTouchEvent(touchStatus, touchCnt);
@@ -2758,7 +2799,7 @@ ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32
     }
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr != nullptr) {
-        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt);
+        frameRateMgr->HandleTouchEvent(remotePid_, touchStatus, touchCnt, sourceType);
     }
     return ERR_OK;
 }
@@ -2820,6 +2861,7 @@ ErrCode RSClientToServiceConnection::ReportEventResponse(DataBaseRs info)
     RSUifirstManager::Instance().OnProcessEventResponse(info);
 #endif
     RSUifirstFrameRateControl::Instance().SetAnimationStartInfo(info);
+    UpdateAnimationOcclusionStatus(info.sceneId, true);
     return ERR_OK;
 }
 
@@ -2845,7 +2887,23 @@ ErrCode RSClientToServiceConnection::ReportEventJankFrame(DataBaseRs info)
     renderThread_.PostTask(task);
 #endif
     RSUifirstFrameRateControl::Instance().SetAnimationEndInfo(info);
+    UpdateAnimationOcclusionStatus(info.sceneId, false);
     return ERR_OK;
+}
+
+void RSClientToServiceConnection::UpdateAnimationOcclusionStatus(const std::string& sceneId, bool isStart)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), sceneId, isStart]() -> void {
+        sptr<RSClientToServiceConnection> connection = weakThis.promote();
+        if (connection == nullptr || connection->mainThread_ == nullptr) {
+            return;
+        }
+        connection->mainThread_->SetAnimationOcclusionInfo(sceneId, isStart);
+    };
+    mainThread_->PostTask(task);
 }
 
 void RSClientToServiceConnection::ReportRsSceneJankStart(AppInfo info)

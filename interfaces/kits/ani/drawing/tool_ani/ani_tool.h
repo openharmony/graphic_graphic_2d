@@ -68,7 +68,7 @@ public:
 private:
     static bool IsStringObject(ani_env* env, ani_object obj);
     static bool IsColorEnum(ani_env* env, ani_object obj);
-    static bool IsNumberObject(ani_env* env, ani_object obj);
+    static bool IsIntObject(ani_env* env, ani_object obj);
     static bool IsResourceObject(ani_env *env, ani_object object);
     static bool GetTypeParam(ani_env* env, ani_object obj, const char* name, int32_t& result);
     static bool GetParamsArray(ani_env* env, ani_object obj, const char* name, std::vector<std::string>& result);

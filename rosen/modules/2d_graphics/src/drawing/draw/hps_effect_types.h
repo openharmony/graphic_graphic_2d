@@ -38,7 +38,15 @@ typedef enum HpsEffect {
     STRETCH,
     LINEAR_GRADIENT_BLUR,
     MESA,
+    STATISTICS,
 } HpsEffect;
+/**
+ * @enum HpsImageStatistics
+ * @brief Enumeration of different hps Image Statistics types.
+ */
+typedef enum HpsStatisticsType {
+    MEAN = 0,
+} HpsStatisticsType;
 /**
  * @class HpsEffectParameter
  * @brief Base class for all hps effect arguments.
@@ -191,6 +199,21 @@ public:
     HpsEffect GetEffectType() override
     {
         return HpsEffect::LINEAR_GRADIENT_BLUR;
+    }
+};
+/**
+ * @class HpsStatisticsParameter
+ * @brief Arguments for the image statistics effect.
+ * @param statisticsType Statistics effect type of Image
+ */
+class HpsStatisticsParameter : public HpsEffectParameter {
+public:
+    HpsStatisticsType statisticsType;
+    HpsStatisticsParameter(const Rect& s, const Rect& d, const HpsStatisticsType& statisticsType)
+        : HpsEffectParameter(s, d), statisticsType(statisticsType) {}
+    HpsEffect GetEffectType() override
+    {
+        return HpsEffect::STATISTICS;
     }
 };
 }

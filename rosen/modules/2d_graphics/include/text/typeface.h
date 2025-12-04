@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -44,9 +44,9 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
         const FontArguments& fontArguments);
-    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0, uint32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromAshmem(
-        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name);
+        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index = 0);
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(TypefaceRegisterCallback func);
@@ -86,6 +86,12 @@ public:
      * @return        The number of bytes actually copied into data.
      */
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const;
+
+    /**
+     * @brief   Get fontStyle is bold.
+     * @return  If fontStyle is bold, return true.
+     */
+    bool GetBold() const;
 
     /**
      * @brief   Get fontStyle is italic.
@@ -155,17 +161,20 @@ public:
      * @brief   Calculate hash for this typeface.
      * @return  hash
      */
-    static uint32_t CalculateHash(const uint8_t* data, size_t size);
+    static uint32_t CalculateHash(const uint8_t* data, size_t size, uint32_t index = 0);
 
     /**
      * @brief   Update stream for this typeface.
      */
     void UpdateStream(std::unique_ptr<MemoryStream> stream);
+
+    uint32_t GetIndex() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     static TypefaceRegisterCallback registerTypefaceCallBack_;
     static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_;
     uint32_t size_ = 0;
+    uint32_t index_ = 0;
 };
 } // namespace Drawing
 } // namespace Rosen

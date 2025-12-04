@@ -116,7 +116,19 @@ public:
     RosenError RegPrepareComplete(OnPrepareCompleteFunc func, void* data);
     void Repaint();
     void SetScreenPowerOnChanged(bool flag);
-
+    int32_t GetCurrentFramePresentFd() const
+    {
+        return curPresentFd_;
+    }
+    int32_t GetThirdFrameAheadPresentFd() const
+    {
+        return thirdFrameAheadPresentFenceFd_;
+    }
+    int64_t GetThirdFrameAheadPresentTime() const
+    {
+        return thirdFrameAheadPresentTime_;
+    }
+    void UpdateThirdFrameAheadPresentFence(sptr<SyncFence> &fbFence);
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;
@@ -188,6 +200,9 @@ private:
     OnPrepareCompleteFunc onPrepareCompleteCb_ = nullptr;
     void* onPrepareCompleteCbData_ = nullptr;
     bool screenPowerOnChanged_ = false;
+    int32_t thirdFrameAheadPresentFenceFd_ = 0;
+    int64_t thirdFrameAheadPresentTime_ = 0;
+    int32_t curPresentFd_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

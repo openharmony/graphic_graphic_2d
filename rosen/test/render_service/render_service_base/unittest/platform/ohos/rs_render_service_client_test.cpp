@@ -1244,5 +1244,44 @@ HWTEST_F(RSServiceClientTest, SurfaceWatermarkTest01, TestSize.Level1)
     rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
     RSRenderServiceConnectHub::Init();
 }
+
+/**
+ * @tc.name: SetSystemAnimatedScenesTest
+ * @tc.desc: test SetSystemAnimatedScenes when rsRenderServiceClient is nullptr or not
+ * @tc.type: FUNC
+ * @tc.require:issues20726
+ */
+HWTEST_F(RSServiceClientTest, SetSystemAnimatedScenesTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
+    ASSERT_EQ(ret, true);
+    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false);
+    ASSERT_EQ(ret, true);
+ 
+    auto instance = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
+    ASSERT_EQ(ret, false);
+
+    RSRenderServiceConnectHub::instance_ = instance;
+}
+
+/**
+ * @tc.name: SetDualScreenState
+ * @tc.desc: Test SetDualScreenState
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
+{
+    ScreenId screenId = 0;
+    RSRenderServiceConnectHub::Destroy();
+    auto ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_NE(ret, StatusCode::RENDER_SERVICE_NULL);
+}
 } // namespace Rosen
 } // namespace OHOS

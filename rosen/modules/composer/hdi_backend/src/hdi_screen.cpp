@@ -23,7 +23,7 @@
 #include <cstring>
 #include <securec.h>
 #include <mutex>
-#include "v1_3/include/idisplay_composer_interface.h"
+#include "v1_4/include/idisplay_composer_interface.h"
 
 #define CHECK_DEVICE_NULL(sptrDevice)                                \
     do {                                                             \
@@ -280,6 +280,13 @@ int32_t HdiScreen::SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uin
     return device_->SetScreenConstraint(screenId_, frameId, timestamp, type);
 }
 
+int32_t HdiScreen::SetDisplayProperty(uint64_t value)
+{
+    CHECK_DEVICE_NULL(device_);
+    uint32_t propertyId = HDI::Display::Composer::V1_4::DISPLAY_PROPERTY_ID_MULTI_DISPLAY_COORDINATION;
+    return device_->SetDisplayProperty(screenId_, propertyId, value);
+}
+
 bool HdiScreen::GetDisplayPropertyForHardCursor(uint32_t screenId)
 {
     if (device_ == nullptr) {
@@ -302,6 +309,12 @@ int32_t HdiScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<ui
 {
     CHECK_DEVICE_NULL(device_);
     return device_->GetDisplayIdentificationData(screenId_, outPort, edidData);
+}
+
+int32_t HdiScreen::GetScreenConnectionType(GraphicDisplayConnectionType& outType) const
+{
+    CHECK_DEVICE_NULL(device_);
+    return device_->GetScreenConnectionType(screenId_, outType);
 }
 } // namespace Rosen
 } // namespace OHOS

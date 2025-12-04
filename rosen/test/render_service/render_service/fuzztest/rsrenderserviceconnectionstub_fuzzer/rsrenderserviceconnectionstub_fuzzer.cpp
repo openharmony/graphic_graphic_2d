@@ -189,7 +189,7 @@ bool DoGetScreenHDRCapability(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -216,7 +216,7 @@ bool DoGetScreenType(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -237,7 +237,7 @@ bool DoGetScreenType(const uint8_t* data, size_t size)
 bool DoGetBitmap()
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
         new RSClientToRenderConnection(newPid, nullptr, nullptr, screenManagerPtr, token_->AsObject(), nullptr);
@@ -261,7 +261,7 @@ bool DoSetAppWindowNum(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
@@ -637,7 +637,7 @@ bool DoGetScreenSupportedRefreshRates(const uint8_t* data, size_t size)
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -709,7 +709,7 @@ bool DoGetMemoryGraphic(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -733,7 +733,7 @@ bool DoCreateVirtualScreen(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -781,7 +781,7 @@ bool DoRemoveVirtualScreen(const uint8_t* data, size_t size)
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -858,7 +858,7 @@ bool DoSetScreenBacklight(const uint8_t* data, size_t size)
 
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -1145,7 +1145,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -1176,7 +1176,7 @@ bool DoCreateNodeAndSurface(const uint8_t* data, size_t size)
 bool DoExecuteSynchronousTask()
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -1245,7 +1245,7 @@ bool Init(const uint8_t* data, size_t size)
 bool DoSetVirtualScreenSurface()
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -1390,7 +1390,7 @@ bool DoSetVirtualScreenResolution()
 bool DoGetVirtualScreenResolution()
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -2965,8 +2965,8 @@ bool DoTakeSurfaceCapture(const uint8_t* data, size_t size)
 
     auto newPid = getpid();
     auto nodeId = static_cast<NodeId>(newPid) << 32;
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
-    auto* screenManager = static_cast<impl::RSScreenManager*>(screenManagerPtr.GetRefPtr());
+    auto screenManagerPtr = RSScreenManager::GetInstance();
+    auto* screenManager = static_cast<RSScreenManager*>(screenManagerPtr.GetRefPtr());
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3059,7 +3059,7 @@ bool DoCreateVSyncConnection(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     DVSyncFeatureParam dvsyncParam;
@@ -3091,7 +3091,7 @@ bool DoCommitTransaction()
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3115,7 +3115,7 @@ bool DoSetScreenChangeCallback(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3141,7 +3141,7 @@ bool DoSetScreenSwitchingNotifyCallback(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3168,7 +3168,7 @@ bool DoRegisterApplicationAgent()
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3222,7 +3222,7 @@ bool DoRegisterBufferAvailableListener(const uint8_t* data, size_t size)
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
@@ -3251,7 +3251,7 @@ bool DoRegisterOcclusionChangeCallback()
     uint32_t code =
         static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK);
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3327,7 +3327,7 @@ bool DoSetScreenRefreshRate(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3355,7 +3355,7 @@ bool DoGetScreenCurrentRefreshRate(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3426,7 +3426,7 @@ bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
     }
 
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3446,7 +3446,7 @@ bool DoSetBehindWindowFilterEnabled(const uint8_t* data, size_t size)
 bool DoGetBehindWindowFilterEnabled()
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ =
@@ -3566,7 +3566,7 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
 bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =
@@ -3637,7 +3637,7 @@ bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
 bool DoFreezeScreen(const uint8_t* data, size_t size)
 {
     auto newPid = getpid();
-    auto screenManagerPtr = impl::RSScreenManager::GetInstance();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
     sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ =

@@ -71,7 +71,7 @@ public:
      * @param width Virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH.
      * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
      * @param surface Virtual screen surface, if not nullptr, vote for 60Hz.
-     * @param mirrorId Decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
+     * @param associatedScreenId Decide which screen id to bind, it can't be INVALID_SCREEN_ID when RS multi process.
      * @param flags Virtual screen security layer option, 0: screen level, 1: window level.
      * @param whiteList List of surface node id, only these nodes can be drawn on this screen.
      * @return Virtual screen id, INVALID_SCREEN_ID means failed.
@@ -81,7 +81,7 @@ public:
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId = 0,
         int flags = 0,
         std::vector<NodeId> whiteList = {});
 
@@ -580,7 +580,15 @@ public:
      * @param status The status to set to the screen.
      */
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    
+
+    /**
+     * @brief Set dual-screen display mode.
+     * @param id Id of the screen to set.
+     * @param status The status to set to the screen, see DualScreenStatus
+     * @return 0 means success, others failed.
+     */
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
     /**
      * @brief Get active mode of the screen.
      * @param id Id of the screen to get active mode.
@@ -1071,8 +1079,9 @@ public:
      * @brief Notify touch event.
      * @param touchStatus status of touch.
      * @param touchCnt the count of touch.
+     * @param sourceType the input type from multiinput.
      */
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
 
     /**
      * @brief Notify dynamic mode event.

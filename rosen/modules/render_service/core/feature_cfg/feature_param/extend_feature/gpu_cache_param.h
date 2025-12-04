@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef GPU_CACHE_PARAM_H
+#define GPU_CACHE_PARAM_H
+
+#include "feature_param.h"
+
+namespace OHOS::Rosen {
+class GpuCacheParam : public FeatureParam {
+public:
+    GpuCacheParam() = default;
+    ~GpuCacheParam() = default;
+
+    static bool GetGpuCacheConfigEnable();
+    static int GetRSGpuCacheSize();
+
+protected:
+    static void SetGpuCacheConfigEnable(bool gpuCacheConfigEnable);
+    static void SetRSGpuCacheSize(int maxGpuCacheSize);
+
+private:
+    inline static bool gpuCacheConfigEnable_ = false;
+    inline static int maxGpuCacheSize_ = 0;
+
+    friend class GpuCacheParamParse;
+};
+} // namespace OHOS::Rosen
+#endif // GPU_CACHE_PARAM_H

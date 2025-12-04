@@ -65,4 +65,14 @@ void DirtyRegionParam::SetTileBasedAlignBits(int tileBasedAlignBits)
 {
     tileBasedAlignBits_ = tileBasedAlignBits;
 }
+
+bool DirtyRegionParam::IsAnimationOcclusionEnable()
+{
+    return isAnimationOcclusionEnable_;
+}
+
+void DirtyRegionParam::SetAnimationOcclusionEnable(bool isEnable)
+{
+    isAnimationOcclusionEnable_ = isEnable;
+}
 } // namespace OHOS::Rosen

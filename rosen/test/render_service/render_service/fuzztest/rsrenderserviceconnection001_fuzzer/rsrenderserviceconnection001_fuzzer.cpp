@@ -38,7 +38,7 @@
 namespace OHOS {
 namespace Rosen {
 auto g_pid = getpid();
-auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto screenManagerPtr_ = RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 

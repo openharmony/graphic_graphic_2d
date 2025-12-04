@@ -814,6 +814,29 @@ OH_Drawing_ErrorCode OH_Drawing_PathInterpolate(OH_Drawing_Path* path, OH_Drawin
  */
 OH_Drawing_ErrorCode OH_Drawing_PathIsInterpolate(OH_Drawing_Path* path, OH_Drawing_Path* other, bool* result);
 
+/**
+ * @brief Checks if the fill type is one of the INVERSE variants.
+ *
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @param isInverse Indicates if the fill type is one of the INVERSE variants.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if path or isInverse is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathIsInverseFillType(const OH_Drawing_Path* path, bool* isInverse);
+
+/**
+ * @brief Toggles the INVERSE state of the fill type.
+ *
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if path is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_PathToggleInverseFillType(OH_Drawing_Path* path);
+
 #ifdef __cplusplus
 }
 #endif

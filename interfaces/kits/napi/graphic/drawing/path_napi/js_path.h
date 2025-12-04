@@ -76,6 +76,8 @@ public:
     static napi_value Interpolate(napi_env env, napi_callback_info info);
     static napi_value IsInterpolate(napi_env env, napi_callback_info info);
     static napi_value PathTransferDynamic(napi_env env, napi_callback_info info);
+    static napi_value IsInverseFillType(napi_env env, napi_callback_info info);
+    static napi_value ToggleInverseFillType(napi_env env, napi_callback_info info);
 
     Path* GetPath();
     std::shared_ptr<Path> GetPathPtr()
@@ -126,6 +128,8 @@ private:
     napi_value OnApproximate(napi_env env, napi_callback_info info);
     napi_value OnInterpolate(napi_env env, napi_callback_info info);
     napi_value OnIsInterpolate(napi_env env, napi_callback_info info);
+    napi_value OnIsInverseFillType(napi_env env, napi_callback_info info);
+    napi_value OnToggleInverseFillType(napi_env env, napi_callback_info info);
     static napi_value CreateJsPathDynamic(napi_env env, const std::shared_ptr<Path> path);
 
     static thread_local napi_ref constructor_;

@@ -345,6 +345,7 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
 constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::MASK,
+    RSDrawableSlot::MATERIAL_FILTER,
     RSDrawableSlot::SHADOW,
     RSDrawableSlot::OUTLINE,
     RSDrawableSlot::FOREGROUND_FILTER,

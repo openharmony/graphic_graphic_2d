@@ -42,6 +42,7 @@
 #include "platform/ohos/backend/native_buffer_utils.h"
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#include "render/rs_drawing_filter.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
@@ -96,6 +97,7 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
     stagingRadius_ = properties.GetShadowRadius();
     needSync_ = true;
 
+    stagingGeContainer_ = nullptr;
     if (auto sdfShape = properties.GetSDFShape()) {
         std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
         std::shared_ptr<Drawing::GEShaderShape> geShape =
@@ -104,17 +106,13 @@ bool RSShadowDrawable::OnUpdate(const RSRenderNode& node)
             Drawing::GE_SHADER_SDF_SHADOW, Drawing::DrawingPaintType::BRUSH);
         geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHAPE, geShape);
 
-        Drawing::GESDFShadowParams shadow;
-        shadow.color = Drawing::Color(stagingColor_.GetRed(), stagingColor_.GetGreen(),
+        Drawing::Color color(stagingColor_.GetRed(), stagingColor_.GetGreen(),
             stagingColor_.GetBlue(), stagingColor_.GetAlpha());
-        shadow.offsetX = stagingOffsetX_;
-        shadow.offsetY = stagingOffsetY_;
-        shadow.radius = stagingRadius_;
-        shadow.path = stagingPath_;
-        shadow.isFilled = stagingIsFilled_;
+        Drawing::GESDFShadowParams shadow {color, stagingOffsetX_, stagingOffsetY_,
+            stagingRadius_, stagingPath_, stagingIsFilled_};
         geFilter->SetParam(Drawing::GE_SHADER_SDF_SHADOW_SHADOW, shadow);
-        geContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
-        geContainer_->AddToChainedFilter(geFilter);
+        stagingGeContainer_ = std::make_shared<Drawing::GEVisualEffectContainer>();
+        stagingGeContainer_->AddToChainedFilter(geFilter);
     }
     return true;
 }
@@ -132,6 +130,7 @@ void RSShadowDrawable::OnSync()
     isFilled_ = stagingIsFilled_;
     radius_ = stagingRadius_;
     colorStrategy_ = stagingColorStrategy_;
+    geContainer_ = std::move(stagingGeContainer_);
     needSync_ = false;
 }
 
@@ -621,6 +620,9 @@ bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     stagingNodeName_ = node.GetNodeName();
     auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
     if (rsFilter != nullptr) {
+        const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+        RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+            drawingFilter, node.GetId());
         RecordFilterInfos(rsFilter);
         needSync_ = true;
         stagingFilter_ = rsFilter;
@@ -819,6 +821,10 @@ Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
         if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
             (effectData == nullptr || effectData->cachedImage_ == nullptr)) {
             ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+            if (paintFilterCanvas->GetIsParallelCanvas()) {
+                ROSEN_LOGE("RSPropertyDrawableUtils::DrawUseEffect is parallel canvas, disable fallback");
+                return;
+            }
             auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
             if (!drawable) {
                 return;
@@ -956,6 +962,9 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
     if (!rsFilter) {
         return false;
     }
+    const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
+    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+        drawingFilter, node.GetId());
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
@@ -963,5 +972,37 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
+Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+    EffectRectType type, const RectF& bound) const
+{
+    RectF rect = GetRenderRelativeRect(type, bound);
+    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
+
+    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        return Drawing::RectI();
+    }
+
+    RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+        std::ceil(absRect.GetHeight()));
+    effectRect = effectRect.IntersectRect(deviceRect);
+    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+}
+
+void RSMaterialFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
+    const std::optional<RectI>& clipRect, const RectF& defaultRelativeRect)
+{
+    if (stagingRelativeRectInfo_ == nullptr) {
+        return;
+    }
+    stagingVisibleRectInfo_ = std::make_unique<FilterVisibleRectInfo>();
+    stagingVisibleRectInfo_->snapshotRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::SNAPSHOT, defaultRelativeRect), absMatrix);
+    stagingVisibleRectInfo_->totalRect_ = RSObjAbsGeometry::MapRect(
+        GetStagingRelativeRect(EffectRectType::TOTAL, defaultRelativeRect), absMatrix);
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

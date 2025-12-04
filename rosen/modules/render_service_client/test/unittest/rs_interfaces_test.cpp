@@ -1595,7 +1595,8 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level0)
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
     int32_t touchCnt = 0;
-    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
+    int32_t sourceType = 1;
+    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -2793,6 +2794,54 @@ HWTEST_F(RSInterfacesTest, AvcodecVideoStop001, Function | SmallTest | Level2)
     std::vector<std::string> surfaceNameList = {"surface1"};
     uint32_t fps = 120;
     rsInterfaces->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
+
+/*
+* Function: SetDualScreenState
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDualScreenState with INVALID_SCREEN_ID
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetDualScreenState001, Function | SmallTest | Level2)
+{
+    auto ret = rsInterfaces->SetDualScreenState(INVALID_SCREEN_ID, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+* Function: SetDualScreenState
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDualScreenState with valid screen id
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetDualScreenState002, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+* Function: SetDualScreenState
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDualScreenState with valid screen id, but invalid status
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_STATUS_BUTT);
+    EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
 }
 } // namespace Rosen
 } // namespace OHOS

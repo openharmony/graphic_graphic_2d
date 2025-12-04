@@ -32,6 +32,46 @@ const char* ANI_CLASS_PEN_NAME = "@ohos.graphics.drawing.drawing.Pen";
 const char* ANI_CLASS_JOIN_STYLE_NAME = "@ohos.graphics.drawing.drawing.JoinStyle";
 const char* ANI_CLASS_CAP_STYLE_NAME = "@ohos.graphics.drawing.drawing.CapStyle";
 
+static const std::array g_methods = {
+    ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(AniPen::Constructor) },
+    ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Pen}:",
+        reinterpret_cast<void*>(AniPen::ConstructorWithPen) },
+    ani_native_function { "getAlpha", ":i", reinterpret_cast<void*>(AniPen::GetAlpha) },
+    ani_native_function { "reset", ":", reinterpret_cast<void*>(AniPen::Reset) },
+    ani_native_function { "setAlpha", "i:", reinterpret_cast<void*>(AniPen::SetAlpha) },
+    ani_native_function { "setBlendMode", "C{@ohos.graphics.drawing.drawing.BlendMode}:",
+        reinterpret_cast<void*>(AniPen::SetBlendMode) },
+    ani_native_function { "setColorFilter", nullptr,
+        reinterpret_cast<void*>(AniPen::SetColorFilter) },
+    ani_native_function { "getColorFilter", ":C{@ohos.graphics.drawing.drawing.ColorFilter}",
+        reinterpret_cast<void*>(AniPen::GetColorFilter) },
+    ani_native_function { "getHexColor", ":i", reinterpret_cast<void*>(AniPen::GetHexColor) },
+    ani_native_function { "setColor", "i:", reinterpret_cast<void*>(AniPen::SetColor) },
+    ani_native_function { "setColor", "C{@ohos.graphics.common2D.common2D.Color}:",
+        reinterpret_cast<void*>(AniPen::SetColorWithColor) },
+    ani_native_function { "setColor", "iiii:", reinterpret_cast<void*>(AniPen::SetColorWithNumber) },
+    ani_native_function { "setDither", "z:", reinterpret_cast<void*>(AniPen::SetDither) },
+    ani_native_function { "setAntiAlias", "z:", reinterpret_cast<void*>(AniPen::SetAntiAlias) },
+    ani_native_function { "setStrokeWidth", "d:", reinterpret_cast<void*>(AniPen::SetStrokeWidth) },
+    ani_native_function { "setCapStyle", nullptr, reinterpret_cast<void*>(AniPen::SetCapStyle) },
+    ani_native_function { "getFillPath", "C{@ohos.graphics.drawing.drawing.Path}"
+        "C{@ohos.graphics.drawing.drawing.Path}:z", reinterpret_cast<void*>(AniPen::GetFillPath) },
+    ani_native_function { "setMiterLimit", "d:", reinterpret_cast<void*>(AniPen::SetMiterLimit) },
+    ani_native_function { "getCapStyle", nullptr, reinterpret_cast<void*>(AniPen::GetCapStyle) },
+    ani_native_function { "setMaskFilter", nullptr, reinterpret_cast<void*>(AniPen::SetMaskFilter) },
+    ani_native_function { "isAntiAlias", ":z", reinterpret_cast<void*>(AniPen::IsAntiAlias) },
+    ani_native_function { "getColor", ":C{@ohos.graphics.common2D.common2D.Color}",
+        reinterpret_cast<void*>(AniPen::GetColor) },
+    ani_native_function { "setJoinStyle", nullptr, reinterpret_cast<void*>(AniPen::SetJoinStyle) },
+    ani_native_function { "getJoinStyle", nullptr, reinterpret_cast<void*>(AniPen::GetJoinStyle) },
+    ani_native_function { "getWidth", ":d", reinterpret_cast<void*>(AniPen::GetWidth) },
+    ani_native_function { "getMiterLimit", ":d", reinterpret_cast<void*>(AniPen::GetMiterLimit) },
+    ani_native_function { "setPathEffect", nullptr, reinterpret_cast<void*>(AniPen::SetPathEffect) },
+    ani_native_function { "setImageFilter", nullptr, reinterpret_cast<void*>(AniPen::SetImageFilter) },
+    ani_native_function { "setShadowLayer", nullptr, reinterpret_cast<void*>(AniPen::SetShadowLayer) },
+    ani_native_function { "setShaderEffect", nullptr, reinterpret_cast<void*>(AniPen::SetShaderEffect) },
+};
+
 ani_status AniPen::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -40,48 +80,7 @@ ani_status AniPen::AniInit(ani_env *env)
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_PEN_NAME);
         return ANI_NOT_FOUND;
     }
-
-    std::array methods = {
-        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "constructorNative", "C{@ohos.graphics.drawing.drawing.Pen}:",
-            reinterpret_cast<void*>(ConstructorWithPen) },
-        ani_native_function { "getAlpha", ":i", reinterpret_cast<void*>(GetAlpha) },
-        ani_native_function { "reset", ":", reinterpret_cast<void*>(Reset) },
-        ani_native_function { "setAlpha", "i:", reinterpret_cast<void*>(SetAlpha) },
-        ani_native_function { "setBlendMode", "C{@ohos.graphics.drawing.drawing.BlendMode}:",
-            reinterpret_cast<void*>(SetBlendMode) },
-        ani_native_function { "setColorFilter", nullptr,
-            reinterpret_cast<void*>(SetColorFilter) },
-        ani_native_function { "getColorFilter", ":C{@ohos.graphics.drawing.drawing.ColorFilter}",
-            reinterpret_cast<void*>(GetColorFilter) },
-        ani_native_function { "getHexColor", ":i", reinterpret_cast<void*>(GetHexColor) },
-        ani_native_function { "setColor", "i:", reinterpret_cast<void*>(SetColor) },
-        ani_native_function { "setColor", "C{@ohos.graphics.common2D.common2D.Color}:",
-            reinterpret_cast<void*>(SetColorWithColor) },
-        ani_native_function { "setColor", "iiii:", reinterpret_cast<void*>(SetColorWithNumber) },
-        ani_native_function { "setDither", "z:", reinterpret_cast<void*>(SetDither) },
-        ani_native_function { "setAntiAlias", "z:", reinterpret_cast<void*>(SetAntiAlias) },
-        ani_native_function { "setStrokeWidth", "d:", reinterpret_cast<void*>(SetStrokeWidth) },
-        ani_native_function { "setCapStyle", nullptr, reinterpret_cast<void*>(SetCapStyle) },
-        ani_native_function { "getFillPath", "C{@ohos.graphics.drawing.drawing.Path}"
-            "C{@ohos.graphics.drawing.drawing.Path}:z", reinterpret_cast<void*>(GetFillPath) },
-        ani_native_function { "setMiterLimit", "d:", reinterpret_cast<void*>(SetMiterLimit) },
-        ani_native_function { "getCapStyle", nullptr, reinterpret_cast<void*>(GetCapStyle) },
-        ani_native_function { "setMaskFilter", nullptr, reinterpret_cast<void*>(SetMaskFilter) },
-        ani_native_function { "isAntiAlias", ":z", reinterpret_cast<void*>(IsAntiAlias) },
-        ani_native_function { "getColor", ":C{@ohos.graphics.common2D.common2D.Color}",
-            reinterpret_cast<void*>(GetColor) },
-        ani_native_function { "setJoinStyle", nullptr, reinterpret_cast<void*>(SetJoinStyle) },
-        ani_native_function { "getJoinStyle", nullptr, reinterpret_cast<void*>(GetJoinStyle) },
-        ani_native_function { "getWidth", ":d", reinterpret_cast<void*>(GetWidth) },
-        ani_native_function { "getMiterLimit", ":d", reinterpret_cast<void*>(GetMiterLimit) },
-        ani_native_function { "setPathEffect", nullptr, reinterpret_cast<void*>(SetPathEffect) },
-        ani_native_function { "setImageFilter", nullptr, reinterpret_cast<void*>(SetImageFilter) },
-        ani_native_function { "setShadowLayer", nullptr, reinterpret_cast<void*>(SetShadowLayer) },
-        ani_native_function { "setShaderEffect", nullptr, reinterpret_cast<void*>(SetShaderEffect) },
-    };
-
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_PEN_NAME);
         return ANI_NOT_FOUND;

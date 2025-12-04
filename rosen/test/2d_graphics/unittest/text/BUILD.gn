@@ -25,9 +25,13 @@ ohos_unittest("2d_graphics_text_test") {
   ]
 
   sources = [
+    "font_filetype_test.cpp",
     "font_test.cpp",
+    "font_metadata_test.cpp",
     "font_harfbuzz_test.cpp",
+    "font_variation_info_test.cpp",
     "skfontmgr_test.cpp",
+    "font_unicode_query_test.cpp",
     "text_blob_test.cpp",
     "typeface_test.cpp",
   ]

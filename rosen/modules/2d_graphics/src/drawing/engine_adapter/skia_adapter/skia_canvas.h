@@ -97,6 +97,8 @@ public:
     void DrawPath(const Path& path, const Paint& paint) override;
     void DrawPathWithStencil(const Path& path, uint32_t stencilVal, const Paint& paint) override;
     void DrawBackground(const Brush& brush) override;
+    bool GetLocalShadowBounds(const Matrix& ctm, const Path& path, const Point3& planeParams, const Point3& devLightPos,
+        scalar lightRadius, ShadowFlags flag, bool isLimitElevation, Rect& rect) override;
     void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag) override;
     void DrawShadowStyle(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,

@@ -143,6 +143,14 @@ typedef struct {
 } GraphicLayerColor;
 
 /*
+ * @brief Enumerates the display connection type.
+ */
+typedef enum {
+    GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL,           /**< Internal type */
+    GRAPHIC_DISPLAY_CONNECTION_TYPE_EXTERNAL,           /**< External type */
+} GraphicDisplayConnectionType;
+
+/*
  * @brief Called when a hot plug event occurs.
  *
  * This callback must be registered by calling <b>RegHotPlugCallback</b>.

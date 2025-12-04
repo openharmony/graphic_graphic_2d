@@ -24,6 +24,7 @@
 #include "draw/surface.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "feature/opinc/rs_opinc_draw_cache.h"
+#include "feature/render_group/rs_render_group_cache_drawable.h"
 #include "image/gpu_context.h"
 #include "pipeline/rs_render_node.h"
 
@@ -114,6 +115,12 @@ public:
     {
         return RSRenderNodeDrawableType::RS_NODE_DRAWABLE;
     }
+
+    void SetDrawBlurForCache(bool value);
+    bool IsDrawingBlurForCache();
+    void SetDrawExcludedSubTreeForCache(bool value);
+    bool IsDrawingExcludedSubTreeForCache();
+
 protected:
     explicit RSRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node);
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::RS_NODE, OnGenerate>;
@@ -164,7 +171,6 @@ protected:
     static int GetProcessedNodeCount();
     static void ProcessedNodeCountInc();
     static void ClearProcessedNodeCount();
-    static thread_local bool drawBlurForCache_;
     static std::shared_ptr<Drawing::Image> GetImageAlias(
         std::shared_ptr<Drawing::Surface>& surface,
         Drawing::TextureOrigin textureOrigin = Drawing::TextureOrigin::BOTTOM_LEFT);
@@ -215,6 +221,7 @@ private:
     void ClearDrawingCacheContiUpdateTimeMap();
     friend class RsSubThreadCache;
     RSOpincDrawCache opincDrawCache_;
+    std::unique_ptr<RSRenderGroupCacheDrawable> renderGroupCache_ = nullptr;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

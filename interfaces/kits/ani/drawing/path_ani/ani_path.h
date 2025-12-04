@@ -75,6 +75,8 @@ public:
     static void LineTo(ani_env* env, ani_object obj, ani_double x, ani_double y);
     static void MoveTo(ani_env* env, ani_object obj, ani_double x, ani_double y);
     static void Close(ani_env* env, ani_object obj);
+    static ani_boolean IsInverseFillType(ani_env* env, ani_object obj);
+    static void ToggleInverseFillType(ani_env* env, ani_object obj);
 
     std::shared_ptr<Path> GetPath();
 

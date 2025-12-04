@@ -17,6 +17,7 @@
 #include <iostream>
 #include "common/rs_vector2.h"
 #include "common/rs_vector3.h"
+#include "common/rs_vector4.h"
 #include "filter_para.h"
 
 namespace OHOS {
@@ -28,17 +29,7 @@ public:
         this->type_ = FilterPara::ParaType::FROSTED_GLASS;
     }
     ~FrostedGlassPara() override = default;
-
-    void SetBorderSize(Vector2f& borderSize)
-    {
-        borderSize_ = borderSize;
-    }
-
-    const Vector2f GetBorderSize() const
-    {
-        return borderSize_;
-    }
-
+    
     void SetBlurParams(Vector2f& blurParams)
     {
         blurParams_ = blurParams;
@@ -49,64 +40,74 @@ public:
         return blurParams_;
     }
 
-    void SetCornerRadius(float& cornerRadius)
+    void SetWeightsEmboss(Vector2f& weightsEmboss)
     {
-        cornerRadius_ = cornerRadius;
+        weightsEmboss_ = weightsEmboss;
     }
 
-    const float& GetCornerRadius() const
+    const Vector2f GetWeightsEmboss() const
     {
-        return cornerRadius_;
+        return weightsEmboss_;
     }
 
-    void SetBorderWidth(float& borderWidth)
+    void SetWeightsEdl(Vector2f& weightsEdl)
     {
-        borderWidth_ = borderWidth;
+        weightsEdl_ = weightsEdl;
     }
 
-    const float& GetBorderWidth() const
+    const Vector2f GetWeightsEdl() const
     {
-        return borderWidth_;
+        return weightsEdl_;
     }
 
-    void SetOffset(float& offset)
+    void SetBgRates(Vector2f& bgRates)
     {
-        offset_ = offset;
+        bgRates_ = bgRates;
     }
 
-    const float& GetOffset() const
+    const Vector2f GetBgRates() const
     {
-        return offset_;
+        return bgRates_;
     }
 
-    void SetDownSampleFactor(float& downSampleFactor)
+    void SetBgKBS(Vector3f& bgKBS)
     {
-        downSampleFactor_ = downSampleFactor;
+        bgKBS_ = bgKBS;
     }
 
-    const float& GetDownSampleFactor() const
+    const Vector3f GetBgKBS() const
     {
-        return downSampleFactor_;
+        return bgKBS_;
     }
 
-    void SetBgFactor(float& bgFactor)
+    void SetBgPos(Vector3f& bgPos)
     {
-        bgFactor_ = bgFactor;
+        bgPos_ = bgPos;
     }
 
-    const float& GetBgFactor() const
+    const Vector3f GetBgPos() const
     {
-        return bgFactor_;
+        return bgPos_;
     }
 
-    void SetInnerShadowParams(Vector3f& innerShadowParams)
+    void SetBgNeg(Vector3f& bgNeg)
     {
-        innerShadowParams_ = innerShadowParams;
+        bgNeg_ = bgNeg;
     }
 
-    const Vector3f GetInnerShadowParams() const
+    const Vector3f GetBgNeg() const
     {
-        return innerShadowParams_;
+        return bgNeg_;
+    }
+
+    void SetRefractParams(Vector3f& refractParams)
+    {
+        refractParams_ = refractParams;
+    }
+
+    const Vector3f GetRefractParams() const
+    {
+        return refractParams_;
     }
 
     void SetSdParams(Vector3f& sdParams)
@@ -119,82 +120,219 @@ public:
         return sdParams_;
     }
 
-    void SetRefractOutPx(float& refractOutPx)
+    void SetSdRates(Vector2f& sdRates)
     {
-        refractOutPx_ = refractOutPx;
+        sdRates_ = sdRates;
     }
 
-    const float& GetRefractOutPx() const
+    const Vector2f GetSdRates() const
     {
-        return refractOutPx_;
+        return sdRates_;
     }
 
-    void SetEnvParams(Vector3f& envParams)
+    void SetSdKBS(Vector3f& sdKBS)
     {
-        envParams_ = envParams;
+        sdKBS_ = sdKBS;
     }
 
-    const Vector3f GetEnvParams() const
+    const Vector3f GetSdKBS() const
     {
-        return envParams_;
+        return sdKBS_;
     }
 
-    void SetEdgeLightAngleParams(Vector3f& edgeLightAngle)
+    void SetSdPos(Vector3f& sdPos)
     {
-        edgeLightAngle_ = edgeLightAngle;
+        sdPos_ = sdPos;
     }
 
-    const Vector3f GetEdgeLightAngleParams() const
+    const Vector3f GetSdPos() const
     {
-        return edgeLightAngle_;
+        return sdPos_;
     }
 
-    void SetEdgeLightBlurParams(Vector2f& edgeLightBlur)
+    void SetSdNeg(Vector3f& sdNeg)
     {
-        edgeLightBlur_ = edgeLightBlur;
+        sdNeg_ = sdNeg;
     }
 
-    const Vector2f GetEdgeLightBlurParams() const
+    const Vector3f GetSdNeg() const
     {
-        return edgeLightBlur_;
+        return sdNeg_;
     }
 
-    void SetEdgeLightDirParams(Vector2f& edgeLightDir)
+    void SetEnvLightParams(Vector3f& envLightParams)
     {
-        edgeLightDir_ = edgeLightDir;
+        envLightParams_ = envLightParams;
     }
 
-    const Vector2f GetEdgeLightDirParams() const
+    const Vector3f GetEnvLightParams() const
     {
-        return edgeLightDir_;
+        return envLightParams_;
     }
 
-    void SetHlParams(Vector3f& hlParams)
+    void SetEnvLightRates(Vector2f& envLightRates)
     {
-        hlParams_ = hlParams;
+        envLightRates_ = envLightRates;
     }
 
-    const Vector3f GetHlParams() const
+    const Vector2f GetEnvLightRates() const
     {
-        return hlParams_;
+        return envLightRates_;
+    }
+
+    void SetEnvLightKBS(Vector3f& envLightKBS)
+    {
+        envLightKBS_ = envLightKBS;
+    }
+
+    const Vector3f GetEnvLightKBS() const
+    {
+        return envLightKBS_;
+    }
+
+    void SetEnvLightPos(Vector3f& envLightPos)
+    {
+        envLightPos_ = envLightPos;
+    }
+
+    const Vector3f GetEnvLightPos() const
+    {
+        return envLightPos_;
+    }
+
+    void SetEnvLightNeg(Vector3f& envLightNeg)
+    {
+        envLightNeg_ = envLightNeg;
+    }
+
+    const Vector3f GetEnvLightNeg() const
+    {
+        return envLightNeg_;
+    }
+    
+    void SetEdLightParams(Vector2f& edLightParams)
+    {
+        edLightParams_ = edLightParams;
+    }
+
+    const Vector2f GetEdLightParams() const
+    {
+        return edLightParams_;
+    }
+
+    void SetEdLightAngles(Vector2f& edLightAngles)
+    {
+        edLightAngles_ = edLightAngles;
+    }
+
+    const Vector2f GetEdLightAngles() const
+    {
+        return edLightAngles_;
+    }
+
+    void SetEdLightDir(Vector2f& edLightDir)
+    {
+        edLightDir_ = edLightDir;
+    }
+
+    const Vector2f GetEdLightDir() const
+    {
+        return edLightDir_;
+    }
+
+    void SetEdLightRates(Vector2f& edLightRates)
+    {
+        edLightRates_ = edLightRates;
+    }
+
+    const Vector2f GetEdLightRates() const
+    {
+        return edLightRates_;
+    }
+
+    void SetEdLightKBS(Vector3f& edLightKBS)
+    {
+        edLightKBS_ = edLightKBS;
+    }
+
+    const Vector3f GetEdLightKBS() const
+    {
+        return edLightKBS_;
+    }
+
+    void SetEdLightPos(Vector3f& edLightPos)
+    {
+        edLightPos_ = edLightPos;
+    }
+
+    const Vector3f GetEdLightPos() const
+    {
+        return edLightPos_;
+    }
+
+    void SetEdLightNeg(Vector3f& edLightNeg)
+    {
+        edLightNeg_ = edLightNeg;
+    }
+
+    const Vector3f GetEdLightNeg() const
+    {
+        return edLightNeg_;
+    }
+
+    void SetBorderSize(Vector2f& borderSize)
+    {
+        borderSize_ = borderSize;
+    }
+
+    const Vector2f GetBorderSize() const
+    {
+        return borderSize_;
+    }
+
+    void SetCornerRadius(float& cornerRadius)
+    {
+        cornerRadius_ = cornerRadius;
+    }
+
+    const float& GetCornerRadius() const
+    {
+        return cornerRadius_;
     }
 
 private:
-    Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
-    float cornerRadius_ = 0.0f;
-    float borderWidth_ = 0.0f;
-    float offset_ = 0.0f;
-    float downSampleFactor_ = 0.0f;
-    float bgFactor_ = 0.0f;
-    Vector3f innerShadowParams_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
+    Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
+    // Background darken parameters
+    Vector2f bgRates_ = Vector2f(0.0f, 0.0f);
+    Vector3f bgKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f bgPos_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f bgNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    // Refraction parameters
+    Vector3f refractParams_ = Vector3f(0.0f, 0.0f, 0.0f);
+    // Inner shadow parameters
     Vector3f sdParams_ = Vector3f(0.0f, 0.0f, 0.0f);
-    float refractOutPx_ = 0.0f;
-    Vector3f envParams_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector3f edgeLightAngle_ = Vector3f(0.0f, 0.0f, 0.0f);
-    Vector2f edgeLightBlur_ = Vector2f(0.0f, 0.0f);
-    Vector2f edgeLightDir_ = Vector2f(0.0f, 0.0f);
-    Vector3f hlParams_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector2f sdRates_ = Vector2f(0.0f, 0.0f);
+    Vector3f sdKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f sdPos_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f sdNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    // Env refraction parameters
+    Vector3f envLightParams_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector2f envLightRates_ = Vector2f(0.0f, 0.0f);
+    Vector3f envLightKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f envLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f envLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    // Edge highlights parameters
+    Vector2f edLightParams_ = Vector2f(0.0f, 0.0f);
+    Vector2f edLightAngles_ = Vector2f(0.0f, 30.0f);
+    Vector2f edLightDir_ = Vector2f(0.0f, 0.0f);
+    Vector2f edLightRates_ = Vector2f(0.0f, 0.0f);
+    Vector3f edLightKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
+    float cornerRadius_ = 0.0f;
 };
 } // namespace Rosen
 } // namespace OHOS

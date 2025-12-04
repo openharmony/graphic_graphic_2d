@@ -1916,10 +1916,9 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1
     paintFilterCanvas.SaveClipRRect(nullptr);
     auto data = paintFilterCanvas.customStack_.top();
     paintFilterCanvas.customStack_.pop();
-    data.second(nullptr);
 
     auto canvasTest = std::make_unique<Drawing::Canvas>();
-    data.second(nullptr);
+    paintFilterCanvas.DrawCustomFunc(canvasTest.get(), data.second);
 
     std::shared_ptr<Drawing::Image> image = std::make_shared<Drawing::Image>();
     Drawing::RectI drawRect(0, 0, 50, 50);
@@ -1937,7 +1936,8 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawOptimizationClipRRectTest, TestSize.Level1
     paintFilterCanvas.SaveClipRRect(clipRRectData);
     data = paintFilterCanvas.customStack_.top();
     paintFilterCanvas.customStack_.pop();
-    data.second(canvasTest.get());
+    paintFilterCanvas.DrawCustomFunc(canvasTest.get(), data.second);
+    paintFilterCanvas.DrawCustomFunc(nullptr, data.second);
 
     paintFilterCanvas.CustomRestore(1);
     EXPECT_EQ(paintFilterCanvas.customStack_.size(), 0);
@@ -2037,6 +2037,22 @@ HWTEST_F(RSPaintFilterCanvasTest, DrawImageEffectHPSTest, TestSize.Level1)
     Drawing::Image image;
     std::vector<std::shared_ptr<Drawing::HpsEffectParameter>> hpsEffectParams{};
     paintFilterCanvasBase->DrawImageEffectHPS(image, hpsEffectParams);
+}
+
+/**
+ * @tc.name: SaveDamageRegionrects
+ * @tc.desc: Test SaveDamageRegionrects
+ * @tc.type: FUNC
+ * @tc.require:issues20528
+ */
+HWTEST_F(RSPaintFilterCanvasTest, SaveDamageRegionrects, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    std::shared_ptr<RSPaintFilterCanvas> paintFilterCanvasBase = std::make_shared<RSPaintFilterCanvas>(&canvas);
+    EXPECT_NE(paintFilterCanvasBase, nullptr);
+    std::vector<RectI> drawAreas{{0, 0, 1316, 2832}};
+    paintFilterCanvasBase->SaveDamageRegionrects(drawAreas);
+    EXPECT_EQ(paintFilterCanvasBase->GetDamageRegionrects(), drawAreas);
 }
 
 } // namespace Rosen

@@ -293,3 +293,22 @@ int32_t OH_NativeImage_GetColorSpace(OH_NativeImage* image, OH_NativeBuffer_Colo
     }
     return image->consumer->GetColorSpace(colorSpace);
 }
+
+int32_t OH_NativeImage_IsReleased(OH_NativeImage* image, bool* isReleased)
+{
+    if (image == nullptr || isReleased == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    return image->consumer->isReleased(isReleased);
+}
+
+int32_t OH_NativeImage_Release(OH_NativeImage* image)
+{
+    if (image == nullptr) {
+        BLOGE("parameter error");
+        return SURFACE_ERROR_INVALID_PARAM;
+    }
+    image->producer->CleanCache();
+    return image->consumer->DetachContext();
+}

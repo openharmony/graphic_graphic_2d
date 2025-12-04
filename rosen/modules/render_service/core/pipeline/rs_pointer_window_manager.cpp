@@ -191,13 +191,13 @@ bool RSPointerWindowManager::GetHardCursorNeedCommit(NodeId screenNodeId)
     return hasBuffer != lastCommitResult;
 }
 
-bool RSPointerWindowManager::CheckHardCursorSupport(uint32_t screenId)
+bool RSPointerWindowManager::CheckHardCursorSupport(ScreenId screenId)
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
+    auto screenNode = GetScreenRenderNode(screenId);
+    if (!screenNode) {
         return false;
     }
-    return screenManager->GetDisplayPropertyForHardCursor(screenId);
+    return screenNode->GetScreenProperty().IsHardCursorSupport();
 }
 
 bool RSPointerWindowManager::HasMirrorDisplay() const
@@ -298,6 +298,19 @@ void RSPointerWindowManager::CheckHardCursorValid(const RSSurfaceRenderNode& nod
         RS_LOGE("hardcursor srcRect error, %{public}d, %{public}d, %{public}f, %{public}f",
             bufferWidth, bufferHeight, boundsWidth, boundsHeight);
     }
+}
+
+std::shared_ptr<RSScreenRenderNode> RSPointerWindowManager::GetScreenRenderNode(ScreenId screenId)
+{
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseScreenNodes(
+        [screenId, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (node && node->GetScreenId() == screenId) {
+            screenNode = node;
+        }
+    });
+    return screenNode;
 }
 } // namespace Rosen
 } // namespace OHOS

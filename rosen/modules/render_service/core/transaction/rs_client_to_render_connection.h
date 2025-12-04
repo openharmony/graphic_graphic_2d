@@ -115,6 +115,13 @@ private:
 
     void ClearUifirstCache(NodeId id) override;
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+
+    int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
+#endif
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

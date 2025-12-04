@@ -52,7 +52,7 @@ public:
     virtual void DisableFallback() = 0;
     virtual void DisableSystemFont() = 0;
     virtual std::shared_ptr<Drawing::Typeface> LoadFont(
-        const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
+        const std::string& familyName, const uint8_t* data, size_t datalen, uint32_t index = 0) = 0;
     virtual std::shared_ptr<Drawing::Typeface> LoadThemeFont(
         const std::string& familyName, const uint8_t* data, size_t datalen) = 0;
     virtual std::vector<std::shared_ptr<Drawing::Typeface>> LoadThemeFont(

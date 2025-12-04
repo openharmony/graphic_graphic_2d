@@ -263,10 +263,10 @@ bool MessageParcelBasicTypeUtils::WriteRandomUInt16Vector(MessageParcel& message
 
 bool MessageParcelBasicTypeUtils::WriteRandomUInt32Vector(MessageParcel& messageParcel)
 {
-    std::vector<int32_t> data = RandomData::GetRandomInt32Vector();
-    std::string dataDesc = CommonUtils::PrintVector<int32_t>(data, CommonUtils::BASIC_PRINTER<int32_t>);
-    SAFUZZ_LOGI("MessageParcelBasicTypeUtils::WriteRandomInt32Vector %s", dataDesc.c_str());
-    return messageParcel.WriteInt32Vector(data);
+    std::vector<uint32_t> data = RandomData::GetRandomUInt32Vector();
+    std::string dataDesc = CommonUtils::PrintVector<uint32_t>(data, CommonUtils::BASIC_PRINTER<uint32_t>);
+    SAFUZZ_LOGI("MessageParcelBasicTypeUtils::WriteRandomUInt32Vector %s", dataDesc.c_str());
+    return messageParcel.WriteUInt32Vector(data);
 }
 
 bool MessageParcelBasicTypeUtils::WriteRandomUInt64Vector(MessageParcel& messageParcel)

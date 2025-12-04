@@ -99,6 +99,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK),
 #endif
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE),
@@ -636,15 +637,15 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                     surface = Surface::CreateSurfaceAsProducer(bufferProducer);
                 }
             }
-            ScreenId mirrorId{INVALID_SCREEN_ID};
+            ScreenId associatedScreenId{INVALID_SCREEN_ID};
             int32_t flags{0};
             std::vector<NodeId> whiteList;
-            if (!data.ReadUint64(mirrorId) || !data.ReadInt32(flags) || !data.ReadUInt64Vector(&whiteList)) {
+            if (!data.ReadUint64(associatedScreenId) || !data.ReadInt32(flags) || !data.ReadUInt64Vector(&whiteList)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN read ScreenId failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            ScreenId id = CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
+            ScreenId id = CreateVirtualScreen(name, width, height, surface, associatedScreenId, flags, whiteList);
             if (!reply.WriteUint64(id)) {
                 RS_LOGE("RSClientToServiceConnectionStub::CREATE_VIRTUAL_SCREEN Write id failed!");
                 ret = ERR_INVALID_REPLY;
@@ -1328,6 +1329,27 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_DUAL_SCREEN_STATE): {
+            ScreenId id{INVALID_SCREEN_ID};
+            uint64_t status{0};
+            if (!data.ReadUint64(id) || !data.ReadUint64(status)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_DUAL_SCREEN_STATE Read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (status >= static_cast<uint64_t>(DualScreenStatus::DUAL_SCREEN_STATUS_BUTT)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_DUAL_SCREEN_STATE invalid status: %{public}" PRIu64,
+                        status);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t retCode = SetDualScreenState(id, static_cast<DualScreenStatus>(status));
+            if (!reply.WriteInt32(retCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::SET_DUAL_SCREEN_STATE write retCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
@@ -2288,8 +2310,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             uint64_t id{0};
             int32_t fd{-1};
             uint32_t size{0};
+            uint32_t index{0};
             int32_t needUpdate{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(size)) {
+            if (!data.ReadUint64(id) || !data.ReadUint32(size) || !data.ReadUint32(index)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -2303,7 +2326,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             // safe check
             if (IsValidCallingPid(ExtractPid(id), callingPid)) {
                 RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, id);
-                result = RegisterTypeface(id, size, fd, needUpdate);
+                result = RegisterTypeface(id, size, fd, needUpdate, index);
             } else {
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);
@@ -3017,12 +3040,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT) : {
             int32_t touchStatus{0};
             int32_t touchCnt{0};
-            if (!data.ReadInt32(touchStatus) || !data.ReadInt32(touchCnt)) {
+            int32_t sourceType{0};
+            if (!data.ReadInt32(touchStatus) || !data.ReadInt32(touchCnt) || !data.ReadInt32(sourceType)) {
                 RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_TOUCH_EVENT Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            NotifyTouchEvent(touchStatus, touchCnt);
+            NotifyTouchEvent(touchStatus, touchCnt, sourceType);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_HGMCONFIG_EVENT) : {

@@ -25,8 +25,10 @@
 #include "napi/native_common.h"
 #include "napi/native_node_api.h"
 #include "utils/text_log.h"
+#include "utils/error_code.h"
 
 namespace OHOS::Rosen {
+using NapiTextResult = OHOS::MLB::TextResult<napi_value>;
 #define MAX_LOG_SIZE 1024
 /* check condition related to argc/argv, return and logging. */
 #define NAPI_CHECK_ARGS(context, condition, specifyStatus, code, retValue, fmt, ...) \
@@ -45,6 +47,19 @@ namespace OHOS::Rosen {
             retValue; \
         } \
     } while (0)
+
+/* check condition related to argc/argv, return and logging. */
+#define NAPI_CHECK_ARGS_WITH_STATEMENT(context, condition, specifyStatus, code, retValue, statement, fmt, ...) \
+    if (!(condition)) {                                                                                        \
+        (context)->status = specifyStatus;                                                                     \
+        (context)->errCode = static_cast<int32_t>(code);                                                       \
+        char buffer[MAX_LOG_SIZE] = { 0 };                                                                     \
+        snprintf_s(buffer, MAX_LOG_SIZE, MAX_LOG_SIZE - 1, fmt, ##__VA_ARGS__);                                \
+        (context)->errMessage = buffer;                                                                        \
+        statement;                                                                                             \
+        TEXT_LOGE("Test (" #condition ") failed: %{public}s", buffer);                                         \
+        retValue;                                                                                              \
+    }
 
 #define NAPI_CHECK_STATUS_RETURN_VOID(context, message, code)                        \
     do {                                                               \
@@ -89,7 +104,7 @@ private:
 
 class NapiAsyncWork {
 public:
-    static napi_value Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
+    static NapiTextResult Enqueue(napi_env env, sptr<ContextBase> contextBase, const std::string& name,
                               NapiAsyncExecute execute = NapiAsyncExecute(),
                               NapiAsyncComplete complete = NapiAsyncComplete());
 

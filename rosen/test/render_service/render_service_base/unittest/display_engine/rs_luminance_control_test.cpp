@@ -49,7 +49,6 @@ public:
     MOCK_METHOD(bool, IsHdrPictureOn, (), (override));
     MOCK_METHOD(bool, IsForceCloseHdr, (), (override, const));
     MOCK_METHOD(void, ForceCloseHdr, (uint32_t closeHdrSceneId, bool forceCloseHdr), (override));
-    MOCK_METHOD(bool, IsCloseHardwareHdr, (), (override, const));
     MOCK_METHOD(bool, IsScreenNoHeadroom, (ScreenId screenId), (override, const));
     MOCK_METHOD(double, GetMaxScaler, (ScreenId screenId), (override, const));
     MOCK_METHOD(BrightnessInfo, GetBrightnessInfo, (ScreenId screenId), (override));
@@ -60,6 +59,7 @@ public:
     using HdrToBrightnessScalerMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
     MOCK_METHOD(void, SetCurDisplayHdrBrightnessScaler, (ScreenId screenId,
         HdrToBrightnessScalerMap& curDisplayHdrBrightnessScaler), (override));
+    MOCK_METHOD(bool, IsHardwareHdrDisabled, (bool checkBrightnessRatio, ScreenId screenId), (override));
 
     float CalScaler(const float& maxContentLightLevel,
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) override;
@@ -215,7 +215,7 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl006, TestSize.Level1)
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
-    ASSERT_EQ(luminCtrl.IsCloseHardwareHdr(), false);
+    ASSERT_EQ(luminCtrl.IsHardwareHdrDisabled(0.0f, 0), false);
 }
 
 /**

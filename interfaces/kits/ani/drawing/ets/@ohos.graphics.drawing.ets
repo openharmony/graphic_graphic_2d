@@ -2152,6 +2152,22 @@ namespace drawing {
      * @since 20
      */
     static native makeFromFileWithArguments(filePath: string, typefaceArguments: TypefaceArguments): Typeface;
+
+    /**
+     * Checks if the typeface is bold.
+     * @returns { boolean } Returns true if the typeface is bold; return false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 23
+     */
+    native isBold(): boolean;
+
+    /**
+     * Checks if the typeface is italic.
+     * @returns { boolean } Returns true if the typeface is italic; return false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 23
+     */
+    native isItalic(): boolean;
   }
 
   /**
@@ -4427,6 +4443,21 @@ namespace drawing {
      * @since 20
      */
     native getPathIterator(): PathIterator | undefined;
+
+    /**
+     * Checks if the fill type is one of the INVERSE variants.
+     * @returns { boolean } Returns true if  the fill type is one of the INVERSE variants; return false otherwise.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 23
+     */
+    native isInverseFillType(): boolean;
+
+    /**
+     * Toggles the INVERSE state of the filltype.
+     * @syscap SystemCapability.Graphics.Drawing
+     * @since 23
+     */
+    native toggleInverseFillType(): void;
   }
 
     /**

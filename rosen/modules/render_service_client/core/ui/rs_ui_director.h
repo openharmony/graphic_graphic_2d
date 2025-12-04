@@ -380,7 +380,6 @@ private:
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
     std::string cacheDir_;
-    static std::function<void()> requestVsyncCallback_;
     bool isHgmConfigChangeCallbackReg_ = false;
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
     std::weak_ptr<RSRootNode> rootNode_;

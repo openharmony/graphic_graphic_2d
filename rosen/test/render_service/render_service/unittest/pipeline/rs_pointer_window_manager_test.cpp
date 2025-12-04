@@ -146,13 +146,36 @@ HWTEST_F(RSPointerWindowManagerTest, SetHardCursorNodeInfoTest002, TestSize.Leve
  */
 HWTEST_F(RSPointerWindowManagerTest, CheckHardCursorSupportTest, TestSize.Level2)
 {
-    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1);
-    surfaceNode->nodeType_ = RSSurfaceNodeType::CURSOR_NODE;
-    surfaceNode->name_ = "pointer window";
-    surfaceNode->isOnTheTree_ = true;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(1, 1);
+    screenNode->screenProperty_.isHardCursorSupport_ = false;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(screenNode);
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
-    bool res = rsPointerWindowManager.CheckHardCursorSupport(1);
-    ASSERT_EQ(res, false);
+    EXPECT_FALSE(rsPointerWindowManager.CheckHardCursorSupport(1));
+
+    screenNode->screenProperty_.isHardCursorSupport_ = true;
+    EXPECT_TRUE(rsPointerWindowManager.CheckHardCursorSupport(1));
+}
+
+/**
+ * @tc.name: GetScreenRenderNodeTest
+ * @tc.desc: Test GetScreenRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJ1DW
+ */
+HWTEST_F(RSPointerWindowManagerTest, GetScreenRenderNodeTest, TestSize.Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    auto screenNode0 = std::make_shared<RSScreenRenderNode>(1, 1);
+    auto screenNode1 = std::make_shared<RSScreenRenderNode>(2, 2);
+
+    nodeMap.screenNodeMap_[1] = screenNode0;
+    nodeMap.screenNodeMap_[2] = screenNode1;
+    nodeMap.screenNodeMap_[3] = nullptr;
+    auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
+    EXPECT_NE(rsPointerWindowManager.GetScreenRenderNode(1), nullptr);
+    EXPECT_NE(rsPointerWindowManager.GetScreenRenderNode(2), nullptr);
+    EXPECT_EQ(rsPointerWindowManager.GetScreenRenderNode(3), nullptr);
 }
 
 /**

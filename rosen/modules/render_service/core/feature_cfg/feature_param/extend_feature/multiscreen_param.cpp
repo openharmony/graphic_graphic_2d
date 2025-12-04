@@ -37,16 +37,6 @@ void MultiScreenParam::SetSlrScaleEnabled(bool isEnabled)
     isSlrScaleEnabled_ = isEnabled;
 }
 
-bool MultiScreenParam::IsRsReportHwcDead()
-{
-    return isRsReportHwcDead_;
-}
-
-void MultiScreenParam::SetRsReportHwcDead(bool isEnabled)
-{
-    isRsReportHwcDead_ = isEnabled;
-}
-
 bool MultiScreenParam::IsRsSetScreenPowerStatus()
 {
     return isRsSetScreenPowerStatus_;

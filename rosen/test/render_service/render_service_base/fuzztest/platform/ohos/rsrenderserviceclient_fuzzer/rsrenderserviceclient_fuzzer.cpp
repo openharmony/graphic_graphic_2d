@@ -981,8 +981,9 @@ bool DoNotifyTouchEvent(const uint8_t* data, size_t size)
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     int32_t touchStatus = GetData<int32_t>();
     int32_t touchCnt = GetData<int32_t>();
+    int32_t sourceType = GetData<int32_t>();
     bool enableDynamicMode = GetData<bool>();
-    renderServiceClient->NotifyTouchEvent(touchStatus, touchCnt);
+    renderServiceClient->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     renderServiceClient->NotifyDynamicModeEvent(enableDynamicMode);
     return true;
 }
@@ -1453,7 +1454,7 @@ bool DoGetScreenType002(const uint8_t *data, size_t size)
     renderServiceClient->GetBitmap(nodeId, bm);
     renderServiceClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     renderServiceClient->RegisterTypeface(typeface);
-    renderServiceClient->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
+    renderServiceClient->RegisterTypeface(typeface, GetData<uint32_t>());
     if (typeface) {
         renderServiceClient->UnRegisterTypeface(typeface->GetUniqueID());
     }

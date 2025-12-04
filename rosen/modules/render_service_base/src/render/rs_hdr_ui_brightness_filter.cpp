@@ -71,7 +71,8 @@ void RSHDRUIBrightnessFilter::DrawImageRect(Drawing::Canvas& canvas, const std::
     Drawing::ColorMatrix luminanceMatrix;
     RSPaintFilterCanvas& rscanvas = static_cast<RSPaintFilterCanvas&>(canvas);
     float hdrBrightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(rscanvas.GetScreenId(), 0);
-    float hdrUIBrightness = rscanvas.GetHdrOn() ? GetHDRUIBrightness() : DEFAULT_HDR_UI_BRIGHTNESS;
+    float hdrUIBrightness = rscanvas.GetHdrOn() ? rscanvas.GetHDRBrightness() *
+        (GetHDRUIBrightness() - DEFAULT_HDR_UI_BRIGHTNESS) + DEFAULT_HDR_UI_BRIGHTNESS : DEFAULT_HDR_UI_BRIGHTNESS;
     float headroom = 1.0f / std::pow(hdrBrightnessRatio, GAMMA2_2);
     // clamp ratio from 1.0 to current headroom and convert ratio from linear domain to nonlinear domain
     hdrUIBrightness = std::pow(std::clamp(hdrUIBrightness, DEFAULT_HDR_UI_BRIGHTNESS, headroom), 1.0f / GAMMA2_2);

@@ -1862,16 +1862,14 @@ HWTEST_F(RSUifirstManagerTest, CommonPendingNodePurgeTest, TestSize.Level1)
 
     ScreenId screenId = 1;
     auto screenManager = CreateOrGetScreenManager();
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+    screenManager->powerOffNeedProcessOneFrame_ = false;
 
-    bool powerStatus = screenManagerImpl.screenPowerStatus_[screenId];
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+    bool powerStatus = screenManager->screenPowerStatus_[screenId];
+    screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
     EXPECT_FALSE(uifirstManager_.CommonPendingNodePurge(iter));
-    screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+    screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
     EXPECT_TRUE(uifirstManager_.CommonPendingNodePurge(iter));
-    screenManagerImpl.screenPowerStatus_[screenId] = powerStatus;
+    screenManager->screenPowerStatus_[screenId] = powerStatus;
 }
 
 /**

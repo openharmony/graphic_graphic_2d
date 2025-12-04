@@ -82,16 +82,16 @@ void DrawPixelMapMeshBuilderProcess(std::shared_ptr<Media::PixelMap> pixelMap,
         y += dy;
     }
     uint16_t* dexIndices = indices;
-    int indexIndices = 0;
-    int indexSteps = 2;
+    uint32_t indexIndices = 0;
+    uint32_t indexSteps = 2;
     for (uint32_t i = 0; i < meshWidth; i++) {
         for (uint32_t j = 0; j < meshHeight; j++) {
-            *dexIndices++ = indexIndices;
-            *dexIndices++ = indexIndices + meshHeight + 1;
-            *dexIndices++ = indexIndices + meshHeight + indexSteps;
-            *dexIndices++ = indexIndices;
-            *dexIndices++ = indexIndices + meshHeight + indexSteps;
-            *dexIndices++ = indexIndices + 1;
+            *dexIndices++ = static_cast<uint16_t>(indexIndices);
+            *dexIndices++ = static_cast<uint16_t>(indexIndices + meshHeight + 1);
+            *dexIndices++ = static_cast<uint16_t>(indexIndices + meshHeight + indexSteps);
+            *dexIndices++ = static_cast<uint16_t>(indexIndices);
+            *dexIndices++ = static_cast<uint16_t>(indexIndices + meshHeight + indexSteps);
+            *dexIndices++ = static_cast<uint16_t>(indexIndices + 1);
             indexIndices += 1;
         }
         indexIndices += 1;
@@ -135,9 +135,9 @@ OH_Drawing_ErrorCode DrawingCanvasUtils::DrawPixelMapMeshInternal(Drawing::Canva
     if (!canvas->GetMutableBrush().IsValid()) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
-    const int vertCounts = (meshWidth + 1) * (meshHeight + 1);
-    int32_t size = 6;
-    const int indexCount = meshWidth * meshHeight * size;
+    const int vertCounts = static_cast<int>((meshWidth + 1) * (meshHeight + 1));
+    uint32_t size = 6;
+    const int indexCount = static_cast<int>(meshWidth * meshHeight * size);
     uint32_t flags = colors ?
         Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG | Drawing::BuilderFlags::HAS_COLORS_BUILDER_FLAG :
         Drawing::BuilderFlags::HAS_TEXCOORDS_BUILDER_FLAG;

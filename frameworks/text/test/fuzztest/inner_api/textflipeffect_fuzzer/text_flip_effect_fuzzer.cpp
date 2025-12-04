@@ -36,6 +36,7 @@ void TextFlipEffectFuzzTest(const uint8_t* data, size_t size)
     textEffect->UpdateEffectConfig(config);
     OHOS::Rosen::TypographyStyle typographyStyle0;
     typographyStyle0.enableAutoSpace = false;
+    typographyStyle0.compressHeadPunctuation = false;
     std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection0 =
         OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
     std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate =

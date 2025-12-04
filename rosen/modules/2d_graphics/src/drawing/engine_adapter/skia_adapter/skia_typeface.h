@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,7 @@ public:
     FontStyle GetFontStyle() const override;
     size_t GetTableSize(uint32_t tag) const override;
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const override;
+    bool GetBold() const override;
     bool GetItalic() const override;
     uint32_t GetUniqueID() const override;
     int32_t GetUnitsPerEm() const override;

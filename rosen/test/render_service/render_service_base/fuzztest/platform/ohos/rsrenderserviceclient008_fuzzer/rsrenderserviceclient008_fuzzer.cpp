@@ -412,7 +412,7 @@ bool DoGetScreenType002()
     renderServiceClient->GetBitmap(nodeId, bm);
     renderServiceClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     renderServiceClient->RegisterTypeface(typeface);
-    renderServiceClient->RegisterTypeface(GetData<uint32_t>(), GetData<uint32_t>(), GetData<int32_t>());
+    renderServiceClient->RegisterTypeface(typeface, GetData<uint32_t>());
     if (typeface) {
         renderServiceClient->UnRegisterTypeface(typeface->GetUniqueID());
     }

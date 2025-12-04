@@ -692,6 +692,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     NodeId id = 0;
     RSSurfaceCaptureConfig captureConfig;
     RSSurfaceCaptureParam captureParam;
+    captureParam.needCaptureSpecialLayer = true;
     auto type = RSPaintFilterCanvas::ScreenshotType::SDR_SCREENSHOT;
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
@@ -702,19 +703,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, CaptureDisplayNode, TestSize.Level2)
     ASSERT_NE(drawable, nullptr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
     task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    RSRenderThreadParamsManager::Instance().renderThreadParams_ = std::make_unique<RSRenderThreadParams>();
-    auto& uniParams = RSUniRenderThread::Instance().GetRSRenderThreadParams();
-    ASSERT_NE(uniParams, nullptr);
-    bool secExemption = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    captureParam.needCaptureSpecialLayer = false;
-    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    bool secExemption1 = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    ASSERT_EQ(secExemption, secExemption1);
-
-    captureParam.needCaptureSpecialLayer = true;
-    task.CaptureDisplayNode(*drawable, canvas, captureParam, type);
-    bool secExemption2 = uniParams == nullptr ? false : uniParams->GetSecExemption();
-    ASSERT_EQ(secExemption, secExemption2);
+    EXPECT_EQ(RSUniRenderThread::GetCaptureParam().needCaptureSpecialLayer_, true);
 }
 
 /*
@@ -743,8 +732,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
-    auto virtualScreenId =
-        impl::RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -759,7 +747,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture001, TestSize.Level0)
     RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 
     // Reset
-    impl::RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
+    RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
@@ -783,8 +771,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     auto node = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     ASSERT_NE(node, nullptr);
     // set screen
-    auto virtualScreenId =
-        impl::RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -799,7 +786,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, Capture002, TestSize.Level0)
     RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
 
     // Reset
-    impl::RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
+    RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
@@ -878,8 +865,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     screenNode->CollectHdrStatus(HdrStatus::HDR_VIDEO);
     node->parent_ = screenNode;
     // set screen
-    auto virtualScreenId =
-        impl::RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
+    auto virtualScreenId = RSScreenManager::GetInstance()->CreateVirtualScreen("virtualDisplayTest", 480, 320, nullptr);
     node->screenId_ = virtualScreenId;
     RSRenderNodeMap& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
@@ -905,7 +891,7 @@ HWTEST_F(RSSurfaceCaptureTaskParallelTest, RunHDR001, TestSize.Level2)
     EXPECT_EQ(ret, false);
 
     // Reset
-    impl::RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
+    RSScreenManager::GetInstance()->RemoveVirtualScreen(virtualScreenId);
     nodeMap.UnregisterRenderNode(nodeId);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }

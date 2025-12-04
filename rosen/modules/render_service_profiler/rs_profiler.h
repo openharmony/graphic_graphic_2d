@@ -633,7 +633,7 @@ private:
     static void StopBetaRecord();
     static bool IsBetaRecordStarted();
     static void UpdateBetaRecord(const RSContext& context);
-    static void SaveBetaRecord();
+    static void BetaRecordTick();
     static bool IsBetaRecordInactive();
     static void RequestVSyncOnBetaRecordInactivity();
     static void LaunchBetaRecordNotificationThread();
@@ -763,7 +763,7 @@ private:
     static bool IsPlaying();
 
     static bool IsLoadSaveFirstScreenInProgress();
-    static std::string FirstFrameMarshalling(uint32_t fileVersion);
+    static std::string FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordingStarted = false);
     static std::string FirstFrameUnmarshalling(const std::string& data, uint32_t fileVersion);
     static void HiddenSpaceTurnOff();
     static void HiddenSpaceTurnOn();
