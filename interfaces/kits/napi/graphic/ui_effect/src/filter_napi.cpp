@@ -1379,7 +1379,9 @@ bool FilterNapi::BuildFrostedGlassPara(napi_env env, napi_value* argv,
 
 napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 {
-    constexpr size_t requireArgc = NUM_27;
+    static const size_t maxArgc = NUM_28;
+    static const size_t minArgc = NUM_27;
+    constexpr size_t requireArgc = maxArgc;
  
     napi_status status;
     napi_value thisVar = nullptr;
@@ -1387,13 +1389,18 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     size_t realArgc = requireArgc;
  
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
-    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
+    UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok &&  minArgc <= realArgc && realArgc <= maxArgc, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass parsing input fail"));
  
     std::shared_ptr<FrostedGlassPara> para = std::make_shared<FrostedGlassPara>();
     UIEFFECT_NAPI_CHECK_RET_D(BuildFrostedGlassPara(env, argv, para), nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass build para fail"));
- 
+
+    if (realArgc >= maxArgc) {
+        float samplingScale = 0.f;
+        samplingScale = GetSpecialValue(env, argv[NUM_27]);
+        para->SetSamplingScale(samplingScale);
+    }
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
