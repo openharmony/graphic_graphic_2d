@@ -432,7 +432,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         nodeId_, pixelMap_->GetWidth(), pixelMap_->GetHeight(),
         pixelMap_->InnerGetGrColorSpace().GetColorSpaceName());
     errorCode_ = CaptureError::CAPTURE_OK;
-    ProcessUiCaptureCallback(callback, nodeId_, captureConfig_, pixelMap_.get());
+    ProcessUiCaptureCallback(callback, nodeId_, captureConfig_, pixelMap_.get(), errorCode_);
     return true;
 }
 
@@ -534,7 +534,7 @@ bool RSUiCaptureTaskParallel::IsHdrUiCapture(OHOS::ColorManager::ColorSpaceName 
     if (node != nullptr && (node->GetHDRStatus() || node->ChildHasVisibleHDRContent())) {
         return true;
     }
-    retutn false;
+    return false;
 }
 
 std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByColorSpace(
