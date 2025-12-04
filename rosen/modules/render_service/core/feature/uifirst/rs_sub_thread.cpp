@@ -23,6 +23,7 @@
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
+#include "feature_cfg/graphic_feature_param_manager.h"
 #include "GLES3/gl3.h"
 #include "include/core/SkCanvas.h"
 #include "memory/rs_memory_manager.h"
@@ -289,6 +290,10 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->Restore();
     bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
         !rsSubThreadCache.IsHighPostPriority()) ? false : true;
+    if (GetFeatureParamValue("SurfaceCaptureConfig",
+        &SurfaceCaptureParam::IsDeferredDmaSurfaceReleaseEnabled).value_or(false)) {
+        optFenceWait = false;
+    }
     RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
     rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable);
     rsSubThreadCache.UpdateBackendTexture();
