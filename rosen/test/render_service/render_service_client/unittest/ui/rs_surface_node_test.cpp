@@ -1797,6 +1797,9 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipDraw, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSkipDraw(false);
+    EXPECT_FALSE(surfaceNode->GetSkipDraw());
+
     surfaceNode->SetSkipDraw(true);
     EXPECT_TRUE(surfaceNode->GetSkipDraw());
 
