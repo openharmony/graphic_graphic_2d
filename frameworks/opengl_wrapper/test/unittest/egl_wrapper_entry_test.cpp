@@ -2345,7 +2345,7 @@ HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl002, Level1)
 
 /**
  * @tc.name: eglGetNativeClientBufferOHOSImpl001
- * @tc.desc: testing valid input case
+ * @tc.desc: testing invalid input case
  * @tc.type: FUNC
  */
 HWTEST_F(EglWrapperEntryTest, eglGetNativeClientBufferOHOSImpl001, Level1)
