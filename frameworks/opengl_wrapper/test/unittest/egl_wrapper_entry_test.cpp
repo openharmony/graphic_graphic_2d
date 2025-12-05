@@ -2325,7 +2325,7 @@ HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl001, Level1)
 
 /**
  * @tc.name: EglGetNativeClientBufferANDROIDImpl002
- * @tc.desc: test vaild input case
+ * @tc.desc: testing valid input case
  * @tc.type: FUNC
  */
 HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl002, Level1)
@@ -2340,15 +2340,15 @@ HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl002, Level1)
     ASSERT_NE(nullptr, nativeBuffer);
     auto result = gWrapperHook.wrapper.eglGetNativeClientBufferANDROID((struct AHardwareBuffer*)nativeBuffer);
     ASSERT_NE(nullptr, result);
-    OH_NativeBuffer_Unreferce(nativeBuffer);
+    OH_NativeBuffer_Unreference(nativeBuffer);
 }
 
 /**
- * @tc.name: EglGetNativeClientBufferOHOSImpl001
- * @tc.desc: test vaild input case
+ * @tc.name: eglGetNativeClientBufferOHOSImpl001
+ * @tc.desc: testing valid input case
  * @tc.type: FUNC
  */
-HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl002, Level1)
+HWTEST_F(EglWrapperEntryTest, eglGetNativeClientBufferOHOSImpl001, Level1)
 {
     auto result = gWrapperHook.wrapper.eglGetNativeClientBufferOHOS(nullptr);
     ASSERT_EQ(nullptr, result);

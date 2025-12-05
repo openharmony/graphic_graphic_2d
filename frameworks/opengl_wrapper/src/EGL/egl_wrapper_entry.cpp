@@ -1431,7 +1431,7 @@ EGLClientBuffer EglGetNativeClientBufferANDROIDImpl(const struct AHardwareBuffer
 {
     ClearError();
     if (buffer == nullptr) {
-        WLOGE("EglGetNativeClientBufferANDROIDImpl input buffer is nullptr.");
+        WLOGE("EglGetNativeClientBufferANDROIDImpl input buffer is nullptr");
         ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
         return nullptr;
     }
