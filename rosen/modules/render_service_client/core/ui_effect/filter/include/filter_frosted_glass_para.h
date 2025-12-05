@@ -24,12 +24,6 @@ namespace OHOS {
 namespace Rosen {
 class FrostedGlassPara : public FilterPara {
 public:
-    enum BaseMaterialType {
-        NO_BLUR = 0,
-        BLUR = 1,
-        NEW_MATERIAL = 2
-    };
-
     FrostedGlassPara()
     {
         this->type_ = FilterPara::ParaType::FROSTED_GLASS;
@@ -338,13 +332,7 @@ public:
 
     void SetBaseMaterialType(float baseMaterialType)
     {
-        if (baseMaterialType >= 0.0 && baseMaterialType < 1.0) {
-            baseMaterialType_ = static_cast<float>(NO_BLUR);
-        } else if (baseMaterialType >= 1.0 && baseMaterialType < 2.0) {
-            baseMaterialType_ = static_cast<float>(BLUR);
-        } else {
-            baseMaterialType_ = static_cast<float>(NEW_MATERIAL);
-        }
+        baseMaterialType_ = baseMaterialType;
     }
 
     float GetBaseMaterialType()
@@ -397,7 +385,7 @@ private:
     float cornerRadius_ = 0.0f;
     bool innerShadowEnabled_ = true;
     bool baseVibrancyEnabled_ = true;
-    float baseMaterialType_ = static_cast<float>(NEW_MATERIAL);
+    float baseMaterialType_ = 0.0f;
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     float samplingScale_ = 1.0f;
 };
