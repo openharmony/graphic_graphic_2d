@@ -147,6 +147,11 @@ std::string Typeface::GetFontPath() const
     return (typefaceImpl_ == nullptr) ? "" : typefaceImpl_->GetFontPath();
 }
 
+std::int32_t Typeface::GetFontIndex() const
+{
+    return (typefaceImpl_ == nullptr) ? 0 : typefaceImpl_->GetFontIndex();
+}
+
 FontStyle Typeface::GetFontStyle() const
 {
     if (typefaceImpl_) {
