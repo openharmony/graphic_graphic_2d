@@ -60,6 +60,7 @@ public:
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, uint32_t type);
     int32_t SetDisplayProperty(uint64_t value);
     bool GetDisplayPropertyForHardCursor(uint32_t screenId);
+    int32_t GetPanelPowerStatus(GraphicPanelPowerStatus& status);
     int32_t GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const;
     int32_t GetScreenConnectionType(GraphicDisplayConnectionType& outType) const;
 

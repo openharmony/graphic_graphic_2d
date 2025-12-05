@@ -26,6 +26,8 @@ HdiDeviceMock* HdiDeviceMock::GetInstance()
     static HdiDeviceMock instance;
     return &instance;
 }
+
+GraphicPanelPowerStatus HdiDeviceMock::panelPowerStatusMock_ = GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_ON;
 } // namespace Mock
 } // namespace Rosen
 } // namespace OHOS

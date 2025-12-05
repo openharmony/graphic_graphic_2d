@@ -334,6 +334,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(frostedGlassFilterPara->GetBorderSize());
     frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(frostedGlassFilterPara->GetCornerRadius());
     frostedGlassFilter->Setter<FrostedGlassInnerShadowEnabledTag>(frostedGlassFilterPara->GetInnerShadowEnabled());
+    frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
     return frostedGlassFilter;
 }
 

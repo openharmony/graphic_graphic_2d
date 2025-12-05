@@ -115,6 +115,7 @@ public:
     int32_t ClearClientBuffer(uint32_t screenId) override;
     void Destroy() override;
     int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) override;
+    int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;

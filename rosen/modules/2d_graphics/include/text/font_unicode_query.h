@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-class FontUnicodeQuery {
+class DRAWING_API FontUnicodeQuery {
 public:
     /**
      * @brief            Returns all supported and valid unicode item in given typeface.

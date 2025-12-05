@@ -946,6 +946,19 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
     clientToService->SetScreenBacklight(id, level);
 }
 
+PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
+{
+    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
+        return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    }
+
+    uint32_t status{static_cast<uint32_t>(PanelPowerStatus::INVALID_PANEL_POWER_STATUS)};
+    clientToService->GetPanelPowerStatus(id, status);
+    return static_cast<PanelPowerStatus>(status);
+}
+
 class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub
 {
 public:

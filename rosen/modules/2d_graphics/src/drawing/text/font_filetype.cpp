@@ -45,82 +45,82 @@ inline bool HasTable(HBFace& face, hb_tag_t tableTag)
     return hb_blob_get_length(blob.get()) > 0;
 }
 
-FontFileFormat DetectFormat(HBFace& face)
+FontFileType::FontFileFormat DetectFormat(HBFace& face)
 {
     if (!face) {
-        return FontFileFormat::UNKNOWN;
+        return FontFileType::FontFileFormat::UNKNOWN;
     }
     if (HasTable(face, HB_TAG('C', 'F', 'F', ' ')) ||
         HasTable(face, HB_TAG('C', 'F', 'F', '2'))) {
-        return FontFileFormat::OTF;
+        return FontFileType::FontFileFormat::OTF;
     }
     if (HasTable(face, HB_TAG('g', 'l', 'y', 'f')) ||
         HasTable(face, HB_TAG('l', 'o', 'c', 'a'))) {
-        return FontFileFormat::TTF;
+        return FontFileType::FontFileFormat::TTF;
     }
     if (HasTable(face, HB_TAG('c', 'm', 'a', 'p')) &&
         HasTable(face, HB_TAG('h', 'e', 'a', 'd')) &&
         HasTable(face, HB_TAG('h', 'h', 'e', 'a')) &&
         HasTable(face, HB_TAG('h', 'm', 't', 'x'))) {
-        return FontFileFormat::TTF;
+        return FontFileType::FontFileFormat::TTF;
     }
-    return FontFileFormat::UNKNOWN;
+    return FontFileType::FontFileFormat::UNKNOWN;
 }
 
-FontFileFormat DetectFormatWithFileCount(HBBlob& blob, int& fileCount)
+FontFileType::FontFileFormat DetectFormatWithFileCount(HBBlob& blob, int& fileCount)
 {
     if (!blob) { // only for protection
         fileCount = INVALID_FONT_FILE_NUM;
-        return FontFileFormat::UNKNOWN;
+        return FontFileType::FontFileFormat::UNKNOWN;
     }
     fileCount = static_cast<int>(hb_face_count(blob.get()));
     if (fileCount == INVALID_FONT_FILE_NUM) { // never become negative
-        return FontFileFormat::UNKNOWN;
+        return FontFileType::FontFileFormat::UNKNOWN;
     }
     HBFace face;
     face.reset(hb_face_create(blob.get(), 0));
-    FontFileFormat firstFaceType = DetectFormat(face);
+    FontFileType::FontFileFormat firstFaceType = DetectFormat(face);
     if (fileCount == FONT_FILE_NOT_COLLECTION) {
         return firstFaceType;
     }
-    if (firstFaceType == FontFileFormat::TTF) {
-        return FontFileFormat::TTC;
+    if (firstFaceType == FontFileType::FontFileFormat::TTF) {
+        return FontFileType::FontFileFormat::TTC;
     }
-    if (firstFaceType == FontFileFormat::OTF) {
-        return FontFileFormat::OTC;
+    if (firstFaceType == FontFileType::FontFileFormat::OTF) {
+        return FontFileType::FontFileFormat::OTC;
     }
-    return FontFileFormat::UNKNOWN;
+    return FontFileType::FontFileFormat::UNKNOWN;
 }
 
-FontFileFormat FontFileType::GetFontFileType(const std::shared_ptr<Typeface>& typeface)
+FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::shared_ptr<Typeface>& typeface)
 {
     if (!typeface) {
         LOGD("Drawing_Text [GetFontFileType] typeface is invalid!");
-        return FontFileFormat::UNKNOWN;
+        return FontFileType::FontFileFormat::UNKNOWN;
     }
     HBFace hbFace = FontHarfbuzz::CreateHbFace(*typeface);
     return DetectFormat(hbFace); // input is typeface indicating only 1 face.
 }
 
-FontFileFormat FontFileType::GetFontFileType(const std::string& path, int& fileCount)
+FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::string& path, int& fileCount)
 {
     if (path.empty()) {
         fileCount = INVALID_FONT_FILE_NUM;
         LOGD("Drawing_Text [GetFontFileType] path is empty!");
-        return FontFileFormat::UNKNOWN;
+        return FontFileType::FontFileFormat::UNKNOWN;
     }
     HBBlob hbBlob;
     hbBlob.reset(hb_blob_create_from_file(path.c_str()));
     return DetectFormatWithFileCount(hbBlob, fileCount);
 }
 
-FontFileFormat FontFileType::GetFontFileType(const std::vector<uint8_t>& data, int& fileCount)
+FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::vector<uint8_t>& data, int& fileCount)
 {
     size_t dataLength = data.size();
     if (dataLength == 0) {
         fileCount = INVALID_FONT_FILE_NUM;
         LOGE("Drawing_Text [GetFontFileType] dataLength is invalid!");
-        return FontFileFormat::UNKNOWN;
+        return FontFileType::FontFileFormat::UNKNOWN;
     }
     HBBlob hbBlob;
     hbBlob.reset(hb_blob_create(reinterpret_cast<const char*>(data.data()),

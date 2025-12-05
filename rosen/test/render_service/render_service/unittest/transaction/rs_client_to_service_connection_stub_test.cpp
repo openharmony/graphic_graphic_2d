@@ -1424,6 +1424,88 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenPowerStatusTest002, TestS
 }
 
 /**
+ * @tc.name: GetPanelPowerStatus001
+ * @tc.desc: Test GetPanelPowerStatus
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus001, TestSize.Level1)
+{
+    constexpr uint64_t SCREEN_ID = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(SCREEN_ID);
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: GetPanelPowerStatus002
+ * @tc.desc: Test GetPanelPowerStatus with empty data condition
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetPanelPowerStatus003
+ * @tc.desc: Test GetPanelPowerStatus with fail reply
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus003, TestSize.Level1)
+{
+    constexpr uint64_t SCREEN_ID = 0;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteUint64(SCREEN_ID);
+    reply.writable_ = false;
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_REPLY);
+}
+
+/**
+ * @tc.name: GetPanelPowerStatus004
+ * @tc.desc: Test inner API (clientToServiceConnection::GetPanelPowerStatus)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus004, TestSize.Level1)
+{
+    constexpr uint64_t SCREEN_ID = 0;
+
+    sptr<RSClientToServiceConnectionStub> clientToServiceConnectionStub = new RSClientToServiceConnection(
+        0, nullptr, mainThread_, CreateOrGetScreenManager(), token_->AsObject(), nullptr);
+    ASSERT_NE(clientToServiceConnectionStub, nullptr);
+
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(clientToServiceConnectionStub);
+    ASSERT_NE(clientToServiceConnection, nullptr);
+
+    // empty screen manager
+    uint32_t status = 0;
+    auto screenMgr = clientToServiceConnection->screenManager_;
+    clientToServiceConnection->screenManager_ = nullptr;
+    int ret = clientToServiceConnection->GetPanelPowerStatus(SCREEN_ID, status);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+
+/**
  * @tc.name: SetRogScreenResolutionTest001
  * @tc.desc: Test SetRogScreenResolution
  * @tc.type: FUNC

@@ -87,6 +87,8 @@ void RSScreenManagerTest::SetUpTestCase()
         DoAll(SaveArg<1>(&Mock::HdiDeviceMock::powerStatusMock_), testing::Return(0)));
     EXPECT_CALL(*hdiDeviceMock_, GetScreenPowerStatus(mockScreenId_, _)).WillRepeatedly(
         DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::powerStatusMock_)), testing::Return(0)));
+    EXPECT_CALL(*hdiDeviceMock_, GetPanelPowerStatus(mockScreenId_, _)).WillRepeatedly(
+        DoAll(SetArgReferee<1>(ByRef(Mock::HdiDeviceMock::panelPowerStatusMock_)), testing::Return(0)));
 #ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
 #endif
@@ -1512,6 +1514,53 @@ HWTEST_F(RSScreenManagerTest, GetScreenPowerStatus_003, TestSize.Level1)
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_DOZE);
     screenManager->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_DOZE_SUSPEND);
     ASSERT_EQ(screenManager->GetScreenPowerStatus(screenId), POWER_STATUS_DOZE_SUSPEND);
+}
+
+/*
+ * @tc.name: GetPanelPowerStatus_001
+ * @tc.desc: Test GetPanelPowerStatus, with INVALID_SCREEN_ID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetPanelPowerStatus_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_EQ(screenManager->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+}
+
+/*
+ * @tc.name: GetPanelPowerStatus_002
+ * @tc.desc: Test GetPanelPowerStatus, with virtual screen
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetPanelPowerStatus_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ScreenId screenId = 1;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+    screenManager->MockHdiScreenConnected(rsScreen);
+    ASSERT_EQ(screenManager->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+}
+
+/*
+ * @tc.name: GetPanelPowerStatus_003
+ * @tc.desc: Test GetPanelPowerStatus, with mock HDI device
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetPanelPowerStatus_003, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ScreenId screenId = mockScreenId_;
+    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
+    screenManager->MockHdiScreenConnected(rsScreen);
+    ASSERT_EQ(screenManager->GetPanelPowerStatus(screenId), PanelPowerStatus::PANEL_POWER_STATUS_ON);
 }
 
 /*

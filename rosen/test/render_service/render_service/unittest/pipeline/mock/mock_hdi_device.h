@@ -48,6 +48,7 @@ public:
     MOCK_METHOD2(SetScreenPowerStatus, int32_t(uint32_t, GraphicDispPowerStatus));
     MOCK_METHOD2(GetScreenBacklight, int32_t(uint32_t, uint32_t&));
     MOCK_METHOD2(SetScreenBacklight, int32_t(uint32_t, uint32_t));
+    MOCK_METHOD2(GetPanelPowerStatus, int32_t(uint32_t, GraphicPanelPowerStatus&));
     MOCK_METHOD2(PrepareScreenLayers, int32_t(uint32_t, bool&));
     MOCK_METHOD3(GetScreenCompChange, int32_t(uint32_t, std::vector<uint32_t>&, std::vector<int32_t>&));
     MOCK_METHOD4(SetScreenClientBuffer, int32_t(uint32_t, const BufferHandle*, uint32_t, const sptr<SyncFence>&));
@@ -111,6 +112,7 @@ public:
     MOCK_METHOD0(Destroy, void());
 
     static GraphicDispPowerStatus powerStatusMock_;
+    static GraphicPanelPowerStatus panelPowerStatusMock_;
 };
 } // namespace Mock
 } // namespace Rosen

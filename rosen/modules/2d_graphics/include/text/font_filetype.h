@@ -23,16 +23,17 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-enum class FontFileFormat {
-    UNKNOWN,
-    TTF,
-    OTF,
-    TTC,
-    OTC
-};
 
-class FontFileType {
+class DRAWING_API FontFileType {
 public:
+    enum class FontFileFormat {
+        UNKNOWN,
+        TTF,
+        OTF,
+        TTC,
+        OTC
+    };
+
     /**
      * @brief            Returns the file type of target typeface.
      * @param typeface   given typeface.

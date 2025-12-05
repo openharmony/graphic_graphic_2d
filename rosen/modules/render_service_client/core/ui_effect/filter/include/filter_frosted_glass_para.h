@@ -310,6 +310,16 @@ public:
         return innerShadowEnabled_;
     }
 
+    void SetSamplingScale(float samplingScale)
+    {
+        samplingScale_ = samplingScale;
+    }
+
+    float GetSamplingScale() const
+    {
+        return samplingScale_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -343,7 +353,11 @@ private:
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
     float cornerRadius_ = 0.0f;
+<<<<<<< 1204dev
     bool innerShadowEnabled_ = true;
+=======
+    float samplingScale_ = 1.0f;
+>>>>>>> master
 };
 } // namespace Rosen
 } // namespace OHOS

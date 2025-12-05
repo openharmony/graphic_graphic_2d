@@ -141,7 +141,8 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, BorderSize),
     ADD_PROPERTY_TAG(FrostedGlass, CornerRadius),	
     ADD_PROPERTY_TAG(FrostedGlass, Shape),
-    ADD_PROPERTY_TAG(FrostedGlass, InnerShadowEnabled)
+    ADD_PROPERTY_TAG(FrostedGlass, InnerShadowEnabled),
+    ADD_PROPERTY_TAG(FrostedGlass, SamplingScale)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,
