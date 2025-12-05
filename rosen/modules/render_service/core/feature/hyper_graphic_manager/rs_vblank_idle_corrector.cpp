@@ -62,7 +62,7 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
         frameRateMgr->IsGameNodeOnTree();
     if (isScreenNeedAdaptive) {
         RS_TRACE_NAME("RSVBlankIdleCorrector::ProcessScreenConstraint set 3 in Adaptive Mode!");
-        scmFromHgm->SetScreenConstraint(ScreenId, 0, ScreenConstraintType::CONSTRAINT_ADAPTIVE);
+        scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_ADAPTIVE);
         return;
     }
 
@@ -70,7 +70,7 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
     if (!isCorrectorEnabled) {
         idleFrameCount_ = 0;
         isVBlankIdle_ = false;
-        scmFromHgm->SetScreenConstraint(ScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
+        scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
         return;
     }
 
@@ -78,10 +78,10 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
         uint64_t pipelineOffset = static_cast<uint64_t>(HgmCore::Instance().GetPipelineOffset());
         if (idleFrameCount_ > 0) {
             uint64_t absoluteTime = timestamp + pipelineOffset;
-            scmFromHgm->SetScreenConstraint(ScreenId,
+            scmFromHgm->SetScreenConstraint(screenId,
                 absoluteTime, ScreenConstraintType::CONSTRAINT_ABSOLUTE);
         } else {
-            scmFromHgm->SetScreenConstraint(ScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
+            scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
         }
         idleFrameCount_--;
         if (idleFrameCount_ < 0) {
@@ -89,10 +89,10 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
             isVBlankIdle_ = false;
         }
     } else if (constraintRelativeTime > 0) {
-        scmFromHgm->SetScreenConstraint(ScreenId,
+        scmFromHgm->SetScreenConstraint(screenId,
             constraintRelativeTime, ScreenConstraintType::CONSTRAINT_RELATIVE);
     } else {
-        scmFromHgm->SetScreenConstraint(ScreenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
+        scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
     }
 }
 }
