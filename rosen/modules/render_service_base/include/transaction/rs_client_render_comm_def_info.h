@@ -28,7 +28,7 @@ public:
     virtual void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Media::PixelMap> pixelmapHDR) = 0;
     virtual void OnSurfaceCaptureWithErrorCode(std::shared_ptr<Media::PixelMap> pixelmap,
-        std::shared_ptr<Media::PixelMap> pixelmapHDR, CaptureError captureErrorCode){}
+        std::shared_ptr<Media::PixelMap> pixelmapHDR, CaptureError captureErrorCode) {}
 };
 
 } // namespace Rosen
