@@ -424,7 +424,8 @@ public:
      * @return return true if snaphot success, else return false.
      */
     bool TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
-        bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+        bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback,
+        RSSurfaceCaptureConfig captureConfig = {});
 
     /**
      * @brief Simplify the original interfaces set boundaries for cursor movemonet and reduce the workload.
