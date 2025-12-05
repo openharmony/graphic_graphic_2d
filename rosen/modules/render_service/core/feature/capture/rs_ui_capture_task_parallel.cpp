@@ -157,14 +157,12 @@ void RSUiCaptureTaskParallel::Capture(NodeId id, sptr<RSISurfaceCaptureCallback>
     }
     if (!captureConfig.uiCaptureInRangeParam.useBeginNodeSize && !captureHandle->UpdateStartAndEndNodeRect()) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture UpdateStartAndEndNodeRect error!");
-        captureHandle->errorCode_ = CaptureError::CAPTURE_CONFIG_WRONG;
-        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr, captureHandle->errorCode_);
+        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr, CaptureError::CAPTURE_CONFIG_WRONG);
         return;
     }
     if (!captureHandle->CreateResources(specifiedAreaRect)) {
         RS_LOGE("RSUiCaptureTaskParallel::Capture CreateResources failed");
-        captureHandle->errorCode_ = CaptureError::CAPTURE_CONFIG_WRONG;
-        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr, captureHandle->errorCode_);
+        ProcessUiCaptureCallback(callback, id, captureConfig, nullptr, CaptureError::CAPTURE_CONFIG_WRONG);
         return;
     }
     Drawing::Rect chosenRect;
@@ -308,7 +306,7 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     canvas.SetDisableFilterCache(true);
     canvas.SetUICapture(true);
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
-    if (IsHdrCapture(pixelMap_->InnerGetGrColorSpace().GetColorSpaceName())) {
+    if (isHdrCapture_) {
         captureConfig_.useDma = true;
         canvas.SetHdrOn(true);
     }
@@ -442,21 +440,16 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByRect(
     float pixmapWidth = specifiedAreaRect.GetWidth();
     float pixmapHeight = specifiedAreaRect.GetHeight();
     Media::InitializationOptions opts;
-    opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
-    opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    auto colorSpaceName = static_cast<OHOS::ColorManager::ColorSpaceName>(captureConfig_.colorSpace.first);
-    bool isAutoAdjust = captureConfig_.colorSpace.second;
-    auto resColorSpace = SelectColorSpace(colorSpaceName, isAutoAdjust);
-    bool isHdrUiCapture = IsHdrCapture(resColorSpace);
-    opts.pixelFormat = isHdrUiCapture ? Media::PixelFormat::RGBA_F16 : Media::PixelFormat::RGBA_8888;
+    OHOS::ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
+    BuildPixelMapOpts(pixmapWidth, pixmapHeight, opts, colorSpace);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByRect:"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
         " created pixelmap width is [%{public}d], height is [%{public}d],"
-        " the scale is scaleX:[%{public}f], scaleY:[%{public}f], color:%{public}u,"
+        " the scale is scaleX:[%{public}f], scaleY:[%{public}f, color:[%{public}d],"
         " isHdr:[%{public}u],",
         pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, resColorSpace, isHdrUiCapture);
-    std::unique_ptr<Media::PixelMap> pixelMap = CreatePixelMapByColorSpace(opts, resColorSpace);
+        captureConfig_.scaleX, captureConfig_.scaleY, colorSpace, isHdrCapture_);
+    std::unique_ptr<Media::PixelMap> pixelMap = CreatePixelMapByColorSpace(opts, colorSpace);
     return pixelMap;
 }
 
@@ -466,22 +459,29 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
+    OHOS::ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
+    BuildPixelMapOpts(pixmapWidth, pixmapHeight, opts, colorSpace);
+    RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
+        " origin pixelmap width is [%{public}f], height is [%{public}f],"
+        " created pixelmap width is [%{public}d], height is [%{public}d],"
+        " the scale is scaleX:[%{public}f], scaleY:[%{public}f], color:[%{public}d],"
+        " isHdr:[%{public}u],",
+        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
+        captureConfig_.scaleX, captureConfig_.scaleY, colorSpace, isHdrCapture_);
+    std::unique_ptr<Media::PixelMap> pixelMap = CreatePixelMapByColorSpace(opts, colorSpace);
+    return pixelMap;
+}
+
+void RSUiCaptureTaskParallel::BuildPixelMapOpts(float pixmapWidth, float pixmapHeight,
+    Media::InitializationOptions& opts, OHOS::ColorManager::ColorSpaceName& colorSpace)
+{
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
     auto colorSpaceName = static_cast<OHOS::ColorManager::ColorSpaceName>(captureConfig_.colorSpace.first);
     bool isAutoAdjust = captureConfig_.colorSpace.second;
-    auto resColorSpace = SelectColorSpace(colorSpaceName, isAutoAdjust);
-    bool isHdrUiCapture = IsHdrCapture(resColorSpace);
-    opts.pixelFormat = isHdrUiCapture ? Media::PixelFormat::RGBA_F16 : Media::PixelFormat::RGBA_8888;
-    RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
-        " origin pixelmap width is [%{public}f], height is [%{public}f],"
-        " created pixelmap width is [%{public}d], height is [%{public}d],"
-        " the scale is scaleX:[%{public}f], scaleY:[%{public}f], color:%{public}u,"
-        " isHdr:[%{public}u],",
-        node->GetId(), pixmapWidth, pixmapHeight, opts.size.width, opts.size.height,
-        captureConfig_.scaleX, captureConfig_.scaleY, resColorSpace, isHdrUiCapture);
-    std::unique_ptr<Media::PixelMap> pixelMap = CreatePixelMapByColorSpace(opts, resColorSpace);
-    return pixelMap;
+    colorSpace = SelectColorSpace(colorSpaceName, isAutoAdjust);
+    isHdrCapture_ = IsHdrCapture(colorSpace);
+    opts.pixelFormat = isHdrCapture_ ? Media::PixelFormat::RGBA_F16 : Media::PixelFormat::RGBA_8888;
 }
 
 OHOS::ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
