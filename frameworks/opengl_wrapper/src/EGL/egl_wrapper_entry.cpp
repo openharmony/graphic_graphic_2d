@@ -20,7 +20,7 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <dlfcn.h>
-#include <window.h>
+#include "window.h"
 #include "egl_defs.h"
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_display.h"
