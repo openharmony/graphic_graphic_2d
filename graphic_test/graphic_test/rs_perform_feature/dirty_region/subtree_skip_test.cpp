@@ -650,7 +650,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip10)
     usleep(SLEEP_TIME_FOR_PROXY);
 
     Drawing::Path drawingPath2;
-    drawingPath2.AddRect(0, 0, 800, 800, Drawing::PathDirection::CW_DIRECTION);
+    drawingPath2.AddRect(0, 0, 1200, 1200, Drawing::PathDirection::CW_DIRECTION);
     auto clipPath2 = RSPath::CreateRSPath(drawingPath2);
     parentCanvasNode->SetClipBounds(clipPath2);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -761,7 +761,7 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip12)
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    Vector4f rect2 = { 0, 0, 800, 800 };
+    Vector4f rect2 = { 0, 0, 1200, 1200 };
     Vector4f radius2 = { 50.0, 50.0, 50.0, 50.0 };
     parentCanvasNode->SetClipRRect(rect2, radius2);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
@@ -818,6 +818,650 @@ GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip13)
 
     float alpha2 = 1.0f;
     parentCanvasNode->SetAlpha(alpha2);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip14
+ * @tc.desc: parent clipToBounds true to false, and child set translate
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip14)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 800, 800 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetClipToBounds(true);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(animateNode);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector2f translate = { 0, 600 };
+    int duration = 10000;
+    DoAnimation(animateNode, translate, duration);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    parentCanvasNode->SetClipToBounds(false);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate2 = { 200, 0 };
+    Vector2f translate3 = { 600, 0 };
+    childCanvasNode->SetTranslate(translate2);
+    DoAnimation(childCanvasNode, translate3);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip15
+ * @tc.desc: parent clipToFrame true to false, and child set translate
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip15)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 800, 800 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetClipToFrame(true);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(animateNode);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector2f translate = { 0, 600 };
+    int duration = 10000;
+    DoAnimation(animateNode, translate, duration);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    parentCanvasNode->SetClipToFrame(false);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate2 = { 200, 0 };
+    Vector2f translate3 = { 600, 0 };
+    childCanvasNode->SetTranslate(translate2);
+    DoAnimation(childCanvasNode, translate3);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip16
+ * @tc.desc: parent clipPath small to large, and child set translate
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip16)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    Drawing::Path drawingPath;
+    drawingPath.AddRect(0, 0, 400, 600, Drawing::PathDirection::CW_DIRECTION);
+    auto clipPath = RSPath::CreateRSPath(drawingPath);
+    parentCanvasNode->SetClipBounds(clipPath);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(animateNode);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector2f translate = { 0, 600 };
+    int duration = 10000;
+    DoAnimation(animateNode, translate, duration);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Drawing::Path drawingPath2;
+    drawingPath2.AddRect(-300, -300, 1200, 1200, Drawing::PathDirection::CW_DIRECTION);
+    auto clipPath2 = RSPath::CreateRSPath(drawingPath2);
+    parentCanvasNode->SetClipBounds(clipPath2);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate2 = { 200, 0 };
+    Vector2f translate3 = { 600, 0 };
+    childCanvasNode->SetTranslate(translate2);
+    DoAnimation(childCanvasNode, translate3);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip17
+ * @tc.desc: parent clipRRect small to large, and child set translate
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip17)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    Vector4f rect = { 0, 0, 400, 400 };
+    Vector4f radius = { 100.0, 100.0, 100.0, 100.0 };
+    parentCanvasNode->SetClipRRect(rect, radius);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto animateNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(animateNode);
+    animateNode->SetTranslate({ 0, 0 });
+
+    Vector2f translate = { 0, 600 };
+    int duration = 10000;
+    DoAnimation(animateNode, translate, duration);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(animateNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector4f radius2 = { 50.0, 50.0, 50.0, 50.0 };
+    parentCanvasNode->SetClipRRect(bounds4, radius2);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector2f translate2 = { 200, 0 };
+    Vector2f translate3 = { 600, 0 };
+    childCanvasNode->SetTranslate(translate2);
+    DoAnimation(childCanvasNode, translate3);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip18
+ * @tc.desc: parent sub tree skip, set clipToBounds true to false
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip18)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetClipToBounds(true);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { 200, 200, 800, 800 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    parentCanvasNode->SetClipToBounds(false);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip19
+ * @tc.desc: parent sub tree skip, set clipToBounds false to true
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip19)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { 200, 200, 800, 800 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    parentCanvasNode->SetClipToBounds(true);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip20
+ * @tc.desc: parent sub tree skip, set clipToFrame true to false
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip20)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetClipToFrame(true);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { 200, 200, 800, 800 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    parentCanvasNode->SetClipToFrame(false);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip21
+ * @tc.desc: parent sub tree skip, set clipToFrame false to true
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip21)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { 200, 200, 800, 800 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    parentCanvasNode->SetClipToFrame(true);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip22
+ * @tc.desc: parent sub tree skip, parent clipRRect large to small
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip22)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector4f rect = { 0, 0, 400, 400 };
+    Vector4f radius = { 100.0, 100.0, 100.0, 100.0 };
+    parentCanvasNode->SetClipRRect(rect, radius);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip23
+ * @tc.desc: parent sub tree skip, parent clipRRect small to large
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip23)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    Vector4f rect = { 0, 0, 400, 400 };
+    Vector4f radius = { 100.0, 100.0, 100.0, 100.0 };
+    parentCanvasNode->SetClipRRect(rect, radius);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Vector4f rect2 = { 0, 0, 900, 900 };
+    Vector4f radius2 = { 50.0, 50.0, 50.0, 50.0 };
+    parentCanvasNode->SetClipRRect(rect2, radius2);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+
+/*
+ * @tc.name: SubTreeSkip24
+ * @tc.desc: parent sub tree skip, parent clipPath large to small
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip24)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Drawing::Path drawingPath;
+    drawingPath.AddRect(0, 0, 400, 600, Drawing::PathDirection::CW_DIRECTION);
+    auto clipPath = RSPath::CreateRSPath(drawingPath);
+    parentCanvasNode->SetClipBounds(clipPath);
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: SubTreeSkip25
+ * @tc.desc: parent sub tree skip, parent clipPath small to large
+ * @tc.type: FUNC
+ * @tc.require: issue21027
+ */
+GRAPHIC_N_TEST(DirtyRegionTest07, CONTENT_DISPLAY_TEST, SubTreeSkip25)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto backgroundNode = RSCanvasNode::Create();
+    RegisterNode(backgroundNode);
+    backgroundNode->SetBounds(bounds);
+    backgroundNode->SetFrame(bounds);
+    backgroundNode->SetBackgroundColor(COLOR_CYAN);
+
+    Vector4f bounds2 = { 300, 300, 500, 500 };
+    auto parentCanvasNode = RSCanvasNode::Create();
+    RegisterNode(parentCanvasNode);
+    parentCanvasNode->SetBounds(bounds2);
+    parentCanvasNode->SetFrame(bounds2);
+    Drawing::Path drawingPath;
+    drawingPath.AddRect(0, 0, 400, 600, Drawing::PathDirection::CW_DIRECTION);
+    auto clipPath = RSPath::CreateRSPath(drawingPath);
+    parentCanvasNode->SetClipBounds(clipPath);
+    parentCanvasNode->SetBackgroundColor(COLOR_BLUE);
+
+    Vector4f bounds3 = { 0, 0, 200, 200 };
+    auto pictureNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    RegisterNode(pictureNode);
+
+    Vector4f bounds4 = { -300, -300, 1200, 1200 };
+    auto childCanvasNode = RSCanvasNode::Create();
+    RegisterNode(childCanvasNode);
+    childCanvasNode->SetBounds(bounds4);
+    childCanvasNode->SetBackgroundColor(COLOR_YELLOW);
+
+    GetRootNode()->AddChild(backgroundNode);
+    backgroundNode->RSNode::AddChild(parentCanvasNode);
+    parentCanvasNode->RSNode::AddChild(childCanvasNode);
+    parentCanvasNode->RSNode::AddChild(pictureNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    Drawing::Path drawingPath2;
+    drawingPath2.AddRect(0, 0, 900, 900, Drawing::PathDirection::CW_DIRECTION);
+    auto clipPath2 = RSPath::CreateRSPath(drawingPath2);
+    parentCanvasNode->SetClipBounds(clipPath2);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
