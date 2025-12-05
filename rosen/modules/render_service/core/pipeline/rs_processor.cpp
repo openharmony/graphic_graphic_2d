@@ -107,19 +107,25 @@ bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offset
     screenInfo_ = screenManager->QueryScreenInfo(node.GetScreenId());
 
     auto children = node.GetChildrenList();
-    if (!children.empty()) {
-        std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
-        for (const auto& child : children) {
-            if (auto node = child.lock()) {
+    std::shared_ptr<RSLogicalDisplayRenderNode> displayNode = nullptr;
+
+    // Find the display node with boot animation first, or will cause black screen during boot animation.
+    for (const auto& child : children) {
+        if (auto node = child.lock()) {
+            if (node->GetBootAnimation()) {
                 displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
                 break;
+            } else if (!displayNode) {
+                displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
             }
         }
-        if (displayNode) {
-            screenInfo_.rotation = displayNode->GetRotation();
-            auto mirrorNode = displayNode->GetMirrorSource().lock();
-            CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : *displayNode);
-        }
+    }
+    if (displayNode) {
+        screenInfo_.rotation = displayNode->GetRotation();
+        auto mirrorNode = displayNode->GetMirrorSource().lock();
+        CalculateScreenTransformMatrix(mirrorNode ? *mirrorNode : *displayNode);
+    } else {
+        RS_LOGE("RSProcessor::Init screenNode has no children");
     }
 
     if (mirroredId_ != INVALID_SCREEN_ID) {
