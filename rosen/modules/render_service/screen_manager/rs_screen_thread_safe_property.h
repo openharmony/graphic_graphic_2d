@@ -59,6 +59,9 @@ public:
     void SetMainScreenVisibleRect(const Rect& mainScreenRect);
     void SetVisibleRectSupportRotation(bool supportRotation);
     void SetWhiteList(const std::unordered_set<uint64_t>& whiteList);
+    void SetGlobalBlackList(const std::unordered_set<uint64_t>& globalblackList);
+    void AddGlobalBlackList(const std::vector<uint64_t>& globalblackList);
+    void RemoveGlobalBlackList(const std::vector<uint64_t>& globalblackList);
     void SetBlackList(const std::unordered_set<uint64_t>& blackList);
     void AddBlackList(const std::vector<uint64_t>& blackList);
     void RemoveBlackList(const std::vector<uint64_t>& blackList);
@@ -74,6 +77,7 @@ public:
     void SetScreenStatus(VirtualScreenStatus screenStatus);
     void SetVirtualSecLayerOption(int32_t virtualSecLayerOption);
     void SetIsHardCursorSupport(bool isHardCursorSupport);
+    void SetLinearMatrix(std::vector<float> matrix);
     void SetSupportedColorGamuts(std::vector<ScreenColorGamut> colorGamuts);
     void SetDisablePowerOffRenderControl(bool disable);
     void SetScreenSwitchStatus(bool status);
@@ -111,6 +115,7 @@ public:
     bool GetVisibleRectSupportRotation() const;
     std::unordered_set<uint64_t> GetWhiteList() const;
     std::unordered_set<uint64_t> GetBlackList() const;
+    std::unordered_set<uint64_t> GetGlobalBlackList() const;
     std::unordered_set<uint8_t> GetTypeBlackList() const;
     std::vector<uint64_t> GetSecurityExemptionList() const;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const;
@@ -123,9 +128,8 @@ public:
     VirtualScreenStatus GetScreenStatus() const;
     int32_t GetVirtualSecLayerOption() const;
     bool GetIsHardCursorSupport() const;
+    std::vector<float> GetLinearMatrix() const;
     std::vector<ScreenColorGamut> GetSupportedColorGamuts() const;
-
-    ScreenInfo GetScreenInfo() const;
 
 private:
     using SharedLock = std::shared_lock<std::shared_mutex>;
