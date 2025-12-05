@@ -1959,6 +1959,17 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
     screenBacklight_[id] = level;
 }
 
+PanelPowerStatus RSScreenManager::GetPanelPowerStatus(ScreenId id) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    }
+    auto status = screen->GetPanelPowerStatus();
+    return status;
+}
+
 ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const
 {
     return QueryScreenInfo(defaultScreenId_);

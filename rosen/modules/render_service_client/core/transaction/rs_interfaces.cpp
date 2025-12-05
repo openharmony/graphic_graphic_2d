@@ -589,6 +589,11 @@ void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
     renderServiceClient_->SetScreenBacklight(id, level);
 }
 
+PanelPowerStatus RSInterfaces::GetPanelPowerStatus(ScreenId id)
+{
+    return renderServiceClient_->GetPanelPowerStatus(id);
+}
+
 int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
     return renderServiceClient_->GetScreenSupportedColorGamuts(id, mode);

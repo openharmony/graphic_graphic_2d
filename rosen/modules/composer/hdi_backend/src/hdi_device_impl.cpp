@@ -85,6 +85,17 @@ void HdiDeviceImpl::Destroy()
 }
 
 /* set & get device screen info begin */
+int32_t HdiDeviceImpl::GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status)
+{
+    CHECK_FUNC(g_composer);
+    Composer::V1_4::PanelPowerStatus hdiStatus;
+    int32_t ret = g_composer->GetPanelPowerStatus(devId, hdiStatus);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        status = static_cast<GraphicPanelPowerStatus>(hdiStatus);
+    }
+    return ret;
+}
+
 int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
 {
     CHECK_FUNC(g_composer);

@@ -356,6 +356,11 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
 }
 
+PanelPowerStatus RSRenderServiceClient::GetPanelPowerStatus(ScreenId id)
+{
+    return {};
+}
+
 bool RSRenderServiceClient::RegisterBufferAvailableListener(
     NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {

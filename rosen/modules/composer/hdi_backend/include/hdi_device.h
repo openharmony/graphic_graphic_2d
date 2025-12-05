@@ -117,6 +117,7 @@ public:
     virtual int32_t ClearClientBuffer(uint32_t screenId) = 0;
     virtual void Destroy() = 0;
     virtual int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) = 0;
+    virtual int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) = 0;
 
 private:
     HdiDevice(const HdiDevice& rhs) = delete;

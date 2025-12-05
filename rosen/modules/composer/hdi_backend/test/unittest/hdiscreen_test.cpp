@@ -430,6 +430,13 @@ HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTes
     bool res = hdiScreen_->GetDisplayPropertyForHardCursor(screenId);
     EXPECT_FALSE(res);
 }
+
+HWTEST_F(HdiScreenTest, GetPanelPowerStatus001, Function | MediumTest | Level3)
+{
+    GraphicPanelPowerStatus status;
+    EXPECT_CALL(*mockDevice_, GetPanelPowerStatus(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiScreen_->GetPanelPowerStatus(status), GRAPHIC_DISPLAY_SUCCESS);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

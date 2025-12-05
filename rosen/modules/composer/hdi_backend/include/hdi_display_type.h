@@ -36,6 +36,15 @@ typedef struct {
 } GraphicPropertyObject;
 
 /*
+ * @brief Enumerates the power status of panel.
+ */
+typedef enum {
+    GRAPHIC_PANEL_POWER_STATUS_ON = 0,      /**< The panel power status is on */
+    GRAPHIC_PANEL_POWER_STATUS_OFF = 1,     /**< The panel power status is off */
+    GRAPHIC_PANEL_POWER_STATUS_BUTT         /**< Indicate the boundary of enumeration, DO NOT USE */
+} GraphicPanelPowerStatus;
+
+/*
  * @brief Enumerates interface types.
  */
 typedef enum {
