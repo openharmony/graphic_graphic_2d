@@ -145,8 +145,12 @@ void AniParagraphStyleConverter::ParseTextTabToNative(ani_env* env, ani_object o
     AniTextUtils::ReadOptionalEnumField(
         env, obj, AniTextEnum::textAlign, AniGlobalMethod::GetInstance().textTabAlignment, textTab.alignment);
     ani_double tempLocation;
-    env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().textTabLocation, &tempLocation);
-    textTab.location = static_cast<float>(tempLocation);
+    ani_status ret = env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().textTabLocation, &tempLocation);
+    if (ret == ANI_OK) {
+        textTab.location = static_cast<float>(tempLocation);
+    } else {
+        TEXT_LOGE("Failed to read text tab location, ret %{public}d", ret);
+    }
 }
 
 void AniParagraphStyleConverter::ParseFontFamiliesToNative(
