@@ -1493,7 +1493,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, GetPanelPowerStatus004, TestSize.L
         0, nullptr, mainThread_, CreateOrGetScreenManager(), token_->AsObject(), nullptr);
     ASSERT_NE(clientToServiceConnectionStub, nullptr);
 
-    sptr<RSClientToServiceConnection> clientToServiceConnection = 
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
         iface_cast<RSClientToServiceConnection>(clientToServiceConnectionStub);
     ASSERT_NE(clientToServiceConnection, nullptr);
 
