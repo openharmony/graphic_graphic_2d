@@ -251,14 +251,15 @@ namespace effectKit {
     public getEffectPixelMap(): Promise<image.PixelMap> {
       return new Promise<image.PixelMap>((resolve: (value: image.PixelMap) => void,
         reject: (error: BusinessError) => void) => {
-        taskpool.execute((): image.PixelMap => {
-          let pixelMap = this.getEffectPixelMapNative();
-          return pixelMap;
-        }).then((ret: Any) => {
-          resolve(ret as image.PixelMap);
-        }).catch((err: Any) => {
-          reject(err as BusinessError);
-        });
+        launch<void, ()=>void>(() => {
+          try {
+            let res = this.getEffectPixelMapNative();
+            resolve(res);
+          }
+          catch(err) {
+            reject(err as BusinessError);
+          };
+        })
       });
     }
 
