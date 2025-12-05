@@ -20,6 +20,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "rs_round_corner_display_manager.h"
+#include "rs_render_surface_rcd_layer.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -193,6 +194,95 @@ bool RSRcdSurfaceRenderNode::PrepareHardwareResourceBuffer(const std::shared_ptr
     return true;
 }
 
+Drawing::Bitmap RSRcdSurfaceRenderNode::CreateBitmapFromPixelMap(const RSRcdSurfaceRenderNode::PixelMapPtr& pixelMap)
+{
+    if (pixelMap == nullptr || pixelMap->GetPixels() == nullptr ||
+        pixelMap->GetWidth() < 1 || pixelMap->GetHeight() < 1 || pixelMap->GetRowBytes() < 1) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreateBitmapFromPixelMap pixelmap error");
+        return Drawing::Bitmap();
+    }
+    Drawing::ImageInfo imgInfo = Drawing::ImageInfo ::MakeN32Premul(pixelMap->GetWidth(), pixelMap->GetHeight());
+    Drawing::BitmapFormat format = {imgInfo.GetColorType(), imgInfo.GetAlphaType()};
+    Drawing::Bitmap target;
+    target.Build(pixelMap->GetWidth(), pixelMap->GetHeight(), format, pixelMap->GetRowBytes());
+    auto size = pixelMap->GetRowBytes() * pixelMap->GetHeight();
+    auto data = new uint8_t[size];
+    if (data == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreateBitmapFromPixelMap data is nullptr");
+        return Drawing::Bitmap();
+    }
+    target.SetPixels(data);
+    errno_t ret = memcpy_s(reinterpret_cast<void*>(data), size, pixelMap->GetPixels(), size);
+    if (ret != EOK) {
+        RS_LOGE("[%{public}s] memcpy_s failed", __func__);
+        return Drawing::Bitmap();
+    }
+    return target;
+}
+
+RSRcdSurfaceRenderNode::PixelMapPtr RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap(const Drawing::Bitmap& src)
+{
+    if (src.GetPixels() == nullptr || src.GetWidth() < 1 || src.GetHeight() < 1) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap Bitmap error");
+        return nullptr;
+    }
+    Media::InitializationOptions opts;
+    opts.size.width = src.GetWidth();
+    opts.size.height = src.GetHeight();
+    RSRcdSurfaceRenderNode::PixelMapPtr pixelMap = Media::PixelMap::Create(opts);
+    auto size = pixelMap->GetRowBytes() * pixelMap->GetHeight();
+    auto data = new uint8_t[size];
+    if (data == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::CreatePixelMapFromBitmap data is nullptr");
+        return nullptr;
+    }
+    errno_t ret = memcpy_s(reinterpret_cast<void*>(data), size, reinterpret_cast<void*>(src.GetPixels()), size);
+    if (ret != EOK) {
+        RS_LOGE("[%{public}s] memcpy_s failed", __func__);
+        return nullptr;
+    }
+    pixelMap->SetPixelsAddr(data, nullptr, size, Media::AllocatorType::HEAP_ALLOC, nullptr);
+    return pixelMap;
+}
+
+Drawing::Bitmap RSRcdSurfaceRenderNode::PareseBitmapFromRCDLayer(const std::shared_ptr<RSLayer>& layer)
+{
+    if (layer == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::PareseBitmapFromRCDLayer layer is nullptr");
+        return Drawing::Bitmap();
+    }
+    auto rcdLayer = std::static_pointer_cast<RSRenderSurfaceRCDLayer>(layer);
+    if (rcdLayer->GetPixelMap()) {
+        return CreateBitmapFromPixelMap(rcdLayer->GetPixelMap());
+    }
+    sptr<SurfaceBuffer> buffer = layer->GetBuffer();
+    if (!buffer) {
+        RS_LOGE("[%{public}s] get null buffer", __func__);
+        return Drawing::Bitmap();
+    }
+    if (buffer->GetWidth() <= 0 || buffer->GetHeight() <= 0 || buffer->GetStride() <= 0) {
+        RS_LOGE("[%{public}s] check buffer failed", __func__);
+        return Drawing::Bitmap();
+    }
+    Drawing::ImageInfo imgInfo = Drawing::ImageInfo ::MakeN32Premul(buffer->GetWidth(), buffer->GetHeight());
+    Drawing::BitmapFormat format = {imgInfo.GetColorType(), imgInfo.GetAlphaType()};
+    Drawing::Bitmap target;
+    target.Build(buffer->GetWidth(), buffer->GetHeight(), format, buffer->GetStride());
+    auto bufferSize = static_cast<unsigned long>(buffer->GetStride() * buffer->GetHeight());
+    auto data = new uint8_t[bufferSize];
+    if (data == nullptr) {
+        RS_LOGE("RSRcdSurfaceRenderNode::PareseBitmapFromRCDLayer data is nullptr");
+        return Drawing::Bitmap();
+    }
+    target.SetPixels(data);
+    errno_t ret = memcpy_s(reinterpret_cast<void*>(data), bufferSize, buffer->GetVirAddr(), bufferSize);
+    if (ret != EOK) {
+        RS_LOGE("[%{public}s] memcpy_s failed", __func__);
+        return Drawing::Bitmap();
+    }
+    return target;
+}
+
 bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
 {
     RS_LOGD("RCD: Start RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer");
@@ -248,12 +338,12 @@ bool RSRcdSurfaceRenderNode::FillHardwareResource(HardwareLayerInfo &cldLayerInf
     uint8_t *img = static_cast<uint8_t*>(nodeBuffer->GetVirAddr());
     uint32_t bufferSize = nodeBuffer->GetSize();
     if (img == nullptr || offsetCldInfo < 0 || bufferSize < static_cast<uint32_t>(offsetCldInfo) + sizeof(cldInfo_)) {
-        RS_LOGE("[%s] check nodebuffer failed", __func__);
+        RS_LOGE("[%{public}s] check nodebuffer failed", __func__);
         return false;
     }
     errno_t ret = memcpy_s(reinterpret_cast<void*>(img + offsetCldInfo), sizeof(cldInfo_), &cldInfo_, sizeof(cldInfo_));
     if (ret != EOK) {
-        RS_LOGE("[%s] memcpy_s failed", __func__);
+        RS_LOGE("[%{public}s] memcpy_s failed", __func__);
         return false;
     }
     std::ifstream addBufferFile(cldLayerInfo.pathBin, std::ifstream::binary | std::ifstream::in);
