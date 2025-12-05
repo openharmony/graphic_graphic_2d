@@ -25,4 +25,15 @@ void HFBCParam::SetHfbcConfigForApp(const std::string& appName, const std::strin
 {
     hfbcConfig_.emplace(appName, val);
 }
+
+bool HFBCParam::GetHfbcControlMode()
+{
+    return controlMode_;
+}
+
+void HFBCParam::SetHfbcControlMode(bool mode)
+{
+    controlMode_ = mode;
+}
+
 } // namespace OHOS::Rosen
