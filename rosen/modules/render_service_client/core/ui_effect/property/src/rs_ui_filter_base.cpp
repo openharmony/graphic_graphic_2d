@@ -333,7 +333,6 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(frostedGlassFilterPara->GetEdLightNeg());
     frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(frostedGlassFilterPara->GetBorderSize());
     frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(frostedGlassFilterPara->GetCornerRadius());
-    frostedGlassFilter->Setter<FrostedGlassInnerShadowEnabledTag>(frostedGlassFilterPara->GetInnerShadowEnabled());
     frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(frostedGlassFilterPara->GetBaseVibrancyEnabled());
     frostedGlassFilter->Setter<FrostedGlassBaseMaterialTypeTag>(frostedGlassFilterPara->GetBaseMaterialType());
     frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(frostedGlassFilterPara->GetMaterialColor());
