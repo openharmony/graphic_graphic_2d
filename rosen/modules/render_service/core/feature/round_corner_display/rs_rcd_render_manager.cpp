@@ -24,9 +24,16 @@
 #include "platform/common/rs_log.h"
 #include "rs_rcd_render_visitor.h"
 #include "rs_round_corner_display_manager.h"
+#include "sandbox_utils.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+    const NodeId PID_T = static_cast<NodeId>(GetRealPid());
+    const NodeId TOP_RCD_NODE_ID = ((PID_T << 32) | 1);
+    const NodeId BACKGROUND_RCD_NODE_ID = ((PID_T << 32) | 2);
+}
+
 static std::unique_ptr<RSRcdRenderManager> g_rcdRenderManagerInstance =
     std::make_unique<RSRcdRenderManager>();
 
@@ -160,6 +167,24 @@ RSRcdSurfaceRenderNodePtr RSRcdRenderManager::GetBottomRenderNode(NodeId id)
     bottomSurfaceNodeMap_[id] = bottomRcdNode;
     RS_LOGI_IF(DEBUG_PIPELINE, "RCD: insert a bottom rendernode");
     return bottomRcdNode;
+}
+
+void RSRcdRenderManager::DrawRoundCorner(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers)
+{
+    RS_TRACE_NAME("RSRcdRenderManager::DrawRoundCorner");
+    for (auto& layer : layers) {
+        if (layer == nullptr || !layer->IsScreenRCDLayer()) {
+            continue;
+        }
+        auto img = RSRcdSurfaceRenderNode::PareseBitmapFromRCDLayer(layer).MakeImage();
+        if (img == nullptr) {
+            continue;
+        }
+        auto rect = layer->GetLayerSize();
+        Drawing::Brush brush;
+        canvas.AttachBrush(brush);
+        canvas.DrawImage(*img, rect.x, rect.y, Drawing::SamplingOptions());
+    }
 }
 
 void RSRcdRenderManager::DoProcessRenderTask(NodeId id, const RcdProcessInfo& info)

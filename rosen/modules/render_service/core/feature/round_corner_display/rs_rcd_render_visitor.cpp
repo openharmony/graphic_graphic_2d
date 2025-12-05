@@ -28,6 +28,7 @@ RSRcdRenderVisitor::RSRcdRenderVisitor()
 
 bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
 {
+    node.ResetCurrentFrameBufferConsumed();
     auto availableBufferCnt = node.GetAvailableBufferCount();
     if (availableBufferCnt <= 0) {
         // this node has no new buffer, try use old buffer.
@@ -51,8 +52,13 @@ bool RSRcdRenderVisitor::ConsumeAndUpdateBuffer(RSRcdSurfaceRenderNode& node)
             node.GetNodeId(), ret);
         return false;
     }
+    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
+    bufferOwnerCount->seqNum_ = buffer->GetSeqNum();
+    bufferOwnerCount->bufferReleaseCb_ = [](uint64_t seqNum){
+        RSUniRenderThread::Instance().BufferReleaseCallBack(seqNum);
+    };
 
-    node.SetBuffer(buffer, acquireFence, damage, timestamp);
+    node.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
 
     if (!node.SetHardwareResourceToBuffer()) {
         RS_LOGE("RSRcdRenderVisitor SetHardwareResourceToBuffer Failed!");
