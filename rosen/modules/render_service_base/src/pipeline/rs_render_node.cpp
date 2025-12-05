@@ -117,6 +117,7 @@ bool RSRenderNode::IsPureContainer() const
 bool RSRenderNode::IsPureBackgroundColor() const
 {
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
+        RSDrawableSlot::SAVE_ALL,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BACKGROUND_COLOR,
@@ -125,7 +126,8 @@ bool RSRenderNode::IsPureBackgroundColor() const
         RSDrawableSlot::FRAME_OFFSET,
         RSDrawableSlot::CLIP_TO_FRAME,
         RSDrawableSlot::CHILDREN,
-        RSDrawableSlot::RESTORE_FRAME
+        RSDrawableSlot::RESTORE_FRAME,
+        RSDrawableSlot::RESTORE_ALL
     };
 
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
@@ -145,6 +147,12 @@ bool RSRenderNode::IsPureBackgroundColor() const
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
         if (drawableVec[i] &&
             !pureBackgroundColorSlots.count(static_cast<RSDrawableSlot>(i))) {
+            const auto& property = GetRenderProperties();
+            if (i == static_cast<int8_t>(RSDrawableSlot::BLENDER) &&
+                property.GetColorBlendMode() == static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+                property.GetColorBlendApplyType() == static_cast<int>(RSColorBlendApplyType::FAST)) {
+                continue;
+            }
             return false;
         }
     }
