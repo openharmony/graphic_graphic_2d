@@ -32,8 +32,6 @@ public:
     static void AddDrmCloneCrossNode(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         DrawablesVec& hardwareEnabledDrawables);
     static void DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::Matrix hwcMatrix);
-    static void PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const std::shared_ptr<RSSurfaceHandler>& surfaceHandler);
     static void MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
         const std::shared_ptr<RSScreenRenderNode>& curScreenNode);
