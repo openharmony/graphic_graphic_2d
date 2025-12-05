@@ -192,7 +192,7 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isUIFirstDebugEnable_ = RSSystemProperties::GetUIFirstDebugEnabled();
     isCrossNodeOffscreenOn_ = RSSystemProperties::GetCrossNodeOffScreenStatus();
     isDumpRsTreeDetailEnabled_ = RSSystemProperties::GetDumpRsTreeDetailEnabled();
-    screenManager_ = CreateOrGetScreenManager();
+    // screenManager_ = CreateOrGetScreenManager();
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
@@ -366,18 +366,10 @@ bool IsScreenSupportedWideColorGamut(ScreenId id, const sptr<RSScreenManager>& s
 
 void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
 {
-    RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
-    if (screenManager_->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
-        RS_LOGD("HandleColorGamuts get screen type failed.");
-        return;
-    }
-
+    const auto& screenProperty = node.GetScreenProperty();
+    auto screenType = screenProperty.GetScreenType();
     if (screenType == VIRTUAL_TYPE_SCREEN) {
-        ScreenColorGamut screenColorGamut;
-        if (screenManager_->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-            RS_LOGD("HandleColorGamuts get screen color gamut failed.");
-            return;
-        }
+        auto screenColorGamut = screenProperty.GetScreenColorGamut();
         node.SetColorSpace(static_cast<GraphicColorGamut>(screenColorGamut));
         return;
     } else if (ColorGamutParam::DisableP3OnWiredExtendedScreen() &&
@@ -387,30 +379,16 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
         return;
     }
-    std::vector<ScreenColorGamut> mode{};
-    int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
-    if (ret != SUCCESS) {
-        RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, ret=%{public}d", ret);
-        node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
-    } else {
-        RSLuminanceControl::Get().HandleGamutSpecialRender(mode);
-        node.SelectBestGamut(mode);
-    }
+    const auto& modes = screenProperty.GetScreenSupportedColorGamuts();
+    node.SelectBestGamut(modes);
 
     if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
             return;
         }
-        std::vector<ScreenColorGamut> mode;
-        int32_t ret = screenManager_->GetScreenSupportedColorGamuts(node.GetScreenId(), mode);
-        if (ret != SUCCESS) {
-            RS_LOGD("HandleColorGamuts GetScreenSupportedColorGamuts failed, errorCode=%{public}d",
-                ret);
-            return;
-        }
         bool isSupportedDisplayP3 =
-            std::any_of(mode.begin(), mode.end(), [](const auto& gamut) { return gamut == COLOR_GAMUT_DISPLAY_P3; });
+            std::any_of(modes.begin(), modes.end(), [](const auto& gamut) { return gamut == COLOR_GAMUT_DISPLAY_P3; });
         if (isSupportedDisplayP3) {
             // wired mirror and mirror support P3, mirror gamut = main gamut
             node.SetColorSpace(mirrorNode->GetColorSpace());
@@ -462,40 +440,36 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
         RSSystemProperties::GetHdrImageEnabled(), RSSystemProperties::GetHdrVideoEnabled());
     ScreenId screenId = node.GetScreenId();
     bool hasUniRenderHdrSurface = node.GetHasUniRenderHdrSurface();
-    bool forceCloseHDR = node.GetForceCloseHdr();
-    bool isCloseHdr = forceCloseHDR || (RSLuminanceControl::Get().IsHardwareHdrDisabled() && !drmNodes_.empty());
-    RSLuminanceControl::Get().SetHdrStatus(screenId, isCloseHdr ? HdrStatus::NO_HDR : node.GetDisplayHdrStatus());
+    if ((RSLuminanceControl::Get().IsCloseHardwareHdr() && !drmNodes_.empty()) || node.GetForceCloseHdr()) {
+        // Disable hdr when drm videos exist to avoid flicker
+        RSLuminanceControl::Get().SetHdrStatus(screenId, HdrStatus::NO_HDR);
+    } else {
+        RSLuminanceControl::Get().SetHdrStatus(screenId, node.GetDisplayHdrStatus());
+    }
     bool isHdrOn = RSLuminanceControl::Get().IsHdrOn(screenId);
     rsHdrCollection_->HandleHdrState(isHdrOn);
     float brightnessRatio = RSLuminanceControl::Get().GetHdrBrightnessRatio(screenId, 0);
     float displayHeadroom =
         RSLuminanceControl::Get().GetDisplayNits(screenId) / RSLuminanceControl::Get().GetSdrDisplayNits(screenId);
     RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(node.GetScreenNodeId(), displayHeadroom);
-    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d, brightnessRatio:%f, screenId:%" PRIu64 ", status:%d, forceCloseHDR:%d",
-        isHdrOn, hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus(), forceCloseHDR);
+    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d, brightnessRatio:%f, screenId:%" PRIu64 ", status:%d", isHdrOn,
+        hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus());
     RS_LOGD("HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
-        "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d, forceCloseHDR:%{public}d",
-        isHdrOn, hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus(), forceCloseHDR);
-    if (!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
+        "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d", isHdrOn, hasUniRenderHdrSurface,
+        brightnessRatio, screenId, node.GetDisplayHdrStatus());
+    if ((!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsCloseHardwareHdr()) || node.GetForceCloseHdr()) {
         isHdrOn = false;
     }
     node.SetHDRPresent(isHdrOn);
     hasDisplayHdrOn_ |= isHdrOn;
-    RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
-    if (screenManager_->GetScreenType(node.GetScreenId(), screenType) != SUCCESS) {
-        RS_LOGD("HandlePixelFormat get screen type failed.");
-        return;
-    }
+    const auto& screenProperty = node.GetScreenProperty();
+    auto screenType = screenProperty.GetScreenType();
 
-    RSHdrUtil::HandleVirtualScreenHDRStatus(node, screenManager_);
+    RSHdrUtil::HandleVirtualScreenHDRStatus(node);
 
     if (screenType == VIRTUAL_TYPE_SCREEN) {
-        auto pixelFormat = node.GetPixelFormat();
-        if (screenManager_->GetPixelFormat(node.GetScreenId(), pixelFormat) != SUCCESS) {
-            RS_LOGD("HandlePixelFormat get screen color gamut failed.");
-        } else {
-            node.SetPixelFormat(pixelFormat);
-        }
+        auto pixelFormat = screenProperty.GetPixelFormat();
+        node.SetPixelFormat(pixelFormat);
     }
 }
 
@@ -550,32 +524,51 @@ void RSUniRenderVisitor::DealWithSpecialLayer(RSSurfaceRenderNode& node)
     } else {
         UpdateSpecialLayersRecord(node);
     }
-    node.GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
-    UpdateBlackListRecord(node);
-    node.UpdateVirtualScreenWhiteListInfo(screenWhiteList_);
+    UpdateScreenSpecialLayersRecord(node);
+    node.UpdateVirtualScreenWhiteListInfo();
 }
 
-void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
+// void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
+// {
+//     bool hasVirtualDisplay = screenState_ == ScreenState::SOFTWARE_OUTPUT_ENABLE;
+//     if ((!hasVirtualDisplay && !hasMirrorDisplay_) || !screenManager_) {
+//         return;
+//     }
+//     std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
+//     if (node.IsLeashWindow()) {
+//         const auto& leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
+//         virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
+//     }
+//     for (const auto& screenId : virtualScreens) {
+//         node.UpdateBlackListStatus(screenId);
+//         curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
+//             screenId, SpecialLayerType::HAS_BLACK_LIST, true);
+//     }
+// }
+
+void RSUniRenderVisitor::UpdateScreenSpecialLayersRecord(const RSSurfaceRenderNode& node)
 {
-    bool hasVirtualDisplay = screenState_ == ScreenState::SOFTWARE_OUTPUT_ENABLE;
-    if ((!hasVirtualDisplay && !hasMirrorDisplay_) || !screenManager_) {
+    if (!node.ShouldPaint()) {
         return;
     }
-    std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
-    if (node.IsLeashWindow()) {
-        const auto& leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
-        virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
+    if (curLogicalDisplayNode_ == nullptr) {
+        return;
     }
-    for (const auto& screenId : virtualScreens) {
-        node.UpdateBlackListStatus(screenId);
-        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
-            screenId, SpecialLayerType::HAS_BLACK_LIST, true);
+    const auto& specialLayerMgr = node.GetSpecialLayerMgr();
+    const std::unordered_set<ScreenId>& screenIds = specialLayerMgr.FindScreenHasType(IS_GENERAL_SPECIAL);
+    for (const auto screenId : screenIds) {
+        const auto screenSpecialLayerType = specialLayerMgr.GetWithScreen(screenId);
+        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().AddIdsWithScreen(
+            screenId, (screenSpecialLayerType >> SPECIAL_TYPE_NUM), node.GetId());
+    }
+    if (node.IsSpecialLayerChanged()) {
+        curLogicalDisplayNode_->SetDisplaySpecialSurfaceChanged(true);
     }
 }
 
 void RSUniRenderVisitor::UpdateSpecialLayersRecord(RSSurfaceRenderNode& node)
 {
-    if (node.ShouldPaint() == false) {
+    if (!node.ShouldPaint()) {
         return;
     }
     auto specialLayerMgr = node.GetMultableSpecialLayerMgr();
@@ -584,7 +577,7 @@ void RSUniRenderVisitor::UpdateSpecialLayersRecord(RSSurfaceRenderNode& node)
         curLogicalDisplayNode_->AddSecurityVisibleLayer(node.GetId());
     }
     if (specialLayerMgr.Find(SpecialLayerType::HAS_PROTECTED)) {
-        screenManager_->SetScreenHasProtectedLayer(curLogicalDisplayNode_->GetScreenId(), true);
+        // screenManager_->SetScreenHasProtectedLayer(curLogicalDisplayNode_->GetScreenId(), true);
         RS_TRACE_NAME_FMT("SetScreenHasProtectedLayer: %d", curLogicalDisplayNode_->GetScreenId());
     }
     auto specialLayerType = specialLayerMgr.Get();
@@ -644,7 +637,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
     if (!curScreenDirtyManager_) {
         return;
     }
-    if (curScreenNode_ == nullptr || screenManager_ == nullptr) {
+    if (curScreenNode_ == nullptr) {
         return;
     }
     bool ret = CheckScreenPowerChange() ||
@@ -658,8 +651,7 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
         curScreenNode_->HasMirroredScreenChanged() ||
-        screenManager_->CheckVirtualScreenStatusChanged(curScreenNode_->GetScreenId()) ||
-        curScreenNode_->IsScreenResolutionChanged();
+        curScreenNode_->IsVirtualSurfaceChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // if overlay display status changed, ......
@@ -751,7 +743,7 @@ void RSUniRenderVisitor::UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& no
         return;
     }
     auto mirrorNode = node.GetMirrorSource().lock();
-    if (mirrorNode == nullptr || screenManager_ == nullptr) {
+    if (mirrorNode == nullptr) {
         return;
     }
 
@@ -762,7 +754,11 @@ void RSUniRenderVisitor::UpdateVirtualDisplayInfo(RSLogicalDisplayRenderNode& no
 void RSUniRenderVisitor::UpdateVirtualDisplaySecurityExemption(RSLogicalDisplayRenderNode& node,
     RSLogicalDisplayRenderNode& mirrorNode)
 {
-    auto securityExemptionList = screenManager_->GetVirtualScreenSecurityExemptionList(node.GetScreenId());
+    if (!curScreenNode_) {
+        return;
+    }
+
+    auto securityExemptionList = curScreenNode_->GetScreenProperty().GetSecurityExemptionList();
     if (securityExemptionList.size() == 0) {
         RS_LOGD("UpdateVirtualScreenSecurityExemption::node:%{public}" PRIu64 ", isSecurityExemption:false",
             node.GetId());
@@ -797,10 +793,11 @@ void RSUniRenderVisitor::UpdateVirtualDisplaySecurityExemption(RSLogicalDisplayR
 void RSUniRenderVisitor::UpdateVirtualDisplayVisibleRectSecurity(RSLogicalDisplayRenderNode& node,
     RSLogicalDisplayRenderNode& mirrorNode)
 {
-    if (!curScreenNode_->GetScreenInfo().enableVisibleRect) {
+    const auto& screenProperty = curScreenNode_->GetScreenProperty();
+    if (!screenProperty.GetEnableVisibleRect()) {
         return;
     }
-    auto rect = screenManager_->GetMirrorScreenVisibleRect(node.GetScreenId());
+    auto rect = screenProperty.GetVisibleRect();
     RectI visibleRect(rect.x, rect.y, rect.w, rect.h);
     auto securityVisibleLayerList = mirrorNode.GetSecurityVisibleLayerList();
     bool hasSecLayerInVisibleRect = false;
@@ -824,7 +821,9 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
 {
     if (GetDumpRsTreeDetailEnabled()) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
-        curFrameInfoDetail.curFrameVsyncId = HgmCore::Instance().GetVsyncId();
+        // TODO: HGM to be deleted, need to be adapted
+        // curFrameInfoDetail.curFrameVsyncId = HgmCore::Instance().GetVsyncId();
+        curFrameInfoDetail.curFrameVsyncId = 1; // need adapte
         curFrameInfoDetail.curFrameSubTreeSkipped = subTreeSkipped;
         if (isPostPrepare) {
             curFrameInfoDetail.curFramePostPrepareSeqNum = IncreasePostPrepareSeq();
@@ -876,6 +875,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
     QuickPrepareChildren(node);
+    UpdateScreenValidity(node);
     TryNotifyUIBufferAvailable();
 
     PostPrepare(node);
@@ -917,8 +917,7 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     curLogicalDisplayNode_ = node.shared_from_this()->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
     curLogicalDisplayNode_->SetDisplaySpecialSurfaceChanged(false);
     curLogicalDisplayNode_->GetMultableSpecialLayerMgr().Set(HAS_GENERAL_SPECIAL, false);
-    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearScreenSpecialLayer();
-    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearSpecialLayerIds();
+    curLogicalDisplayNode_->GetMultableSpecialLayerMgr().ClearAllScreenSpecialLayer();
     curLogicalDisplayNode_->SetCompositeType(curScreenNode_->GetCompositeType());
     curLogicalDisplayNode_->SetHasCaptureWindow(false);
     occlusionSurfaceOrder_ = TOP_OCCLUSION_SURFACES_NUM;
@@ -928,12 +927,24 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     if (mirrorSourceScreenNode) {
         curScreenNode_->SetIsMirrorScreen(true);
         curScreenNode_->SetMirrorSource(mirrorSourceScreenNode);
+        isScreenHasMirrorDisplay_ = true;
     } else {
         curScreenNode_->SetIsMirrorScreen(false);
         curScreenNode_->ResetMirrorSource();
     }
     curScreenNode_->GetLogicalDisplayNodeDrawables().push_back(curLogicalDisplayNode_->GetRenderDrawable());
     return true;
+}
+
+void RSUniRenderVisitor::UpdateScreenValidity(RSScreenRenderNode& node)
+{
+    if (isScreenHasMirrorDisplay_ && node.GetChildrenCount() > 1) {
+        // for mirror screen, only one logical display is allowed
+        node.SetIsScreenValid(false);
+    } else {
+        node.SetIsScreenValid(true);
+    }
+    isScreenHasMirrorDisplay_ = false;  // reset visitor's screen node flag
 }
 
 void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
@@ -1092,9 +1103,9 @@ bool RSUniRenderVisitor::CheckSkipAndPrepareForCrossNode(RSSurfaceRenderNode& no
 bool RSUniRenderVisitor::CheckIfSkipDrawInVirtualScreen(RSSurfaceRenderNode& node)
 {
     //if node special layer type is skip drawing, return true
-    if (node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP) ||
-        allBlackList_.find(node.GetId()) != allBlackList_.end() ||
-        allBlackList_.find(node.GetLeashPersistentId()) != allBlackList_.end()) {
+    const auto& specialLayerMgr = node.GetSpecialLayerMgr();
+    if (specialLayerMgr.Find(SpecialLayerType::SKIP) ||
+        !specialLayerMgr.FindScreenHasType(SpecialLayerType::IS_BLACK_LIST).empty()) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderVisitor::CheckIfSkipDrawInVirtualScreen:[%{public}s] "
             "nodeid:[%{public}" PRIu64 "], set isSkipDrawInVirtualScreen_ true", node.GetName().c_str(), node.GetId());
         return true;
@@ -1703,7 +1714,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
         occlusionInAnimation && !isAllSurfaceVisibleDebugEnabled_ && !node.IsAttractionAnimation();
     CollectTopOcclusionSurfacesInfo(node, isParticipateInOcclusion);
     if (isParticipateInOcclusion) {
-        RS_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
+        RS_OPTIONAL_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
             node.GetName().c_str(), node.GetOpaqueRegion().GetRegionInfo().c_str());
         accumulatedOcclusionRegion_.OrSelf(node.GetOpaqueRegion());
         if (node.NeedDrawBehindWindow()) {
@@ -1716,7 +1727,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     needRecalculateOcclusion_ = needRecalculateOcclusion_ || node.CheckIfOcclusionChanged();
     node.SetOcclusionInSpecificScenes(false);
     CollectOcclusionInfoForWMS(node);
-    RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(
+    mainThread->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(
         curScreenNode_->GetScreenInfo(), node);
 }
 
@@ -2332,7 +2343,7 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
     }
     auto& curMainAndLeashSurfaces = curScreenNode_->GetAllMainAndLeashSurfaces();
     std::vector<RequestLayerInfo> prevalidLayers;
-    uint32_t curFps = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(curScreenNode_->GetScreenId());
+    uint32_t curFps = curScreenNode_->GetScreenProperty().GetRefreshRate();
     uint32_t zOrder = static_cast<uint32_t>(globalZOrder_);
     // add surfaceNode layer
     RSUniHwcPrevalidateUtil::GetInstance().CollectSurfaceNodeLayerInfo(
@@ -2490,8 +2501,8 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         surfaceNode->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " use hardCursor to display",
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
-        bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorDisplay();
-        RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
+        bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorOrVirtualScreen();
+        RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !hasMirrorOrVirtualScreen);
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, curScreenNode_->GetScreenInfo());
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isHardCursor);
         if (isHardCursor) {
@@ -3232,11 +3243,11 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         bool isInBlackList = false;
         if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
             auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
-            if ((surfaceNode.IsLeashWindow() &&
-                allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) ||
-                allBlackList_.find(surfaceNode.GetId()) != allBlackList_.end()) {
-                isInBlackList = true;
-            }
+            // if ((surfaceNode.IsLeashWindow() &&
+            //     allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) ||
+            //     allBlackList_.find(surfaceNode.GetId()) != allBlackList_.end()) {
+            //     isInBlackList = true;
+            // }
         }
         node.UpdateDrawingCacheInfoAfterChildren(isInBlackList);
     }
@@ -3732,7 +3743,7 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
 
 void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
 {
-    if (!screenManager_ || !curScreenNode_) {
+    if (!curScreenNode_) {
         RS_LOGE(
             "RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay screenmanager or displaynode is nullptr");
         return;
@@ -3741,11 +3752,7 @@ void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
         RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay rcd disabled!");
         return;
     }
-    RSScreenType screenType = BUILT_IN_TYPE_SCREEN;
-    if (screenManager_->GetScreenType(curScreenNode_->GetScreenId(), screenType) != SUCCESS) {
-        RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay get screen type failed.");
-        return;
-    }
+    auto screenType = curScreenNode_->GetScreenProperty().GetScreenType();
     if (screenType == EXTERNAL_TYPE_SCREEN) {
         RectI dirtyRectTop, dirtyRectBottom;
         if (RSSingleton<RoundCornerDisplayManager>::GetInstance().HandleRoundCornerDirtyRect(

@@ -38,7 +38,8 @@ public:
 
     static RSMagicPointerRenderManager& GetInstance();
     static int64_t GetCurrentTime();
-    void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext);
+    void ProcessColorPicker(std::shared_ptr<RSProcessor> processor, std::shared_ptr<Drawing::GPUContext> gpuContext,
+        const ScreenInfo& screenInfo);
     void SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
     void RegisterPointerLuminanceChangeCallback(pid_t pid, sptr<RSIPointerLuminanceChangeCallback> callback);
     void UnRegisterPointerLuminanceChangeCallback(pid_t pid);
@@ -55,12 +56,12 @@ private:
     bool CheckColorPickerEnabled();
     void CalculateColorRange(RectI& pRect);
     bool CalculateTargetLayer(std::shared_ptr<RSProcessor> processor);
-    void RunColorPickerTask();
-    std::shared_ptr<Drawing::Image> GetIntersectImageByLayer(BufferDrawParam& param);
+    void RunColorPickerTask(const ScreenInfo& screenInfo);
+    std::shared_ptr<Drawing::Image> GetIntersectImageByLayer(BufferDrawParam& param, const ScreenInfo& screenInfo);
     bool GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext);
     std::shared_ptr<Drawing::Image> GetImageTexture(std::shared_ptr<Drawing::Image>& image);
     void GetRectAndTargetLayer(std::vector<RSLayerPtr>& layers, RectI& pRect, int displayNodeIndex);
-    void RunColorPickerTaskBackground(BufferDrawParam& param);
+    void RunColorPickerTaskBackground(BufferDrawParam& param, const ScreenInfo& screenInfo);
     static int16_t CalcAverageLuminance(std::shared_ptr<Drawing::Image> image);
 
 private:
