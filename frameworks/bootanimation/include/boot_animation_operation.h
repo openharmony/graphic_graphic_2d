@@ -51,7 +51,7 @@ private:
     bool InitRsDisplayNode();
     bool InitRsSurfaceNode(int32_t degree);
     bool InitRsSurface();
-    void PlayVideo(const std::string& path);
+    void PlayVideo(const BootAnimationConfig& config);
     void PlayPicture(const std::string& path);
     void PlaySound(const std::string& path);
     void StopBootAnimation();

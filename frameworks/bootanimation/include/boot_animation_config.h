@@ -32,6 +32,7 @@ struct BootAnimationConfig {
     int32_t rotateDegree = 0;
     Rosen::ScreenId screenId = Rosen::INVALID_SCREEN_ID;
     std::map<std::string, std::string> videoExtPath;
+    bool isFrameRateEnable = false;
 };
 
 struct BootAnimationProgressConfig {

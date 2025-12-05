@@ -141,6 +141,7 @@ using PlayerParams = struct PlayerParams {
     bool soundEnabled = false;
     BootAnimationCallback* callback;
     std::string resPath;
+    bool isFrameRateEnable = false;
 };
 
 void PostTask(std::function<void()> func, uint32_t delayTime = 0);
