@@ -41,8 +41,8 @@ void RSRefreshRateDfx::OnDraw(RSPaintFilterCanvas& canvas)
     if ((FOLD_SCREEN_TYPE[0] == dualDisplay) && screenId != 0) {
         return;
     }
-    uint32_t currentRefreshRate = RSRealtimeRefreshRateManager::Instance().GetScreenCurrentRefreshRate(screenId);
-    uint32_t realtimeRefreshRate = RSRealtimeRefreshRateManager::Instance().GetRealtimeRefreshRate(screenId);
+    auto [currentRefreshRate, realtimeRefreshRate] =
+        RSRealtimeRefreshRateManager::Instance().GetRefreshRateByScreenId(screenId);
     static bool showRealtimeRefreshRate = RSSystemProperties::GetVersionType() == "beta";
     std::string info = std::to_string(currentRefreshRate);
     if (showRealtimeRefreshRate || RSSystemParameters::GetShowRefreshRateEnabled()) {
@@ -91,7 +91,7 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
     auto screenCorrection = screenParams->GetScreenProperty().GetScreenCorrection();
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
         screenCorrection != ScreenRotation::ROTATION_0) {
-        // Recaculate rotation if mirrored screen has additional rotation angle
+        // Recalculate rotation if mirrored screen has additional rotation angle
         rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
             - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
