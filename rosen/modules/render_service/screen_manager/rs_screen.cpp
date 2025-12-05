@@ -193,7 +193,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         property_.SetScreenType(RSScreenType::EXTERNAL_TYPE_SCREEN);
     }
     ScreenCapabilityInit();
-    InitDisplayPropertyForHardCursor();
+    InitDisplayPropertyForHardCursor();  
 
     auto outType = GraphicDisplayConnectionType::GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL;
     if (hdiScreen_->GetScreenConnectionType(outType) != 0) {
@@ -898,53 +898,11 @@ void RSScreen::ScreenTypeDump(std::string& dumpString)
     }
 }
 
-void RSScreen::SurfaceDump(int32_t screenIndex, std::string& dumpString)
-{
-    if (hdiOutput_ == nullptr) {
-        RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
-        return;
-    }
-    hdiOutput_->Dump(dumpString);
-}
-
-void RSScreen::DumpCurrentFrameLayers()
-{
-    if (hdiOutput_ == nullptr) {
-        RS_LOGW("RSScreen %{public}s: hdiOutput_ is nullptr.", __func__);
-        return;
-    }
-    hdiOutput_->DumpCurrentFrameLayers();
-}
-
-void RSScreen::FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
-{
-    if (hdiOutput_ == nullptr) {
-        RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
-        return;
-    }
-    hdiOutput_->DumpFps(dumpString, arg);
-}
-
-void RSScreen::ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
-{
-    if (hdiOutput_ == nullptr) {
-        RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
-        return;
-    }
-    hdiOutput_->ClearFpsDump(dumpString, arg);
-}
-
-void RSScreen::HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg)
-{
-    if (hdiOutput_ == nullptr) {
-        RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
-        return;
-    }
-    hdiOutput_->DumpHitchs(dumpString, arg);
-}
-
 void RSScreen::ResizeVirtualScreen(uint32_t width, uint32_t height)
 {
+    if (width == property_.GetWidth() && height == property_.GetHeight()) {
+        return;
+    }
     if (!IsVirtual()) {
         RS_LOGW("%{public}s: physical screen not support ResizeVirtualScreen.", __func__);
         return;
@@ -1096,7 +1054,7 @@ int32_t RSScreen::SetScreenColorGamut(int32_t modeIdx)
         onPropertyChange_(property_.Clone());
     }
     return StatusCode::SUCCESS;
-}
+    }
 
 void RSScreen::SetScreenCorrection(ScreenRotation screenRotation)
 {
@@ -1458,6 +1416,44 @@ void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
     }
 }
 
+void RSScreen::SetGlobalBlackList(const std::unordered_set<uint64_t>& globalBlackList)
+{
+    if (globalBlackList == property_.GetGlobalBlackList()) {
+        return;
+    }
+    property_.SetGlobalBlackList(globalBlackList);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+void RSScreen::AddGlobalBlackList(const std::vector<uint64_t>& globalBlackList)
+{
+    if (globalBlackList.empty()) {
+        return;
+    }
+    property_.AddBlackList(globalBlackList);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+void RSScreen::RemoveGlobalBlackList(const std::vector<uint64_t>& globalBlackList)
+{
+    if (globalBlackList.empty()) {
+        return;
+    }
+    property_.RemoveGlobalBlackList(globalBlackList);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+const std::unordered_set<uint64_t>& RSScreen::GetGlobalBlackList()
+{
+    return property_.GetGlobalBlackList();
+}
+
 void RSScreen::SetCastScreenEnableSkipWindow(bool enable)
 {
     property_.SetCastScreenEnableSkipWindow(enable);
@@ -1541,16 +1537,6 @@ void RSScreen::SetMainScreenVisibleRect(const Rect& mainScreenRect)
     if (onPropertyChange_) {
         onPropertyChange_(property_.Clone());
     }
-}
-
-Rect RSScreen::GetMainScreenVisibleRect() const
-{
-    return property_.GetMainScreenVisibleRect();
-}
-
-bool RSScreen::GetVisibleRectSupportRotation() const
-{
-    return property_.GetVisibleRectSupportRotation();
 }
 
 void RSScreen::SetVisibleRectSupportRotation(bool supportRotation)
@@ -1662,11 +1648,6 @@ bool RSScreen::GetAndResetVirtualScreenPlay()
     return virtualScreenPlay_.compare_exchange_strong(expected, false);
 }
 
-ScreenInfo RSScreen::GetScreenInfo() const
-{
-    return property_.GetScreenInfo();
-}
-
 sptr<RSScreenProperty> RSScreen::GetProperty() const
 {
     return property_.Clone();
@@ -1675,6 +1656,27 @@ sptr<RSScreenProperty> RSScreen::GetProperty() const
 void RSScreen::SetOnPropertyChangedCallback(std::function<void(const sptr<RSScreenProperty>&)> callback)
 {
     onPropertyChange_ = std::move(callback);
+}
+
+void RSScreen::SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32_t)> callback)
+{
+    onBacklightChange_ = callback;
+}
+
+void RSScreen::SetDisablePowerOffRenderControl(bool disable)
+{
+    property_.SetDisablePowerOffRenderControl(disable);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+void RSScreen::SetScreenSwitchStatus(bool status)
+{
+    property_.SetScreenSwitchStatus(status);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

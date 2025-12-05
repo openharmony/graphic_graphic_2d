@@ -17,7 +17,9 @@
 #define RS_SCREEN
 
 #include <memory>
+#include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <unordered_set>
 
 #include <hdi_display_type.h>
@@ -27,6 +29,7 @@
 
 #include <common/rs_rect.h>
 #include <screen_manager/screen_types.h>
+
 #include "rs_screen_thread_safe_property.h"
 
 namespace OHOS {
@@ -75,12 +78,6 @@ public:
     float GetSamplingScale() const;
 
     void DisplayDump(int32_t screenIndex, std::string& dumpString);
-    void SurfaceDump(int32_t screenIndex, std::string& dumpString);
-    void DumpCurrentFrameLayers();
-    void FpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg);
-    void ClearFpsDump(int32_t screenIndex, std::string& dumpString, std::string& arg);
-    void HitchsDump(int32_t screenIndex, std::string& dumpString, std::string& arg);
-
     void SetScreenSkipFrameInterval(uint32_t skipFrameInterval);
     uint32_t GetScreenSkipFrameInterval() const;
     void SetScreenExpectedRefreshRate(uint32_t expectedRefreshRate);
@@ -136,6 +133,7 @@ public:
     void SetHasProtectedLayer(bool hasProtectedLayer);
     bool GetHasProtectedLayer();
     int32_t SetScreenLinearMatrix(const std::vector<float>& matrix);
+    void InitDisplayPropertyForHardCursor();
 
     // virtual screen
     void SetProducerSurface(sptr<Surface> producerSurface);
@@ -161,21 +159,22 @@ public:
     void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
     void AddBlackList(const std::vector<uint64_t>& blackList);
     void RemoveBlackList(const std::vector<uint64_t>& blackList);
-    std::unordered_set<uint64_t> GetBlackList() const;
-    std::unordered_set<uint8_t> GetTypeBlackList() const;
-    std::unordered_set<uint64_t> GetWhiteList() const;
+    void SetGlobalBlackList(const std::unordered_set<uint64_t>& globalBlackList);
+    const std::unordered_set<uint64_t>& GetGlobalBlackList();
+    void AddGlobalBlackList(const std::vector<uint64_t>& globalBlackList);
+    void RemoveGlobalBlackList(const std::vector<uint64_t>& globalBlackList);
+    const std::unordered_set<uint64_t> GetBlackList() const;
+    const std::unordered_set<uint8_t> GetTypeBlackList() const;
+    const std::unordered_set<uint64_t> GetWhiteList() const;
 
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
     const std::vector<uint64_t> GetSecurityExemptionList() const;
 
     int32_t SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask);
-    std::shared_ptr<Media::PixelMap> GetSecurityMask() const;
 
     void SetEnableVisibleRect(bool enable);
     bool GetEnableVisibleRect() const;
     void SetMainScreenVisibleRect(const Rect& mainScreenRect);
-    Rect GetMainScreenVisibleRect() const;
-    bool GetVisibleRectSupportRotation() const;
     void SetVisibleRectSupportRotation(bool supportRotation);
 
     void SetScreenOffset(int32_t offsetX, int32_t offsetY);
@@ -184,11 +183,14 @@ public:
 
     bool GetAndResetPSurfaceChange();
     void SetPSurfaceChange(bool pSurfaceChange);
-    bool GetAndResetVirtualScreenPlay();
+    void SetDisablePowerOffRenderControl(bool disable);
+
+    void SetScreenSwitchStatus(bool status);
 
     void SetOnPropertyChangedCallback(std::function<void(const sptr<RSScreenProperty>&)> callback);
     sptr<RSScreenProperty> GetProperty() const;
-    ScreenInfo GetScreenInfo() const;
+
+    void SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32_t)> callback);
 private:
     // create hdiScreen and get some information from drivers.
     void PhysicalScreenInit() noexcept;
