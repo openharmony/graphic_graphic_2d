@@ -180,16 +180,18 @@ bool RSRenderInterface::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> b
         ROSEN_LOGW("RSRenderInterface::TakeUICaptureInRangeWithConfig beginNode is nullpter return");
         return false;
     }
+    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     if (!endNode) {
         return TakeSurfaceCaptureForUI(beginNode, callback, captureConfig.scaleX,
             captureConfig.scaleY, captureConfig.isSync);
     }
+    captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
+    captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
     if (beginNode->IsTextureExportNode()) {
         ROSEN_LOGD("RSRenderInterface::TakeUICaptureInRange beginNode [%{public}" PRIu64
             "] is textureExportNode, set isSync false", beginNode->GetId());
         captureConfig.isSync = false;
     }
-    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
     if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
           (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
           (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
