@@ -34,8 +34,6 @@
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -46,6 +44,9 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
+
 namespace OHOS {
 namespace Rosen {
 bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
@@ -69,12 +70,7 @@ bool RSSurfaceCaptureTask::Run(sptr<RSISurfaceCaptureCallback> callback)
         visitor_->IsDisplayNode(false);
         nodeName = surfaceNode->GetName();
     } else if (auto displayNode = node->ReinterpretCastTo<RSLogicalDisplayRenderNode>()) {
-        auto screenInfo = CreateOrGetScreenManager()->QueryScreenInfo(displayNode->GetScreenId());
-        GraphicColorGamut colorGamut = static_cast<GraphicColorGamut>(screenInfo.colorGamut);
-        if (colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
-            colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
-        }
-        pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender());
+        pixelmap = CreatePixelMapByDisplayNode(displayNode, visitor_->IsUniRender(), colorSpace);
         visitor_->IsDisplayNode(true);
     } else {
         RS_LOGE("RSSurfaceCaptureTask::Run: Invalid RSRenderNodeType!");
@@ -143,22 +139,24 @@ std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapBySurfaceNo
 }
 
 std::unique_ptr<Media::PixelMap> RSSurfaceCaptureTask::CreatePixelMapByDisplayNode(
-    std::shared_ptr<RSLogicalDisplayRenderNode> node, bool isUniRender)
+    std::shared_ptr<RSLogicalDisplayRenderNode> node, bool isUniRender,
+    std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: node is nullptr");
         return nullptr;
     }
-    uint64_t screenId = node->GetScreenId();
-    RSScreenModeInfo screenModeInfo;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSSurfaceCaptureTask::CreatePixelMapByDisplayNode: screenManager is nullptr!");
+    auto screenNode = RSRenderNode::ReinterpretCast<RSScreenRenderNode>(node->GetParent().lock());
+    if (!screenNode) {
         return nullptr;
     }
-    auto screenInfo = screenManager->QueryScreenInfo(screenId);
-    uint32_t pixmapWidth = screenInfo.width;
-    uint32_t pixmapHeight = screenInfo.height;
+    const auto& screenProperty = screenNode->GetScreenProperty();
+    auto colorGamut = static_cast<GraphicColorGamut>(screenProperty.GetScreenColorGamut());
+    if (colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) {
+        colorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
+    }
+    uint32_t pixmapWidth = screenProperty.GetWidth();
+    uint32_t pixmapHeight = screenProperty.GetHeight();
     if (!isUniRender) {
         auto rotation = node->GetRotation();
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {

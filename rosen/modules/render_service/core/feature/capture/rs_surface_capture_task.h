@@ -97,7 +97,7 @@ private:
         bool isUniRender = false);
 
     std::unique_ptr<Media::PixelMap> CreatePixelMapByDisplayNode(std::shared_ptr<RSLogicalDisplayRenderNode> node,
-        bool isUniRender = false);
+        bool isUniRender, std::shared_ptr<Drawing::ColorSpace>& colorSpace);
 
     NodeId nodeId_ = INVALID_NODEID;
 
