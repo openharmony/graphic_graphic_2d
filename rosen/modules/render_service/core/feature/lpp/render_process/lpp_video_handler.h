@@ -15,46 +15,35 @@
 
 #ifndef ROSEN_RENDER_SERVICE_PIPELINE_RS_LPP_VIDEO_H
 #define ROSEN_RENDER_SERVICE_PIPELINE_RS_LPP_VIDEO_H
-#include <set>
 #include <string>
 #include <vector>
-
-#include "hdi_layer.h"
+#include <atomic>
 
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 namespace OHOS::Rosen {
-constexpr uint32_t LPP_LAYER_PROPERTY =
-    TunnelLayerProperty::TUNNEL_PROP_BUFFER_ADDR | TunnelLayerProperty::TUNNEL_PROP_DEVICE_COMMIT;
 constexpr size_t LPP_SURFACE_NODE_MAX_SIZE = 10;
 enum LppState { UNKOWN = 0, LPP_LAYER = 1, UNI_RENDER = 2 };
 class LppVideoHandler {
 private:
     std::mutex mutex_;
-    std::atomic_bool hasVirtualMirrorDisplay_ = false;
+    mutable std::atomic<bool> hasVirtualMirrorDisplay_ = false;
     LppState lppShbState_ = LppState::UNKOWN;
     LppState lppRsState_ = LppState::UNKOWN;
     bool isRequestedVsync_ = false;
-
-    std::set<NodeId> lppLayerId_;
     // <vsyncId, <RSSurfaceRenderNode>>
     std::map<uint64_t, std::vector<wptr<IConsumerSurface>>> lppConsumerMap_;
-
-    LppVideoHandler() = default;
-    ~LppVideoHandler() = default;
 
 public:
     static LppVideoHandler& Instance();
     // << call from main thread
-    void SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay);
+    void SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay) const;
     void JudgeRequestVsyncForLpp(uint64_t vsyncId);
     void ConsumeAndUpdateLppBuffer(uint64_t vsyncId, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     // >>
     // << call from hareware thread
-    void AddLppLayerId(const std::vector<RSLayerPtr>& layers);
-    void RemoveLayerId(const std::vector<RSLayerPtr>& layers);
-    void JudgeLppLayer(uint64_t vsyncId);
+    void JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds);
     // >>
 };
 } // namespace OHOS::Rosen

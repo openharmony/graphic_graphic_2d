@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "feature/lpp/lpp_video_handler.h"
+#include "feature/lpp/render_process/lpp_video_handler.h"
 
 #include "rs_trace.h"
 
@@ -20,23 +20,17 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
-LppVideoHandler& LppVideoHandler::Instance()
-{
-    static LppVideoHandler instance;
-    return instance;
-}
-
 void LppVideoHandler::ConsumeAndUpdateLppBuffer(
     uint64_t vsyncId, const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
-    std::shared_ptr<RSSurfaceHandler> surfaceHandler;
     bool isInvalidNode = UNLIKELY(surfaceNode == nullptr) ||
                          surfaceNode->GetAbilityState() == RSSurfaceNodeAbilityState::BACKGROUND ||
-                         (surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler()) == nullptr ||
-                         surfaceHandler->GetConsumer() == nullptr;
+                         surfaceNode->GetMutableRSSurfaceHandler() == nullptr ||
+                         surfaceNode->GetMutableRSSurfaceHandler()->GetConsumer() == nullptr;
     if (isInvalidNode) {
         return;
     }
+    std::shared_ptr<RSSurfaceHandler> surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
     const auto& consumer = surfaceHandler->GetConsumer();
     std::lock_guard<std::mutex> lock(mutex_);
     bool needRemoveTopNode = lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end() &&
@@ -120,49 +114,20 @@ void LppVideoHandler::JudgeRequestVsyncForLpp(uint64_t vsyncId)
     }
 }
 
-void LppVideoHandler::AddLppLayerId(const std::vector<RSLayerPtr>& layers)
-{
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        lppLayerId_.clear();
-    }
-    for (const auto& layer : layers) {
-        bool isLppLayer = layer != nullptr &&
-            layer->GetTunnelLayerId() != 0 && layer->GetTunnelLayerProperty() == LPP_LAYER_PROPERTY;
-        if (!isLppLayer) {
-            continue;
-        }
-        std::lock_guard<std::mutex> lock(mutex_);
-        lppLayerId_.insert(layer->GetNodeId());
-    }
-}
-
-void LppVideoHandler::SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay)
+void LppVideoHandler::SetHasVirtualMirrorDisplay(bool hasVirtualMirrorDisplay) const
 {
     hasVirtualMirrorDisplay_.store(hasVirtualMirrorDisplay);
 }
 
-void LppVideoHandler::RemoveLayerId(const std::vector<RSLayerPtr>& layers)
-{
-    for (const auto& layer : layers) {
-        bool isLppLayer = layer != nullptr &&
-            layer->GetTunnelLayerId() != 0 && layer->GetTunnelLayerProperty() == LPP_LAYER_PROPERTY;
-        if (!isLppLayer) {
-            continue;
-        }
-        std::lock_guard<std::mutex> lock(mutex_);
-        lppLayerId_.erase(layer->GetNodeId());
-    }
-}
-
-void LppVideoHandler::JudgeLppLayer(uint64_t vsyncId)
+void LppVideoHandler::JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME_FMT("JudgeLppLayer vsyncId: %ld", vsyncId);
+    RS_LOGI("JudgeLppLayer vsyncId: %{public}ld", vsyncId);
     if (lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end()) {
         return;
     }
-    bool hasLppLayer = !lppLayerId_.empty();
+    bool hasLppLayer = !lppLayerIds.empty();
     lppShbState_ = hasLppLayer ? LppState::LPP_LAYER : LppState::UNI_RENDER;
     size_t lppNodeSize = lppConsumerMap_[vsyncId].size();
     for (const auto& lppConsumer : lppConsumerMap_[vsyncId]) {
@@ -176,7 +141,7 @@ void LppVideoHandler::JudgeLppLayer(uint64_t vsyncId)
             lppNodeSize--;
         }
     }
-    bool isAllLppLayer = lppNodeSize != 0 && lppNodeSize == lppLayerId_.size();
+    bool isAllLppLayer = lppNodeSize != 0 && lppNodeSize == lppLayerIds.size();
     LppState lastLppRsState = lppRsState_;
     lppRsState_ = isAllLppLayer ? LppState::LPP_LAYER : LppState::UNI_RENDER;
     if (lastLppRsState == LppState::LPP_LAYER && lppRsState_ == LppState::UNI_RENDER) {
