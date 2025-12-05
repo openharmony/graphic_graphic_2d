@@ -1405,6 +1405,7 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
     Vector4f materialColor = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_29], materialColor), nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass materialColor parse fail"));
+    para->SetMaterialColor(materialColor);
 
     if (realArgc >= maxArgc) {
         float samplingScale = 0.f;
