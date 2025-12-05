@@ -309,7 +309,4 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfig, TestSize.Le
     int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
     ASSERT_EQ(res, false);
 }
-
-
-
 } // namespace OHOS::Rosen
