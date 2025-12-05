@@ -433,7 +433,7 @@ bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::
 bool RSInterfaces::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
     bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return RrenderServiceClient_->TakeUICaptureInRangeWithConfig(beginNode, endNode,
+    return renderServiceClient_->TakeUICaptureInRangeWithConfig(beginNode, endNode,
         useBeginNodeSize, callback, captureConfig);
 }
 
