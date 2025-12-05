@@ -186,7 +186,7 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f ||
         captureConfig_.scaleX > 1.f || captureConfig_.scaleY > 1.f) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
-        errorCode_ = CaptureError::CAPTURE_NO_NODE;
+        errorCode_ = CaptureError::CAPTURE_CONFIG_WRONG;
         return false;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
