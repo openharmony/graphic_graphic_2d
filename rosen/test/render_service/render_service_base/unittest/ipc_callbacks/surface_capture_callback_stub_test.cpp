@@ -15,7 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#include "ipc_callbacks/surface_capture_callback_proxy.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "mock_iremote_object.h"
 
 using namespace testing;
 using namespace testing::ext;
