@@ -285,13 +285,13 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     /**
-     * @brief Get snapshot of surfaceNode.
-     * @param node Indicates which node, usually point to a window.
+     * @brief Get component snapshot.
+     * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
      * @param callback When the snapshot is complete, the callback will be triggered.
-     * @param captureConfig Indicates the configuration items required for snapshot.
+     * @param RSSurfaceCaptureConfig Indicates RSSurfaceCaptureConfig.
      * @return return true if snaphot success, else return false.
      */
-    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSSurfaceNode> node,
+    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
         std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
 
     /**
