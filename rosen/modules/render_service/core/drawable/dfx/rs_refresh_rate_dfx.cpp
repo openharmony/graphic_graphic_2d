@@ -91,7 +91,7 @@ bool RSRefreshRateDfx::RefreshRateRotationProcess(RSPaintFilterCanvas& canvas,
     auto screenCorrection = screenParams->GetScreenProperty().GetScreenCorrection();
     if (screenCorrection != ScreenRotation::INVALID_SCREEN_ROTATION &&
         screenCorrection != ScreenRotation::ROTATION_0) {
-        // Recaculate rotation if mirrored screen has additional rotation angle
+        // Recalculate rotation if mirrored screen has additional rotation angle
         rotation = static_cast<ScreenRotation>((static_cast<int>(rotation) + SCREEN_ROTATION_NUM
             - static_cast<int>(screenCorrection)) % SCREEN_ROTATION_NUM);
     }
