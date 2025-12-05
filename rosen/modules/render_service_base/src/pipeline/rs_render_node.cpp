@@ -700,6 +700,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     hasChildrenOutOfRect_ = false;
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
+    ResetNodeColorSpace();
     SetForceDisableNodeGroup(false);
     RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
