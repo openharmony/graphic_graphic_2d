@@ -503,7 +503,7 @@ OHOS::ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
             if (errorCode_ == CaptureError::COLOR_SPACE_NOT_SUPPORT) {
                 RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace Now use %{public}d "
                 "colorspace(real colorspace for this node), rather than input %{public}d", retColorSpace,
-                capTureTargetColorSpace);
+                    capTureTargetColorSpace);
             }
         }
     }
