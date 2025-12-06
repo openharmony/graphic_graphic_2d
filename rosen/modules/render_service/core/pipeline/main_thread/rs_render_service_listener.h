@@ -25,7 +25,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderServiceListener : public IBufferConsumerListener {
 public:
-    RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode);
+    RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode, RSUniRenderThread* uniRenderThread);
     ~RSRenderServiceListener() override;
     void OnBufferAvailable() override;
     void OnTunnelHandleChange() override;
@@ -38,6 +38,7 @@ private:
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
     void CleanLayerBufferCache();
     bool ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node);
+    RSUniRenderThread* uniRenderThread_;
 };
 } // namespace Rosen
 } // namespace OHOS
