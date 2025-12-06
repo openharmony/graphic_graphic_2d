@@ -407,6 +407,10 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
         EXPECT_FALSE(params.buffer->IsBufferDeleted());
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
 
+        // GetVKImageAdaptationForWallpaperEnabled() is true
+        system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
+        EXPECT_TRUE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+
         // buffer is deleted from cache
         params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
@@ -420,13 +424,13 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
         EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
             static_cast<BufferDeletedFlag>(0));
         EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_RS,
-            static_cast<BufferDeletedFlag>(1));
+            BufferDeletedFlag::DELETED_FROM_RS);
 
         // buffer is deleted from rs
         params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
         EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_RS,
-            static_cast<BufferDeletedFlag>(1));
+            BufferDeletedFlag::DELETED_FROM_RS);
 
         // buffer is deleted from cache and GetVKImageAdaptationForWallpaperEnabled() is false
         params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
@@ -434,7 +438,10 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
         EXPECT_FALSE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
         EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
-            static_cast<BufferDeletedFlag>(1));
+            BufferDeletedFlag::DELETED_FROM_CACHE);
+
+        // Set rosen.graphic.vkimage_adapt_wallpape as default value
+        system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
     }
 }
 
