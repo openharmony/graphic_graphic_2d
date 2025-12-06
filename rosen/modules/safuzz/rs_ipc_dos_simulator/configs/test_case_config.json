@@ -1476,6 +1476,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_171",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetNeedUseCmdlistDrawRegion*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -2671,5 +2680,12 @@
     "inputParams": "",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST_TEST_001",
+    "interfaceName": "SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST",
+    "inputParams": "WriteInt32Vector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
   }
 ]
