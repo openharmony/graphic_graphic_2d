@@ -117,17 +117,9 @@ static uint32_t LoadFromFontCollectionByIndex(OH_Drawing_FontCollection* fontCol
         return ERROR_BUFFER_SIZE_ZERO;
     }
 
-    if (index != UINT32_MAX && index >= dataLength) {
-        return ERROR_READ_FILE_FAILED;
-    }
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    uint32_t start = (index == UINT32_MAX) ? 0 : index;
-    uint32_t end = (index == UINT32_MAX) ? dataLength : index + 1;
-
-    for (uint32_t i = start; i < end; ++i) {
-        if (fc->LoadFont(familyName, data, dataLength, i) == nullptr) {
-            return ERROR_FILE_CORRUPTION;
-        }
+    if (fc->LoadFont(familyName, data, dataLength, i) == nullptr) {
+        return ERROR_FILE_CORRUPTION;
     }
     return 0;
 }

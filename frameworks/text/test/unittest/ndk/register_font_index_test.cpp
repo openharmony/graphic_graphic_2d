@@ -43,6 +43,7 @@ protected:
     OH_Drawing_FontCollection* fontCollection_ = nullptr;
     std::unique_ptr <uint8_t[]> existFontBuffer_ = nullptr;
     int invalidFontCount = 100;
+    int expectedCount = 10;
     uint32_t bufferSize_ = 0;
 
     void TearDown() override;
@@ -84,7 +85,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest001, TestSize.Level0)
     uint32_t errorCode = OH_Drawing_RegisterFontBufferByIndex(fontCollection_, nullptr, nullptr, 0, 0);
     EXPECT_EQ(errorCode, ERROR_NULL_FONT_BUFFER);
     errorCode = OH_Drawing_RegisterFontBufferByIndex(nullptr, nullptr, nullptr, 0, 0);
-    EXPECT_EQ(errorCode, ERROR_NULL_FONT_BUFFER);
+    EXPECT_EQ(errorCode, ERROR_NULL_FONT_COLLECTION);
 
     errorCode = OH_Drawing_RegisterFontByIndex(nullptr, nullptr, nullptr, 0);
     EXPECT_EQ(errorCode, ERROR_NULL_FONT_COLLECTION);
@@ -113,7 +114,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest002, TestSize.Level0)
 HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest003, TestSize.Level0)
 {
     uint32_t fontCount = OH_Drawing_GetFontCountFromFile(existFontPath_);
-    EXPECT_EQ(fontCount, 10);
+    EXPECT_EQ(fontCount, expectedCount);
 
     uint32_t errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount - 1);
     EXPECT_EQ(errorCode, SUCCESSED);
@@ -163,7 +164,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest005, TestSize.Level0)
 HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest006, TestSize.Level0)
 {
     uint32_t fontCount = OH_Drawing_GetFontCountFromBuffer(existFontBuffer_.get(), bufferSize_);
-    EXPECT_EQ(fontCount, 10);
+    EXPECT_EQ(fontCount, expectedCount);
 
     uint32_t errorCode = OH_Drawing_RegisterFontBufferByIndex(
         fontCollection_, fontFamily_, existFontBuffer_.get(), bufferSize_, fontCount - 1);
@@ -185,7 +186,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest006, TestSize.Level0)
 HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest007, TestSize.Level0)
 {
     uint32_t fontCount = OH_Drawing_GetFontCountFromBuffer(existFontBuffer_.get(), bufferSize_);
-    EXPECT_EQ(fontCount, 10);
+    EXPECT_EQ(fontCount, expectedCount);
 
     uint32_t errorCode = OH_Drawing_RegisterFontBufferByIndex(
         fontCollection_, "test1", existFontBuffer_.get(), bufferSize_, fontCount - 1);
