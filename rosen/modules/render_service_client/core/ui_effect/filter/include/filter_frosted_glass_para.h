@@ -310,6 +310,36 @@ public:
         return samplingScale_;
     }
 
+    void SetBaseVibrancyEnabled(bool baseVibrancyEnabled)
+    {
+        baseVibrancyEnabled_ = baseVibrancyEnabled;
+    }
+
+    bool GetBaseVibrancyEnabled() const
+    {
+        return baseVibrancyEnabled_;
+    }
+
+    void SetBaseMaterialType(float baseMaterialType)
+    {
+        baseMaterialType_ = baseMaterialType;
+    }
+
+    float GetBaseMaterialType()
+    {
+        return baseMaterialType_;
+    }
+
+    void SetMaterialColor(Vector4f& materialColor)
+    {
+        materialColor_ = materialColor;
+    }
+
+    const Vector4f GetMaterialColor()
+    {
+        return materialColor_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -343,6 +373,9 @@ private:
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector2f borderSize_ = Vector2f(0.0f, 0.0f);
     float cornerRadius_ = 0.0f;
+    bool baseVibrancyEnabled_ = true;
+    float baseMaterialType_ = 0.0f;
+    Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
     float samplingScale_ = 1.0f;
 };
 } // namespace Rosen
