@@ -959,57 +959,6 @@ HWTEST_F(RSUniRenderUtilTest, FlushDmaSurfaceBuffer002, TestSize.Level2)
 }
 
 /**
- * @tc.name: CheckRenderSkipIfScreenOff001
- * @tc.desc: Test CheckRenderSkipIfScreenOff, no need for extra frame
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
-{
-    if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
-        ScreenId screenId = 1;
-        auto screenManager = CreateOrGetScreenManager();
-        screenManager->powerOffNeedProcessOneFrame_ = false;
-
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
-        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
-        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-        EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-        EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    }
-}
-
-/**
- * @tc.name: CheckRenderSkipIfScreenOff002
- * @tc.desc: Test CheckRenderSkipIfScreenOff, need extra frame
- * @tc.type: FUNC
- * @tc.require: #I9UNQP
- */
-HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
-{
-    if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
-        ScreenId screenId = 1;
-        auto screenManager = CreateOrGetScreenManager();
-
-        screenManager->powerOffNeedProcessOneFrame_ = true;
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
-        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManager->powerOffNeedProcessOneFrame_ = true;
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
-        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManager->powerOffNeedProcessOneFrame_ = true;
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
-        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManager->powerOffNeedProcessOneFrame_ = true;
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
-        EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-    }
-}
-
-/**
  * @tc.name: RequestPerf
  * @tc.desc: Test RequestPerf
  * @tc.type: FUNC

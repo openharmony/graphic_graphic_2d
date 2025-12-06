@@ -20,6 +20,7 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_surface_render_node_drawable.h"
+#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -716,7 +717,7 @@ void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRen
 bool RSUifirstManager::CommonPendingNodePurge(PendingPostNodeMap::iterator& it)
 {
     auto& [id, node] = *it;
-    bool needPurge = RSUniRenderUtil::CheckRenderSkipIfScreenOff();
+    bool needPurge = RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus();
     if (needPurge) {
         AddPurgedNode(id);
     }
