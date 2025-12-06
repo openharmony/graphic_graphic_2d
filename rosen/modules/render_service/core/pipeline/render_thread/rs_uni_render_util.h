@@ -118,8 +118,6 @@ public:
     static void ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
         const RectF& rect);
     static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
-    // RTthread needs to draw one more frame when screen is turned off. For other threads, use extraframe default value.
-    static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void MultiLayersPerf(size_t layerNum);
     static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
         float realImageWidth, float realImageHeight);
