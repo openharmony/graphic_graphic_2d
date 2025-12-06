@@ -117,6 +117,7 @@ inline bool operator !=(GSError a, GSError b)
 using WMError = GSError;
 using SurfaceError = GSError;
 using VsyncError = GSError;
+using RSComposerError = GSError;
 } // namespace OHOS
 #endif // __cplusplus
 

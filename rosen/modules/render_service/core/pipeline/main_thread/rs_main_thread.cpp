@@ -729,6 +729,13 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     RS_LOGI("RSOverdrawController init");
     RSOverdrawController::GetInstance().SetDelegate(delegate);
 
+<<<<<<< HEAD
+=======
+    hwcContext_ = std::make_shared<RSHwcContext>(
+        HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
+    hgmContext_.InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),
+        context_->GetMutableUiFrameworkTypeTable());
+>>>>>>> 0963840878891360234bbd9d8e82560252dd2f83
     SubscribeAppState();
     PrintCurrentStatus();
     RS_LOGI("UpdateGpuContextCacheSize");
