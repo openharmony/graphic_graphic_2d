@@ -300,22 +300,19 @@ void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
     delete descriptorList;
 }
 
-OH_Drawing_ErrorCode GetUnicodeArray(const std::vector<uint32_t>& fontUnicodeArray, 
+OH_Drawing_ErrorCode GetUnicodeArray(const std::vector<uint32_t>& fontUnicodeArray,
     int32_t** unicodeArray, int32_t* arrayLength)
 {
-    if (fontUnicodeArray.empty() || unicodeArray == nullptr || arrayLength == nullptr)
-    {
+    if (fontUnicodeArray.empty() || unicodeArray == nullptr || arrayLength == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     int32_t* result = static_cast<int32_t*>(malloc(fontUnicodeArray.size() * sizeof(int32_t)));
 
-    if (result == nullptr)
-    {
+    if (result == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
-    for (size_t i = 0; i < fontUnicodeArray.size(); ++i)
-    {
+    for (size_t i = 0; i < fontUnicodeArray.size(); ++i) {
         result[i] = static_cast<int32_t>(fontUnicodeArray[i]);
     }
 
@@ -328,8 +325,7 @@ OH_Drawing_ErrorCode GetUnicodeArray(const std::vector<uint32_t>& fontUnicodeArr
 OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromFile(const char* fontSrc, uint32_t index,
     int32_t** unicodeArray, int32_t* arrayLength)
 {
-    if (fontSrc == nullptr || unicodeArray == nullptr || arrayLength == nullptr)
-    {
+    if (fontSrc == nullptr || unicodeArray == nullptr || arrayLength == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     auto result = TextEngine::FontParser::GetFontTypefaceUnicode(fontSrc, index);
@@ -339,8 +335,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromFile(const char* fontSrc,
 OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromBuffer(uint8_t* fontBuffer, size_t length, uint32_t index,
     int32_t** unicodeArray, int32_t* arrayLength)
 {
-    if (fontBuffer == nullptr || unicodeArray == nullptr || arrayLength == nullptr || length == 0)
-    {
+    if (fontBuffer == nullptr || unicodeArray == nullptr || arrayLength == nullptr || length == 0) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
 
@@ -351,8 +346,7 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromBuffer(uint8_t* fontBuffe
 uint32_t OH_Drawing_GetFontCountFromFile(const char* fontSrc)
 {
     uint32_t fileCount = 0;
-    if (fontSrc != nullptr)
-    {
+    if (fontSrc != nullptr) {
         fileCount = TextEngine::FontParser::GetFontCount(fontSrc);
     }
     return fileCount;
@@ -361,8 +355,7 @@ uint32_t OH_Drawing_GetFontCountFromFile(const char* fontSrc)
 uint32_t OH_Drawing_GetFontCountFromBuffer(uint8_t* fontBuffer, size_t length)
 {
     uint32_t fileCount = 0;
-    if (fontBuffer != nullptr && length != 0)
-    {
+    if (fontBuffer != nullptr && length != 0) {
         std::vector<uint8_t> fontData(fontBuffer, fontBuffer + length);
         fileCount = TextEngine::FontParser::GetFontCount(fontData);
     }

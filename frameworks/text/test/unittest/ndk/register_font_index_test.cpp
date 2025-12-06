@@ -45,33 +45,37 @@ protected:
     int invalidFontCount = 100;
     uint32_t bufferSize_ = 0;
 
-    void Setup() override
-    {
-        fontCollection_ = OH_Drawing_CreateFontCollection();
-        ASSERT_NE(fontCollection_, nullptr);
-        LoadFontBuffers();
-    }
-
-    void TearDown() override
-    {
-        if (fontCollection_)
-        {
-            OH_Drawing_DestroyFontCollection(fontCollection);
-        }
-    }
-
-    void LoadFontBuffers()
-    {
-        std::ifstream fileStream(existFontPath_);
-        ASSERT_TRUE(fileStream.is_open());
-        fileStream.seekg(0, std::ios::end);
-        bufferSize_ = fileStream.tellg();
-        fileStream.seekg(0, std::ios::beg);
-        existFontBuffer_ = std::make_unique<uint8_t[]>(bufferSize_);
-        fileStream.read(reinterpret_cast<char*>(existFontBuffer_.get()), bufferSize_);
-        fileStream.close();
-    }
+public:
+    void TearDown() override;
+    void SetUp() override;
 };
+
+void LoadFontBuffers()
+{
+    std::ifstream fileStream(existFontPath_);
+    ASSERT_TRUE(fileStream.is_open());
+    fileStream.seekg(0, std::ios::end);
+    bufferSize_ = fileStream.tellg();
+    fileStream.seekg(0, std::ios::beg);
+    existFontBuffer_ = std::make_unique<uint8_t[]>(bufferSize_);
+    fileStream.read(reinterpret_cast<char*>(existFontBuffer_.get()), bufferSize_);
+    fileStream.close();
+}
+
+void NdkRegisterFontIndexTest::TearDown()
+{
+    if (fontCollection_)
+    {
+        OH_Drawing_DestroyFontCollection(fontCollection);
+    }
+}
+
+void NdkRegisterFontIndexTest::SetUp()
+{
+    fontCollection_ = OH_Drawing_CreateFontCollection();
+    ASSERT_NE(fontCollection_, nullptr);
+    LoadFontBuffers();
+}
 
 /*
  * @tc.name: NdkRegisterFontIndexTest001
@@ -87,7 +91,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest001, TestSize.Level0)
 
     errorCode = OH_Drawing_RegisterFontByIndex(nullptr, nullptr, nullptr, 0);
     EXPECT_EQ(errorCode, ERROR_NULL_FONT_COLLECTION);
-    errorCode = OH_Drawing_RegisterFontBufferByIndex(fontCollection_, nullptr, nullptr, 0);
+    errorCode = OH_Drawing_RegisterFontBufferByIndex(fontCollection_, nullptr, nullptr, 0, 0);
     EXPECT_EQ(errorCode, ERROR_NULL_FONT_COLLECTION);
 }
 
@@ -117,9 +121,11 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest003, TestSize.Level0)
     uint32_t errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount - 1);
     EXPECT_EQ(errorCode, SUCCESSED);
 
-    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount);
+    errorCode = OH_Drawing_RegisterFontByIndex(
+        fontCollection_, fontFamily_, existFontPath_, fontCount);
     EXPECT_EQ(errorCode, ERROR_READ_FILE_FAILED);
-    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount + invalidFontCount);
+    errorCode = OH_Drawing_RegisterFontByIndex(
+        fontCollection_, fontFamily_, existFontPath_, fontCount + invalidFontCount);
     EXPECT_EQ(errorCode, ERROR_READ_FILE_FAILED);
 }
 
@@ -130,7 +136,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest003, TestSize.Level0)
  */
 HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest004, TestSize.Level0)
 {
-    uint32_t result = OH_Drawing_RegisterFontByIndex(fontCollection, themeFontFamily_, existFontPath_, 0);
+    uint32_t result = OH_Drawing_RegisterFontByIndex(fontCollection_, themeFontFamily_, existFontPath_, 0);
     EXPECT_EQ(result, ERROR_FILE_CORRUPTION);
 }
 
@@ -181,11 +187,14 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest006, TestSize.Level0)
  */
 HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest007, TestSize.Level0)
 {
+    uint32_t fontCount = OH_Drawing_GetFontCountFromBuffer(existFontBuffer_.get(), bufferSize_);
+    EXPECT_EQ(fontCount, 10);
+
     uint32_t errorCode = OH_Drawing_RegisterFontBufferByIndex(
         fontCollection_, "test1", existFontBuffer_.get(), bufferSize_, fontCount - 1);
     EXPECT_EQ(errorCode, SUCCESSED);
-    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, "test2", existFontPath_, 0);
-    EXPECT_EQ(result, SUCCESSED);
+    uint32_t errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, "test2", existFontPath_, 0);
+    EXPECT_EQ(errorCode, SUCCESSED);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection_, "test1"), 0);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection_, "test2"), 0);
 }

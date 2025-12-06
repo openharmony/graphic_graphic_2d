@@ -287,7 +287,7 @@ void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray);
  *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the fontSrc is invalid or non-font file.
  * @since 23
  */
- OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromFile(const char* fontSrc, uint32_t index,
+OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromFile(const char* fontSrc, uint32_t index,
     int32_t** unicodeArray, int32_t* arrayLength);
 
 /**
