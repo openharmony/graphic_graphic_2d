@@ -25,6 +25,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render_thread/rs_base_render_engine.h"
+#include "rs_render_composer_client.h"
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_result.h"
 
@@ -51,7 +52,7 @@ public:
 
     RSProcessor(const RSProcessor&) = delete;
     void operator=(const RSProcessor&) = delete;
-    virtual bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+    virtual bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
         std::shared_ptr<RSBaseRenderEngine> renderEngine);
     virtual void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) {}
@@ -108,10 +109,8 @@ protected:
     void CalculateMirrorAdaptiveCoefficient(float curWidth, float curHeight,
         float mirroredWidth, float mirroredHeight);
     void CalculateScreenTransformMatrix(const RSLogicalDisplayRenderNode& node);
-    void SetMirrorScreenSwap(const RSScreenRenderNode& node);
     void CalculateMirrorAdaptiveMatrix();
 
-    void RequestPerf(uint32_t layerLevel, bool onOffTag);
 #ifdef FRAME_AWARE_TRACE
     bool FrameAwareTraceBoost(size_t layerNum);
 #endif
@@ -119,7 +118,6 @@ protected:
     ScreenInfo screenInfo_;
     int32_t offsetX_ = 0;
     int32_t offsetY_ = 0;
-    ScreenId mirroredId_ = INVALID_SCREEN_ID;
     ScreenInfo mirroredScreenInfo_;
     float mirrorAdaptiveCoefficient_ = 1.0f;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;

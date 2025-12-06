@@ -32,7 +32,7 @@ public:
     RSPhysicalScreenProcessor();
     ~RSPhysicalScreenProcessor() noexcept override;
 
-    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessScreenSurface(RSScreenRenderNode& node) override;
@@ -40,9 +40,6 @@ public:
     void PostProcess() override;
 private:
     void Redraw(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers);
-    uint32_t GetLayerLevel(uint32_t layerLevel) const;
-    void ClosePerf(uint32_t layerLevel);
-    void RequestPerf(uint32_t layerLevel);
 
     std::unique_ptr<RSComposerAdapter> composerAdapter_ = nullptr;
     std::vector<RSLayerPtr> layers_;

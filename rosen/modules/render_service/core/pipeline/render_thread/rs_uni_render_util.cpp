@@ -374,12 +374,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
     RSScreenRenderParams& screenParams, bool isSecScreen)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual, failed to get screen manager!");
-        return allSurfaceVisibleDirtyRegion;
-    }
-    auto curBlackList = screenManager->GetVirtualScreenBlackList(screenParams.GetScreenId());
+    auto curBlackList = screenParams.GetScreenProperty().GetBlackList();
     for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
         if (surfaceNodeDrawable == nullptr) {
@@ -1036,7 +1031,7 @@ std::vector<GrBackendSemaphore> RSUniRenderUtil::PrepareHdrSemaphoreVector(GrBac
 #endif
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-    Drawing::GPUContext* const grContext, bool optFenceWait)
+    Drawing::GPUContext* const grContext, bool optFenceWait, sptr<SyncFence>& acquireFence)
 {
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
@@ -1084,6 +1079,26 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         drawingFlushInfo.finishedContext = destroyInfo;
         surface->Flush(&drawingFlushInfo);
         grContext->Submit();
+
+        if (acquireFence) {
+            int fenceFd = -1;
+            auto backendTexture = surface->GetBackendTexture().GetTextureInfo().GetVKTextureInfo();;
+
+            auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
+                vkContext.GetQueue(), 1, &semaphore,
+                backendTexture ? backendTexture->vkImage : VK_NULL_HANDLE /* VkImage */, &fenceFd);
+            if (err != VK_SUCCESS) {
+                if (err == VK_ERROR_DEVICE_LOST) {
+                    vkContext.DestroyAllSemaphoreFence();
+                }
+                RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(destroyInfo);
+                destroyInfo = nullptr;
+                ROSEN_LOGE("QueueSignalReleaseImageOHOS failed %{public}d", err);
+                return;
+            }
+            acquireFence = SyncFence::MergeFence("OptimizedFlushAndSubmit", acquireFence, sptr<SyncFence>(new SyncFence(fenceFd)));
+        }
+
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
     } else {

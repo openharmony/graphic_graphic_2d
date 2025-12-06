@@ -75,6 +75,7 @@
 #include "rs_parallel_utils.h"
 #include "rs_parallel_manager.h"
 #endif
+#include "rs_layer_context.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -86,6 +87,7 @@ constexpr const char* RECLAIM_MEMORY = "ReclaimMemory";
 constexpr const char* PURGE_CACHE_BETWEEN_FRAMES = "PurgeCacheBetweenFrames";
 constexpr const char* SUPPRESS_GPUCACHE_BELOW_CERTAIN_RATIO = "SuppressGpuCacheBelowCertainRatio";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
+constexpr int MAX_ACCUMULATED_BUFFER_COUNT = 4;
 constexpr uint32_t TIME_OF_SIX_FRAMES = 6000;
 constexpr uint32_t TIME_OF_EIGHT_FRAMES = 8000;
 constexpr uint32_t TIME_OF_THE_FRAMES = 1000;
@@ -280,6 +282,18 @@ void RSUniRenderThread::Start()
     }
 }
 
+void RSUniRenderThread::OnScreenConnected(const ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& composerClient)
+{
+    RS_LOGI("RSUniRenderThread::OnScreenConnected");
+    AddRenderComposerClient(screenId, composerClient);
+}
+
+void RSUniRenderThread::OnScreenDisconnected(const ScreenId screenId)
+{
+    RS_LOGI("RSUniRenderThread::OnScreenDisconnected");
+    DeleteRSRenderComposerClient(screenId);
+}
+
 std::shared_ptr<RSBaseRenderEngine> RSUniRenderThread::GetRenderEngine() const
 {
     return uniRenderEngine_;
@@ -409,75 +423,6 @@ void RSUniRenderThread::Render()
     totalProcessNodeNum_ = 0;
 }
 
-void RSUniRenderThread::CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks)
-{
-    auto& renderThreadParams = GetRSRenderThreadParams();
-    if (!renderThreadParams) {
-        return;
-    }
-    for (const auto& drawable : renderThreadParams->GetSelfDrawables()) {
-        if (UNLIKELY(!drawable)) {
-            continue;
-        }
-        auto surfaceDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
-        auto& params = surfaceDrawable->GetRenderParams();
-        if (UNLIKELY(!params)) {
-            continue;
-        }
-        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(params.get());
-        if (UNLIKELY(!surfaceParams)) {
-            continue;
-        }
-        auto curHardWareEnabled = surfaceParams->GetHardwareEnabled();
-        auto lastHardWareEnabled = surfaceParams->GetLastFrameHardwareEnabled();
-        // while use offline, release original buffer
-        bool needRelease = !curHardWareEnabled || !surfaceParams->GetLayerCreated() ||
-            surfaceParams->GetLayerInfo().useDeviceOffline;
-        if (needRelease && lastHardWareEnabled) {
-            surfaceParams->releaseInHardwareThreadTaskNum_ = RELEASE_IN_HARDWARE_THREAD_TASK_NUM;
-        }
-        if (curHardWareEnabled != lastHardWareEnabled && params->GetIsOnTheTree()) {
-            RS_LOGD("name:%{public}s id:%{public}" PRIu64 " hwcEnabled changed to:%{public}d needRelease:%{public}d",
-                surfaceDrawable->GetName().c_str(), surfaceDrawable->GetId(), curHardWareEnabled, needRelease);
-        }
-        if (needRelease) {
-            auto preBuffer = params->GetPreBuffer();
-            if (preBuffer == nullptr) {
-                if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0) {
-                    surfaceParams->releaseInHardwareThreadTaskNum_--;
-                }
-                continue;
-            }
-
-            auto screenId = surfaceParams->GetScreenId();
-            auto releaseTask = [screenId, buffer = preBuffer, consumer = surfaceDrawable->GetConsumerOnDraw(),
-                                useReleaseFence = lastHardWareEnabled,
-                                acquireFence = acquireFence_]() mutable {
-                if (consumer == nullptr) {
-                    RS_LOGE("ReleaseSelfDrawingNodeBuffer failed consumer nullptr");
-                    return;
-                }
-                sptr<SyncFence> releaseFence = useReleaseFence ?
-                    RSRenderComposerManager::GetInstance().GetReleaseFence(screenId) : acquireFence;
-                auto ret = consumer->ReleaseBuffer(buffer, releaseFence);
-                GpuDirtyRegionCollection::GetInstance().AddConsumeBufferNumberForDFX();
-                if (ret != OHOS::SURFACE_ERROR_OK) {
-                    RS_LOGD("ReleaseSelfDrawingNodeBuffer failed ret:%{public}d", ret);
-                }
-            };
-            params->SetPreBuffer(nullptr);
-            if (surfaceParams->releaseInHardwareThreadTaskNum_ > 0 && screenId != INVALID_SCREEN_ID) {
-                RS_TRACE_NAME("RSUniRenderThread::releaseInHardwareThreadTaskNum_");
-                auto& tasks = releaseTasks[screenId];
-                tasks.emplace_back(releaseTask);
-                surfaceParams->releaseInHardwareThreadTaskNum_--;
-            } else {
-                releaseTask();
-            }
-        }
-    }
-}
-
 void RSUniRenderThread::ReleaseSurfaceOpItemBuffer()
 {
     int32_t fenceFd = INVALID_FD;
@@ -494,23 +439,6 @@ void RSUniRenderThread::ReleaseSurfaceOpItemBuffer()
 sptr<SyncFence> RSUniRenderThread::GetAcquireFence()
 {
     return acquireFence_;
-}
-
-void RSUniRenderThread::ReleaseSelfDrawingNodeBuffer()
-{
-    std::map<ScreenId, std::vector<std::function<void()>>> releaseTasksWithScreenId;
-    CollectReleaseTasks(releaseTasksWithScreenId);
-    if (releaseTasksWithScreenId.empty()) {
-        return;
-    }
-    for (auto& [screenId, releaseTasks] : releaseTasksWithScreenId) {
-        auto releaseBufferTask = [releaseTasks = std::move(releaseTasks)]() {
-            for (const auto& task : releaseTasks) {
-                task();
-            }
-        };
-        RSRenderComposerManager::GetInstance().PostTask(screenId, releaseBufferTask);
-    }
 }
 
 void RSUniRenderThread::ReleaseSurface()
@@ -735,12 +663,7 @@ ClearMemoryMoment RSUniRenderThread::GetClearMoment() const
 
 uint32_t RSUniRenderThread::GetRefreshRate() const
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSUniRenderThread::GetRefreshRate screenManager is nullptr");
-        return 60; // The default refreshrate is 60
-    }
-    return HgmCore::Instance().GetScreenCurrentRefreshRate(screenManager->GetDefaultScreenId());
+    return GetDynamicRefreshRate();
 }
 
 std::shared_ptr<Drawing::Image> RSUniRenderThread::GetWatermarkImg()
@@ -912,8 +835,9 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
 #ifdef SUBTREE_PARALLEL_ENABLE
         RSParallelManager::Singleton().ClearMemoryCache();
 #endif
-        auto screenManager_ = CreateOrGetScreenManager();
-        screenManager_->ClearFrameBufferIfNeed();
+        for (auto [screenId, client] : rsRenderComposerClients_) {
+            client->ClearFrameBuffers();
+        }
         grContext->FlushAndSubmit(true);
         if (this->vmaOptimizeFlag_) {
             MemoryManager::VmaDefragment(grContext);
@@ -1232,7 +1156,7 @@ void RSUniRenderThread::UpdateScreenNodeScreenId()
 
 uint32_t RSUniRenderThread::GetDynamicRefreshRate() const
 {
-    uint32_t refreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenNodeScreenId_);
+    uint32_t refreshRate = GetDefaultScreenRefreshRate();
     if (refreshRate == 0) {
         RS_LOGE("RSUniRenderThread::GetDynamicRefreshRate refreshRate is invalid");
         return STANDARD_REFRESH_RATE;
@@ -1279,6 +1203,87 @@ bool RSUniRenderThread::GetSetScreenPowerOnChanged()
 void RSUniRenderThread::CollectProcessNodeNum(int num)
 {
     totalProcessNodeNum_ += num;
+}
+
+int RSUniRenderThread::GetMinAccumulatedBufferCount()
+{
+    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+    int minAccumulatedBufferCount = MAX_ACCUMULATED_BUFFER_COUNT;
+    if (rsRenderComposerClients_.empty()) {
+        RS_LOGE("RSUniRenderThread::GetMinAccumulatedBufferCount rsRenderComposerClients_ is empty!");
+        return 0;
+    }
+    for (auto [screenId, client] : rsRenderComposerClients_) {
+        int curAccumulatedBufferCount = client->GetAccumulatedBufferCount();
+        RS_LOGD("RSUniRenderThread::GetMinAccumulatedBufferCount screenId: %{public}" PRIu64 ", count: %{public}d",
+            screenId, curAccumulatedBufferCount);
+        minAccumulatedBufferCount = std::min(minAccumulatedBufferCount, curAccumulatedBufferCount);
+    }
+    return minAccumulatedBufferCount;
+}
+
+// composer client
+void RSUniRenderThread::AddRenderComposerClient(ScreenId screenId,
+    const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient)
+{
+    RS_LOGI("RSUniRenderThread::AddRenderComposerClient rsRenderComposerClient[%{public}d]",
+        rsRenderComposerClient != nullptr);
+    if (GetRSRenderComposerClient(screenId)) {
+        RS_LOGI("GetRSRenderComposerClient, return.");
+        return;
+    }
+    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+    rsRenderComposerClients_[screenId] = rsRenderComposerClient;
+}
+
+void RSUniRenderThread::DeleteRSRenderComposerClient(ScreenId screenId)
+{
+    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+    rsRenderComposerClients_.erase(screenId);
+}
+
+std::shared_ptr<RSRenderComposerClient> RSUniRenderThread::GetRSRenderComposerClient(ScreenId screenId)
+{
+    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+    auto it = rsRenderComposerClients_.find(screenId);
+    if (it != rsRenderComposerClients_.end()) {
+        return it->second;
+    } else {
+        RS_LOGE("RSUniRenderThread::GetRSRenderComposerClient return nullptr");
+        return nullptr;
+    }
+}
+
+std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>> RSUniRenderThread::GetRSRenderComposerClientMap()
+{
+    std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+    return rsRenderComposerClients_;
+}
+
+void RSUniRenderThread::DumpSurfaceInfo(std::string &dumpString)
+{
+    PostSyncTask([this, &dumpString]() {
+        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+        for (auto iter = rsRenderComposerClients_.begin(); iter != rsRenderComposerClients_.end(); iter++) {
+            if (iter->second != nullptr) {
+                dumpString.append("\n");
+                dumpString.append("-- LayerInfo " + std::to_string(iter->first) + "\n");
+                iter->second->DumpLayersInfo(dumpString);
+            }
+        }
+    });
+}
+
+void RSUniRenderThread::DumpCurrentFrameLayers()
+{
+    PostSyncTask([this]() {
+        std::lock_guard<std::mutex> lock(rsComposerMapMutex_);
+        for (auto iter = rsRenderComposerClients_.begin(); iter != rsRenderComposerClients_.end(); iter++) {
+            if (iter->second != nullptr) {
+                iter->second->DumpCurrentFrameLayers();
+            }
+        }
+    });
 }
 } // namespace Rosen
 } // namespace OHOS

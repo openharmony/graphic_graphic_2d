@@ -102,7 +102,7 @@ public:
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-        Drawing::GPUContext* const grContext, bool optFenceWait = true);
+        Drawing::GPUContext* const grContext, bool optFenceWait = true, sptr<SyncFence>& acquireFence = invalidFence);
     static std::vector<GrBackendSemaphore> PrepareHdrSemaphoreVector(GrBackendSemaphore& backendSemaphore,
         std::shared_ptr<Drawing::Surface>& surface);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
@@ -144,6 +144,7 @@ private:
 
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
+    static inline sptr<SyncFence> invalidFence = nullptr;
 };
 }
 }

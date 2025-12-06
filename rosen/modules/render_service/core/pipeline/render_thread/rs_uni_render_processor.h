@@ -31,10 +31,11 @@ public:
         return Type;
     }
 
-    RSUniRenderProcessor();
+    RSUniRenderProcessor() = default;
+    RSUniRenderProcessor(std::shared_ptr<RSRenderComposerClient> composerClient);
     ~RSUniRenderProcessor() noexcept override;
 
-    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY, ScreenId mirroredId,
+    bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
     void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;
@@ -66,8 +67,9 @@ private:
     void CreateSolidColorLayer(RSLayerPtr layer, RSSurfaceRenderParams& params);
     void HandleTunnelLayerParameters(RSSurfaceRenderParams& params, RSLayerPtr& layer);
     std::unique_ptr<RSUniRenderComposerAdapter> uniComposerAdapter_;
-    std::vector<RSLayerPtr> layers_;
-    std::shared_ptr<RSRenderComposerClient> composerClient_;
+    std::vector<std::weak_ptr<RSLayer>> layers_;
+    RSLayerPtr uniLayer_ = nullptr;
+    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
