@@ -563,6 +563,10 @@ public:
     bool GetMatrix(bool forceClosed, float distance, Matrix* matrix,
         PathMeasureMatrixFlags flags = PathMeasureMatrixFlags::GET_POS_AND_TAN_MATRIX);
 
+    bool IsInverseFillType() const;
+
+    void ToggleInverseFillType();
+
     inline void Dump(std::string& out) const;
 
     std::shared_ptr<Data> Serialize() const;

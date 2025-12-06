@@ -106,6 +106,56 @@ typedef enum {
     FULL_DESCRIPTOR_ATTR_B_MONO = 8,
     /** whether symbolic fonts are supported */
     FULL_DESCRIPTOR_ATTR_B_SYMBOLIC = 9,
+    /**
+     * The local postscript name of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_LOCAL_POSTSCRIPT_NAME = 10,
+    /**
+     * The local full name of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_LOCAL_FULL_NAME = 11,
+    /**
+     * The local family name of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_LOCAL_FAMILY_NAME = 12,
+    /**
+     * The local sub family name of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_LOCAL_SUB_FAMILY_NAME = 13,
+    /**
+     * The version of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_VERSION = 14,
+    /**
+     * The manufacture of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_MANUFACTURE = 15,
+    /**
+     * The copyright of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_COPYRIGHT = 16,
+    /**
+     * The trademark of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_TRADEMARK = 17,
+    /**
+     * The license of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_S_LICENSE = 18,
+    /**
+     * The index of the font
+     * @since 23
+     */
+    FULL_DESCRIPTOR_ATTR_I_INDEX = 21,
 } OH_Drawing_FontFullDescriptorAttributeId;
 
 /**

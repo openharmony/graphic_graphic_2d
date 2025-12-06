@@ -97,8 +97,9 @@ bool RSComposerAdapter::Init(const RSScreenRenderNode& node, const ScreenInfo& s
     };
     output_->RegPrepareComplete(onPrepareCompleteFunc, this);
 
-    offsetX_ = node.GetScreenOffsetX();
-    offsetY_ = node.GetScreenOffsetY();
+    const auto& screenProperty = node.GetScreenProperty();
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
     screenInfo_ = screenInfo;
     mirroredScreenInfo_ = mirroredScreenInfo;
     mirrorAdaptiveCoefficient_ = mirrorAdaptiveCoefficient;

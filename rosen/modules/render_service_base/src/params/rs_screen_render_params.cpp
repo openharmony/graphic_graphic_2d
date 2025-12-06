@@ -244,6 +244,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->mirrorSourceDrawable_ = mirrorSourceDrawable_;
     targetScreenParams->isMirrorScreen_ = isMirrorScreen_;
     targetScreenParams->screenInfo_ = std::move(screenInfo_);
+    targetScreenParams->screenProperty_ = std::move(screenProperty_);
     targetScreenParams->isMainAndLeashSurfaceDirty_ = isMainAndLeashSurfaceDirty_;
     targetScreenParams->hasFingerprint_ = hasFingerprint_;
     targetScreenParams->newColorSpace_ = newColorSpace_;
@@ -263,6 +264,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->logicalDisplayNodeDrawables_ =  std::move(logicalDisplayNodeDrawables_);
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
+    targetScreenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
 
     RSRenderParams::OnSync(target);
 }

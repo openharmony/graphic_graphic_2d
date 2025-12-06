@@ -191,10 +191,36 @@ public:
     {
         isSubTreeDirty_ = val;
     }
+    // Only used in quick skip prepare phase
+    void SetForcePrepare(bool isForcePrepare)
+    {
+        isForcePrepare_ = isForcePrepare;
+    }
+    bool IsForcePrepare() const
+    {
+        return isForcePrepare_;
+    }
+    void SetParentTreeDirty(bool isParentTreeDirty)
+    {
+        isParentTreeDirty_ = isParentTreeDirty;
+    }
+    bool IsParentTreeDirty() const
+    {
+        return isParentTreeDirty_;
+    }
+    bool IsTreeStateChangeDirty() const
+    {
+        return isTreeStateChangeDirty_;
+    }
+    void SetTreeStateChangeDirty(bool val)
+    {
+        isTreeStateChangeDirty_ = val;
+    }
     void SetParentSubTreeDirty();
-    bool IsTreeStateChangeDirty() const;
-    void SetTreeStateChangeDirty(bool val);
-    void SetParentTreeStateChangeDirty();
+    // set when tree state changed or in uicapture task for each parent node recursively
+    void SetParentTreeStateChangeDirty(bool isUpdateAllParentNode = false);
+    // set in uicapture task for each child node recursively
+    void SetChildrenTreeStateChangeDirty();
     // attention: current all base node's dirty ops causing content dirty
     // if there is any new dirty op, check it
     bool IsContentDirty() const;
@@ -650,11 +676,13 @@ public:
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
-    void MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged);
+    void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+        bool isForeground, bool isFilterRegionChanged);
     void UpdateFilterCacheWithBackgroundDirty();
-    virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, bool isForeground = false);
+    virtual bool UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty,
+        RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER);
     virtual void UpdateFilterCacheWithSelfDirty();
-    void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, bool isForeground);
+    void UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, RSDrawableSlot slot);
     bool IsBackgroundInAppOrNodeSelfDirty() const
     {
         return backgroundFilterInteractWithDirty_ || backgroundFilterRegionChanged_;
@@ -684,6 +712,12 @@ public:
         GROUP_TYPE_BUTT = GROUPED_BY_FOREGROUND_FILTER,
     };
     void MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool includeProperty);
+    void ExcludedFromNodeGroup(bool isExcluded);
+    bool IsExcludedFromNodeGroup() const;
+
+    void SetHasChildExcludedFromNodeGroup(bool isExcluded);
+    bool HasChildExcludedFromNodeGroup() const;
+
     void MarkForegroundFilterCache();
     NodeGroupType GetNodeGroupType() const;
     bool IsNodeGroupIncludeProperty() const;
@@ -917,6 +951,11 @@ public:
 
     void SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType);
 
+    virtual void UpdateNodeColorSpace() {};
+    void ResetNodeColorSpace();
+    void SetNodeColorSpace(GraphicColorGamut colorSpace);
+    GraphicColorGamut GetNodeColorSpace() const;
+
     void SetEnableHdrEffect(bool enableHdrEffect);
 
     void SetIsAccessibilityConfigChanged(bool isAccessibilityConfigChanged)
@@ -1053,6 +1092,11 @@ protected:
 
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(RSDrawableSlot slot) const;
+
+    bool InvokeFilterDrawable(RSDrawableSlot slot,
+        std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc);
+
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);
     bool IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable);
@@ -1164,6 +1208,8 @@ private:
     bool childrenHasUIExtension_ = false;
     bool isAccessibilityConfigChanged_ = false;
     const bool isPurgeable_;
+    bool isForcePrepare_ = false;
+    bool isParentTreeDirty_ = false;
     DrawNodeType drawNodeType_ = DrawNodeType::PureContainerType;
     std::atomic<bool> isTunnelHandleChange_ = false;
     std::atomic<bool> commandExecuted_ = false;
@@ -1183,9 +1229,9 @@ private:
     NodeId screenNodeId_ = INVALID_NODEID;
     NodeId logicalDisplayNodeId_ = INVALID_NODEID;
     std::shared_ptr<SharedTransitionParam> sharedTransitionParam_;
-    // bounds and frame modifiers must be unique
-    std::shared_ptr<ModifierNG::RSRenderModifier> boundsModifierNG_;
-    std::shared_ptr<ModifierNG::RSRenderModifier> frameModifierNG_;
+
+    bool isBoundsModifierAdded_ = false;
+    bool isFrameModifierAdded_= false;
 
     // Note: Make sure that fullChildrenList_ is never nullptr. Otherwise, the caller using
     // `for (auto child : *GetSortedChildren()) { ... }` will crash.

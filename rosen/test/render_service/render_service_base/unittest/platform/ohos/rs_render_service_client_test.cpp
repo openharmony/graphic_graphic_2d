@@ -755,6 +755,51 @@ HWTEST_F(RSServiceClientTest, SetScreenPowerStatus001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetPanelPowerStatus001
+ * @tc.desc: Test GetPanelPowerStatus
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, GetPanelPowerStatus001, TestSize.Level1)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // set screen on
+    rsClient->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
+    usleep(SET_REFRESHRATE_SLEEP_US);
+    auto powerStatus = rsClient->GetScreenPowerStatus(screenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
+    auto panelPowerStatus = rsClient->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_ON);
+
+    // set screen off
+    rsClient->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
+    usleep(SET_REFRESHRATE_SLEEP_US);
+    powerStatus = rsClient->GetScreenPowerStatus(screenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_OFF);
+    panelPowerStatus = rsClient->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_OFF);
+}
+
+/**
+ * @tc.name: GetPanelPowerStatus002
+ * @tc.desc: Test GetPanelPowerStatus with empty clientToService
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSServiceClientTest, GetPanelPowerStatus002, TestSize.Level1)
+{
+    auto screenId = rsClient->GetDefaultScreenId();
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+    RSRenderServiceConnectHub::Init();
+    EXPECT_NE(rsClient->GetPanelPowerStatus(screenId), PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+}
+
+/**
  * @tc.name: GetScreenSupportedModes Test
  * @tc.desc: GetScreenSupportedModes Test
  * @tc.type:FUNC
@@ -1243,6 +1288,45 @@ HWTEST_F(RSServiceClientTest, SurfaceWatermarkTest01, TestSize.Level1)
     rsClient->ClearSurfaceWatermark(0, "WATERMARK");
     rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
     RSRenderServiceConnectHub::Init();
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenesTest
+ * @tc.desc: test SetSystemAnimatedScenes when rsRenderServiceClient is nullptr or not
+ * @tc.type: FUNC
+ * @tc.require:issues20726
+ */
+HWTEST_F(RSServiceClientTest, SetSystemAnimatedScenesTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
+    ASSERT_EQ(ret, true);
+    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false);
+    ASSERT_EQ(ret, true);
+ 
+    auto instance = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
+    ASSERT_EQ(ret, false);
+
+    RSRenderServiceConnectHub::instance_ = instance;
+}
+
+/**
+ * @tc.name: SetDualScreenState
+ * @tc.desc: Test SetDualScreenState
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSServiceClientTest, SetDualScreenState001, TestSize.Level1)
+{
+    ScreenId screenId = 0;
+    RSRenderServiceConnectHub::Destroy();
+    auto ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, StatusCode::RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+    ret = rsClient->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_NE(ret, StatusCode::RENDER_SERVICE_NULL);
 }
 } // namespace Rosen
 } // namespace OHOS

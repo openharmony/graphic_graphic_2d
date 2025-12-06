@@ -436,6 +436,11 @@ uint32_t BlobCache::CrcGen(const uint8_t *buf, size_t len)
 
 bool BlobCache::ValidFile(uint8_t *buf, size_t len)
 {
+    if (len < CACHE_HEAD) {
+        WLOGE("Buffer too short for cache header");
+        return false;
+    }
+    
     if (memcmp(buf, CACHE_MAGIC, CACHE_MAGIC_HEAD) != 0) {
         WLOGE("CACHE_MAGIC failed");
         return false;

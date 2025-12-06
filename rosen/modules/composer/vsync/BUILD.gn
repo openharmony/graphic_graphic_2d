@@ -119,6 +119,7 @@ ohos_shared_library("libvsync") {
     "ipc:ipc_core",
     "qos_manager:qos",
     "safwk:system_ability_fwk",
+    "qos_manager:concurrent_task_client",
   ]
 
   public_external_deps = 

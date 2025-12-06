@@ -86,7 +86,7 @@ HWTEST_F(LppVideoHandlerTest, ConsumeAndUpdateLppBuffer001, TestSize.Level1)
     bufferQueue->sourceType_ = OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT;
     // Failed to verify the tag.
     lppVideoHandler.ConsumeAndUpdateLppBuffer(0, surfaceNodeTmp);
-    ASSERT_EQ(lppVideoHandler.lppConsumerMap_.size(), 0);
+    ASSERT_EQ(lppVideoHandler.lppConsumerMap_.size(), 1);
 
     bufferQueue->sourceType_ = OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO;
     lppVideoHandler.lppConsumerMap_.clear();

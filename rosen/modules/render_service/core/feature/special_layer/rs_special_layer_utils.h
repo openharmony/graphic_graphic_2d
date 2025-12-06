@@ -15,9 +15,31 @@
 #ifndef RENDER_SERVICE_CORE_FEATURE_RS_SPECIAL_LAYER_UTILS_H
 #define RENDER_SERVICE_CORE_FEATURE_RS_SPECIAL_LAYER_UTILS_H
 
+#include "common/rs_common_def.h"
+#include "pipeline/rs_logical_display_render_node.h"
+#include "pipeline/rs_render_node_map.h"
+
 namespace OHOS {
 namespace Rosen {
+enum class DisplaySpecialLayerState {
+    NO_SPECIAL_LAYER = 0,
+    HAS_SPECIAL_LAYER = 1,
+    CAPTURE_WINDOW = 2,
+};
+
 class RSSpecialLayerUtils {
+public:
+    // Check if virtual screen region intersects with special layer
+    static void CheckSpecialLayerIntersectMirrorDisplay(const RSLogicalDisplayRenderNode& mirrorNode,
+        RSLogicalDisplayRenderNode& sourceNode, bool enableVisibleRect);
+
+    static DisplaySpecialLayerState GetSpecialLayerStateInVisibleRect(
+        RSLogicalDisplayRenderParams* displayParams, RSScreenRenderParams* screenParams);
+    static DisplaySpecialLayerState GetSpecialLayerStateInSubTree(
+        RSLogicalDisplayRenderParams& displayParams, RSScreenRenderParams* screenParams);
+private:
+    static bool CheckCurrentTypeIntersectVisibleRect(const std::unordered_set<NodeId>& nodeIds,
+        uint32_t currentType, const RectI& visibleRect);
 };
 } // namespace Rosen
 } // namespace OHOS

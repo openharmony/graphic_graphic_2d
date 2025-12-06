@@ -25,6 +25,10 @@
 #include "securec.h"
 #include "sys_binder.h"
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "buffer_utils.h"
+#endif
+
 #include "command/rs_command_factory.h"
 #include "command/rs_command_verify_helper.h"
 #include "common/rs_xcollie.h"
@@ -230,6 +234,10 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN),
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER),
+#endif
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -608,7 +616,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToRenderConnectionStub::TAKE_UI_CAPTURE_IN_RANGE read captureConfig failed");
                 break;
             }
-            TakeUICaptureInRange(id, cb, captureConfig);
+            RSSurfaceCapturePermissions permissions;
+            permissions.isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
+                RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+                "::TAKE_UI_CAPTURE_IN_RANGE");
+            TakeUICaptureInRange(id, cb, captureConfig, permissions);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY): {
@@ -911,6 +923,72 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             ClearUifirstCache(nodeId);
             break;
         }
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK): {
+            bool hasCallback = false;
+            if (!data.ReadBool(hasCallback)) {
+                RS_LOGE("RSClientToRenderConnectionStub::REGISTER_CANVAS_CALLBACK Read bool failed, pid=%{public}d!",
+                    GetCallingPid());
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<IRemoteObject> remoteObject = nullptr;
+            if (hasCallback) {
+                remoteObject = data.ReadRemoteObject();
+                if (remoteObject == nullptr) {
+                    ret = ERR_INVALID_DATA;
+                    RS_LOGE("RSClientToRenderConnectionStub::REGISTER_CANVAS_CALLBACK ReadRemoteObject failed, "
+                        "pid=%{public}d!", GetCallingPid());
+                    break;
+                }
+                if (!remoteObject->IsProxyObject()) {
+                    ret = ERR_UNKNOWN_OBJECT;
+                    RS_LOGE(
+                        "RSClientToRenderConnectionStub::REGISTER_CANVAS_CALLBACK remoteObject is not ProxyObject");
+                    break;
+                }
+            }
+            sptr<RSICanvasSurfaceBufferCallback> callback = nullptr;
+            if (remoteObject != nullptr) {
+                callback = iface_cast<RSICanvasSurfaceBufferCallback>(remoteObject);
+            }
+            RegisterCanvasCallback(callback);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER): {
+            NodeId nodeId = INVALID_NODEID;
+            if (!data.ReadUint64(nodeId)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read nodeId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t resetSurfaceIndex = 0;
+            if (!data.ReadUint32(resetSurfaceIndex)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Read resetSurfaceIndex "
+                    "failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            sptr<SurfaceBuffer> buffer = nullptr;
+            uint32_t sequence = 0U;
+            auto readSafeFdFunc = [](Parcel& parcel, std::function<int(Parcel&)> readFdDefaultFunc) -> int {
+                return AshmemFdContainer::Instance().ReadSafeFd(parcel, readFdDefaultFunc);
+            };
+            GSError gsRet = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
+            if (gsRet != GSERROR_OK) {
+                RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER ReadFromMessageParcel "
+                    "failed, ret=%{public}d!", gsRet);
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t status = SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+#endif
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
@@ -944,6 +1022,7 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
@@ -955,7 +1034,11 @@ bool RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadFloat(captureConfig.specifiedAreaRect.right_) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
-        !data.ReadUint32(captureConfig.backGroundColor)) {
+        !data.ReadUint32(captureConfig.backGroundColor) ||
+        !data.ReadUint32(captureConfig.colorSpace.first) ||
+        !data.ReadBool(captureConfig.colorSpace.second) ||
+        !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
+        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }

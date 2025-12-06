@@ -36,6 +36,9 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_change_callback.h"
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ipc_callbacks/rs_icanvas_surface_buffer_callback.h"
+#endif
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "ipc_callbacks/screen_change_callback.h"
 #include "ipc_callbacks/screen_switching_notify_callback.h"
@@ -141,9 +144,17 @@ public:
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
+
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
+        std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
     void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);

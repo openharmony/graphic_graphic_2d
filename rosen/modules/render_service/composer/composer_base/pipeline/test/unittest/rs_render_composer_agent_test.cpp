@@ -89,6 +89,7 @@ HWTEST_F(RsRenderComposerAgentTest, ComposerProcess_NonNullTransactionData_NoCra
     std::shared_ptr<RSRenderComposerAgent> agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
     ASSERT_TRUE(agent->rsRenderComposer_ != nullptr);
 
+    agent->ComposerProcess(nullptr);
     auto tx = std::make_shared<RSLayerTransactionData>();
     ASSERT_NO_FATAL_FAILURE(agent->ComposerProcess(tx));
 }
@@ -117,7 +118,7 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
     // Non-null composer: methods should forward to composer and execute without crash
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
     ASSERT_TRUE(agent->rsRenderComposer_ != nullptr);
-    nullAgent->PreAllocateProtectedBuffer(surfaceBuffer);
+    agent->PreAllocateProtectedBuffer(surfaceBuffer);
     // OnScreenConnected/Disconnected
     auto out = std::make_shared<HdiOutput>(5u);
     out->Init();
@@ -150,7 +151,7 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
  * Type: Function
  * Rank: Important(2)
  * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerAgent with null RSRenderComposer
+ * CaseDescription: 1. create RSRenderComposerAgent with not null RSRenderComposer
  *                  2. call Interface
  *                  3. check result
  */
@@ -160,9 +161,9 @@ HWTEST_F(RsRenderComposerAgentTest, Call_Interface_With_Null_Composer, TestSize.
     std::shared_ptr<RSRenderComposerAgent> agent = std::make_shared<RSRenderComposerAgent>(nullComposer);
     EXPECT_TRUE(agent->rsRenderComposer_ == nullptr);
     EXPECT_EQ(agent->GetAccumulatedBufferCount(), 0);
-    agent->CleanLayerBufferBySurfaceId(0);
+    agent->CleanLayerBufferBySurfaceId(0u);
 
-    std::string dumpString;
+    std::string dumpString = "";
     agent->RefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
 

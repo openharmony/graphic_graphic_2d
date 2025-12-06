@@ -33,6 +33,8 @@ napi_value JsTypeface::Init(napi_env env, napi_value exportObj)
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
         DECLARE_NAPI_FUNCTION("makeFromCurrent", JsTypeface::MakeFromCurrent),
+        DECLARE_NAPI_FUNCTION("isBold", JsTypeface::IsBold),
+        DECLARE_NAPI_FUNCTION("isItalic", JsTypeface::IsItalic),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromFile", JsTypeface::MakeFromFile),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromFileWithArguments", JsTypeface::MakeFromFileWithArguments),
         DECLARE_NAPI_STATIC_FUNCTION("makeFromRawFile", JsTypeface::MakeFromRawFile),
@@ -122,6 +124,8 @@ napi_value JsTypeface::CreateJsTypeface(napi_env env, const std::shared_ptr<Type
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
         DECLARE_NAPI_FUNCTION("makeFromCurrent", JsTypeface::MakeFromCurrent),
+        DECLARE_NAPI_FUNCTION("isBold", JsTypeface::IsBold),
+        DECLARE_NAPI_FUNCTION("isItalic", JsTypeface::IsItalic),
     };
     napi_define_properties(env, result, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return result;
@@ -175,6 +179,8 @@ napi_value JsTypeface::ConvertTypefaceToJsValue(napi_env env, JsTypeface* typefa
     napi_property_descriptor resultFuncs[] = {
         DECLARE_NAPI_FUNCTION("getFamilyName", JsTypeface::GetFamilyName),
         DECLARE_NAPI_FUNCTION("makeFromCurrent", JsTypeface::MakeFromCurrent),
+        DECLARE_NAPI_FUNCTION("isBold", JsTypeface::IsBold),
+        DECLARE_NAPI_FUNCTION("isItalic", JsTypeface::IsItalic),
     };
     napi_define_properties(env, jsObj, sizeof(resultFuncs) / sizeof(resultFuncs[0]), resultFuncs);
     return jsObj;
@@ -404,6 +410,39 @@ napi_value JsTypeface::TypefaceTransferDynamic(napi_env env, napi_callback_info 
         return nullptr;
     }
     return CreateJsTypeface(env, typeface);
+}
+
+napi_value JsTypeface::IsBold(napi_env env, napi_callback_info info)
+{
+    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    return (me != nullptr) ? me->OnIsBold(env, info) : nullptr;
+}
+
+napi_value JsTypeface::OnIsBold(napi_env env, napi_callback_info info)
+{
+    if (m_typeface == nullptr) {
+        ROSEN_LOGE("[NAPI]typeface is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    auto result = m_typeface->GetBold();
+    return CreateJsValue(env, result);
+}
+
+napi_value JsTypeface::IsItalic(napi_env env, napi_callback_info info)
+{
+    JsTypeface* me = CheckParamsAndGetThis<JsTypeface>(env, info);
+    return (me != nullptr) ? me->OnIsItalic(env, info) : nullptr;
+}
+
+napi_value JsTypeface::OnIsItalic(napi_env env, napi_callback_info info)
+{
+    if (m_typeface == nullptr) {
+        ROSEN_LOGE("[NAPI]typeface is null");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    auto result = m_typeface->GetItalic();
+    return CreateJsValue(env, result);
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

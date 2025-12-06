@@ -38,6 +38,7 @@
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
@@ -493,10 +494,7 @@ void RSProperties::SetCornerApplyType(int type)
 
 bool RSProperties::NeedCornerOptimization() const
 {
-    bool isSameRadius = ROSEN_EQ(GetCornerRadius().x_, GetCornerRadius().y_) &&
-                        ROSEN_EQ(GetCornerRadius().y_, GetCornerRadius().z_) &&
-                        ROSEN_EQ(GetCornerRadius().z_, GetCornerRadius().w_);
-    return isSameRadius && cornerApplyType_ != static_cast<int>(RSCornerApplyType::FAST);
+    return cornerApplyType_ != static_cast<int>(RSCornerApplyType::FAST);
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)
@@ -2457,6 +2455,7 @@ void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
             node->UpdateHDRStatus(HdrStatus::HDR_UICOMPONENT, newHDRUIStatus);
             if (node->IsOnTheTree()) {
                 node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+                node->UpdateDisplayHDRNodeMap(newHDRUIStatus, node->GetLogicalDisplayNodeId());
             }
         }
     }
@@ -2587,25 +2586,26 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto node = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(backref_.lock());
-    if (node == nullptr) {
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(backref_.lock());
+    if (displayNode == nullptr) {
+        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
         return;
     }
-    auto& hdrNodeList = node->GetHDRNodeList();
-    auto context = node->GetContext().lock();
+    auto context = displayNode->GetContext().lock();
     if (!context) {
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
         return;
     }
-    EraseIf(hdrNodeList, [context, factor](const auto& nodeId) -> bool {
+    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+    for (const auto& [nodeId, _] : hdrNodeMap) {
         auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
         if (!canvasNode) {
-            return true;
+            RS_LOGD("RSHdrUtil::SetHDRBrightnessFactor canvasNode is not on the tree");
+            continue;
         }
         canvasNode->SetContentDirty();
         canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
-        return false;
-    });
+    }
 }
 
 void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
@@ -3635,10 +3635,14 @@ void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 
 void RSProperties::SetUseUnion(bool useUnion)
 {
+    if (ROSEN_EQ(useUnion_, useUnion)) {
+        return;
+    }
     useUnion_ = useUnion;
     if (GetUseUnion()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -3649,9 +3653,13 @@ bool RSProperties::GetUseUnion() const
 
 void RSProperties::SetUnionSpacing(float spacing)
 {
+    if (ROSEN_EQ(unionSpacing_, spacing)) {
+        return;
+    }
     unionSpacing_ = spacing;
     geoDirty_ = true;
     contentDirty_ = true;
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -5157,8 +5165,12 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
 
 void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
+    if (ROSEN_EQ(renderSDFShape_, shape)) {
+        return;
+    }
     renderSDFShape_ = shape;
     isDrawn_ = true;
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -5183,20 +5195,6 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
         return effect_->mtNGRenderFilter_;
     }
     return nullptr;
-}
-
-void RSProperties::OnSDFShapeChange()
-{
-    if (renderSDFShape_) {
-        if (!sdfFilter_) {
-            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
-        }
-        if (IS_UNI_RENDER) {
-            GetEffect().foregroundFilterCache_ = sdfFilter_;
-        } else {
-            GetEffect().foregroundFilter_ = sdfFilter_;
-        }
-    }
 }
 
 } // namespace Rosen

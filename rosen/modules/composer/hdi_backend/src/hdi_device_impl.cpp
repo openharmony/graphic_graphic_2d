@@ -85,6 +85,17 @@ void HdiDeviceImpl::Destroy()
 }
 
 /* set & get device screen info begin */
+int32_t HdiDeviceImpl::GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status)
+{
+    CHECK_FUNC(g_composer);
+    Composer::V1_4::PanelPowerStatus hdiStatus;
+    int32_t ret = g_composer->GetPanelPowerStatus(devId, hdiStatus);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        status = static_cast<GraphicPanelPowerStatus>(hdiStatus);
+    }
+    return ret;
+}
+
 int32_t HdiDeviceImpl::RegHotPlugCallback(HotPlugCallback callback, void *data)
 {
     CHECK_FUNC(g_composer);
@@ -120,6 +131,12 @@ int32_t HdiDeviceImpl::SetScreenConstraint(uint32_t screenId, uint64_t frameId, 
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayConstraint(screenId, frameId, timestamp, type);
+}
+
+int32_t HdiDeviceImpl::SetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t propertyValue)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayProperty(screenId, propertyId, propertyValue);
 }
 
 int32_t HdiDeviceImpl::GetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t& propertyValue)
@@ -448,6 +465,17 @@ int32_t HdiDeviceImpl::GetDisplayIdentificationData(uint32_t screenId, uint8_t& 
 {
     CHECK_FUNC(g_composer);
     return g_composer->GetDisplayIdentificationData(screenId, outPort, edidData);
+}
+
+int32_t HdiDeviceImpl::GetScreenConnectionType(uint32_t screenId, GraphicDisplayConnectionType& outType)
+{
+    CHECK_FUNC(g_composer);
+    Composer::V1_4::DisplayConnectionType displayConnectionType;
+    int32_t ret = g_composer->GetDisplayConnectionType(screenId, displayConnectionType);
+    if (ret == GRAPHIC_DISPLAY_SUCCESS) {
+        outType = static_cast<GraphicDisplayConnectionType>(displayConnectionType);
+    }
+    return ret;
 }
 /* set & get device screen info end */
 

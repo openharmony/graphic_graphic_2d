@@ -196,12 +196,6 @@ void RSLuminanceControl::ForceCloseHdr(uint32_t closeHdrSceneId, bool forceClose
     }
 }
 
-bool RSLuminanceControl::IsCloseHardwareHdr()
-{
-    return (rSLuminanceControlInterface_ != nullptr) ?
-        rSLuminanceControlInterface_->IsCloseHardwareHdr() : false;
-}
-
 bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId) const
 {
     return (rSLuminanceControlInterface_ != nullptr) ?
@@ -231,6 +225,12 @@ void RSLuminanceControl::HandleGamutSpecialRender(std::vector<ScreenColorGamut>&
     if (rSLuminanceControlInterface_ != nullptr) {
         rSLuminanceControlInterface_->HandleGamutSpecialRender(modes);
     }
+}
+
+bool RSLuminanceControl::IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsHardwareHdrDisabled(checkBrightnessRatio, screenId) : false;
 }
 
 uint32_t RSLuminanceControl::ConvertScalerFromFloatToLevel(float& scaler) const

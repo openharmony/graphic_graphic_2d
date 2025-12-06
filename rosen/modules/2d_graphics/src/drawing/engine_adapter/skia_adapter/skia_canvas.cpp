@@ -462,6 +462,31 @@ void SkiaCanvas::DrawBackground(const Brush& brush)
     skCanvas_->drawPaint(paint);
 }
 
+bool SkiaCanvas::GetLocalShadowBounds(const Matrix& ctm, const Path& path, const Point3& planeParams,
+    const Point3& devLightPos, scalar lightRadius, ShadowFlags flag, bool isLimitElevation, Rect& rect)
+{
+    auto skiaMatrixImpl = ctm.GetImpl<SkiaMatrix>();
+    if (skiaMatrixImpl == nullptr) {
+        LOGE("skiaMatrixImpl is null, %{public}s return", __FUNCTION__);
+        return false;
+    }
+    auto skPathImpl = path.GetImpl<SkiaPath>();
+    if (skPathImpl == nullptr) {
+        LOGE("skia path is null, %{public}s return", __FUNCTION__);
+        return false;
+    }
+    const SkPoint3* point1 = reinterpret_cast<const SkPoint3*>(&planeParams);
+    const SkPoint3* point2 = reinterpret_cast<const SkPoint3*>(&devLightPos);
+    SkShadowFlags flags = static_cast<SkShadowFlags>(flag);
+    SkRect* r = reinterpret_cast<SkRect*>(&rect);
+    if (!SkShadowUtils::GetLocalBounds(skiaMatrixImpl->ExportSkiaMatrix(), skPathImpl->GetPath(),
+        *point1, *point2, lightRadius, flags, isLimitElevation, r)) {
+        LOGE("ShadowUtils::GetLocalBounds fail, %{public}s return", __FUNCTION__);
+        return false;
+    }
+    return true;
+}
+
 void SkiaCanvas::DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
     Color ambientColor, Color spotColor, ShadowFlags flag)
 {

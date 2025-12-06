@@ -20,13 +20,12 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <dlfcn.h>
-
+#include "window.h"
 #include "egl_defs.h"
 #include "egl_wrapper_context.h"
 #include "egl_wrapper_display.h"
 #include "egl_wrapper_loader.h"
 #include "thread_private_data_ctl.h"
-#include "window.h"
 #include "wrapper_log.h"
 #include "egl_blob_cache.h"
 #if USE_IGAMESERVICE_PLUGIN
@@ -1418,21 +1417,26 @@ EGLBoolean EglSwapBuffersWithDamageEXTImpl(EGLDisplay dpy, EGLSurface surface, c
     return display->SwapBuffersWithDamageEXT(surface, rects, nRects);
 }
 
+EGLClientBuffer EglGetNativeClientBufferOHOSImpl(OH_NativeBuffer *buffer)
+{
+    auto nativeWindowBuffer = CreateNativeWindowBufferFromNativeBuffer(buffer);
+    if (nativeWindowBuffer == nullptr) {
+        ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
+        WLOGE("EglGetNativeClientBufferOHOSImpl nativeWindowBuffer is nullptr");
+    }
+    return nativeWindowBuffer;
+}
+
 EGLClientBuffer EglGetNativeClientBufferANDROIDImpl(const struct AHardwareBuffer *buffer)
 {
     ClearError();
     if (buffer == nullptr) {
-        WLOGE("EGLDislay is invalid.");
+        WLOGE("EglGetNativeClientBufferANDROIDImpl input buffer is nullptr");
         ThreadPrivateDataCtl::SetError(EGL_BAD_PARAMETER);
         return nullptr;
     }
-
-    auto nativeWindowBuffer = CreateNativeWindowBufferFromNativeBuffer(reinterpret_cast<OH_NativeBuffer*>(
-        const_cast<AHardwareBuffer*>(buffer)));
-    if (nativeWindowBuffer == nullptr) {
-        WLOGE("EglGetNativeClientBufferANDROIDImpl nativeWindowBuffer is nullptr.");
-    }
-    return nativeWindowBuffer;
+    auto nativeBuffer = reinterpret_cast<OH_NativeBuffer*>(const_cast<AHardwareBuffer*>(buffer));
+    return EglGetNativeClientBufferOHOSImpl(nativeBuffer);
 }
 
 static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
@@ -1545,6 +1549,7 @@ static const std::map<std::string, EglWrapperFuncPointer> gEglWrapperMap = {
 
     /* EGL_ANDROID_get_native_client_buffer */
     { "eglGetNativeClientBufferANDROID", (EglWrapperFuncPointer)&EglGetNativeClientBufferANDROIDImpl },
+    { "eglGetNativeClientBufferOHOS", (EglWrapperFuncPointer)&EglGetNativeClientBufferOHOSImpl },
 };
 
 EglWrapperFuncPointer FindEglWrapperApi(const std::string &name)

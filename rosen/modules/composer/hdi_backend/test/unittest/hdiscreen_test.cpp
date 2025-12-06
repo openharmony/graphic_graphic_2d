@@ -58,11 +58,15 @@ void HdiScreenTest::SetUpTestCase()
     EXPECT_CALL(*mockDevice_, SetScreenVsyncEnabled(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenColorTransform(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*mockDevice_, SetScreenConstraint(_, _, _, _)).WillRepeatedly(testing::Return(0));
+    EXPECT_CALL(*mockDevice_, SetDisplayProperty(_, _, _)).WillRepeatedly(testing::Return(0));
 }
 
 void HdiScreenTest::TearDownTestCase()
 {
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
+
+    uint64_t propertyValue = 0;
+    ASSERT_EQ(hdiScreen_->SetDisplayProperty(propertyValue), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 namespace {
@@ -425,6 +429,13 @@ HWTEST_F(HdiScreenTest, GetDisplayPropertyForHardCursor001, Function | MediumTes
     uint32_t screenId = 0;
     bool res = hdiScreen_->GetDisplayPropertyForHardCursor(screenId);
     EXPECT_FALSE(res);
+}
+
+HWTEST_F(HdiScreenTest, GetPanelPowerStatus001, Function | MediumTest | Level3)
+{
+    GraphicPanelPowerStatus status;
+    EXPECT_CALL(*mockDevice_, GetPanelPowerStatus(_, _)).WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    EXPECT_EQ(hdiScreen_->GetPanelPowerStatus(status), GRAPHIC_DISPLAY_SUCCESS);
 }
 } // namespace
 } // namespace Rosen

@@ -134,20 +134,24 @@ void RSEffectRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationC
     if (GetRenderProperties().GetBackgroundFilter() == nullptr) {
         return;
     }
-    auto filterDrawable = GetFilterDrawable(false);
-    if (filterDrawable == nullptr) {
-        return;
-    }
-    filterDrawable->MarkEffectNode();
-    RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
-    if (IsForceClearOrUseFilterCache(filterDrawable)) {
-        return;
-    }
-    if (CheckFilterCacheNeedForceClear()) {
-        filterDrawable->MarkFilterForceClearCache();
-    } else if (CheckFilterCacheNeedForceSave()) {
-        filterDrawable->MarkFilterForceUseCache();
-    }
+    auto invokeFunc = [this, rotationChanged, rotationStatusChanged] (
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+            if (filterDrawable == nullptr) {
+                return;
+            }
+            filterDrawable->MarkEffectNode();
+            RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(rotationChanged, rotationStatusChanged);
+            if (IsForceClearOrUseFilterCache(filterDrawable)) {
+                return;
+            }
+            if (CheckFilterCacheNeedForceClear()) {
+                filterDrawable->MarkFilterForceClearCache();
+            } else if (CheckFilterCacheNeedForceSave()) {
+                filterDrawable->MarkFilterForceUseCache();
+            }
+        };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
 #endif
 }
 
@@ -160,19 +164,23 @@ void RSEffectRenderNode::UpdateFilterCacheWithSelfDirty()
         return;
     }
 #endif
-    auto filterDrawable = GetFilterDrawable(false);
-    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
-        return;
-    }
-    auto visibleSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetDefaultFilterRegion());
-    auto lastVisibleSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(GetFilterCachedRegion());
-    RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
-        GetId(), lastVisibleSnapshotRegion.ToString().c_str(), visibleSnapshotRegion.ToString().c_str());
-    if (visibleSnapshotRegion == lastVisibleSnapshotRegion) {
-        return;
-    }
-    // effect render node  only support background filter
-    MarkFilterStatusChanged(false, true);
+    auto invokeFunc = [this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+        if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
+            return;
+        }
+        auto visibleSnapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetDefaultFilterRegion());
+        auto lastVisibleSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(GetFilterCachedRegion());
+        RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::UpdateFilterCacheWithSelfDirty lastRect:%s, "
+            "currRegion:%s", GetId(), lastVisibleSnapshotRegion.ToString().c_str(),
+            visibleSnapshotRegion.ToString().c_str());
+        if (visibleSnapshotRegion == lastVisibleSnapshotRegion) {
+            return;
+        }
+        // effect render node  only support background and material filter
+        MarkFilterStatusChanged(filterDrawable, false, true);
+    };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
 #endif
 }
 
@@ -289,12 +297,15 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
 void RSEffectRenderNode::OnFilterCacheStateChanged()
 {
 #ifdef RS_ENABLE_GPU
-    auto filterDrawable = GetFilterDrawable(false);
-    auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
-    if (filterDrawable == nullptr || effectParams == nullptr) {
-        return;
-    }
-    effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
+    auto invokeFunc = [this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+        auto effectParams = static_cast<RSEffectRenderParams*>(stagingRenderParams_.get());
+        if (filterDrawable == nullptr || effectParams == nullptr) {
+            return;
+        }
+        effectParams->SetCacheValid(filterDrawable->IsFilterCacheValid());
+    };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
 #endif
 }
 
@@ -320,19 +331,21 @@ bool RSEffectRenderNode::FirstFrameHasNoEffectChildren() const
 void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
 {
 #ifdef RS_ENABLE_GPU
-    // the first frame node has no effect child, it should not be painted and filter cache need to be cleared.
-    auto filterDrawable = GetFilterDrawable(false);
-    if (filterDrawable == nullptr || filterDrawable->IsForceClearFilterCache()) {
-        return;
-    }
-    if (!FirstFrameHasEffectChildren() && !FirstFrameHasNoEffectChildren()) {
-        return;
-    }
-    filterDrawable->MarkFilterForceClearCache();
-    // the first frame node has no effect child, force use cache should be cancled.
-    if (filterDrawable->IsForceUseFilterCache()) {
-        filterDrawable->MarkFilterForceUseCache(false);
-    }
+    auto invokeFunc = [this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+        if (filterDrawable == nullptr || filterDrawable->IsForceClearFilterCache()) {
+            return;
+        }
+        if (!FirstFrameHasEffectChildren() && !FirstFrameHasNoEffectChildren()) {
+            return;
+        }
+        filterDrawable->MarkFilterForceClearCache();
+        // the first frame node has no effect child, force use cache should be cancled.
+        if (filterDrawable->IsForceUseFilterCache()) {
+            filterDrawable->MarkFilterForceUseCache(false);
+        }
+    };
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
 #endif
 }
 

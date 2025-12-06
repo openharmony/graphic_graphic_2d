@@ -94,6 +94,14 @@ void RSRenderComposerAgent::PostTask(const std::function<void()>& task)
     rsRenderComposer_->PostTask(task);
 }
 
+void RSRenderComposerAgent::PostTaskWithInnerDelay(const std::function<void()>& task)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->PostTaskWithInnerDelay(task);
+}
+
 GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
 {
     if (rsRenderComposer_ == nullptr) {

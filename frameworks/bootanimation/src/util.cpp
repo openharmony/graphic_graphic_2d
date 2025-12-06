@@ -104,6 +104,10 @@ void ParseOldConfigFile(cJSON* data, std::vector<BootAnimationConfig>& configs)
     if (extraVideoPath != nullptr && cJSON_IsObject(extraVideoPath)) {
         ParseVideoExtraPath(extraVideoPath, config);
     }
+    cJSON* isFrameRateEnable = cJSON_GetObjectItem(data, "cust.bootanimation.frame_rate_enabled");
+    if (cJSON_IsBool(isFrameRateEnable)) {
+        config.isFrameRateEnable = cJSON_IsTrue(isFrameRateEnable);
+    }
     configs.emplace_back(config);
 }
 
@@ -120,9 +124,9 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
 
     cJSON* screens = cJSON_GetObjectItem(data, "screen_config");
     if (screens != nullptr) {
-        BootAnimationConfig config;
         cJSON* item = screens->child;
         while (item != nullptr) {
+            BootAnimationConfig config;
             cJSON* screenIdJson = cJSON_GetObjectItem(item, "cust.bootanimation.screen_id");
             if (screenIdJson != nullptr && cJSON_IsString(screenIdJson)) {
                 config.screenId = std::strtoul(screenIdJson->valuestring, nullptr, 0);
@@ -149,6 +153,10 @@ void ParseNewConfigFile(cJSON* data, bool& isMultiDisplay, std::vector<BootAnima
             if (extraVideoPath != nullptr && cJSON_IsObject(extraVideoPath)) {
                 ParseVideoExtraPath(extraVideoPath, config);
             }
+            cJSON* isFrameRateEnable = cJSON_GetObjectItem(item, "cust.bootanimation.frame_rate_enabled");
+            if (cJSON_IsBool(isFrameRateEnable)) {
+                config.isFrameRateEnable = cJSON_IsTrue(isFrameRateEnable);
+            }
             configs.emplace_back(config);
             item = item->next;
         }
@@ -160,9 +168,9 @@ void ParseProgressData(cJSON* data, std::map<int32_t, BootAnimationProgressConfi
     LOGI("ParseProgressData");
     cJSON* progressConfigs = cJSON_GetObjectItem(data, "progress_config");
     if (progressConfigs != nullptr) {
-        BootAnimationProgressConfig config;
         cJSON* item = progressConfigs->child;
         while (item != nullptr) {
+            BootAnimationProgressConfig config;
             cJSON* progressScreenIdJson = cJSON_GetObjectItem(item, "cust.bootanimation.progress_screen_id");
             if (progressScreenIdJson != nullptr && cJSON_IsString(progressScreenIdJson)) {
                 config.progressScreenId = StringToInt32(progressScreenIdJson->valuestring);

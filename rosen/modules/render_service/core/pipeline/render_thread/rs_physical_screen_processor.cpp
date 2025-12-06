@@ -97,11 +97,18 @@ void RSPhysicalScreenProcessor::Redraw(const sptr<Surface>& surface, const std::
         return;
     }
 
-    if (mirroredScreenInfo_.id != INVALID_SCREEN_ID) {
-        canvas->ConcatMatrix(mirrorAdaptiveMatrix_);
-    } else {
-        canvas->ConcatMatrix(screenTransformMatrix_);
+    auto& matrix = (mirroredScreenInfo_.id != INVALID_SCREEN_ID) ? mirrorAdaptiveMatrix_ : screenTransformMatrix_;
+    canvas->ConcatMatrix(matrix);
+    std::string matrixInfo;
+    for (int i = 0; i < Drawing::Matrix::MATRIX_SIZE; ++i) {
+        if (i != 0) {
+            matrixInfo += ", ";
+        }
+        matrixInfo += std::to_string(matrix.Get(i));
     }
+    RS_LOGD("RsDebug RSPhysicalScreenProcessor::Redraw %{public}s: %{public}s",
+        (mirroredScreenInfo_.id != INVALID_SCREEN_ID) ? "mirrorAdaptiveMatrix" : "screenTransformMatrix",
+        matrixInfo.c_str());
 
     renderEngine_->DrawLayers(*canvas, layers, forceCPU);
     renderFrame->Flush();

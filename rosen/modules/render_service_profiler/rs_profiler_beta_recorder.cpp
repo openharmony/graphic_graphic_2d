@@ -63,7 +63,7 @@ void RSProfiler::LaunchBetaRecordFileSplitThread()
 {
     std::thread thread([]() {
         while (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
-            SaveBetaRecord();
+            BetaRecordTick();
             
             constexpr int32_t splitCheckTime = 100;
             std::this_thread::sleep_for(std::chrono::milliseconds(splitCheckTime));
@@ -141,7 +141,7 @@ void RSProfiler::BetaRecordSetLastParcelTime()
     g_lastParcelTime = Utils::Now();
 }
 
-void RSProfiler::SaveBetaRecord()
+void RSProfiler::BetaRecordTick()
 {
     if (!RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
         // rendering thread works
@@ -174,14 +174,17 @@ void RSProfiler::SaveBetaRecord()
         delete[] ptr;
         ScheduleTask([]() {
             // executes in main thread when mainLoop is sleeping
-            if (!IsBetaRecordStarted() || !IsBetaRecordEnabled()) {
+            bool betaRecordStarted = IsBetaRecordStarted();
+            if (!betaRecordStarted || !IsBetaRecordEnabled()) {
                 return;
             }
             if (IsSecureScreen() || IsPowerOffScreen()) {
                 return;
             }
             g_recordsTimestamp = Now();
-            RecordStart(ArgList());
+            std::vector<std::string> argList;
+            argList.push_back("BETAREC");
+            RecordStart(ArgList(argList));
         });
         return;
     }

@@ -981,7 +981,7 @@ bool RSProfiler::IsLoadSaveFirstScreenInProgress()
     return IsWriteEmulationMode() || IsReadEmulationMode();
 }
 
-std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
+std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordStarted)
 {
     if (!context_) {
         return "";
@@ -999,7 +999,7 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion)
     DisableSharedMemory();
 
     std::shared_ptr<ProfilerMarshallingJob> newJob = nullptr;
-    if (IsBetaRecordStarted()) {
+    if (betaRecordStarted) {
         newJob = std::make_shared<ProfilerMarshallingJob>();
         if (newJob) {
             newJob->marshallingTick =
@@ -1870,11 +1870,13 @@ void RSProfiler::RecordStart(const ArgList& args)
         return;
     }
 
+    bool betaRecordStarted = args.String(0) == "BETAREC";
+
     bool transactionMutexLocked = false;
     uint64_t counterParseTransactionDataStart = 0;
     uint64_t counterParseTransactionDataEnd = 0;
     uint64_t counterOnRemoteRequest = 0;
-    if (IsBetaRecordStarted()) {
+    if (betaRecordStarted) {
         counterParseTransactionDataStart = GetParseTransactionDataStartCounter();
         counterParseTransactionDataEnd = GetParseTransactionDataEndCounter();
         counterOnRemoteRequest = g_counterOnRemoteRequest;
@@ -1915,7 +1917,7 @@ void RSProfiler::RecordStart(const ArgList& args)
         FilterMockNode(*context_);
         RSTypefaceCache::Instance().ReplayClear();
 
-        g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion()));
+        g_recordFile.AddHeaderFirstFrame(FirstFrameMarshalling(g_recordFile.GetVersion(), betaRecordStarted));
     }
 
     if (transactionMutexLocked) {
@@ -1956,7 +1958,7 @@ void RSProfiler::RecordStart(const ArgList& args)
 
     SendMessage("Record: Started");
 
-    if (IsBetaRecordStarted()) {
+    if (betaRecordStarted) {
         return;
     }
 

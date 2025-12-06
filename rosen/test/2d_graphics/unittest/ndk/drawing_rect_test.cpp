@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -735,6 +735,138 @@ HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Inset007, TestSize.Level1)
     EXPECT_EQ(OH_Drawing_RectGetRight(rect), 38);
     EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 24);
     OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_IsEmpty008
+ * @tc.desc: test for normal use of OH_Drawing_RectIsEmpty
+ * @tc.type: FUNC
+ * @tc.require: 20653
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_IsEmpty008, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(10, 10, 10, 10);
+    bool isEmpty = false;
+    EXPECT_EQ(OH_Drawing_RectIsEmpty(nullptr, &isEmpty), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectIsEmpty(rect, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectIsEmpty(rect, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_SetEmpty009
+ * @tc.desc: test for normal use of OH_Drawing_RectSetEmpty
+ * @tc.type: FUNC
+ * @tc.require: 20653
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_SetEmpty009, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(0, 0, 100, 100);
+    bool isEmpty = false;
+    EXPECT_EQ(OH_Drawing_RectIsEmpty(rect, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, false);
+    EXPECT_EQ(OH_Drawing_RectSetEmpty(nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectSetEmpty(rect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectIsEmpty(rect, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_Offset010
+ * @tc.desc: test for normal use of OH_Drawing_RectOffset
+ * @tc.type: FUNC
+ * @tc.require: 20653
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Offset010, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectOffset(nullptr, 100, 100), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectOffset(rect, 100, 100), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 300);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 300);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_OffsetTo011
+ * @tc.desc: test for normal use of OH_Drawing_RectOffsetTo
+ * @tc.type: FUNC
+ * @tc.require: 20653
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_OffsetTo011, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 200, 200);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectOffsetTo(nullptr, 200, 200), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectOffsetTo(rect, 200, 200), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 200);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 300);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 300);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_Sort012
+ * @tc.desc: test for normal use of OH_Drawing_RectSort
+ * @tc.type: FUNC
+ * @tc.require: 20653
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Sort012, TestSize.Level1)
+{
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100, 100, 0, 0);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 0);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 0);
+    EXPECT_EQ(OH_Drawing_RectSort(nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectSort(rect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 0);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 0);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 100);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRectTest_Union013
+ * @tc.desc: test for normal use of OH_Drawing_RectUnion
+ * @tc.type: FUNC
+ * @tc.require: 20653
+ */
+HWTEST_F(NativeDrawingRectTest, NativeDrawingRectTest_Union013, TestSize.Level1)
+{
+    OH_Drawing_Rect *rect = OH_Drawing_RectCreate(100, 100, 300, 300);
+    OH_Drawing_Rect *otherOne = OH_Drawing_RectCreate(200, 200, 400, 400);
+    OH_Drawing_Rect *otherTwo = OH_Drawing_RectCreate(500, 500, 700, 700);
+
+    EXPECT_EQ(OH_Drawing_RectUnion(nullptr, otherOne), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectUnion(rect, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RectUnion(rect, otherOne), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 400);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 400);
+    EXPECT_EQ(OH_Drawing_RectUnion(rect, otherTwo), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect), 100);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect), 700);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect), 700);
+
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_RectDestroy(otherOne);
+    OH_Drawing_RectDestroy(otherTwo);
 }
 
 } // namespace Drawing

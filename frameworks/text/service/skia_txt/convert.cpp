@@ -58,6 +58,20 @@ SPText::RectWidthStyle Convert(const TextRectWidthStyle& style)
     return static_cast<SPText::RectWidthStyle>(style);
 }
 
+void ConvertStrutStyle(const TypographyStyle& style, SPText::ParagraphStyle& paragraphStyle)
+{
+    paragraphStyle.strutEnabled = style.useLineStyle;
+    paragraphStyle.strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight);
+    paragraphStyle.strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth);
+    paragraphStyle.strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle);
+    paragraphStyle.strutFontFamilies = style.lineStyleFontFamilies;
+    paragraphStyle.strutFontSize = style.lineStyleFontSize;
+    paragraphStyle.strutHeight = style.lineStyleHeightScale;
+    paragraphStyle.strutHeightOverride = style.lineStyleHeightOnly;
+    paragraphStyle.strutHalfLeading = style.lineStyleHalfLeading;
+    paragraphStyle.strutLeading = style.lineStyleSpacingScale;
+}
+
 SPText::ParagraphStyle Convert(const TypographyStyle& style)
 {
     SPText::ParagraphStyle paragraphStyle;
@@ -69,16 +83,6 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.fontSize = style.fontSize;
     paragraphStyle.height = style.heightScale;
     paragraphStyle.heightOverride = style.heightOnly;
-    paragraphStyle.strutEnabled = style.useLineStyle;
-    paragraphStyle.strutFontWeight = static_cast<SPText::FontWeight>(style.lineStyleFontWeight);
-    paragraphStyle.strutFontWidth = static_cast<SPText::FontWidth>(style.lineStyleFontWidth);
-    paragraphStyle.strutFontStyle = static_cast<SPText::FontStyle>(style.lineStyleFontStyle);
-    paragraphStyle.strutFontFamilies = style.lineStyleFontFamilies;
-    paragraphStyle.strutFontSize = style.lineStyleFontSize;
-    paragraphStyle.strutHeight = style.lineStyleHeightScale;
-    paragraphStyle.strutHeightOverride = style.lineStyleHeightOnly;
-    paragraphStyle.strutHalfLeading = style.lineStyleHalfLeading;
-    paragraphStyle.strutLeading = style.lineStyleSpacingScale;
     paragraphStyle.forceStrutHeight = style.lineStyleOnly;
     paragraphStyle.textAlign = static_cast<SPText::TextAlign>(style.textAlign);
     paragraphStyle.textDirection = static_cast<SPText::TextDirection>(style.textDirection);
@@ -96,6 +100,7 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.tab = Convert(style.tab);
     paragraphStyle.paragraphSpacing = style.paragraphSpacing;
     paragraphStyle.isEndAddParagraphSpacing = style.isEndAddParagraphSpacing;
+    paragraphStyle.compressHeadPunctuation = style.compressHeadPunctuation;
     paragraphStyle.relayoutChangeBitmap = style.relayoutChangeBitmap;
     paragraphStyle.defaultTextStyleUid = style.defaultTextStyleUid;
     paragraphStyle.halfLeading = style.halfLeading;
@@ -106,6 +111,9 @@ SPText::ParagraphStyle Convert(const TypographyStyle& style)
     paragraphStyle.minLineHeight= style.minLineHeight;
     paragraphStyle.lineSpacing = style.lineSpacing;
     paragraphStyle.lineHeightStyle = style.lineHeightStyle;
+    paragraphStyle.includeFontPadding = style.includeFontPadding;
+    paragraphStyle.fallbackLineSpacing = style.fallbackLineSpacing;
+    ConvertStrutStyle(style, paragraphStyle);
 
     return paragraphStyle;
 }

@@ -25,13 +25,16 @@ namespace Rosen {
 class RSB_EXPORT RSParticlesDrawable {
 public:
     explicit RSParticlesDrawable(const std::vector<std::shared_ptr<RSRenderParticle>>& particles,
-        std::vector<std::shared_ptr<RSImage>>& imageVector, size_t imageCount);
+        const std::vector<std::shared_ptr<RSImage>>& imageVector, size_t imageCount);
     RSParticlesDrawable() = default;
     ~RSParticlesDrawable() = default;
     void Draw(Drawing::Canvas& canvas, std::shared_ptr<RectF> bounds);
+    void UpdateData(const std::vector<std::shared_ptr<RSRenderParticle>>& particles,
+        const std::vector<std::shared_ptr<RSImage>>& imageVector, size_t imageCount);
 
 private:
-    std::shared_ptr<Drawing::Image> MakeCircleImage(int radius);
+    static std::shared_ptr<Drawing::Image> GetSharedCircleImage();
+    static std::shared_ptr<Drawing::Image> MakeCircleImage(int radius);
     Drawing::RSXform MakeRSXform(Vector2f ofs, Vector2f position, float spin, float scale);
     void CaculatePointAtlsArry(
         const std::shared_ptr<RSRenderParticle>& particle, Vector2f position, float opacity, float scale);
@@ -43,9 +46,10 @@ private:
     void DrawCircle(Drawing::Canvas& canvas);
     void DrawImages(Drawing::Canvas& canvas);
     bool CheckImageNull(std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<Drawing::Image>& drawImage);
+    void ClearBuffers();
 
     std::vector<std::shared_ptr<RSRenderParticle>> particles_;
-    std::shared_ptr<Drawing::Image> circleImage_;
+    static std::shared_ptr<Drawing::Image> sharedCircleImage_;
     std::vector<std::shared_ptr<RSImage>> imageVector_;
     size_t imageCount_;
 

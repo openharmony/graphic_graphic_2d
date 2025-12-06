@@ -73,6 +73,8 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("approximate", JsPath::Approximate),
     DECLARE_NAPI_FUNCTION("interpolate", JsPath::Interpolate),
     DECLARE_NAPI_FUNCTION("isInterpolate", JsPath::IsInterpolate),
+    DECLARE_NAPI_FUNCTION("isInverseFillType", JsPath::IsInverseFillType),
+    DECLARE_NAPI_FUNCTION("toggleInverseFillType", JsPath::ToggleInverseFillType),
     DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsPath::PathTransferDynamic),
 };
 
@@ -1442,6 +1444,40 @@ napi_value JsPath::PathTransferDynamic(napi_env env, napi_callback_info info)
         return nullptr;
     }
     return CreateJsPathDynamic(env, path);
+}
+
+napi_value JsPath::IsInverseFillType(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnIsInverseFillType(env, info) : nullptr;
+}
+
+napi_value JsPath::OnIsInverseFillType(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnIsInverseFillType path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    bool result = m_path->IsInverseFillType();
+    return CreateJsValue(env, result);
+}
+
+napi_value JsPath::ToggleInverseFillType(napi_env env, napi_callback_info info)
+{
+    JsPath* me = CheckParamsAndGetThis<JsPath>(env, info);
+    return (me != nullptr) ? me->OnToggleInverseFillType(env, info) : nullptr;
+}
+
+napi_value JsPath::OnToggleInverseFillType(napi_env env, napi_callback_info info)
+{
+    if (m_path == nullptr) {
+        ROSEN_LOGE("JsPath::OnToggleInverseFillType path is nullptr");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+
+    JS_CALL_DRAWING_FUNC(m_path->ToggleInverseFillType());
+    return nullptr;
 }
 
 Path* JsPath::GetPath()

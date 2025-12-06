@@ -3694,3 +3694,12 @@ OH_Drawing_TextShadow *OH_Drawing_CopyTextShadow(OH_Drawing_TextShadow *shadow)
 
     return reinterpret_cast<OH_Drawing_TextShadow*>(newSrcShadow);
 }
+
+void OH_Drawing_DestroyPositionAndAffinity(OH_Drawing_PositionAndAffinity* positionAndAffinity)
+{
+    if (positionAndAffinity == nullptr) {
+        return;
+    }
+    delete ConvertToOriginalText<IndexAndAffinity>(positionAndAffinity);
+    positionAndAffinity = nullptr;
+}

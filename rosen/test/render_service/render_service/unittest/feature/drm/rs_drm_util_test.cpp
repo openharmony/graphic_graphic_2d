@@ -95,8 +95,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest002, TestSize.Level1)
 HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest003, TestSize.Level1)
 {
     ScreenId screenId = 0;
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, HdiOutput::CreateHdiOutput(screenId), nullptr);
-    rsScreen->screenType_ = EXTERNAL_TYPE_SCREEN;
+    auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(screenId));
+    rsScreen->property_.SetScreenType(EXTERNAL_TYPE_SCREEN);
     auto screenManager = CreateOrGetScreenManager();
     screenManager->MockHdiScreenConnected(rsScreen);
 
@@ -125,8 +125,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest004, TestSize.Level1)
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     hdiOutput->SetProtectedFrameBufferState(true);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
-    rsScreen->screenType_ = EXTERNAL_TYPE_SCREEN;
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+    rsScreen->property_.SetScreenType(EXTERNAL_TYPE_SCREEN);
     auto screenManager = CreateOrGetScreenManager();
     screenManager->MockHdiScreenConnected(rsScreen);
 
@@ -154,8 +154,8 @@ HWTEST_F(RSDrmUtilTest, PreAllocateProtectedBufferTest005, TestSize.Level1)
     ScreenId screenId = 1;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     hdiOutput->SetProtectedFrameBufferState(false);
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId, false, hdiOutput, nullptr);
-    rsScreen->screenType_ = EXTERNAL_TYPE_SCREEN;
+    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
+    rsScreen->property_.SetScreenType(EXTERNAL_TYPE_SCREEN);
     auto screenManager = CreateOrGetScreenManager();
     screenManager->MockHdiScreenConnected(rsScreen);
 

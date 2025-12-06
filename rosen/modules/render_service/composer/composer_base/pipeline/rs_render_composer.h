@@ -62,6 +62,7 @@ protected:
     void ComposerProcess(RefreshRateParam param, uint32_t currentRate, bool hasGameScene,
         int64_t delayTime, std::shared_ptr<RSLayerTransactionData> transactionData);
     void PostTask(const std::function<void()>& task);
+    void PostTaskWithInnerDelay(const std::function<void()>& task);
     void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output);
@@ -128,7 +129,8 @@ private:
     std::string GetSurfaceNameInLayers(const std::vector<std::shared_ptr<RSLayer>>& layers);
     std::string GetSurfaceNameInLayersForTrace(const std::vector<std::shared_ptr<RSLayer>>& layers);
     bool IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLayer>>& layers);
-    void RecordTimestamp(const std::vector<std::shared_ptr<RSLayer>>& layers);
+    void RecordTimestamp(uint64_t vsyncId, const std::shared_ptr<HdiOutput> output,
+        const std::vector<std::shared_ptr<RSLayer>>& layers);
     void ProcessComposerFrame(RefreshRateParam param, uint32_t currentRate, bool hasGameScene);
     void AddRefreshRateCount();
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -157,6 +159,7 @@ private:
     int exceptionCnt_ = 0;
     ExceptionCheck exceptionCheck_;
     sptr<SyncFence> releaseFence_ = SyncFence::InvalidFence();
+    bool isDisconnected_ = false;
     friend class RSRenderComposerAgent;
 };
 } // namespace OHOS::Rosen

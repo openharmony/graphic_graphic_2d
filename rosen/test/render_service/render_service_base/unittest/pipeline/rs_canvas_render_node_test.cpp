@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -198,56 +199,54 @@ HWTEST_F(RSCanvasRenderNodeTest, ProcessShadowBatchingTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateScreenHDRNodeList001
- * @tc.desc: test UpdateScreenHDRNodeList
+ * @tc.name: UpdateDisplayHDRNodeMap001
+ * @tc.desc: test UpdateDisplayHDRNodeMap
  * @tc.type: FUNC
  * @tc.require: #IBPVN9
  */
-HWTEST_F(RSCanvasRenderNodeTest, UpdateScreenHDRNodeList001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, UpdateDisplayHDRNodeMap001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSCanvasRenderNode node1(nodeId);
-    node1.UpdateScreenHDRNodeList(false, 0);
+    node1.UpdateDisplayHDRNodeMap(false, 0);
 
-    NodeId screenRenderNodeId = 1;
-    ScreenId screenId = 0;
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
     RSCanvasRenderNode node(nodeId, context);
-    node.UpdateScreenHDRNodeList(false, 1);
+    node.UpdateDisplayHDRNodeMap(false, 1);
 
     auto& nodeMap = context->GetMutableNodeMap();
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
-    bool res = nodeMap.RegisterRenderNode(screenRenderNode);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    bool res = nodeMap.RegisterRenderNode(displayNode);
     ASSERT_EQ(res, true);
-    node.screenNodeId_ = screenRenderNodeId;
+    node.logicalDisplayNodeId_ = displayNodeId;
 
-    node.UpdateScreenHDRNodeList(true, 1);
-    EXPECT_NE(screenRenderNode->hdrNodeList_.find(nodeId), screenRenderNode->hdrNodeList_.end());
+    node.UpdateDisplayHDRNodeMap(true, 1);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(nodeId), displayNode->hdrNodeMap_.end());
 
-    node.UpdateScreenHDRNodeList(false, 1);
-    EXPECT_EQ(screenRenderNode->hdrNodeList_.find(nodeId), screenRenderNode->hdrNodeList_.end());
-
-    screenRenderNode->GetHDRNodeList();
+    node.UpdateDisplayHDRNodeMap(false, 1);
+    EXPECT_EQ(displayNode->hdrNodeMap_.find(nodeId), displayNode->hdrNodeMap_.end());
 }
 
 /**
- * @tc.name: GetHDRNodeList001
- * @tc.desc: test GetHDRNodeList
+ * @tc.name: GetHDRNodeMap001
+ * @tc.desc: test GetHDRNodeMap
  * @tc.type: FUNC
  * @tc.require: #IBPVN9
  */
-HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeList001, TestSize.Level1)
+HWTEST_F(RSCanvasRenderNodeTest, GetHDRNodeMap001, TestSize.Level1)
 {
-    NodeId screenRenderNodeId = 1;
-    ScreenId screenId = 0;
+    NodeId displayNodeId = 1;
+    RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
 
-    auto& hdrNodeList = screenRenderNode->GetHDRNodeList();
-    EXPECT_TRUE(hdrNodeList.empty());
+    auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+    EXPECT_TRUE(hdrNodeMap.empty());
 
-    screenRenderNode->InsertHDRNode(1);
-    EXPECT_NE(screenRenderNode->hdrNodeList_.find(1), screenRenderNode->hdrNodeList_.end());
+    displayNode->IncreaseHDRNode(1);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(1), displayNode->hdrNodeMap_.end());
 }
 
 /**
@@ -382,6 +381,49 @@ HWTEST_F(RSCanvasRenderNodeTest, ModifyWindowWideColorGamutNum001, TestSize.Leve
     ASSERT_EQ(surfaceNode->gamutCollector_.bt2020Num_, 1);
     node->ModifyWindowWideColorGamutNum(false, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020);
     ASSERT_EQ(surfaceNode->gamutCollector_.bt2020Num_, 0);
+}
+
+/**
+ * @tc.name: UpdateNodeColorSpace
+ * @tc.desc: test UpdateNodeColorSpace
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasRenderNodeTest, UpdateNodeColorSpace, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSCanvasRenderNode>(nodeId, context, true);
+    node->InitRenderParams();
+    // subTree colorspace: None/sRGB, colorGamut_: None/sRGB
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // subTree colorspace: P3, colorGamut_: None/sRGB
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: None/sRGB, colorGamut_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: P3, colorGamut_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: BT2020, colorGamut_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // subTree colorspace: sRGB, colorGamut_: BT2020
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorGamut_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
 }
 
 /**

@@ -600,22 +600,46 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
     CHECK_DEVICE_NULL(device_);
     layersId_.clear();
     fences_.clear();
-    return device_->CommitAndGetReleaseFence(
+    int32_t ret = device_->CommitAndGetReleaseFence(
         screenId_, fbFence, skipState, needFlush, layersId_, fences_, isValidated);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        for (const auto& [id, layer] : layerIdMap_) {
+            if (layer) {
+                layer->ClearBufferCache();
+            }
+        }
+        ClearBufferCache();
+    }
+    return ret;
+}
+
+void HdiOutput::UpdateThirdFrameAheadPresentFence(sptr<SyncFence> &fbFence)
+{
+    RS_TRACE_NAME_FMT("presentFenceIndex_ = %d", presentFenceIndex_);
+    if (historicalPresentfences_.size() == NUMBER_OF_HISTORICAL_FRAMES) {
+        thirdFrameAheadPresentFence_ = historicalPresentfences_[presentFenceIndex_];
+        historicalPresentfences_[presentFenceIndex_] = fbFence;
+        presentFenceIndex_ = (presentFenceIndex_ + 1) % NUMBER_OF_HISTORICAL_FRAMES;
+    } else {
+        historicalPresentfences_.push_back(fbFence);
+    }
 }
 
 int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
 {
     RS_TRACE_NAME("HdiOutput::UpdateInfosAfterCommit");
     std::unique_lock<std::mutex> lock(mutex_);
-    if (thirdFrameAheadPresentFence_ == nullptr) {
-        return GRAPHIC_DISPLAY_NULL_PTR;
-    }
     UpdatePrevRSLayerLocked();
 
     if (sampler_ == nullptr) {
         sampler_ = CreateVSyncSampler();
     }
+    if (thirdFrameAheadPresentFence_ == nullptr) {
+        return GRAPHIC_DISPLAY_NULL_PTR;
+    }
+    thirdFrameAheadPresentFenceFd_ = -1;
+    thirdFrameAheadPresentTime_ = SyncFence::FENCE_PENDING_TIMESTAMP;
+
     RS_TRACE_BEGIN("HdiOutput::SyncFileReadTimestamp");
     int64_t timestamp = thirdFrameAheadPresentFence_->SyncFileReadTimestamp();
     RS_TRACE_END();
@@ -638,6 +662,8 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
         if (presentTimeUpdated && uniRenderLayer) {
             RS_TRACE_NAME_FMT("HdiOutput::RecordMergedPresentTime %lld", timestamp);
             uniRenderLayer->RecordMergedPresentTime(timestamp);
+            thirdFrameAheadPresentFenceFd_ = thirdFrameAheadPresentFence_->Get();
+            thirdFrameAheadPresentTime_ = timestamp;
         }
     }
 
@@ -645,14 +671,8 @@ int32_t HdiOutput::UpdateInfosAfterCommit(sptr<SyncFence> fbFence)
     if (startSample) {
         ret = StartVSyncSampler();
     }
-    RS_TRACE_NAME_FMT("presentFenceIndex_ = %d", presentFenceIndex_);
-    if (historicalPresentfences_.size() == NUMBER_OF_HISTORICAL_FRAMES) {
-        thirdFrameAheadPresentFence_ = historicalPresentfences_[presentFenceIndex_];
-        historicalPresentfences_[presentFenceIndex_] = fbFence;
-        presentFenceIndex_ = (presentFenceIndex_ + 1) % NUMBER_OF_HISTORICAL_FRAMES;
-    } else {
-        historicalPresentfences_.push_back(fbFence);
-    }
+    UpdateThirdFrameAheadPresentFence(fbFence);
+    curPresentFd_ = fbFence->Get();
     return ret;
 }
 
@@ -1007,11 +1027,15 @@ void HdiOutput::ClearBufferCache()
     if (bufferCache_.empty()) {
         return;
     }
+    bufferCache_.clear();
+    if (device_ == nullptr) {
+        HLOGE("HdiOutput ClearBufferCache failed : HdiDevice is null");
+        return;
+    }
     int32_t ret = device_->ClearClientBuffer(screenId_);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGD("Call hdi ClearClientBuffer failed, ret is %{public}d", ret);
     }
-    bufferCache_.clear();
 }
 
 void HdiOutput::SetActiveRectSwitchStatus(bool flag)

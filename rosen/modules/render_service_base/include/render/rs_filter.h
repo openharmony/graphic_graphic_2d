@@ -89,11 +89,11 @@ public:
         BEZIER_WARP,
         DISPERSION,
         CONTENT_LIGHT,
-        SDF_EFFECT,
         GASIFY_SCALE_TWIST,
         GASIFY_BLUR,
         GASIFY,
         FROSTED_GLASS,
+        FROSTED_GLASS_BLUR,
     };
     FilterType GetFilterType() const
     {

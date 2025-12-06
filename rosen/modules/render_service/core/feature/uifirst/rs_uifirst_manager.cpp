@@ -59,7 +59,6 @@ namespace {
         auto curTime = std::chrono::system_clock::now().time_since_epoch();
         return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
     }
-    constexpr float CACHE_SIZE_SPIKE_THRESHOLD = 0.1f;
 };
 
 RSUifirstManager& RSUifirstManager::Instance()
@@ -1793,24 +1792,14 @@ bool RSUifirstManager::IsCacheSizeValid(RSSurfaceRenderNode& node)
     }
 
     bool cacheSizeStable = ROSEN_EQ(lastCachedSize.x_ / cachedSize.x_,
-        lastCachedSize.y_ / cachedSize.y_, CACHE_SIZE_SPIKE_THRESHOLD);
+        lastCachedSize.y_ / cachedSize.y_, sizeChangedThreshold_);
     if (cacheSizeStable) {
-        RS_OPTIONAL_TRACE_NAME_FMT("[%s] cacheSizeStable cur[%f %f] last[%f %f]", node.GetName().c_str(),
-            cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_);
         return true;
     }
 
-    bool isCacheSizeRotated = !ROSEN_EQ(cachedSize.x_, cachedSize.y_) &&
-            ROSEN_EQ(cachedSize.x_, lastCachedSize.y_) && ROSEN_EQ(cachedSize.y_, lastCachedSize.x_);
-    // Rotated check will be deleted when threshold has been setted by CCM
-    if (!isCacheSizeRotated) {
-        RS_OPTIONAL_TRACE_NAME_FMT("[%s] CacheSizeRotated cur[%f %f] last[%f %f]", node.GetName().c_str(),
-            cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_);
-        return true;
-    }
-
-    RS_TRACE_NAME_FMT("[%s] cachedSize invalid cur[%f %f] last[%f %f] gravity %d", node.GetName().c_str(),
-        cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_, static_cast<int32_t>(gravity));
+    RS_TRACE_NAME_FMT("[%s] cachedSize invalid cur[%f %f] last[%f %f] gravity:%d threshold:%f",
+        node.GetName().c_str(), cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_,
+        static_cast<int32_t>(gravity), sizeChangedThreshold_);
     return false;
 }
 
@@ -2328,10 +2317,11 @@ void RSUifirstManager::ReadUIFirstCcmParam()
     SetUiFirstType(UIFirstParam::GetUIFirstType());
     uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();
     clearCacheThreshold_ = UIFirstParam::GetClearCacheThreshold();
-    RS_LOGI("ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-        " uifirstType_=%{public}d uiFirstEnableWindowThreshold_=%{public}d clearCacheThreshold=%{public}d",
+    sizeChangedThreshold_ = UIFirstParam::GetSizeChangedThreshold();
+    RS_LOGI("ReadUIFirstCcmParam isUiFirstOn=%{public}d isCardUiFirstOn=%{public}d uifirstType=%{public}d"
+        " enableWindowThreshold=%{public}d clearCacheThreshold=%{public}d sizeChangedThreshold=%{public}f",
         isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_,
-        clearCacheThreshold_);
+        clearCacheThreshold_, sizeChangedThreshold_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)

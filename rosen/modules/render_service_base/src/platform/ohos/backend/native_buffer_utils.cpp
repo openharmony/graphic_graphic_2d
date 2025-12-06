@@ -79,7 +79,7 @@ bool CreateVkImage(RsVulkanContext& vkContext, VkImage* image,
     const VkExternalMemoryImageCreateInfo externalMemoryImageInfo {
         VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO, // sType
         &externalFormat, // pNext
-        VK_EXTERNAL_MEMORY_HANDLE_TYPE_OHOS_NATIVE_BUFFER_BIT_OHOS, // handleTypes
+        VK_EXTERNAL_MEMORY_HANDLE_TYPE_OH_NATIVE_BUFFER_BIT_OHOS, // handleTypes
     };
 
     VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;

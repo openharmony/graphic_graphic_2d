@@ -87,7 +87,7 @@ public:
 
     void GenerateAndUpdateGEVisualEffect();
 
-    void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound,
+    void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound, const Drawing::RectF& materialDst,
         float geoWidth, float geoHeight);
     void SetDisplayHeadroom(float headroom);
 
@@ -118,7 +118,6 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
 
     bool NeedForceSubmit() const override;
-
 private:
     struct DrawImageRectAttributes {
         Drawing::Rect src;

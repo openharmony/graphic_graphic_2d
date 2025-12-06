@@ -88,7 +88,8 @@ private:
     ErrCode FreezeScreen(NodeId id, bool isFreeze) override;
 
     void TakeUICaptureInRange(
-        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig) override;
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) override;
 
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
@@ -113,6 +114,13 @@ private:
     void SetScreenFrameGravity(ScreenId id, int32_t gravity) override;
 
     void ClearUifirstCache(NodeId id) override;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback) override;
+
+    int32_t SubmitCanvasPreAllocatedBuffer(
+        NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
+#endif
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

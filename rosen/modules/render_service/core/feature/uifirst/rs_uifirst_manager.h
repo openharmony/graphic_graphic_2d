@@ -419,6 +419,8 @@ private:
 
     // auto clear the cache when cache reuse count reach threshold
     int clearCacheThreshold_ = 0;
+
+    float sizeChangedThreshold_ = 0.1f;
 };
 
 // If a subnode is delivered directly

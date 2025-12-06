@@ -39,6 +39,8 @@ ani_status AniTypeface::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "getFamilyName", ":C{std.core.String}",
             reinterpret_cast<void*>(GetFamilyName) },
+        ani_native_function { "isBold", nullptr, reinterpret_cast<void*>(IsBold) },
+        ani_native_function { "isItalic", nullptr, reinterpret_cast<void*>(IsItalic) },
     };
 
     std::array statitMethods = {
@@ -215,6 +217,26 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
         return CreateAniUndefined(env);
     }
     return aniTypefaceObj;
+}
+
+ani_boolean AniTypeface::IsBold(ani_env* env, ani_object obj)
+{
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+    return aniTypeface->GetTypeface()->GetBold();
+}
+
+ani_boolean AniTypeface::IsItalic(ani_env* env, ani_object obj)
+{
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+        return false;
+    }
+    return aniTypeface->GetTypeface()->GetItalic();
 }
 
 ani_long AniTypeface::GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)

@@ -144,14 +144,14 @@ void RSRenderNodeGC::ReleaseNodeBucket()
         realDelNodeNum, vsyncArrived ? "true" : "false");
 }
 
-void RSRenderNodeGC::ReleaseNodeMemory()
+void RSRenderNodeGC::ReleaseNodeMemory(bool highPriority)
 {
     RS_TRACE_FUNC();
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
     if (mainTask_) {
         mainTask_([this]() {
             ReleaseNodeMemNotOnTree();
-        }, DELETE_NODE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
+        }, DELETE_NODE_OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::HIGH);
     } else {
         ReleaseNodeMemNotOnTree();
     }
@@ -166,15 +166,23 @@ void RSRenderNodeGC::ReleaseNodeMemory()
     }
     nodeGCLevel_ = JudgeGCLevel(remainBucketSize);
     if (mainTask_) {
-        auto task = [this]() {
+        auto task = [this, highPriority]() {
             if (isEnable_.load() == false &&
                 nodeGCLevel_ != GCLevel::IMMEDIATE) {
                 return;
             }
             ReleaseNodeBucket();
-            ReleaseNodeMemory();
+            if (highPriority && drawableReleaseFunc_) {
+                drawableReleaseFunc_(highPriority);
+            }
+            if (highPriority && imageReleaseFunc_) {
+                imageReleaseFunc_();
+            }
+            ReleaseNodeMemory(highPriority);
         };
-        mainTask_(task, DELETE_NODE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(nodeGCLevel_));
+        auto taskPriority = highPriority ? AppExecFwk::EventQueue::Priority::HIGH :
+                            static_cast<AppExecFwk::EventQueue::Priority>(nodeGCLevel_);
+        mainTask_(task, DELETE_NODE_TASK, 0, taskPriority);
     } else {
         ReleaseNodeBucket();
     }
@@ -236,7 +244,7 @@ void RSRenderNodeGC::ReleaseDrawableBucket()
     }
 }
 
-void RSRenderNodeGC::ReleaseDrawableMemory()
+void RSRenderNodeGC::ReleaseDrawableMemory(bool highPriority)
 {
     uint32_t remainBucketSize;
     {
@@ -248,9 +256,12 @@ void RSRenderNodeGC::ReleaseDrawableMemory()
     }
     drawableGCLevel_ = JudgeGCLevel(remainBucketSize);
     if (renderTask_) {
-        auto task = []() {
+        auto task = [this, highPriority]() {
             RSRenderNodeGC::Instance().ReleaseDrawableBucket();
-            RSRenderNodeGC::Instance().ReleaseDrawableMemory();
+            if (highPriority && imageReleaseFunc_) {
+                imageReleaseFunc_();
+            }
+            RSRenderNodeGC::Instance().ReleaseDrawableMemory(highPriority);
         };
         renderTask_(task, DELETE_DRAWABLE_TASK, 0, static_cast<AppExecFwk::EventQueue::Priority>(drawableGCLevel_));
     } else {
@@ -288,20 +299,23 @@ void RSRenderNodeGC::ReleaseOffTreeNodeBucket()
     ReleaseOffTreeNodeForBucketMap(callback);
 }
 
-void RSRenderNodeGC::ReleaseFromTree()
+void RSRenderNodeGC::ReleaseFromTree(AppExecFwk::EventQueue::Priority priority)
 {
     if (offTreeBucket_.empty() && offTreeBucketMap_.empty()) {
         return;
     }
     if (mainTask_) {
-        auto task = [this]() {
+        auto task = [this, priority]() {
             if (!isEnable_.load()) {
                 return;
             }
             ReleaseOffTreeNodeBucket();
-            ReleaseFromTree();
+            if (priority != AppExecFwk::EventQueue::Priority::IDLE) {
+                ReleaseNodeMemory(true);
+            }
+            ReleaseFromTree(priority);
         };
-        mainTask_(task, OFF_TREE_TASK, 0, AppExecFwk::EventQueue::Priority::IDLE);
+        mainTask_(task, OFF_TREE_TASK, 0, priority);
     } else {
         ReleaseOffTreeNodeBucket();
     }

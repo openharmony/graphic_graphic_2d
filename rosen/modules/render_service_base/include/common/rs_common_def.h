@@ -31,6 +31,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_anco_type.h"
 #include "draw/color.h"
+#include "../../../../utils/color_manager/export/color_space.h"
 
 namespace OHOS {
 class Surface;
@@ -56,6 +57,10 @@ constexpr uint8_t TOP_OCCLUSION_SURFACES_NUM = 3;
 constexpr uint8_t OCCLUSION_ENABLE_SCENE_NUM = 2;
 constexpr int16_t DEFAULT_OCCLUSION_SURFACE_ORDER = -1;
 constexpr int MAX_DIRTY_ALIGNMENT_SIZE = 128;
+static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
+constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
+constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
+constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
 
 /**
  * Bitmask enumeration for hierarchical type identification
@@ -302,6 +307,23 @@ struct RSUICaptureInRangeParam {
     bool useBeginNodeSize = true;
 };
 
+enum class CaptureError : uint8_t {
+    CAPTURE_OK = 0,
+    CAPTURE_NO_PERMISSION,
+    CAPTURE_NO_NODE,
+    CAPTURE_CONFIG_WRONG,
+    CAPTURE_PIXELMAP_NULL,
+    CAPTURE_PIXELMAP_COPY_ERROR,
+    CAPTURE_NULL_FAIL,
+    HDR_SET_FAIL,
+    CAPTURE_RENDER_FAIL,
+    AUTO_NOT_SUPPORT,
+    COLOR_SPACE_NOT_SUPPORT,
+    DYNAMIC_RANGE_NOT_SUPPORT,
+// please add new enum before this comment
+    CAPTURE_ERROR_BOUNDARY_BUTT,
+};
+
 struct RSSurfaceCaptureConfig {
     float scaleX = 1.0f;
     float scaleY = 1.0f;
@@ -314,9 +336,14 @@ struct RSSurfaceCaptureConfig {
     bool isSoloNodeUiCapture = false;
     bool isHdrCapture = false;
     bool needF16WindowCaptureForScRGB = false;
+    bool needErrorCode = false;
     RSUICaptureInRangeParam uiCaptureInRangeParam = {};
     Drawing::Rect specifiedAreaRect = {};
     uint32_t backGroundColor = Drawing::Color::COLOR_TRANSPARENT;
+    // {colorspace, isAutoAjust}
+    std::pair<uint32_t, bool> colorSpace = {OHOS::ColorManager::ColorSpaceName::SRGB, false};
+    // {dynamicRangeMode, isAutoAjust}
+    std::pair<uint32_t, bool> dynamicRangeMode = {DEFAULT_DYNAMIC_RANGE_MODE_STANDARD, false};
     bool operator==(const RSSurfaceCaptureConfig& config) const
     {
         return mainScreenRect == config.mainScreenRect &&

@@ -95,6 +95,51 @@ ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
     return aniFontMetrics;
 }
 
+static const std::array g_methods = {
+    ani_native_function { "constructorNative", ":",
+        reinterpret_cast<void*>(AniFont::Constructor) },
+    ani_native_function { "getMetrics", ":C{@ohos.graphics.drawing.drawing.FontMetrics}",
+        reinterpret_cast<void*>(AniFont::GetMetrics) },
+    ani_native_function { "getSize", ":d",
+        reinterpret_cast<void*>(AniFont::GetSize) },
+    ani_native_function { "getTypeface", nullptr, reinterpret_cast<void*>(AniFont::GetTypeface) },
+    ani_native_function { "enableSubpixel", nullptr, reinterpret_cast<void*>(AniFont::EnableSubpixel) },
+    ani_native_function { "enableEmbolden", nullptr, reinterpret_cast<void*>(AniFont::EnableEmbolden) },
+    ani_native_function { "enableLinearMetrics", nullptr, reinterpret_cast<void*>(AniFont::EnableLinearMetrics) },
+    ani_native_function { "setSize", "d:",
+        reinterpret_cast<void*>(AniFont::SetSize) },
+    ani_native_function { "setTypeface", "C{@ohos.graphics.drawing.drawing.Typeface}:",
+        reinterpret_cast<void*>(AniFont::SetTypeface) },
+    ani_native_function { "measureSingleCharacter", nullptr,
+        reinterpret_cast<void*>(AniFont::MeasureSingleCharacter) },
+    ani_native_function { "getWidths", nullptr, reinterpret_cast<void*>(AniFont::GetWidths) },
+    ani_native_function { "textToGlyphs", nullptr, reinterpret_cast<void*>(AniFont::TextToGlyphs) },
+    ani_native_function { "setBaselineSnap", nullptr, reinterpret_cast<void*>(AniFont::SetBaselineSnap) },
+    ani_native_function { "isBaselineSnap", nullptr, reinterpret_cast<void*>(AniFont::IsBaselineSnap) },
+    ani_native_function { "setEmbeddedBitmaps", nullptr, reinterpret_cast<void*>(AniFont::SetEmbeddedBitmaps) },
+    ani_native_function { "getSkewX", nullptr, reinterpret_cast<void*>(AniFont::GetSkewX) },
+    ani_native_function { "isEmbeddedBitmaps", nullptr, reinterpret_cast<void*>(AniFont::IsEmbeddedBitmaps) },
+    ani_native_function { "setForceAutoHinting", nullptr, reinterpret_cast<void*>(AniFont::SetForceAutoHinting) },
+    ani_native_function { "measureText", nullptr, reinterpret_cast<void*>(AniFont::MeasureText) },
+    ani_native_function { "setScaleX", nullptr, reinterpret_cast<void*>(AniFont::SetScaleX) },
+    ani_native_function { "isSubpixel", nullptr, reinterpret_cast<void*>(AniFont::IsSubpixel) },
+    ani_native_function { "isLinearMetrics", nullptr, reinterpret_cast<void*>(AniFont::IsLinearMetrics) },
+    ani_native_function { "isEmbolden", nullptr, reinterpret_cast<void*>(AniFont::IsEmbolden) },
+    ani_native_function { "setHinting", nullptr, reinterpret_cast<void*>(AniFont::SetHinting) },
+    ani_native_function { "countText", nullptr, reinterpret_cast<void*>(AniFont::CountText) },
+    ani_native_function { "setSkewX", nullptr, reinterpret_cast<void*>(AniFont::SetSkewX) },
+    ani_native_function { "setEdging", nullptr, reinterpret_cast<void*>(AniFont::SetEdging) },
+    ani_native_function { "isForceAutoHinting", nullptr, reinterpret_cast<void*>(AniFont::IsForceAutoHinting) },
+    ani_native_function { "getScaleX", nullptr, reinterpret_cast<void*>(AniFont::GetScaleX) },
+    ani_native_function { "getHinting", nullptr, reinterpret_cast<void*>(AniFont::GetHinting) },
+    ani_native_function { "getEdging", nullptr, reinterpret_cast<void*>(AniFont::GetEdging) },
+    ani_native_function { "createPathForGlyph", nullptr, reinterpret_cast<void*>(AniFont::CreatePathForGlyph) },
+    ani_native_function { "getBounds", nullptr, reinterpret_cast<void*>(AniFont::GetBounds) },
+    ani_native_function { "getTextPath", nullptr, reinterpret_cast<void*>(AniFont::GetTextPath) },
+    ani_native_function { "setThemeFontFollowed", nullptr, reinterpret_cast<void*>(AniFont::SetThemeFontFollowed) },
+    ani_native_function { "isThemeFontFollowed", nullptr, reinterpret_cast<void*>(AniFont::IsThemeFontFollowed) },
+};
+
 ani_status AniFont::AniInit(ani_env *env)
 {
     ani_class cls = nullptr;
@@ -103,52 +148,7 @@ ani_status AniFont::AniInit(ani_env *env)
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_FONT_NAME);
         return ANI_NOT_FOUND;
     }
-
-    std::array methods = {
-        ani_native_function { "constructorNative", ":",
-            reinterpret_cast<void*>(Constructor) },
-        ani_native_function { "getMetrics", ":C{@ohos.graphics.drawing.drawing.FontMetrics}",
-            reinterpret_cast<void*>(GetMetrics) },
-        ani_native_function { "getSize", ":d",
-            reinterpret_cast<void*>(GetSize) },
-        ani_native_function { "getTypeface", nullptr, reinterpret_cast<void*>(GetTypeface) },
-        ani_native_function { "enableSubpixel", nullptr, reinterpret_cast<void*>(EnableSubpixel) },
-        ani_native_function { "enableEmbolden", nullptr, reinterpret_cast<void*>(EnableEmbolden) },
-        ani_native_function { "enableLinearMetrics", nullptr, reinterpret_cast<void*>(EnableLinearMetrics) },
-        ani_native_function { "setSize", "d:",
-            reinterpret_cast<void*>(SetSize) },
-        ani_native_function { "setTypeface", "C{@ohos.graphics.drawing.drawing.Typeface}:",
-            reinterpret_cast<void*>(SetTypeface) },
-        ani_native_function { "measureSingleCharacter", nullptr, reinterpret_cast<void*>(MeasureSingleCharacter) },
-        ani_native_function { "getWidths", nullptr, reinterpret_cast<void*>(GetWidths) },
-        ani_native_function { "textToGlyphs", nullptr, reinterpret_cast<void*>(TextToGlyphs) },
-        ani_native_function { "setBaselineSnap", nullptr, reinterpret_cast<void*>(SetBaselineSnap) },
-        ani_native_function { "isBaselineSnap", nullptr, reinterpret_cast<void*>(IsBaselineSnap) },
-        ani_native_function { "setEmbeddedBitmaps", nullptr, reinterpret_cast<void*>(SetEmbeddedBitmaps) },
-        ani_native_function { "getSkewX", nullptr, reinterpret_cast<void*>(GetSkewX) },
-        ani_native_function { "isEmbeddedBitmaps", nullptr, reinterpret_cast<void*>(IsEmbeddedBitmaps) },
-        ani_native_function { "setForceAutoHinting", nullptr, reinterpret_cast<void*>(SetForceAutoHinting) },
-        ani_native_function { "measureText", nullptr, reinterpret_cast<void*>(MeasureText) },
-        ani_native_function { "setScaleX", nullptr, reinterpret_cast<void*>(SetScaleX) },
-        ani_native_function { "isSubpixel", nullptr, reinterpret_cast<void*>(IsSubpixel) },
-        ani_native_function { "isLinearMetrics", nullptr, reinterpret_cast<void*>(IsLinearMetrics) },
-        ani_native_function { "isEmbolden", nullptr, reinterpret_cast<void*>(IsEmbolden) },
-        ani_native_function { "setHinting", nullptr, reinterpret_cast<void*>(SetHinting) },
-        ani_native_function { "countText", nullptr, reinterpret_cast<void*>(CountText) },
-        ani_native_function { "setSkewX", nullptr, reinterpret_cast<void*>(SetSkewX) },
-        ani_native_function { "setEdging", nullptr, reinterpret_cast<void*>(SetEdging) },
-        ani_native_function { "isForceAutoHinting", nullptr, reinterpret_cast<void*>(IsForceAutoHinting) },
-        ani_native_function { "getScaleX", nullptr, reinterpret_cast<void*>(GetScaleX) },
-        ani_native_function { "getHinting", nullptr, reinterpret_cast<void*>(GetHinting) },
-        ani_native_function { "getEdging", nullptr, reinterpret_cast<void*>(GetEdging) },
-        ani_native_function { "createPathForGlyph", nullptr, reinterpret_cast<void*>(CreatePathForGlyph) },
-        ani_native_function { "getBounds", nullptr, reinterpret_cast<void*>(GetBounds) },
-        ani_native_function { "getTextPath", nullptr, reinterpret_cast<void*>(GetTextPath) },
-        ani_native_function { "setThemeFontFollowed", nullptr, reinterpret_cast<void*>(SetThemeFontFollowed) },
-        ani_native_function { "isThemeFontFollowed", nullptr, reinterpret_cast<void*>(IsThemeFontFollowed) },
-    };
-
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_FONT_NAME);
         return ANI_NOT_FOUND;
@@ -469,8 +469,7 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_object glyphs)
         if (aniObj == CreateAniUndefined(env)) {
             return CreateAniUndefined(env);
         }
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set",
-            "iY:", (ani_int)i, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", (ani_int)i, aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::GetWidths Failed to set width item");
             return CreateAniUndefined(env);
@@ -804,8 +803,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_object glyphs)
     for (uint32_t i = 0; i < glyphscnt; i++) {
         ani_object aniObj;
         CreateRectObj(env, rectPtr[i], aniObj);
-        ani_status ret = env->Object_CallMethodByName_Void(arrayObj,
-            "$_set", "iY:", (ani_int)i, aniObj);
+        ani_status ret = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", (ani_int)i, aniObj);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniFont::GetBounds Failed to set rect item");
             return CreateAniUndefined(env);

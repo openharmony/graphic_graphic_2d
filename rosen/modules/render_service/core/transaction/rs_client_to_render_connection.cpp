@@ -50,6 +50,9 @@
 #ifdef RS_ENABLE_GPU
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "memory/rs_canvas_dma_buffer_cache.h"
+#endif
 #include "memory/rs_memory_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -331,7 +334,6 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
         RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
         return;
     }
-
     std::function<void()> captureTask = [id, callback, captureConfig, blurParam, specifiedAreaRect,
         screenCapturePermission = permissions.screenCapturePermission,
         isSystemCalling = permissions.isSystemCalling,
@@ -347,7 +349,7 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
                 RS_LOGE("TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
                         "], isSystemCalling: %{public}u, selfCapture: %{public}u",
                     id, isSystemCalling, selfCapture);
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_PERMISSION);
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {
@@ -572,9 +574,17 @@ ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool i
 }
 
 void RSClientToRenderConnection::TakeUICaptureInRange(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
+    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
+    RSSurfaceCapturePermissions permissions)
 {
-    std::function<void()> captureTask = [id, callback, captureConfig]() -> void {
+    std::function<void()> captureTask = [id, callback, captureConfig,
+        isSystemCalling = permissions.isSystemCalling]() -> void {
+        if (!isSystemCalling) {
+            RS_LOGE("TakeUICaptureInRange failed, not system calling, nodeId:[%{public}" PRIu64
+                "], isSystemCalling: %{public}u", id, isSystemCalling);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_PERMISSION);
+            return;
+        }
         RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeUICaptureInRange captureTask nodeId:[%" PRIu64 "]", id);
         RS_LOGD("RSClientToRenderConnection::TakeUICaptureInRange captureTask nodeId:[%{public}" PRIu64 "]", id);
         TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
@@ -777,5 +787,30 @@ void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
     };
     mainThread_->PostTask(task);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void RSClientToRenderConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
+{
+    RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+}
+
+int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
+    NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
+{
+    if (mainThread_ == nullptr) {
+        return INVALID_ARGUMENTS;
+    }
+    if (ExtractPid(nodeId) != remotePid_) {
+        RS_LOGE("SubmitCanvasPreAllocatedBuffer: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d",
+            nodeId, remotePid_);
+        return INVALID_ARGUMENTS;
+    }
+    auto task = [nodeId, buffer, resetSurfaceIndex]() {
+        bool success = RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
+        return success ? SUCCESS : INVALID_ARGUMENTS;
+    };
+    return mainThread_->ScheduleTask(task).get();
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

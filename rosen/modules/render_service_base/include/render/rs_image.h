@@ -112,6 +112,7 @@ public:
     void SetCompressData(const std::shared_ptr<Drawing::Data> data, uint32_t id, int width, int height);
 
     bool HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canvas& canvas);
+    bool IsHDRUiCapture() const;
     void SetPaint(Drawing::Paint paint);
     void SetDynamicRangeMode(uint32_t dynamicRangeMode);
 
@@ -173,6 +174,10 @@ private:
     void DrawImageWithFirMatrixRotateOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
     void ApplyImageOrientation(Drawing::Canvas& canvas);
+    void RsImageDraw(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+        const bool hdrImageDraw);
+    void DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+        int& minX, int& maxX, int& minY, int& maxY);
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(

@@ -412,19 +412,6 @@ HWTEST_F(RSSurfaceRenderNodeThreeTest, GetChildHardwareEnabledNodes, TestSize.Le
 }
 
 /**
- * @tc.name: UpdateSurfaceCacheContentStatic
- * @tc.desc: test results of UpdateSurfaceCacheContentStatic
- * @tc.type: FUNC
- * @tc.require: issueI9L0VL
- */
-HWTEST_F(RSSurfaceRenderNodeThreeTest, UpdateSurfaceCacheContentStatic001, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    node->UpdateSurfaceCacheContentStatic();
-    ASSERT_EQ(node->dirtyContentNodeNum_, 0);
-}
-
-/**
  * @tc.name: GetChildrenNeedFilterRectsCacheValid
  * @tc.desc: test results of GetChildrenNeedFilterRectsCacheValid
  * @tc.type: FUNC

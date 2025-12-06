@@ -1870,22 +1870,23 @@ bool RSPaintFilterCanvas::GetDarkColorMode() const
 
 uint32_t RSPaintFilterCanvasBase::SaveClipRRect(std::shared_ptr<ClipRRectData> data)
 {
-    RSPaintFilterCanvas::DrawFunc customFunc = [clipRRectData = data](Drawing::Canvas *canvas) {
-        if (canvas == nullptr || clipRRectData == nullptr) {
+    RSPaintFilterCanvas::DrawFunc customFunc = [clipRRectData = data](Drawing::Canvas& canvas) {
+        if (clipRRectData == nullptr) {
             return;
         }
-        canvas->Save();
-        canvas->ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
-        canvas->ResetMatrix();
+        canvas.Save();
+        canvas.ClipRoundRect(clipRRectData->rRect_, Drawing::ClipOp::DIFFERENCE, true);
+        canvas.ResetMatrix();
         for (auto& corner : clipRRectData->data_) {
             if (corner != nullptr && corner->image_ != nullptr && !corner->rect_.IsEmpty()) {
                 Drawing::Brush brush;
                 brush.SetBlendMode(Drawing::BlendMode::SRC);
-                canvas->AttachBrush(brush);
-                canvas->DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
-                canvas->DetachBrush();
+                canvas.AttachBrush(brush);
+                canvas.DrawImageRect(*(corner->image_), corner->rect_, Drawing::SamplingOptions());
+                canvas.DetachBrush();
             }
         }
+        canvas.Restore();
     };
     return CustomSaveLayer(customFunc);
 }
@@ -1922,8 +1923,7 @@ void RSPaintFilterCanvasBase::DrawCustomFunc(Drawing::Canvas* canvas, DrawFunc d
     if (canvas == nullptr) {
         return;
     }
-    drawFunc(canvas);
-    canvas->Restore();
+    drawFunc(*canvas);
 }
 
 std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::GenerateCornerData(
@@ -1938,22 +1938,26 @@ std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::Genera
     switch (pos) {
         case Drawing::RoundRect::CornerPos::TOP_LEFT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetLeft(), rect.GetTop(), rect.GetLeft() + radius.GetX(), rect.GetTop() + radius.GetY());
+                rect.GetLeft(), rect.GetTop(),
+                rect.GetLeft() + radius.GetX() * MAX_CURVE_X, rect.GetTop() + radius.GetY() * MAX_CURVE_X);
             break;
         }
         case Drawing::RoundRect::CornerPos::TOP_RIGHT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetRight() - radius.GetX(), rect.GetTop(), rect.GetRight(), rect.GetTop() + radius.GetY());
+                rect.GetRight() - radius.GetX() * MAX_CURVE_X, rect.GetTop(),
+                rect.GetRight(), rect.GetTop() + radius.GetY() * MAX_CURVE_X);
             break;
         }
         case Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetLeft(), rect.GetBottom() - radius.GetY(), rect.GetLeft() + radius.GetX(), rect.GetBottom());
+                rect.GetLeft(), rect.GetBottom() - radius.GetY() * MAX_CURVE_X,
+                rect.GetLeft() + radius.GetX() * MAX_CURVE_X, rect.GetBottom());
             break;
         }
         case Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetRight() - radius.GetX(), rect.GetBottom() - radius.GetY(), rect.GetRight(), rect.GetBottom());
+                rect.GetRight() - radius.GetX() * MAX_CURVE_X, rect.GetBottom() - radius.GetY() * MAX_CURVE_X,
+                rect.GetRight(), rect.GetBottom());
             break;
         }
         default: {

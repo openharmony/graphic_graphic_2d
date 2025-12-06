@@ -105,6 +105,7 @@ struct RS_EXPORT TypographyStyle {
     float paragraphSpacing{0.0f};
     bool isEndAddParagraphSpacing{false};
     bool isTrailingSpaceOptimized{false};
+    bool compressHeadPunctuation{false};
     bool enableAutoSpace{false};
     TextVerticalAlign verticalAlignment{TextVerticalAlign::BASELINE};
 
@@ -133,6 +134,8 @@ struct RS_EXPORT TypographyStyle {
     double minLineHeight{0.0f};
     double lineSpacing{0.0f};
     LineHeightStyle lineHeightStyle{LineHeightStyle::kFontSize};
+    bool includeFontPadding{false};
+    bool fallbackLineSpacing{false};
 };
 } // namespace Rosen
 } // namespace OHOS

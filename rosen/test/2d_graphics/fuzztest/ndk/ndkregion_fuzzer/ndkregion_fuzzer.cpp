@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -71,6 +71,63 @@ void NativeDrawingRegionTest001(const uint8_t* data, size_t size)
     OH_Drawing_RegionDestroy(nullptr);
 }
 
+void NativeDrawingRegionTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return;
+    }
+
+    OH_Drawing_Region* region = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(
+        GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>());
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+    OH_Drawing_RegionSetRect(region, rect);
+    OH_Drawing_RegionGetBoundaryPath(nullptr, path);
+    OH_Drawing_RegionGetBoundaryPath(region, nullptr);
+    OH_Drawing_RegionGetBoundaryPath(region, path);
+
+    OH_Drawing_RegionGetBounds(nullptr, rect);
+    OH_Drawing_RegionGetBounds(region, nullptr);
+    OH_Drawing_RegionGetBounds(region, rect);
+
+    bool isComplex = false;
+    OH_Drawing_RegionIsComplex(nullptr, &isComplex);
+    OH_Drawing_RegionIsComplex(region, nullptr);
+    OH_Drawing_RegionIsComplex(region, &isComplex);
+
+    bool isEmpty = false;
+    OH_Drawing_RegionIsEmpty(nullptr, &isEmpty);
+    OH_Drawing_RegionIsEmpty(region, nullptr);
+    OH_Drawing_RegionIsEmpty(region, &isEmpty);
+
+    bool isRect = false;
+    OH_Drawing_RegionIsRect(nullptr, &isRect);
+    OH_Drawing_RegionIsRect(region, nullptr);
+    OH_Drawing_RegionIsRect(region, &isRect);
+
+    bool isContains = false;
+    OH_Drawing_RegionQuickContains(nullptr,
+        GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), &isContains);
+    OH_Drawing_RegionQuickContains(region,
+        GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), nullptr);
+    OH_Drawing_RegionQuickContains(region,
+        GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), &isContains);
+
+    bool isReject = false;
+    OH_Drawing_RegionQuickReject(nullptr,
+        GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), &isReject);
+    OH_Drawing_RegionQuickReject(region,
+        GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), nullptr);
+    OH_Drawing_RegionQuickReject(region,
+        GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), GetObject<int32_t>(), &isReject);
+
+    OH_Drawing_RegionTranslate(nullptr, GetObject<int32_t>(), GetObject<int32_t>());
+    OH_Drawing_RegionTranslate(region, GetObject<int32_t>(), GetObject<int32_t>());
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RectDestroy(rect);
+    OH_Drawing_PathDestroy(path);
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -85,5 +142,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::Drawing::NativeDrawingRegionTest001(data, size);
+    OHOS::Rosen::Drawing::NativeDrawingRegionTest002(data, size);
     return 0;
 }

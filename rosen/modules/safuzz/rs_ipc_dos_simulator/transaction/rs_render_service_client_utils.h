@@ -251,7 +251,7 @@ public:
     ~CustomScreenChangeCallback() override {};
 
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason) override
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override
     {
         if (cb_ != nullptr) {
             cb_(id, event, reason);
@@ -283,11 +283,11 @@ public:
     explicit SurfaceCaptureCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
-        Media::PixelMap* pixelmapHDR = nullptr) override
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
         std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, captureErrorCode, surfaceCaptureHDR);
     };
 
 private:

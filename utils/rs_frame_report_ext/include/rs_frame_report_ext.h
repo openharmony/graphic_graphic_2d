@@ -16,6 +16,7 @@
 #ifndef UTILS_RS_FRAME_REPORT_EXT_H
 #define UTILS_RS_FRAME_REPORT_EXT_H
 
+#include <mutex>
 #include <string>
 
 namespace OHOS {
@@ -49,6 +50,11 @@ private:
     HandleSwapBufferFunc handleSwapBufferFunc_ = nullptr;
     RequestNextVSyncFunc requestNextVSyncFunc_ = nullptr;
     ReceiveVSyncFunc receiveVSyncFunc_ = nullptr;
+
+    std::mutex getEnableFuncLock_;
+    std::mutex handleSwapBufferFuncLock_;
+    std::mutex requestNextVSyncFuncLock_;
+    std::mutex receiveVSyncFuncLock_;
 };
 } // namespace Rosen
 } // namespace OHOS

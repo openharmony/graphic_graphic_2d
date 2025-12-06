@@ -31,7 +31,8 @@ public:
     virtual ~RSISurfaceCaptureCallback() noexcept = default;
 
     virtual void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) = 0;
+        Media::PixelMap* pixelmap, CaptureError captureErrorCode = CaptureError::CAPTURE_OK,
+        Media::PixelMap* pixelmapHDR = nullptr) = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,16 @@ static const Path* CastToPath(const OH_Drawing_Path* cPath)
     return reinterpret_cast<const Path*>(cPath);
 }
 
+static Path* CastToPath(OH_Drawing_Path* cPath)
+{
+    return reinterpret_cast<Path*>(cPath);
+}
+
+static const Region* CastToRegion(const OH_Drawing_Region* cRegion)
+{
+    return reinterpret_cast<const Region*>(cRegion);
+}
+
 static Region* CastToRegion(OH_Drawing_Region* cRegion)
 {
     return reinterpret_cast<Region*>(cRegion);
@@ -36,6 +46,11 @@ static Region* CastToRegion(OH_Drawing_Region* cRegion)
 static const Rect* CastToRect(const OH_Drawing_Rect* cRect)
 {
     return reinterpret_cast<const Rect*>(cRect);
+}
+
+static Rect* CastToRect(OH_Drawing_Rect* cRect)
+{
+    return reinterpret_cast<Rect*>(cRect);
 }
 
 OH_Drawing_Region* OH_Drawing_RegionCreate()
@@ -125,3 +140,92 @@ OH_Drawing_ErrorCode OH_Drawing_RegionEmpty(OH_Drawing_Region* cRegion)
     return OH_DRAWING_SUCCESS;
 }
 // LCOV_EXCL_STOP
+
+OH_Drawing_ErrorCode OH_Drawing_RegionGetBoundaryPath(const OH_Drawing_Region* cRegion, OH_Drawing_Path* cPath)
+{
+    const Region* region = CastToRegion(cRegion);
+    Path* path = CastToPath(cPath);
+    if (region == nullptr || path == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *path = Path();
+    region->GetBoundaryPath(path);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionGetBounds(const OH_Drawing_Region* cRegion, OH_Drawing_Rect* cRect)
+{
+    const Region* region = CastToRegion(cRegion);
+    Rect* rect = CastToRect(cRect);
+    if (region == nullptr || rect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    RectI rectI = region->GetBounds();
+    rect->SetLeft(rectI.GetLeft());
+    rect->SetTop(rectI.GetTop());
+    rect->SetRight(rectI.GetRight());
+    rect->SetBottom(rectI.GetBottom());
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionIsComplex(const OH_Drawing_Region* cRegion, bool* isComplex)
+{
+    const Region* region = CastToRegion(cRegion);
+    if (region == nullptr || isComplex == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isComplex = region->IsComplex();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionIsEmpty(const OH_Drawing_Region* cRegion, bool* isEmpty)
+{
+    const Region* region = CastToRegion(cRegion);
+    if (region == nullptr || isEmpty == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isEmpty = region->IsEmpty();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionIsRect(const OH_Drawing_Region* cRegion, bool* isRect)
+{
+    const Region* region = CastToRegion(cRegion);
+    if (region == nullptr || isRect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isRect = region->IsRect();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionQuickContains(const OH_Drawing_Region* cRegion,
+    int32_t left, int32_t top, int32_t right, int32_t bottom, bool* isContained)
+{
+    const Region* region = CastToRegion(cRegion);
+    if (region == nullptr || isContained == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isContained = region->QuickContains(RectI{left, top, right, bottom});
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionQuickReject(const OH_Drawing_Region* cRegion,
+    int32_t left, int32_t top, int32_t right, int32_t bottom, bool* isReject)
+{
+    const Region* region = CastToRegion(cRegion);
+    if (region == nullptr || isReject == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isReject = region->QuickReject(RectI{left, top, right, bottom});
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RegionTranslate(OH_Drawing_Region* cRegion, int32_t dx, int32_t dy)
+{
+    Region* region = CastToRegion(cRegion);
+    if (region == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    region->Translate(dx, dy);
+    return OH_DRAWING_SUCCESS;
+}

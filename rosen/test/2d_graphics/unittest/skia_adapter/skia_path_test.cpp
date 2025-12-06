@@ -403,6 +403,23 @@ HWTEST_F(SkiaPathTest, SkiaPathSetPath001, TestSize.Level1)
     SkPath skPath = skiaPath.GetPath();
     ASSERT_TRUE(!skPath.isEmpty());
 }
+
+/*
+ * @tc.name: SkiaPathIsInverseFillType001
+ * @tc.desc: Test SkiaPathIsInverseFillType
+ * @tc.type: FUNC
+ * @tc.require: 20648
+ */
+HWTEST_F(SkiaPathTest, SkiaPathIsInverseFillType001, TestSize.Level1)
+{
+    SkiaPath skiaPath;
+    EXPECT_EQ(skiaPath.IsInverseFillType(), false);
+    SkPath& skPath = skiaPath.GetMutablePath();
+    skPath.toggleInverseFillType();
+    EXPECT_EQ(skiaPath.IsInverseFillType(), true);
+    skPath.toggleInverseFillType();
+    EXPECT_EQ(skiaPath.IsInverseFillType(), false);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

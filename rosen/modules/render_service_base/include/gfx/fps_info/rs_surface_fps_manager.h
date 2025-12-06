@@ -32,7 +32,11 @@ public:
     static RSSurfaceFpsManager &GetInstance();
     bool RegisterSurfaceFps(NodeId id, const std::string& name);
     bool UnregisterSurfaceFps(NodeId id);
-    bool RecordPresentTime(NodeId id, uint64_t timestamp, uint32_t seqNum);
+    bool RecordFlushTime(NodeId id, uint64_t vsyncId, uint64_t timestamp);
+    bool RecordPresentFd(NodeId id, uint64_t vsyncId, int32_t presentFd);
+    bool RecordPresentTime(NodeId id, int32_t presentFd, uint64_t timestamp);
+    void RecordPresentFdForUniRender(uint64_t vsyncId, int32_t presentFd);
+    void RecordPresentTimeForUniRender(int32_t presentFd, uint64_t timestamp);
     void Dump(std::string& result, const std::string& name);
     void ClearDump(std::string& result, const std::string& name);
     void Dump(std::string& result, NodeId id);

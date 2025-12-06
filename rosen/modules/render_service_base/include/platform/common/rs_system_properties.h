@@ -181,6 +181,7 @@ public:
     static bool GetAceTestMode();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static AdvancedDirtyRegionType GetAdvancedDirtyRegionEnabled();
+    static bool GetAnimationOcclusionEnabled();
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
@@ -374,6 +375,7 @@ public:
     static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();
+    static bool GetVKImageAdaptationForWallpaperEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
@@ -389,6 +391,7 @@ public:
     static bool GetSupportScreenFreezeEnabled();
     static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
+    static bool GetPreparePhaseQuickSkipEnabled();
 
     static bool GetBootCompleted();
 
@@ -397,6 +400,10 @@ public:
     static bool GetNodeMemClearEnabled();
 
     static bool GetRSNodeExceedKillEnabled();
+
+    static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
+    static bool GetCanvasDrawingNodeRenderDmaEnabled();
+    static bool GetDefaultMemClearEnabled();
 
 private:
     RSSystemProperties() = default;

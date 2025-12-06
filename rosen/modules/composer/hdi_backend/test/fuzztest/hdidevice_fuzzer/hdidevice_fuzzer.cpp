@@ -23,7 +23,7 @@ using namespace OHOS::Rosen;
 
 namespace OHOS {
     namespace {
-        constexpr int DEFAULT_FENCE = 100;
+        constexpr int DEFAULT_FENCE = -1;
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
@@ -59,6 +59,8 @@ namespace OHOS {
         GraphicHDRMetadataKey key = GetData<GraphicHDRMetadataKey>();
         GraphicPresentTimestamp timestamp = GetData<GraphicPresentTimestamp>();
         uint32_t maskInfo = GetData<uint32_t>();
+        uint64_t tunnelId = GetData<uint64_t>();
+        uint32_t property = GetData<uint32_t>();
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
@@ -67,6 +69,8 @@ namespace OHOS {
         std::vector<uint8_t> metaDatas2 = {metaData2};
         device->SetLayerMetaDataSet(screenId, layerId, key, metaDatas2);
         device->SetLayerTunnelHandle(screenId, layerId, nullptr);
+        device->SetTunnelLayerId(screenId, layerId, tunnelId);
+        device->SetTunnelLayerProperty(screenId, layerId, property);
         device->GetPresentTimestamp(screenId, layerId, timestamp);
         device->SetLayerMaskInfo(screenId, layerId, maskInfo);
 
@@ -83,11 +87,14 @@ namespace OHOS {
         GraphicColorGamut gamut = GetData<GraphicColorGamut>();
         uint32_t screenId = GetData<uint32_t>();
         uint32_t layerId = GetData<uint32_t>();
-        int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
-        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
-        fenceFd = ((fenceFd >= 0 && fenceFd <= 2) ? DEFAULT_FENCE : fenceFd);
-        sptr<SyncFence> fence = new SyncFence(fenceFd);
-        GraphicLayerAlpha alpha = GetData<GraphicLayerAlpha>();
+        sptr<SyncFence> fence = new SyncFence(DEFAULT_FENCE);
+        GraphicLayerAlpha alpha = {
+            .enGlobalAlpha = GetData<bool>(),
+            .enPixelAlpha = GetData<bool>(),
+            .alpha0 = GetData<uint8_t>(),
+            .alpha1 = GetData<uint8_t>(),
+            .gAlpha = GetData<uint8_t>()
+        };
         GraphicIRect layerRect = GetData<GraphicIRect>();
         GraphicTransformType ttype = GetData<GraphicTransformType>();
         GraphicIRect visible = GetData<GraphicIRect>();
@@ -142,12 +149,7 @@ namespace OHOS {
         // get data
         uint32_t screenId = GetData<uint32_t>();
         bool needFlush = GetData<bool>();
-        int32_t fenceFd = GetData<int32_t>() % 32768; // maximum fd of linux is 32768
-        // fd 0,1,2 represent stdin, stdout and stderr respectively, they should not be closed.
-        if (fenceFd >= 0 && fenceFd <= 2) {
-            fenceFd = DEFAULT_FENCE;
-        }
-        sptr<SyncFence> fence = new SyncFence(fenceFd);
+        sptr<SyncFence> fence = new SyncFence(DEFAULT_FENCE);
         uint32_t cacheIndex = GetData<uint32_t>();
         GraphicIRect damageRect = GetData<GraphicIRect>();
         std::vector<GraphicIRect> damageRects = { damageRect };
@@ -158,9 +160,12 @@ namespace OHOS {
         float maxLum = GetData<float>();
         float maxAverageLum = GetData<float>();
         float minLum = GetData<float>();
+        uint32_t propertyId = GetData<uint32_t>();
+        uint64_t propertyValue = GetData<uint64_t>();
 
         // test
         HdiDevice *device = HdiDevice::GetInstance();
+        device->SetDisplayProperty(screenId, propertyId, propertyValue);
         device->PrepareScreenLayers(screenId, needFlush);
         std::vector<uint32_t> layersId;
         std::vector<int32_t> types;
