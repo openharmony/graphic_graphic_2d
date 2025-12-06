@@ -78,9 +78,21 @@ public:
     ~TestSurfaceCaptureCallback() override {}
     void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) override
     {
+        isOnCallBack_ = true;
     }
     void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
-        std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+        std::shared_ptr<Media::PixelMap> pixelMapHDR) override
+    {
+        isOnCallBack_ = true;
+    }
+
+    void OnSurfaceCaptureWithErrorCode(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelMapHDR, CaptureError captureErrorCode) override
+    {
+        isOnCallBack_ = true;
+    }
+
+    bool isOnCallBack_ = false;
 };
 
 /**
@@ -381,5 +393,64 @@ HWTEST_F(RSPipelineClientTest, FreezeScreen, TestSize.Level1)
     ASSERT_EQ(ret, true);
 }
 
+/**
+ * @tc.name: TriggerSurfaceCaptureCallback001
+ * @tc.desc: TriggerSurfaceCaptureCallback
+ * @tc.type:FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback001, TestSize.Level1)
+{
+    NodeId id = 0;
+    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.isHdrCapture = true;
+    std::shared_ptr<TestSurfaceCaptureCallback> callback = std::make_shared<TestSurfaceCaptureCallback>();
+ 
+    std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+    rsRenderPipelineClient->surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+ 
+    Media::InitializationOptions opts;
+    opts.size.width = 480;
+    opts.size.height = 320;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> pixelMapHDR = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapHDR, nullptr);
+ 
+    rsRenderPipelineClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelMap,
+        CaptureError::CAPTURE_OK, pixelMapHDR);
+    EXPECT_TRUE(callback->isOnCallBack_);
+}
+ 
+/**
+ * @tc.name: TriggerSurfaceCaptureCallback002
+ * @tc.desc: TriggerSurfaceCaptureCallback
+ * @tc.type:FUNC
+ * @tc.require: issuesICE0QR
+ */
+HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback002, TestSize.Level1)
+{
+    NodeId id = 0;
+    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.needErrorCode = true;
+    std::shared_ptr<TestSurfaceCaptureCallback> callback = std::make_shared<TestSurfaceCaptureCallback>();
+ 
+    std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
+    rsRenderPipelineClient->surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+ 
+    Media::InitializationOptions opts;
+    opts.size.width = 480;
+    opts.size.height = 320;
+    std::shared_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMap, nullptr);
+    std::shared_ptr<Media::PixelMap> pixelMapHDR = Media::PixelMap::Create(opts);
+    ASSERT_NE(pixelMapHDR, nullptr);
+ 
+    rsRenderPipelineClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelMap,
+        CaptureError::CAPTURE_OK, pixelMapHDR);
+    EXPECT_TRUE(callback->isOnCallBack_);
+}
 } // namespace Rosen
 } // namespace OHOS

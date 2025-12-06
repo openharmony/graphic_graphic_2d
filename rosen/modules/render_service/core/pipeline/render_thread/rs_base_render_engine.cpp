@@ -574,6 +574,11 @@ std::shared_ptr<Drawing::ColorSpace> RSBaseRenderEngine::ConvertColorSpaceNameTo
             colorSpace = Drawing::ColorSpace::CreateRGB(
                 Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::ADOBE_RGB);
             break;
+        case OHOS::ColorManager::ColorSpaceName::DISPLAY_BT2020_SRGB:
+        case OHOS::ColorManager::ColorSpaceName::BT2020:
+            colorSpace = Drawing::ColorSpace::CreateRGB(
+                Drawing::CMSTransferFuncType::SRGB, Drawing::CMSMatrixType::REC2020);
+            break;
         default:
             colorSpace = Drawing::ColorSpace::CreateSRGB();
             break;

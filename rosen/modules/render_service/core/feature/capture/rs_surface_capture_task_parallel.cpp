@@ -133,7 +133,7 @@ void RSSurfaceCaptureTaskParallel::Capture(
     std::shared_ptr<RSSurfaceCaptureTaskParallel> captureHandle =
         std::make_shared<RSSurfaceCaptureTaskParallel>(captureParam.id, captureParam.config);
     if (!captureHandle->CreateResources()) {
-        callback->OnSurfaceCapture(captureParam.id, captureParam.config, nullptr);
+        callback->OnSurfaceCapture(captureParam.id, captureParam.config, nullptr, captureHandle->errorCode_);
         return;
     }
 
@@ -142,7 +142,8 @@ void RSSurfaceCaptureTaskParallel::Capture(
         std::function<void()> captureTask = [captureHandle, callback, captureParam]() -> void {
             RS_TRACE_NAME("RSSurfaceCaptureTaskParallel::TakeSurfaceCaptureHDR");
             if (!captureHandle->RunHDR(callback, captureParam)) {
-                callback->OnSurfaceCapture(captureParam.id, captureParam.config, nullptr, nullptr);
+                callback->OnSurfaceCapture(captureParam.id, captureParam.config, nullptr,
+                    captureHandle->errorCode_, nullptr);
             }
         };
         RSUniRenderThread::Instance().PostSyncTask(captureTask);
@@ -185,12 +186,14 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
         captureConfig_.scaleX < 0.f || captureConfig_.scaleY < 0.f ||
         captureConfig_.scaleX > 1.f || captureConfig_.scaleY > 1.f) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: SurfaceCapture scale is invalid.");
+        errorCode_ = CaptureError::CAPTURE_CONFIG_WRONG;
         return false;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
     if (node == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: Invalid nodeId:[%{public}" PRIu64 "]",
             nodeId_);
+        errorCode_ = CaptureError::CAPTURE_NO_NODE;
         return false;
     }
 
@@ -436,7 +439,7 @@ bool RSSurfaceCaptureTaskParallel::RunHDR(
     RS_LOGD("RSSurfaceCaptureTaskParallel::RunHDR CaptureTask make pixleMaps with colorSpaceName:"
         " %{public}d and %{public}d", pixelMap_->InnerGetGrColorSpace().GetColorSpaceName(),
         pixelMapHDR_->InnerGetGrColorSpace().GetColorSpaceName());
-    callback->OnSurfaceCapture(nodeId_, captureConfig_, pixelMap_.get(), pixelMapHDR_.get());
+    callback->OnSurfaceCapture(nodeId_, captureConfig_, pixelMap_.get(), errorCode_, pixelMapHDR_.get());
     return true;
 }
 
@@ -722,7 +725,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
         auto pixelmapHDR = std::move(std::get<1>(*wrapper));
         if (pixelmap == nullptr || pixelmapHDR == nullptr) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: pixelmap or pixelmapHDR is nullptr");
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_PIXELMAP_NULL, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             RSUniRenderUtil::ClearNodeCacheSurface(
@@ -733,7 +736,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             captureConfig.useDma, rotation) ||
             !PixelMapCopy(pixelmapHDR, surfaceInfoHDR.GetColorSpace(), backendTextureHDR, surfaceInfoHDR.GetColorType(),
             captureConfig.useDma, rotation)) {
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_PIXELMAP_NULL, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             RSUniRenderUtil::ClearNodeCacheSurface(
@@ -746,7 +749,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_DUAL);
         if (ret != GSERROR_OK) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Set SDR metadata error with: %{public}d", ret);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::HDR_SET_FAIL, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             RSUniRenderUtil::ClearNodeCacheSurface(
@@ -758,7 +761,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             HDI::Display::Graphic::Common::V1_0::CM_HDR_Metadata_Type::CM_IMAGE_HDR_VIVID_SINGLE);
         if (ret != GSERROR_OK) {
             RS_LOGE("RSSurfaceCaptureTaskParallel: Set HDR metadata error with: %{public}d", ret);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::HDR_SET_FAIL, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             RSUniRenderUtil::ClearNodeCacheSurface(
@@ -766,7 +769,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             return;
         }
 #endif
-        callback->OnSurfaceCapture(id, captureConfig, pixelmap.get(), pixelmapHDR.get());
+        callback->OnSurfaceCapture(id, captureConfig, pixelmap.get(), CaptureError::HDR_SET_FAIL, pixelmapHDR.get());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(
             std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
