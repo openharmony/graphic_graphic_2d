@@ -749,7 +749,10 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #endif
     RSSystemProperties::WatchSystemProperty(ENABLE_DEBUG_FMT_TRACE, OnFmtTraceSwitchCallback, nullptr);
     hgmRPContext_ = std::make_shared<HgmRPContext>();
-    context_->SetUiFrameworkTypeTable(hgmRPContext_->GetAppBufferList());
+    hwcContext_ = std::make_shared<RSHwcContext>(
+        HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
+    hgmRPContext_.InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),
+        context_->GetMutableUiFrameworkTypeTable());
 
     RSRenderNodeGC::Instance().SetImageReleaseFunc([this]() {
         PostTask([this]() {
