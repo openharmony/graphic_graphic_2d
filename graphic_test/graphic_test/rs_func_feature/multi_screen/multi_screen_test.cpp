@@ -1190,6 +1190,214 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, SetVirtualScreenBlackLis
 }
 
 /*
+ * @tc.name: BlacklistAndWhitelistTest001
+ * @tc.desc: test blacklist in virtual expand screen
+ * @tc.type: FUNC
+ * @tc.require: issue20923
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTest001)
+{
+    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    Vector4f rect2(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    // create virtual screen
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "MULTI_SCREEN_TEST_029", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    // set virtual screen black list
+    std::vector<NodeId> list = {surfaceNode1->GetId()};
+    RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId, list);
+
+    // create csurface and psurface
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    csurface->SetDefaultUsage(
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
+    csurface->RegisterConsumerListener(listener);
+    // set psurface
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
+
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode, nullptr);
+    // add surface node as display node child
+    displayNode->RSNode::AddChild(surfaceNode1);
+    displayNode->RSNode::AddChild(surfaceNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: BlacklistAndWhitelistTest002
+ * @tc.desc: test whitelist & blacklist in virtual expand screen
+ * @tc.type: FUNC
+ * @tc.require: issue20923
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTest002)
+{
+    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    Vector4f rect2(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    // create virtual screen
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_030",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode1->GetId()});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    // set virtual screen black list
+    std::vector<NodeId> list = {surfaceNode1->GetId()};
+    RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId, list);
+
+    // create csurface and psurface
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    csurface->SetDefaultUsage(
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
+    csurface->RegisterConsumerListener(listener);
+    // set psurface
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
+
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode, nullptr);
+    // add surface node as display node child
+    displayNode->RSNode::AddChild(surfaceNode1);
+    displayNode->RSNode::AddChild(surfaceNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: BlacklistAndWhitelistTest003
+ * @tc.desc: test whitelist in virtual expand screen (has child)
+ * @tc.type: FUNC
+ * @tc.require: issue20923
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTest003)
+{
+    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    Vector4f rect2(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    // set child
+    surfaceNode1->RSNode::AddChild(surfaceNode2);
+
+    // create virtual screen
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_031",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode1->GetId()});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // create csurface and psurface
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    csurface->SetDefaultUsage(
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
+    csurface->RegisterConsumerListener(listener);
+    // set psurface
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
+
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode, nullptr);
+    // add surface node as display node child
+    displayNode->RSNode::AddChild(surfaceNode1);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: BlacklistAndWhitelistTest004
+ * @tc.desc: test whitelist in virtual expand screen (display->canvas->surface->canvas)
+ * @tc.type: FUNC
+ * @tc.require: issue20923
+ */
+GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, BlacklistAndWhitelistTest004)
+{
+    Vector4f canvasRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto canvasNode1 = CreateCanvasNodeWithConfig(canvasRect1, SK_ColorBLUE);
+    ASSERT_NE(canvasNode1, nullptr);
+
+    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
+    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", surfaceRect1, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode1, nullptr);
+
+    Vector4f canvasRect2(0, 0, DEFAULT_BOUND_WIDTH / 4, DEFAULT_BOUND_HEIGHT / 4);
+    auto canvasNode2 = CreateCanvasNodeWithConfig(canvasRect2, SK_ColorBLUE);
+    ASSERT_NE(canvasNode1, nullptr);
+
+    // sub tree 1 set parent
+    canvasNode1->RSNode::AddChild(surfaceNode1);
+    surfaceNode1->RSNode::AddChild(canvasNode2);
+
+    Vector4f canvasRect3(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
+    auto canvasNode3 = CreateCanvasNodeWithConfig(canvasRect3, SK_ColorRED);
+    ASSERT_NE(canvasNode3, nullptr);
+
+    Vector4f surfaceRect2(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
+    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", surfaceRect2, SK_ColorGREEN);
+    ASSERT_NE(surfaceNode2, nullptr);
+
+    Vector4f canvasRect4(0, 0, DEFAULT_BOUND_WIDTH / 4, DEFAULT_BOUND_HEIGHT / 4);
+    auto canvasNode4 = CreateCanvasNodeWithConfig(canvasRect4, SK_ColorRED);
+    ASSERT_NE(canvasNode4, nullptr);
+
+    // sub tree 2 set parent
+    canvasNode3->RSNode::AddChild(surfaceNode2);
+    surfaceNode2->RSNode::AddChild(canvasNode4);
+
+    // create virtual screen
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_032",
+        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode2->GetId()});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+
+    // create csurface and psurface
+    auto csurface = Surface::CreateSurfaceAsConsumer();
+    csurface->SetDefaultUsage(
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
+    csurface->RegisterConsumerListener(listener);
+    // set psurface
+    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
+
+    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
+    ASSERT_NE(displayNode, nullptr);
+    // add surface node as display node child
+    displayNode->RSNode::AddChild(canvasNode1);
+    displayNode->RSNode::AddChild(canvasNode3);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
  * @tc.name: SetCastScreenEnableSkipWindowTest001
  * @tc.desc: test SetCastScreenEnableSkipWindow with mirrorScreenId
  * @tc.type: FUNC
@@ -2599,213 +2807,6 @@ GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, ResizeVirtualScreenTest0
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
 
-/*
- * @tc.name: MULTI_SCREEN_TEST_029
- * @tc.desc: test blacklist in virtual expand screen
- * @tc.type: FUNC
- * @tc.require: issue20923
- */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_029)
-{
-    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
-    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
-    ASSERT_NE(surfaceNode1, nullptr);
-
-    Vector4f rect2(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
-    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
-    ASSERT_NE(surfaceNode2, nullptr);
-
-    // create virtual screen
-    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
-        "MULTI_SCREEN_TEST_029", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {});
-    ASSERT_NE(screenId, INVALID_SCREEN_ID);
-    // set virtual screen black list
-    std::vector<NodeId> list = {surfaceNode1->GetId()};
-    RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId, list);
-
-    // create csurface and psurface
-    auto csurface = Surface::CreateSurfaceAsConsumer();
-    csurface->SetDefaultUsage(
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
-    csurface->RegisterConsumerListener(listener);
-    // set psurface
-    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
-
-    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
-    ASSERT_NE(displayNode, nullptr);
-    // add surface node as display node child
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode2);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
-}
-
-/*
- * @tc.name: MULTI_SCREEN_TEST_030
- * @tc.desc: test whitelist & blacklist in virtual expand screen
- * @tc.type: FUNC
- * @tc.require: issue20923
- */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_030)
-{
-    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
-    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
-    ASSERT_NE(surfaceNode1, nullptr);
-
-    Vector4f rect2(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
-    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
-    ASSERT_NE(surfaceNode2, nullptr);
-
-    // create virtual screen
-    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_030",
-        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode1->GetId()});
-    ASSERT_NE(screenId, INVALID_SCREEN_ID);
-    // set virtual screen black list
-    std::vector<NodeId> list = {surfaceNode1->GetId()};
-    RSInterfaces::GetInstance().SetVirtualScreenBlackList(screenId, list);
-
-    // create csurface and psurface
-    auto csurface = Surface::CreateSurfaceAsConsumer();
-    csurface->SetDefaultUsage(
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
-    csurface->RegisterConsumerListener(listener);
-    // set psurface
-    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
-
-    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
-    ASSERT_NE(displayNode, nullptr);
-    // add surface node as display node child
-    displayNode->RSNode::AddChild(surfaceNode1);
-    displayNode->RSNode::AddChild(surfaceNode2);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
-}
-
-/*
- * @tc.name: MULTI_SCREEN_TEST_031
- * @tc.desc: test whitelist in virtual expand screen (has child)
- * @tc.type: FUNC
- * @tc.require: issue20923
- */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_031)
-{
-    Vector4f rect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
-    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", rect1, SK_ColorGREEN);
-    ASSERT_NE(surfaceNode1, nullptr);
-
-    Vector4f rect2(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
-    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", rect2, SK_ColorBLUE);
-    ASSERT_NE(surfaceNode2, nullptr);
-
-    // set child
-    surfaceNode1->RSNode::AddChild(surfaceNode2);
-
-    // create virtual screen
-    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_031",
-        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode1->GetId()});
-    ASSERT_NE(screenId, INVALID_SCREEN_ID);
-
-    // create csurface and psurface
-    auto csurface = Surface::CreateSurfaceAsConsumer();
-    csurface->SetDefaultUsage(
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
-    csurface->RegisterConsumerListener(listener);
-    // set psurface
-    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
-
-    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
-    ASSERT_NE(displayNode, nullptr);
-    // add surface node as display node child
-    displayNode->RSNode::AddChild(surfaceNode1);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
-}
-
-/*
- * @tc.name: MULTI_SCREEN_TEST_032
- * @tc.desc: test whitelist in virtual expand screen (display->canvas->surface->canvas)
- * @tc.type: FUNC
- * @tc.require: issue20923
- */
-GRAPHIC_N_TEST(RSMultiScreenTest, CONTENT_DISPLAY_TEST, MULTI_SCREEN_TEST_032)
-{
-    Vector4f canvasRect1(0, 0, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
-    auto canvasNode1 = CreateCanvasNodeWithConfig(canvasRect1, SK_ColorBLUE);
-    ASSERT_NE(canvasNode1, nullptr);
-
-    Vector4f surfaceRect1(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
-    auto surfaceNode1 = CreateSurfaceNodeWithConfig("TestExpandScreen_01", surfaceRect1, SK_ColorGREEN);
-    ASSERT_NE(surfaceNode1, nullptr);
-
-    Vector4f canvasRect2(0, 0, DEFAULT_BOUND_WIDTH / 4, DEFAULT_BOUND_HEIGHT / 4);
-    auto canvasNode2 = CreateCanvasNodeWithConfig(canvasRect2, SK_ColorBLUE);
-    ASSERT_NE(canvasNode1, nullptr);
-
-    // sub tree 1 set parent
-    canvasNode1->RSNode::AddChild(surfaceNode1);
-    surfaceNode1->RSNode::AddChild(canvasNode2);
-
-    Vector4f canvasRect3(DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT, DEFAULT_BOUND_WIDTH, DEFAULT_BOUND_HEIGHT);
-    auto canvasNode3 = CreateCanvasNodeWithConfig(canvasRect3, SK_ColorRED);
-    ASSERT_NE(canvasNode3, nullptr);
-
-    Vector4f surfaceRect2(0, 0, DEFAULT_BOUND_WIDTH / 2, DEFAULT_BOUND_HEIGHT / 2);
-    auto surfaceNode2 = CreateSurfaceNodeWithConfig("TestExpandScreen_02", surfaceRect2, SK_ColorGREEN);
-    ASSERT_NE(surfaceNode2, nullptr);
-
-    Vector4f canvasRect4(0, 0, DEFAULT_BOUND_WIDTH / 4, DEFAULT_BOUND_HEIGHT / 4);
-    auto canvasNode4 = CreateCanvasNodeWithConfig(canvasRect4, SK_ColorRED);
-    ASSERT_NE(canvasNode4, nullptr);
-
-    // sub tree 2 set parent
-    canvasNode3->RSNode::AddChild(surfaceNode2);
-    surfaceNode2->RSNode::AddChild(canvasNode4);
-
-    // create virtual screen
-    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen("MULTI_SCREEN_TEST_032",
-        DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1, {surfaceNode2->GetId()});
-    ASSERT_NE(screenId, INVALID_SCREEN_ID);
-
-    // create csurface and psurface
-    auto csurface = Surface::CreateSurfaceAsConsumer();
-    csurface->SetDefaultUsage(
-        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
-    auto producer = csurface->GetProducer();
-    auto psurface = Surface::CreateSurfaceAsProducer(producer);
-    sptr<IBufferConsumerListener> listener = sptr<CustomizedBufferConsumerListener>::MakeSptr(csurface, psurface);
-    csurface->RegisterConsumerListener(listener);
-    // set psurface
-    RSInterfaces::GetInstance().SetVirtualScreenSurface(screenId, psurface);
-
-    Vector4f displayRect(0, 0, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
-    auto displayNode = CreateDispalyNodeWithConfig(screenId, displayRect, SK_ColorYELLOW, true);
-    ASSERT_NE(displayNode, nullptr);
-    // add surface node as display node child
-    displayNode->RSNode::AddChild(canvasNode1);
-    displayNode->RSNode::AddChild(canvasNode3);
-
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
-    usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
-}
 /*
  * @tc.name: ResizeVirtualScreenTest004
  * @tc.desc: test ResizeVirtualScreen 0*0
