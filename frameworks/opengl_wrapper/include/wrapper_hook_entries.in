@@ -257,3 +257,6 @@ CALL_HOOK_API_RET(eglSwapBuffersWithDamageEXT, dpy, surface, rects, n_rects)
 /* EGL_ANDROID_get_native_client_buffer */
 HOOK_API_ENTRY(EGLClientBuffer, eglGetNativeClientBufferANDROID, const struct AHardwareBuffer *buffer)
 CALL_HOOK_API_RET(eglGetNativeClientBufferANDROID, buffer)
+
+HOOK_API_ENTRY(EGLClientBuffer, eglGetNativeClientBufferOHOS, OH_NativeBuffer *buffer)
+CALL_HOOK_API_RET(eglGetNativeClientBufferOHOS, buffer)
