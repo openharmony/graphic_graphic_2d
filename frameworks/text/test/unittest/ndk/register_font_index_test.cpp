@@ -63,7 +63,7 @@ protected:
 void NdkRegisterFontIndexTest::TearDown()
 {
     if (fontCollection_) {
-        OH_Drawing_DestroyFontCollection(fontCollection);
+        OH_Drawing_DestroyFontCollection(fontCollection_);
     }
 }
 
@@ -190,7 +190,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest007, TestSize.Level0)
     uint32_t errorCode = OH_Drawing_RegisterFontBufferByIndex(
         fontCollection_, "test1", existFontBuffer_.get(), bufferSize_, fontCount - 1);
     EXPECT_EQ(errorCode, SUCCESSED);
-    uint32_t errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, "test2", existFontPath_, 0);
+    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, "test2", existFontPath_, 0);
     EXPECT_EQ(errorCode, SUCCESSED);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection_, "test1"), 0);
     EXPECT_EQ(OH_Drawing_UnregisterFont(fontCollection_, "test2"), 0);

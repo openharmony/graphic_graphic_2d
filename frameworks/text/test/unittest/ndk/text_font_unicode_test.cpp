@@ -60,10 +60,10 @@ protected:
     }
 };
 
-void NdkFontUnicodeTest::TearDown() override
+void NdkFontUnicodeTest::TearDown()
 {
     if (fontCollection_ != nullptr) {
-        OH_Drawing_DestroyFontCollection(fontCollection);
+        OH_Drawing_DestroyFontCollection(fontCollection_);
     }
 
     if (unicodeArray != nullptr) {
@@ -71,7 +71,7 @@ void NdkFontUnicodeTest::TearDown() override
     }
 }
 
-void NdkFontUnicodeTest::SetUp() override
+void NdkFontUnicodeTest::SetUp()
 {
     fontCollection_ = OH_Drawing_CreateFontCollection();
     ASSERT_NE(fontCollection_, nullptr);
