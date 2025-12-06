@@ -168,10 +168,10 @@ void SurfaceNodeCommandHelper::UpdateSurfaceDefaultSize(RSContext& context, Node
     }
 }
 
-void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, NodeId id)
+void SurfaceNodeCommandHelper::ConnectToNodeInRenderService(RSContext& context, NodeId id, sptr<IRemoteObject> connectToRender)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-        node->ConnectToNodeInRenderService();
+        node->ConnectToNodeInRenderService(connectToRender);
     }
 }
 

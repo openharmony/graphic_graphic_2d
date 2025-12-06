@@ -50,6 +50,7 @@
 #ifdef ENABLE_FULL_SCREEN_RECONGNIZE
 #include "monitor/aps_monitor_impl.h"
 #endif
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -306,8 +307,8 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect,
-        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer);
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -565,7 +566,7 @@ public:
     
     // hpae offline
     bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
-    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = enabled; }
+    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = false; /*enabled;*/ }
 
     bool GetCopybitTag() const
     {
@@ -654,9 +655,11 @@ public:
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
     void SetIsOutOfScreen(bool isOutOfScreen);
-    void UpdateBlackListStatus(ScreenId screenId);
-    void UpdateVirtualScreenWhiteListInfo(
-        const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
+    void UpdateScreenSpecialLayerInfoByOnTreeStateChange();
+    void UpdateScreenSpecialLayerInfoByTypeChange(ScreenId screenId, uint32_t type, bool isSpecialLayer);
+    void SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer);
+    void ClearScreenSpecialLayerRecord(ScreenId screenId);
+    void UpdateVirtualScreenWhiteListInfo();
 
     // get whether it is a security/skip layer itself
     LeashPersistentId GetLeashPersistentId() const
@@ -987,7 +990,7 @@ public:
     void RegisterBufferClearListener(sptr<RSIBufferClearCallback> callback);
 
     // Only SurfaceNode in RT calls "ConnectToNodeInRenderService" to send callback method to RS
-    void ConnectToNodeInRenderService();
+    void ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender);
 
     void NotifyRTBufferAvailable(bool isTextureExportNode = false);
     bool IsNotifyRTBufferAvailable() const;
@@ -2001,6 +2004,7 @@ private:
     std::string name_;
     std::string bundleName_;
     std::vector<NodeId> childSurfaceNodeIds_;
+    std::shared_ptr<RSRenderPipelineClient> rsRenderPipelineClient_;
     friend class RSRenderThreadVisitor;
     /*
         visibleRegion: appwindow visible region after occlusion, used for rs opdrop and other optimization.
@@ -2132,6 +2136,7 @@ private:
     friend class RSRenderNode;
     friend class RSRenderService;
     friend class RSHdrUtil;
+    friend class RSProcessDumper;
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

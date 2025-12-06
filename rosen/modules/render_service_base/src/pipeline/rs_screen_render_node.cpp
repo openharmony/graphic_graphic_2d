@@ -145,16 +145,6 @@ void RSScreenRenderNode::InitRenderParams()
 #endif
 }
 
-ReleaseDmaBufferTask RSScreenRenderNode::releaseScreenDmaBufferTask_;
-void RSScreenRenderNode::SetReleaseTask(ReleaseDmaBufferTask callback)
-{
-    if (!releaseScreenDmaBufferTask_ && callback) {
-        releaseScreenDmaBufferTask_ = callback;
-    } else {
-        RS_LOGE("RreleaseScreenDmaBufferTask_ register failed!");
-    }
-}
-
 void RSScreenRenderNode::OnSync()
 {
 #ifdef RS_ENABLE_GPU
@@ -612,5 +602,17 @@ void RSScreenRenderNode::CheckSurfaceChanged()
 #endif
 }
 
+void RSScreenRenderNode::SetIsScreenValid(bool isValid)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("RSScreenRenderNode::%{public}s screenParams is null", __func__);
+        return;
+    }
+    screenParams->SetIsScreenValid(isValid);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+	}
+}
 } // namespace Rosen
 } // namespace OHOS

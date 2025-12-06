@@ -726,6 +726,14 @@ typedef enum : uint8_t {
     SYSTEM_WATER_MARK = 1,
     INVALID_WATER_MARK = 2,
 } SurfaceWatermarkType;
+
+enum class EnergyEvent : int32_t {
+    VOTER_VIDEO_RATE = 0,
+    START_NEW_ANIMATION = 1,
+    ANIMATION_EXEC_TIME = 2,
+};
+
+using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;
 } // namespace Rosen
 } // namespace OHOS
 #endif // RENDER_SERVICE_CLIENT_CORE_COMMON_RS_COMMON_DEF_H

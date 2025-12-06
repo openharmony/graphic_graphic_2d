@@ -49,6 +49,7 @@ public:
     void DumpSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     void ClearSurfaceNodeFps(std::string& dumpString, const std::string& option, const std::string& arg);
     std::unordered_map<NodeId, std::shared_ptr<RSSurfaceFps>> GetSurfaceFpsMap() const;
+    const std::string GetSelfDrawSurfaceNameByPid(pid_t nodePid) const;
 private:
     RSSurfaceFpsManager() = default;
     ~RSSurfaceFpsManager() = default;

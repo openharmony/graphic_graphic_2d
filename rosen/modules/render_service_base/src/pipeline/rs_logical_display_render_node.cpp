@@ -17,6 +17,7 @@
 
 #include "pipeline/rs_logical_display_render_node.h"
 #include "params/rs_logical_display_render_params.h"
+#include "property/rs_point_light_manager.h"
 #include "visitor/rs_node_visitor.h"
 
 namespace OHOS::Rosen {
@@ -32,6 +33,7 @@ RSLogicalDisplayRenderNode::RSLogicalDisplayRenderNode(NodeId id,
 RSLogicalDisplayRenderNode::~RSLogicalDisplayRenderNode()
 {
     RS_LOGI("%{public}s, NodeId:[%{public}" PRIu64 "]", __func__, GetId());
+    RSPointLightManager::ReleaseInstance(GetLogicalDisplayNodeId());
 }
 
 void RSLogicalDisplayRenderNode::InitRenderParams()
@@ -55,6 +57,7 @@ void RSLogicalDisplayRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisito
         return;
     }
     ApplyModifiers();
+    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
     visitor->QuickPrepareLogicalDisplayRenderNode(*this);
 }
 
@@ -64,6 +67,7 @@ void RSLogicalDisplayRenderNode::Prepare(const std::shared_ptr<RSNodeVisitor>& v
         return;
     }
     ApplyModifiers();
+    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->PrepareLight();
     visitor->PrepareLogicalDisplayRenderNode(*this);
 }
 
@@ -171,17 +175,17 @@ std::shared_ptr<RSBaseRenderNode> RSLogicalDisplayRenderNode::GetWindowContainer
     return windowContainer_;
 }
 
-void RSLogicalDisplayRenderNode::SetScreenStatusNotifyTask(ScreenStatusNotifyTask task)
+void RSLogicalDisplayRenderNode::SetScreenSwitchFinishTask(ScreenSwitchFinishTask task)
 {
-    screenStatusNotifyTask_ = task;
+    screenSwitchFinishTask_ = task;
 }
 
-void RSLogicalDisplayRenderNode::NotifyScreenNotSwitching()
+void RSLogicalDisplayRenderNode::NotifyScreenSwitchFinish(ScreenId id)
 {
-    if (screenStatusNotifyTask_) {
-        screenStatusNotifyTask_(false);
-        ROSEN_LOGI("RSLogicalDisplayRenderNode::NotifyScreenNotSwitching SetScreenSwitchStatus false");
-        RS_TRACE_NAME_FMT("NotifyScreenNotSwitching");
+    if (screenSwitchFinishTask_ && id != INVALID_SCREEN_ID) {
+        screenSwitchFinishTask_(id);
+        ROSEN_LOGI("RSLogicalDisplayRenderNode::NotifyScreenSwitchFinish ScreenId: %{public}" PRIu64, id);
+        RS_TRACE_NAME_FMT("NotifyScreenSwitchFinish");
     }
 }
 

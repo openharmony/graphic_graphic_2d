@@ -110,7 +110,6 @@ public:
         return screenRect_;
     }
 
-    static void SetReleaseTask(ReleaseDmaBufferTask callback);
     
     bool HasChildCrossNode() const
     {

@@ -27,7 +27,7 @@ namespace Rosen {
 class RSIFrameRateLinkerExpectedFpsUpdateCallback;
 class RSB_EXPORT RSRenderFrameRateLinker : public std::enable_shared_from_this<RSRenderFrameRateLinker> {
 public:
-    using ObserverType = std::function<void (const RSRenderFrameRateLinker&)>;
+    using ObserverType = std::function<void()>;
     using TimePoint = std::atomic<std::chrono::steady_clock::time_point>;
     explicit RSRenderFrameRateLinker(FrameRateLinkerId id, ObserverType observer);
     explicit RSRenderFrameRateLinker(ObserverType observer);
@@ -67,6 +67,7 @@ public:
     void SetFrameRate(uint32_t rate);
     uint32_t GetFrameRate() const;
 
+    void RegisterExpectedFpsUpdateCallback(pid_t pid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     void UpdateNativeVSyncTimePoint();
     bool NativeVSyncIsTimeOut() const;
 private:
@@ -84,6 +85,8 @@ private:
     uint64_t windowNodeId_ = 0;
     mutable std::mutex mutex_;
     TimePoint nativeVSyncTimePoint_ = std::chrono::steady_clock::time_point::min();
+
+    std::unordered_map<pid_t, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback>> expectedFpsChangeCallbacks_;
 };
 } // namespace Rosen
 } // namespace OHOS

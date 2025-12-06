@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#include <mutex>
+#include <unordered_map>
+
 #include "property/rs_point_light_manager.h"
 
 #include "common/rs_common_def.h"
@@ -23,13 +26,31 @@
 
 namespace OHOS {
 namespace Rosen {
-constexpr int TWO = 2;
-constexpr size_t CLEANUP_THRESHOLD = 500;
+namespace {
+    constexpr int TWO = 2;
+    std::unordered_map<NodeId, std::unique_ptr<RSPointLightManager>> g_managersLUT;
+    std::mutex g_mutex;
+}
 
-RSPointLightManager* RSPointLightManager::Instance()
+const std::unique_ptr<RSPointLightManager>& RSPointLightManager::Instance(NodeId logicalDisplayNodeId)
 {
-    static RSPointLightManager instance;
-    return &instance;
+    std::lock_guard<std::mutex> lock(g_mutex);
+    auto it = g_managersLUT.find(logicalDisplayNodeId);
+    if ( it != g_managersLUT.end() ) {
+        return it->second;
+    }
+    auto [itNew, _] = g_managersLUT.emplace(logicalDisplayNodeId, std::make_unique<RSPointLightManager>());
+    return itNew->second;
+}
+
+void RSPointLightManager::ReleaseInstance(NodeId logicalDisplayNodeId)
+{
+    std::lock_guard<std::mutex> lock(g_mutex);
+    auto it = g_managersLUT.find(logicalDisplayNodeId);
+    if (it != g_managersLUT.end()) {
+        it->second.reset();
+        g_managersLUT.erase(it);
+    }
 }
 
 void RSPointLightManager::RegisterLightSource(const std::shared_ptr<RSRenderNode>& renderNode)

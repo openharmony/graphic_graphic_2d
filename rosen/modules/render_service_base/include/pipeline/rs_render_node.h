@@ -61,6 +61,7 @@ class RSRenderParams;
 class RSContext;
 class RSNodeVisitor;
 class RSCommand;
+class RSLayer;
 class RSCanvasDrawingRenderNode;
 namespace NativeBufferUtils {
 class VulkanCleanupHelper;
@@ -1021,6 +1022,10 @@ public:
     virtual void AfterTreeStatueChanged() {}
 
     RectI GetFilterDrawableSnapshotRegion() const;
+    void SetRSLayer(const std::shared_ptr<RSLayer>& layer)
+    {
+        rsLayer_ = layer;
+    }
 protected:
     void ResetDirtyStatus();
 
@@ -1119,6 +1124,7 @@ protected:
     RSHwcRecorder hwcRecorder_;
 
 private:
+    std::shared_ptr<RSLayer> rsLayer_ = nullptr;
     // mark cross node in physical extended screen model
     bool isRepaintBoundary_ = false;
     bool hasForceSubmit_ = false;

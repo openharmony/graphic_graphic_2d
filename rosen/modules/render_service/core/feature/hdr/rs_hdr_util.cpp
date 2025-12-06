@@ -427,16 +427,6 @@ bool RSHdrUtil::BufferFormatNeedUpdate(const std::shared_ptr<Drawing::Surface>& 
     return bufferFormatNeedUpdate;
 }
 
-ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
-{
-    ScreenColorGamut screenColorGamut;
-    if (screenManager->GetScreenColorGamut(node.GetScreenId(), screenColorGamut) != SUCCESS) {
-        RS_LOGD("RSHdrUtil::GetScreenColorGamut get screen color gamut failed.");
-        return COLOR_GAMUT_INVALID;
-    }
-    return screenColorGamut;
-}
-
 bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
 {
     if (!surfaceNode) {
@@ -464,10 +454,10 @@ bool RSHdrUtil::NeedUseF16Capture(const std::shared_ptr<RSSurfaceRenderNode>& su
     return (isHDROn || isScRGBEnable) && colorGamut != GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
 }
 
-void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)
+void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node)
 {
+    ScreenColorGamut screenColorGamut = node.GetScreenProperty().GetScreenColorGamut();
     if (node.GetCompositeType() == CompositeType::UNI_RENDER_MIRROR_COMPOSITE) {
-        ScreenColorGamut screenColorGamut = RSHdrUtil::GetScreenColorGamut(node, screenManager);
         std::shared_ptr<RSScreenRenderNode> mirrorNode = node.GetMirrorSource().lock();
         if (!mirrorNode) {
             RS_LOGE("RSHdrUtil::HandleVirtualScreenHDRStatus get mirror source failed.");
@@ -482,7 +472,6 @@ void RSHdrUtil::HandleVirtualScreenHDRStatus(RSScreenRenderNode& node, const spt
             mirrorNodeIsHDROn, screenColorGamut, node.GetFirstFrameVirtualScreenInit());
         UpdateHDRCastProperties(node, isNeedHDRCast, hdrCastColorGamut);
     } else if (node.GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE) {
-        ScreenColorGamut screenColorGamut = RSHdrUtil::GetScreenColorGamut(node, screenManager);
         bool expandIsHDROn = node.GetDisplayHdrStatus() != HdrStatus::NO_HDR;
         bool hdrCastColorGamut = static_cast<GraphicColorGamut>(screenColorGamut) == GRAPHIC_COLOR_GAMUT_BT2100_HLG;
         bool isNeedHDRCast = expandIsHDROn && hdrCastColorGamut;

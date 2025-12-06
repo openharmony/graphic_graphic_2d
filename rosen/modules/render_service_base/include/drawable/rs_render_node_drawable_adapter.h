@@ -45,6 +45,7 @@ class RSContext;
 class RSDirtyRegionManager;
 class RSDrawWindowCache;
 class RSRenderNodeGC;
+class RSLayer;
 #ifdef SUBTREE_PARALLEL_ENABLE
 class RSParallelRBPolicy;
 struct RSSubtreeDrawElement;
@@ -295,6 +296,10 @@ public:
         return RSRenderNodeDrawableType::UNKNOW;
     }
 
+    void SetRSLayer(const std::shared_ptr<RSLayer>& layer)
+    {
+        rsLayer_ = layer;
+    }
 protected:
     // Util functions
     std::string DumpDrawableVec(const std::shared_ptr<RSRenderNode>& renderNode) const;
@@ -386,6 +391,7 @@ private:
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
     NodeId lastDrawnFilterNodeId_ = 0;
     std::atomic<bool> isOnDraw_ = false;
+    std::shared_ptr<RSLayer> rsLayer_ = nullptr;
 
     friend class OHOS::Rosen::RSRenderNode;
     friend class OHOS::Rosen::RSScreenRenderNode;

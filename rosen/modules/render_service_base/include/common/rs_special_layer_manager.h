@@ -21,6 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -71,6 +72,13 @@ public:
 
     bool SetWithScreen(uint64_t screenId, uint32_t type, bool is);
     bool FindWithScreen(uint64_t screenId, uint32_t type) const;
+    uint32_t GetWithScreen(uint64_t screenId) const;
+    void AddIdsWithScreen(uint64_t screenId, uint32_t type, NodeId id);
+    void RemoveIdsWithScreen(uint64_t screenId, uint32_t type, NodeId id);
+
+    const std::unordered_set<uint64_t> FindScreenHasType(uint32_t type) const;
+    void ClearAllScreenSpecialLayer();
+    void ClearScreenSpecialLayer(uint64_t screenId);
     void ClearScreenSpecialLayer();
     void ClearSpecialLayerIds();
 
@@ -78,10 +86,13 @@ private:
     static std::stack<LeashPersistentId> whiteListRootIds_;
 
     uint32_t specialLayerType_ = SpecialLayerType::NONE;
-    // key:SpecialLayerType value:std::set<NodeId>
+    // <SpecialLayerType, std::set<NodeId>>
     std::map<uint32_t, std::set<NodeId>> specialLayerIds_;
-    // key:ScreenId value:SpecialLayerType
+
+    // <ScreenId, SpecialLayerType>
     std::map<uint64_t, uint32_t> screenSpecialLayer_;
+    // <ScreenId, <SpecialLayerType, std::set<NodeId>>>
+    std::map<uint64_t, std::map<uint32_t, std::set<NodeId>>> screenSpecialLayerIds_;
 };
 
 class AutoSpecialLayerStateRecover {

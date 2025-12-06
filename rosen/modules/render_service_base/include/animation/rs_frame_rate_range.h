@@ -106,6 +106,15 @@ public:
         this->type_ = type;
     }
 
+    void Set(int min, int max, int preferred, uint32_t type, ComponentScene componentScene)
+    {
+        this->min_ = min;
+        this->max_ = max;
+        this->preferred_ = preferred;
+        this->type_ = type;
+        this->componentScene_ = componentScene;
+    }
+
     bool Merge(const FrameRateRange& other)
     {
         if (other.IsValid()) {

@@ -17,6 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_OCCLUSION_CHANGE_CALLBACK_H
 
 #include "transaction/rs_occlusion_data.h"
+ #include <iremote_broker.h>
 
 namespace OHOS {
 namespace Rosen {

@@ -285,10 +285,11 @@ bool RSSurfaceRenderParams::IsInFixedRotation() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect)
+void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect)
 {
     buffer_ = buffer;
     damageRect_ = damageRect;
+    bufferOwnerCount_ = bufferOwnerCount;
     needSync_ = true;
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
@@ -301,14 +302,27 @@ sptr<SurfaceBuffer> RSSurfaceRenderParams::GetBuffer() const
     return buffer_;
 }
 
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceRenderParams::GetBufferOwnerCount() const
+{
+    return bufferOwnerCount_;
+}
+
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceRenderParams::GetPreBufferOwnerCount() const
+{
+    return preBufferOwnerCount_;
+}
+
 const Rect& RSSurfaceRenderParams::GetBufferDamage() const
 {
     return damageRect_;
 }
 
-void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer)
+void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
 {
     preBuffer_ = preBuffer;
+    if (preBufferOwnerCount) {
+        preBufferOwnerCount_ = preBufferOwnerCount;
+    }
     needSync_ = true;
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
@@ -581,13 +595,20 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
 #ifndef ROSEN_CROSS_PLATFORM
     if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
         targetSurfaceParams->buffer_ = buffer_;
+        targetSurfaceParams->bufferOwnerCount_ = bufferOwnerCount_;
         targetSurfaceParams->preBuffer_ = preBuffer_;
+        targetSurfaceParams->preBufferOwnerCount_ = preBufferOwnerCount_;
         targetSurfaceParams->acquireFence_ = acquireFence_;
         targetSurfaceParams->damageRect_ = damageRect_;
         if (layerInfo_.useDeviceOffline && isHardwareEnabled_) {
             // hpae offline: while using hpae offline and going directly composition, set to false
             bufferSynced_ = offlineOriginBufferSynced_;
         } else {
+            if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false) {
+                RS_LOGI("RSBufferManager OnSync RSSurfaceRenderNode DecRef seqNum %{public}u", uint32_t(preBufferOwnerCount_->seqNum_));
+                RS_TRACE_NAME_FMT("RSBufferManager OnSync RSSurfaceRenderNode DecRef seqNum %u", uint32_t(preBufferOwnerCount_->seqNum_));
+                preBufferOwnerCount_->DecRef();
+            }
             bufferSynced_ = true;
         }
         dirtyType_.reset(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY);

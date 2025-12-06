@@ -32,6 +32,9 @@
 #endif
 #include "surface_type.h"
 
+
+#include "platform/common/rs_log.h"
+
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
 struct RSLayerInfo {
@@ -105,6 +108,13 @@ public:
     RSSurfaceNodeType GetSurfaceNodeType() const
     {
         return rsSurfaceNodeType_;
+    }
+
+    bool IsSelfDrawingType() const
+    {
+        return rsSurfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_NODE ||
+                rsSurfaceNodeType_ == RSSurfaceNodeType::SELF_DRAWING_WINDOW_NODE ||
+                rsSurfaceNodeType_ == RSSurfaceNodeType::CURSOR_NODE;
     }
     SelfDrawingNodeType GetSelfDrawingNodeType() const
     {
@@ -420,15 +430,18 @@ public:
     ScreenId GetScreenId() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
+    void SetBuffer(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) override;
     sptr<SurfaceBuffer> GetBuffer() const override;
-    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) override;
+    void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) override;
     sptr<SurfaceBuffer> GetPreBuffer() override;
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override;
     sptr<SyncFence> GetAcquireFence() const override;
     const Rect& GetBufferDamage() const override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const override;
     inline void SetBufferSynced(bool bufferSynced)
     {
+        RS_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %u", bufferSynced, uint32_t(preBufferOwnerCount_ ? preBufferOwnerCount_->seqNum_ : 0));
         bufferSynced_ = bufferSynced;
     }
     bool IsBufferSynced() const
@@ -845,6 +858,8 @@ private:
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     Rect damageRect_ = {0, 0, 0, 0};
     bool bufferSynced_ = true;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount_ = nullptr;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
     bool offlineOriginBufferSynced_ = true;
 #endif
     bool isHardwareEnabled_ = false;

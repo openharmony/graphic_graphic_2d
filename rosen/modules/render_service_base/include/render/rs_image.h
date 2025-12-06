@@ -132,6 +132,7 @@ public:
     [[nodiscard]] static RSImage* Unmarshalling(Parcel& parcel);
 #endif
     std::string PixelSamplingDump() const;
+    void ImageSamplingDump(uint64_t imageId) const;
     void Dump(std::string &desc, uint8_t depth) const
     {
         std::string split(depth, '\t');
@@ -152,7 +153,10 @@ public:
         desc += split + "\tsrc_: " + src_.ToString() + " \n";
         desc += split + "\tdst_: " + dst_.ToString() + " \n";
         desc += split + "\tpixel sampling: " + PixelSamplingDump() + " \n";
+        desc += split + "\tisScaledImageAsync_: " + std::to_string(static_cast<int>(isScaledImageAsync_)) + " \n";
+        desc += split + "\timageId: " + std::to_string(uniqueId_) + " \n";
         desc += split + "} \n";
+        ImageSamplingDump(uniqueId_);
     }
 
 private:
@@ -197,6 +201,7 @@ private:
     bool isFitMatrixValid_ = false;
     OrientationFit orientationFit_ = OrientationFit::NONE;
     bool isOrientationValid_ = false;
+    mutable bool isScaledImageAsync_ = false;
 };
 
 template<>

@@ -80,6 +80,14 @@ RSRenderFrameRateLinker::~RSRenderFrameRateLinker()
 void RSRenderFrameRateLinker::SetExpectedRange(const FrameRateRange& range)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (expectedRange_.preferred_ != range.preferred_) {
+        for (auto& [_, cb] : expectedFpsChangeCallbacks_) {
+            if (cb) {
+                cb->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), xcomponentId_, range.preferred_);
+            }
+        }
+    }
+
     if (expectedRange_ != range) {
         expectedRange_ = range;
         Notify();
@@ -136,8 +144,21 @@ void RSRenderFrameRateLinker::Copy(const RSRenderFrameRateLinker&& other)
 void RSRenderFrameRateLinker::Notify()
 {
     if (observer_ != nullptr) {
-        observer_(*this);
+        observer_();
     }
+}
+
+void RSRenderFrameRateLinker::RegisterExpectedFpsUpdateCallback(pid_t listener,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (callback == nullptr) {
+        expectedFpsChangeCallbacks_.erase(listener);
+        return;
+    }
+
+    // if this listener has registered a callback before, replace it.
+    expectedFpsChangeCallbacks_[listener] = callback;
+    callback->OnFrameRateLinkerExpectedFpsUpdate(ExtractPid(id_), xcomponentId_, expectedRange_.preferred_);
 }
 
 void RSRenderFrameRateLinker::UpdateNativeVSyncTimePoint()

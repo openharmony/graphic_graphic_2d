@@ -76,7 +76,17 @@ sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderP
         return nullptr;
     }
     BufferRequestConfig config{};
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(screenId);
+    auto screenNodeptr = surfaceParams->GetAncestorScreenNode().lock();
+    if (!screenNodeptr) {
+        RS_LOGE("[hdrHetero]:RSHDRBUfferLayer PrepareHDRDstBuffer screenNodeptr is nullptr");
+        return nullptr;
+    }
+    auto ancestorNode = screenNodeptr->ReinterpretCastTo<RSScreenRenderNode>();
+    if (!ancestorNode) {
+        RS_LOGE("[hdrHetero]:RSHDRBUfferLayer PrepareHDRDstBuffer ancestorNode is nullptr");
+        return nullptr;
+    }
+    ScreenInfo curScreenInfo = ancestorNode->GetScreenProperty().GetScreenInfo();
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
     config.strideAlignment = STRIDE_ALIGNMENT;
     config.format = GRAPHIC_PIXEL_FMT_RGBA_1010102;

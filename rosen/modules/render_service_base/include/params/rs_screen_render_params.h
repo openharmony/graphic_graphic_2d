@@ -25,6 +25,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
 #include "screen_manager/rs_screen_info.h"
+#include "screen_manager/rs_screen_property.h"
 #include "pipeline/rs_surface_render_node.h"
 namespace OHOS::Rosen {
 class RSB_EXPORT RSScreenRenderParams : public RSRenderParams {
@@ -236,6 +237,9 @@ public:
         return isEqualVsyncPeriod_;
     }
 
+    void SetIsScreenValid(bool isValid);
+    bool GetIsScreenValid() const;
+
 private:
 
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> logicalDisplayNodeDrawables_;
@@ -271,6 +275,7 @@ private:
     bool isZoomed_ = false;
     uint32_t mirrorDstCount_ = 0;
     bool hasMirrorScreen_ = false;
+    bool isScreenValid_ = true;
     Drawing::Matrix slrMatrix_;
     // vector of rcd drawable, should be removed in OH 6.0 rcd refactoring
     std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr> roundCornerSurfaceDrawables_;
