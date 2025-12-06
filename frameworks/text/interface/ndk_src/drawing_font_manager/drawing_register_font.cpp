@@ -132,85 +132,79 @@ uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& 
     return 0;
 }
 
-uint32_t OH_Drawing_RegisterFont(
-    OH_Drawing_FontCollection* fontCollection, const char* fontFamily, const char* familySrc)
+static uint32_t RegisterFontInternal(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, const char* familySrc, uint32_t index = 0)
 {
-    if (fontCollection == nullptr || familySrc == nullptr) {
+    if (fontCollection == nullptr || familySrc == nullptr)
+    {
         return ERROR_NULL_FONT_COLLECTION;
     }
+
     const std::string path = familySrc;
     std::unique_ptr<char[]> buffer;
     std::streamsize size = 0;
     uint32_t result = LoadFontDataFromFile(path, buffer, size);
-    if (result != 0) {
+    if (result != 0)
+    {
         return result;
     }
     const std::string familyName = fontFamily;
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
-    return LoadFromFontCollectionByIndex(fontCollection, familyName, data, size, 0);
+    return LoadFromFontCollectionByIndex(fontCollection, familyName, data, size, index);
+}
+
+uint32_t OH_Drawing_RegisterFont(
+    OH_Drawing_FontCollection* fontCollection, const char* fontFamily, const char* familySrc)
+{
+    return RegisterFontInternal(fontCollection, fontFamily, familySrc, 0);
 }
 
 uint32_t OH_Drawing_RegisterFontByIndex(OH_Drawing_FontCollection* fontCollection,
     const char* fontFamily, const char* familySrc, uint32_t index)
 {
-    if (fontCollection == nullptr || familySrc == nullptr) {
+    return RegisterFontInternal(fontCollection, fontFamily, familySrc, index);
+}
+
+static uint32_t RegisterFontBufferInternal(OH_Drawing_FontCollection* fontCollection, 
+    const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index = 0)
+{
+    if (fontCollection == nullptr)
+    {
         return ERROR_NULL_FONT_COLLECTION;
     }
-    const std::string path = familySrc;
-    std::unique_ptr<char[]> buffer;
-    std::streamsize size = 0;
-    uint32_t result = LoadFontDataFromFile(path, buffer, size);
-    if (result != 0) {
-        return result;
+    if (fontBuffer == nullptr)
+    {
+        return ERROR_NULL_FONT_BUFFER;
+    }
+    if (length == 0)
+    {
+        return ERROR_BUFFER_SIZE_ZERO;
     }
     const std::string familyName = fontFamily;
-    const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
-    return LoadFromFontCollectionByIndex(fontCollection, familyName, data, size, 0);
+    return LoadFromFontCollectionByIndex(fontCollection, familyName, fontBuffer, length, index);
 }
 
 uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
     uint8_t* fontBuffer, size_t length)
 {
-    if (fontCollection == nullptr) {
-        return ERROR_NULL_FONT_COLLECTION;
-    }
-    if (fontBuffer == nullptr) {
-        return ERROR_NULL_FONT_BUFFER;
-    }
-
-    if (length == 0) {
-        return ERROR_BUFFER_SIZE_ZERO;
-    }
-
-    const std::string familyName = fontFamily;
-    return LoadFromFontCollectionByIndex(fontCollection, familyName, fontBuffer, length, 0);
+    return RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, 0);
 }
 
 uint32_t OH_Drawing_RegisterFontBufferByIndex(OH_Drawing_FontCollection* fontCollection,
     const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index)
 {
-    if (fontCollection == nullptr) {
-        return ERROR_NULL_FONT_COLLECTION;
-    }
-    if (fontBuffer == nullptr) {
-        return ERROR_NULL_FONT_BUFFER;
-    }
-
-    if (length == 0) {
-        return ERROR_BUFFER_SIZE_ZERO;
-    }
-
-    const std::string familyName = fontFamily;
-    return LoadFromFontCollectionByIndex(fontCollection, familyName, fontBuffer, length, 0);
+    return RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, index);
 }
 
 uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily)
 {
-    if (fontCollection == nullptr || fontFamily == nullptr) {
+    if (fontCollection == nullptr || fontFamily == nullptr)
+    {
         return ERROR_NULL_FONT_COLLECTION;
     }
     std::string family(fontFamily);
-    if (family.empty() || SPText::DefaultFamilyNameMgr::IsThemeFontFamily(family)) {
+    if (family.empty() || SPText::DefaultFamilyNameMgr::IsThemeFontFamily(family))
+    {
         return ERROR_NULL_FONT_COLLECTION;
     }
 

@@ -27,40 +27,41 @@ using namespace testing::ext;
 
 #define SUCCESSED 0
 #define ERROR_FILE_NOT_EXISTS 1
-#define ERROR_OPEN_FILE_FAILED 2
 #define ERROR_READ_FILE_FAILED 3
-#define ERROR_SEEK_FAILED 4
-#define ERROR_GET_SIZE_FAILED 5
 #define ERROR_NULL_FONT_BUFFER 6
-#define ERROR_BUFFER_SIZE_ZERO 7
 #define ERROR_NULL_FONT_COLLECTION 8
 #define ERROR_FILE_CORRUPTION 9
 
 namespace OHOS {
 class NdkRegisterFontIndexTest : public testing::Test {
 protected:
-    const char* fontFamily_ = "Roboto";
+    const char* fontFamily_ = "NotoSansCJKjp-Regular-Alphabetic";
     const char* existFontPath_ = "/system/fonts/NotoSansCJK-Regular.ttc";
     const char* notExistFontPath_ = "/system/fonts/Roboto-Regular1.ttf";
     const char* themeFontFamily_ = "ohosthemefont";
 
     OH_Drawing_FontCollection* fontCollection_ = nullptr;
     std::unique_ptr <uint8_t[]> existFontBuffer_ = nullptr;
+    int invalidFontCount = 100;
     uint32_t bufferSize_ = 0;
 
-    void Setup() override {
+    void Setup() override
+    {
         fontCollection_ = OH_Drawing_CreateFontCollection();
         ASSERT_NE(fontCollection_, nullptr);
         LoadFontBuffers();
     }
 
-    void TearDown() override {
-        if (fontCollection_) {
+    void TearDown() override
+    {
+        if (fontCollection_)
+        {
             OH_Drawing_DestroyFontCollection(fontCollection);
         }
     }
 
-    void LoadFontBuffers() {
+    void LoadFontBuffers()
+    {
         std::ifstream fileStream(existFontPath_);
         ASSERT_TRUE(fileStream.is_open());
         fileStream.seekg(0, std::ios::end);
@@ -118,7 +119,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest003, TestSize.Level0)
 
     errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount);
     EXPECT_EQ(errorCode, ERROR_READ_FILE_FAILED);
-    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount + 100);
+    errorCode = OH_Drawing_RegisterFontByIndex(fontCollection_, fontFamily_, existFontPath_, fontCount + invalidFontCount);
     EXPECT_EQ(errorCode, ERROR_READ_FILE_FAILED);
 }
 
@@ -169,7 +170,7 @@ HWTEST_F(NdkRegisterFontIndexTest, NdkRegisterFontIndexTest006, TestSize.Level0)
         fontCollection_, fontFamily_, existFontBuffer_.get(), bufferSize_, fontCount);
     EXPECT_EQ(errorCode, ERROR_READ_FILE_FAILED);
     errorCode = OH_Drawing_RegisterFontBufferByIndex(
-        fontCollection_, fontFamily_, existFontBuffer_.get(), bufferSize_, fontCount + 100);
+        fontCollection_, fontFamily_, existFontBuffer_.get(), bufferSize_, fontCount + invalidFontCount);
     EXPECT_EQ(errorCode, ERROR_READ_FILE_FAILED);
 }
 

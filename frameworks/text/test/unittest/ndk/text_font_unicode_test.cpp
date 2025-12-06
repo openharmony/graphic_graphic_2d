@@ -25,26 +25,18 @@
 using namespace testing;
 using namespace testing::ext;
 
-#define SUCCESSED 0
-#define ERROR_FILE_NOT_EXISTS 1
-#define ERROR_OPEN_FILE_FAILED 2
-#define ERROR_READ_FILE_FAILED 3
-#define ERROR_SEEK_FAILED 4
-#define ERROR_GET_SIZE_FAILED 5
-#define ERROR_NULL_FONT_BUFFER 6
-#define ERROR_BUFFER_SIZE_ZERO 7
-#define ERROR_NULL_FONT_COLLECTION 8
-#define ERROR_FILE_CORRUPTION 9
+#define OH_DRAWING_SUCCESS 0
+#define OH_DRAWING_ERROR_INCORRECT_PARAMETER 26200004
 
 namespace OHOS {
 class NdkRegisterFontIndexTest : public testing::Test {
 protected:
-    const char* fontFamily_ = "Roboto";
     const char* ttcFontPath_ = "/system/fonts/NotoSansCJK-Regular.ttc";
     const char* ttfFontPath_ = "/system/fonts/Roboto-Regular.ttf";
     const char* notExistFontPath_ = "/system/fonts/Roboto-Regular1.ttf";
     const char* themeFontFamily_ = "ohosthemefont";
 
+    int invalidFontCount = 100;
     int32_t* unicodeArray = nullptr;
     int32_t arrayLength = 0;
 
@@ -54,24 +46,29 @@ protected:
 
     uint32_t bufferSize_ = 0;
 
-    void Setup() override {
+    void Setup() override
+    {
         fontCollection_ = OH_Drawing_CreateFontCollection();
         ASSERT_NE(fontCollection_, nullptr);
         LoadFontBuffers();
-        invalidBuffer_ = std::vector<uint8_t>(100, 0xFF);
+        invalidBuffer_ = std::vector<uint8_t>(invalidFontCount, 0xFF);
     }
 
-    void TearDown() override {
-        if (fontCollection_ != nullptr) {
+    void TearDown() override
+    {
+        if (fontCollection_ != nullptr)
+        {
             OH_Drawing_DestroyFontCollection(fontCollection);
         }
 
-        if(unicodeArray != nullptr) {
+        if(unicodeArray != nullptr)
+        {
             std::free(unicodeArray);
         }
     }
 
-    void LoadFontBuffers() {
+    void LoadFontBuffers()
+    {
         std::ifstream fileStream(ttcFontPath_);
         ASSERT_TRUE(fileStream.is_open());
         fileStream.seekg(0, std::ios::end);
@@ -131,7 +128,7 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest003, TestSize.Level0)
     EXPECT_EQ(arrayLength, 0);
 
     errorCode = OH_Drawing_GetFontUnicodeArrayFromBuffer(
-        nullptr, 100, 0, &unicodeArray, &arrayLength);
+        nullptr, invalidFontCount, 0, &unicodeArray, &arrayLength);
     EXPECT_EQ(errorCode, OH_DRAWING_ERROR_INCORRECT_PARAMETER);
     EXPECT_EQ(unicodeArray, nullptr);
     EXPECT_EQ(arrayLength, 0);
@@ -165,12 +162,12 @@ HWTEST_F(NdkFontUnicodeTest, NdkFontUnicodeTest005, TestSize.Level0)
 {
     uint32_t countFromFile = OH_Drawing_GetFontCountFromFile(nullptr);
     EXPECT_EQ(countFromFile, 0);
-    countFromBuffer = OH_Drawing_GetFontCountFromBuffer(nullptr, 100);
+    countFromBuffer = OH_Drawing_GetFontCountFromBuffer(nullptr, invalidFontCount);
     EXPECT_EQ(countFromBuffer, 0);
 
     countFromFile = OH_Drawing_GetFontCountFromFile(notExistFontPath_);
     EXPECT_EQ(countFromFile, 0);
-    countFromBuffer = OH_Drawing_GetFontCountFromBuffer(invalidBuffer_.data(), 100);
+    countFromBuffer = OH_Drawing_GetFontCountFromBuffer(invalidBuffer_.data(), invalidFontCount);
     EXPECT_EQ(countFromBuffer, 0);
 }
 } // namespace OHOS
