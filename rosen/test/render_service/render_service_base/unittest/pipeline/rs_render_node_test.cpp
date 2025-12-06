@@ -3409,6 +3409,36 @@ HWTEST_F(RSRenderNodeTest, IsPureBackgroundColorTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsPureBackgroundColorTest002
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issue21014
+ */
+HWTEST_F(RSRenderNodeTest, IsPureBackgroundColorTest002, TestSize.Level1)
+{
+    auto rsRenderNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto& drawableVec = rsRenderNode->GetDrawableVec(__func__);
+
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::BLENDER)] = std::make_shared<DrawableTest>();
+    bool result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_FALSE(result);
+
+    auto& property = rsRenderNode->GetMutableRenderProperties();
+    property.SetColorBlendMode(static_cast<int>(RSColorBlendMode::SRC_OVER));
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_TRUE(result);
+
+    property.SetColorBlendApplyType(static_cast<int>(RSColorBlendApplyType::SAVE_LAYER));
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_FALSE(result);
+
+    drawableVec[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)] = std::make_shared<DrawableTest>();
+    result = rsRenderNode->IsPureBackgroundColor();
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: SetUIContextTokenTest001
  * @tc.desc: test
  * @tc.type: FUNC

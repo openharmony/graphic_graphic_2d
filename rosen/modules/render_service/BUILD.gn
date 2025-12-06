@@ -336,6 +336,10 @@ ohos_shared_library("librender_service") {
     defines += [ "IS_ENABLE_DRM" ]
   }
 
+  if (graphic_2d_feature_product == "phone") {
+    defines += ["PREPARE_PHASE_QUICK_SKIP_ENABLED"]
+  }
+
   if (rs_enable_parallel_render && rs_enable_gpu) {
     sources += [
       "core/feature/uifirst/rs_sub_thread.cpp",

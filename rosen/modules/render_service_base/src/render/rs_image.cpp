@@ -647,7 +647,7 @@ void RSImage::DrawImageShaderRectOnCanvas(
         RS_LOGE("RSImage::DrawImageShaderRectOnCanvas image shader is nullptr");
         return;
     }
-    Drawing::Paint paint;
+    Drawing::Paint paint = paint_;
 
     if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
         (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||

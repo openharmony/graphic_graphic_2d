@@ -13,26 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef FONT_UNICODE_QUERY_H
-#define FONT_UNICODE_QUERY_H
+#include "font_tool_set.h"
 
-#include <string>
+#include "font_parser.h"
 
-#include "typeface.h"
+namespace OHOS::Rosen {
+FontToolSet& FontToolSet::GetInstance()
+{
+    static FontToolSet instance;
+    return instance;
+}
 
-namespace OHOS {
-namespace Rosen {
-namespace Drawing {
-class DRAWING_API FontUnicodeQuery {
-public:
-    /**
-     * @brief            Returns all supported and valid unicode item in given typeface.
-     * @param typeface   given typeface.
-     * @return           vector of all supported and valid unicode item in given typeface
-     */
-    static std::vector<uint32_t> GenerateUnicodeItem(const std::shared_ptr<Typeface>& typeface);
-};
-} // Drawing
-} // Rosen
-} // OHOS
-#endif // FONT_UNICODE_QUERY_H
+std::vector<std::string> FontToolSet::GetFontFullName(const std::string& path)
+{
+    return TextEngine::FontParser::GetFontFullName(path);
+}
+} // namespace OHOS::Rosen

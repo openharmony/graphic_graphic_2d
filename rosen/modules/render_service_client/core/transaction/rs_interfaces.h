@@ -678,6 +678,13 @@ public:
      */
     void SetScreenBacklight(ScreenId id, uint32_t level);
 
+    /**
+     * @brief Get power status of the specified screen.
+     * @param id Id of the screen.
+     * @return PanelPowerStatus.
+     */
+    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
+
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
     /**

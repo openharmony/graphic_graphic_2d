@@ -245,6 +245,8 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     } else {
         canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     }
+    RS_OPTIONAL_TRACE_NAME_FMT("DrawCacheSurface bound[%f %f] cache[%d %d] scale[%f %f]", boundSize.x_, boundSize.y_,
+        cacheImage->GetWidth(), cacheImage->GetHeight(), scaleX, scaleY);
     if (RSSystemProperties::GetRecordingEnabled()) {
         if (cacheImage->IsTextureBacked()) {
             RS_LOGI("DrawCacheSurface convert cacheImage from texture to raster image");

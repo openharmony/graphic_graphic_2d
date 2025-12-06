@@ -39,7 +39,7 @@ enum class OtNameId : uint8_t {
     COUNT
 };
 
-struct FontLegalInfo {
+struct DRAWING_API FontLegalInfo {
     std::string version = "";
     std::string manufacturer = "";
     std::string copyright = "";
@@ -47,7 +47,7 @@ struct FontLegalInfo {
     std::string license = "";
 };
 
-struct FontIdentification {
+struct DRAWING_API FontIdentification {
     std::string fontFamily = "";
     std::string fontSubFamily = "";
     std::string fullName = "";
@@ -69,7 +69,7 @@ public:
     }
 };
 
-class FontMetaDataCollector {
+class DRAWING_API FontMetaDataCollector {
 public:
     /**
      * @brief            Returns font legal information for given typeface.

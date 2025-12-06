@@ -56,6 +56,7 @@ ohos_source_set("libtexgine_source") {
     "src/font_config.cpp",
     "src/font_descriptor_cache.cpp",
     "src/font_descriptor_mgr.cpp",
+    "src/font_tool_set.cpp",
     "src/font_parser.cpp",
     "src/opentype_parser/opentype_basic_type.cpp",
   ]
@@ -82,6 +83,7 @@ ohos_source_set("libtexgine_source") {
       "//third_party/skia:skia_$platform",
     ]
     deps = [
+      "//base/global/i18n/frameworks/intl:intl_util",
       "//third_party/bounds_checking_function:libsec_static",
       "//third_party/cJSON:cjson_static",
     ]
@@ -89,6 +91,7 @@ ohos_source_set("libtexgine_source") {
     external_deps = [
       "bounds_checking_function:libsec_shared",
       "cJSON:cjson",
+      "i18n:intl_util",
       "skia:skia_canvaskit",
     ]
   }

@@ -52,7 +52,7 @@ void FontFileTypeTest::TearDown() {}
 HWTEST_F(FontFileTypeTest, GetFontFileTypeByFaceNullptr, TestSize.Level1)
 {
     auto filetype = FontFileType::GetFontFileType(nullptr);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
 }
 
 /**
@@ -68,7 +68,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByFaceInvalid, TestSize.Level1)
     auto data = typeface->Serialize();
     auto typefaceInvalid = Typeface::Deserialize(data->GetData(), 1); // wrong size for invalid tf
     auto filetype = FontFileType::GetFontFileType(typefaceInvalid);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
 }
 
 /**
@@ -83,7 +83,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByFaceValid01, TestSize.Level1)
     auto typeface = Typeface::MakeFromFile(pathDefault.c_str());
     ASSERT_TRUE(typeface);
     auto filetype = FontFileType::GetFontFileType(typeface);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
 }
 
 /**
@@ -98,7 +98,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByFaceValid02, TestSize.Level1)
     auto typeface = Typeface::MakeFromFile(pathDefault.c_str());
     ASSERT_TRUE(typeface);
     auto filetype = FontFileType::GetFontFileType(typeface);
-    EXPECT_EQ(filetype, FontFileFormat::OTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::OTF);
 }
 
 // ----------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathEmptyWithInput0, TestSize.Level1
     std::string pathDefault = "";
     int fileCount = 0;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -131,7 +131,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathEmptyWithInputPosHuge, TestSize.
     std::string pathDefault = "";
     int fileCount = 100;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -146,7 +146,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathEmptyWithInputNegHuge, TestSize.
     std::string pathDefault = "";
     int fileCount = -100;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -161,7 +161,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathInvalidWithInput0, TestSize.Leve
     std::string pathDefault = "hm_symbol_config.json";
     int fileCount = 0;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -176,7 +176,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathInvalidWithInputPosHuge, TestSiz
     std::string pathDefault = "hm_symbol_config.json";
     int fileCount = 100;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -191,7 +191,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathInvalidWithInputNegHuge, TestSiz
     std::string pathDefault = "hm_symbol_config.json";
     int fileCount = -100;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -206,7 +206,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathValidWithInput0, TestSize.Level1
     std::string pathDefault = "/system/fonts/HarmonyOS_Sans_SC.ttf";
     int fileCount = 0;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
     EXPECT_EQ(fileCount, 1);
 }
 
@@ -221,7 +221,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathValidWithInputPosHuge, TestSize.
     std::string pathDefault = "/system/fonts/HarmonyOS_Sans_SC.ttf";
     int fileCount = 100;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
     EXPECT_EQ(fileCount, 1);
 }
 
@@ -236,7 +236,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathValidWithInputNegHuge, TestSize.
     std::string pathDefault = "/system/fonts/HarmonyOS_Sans_SC.ttf";
     int fileCount = -100;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
     EXPECT_EQ(fileCount, 1);
 }
 
@@ -251,7 +251,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathValidWithInputOTC, TestSize.Leve
     std::string pathDefault = "/system/fonts/NotoSansCJK-Regular.ttc";
     int fileCount = 0;
     auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::OTC);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::OTC);
     EXPECT_EQ(fileCount, 10);
 }
 // ----------------------------------------------------------------------------------
@@ -269,7 +269,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataEmptyWithInput0, TestSize.Level1
     int fileCount = 0;
     std::vector<uint8_t> fontData = {};
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -284,7 +284,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataEmptyWithInputPosHuge, TestSize.
     int fileCount = 100;
     std::vector<uint8_t> fontData = {};
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -299,7 +299,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataEmptyWithInputNegHuge, TestSize.
     int fileCount = -100;
     std::vector<uint8_t> fontData = {};
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -314,7 +314,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataInvalidWithInput0, TestSize.Leve
     int fileCount = 0;
     std::vector<uint8_t> fontData = {0, 0, 0};
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -329,7 +329,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataInvalidWithInputPosHuge, TestSiz
     int fileCount = 100;
     std::vector<uint8_t> fontData = {0, 0, 0};
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -344,7 +344,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataInvalidWithInputNegHuge, TestSiz
     int fileCount = -100;
     std::vector<uint8_t> fontData = {0, 0, 0};
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::UNKNOWN);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
     EXPECT_EQ(fileCount, 0);
 }
 
@@ -368,7 +368,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInput0, TestSize.Level1
     ASSERT_TRUE(ttfFile.good());
     ttfFile.close();
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
     EXPECT_EQ(fileCount, 1);
 }
 
@@ -392,7 +392,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInputPosHuge, TestSize.
     ASSERT_TRUE(ttfFile.good());
     ttfFile.close();
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
     EXPECT_EQ(fileCount, 1);
 }
 
@@ -416,7 +416,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInputNegHuge, TestSize.
     ASSERT_TRUE(ttfFile.good());
     ttfFile.close();
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::TTF);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::TTF);
     EXPECT_EQ(fileCount, 1);
 }
 
@@ -440,7 +440,7 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInputOTC, TestSize.Leve
     ASSERT_TRUE(ttfFile.good());
     ttfFile.close();
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
-    EXPECT_EQ(filetype, FontFileFormat::OTC);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::OTC);
     EXPECT_EQ(fileCount, 10);
 }
 } // namespace Drawing

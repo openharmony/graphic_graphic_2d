@@ -23,11 +23,18 @@
 #include <iostream>
 #include <iomanip>
 #include <securec.h>
+#include <unordered_map>
 #ifdef BUILD_NON_SDK_VER
 #include <iconv.h>
 #endif
 
 #include "font_config.h"
+#ifdef ENABLE_OHOS_ENHANCE
+#include "locale_config.h"
+#endif
+#include "text/font_filetype.h"
+#include "text/font_metadata.h"
+#include "text/font_unicode_query.h"
 #include "utils/text_log.h"
 
 namespace OHOS {
@@ -38,10 +45,59 @@ namespace TextEngine {
 #define SYSTEM_FONT_PATH "/system/fonts/"
 #define SYS_PROD_FONT_PATH "/sys_prod/fonts/"
 
-constexpr uint32_t HB_TAG(uint32_t c1, uint32_t c2, uint32_t c3, uint32_t c4)
-{
-    // 24 means 32-24 bit, 16 means 24-16 bit, 8 means 16-8 bit, 0 means 8-0 bit, 0xFF means only 8 bit
-    return ((c1 & 0xFF) << 24) | ((c2 & 0xFF) << 16) | ((c3 & 0xFF) << 8) | (c4 & 0xFF);
+namespace {
+    std::unordered_map<std::string, std::vector<std::string>> g_localeToBcpTable = {
+        {"my", {"my", "my-MM"}},
+        {"zh-Hant", {"zh-Hant", "zh-TW", "zh-HK", "zh-MO", "zh-SG"}},
+        {"pt-PT", {"pt-PT", "pt"}},
+        {"zh-Hans", {"zh-Hans", "zh", "zh-CN"}},
+        {"it", {"it", "it-IT", "it-CH"}},
+        {"fi", {"fi", "fi-FI"}},
+        {"ja", {"ja", "ja-JP"}},
+        {"mk", {"mk", "mk-MK"}},
+        {"el", {"el", "el-GR"}},
+        {"bg", {"bg", "bg-BG"}},
+        {"uk", {"uk", "uk-UA"}},
+        {"sv", {"sv", "sv-SE"}},
+        {"th", {"th", "th-TH"}},
+        {"nb", {"nb", "nb-NO"}},
+        {"da", {"da", "da-DK"}},
+        {"cs", {"cs", "cs-CZ"}},
+        {"fr", {"fr", "fr-FR"}},
+        {"ru", {"ru", "ru-RU", "ru-MD"}},
+        {"et", {"et", "et-EE"}},
+        {"en-Latn-US", {"en-US", "en"}},
+        {"hu", {"hu", "hu-HU"}},
+        {"es", {"es", "es-ES", "es-US"}},
+        {"sk", {"sk", "sk-SK"}},
+        {"pl", {"pl", "pl-PL"}},
+        {"sr-Latn", {"sr-Latn"}},
+        {"sl", {"sl", "sl-SI"}},
+        {"ro", {"ro", "ro-RO"}},
+        {"lv", {"lv", "lv-LV"}},
+        {"lt", {"lt", "lt-LT"}},
+        {"hr", {"hr", "hr-HR", "hr-BA"}},
+        {"be", {"be", "be-BY"}},
+        {"ar", {"ar"}},
+        {"he", {"he", "he-IL"}},
+        {"km", {"km", "km-KH"}},
+        {"tr", {"tr", "tr-TR"}},
+        {"vi", {"vi", "vi-VN"}},
+        {"id", {"id", "id-ID"}},
+        {"ms", {"ms", "ms-MY", "ms-BN"}},
+        {"pt-BR", {"pt-BR", "pt"}},
+        {"hi", {"hi", "hi-IN"}},
+        {"nl", {"nl", "nl-NL", "nl-BE"}},
+        {"de", {"de", "de-DE", "de-CH"}},
+        {"ka", {"ka", "ka-GE"}},
+        {"es-US", {"es-US", "es"}},
+        {"ko", {"ko", "ko-KR"}},
+        {"fil", {"fil", "fil-PH"}},
+        {"fa", {"fa", "fa-IR"}},
+        {"uz-Latn", {"uz-Latn", "uz-Latn-UZ"}},
+        {"bn", {"bn", "bn-BD", "bn-IN"}},
+        {"kk", {"kk", "kk-KZ"}},
+    };
 }
 
 FontParser::FontParser()
@@ -376,6 +432,106 @@ std::vector<std::shared_ptr<FontParser::FontDescriptor>> FontParser::ParserFontD
     return CreateFontDescriptors(typefaces, locale);
 }
 
+std::vector<uint32_t> FontParser::GetFontTypefaceUnicode(const std::string& path, int32_t index)
+{
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index);
+    return Drawing::FontUnicodeQuery::GenerateUnicodeItem(typeface);
+}
+
+std::vector<uint32_t> FontParser::GetFontTypefaceUnicode(const void* data, size_t length, int32_t index)
+{
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromStream(
+        std::make_unique<Drawing::MemoryStream>(data, length), index);
+    return Drawing::FontUnicodeQuery::GenerateUnicodeItem(typeface);
+}
+
+std::vector<std::string> FontParser::GetFontFullName(const std::string& path)
+{
+    int32_t fileCount = 0;
+    Drawing::FontFileType::GetFontFileType(path, fileCount);
+    if (fileCount == 0) {
+        TEXT_LOGE("Failed to get font count, path %{public}s", path.c_str());
+        return {};
+    }
+    std::vector<std::string> result;
+    for (int32_t index = 0; index < fileCount; index++) {
+        std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index);
+        if (typeface == nullptr) {
+            TEXT_LOGE("Failed to make typeface, path %{public}s", path.c_str());
+            return {};
+        }
+        FontDescriptor desc;
+        desc.requestedLid = LANGUAGE_EN;
+        if (!ParseOneTable<NameTable>(typeface, desc)) {
+            TEXT_LOGE("Failed to parse name table, path %{public}s", path.c_str());
+            return {};
+        }
+        result.emplace_back(desc.fullName);
+    }
+    return result;
+}
+
+std::vector<std::string> FontParser::GetBcpTagList()
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    std::string systemLanguage = Global::I18n::LocaleConfig::GetSystemLanguage();
+#else
+    std::string systemLanguage = "";
+#endif
+    auto it = g_localeToBcpTable.find(systemLanguage);
+    if (it == g_localeToBcpTable.end()) {
+        return {};
+    }
+    return it->second;
+}
+
+void FontParser::FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc)
+{
+    std::vector<std::string> bcpTagList = GetBcpTagList();
+    bcpTagList.emplace_back("en");
+
+    auto fontIdentificationMap = Drawing::FontMetaDataCollector::GenerateFontIdentification(typeface, bcpTagList);
+    for (const auto& tag : bcpTagList) {
+        auto it = fontIdentificationMap.find(tag);
+        if (it == fontIdentificationMap.end()) {
+            continue;
+        }
+        Drawing::FontIdentification& info = it->second;
+        desc.localFamilyName = desc.localFamilyName.empty() ? info.fontFamily : desc.localFamilyName;
+        desc.localSubFamilyName = desc.localSubFamilyName.empty() ? info.fontSubFamily : desc.localSubFamilyName;
+        desc.localFullName = desc.localFullName.empty() ? info.fullName : desc.localFullName;
+        desc.localPostscriptName = desc.localPostscriptName.empty() ? info.postScriptName : desc.localPostscriptName;
+    }
+
+    auto fontLegalInfoMap = Drawing::FontMetaDataCollector::GenerateFontLegalInfo(typeface, bcpTagList);
+    for (const auto& tag : bcpTagList) {
+        auto it = fontLegalInfoMap.find(tag);
+        if (it == fontLegalInfoMap.end()) {
+            continue;
+        }
+        Drawing::FontLegalInfo& info = it->second;
+        desc.version = desc.version.empty() ? info.version : desc.version;
+        desc.manufacture = desc.manufacture.empty() ? info.manufacturer : desc.manufacture;
+        desc.copyright = desc.copyright.empty() ? info.copyright : desc.copyright;
+        desc.trademark = desc.trademark.empty() ? info.trademark : desc.trademark;
+        desc.license = desc.license.empty() ? info.license : desc.license;
+    }
+}
+
+int32_t FontParser::GetFontCount(const std::string& path)
+{
+    int32_t fileCount = 0;
+    Drawing::FontFileType::GetFontFileType(path, fileCount);
+    return fileCount;
+}
+
+int32_t FontParser::GetFontCount(const std::vector<uint8_t>& data)
+{
+    int32_t fileCount = 0;
+    Drawing::FontFileType::GetFontFileType(data, fileCount);
+    return fileCount;
+}
+
 std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     const std::shared_ptr<Drawing::Typeface>& typeface, unsigned int languageId)
 {
@@ -385,12 +541,14 @@ std::shared_ptr<FontParser::FontDescriptor> FontParser::CreateFontDescriptor(
     FontDescriptor desc;
     desc.requestedLid = languageId;
     desc.path = typeface->GetFontPath();
+    desc.index = typeface->GetFontIndex();
     auto fontStyle = typeface->GetFontStyle();
     desc.weight = fontStyle.GetWeight();
     desc.width = fontStyle.GetWidth();
     if (!ParseTable(typeface, desc)) {
         return nullptr;
     }
+    FillFontDescriptorWithLocalInfo(typeface, desc);
     return std::make_shared<FontParser::FontDescriptor>(desc);
 }
 

@@ -33,7 +33,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
-struct FontAxisInfo {
+struct DRAWING_API FontAxisInfo {
     // Map between aimed language and axisTagName.
     std::unordered_map<std::string, std::string> axisTagMapForLanguage;
     std::string axisTag = "";          // Tag identifying the design variation for the axis.
@@ -44,14 +44,14 @@ struct FontAxisInfo {
     bool isHidden = false;             // The axis should not be exposed directly in user interfaces.
 };
 
-struct FontInstanceInfo {
+struct DRAWING_API FontInstanceInfo {
     std::unordered_map<std::string, std::string> subfamilyNameMapForLanguage;
     std::unordered_map<std::string, std::string> postScriptNameMapForLanguage;
     std::unordered_map<std::string, float> coordinates;
     bool isDefault = false;
 };
 
-class FontVariationInfo {
+class DRAWING_API FontVariationInfo {
 public:
     FontVariationInfo() = default;
     ~FontVariationInfo()

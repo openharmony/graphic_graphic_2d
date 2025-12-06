@@ -238,10 +238,10 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
         return false;
     }
 
-    ani_double left;
-    ani_double top;
-    ani_double right;
-    ani_double bottom;
+    ani_double left = 0;
+    ani_double top = 0;
+    ani_double right = 0;
+    ani_double bottom = 0;
     RectPropertyConfig leftConfig = { "left", "<get>left", gGetLeftMethod, left };
     RectPropertyConfig topConfig = { "top", "<get>top", gGetTopMethod, top };
     RectPropertyConfig rightConfig = { "right", "<get>right", gGetRightMethod, right };

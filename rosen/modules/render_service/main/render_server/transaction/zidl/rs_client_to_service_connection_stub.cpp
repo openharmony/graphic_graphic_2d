@@ -116,6 +116,7 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_AUTO_ROTATION),
@@ -1811,6 +1812,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             if (!reply.WriteUint32(mode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_SCREEN_GAMUT_MAP Write mode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS): {
+            ScreenId id {INVALID_SCREEN_ID};
+            if (!data.ReadUint64(id)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Read id failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            uint32_t panelPowerStatus {static_cast<uint32_t>(PanelPowerStatus::INVALID_PANEL_POWER_STATUS) };
+            if (GetPanelPowerStatus(id, panelPowerStatus) != ERR_OK || !reply.WriteUint32(panelPowerStatus)) {
+                RS_LOGE("RSRenderServiceConnectionStub::GET_PANEL_POWER_STATUS Read status failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

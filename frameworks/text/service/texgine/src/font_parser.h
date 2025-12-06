@@ -92,6 +92,16 @@ public:
         int italic = 0;
         bool monoSpace = false;
         bool symbolic = false;
+        std::string localPostscriptName;
+        std::string localFullName;
+        std::string localFamilyName;
+        std::string localSubFamilyName;
+        std::string version;
+        std::string manufacture;
+        std::string copyright;
+        std::string trademark;
+        std::string license;
+        int32_t index{0};
         FontDescriptor() = default;
         FontDescriptor(const FontDescriptor&) = default;
         FontDescriptor& operator=(const FontDescriptor& other) = default;
@@ -113,6 +123,11 @@ public:
         const std::shared_ptr<Drawing::Typeface>& typefaces, unsigned int languageId);
     static std::vector<std::shared_ptr<FontDescriptor>> CreateFontDescriptors(
         const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces, const std::string& locale = ENGLISH);
+    static std::vector<uint32_t> GetFontTypefaceUnicode(const std::string& path, int32_t index);
+    static std::vector<uint32_t> GetFontTypefaceUnicode(const void* data, size_t length, int32_t index);
+    static std::vector<std::string> GetFontFullName(const std::string& path);
+    static int32_t GetFontCount(const std::string& path);
+    static int32_t GetFontCount(const std::vector<uint8_t>& data);
 
 private:
     static void GetStringFromNameId(NameId nameId, unsigned int languageId, const std::string& nameString,
@@ -126,6 +141,8 @@ private:
     static bool ParseAllTables(
         std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor, std::index_sequence<Is...>);
     static bool ParseTable(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& fontDescriptor);
+    static void FillFontDescriptorWithLocalInfo(std::shared_ptr<Drawing::Typeface> typeface, FontDescriptor& desc);
+    static std::vector<std::string> GetBcpTagList();
     bool SetFontDescriptor(const unsigned int languageId);
     std::unique_ptr<FontParser::FontDescriptor> ParseFontDescriptor(
         const std::string& fontName, const unsigned int languageId);
