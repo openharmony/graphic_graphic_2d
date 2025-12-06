@@ -23,6 +23,7 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "event_handler.h"
+#include "pipeline/buffer_thread/rs_buffer_manager.h"
 #include "params/rs_render_thread_params.h"
 #include "pipeline/rs_context.h"
 #include "rs_base_render_engine.h"
@@ -32,6 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderComposerClient;
+class IRSRenderToComposerConnection;
 namespace DrawableV2 {
 class RSRenderNodeDrawable;
 class RSScreenRenderNodeDrawable;
@@ -49,6 +52,8 @@ public:
     RSUniRenderThread& operator=(RSUniRenderThread&&) = delete;
 
     void Start();
+    void OnScreenConnected(const ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& composerClient);
+    void OnScreenDisconnected(const ScreenId screenId);
     void InitGrContext();
     void RenderFrames();
     void Sync(std::unique_ptr<RSRenderThreadParams>&& stagingRenderThreadParams);
@@ -63,7 +68,6 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     bool IsIdle() const;
     void Render();
-    void ReleaseSelfDrawingNodeBuffer();
     void ReleaseSurfaceOpItemBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
 
@@ -75,8 +79,10 @@ public:
     int64_t GetActualTimestamp() const;
     uint64_t GetVsyncId() const;
     bool GetForceRefreshFlag() const;
+    bool GetHasGameScene() const;
     uint32_t GetPendingScreenRefreshRate() const;
     uint64_t GetPendingConstraintRelativeTime() const;
+    uint32_t GetDefaultScreenRefreshRate() const;
     uint64_t GetFastComposeTimeStampDiff() const;
     sptr<SyncFence> GetAcquireFence();
     void PurgeCacheBetweenFrames();
@@ -237,6 +243,8 @@ public:
 
     void DumpVkImageInfo(std::string &dumpString);
 
+    int GetMinAccumulatedBufferCount();
+
     void InitDrawOpOverCallback(Drawing::GPUContext* gpuContext);
 
     void SetScreenPowerOnChanged(bool val);
@@ -244,13 +252,59 @@ public:
     bool GetSetScreenPowerOnChanged();
 
     void CollectProcessNodeNum(int num);
+
+    void AddRenderComposerClient(ScreenId screenId, const std::shared_ptr<RSRenderComposerClient>& rsRenderComposerClient);
+    void DeleteRSRenderComposerClient(ScreenId screenId);
+    std::shared_ptr<RSRenderComposerClient> GetRSRenderComposerClient(ScreenId screenId);
+    std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>> GetRSRenderComposerClientMap();
+    void DumpSurfaceInfo(std::string &dumpString);
+    void DumpCurrentFrameLayers();
+
+    RSBufferManager& GetBufferManager() 
+    {
+        return bufferManager_;
+    }
+
+    void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer, sptr<SyncFence> fence)
+    {
+        bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
+    }
+
+    void AddPendingReleaseBuffer(uint64_t seqNum, sptr<SyncFence> fence)
+    {
+        bufferManager_.AddPendingReleaseBuffer(seqNum, fence);
+    }
+
+    void OnDrawStart()
+    {
+        bufferManager_.OnDrawStart();
+    }
+
+    void OnDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
+    {
+        bufferManager_.OnDrawBuffer(consumer, buffer, bufferOwnerCount);
+    }
+    void OnDrawEnd(sptr<SyncFence> canvasAcquireFence)
+    {
+        bufferManager_.OnDrawEnd(canvasAcquireFence);
+    }
+
+    void BufferReleaseCallBack(uint64_t seqNum)
+    {
+        bufferManager_.BufferReleaseCallBack(seqNum);
+    }
+
+    static void OnComposedBufferCallBack(uint64_t seqNum, sptr<SyncFence> fence)
+    {
+        Instance().AddPendingReleaseBuffer(seqNum, fence);
+    }
+
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
-    void CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks);
 
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
     // Those variable is used to manage memory.
@@ -298,6 +352,10 @@ private:
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;
     static thread_local CaptureParam captureParam_;
 
+    // composer client
+    mutable std::mutex rsComposerMapMutex_;
+    std::map<ScreenId, std::shared_ptr<RSRenderComposerClient>> rsRenderComposerClients_;
+
     std::set<pid_t> exitedPidSet_;
 
     std::vector<Callback> imageReleaseTasks_;
@@ -318,6 +376,7 @@ private:
 
     std::atomic<bool> screenPowerOnChanged_ = false;
     uint32_t totalProcessNodeNum_ = 0;
+    RSBufferManager bufferManager_ = RSBufferManager();
 };
 } // namespace Rosen
 } // namespace OHOS

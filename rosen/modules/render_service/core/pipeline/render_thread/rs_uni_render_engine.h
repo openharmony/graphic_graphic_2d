@@ -16,11 +16,13 @@
 #ifndef RS_CORE_PIPELINE_UNI_RENDER_ENGINE_H
 #define RS_CORE_PIPELINE_UNI_RENDER_ENGINE_H
 
-#include "hdi_layer_info.h"
+#include <atomic>
 #include "pipeline/render_thread/rs_base_render_engine.h"
+#include "rs_layer.h"
 
 namespace OHOS {
 namespace Rosen {
+inline std::atomic<int32_t> REDRAW_FRAME_NUMBER{0};
 class RSUniRenderEngine : public RSBaseRenderEngine {
 public:
     RSUniRenderEngine() = default;

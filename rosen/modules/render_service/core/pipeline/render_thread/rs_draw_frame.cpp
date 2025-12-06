@@ -88,7 +88,7 @@ void RSDrawFrame::RenderFrame()
     RSUifirstManager::Instance().ProcessSubDoneNode();
     Sync();
     RSJankStatsRenderFrameHelper::GetInstance().JankStatsAfterSync(unirenderInstance_.GetRSRenderThreadParams(),
-        GetMinAccumulatedBufferCount());
+        unirenderInstance_.GetMinAccumulatedBufferCount());
     unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
     RSHeteroHDRManager::Instance().PostHDRSubTasks();
@@ -176,7 +176,6 @@ void RSDrawFrame::NotifyClearGpuCache()
 
 void RSDrawFrame::ReleaseDrawingNodeBuffer()
 {
-    unirenderInstance_.ReleaseSelfDrawingNodeBuffer();
     unirenderInstance_.ReleaseSurfaceOpItemBuffer();
 }
 

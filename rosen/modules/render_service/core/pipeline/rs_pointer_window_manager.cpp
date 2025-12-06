@@ -97,12 +97,12 @@ void RSPointerWindowManager::UpdatePointerInfo()
 
     // 2.update (layerInfo.matrix = TotalMatrix)
     if (surfaceNode->GetScreenId() != INVALID_SCREEN_ID) {
-        auto screenManager = CreateOrGetScreenManager();
-        if (!screenManager) {
-            RS_LOGE("RSPointerWindowManager::UpdatePointerInfo screenManager is null!");
+        auto node = GetScreenRenderNode(surfaceNode->GetScreenId());
+        if (!node) {
+            RS_LOGE("RSPointerWindowManager::UpdatePointerInfo screeNode is null!");
             return;
         }
-        auto screenInfo = screenManager->QueryScreenInfo(surfaceNode->GetScreenId());
+        auto screenInfo = node->GetScreenInfo();
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, screenInfo);
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isPointerEnableHwc_);
     }
@@ -158,7 +158,7 @@ void RSPointerWindowManager::HardCursorCreateLayerForDirect(std::shared_ptr<RSPr
                 continue;
             }
             if (!surfaceHandler->IsCurrentFrameBufferConsumed() && params->GetPreBuffer() != nullptr) {
-                params->SetPreBuffer(nullptr);
+                params->SetPreBuffer(nullptr, nullptr);
                 hardCursorNode->AddToPendingSyncList();
             }
             processor->CreateLayer(*hardCursorNode, *params);
@@ -200,26 +200,20 @@ bool RSPointerWindowManager::CheckHardCursorSupport(ScreenId screenId)
     return screenNode->GetScreenProperty().IsHardCursorSupport();
 }
 
-bool RSPointerWindowManager::HasMirrorDisplay() const
+bool RSPointerWindowManager::HasMirrorOrVirtualScreen() const
 {
-    const std::shared_ptr<RSBaseRenderNode> rootNode =
-        RSMainThread::Instance()->GetContext().GetGlobalRootRenderNode();
-    if (rootNode == nullptr || rootNode->GetChildrenCount() <= 1) {
-        return false;
-    }
-    for (auto& child : *rootNode->GetSortedChildren()) {
-        if (!child || !child->IsInstanceOf<RSScreenRenderNode>()) {
-            continue;
+    bool hasMirrorOrVirtualScreen = false;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseScreenNodes(
+        [&hasMirrorOrVirtualScreen](const std::shared_ptr<RSScreenRenderNode>& node) {
+        if (!node) {
+            return;
         }
-        auto screenNode = child->ReinterpretCastTo<RSScreenRenderNode>();
-        if (!screenNode) {
-            continue;
+        if (node->IsMirrorScreen() || node->GetScreenProperty().IsVirtual()) {
+            hasMirrorOrVirtualScreen = true;
         }
-        if (screenNode->IsMirrorScreen()) {
-            return true;
-        }
-    }
-    return false;
+    });
+    return hasMirrorOrVirtualScreen;
 }
 
 void RSPointerWindowManager::UpdateHardCursorStatus(

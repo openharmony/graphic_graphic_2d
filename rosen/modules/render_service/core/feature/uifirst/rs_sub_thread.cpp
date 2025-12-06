@@ -285,15 +285,18 @@ void RSSubThread::DrawableCacheWithSkImage(std::shared_ptr<DrawableV2::RSSurface
     rscanvas->SetHdrOn(rsSubThreadCache.GetHDRPresent());
     rscanvas->SetIsDrawingCache(true);
     rscanvas->Save();
+
+    RSUniRenderThread::Instance().OnDrawStart();
     rsSubThreadCache.SubDraw(nodeDrawable.get(), *rscanvas);
     rscanvas->Restore();
     bool optFenceWait = (RSUifirstManager::Instance().GetUiFirstType() == UiFirstCcmType::MULTI &&
         !rsSubThreadCache.IsHighPostPriority()) ? false : true;
-    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait);
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    RSUniRenderUtil::OptimizedFlushAndSubmit(cacheSurface, grContext_.get(), optFenceWait, acquireFence);
+    RSUniRenderThread::Instance().OnDrawEnd(acquireFence);
     rsSubThreadCache.UpdateCacheSurfaceInfo(nodeDrawable);
     rsSubThreadCache.UpdateBackendTexture();
     rsSubThreadCache.SetCacheBehindWindowData(rscanvas->GetCacheBehindWindowData());
-
     // uifirst_debug dump img, run following commands to grant permissions before dump, otherwise dump maybe fail:
     // 1. hdc shell mount -o rw,remount /
     // 2. hdc shell setenforce 0 # close selinux temporarily

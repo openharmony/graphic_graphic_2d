@@ -31,6 +31,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_layer_factory.h"
 #include "rs_render_composer_manager.h"
 #include "rs_surface_layer.h"
 #include "rs_trace.h"
@@ -418,6 +419,14 @@ void RSComposerAdapter::SetComposeInfoToLayer(
         return;
     }
     layer->SetSurface(surface);
+    auto unmapFunc = [this](int32_t bufferId) {
+        RSMainThread::Instance()->AddToUnmappedCacheSet(bufferId);
+    };
+    if (surface == nullptr ||
+        (surface->RegisterDeleteBufferListener(unmapFunc) != GSERROR_OK)) {
+        RS_LOGE("RSComposerAdapter::SetComposeInfoToLayer RegisterDeleteBufferListener: failed to register "
+            "UnMapVkImage callback.");
+    }
     layer->SetBuffer(info.buffer, info.fence);
     layer->SetZorder(info.zOrder);
     layer->SetAlpha(info.alpha);
@@ -537,7 +546,7 @@ RSLayerPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
         info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
         info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
         surfaceHandler->GetGlobalZOrder(), info.zOrder, info.blendType);
-    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    LayerInfoPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateBufferLayer failed to create layer");
         return nullptr;
@@ -567,7 +576,7 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    LayerInfoPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateTunnelLayer failed to create layer");
         return nullptr;
@@ -627,7 +636,7 @@ RSLayerPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
         info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
-    RSLayerPtr layer = RSSurfaceLayer::CreateLayer(composerClient_);
+    LayerInfoPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateLayer failed to create layer");
         return nullptr;
