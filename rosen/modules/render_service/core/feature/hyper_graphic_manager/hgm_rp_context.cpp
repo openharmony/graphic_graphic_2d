@@ -21,7 +21,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
-const std::string XML_PARSE_NODE_NAME = "additional_touch_rate_config";
 }
 
 HgmRPContext::HgmRPContext()
@@ -34,15 +33,18 @@ HgmRPContext::HgmRPContext()
     };
 }
 
-int32_t HgmRPContext::InitHgmConfig()
+int32_t HgmContext::InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+    std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList)
 {
-    auto parser = std::make_unique<HgmXMLParser>();
-
-    if (parser->LoadConfiguration(HGM_CONFIG_PATH, XML_PARSE_NODE_NAME) != EXEC_SUCCESS) {
+    auto parser = std::make_unique<RPHgmXMLParser>();
+    if (parser->LoadConfiguration(HGM_CONFIG_PATH) != EXEC_SUCCESS) {
         HGM_LOGW("HgmRPContext failed to load hgm xml configuration file");
         return XML_FILE_LOAD_FAIL;
     }
-    appBufferList_ = parser->GetAppBufferList();
+    sourceTuningConfig = parser->GetSourceTuningConfig();
+    solidLayerConfig = parser->GetSolidLayerConfig();
+    appBufferList = parser->GetAppBufferList();
+
     return EXEC_SUCCESS;
 }
 

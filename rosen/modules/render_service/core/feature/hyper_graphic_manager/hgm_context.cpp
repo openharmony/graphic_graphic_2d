@@ -28,7 +28,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
 const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
 }
@@ -46,21 +45,6 @@ HgmContext::HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
       rsVSyncDistributor_(rsVSyncDistributor)
 {
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] { hgmCore_.SetHgmTaskFlag(true); });
-}
-
-int32_t HgmContext::InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
-    std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList)
-{
-    auto parser = std::make_unique<RPHgmXMLParser>();
-    if (parser->LoadConfiguration(HGM_CONFIG_PATH) != EXEC_SUCCESS) {
-        HGM_LOGW("HgmRPContext failed to load hgm xml configuration file");
-        return XML_FILE_LOAD_FAIL;
-    }
-    sourceTuningConfig = parser->GetSourceTuningConfig();
-    solidLayerConfig = parser->GetSolidLayerConfig();
-    appBufferList = parser->GetAppBufferList();
-
-    return EXEC_SUCCESS;
 }
 
 void HgmContext::InitHgmTaskHandleThread(

@@ -31,9 +31,10 @@ public:
     HgmRPContext();
     ~HgmRPContext() noexcept = default;
 
+    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
         uint32_t *pendingScreenRefreshRate, uint64_t *pendingConstraintRelativeTime);
-    int32_t InitHgmConfig();
 
     FrameRateRange& GetRSCurrRangeRef()
     {
