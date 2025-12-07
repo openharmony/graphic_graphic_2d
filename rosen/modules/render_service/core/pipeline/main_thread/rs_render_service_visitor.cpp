@@ -60,23 +60,40 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
 {
     currentVisitDisplay_ = node.GetScreenId();
     displayHasSecSurface_.emplace(currentVisitDisplay_, false);
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
-        return;
-    }
 
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
-    node.SetScreenInfo(curScreenInfo);
-    offsetX_ = curScreenInfo.offsetX;
-    offsetY_ = curScreenInfo.offsetY;
-    UpdateScreenNodeCompositeType(node, curScreenInfo);
+    const auto& screenProperty = node.GetScreenProperty();
+    node.SetScreenInfo(screenProperty.GetScreenInfo());
+    offsetX_ = screenProperty.GetOffsetX();
+    offsetY_ = screenProperty.GetOffsetY();
+    ScreenState state = screenProperty.GetState();
+    switch (state) {
+        case ScreenState::SOFTWARE_OUTPUT_ENABLE:
+            node.SetCompositeType(CompositeType::SOFTWARE_COMPOSITE);
+            break;
+        case ScreenState::HDI_OUTPUT_ENABLE:
+            node.SetCompositeType(node.IsForceSoftComposite() ?
+                CompositeType::SOFTWARE_COMPOSITE:
+                CompositeType::HARDWARE_COMPOSITE);
+            break;
+        default:
+            RS_LOGE("PrepareDisplayRenderNode State is unusual");
+            return;
+    }
 
     ResetSurfaceNodeAttrsInScreenNode(node);
 
     curScreenNode_ = node.shared_from_this()->ReinterpretCastTo<RSScreenRenderNode>();
+
+    int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
+    int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
+    if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
+        logicalScreenWidth = static_cast<int32_t>(screenProperty.GetWidth());
+        logicalScreenHeight = static_cast<int32_t>(screenProperty.GetHeight());
+    }
+
     auto& boundsGeoPtr = (node.GetRenderProperties().GetBoundsGeometry());
     RSBaseRenderUtil::SetNeedClient(boundsGeoPtr && boundsGeoPtr->IsNeedClientCompose());
+    CreateCanvas(logicalScreenWidth, logicalScreenHeight);
     PrepareChildren(node);
     node.GetCurAllSurfaces().clear();
     node.CollectSurface(node.shared_from_this(), node.GetCurAllSurfaces(), false, false);
@@ -117,28 +134,23 @@ void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRen
     PrepareChildren(node);
 }
 
+//todo:need to check
 void RSRenderServiceVisitor::ProcessScreenRenderNode(RSScreenRenderNode& node)
 {
     // need reset isSecurityDisplay_ on ProcessScreenRenderNode
     RS_LOGD("RsDebug ProcessScreenRenderNode: nodeid:[%{public}" PRIu64 "]"
-        " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}u]",
+        " screenid:[%{public}" PRIu64 "] isSecurityDisplay:[%{public}s] child size:[%{public}d]",
         node.GetId(), node.GetScreenId(), isSecurityDisplay_ ? "true" : "false", node.GetChildrenCount());
     globalZOrder_ = 0.0f;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("ProcessScreenRenderNode ScreenManager is nullptr");
-        return;
-    }
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    const auto& screenProperty = node.GetScreenProperty();
     RS_TRACE_NAME("ProcessScreenRenderNode[" + std::to_string(node.GetScreenId()) + "]");
-    RSScreenModeInfo modeInfo = {};
-    screenManager->GetDefaultScreenActiveMode(modeInfo);
-    uint32_t refreshRate = modeInfo.GetScreenRefreshRate();
-    screenManager->RemoveForceRefreshTask();
+
+    uint32_t refreshRate = screenProperty.GetRefreshRate();
+    RSMainThread::Instance()->RemoveForceRefreshTask();
     // skip frame according to skipFrameInterval value of SetScreenSkipFrameInterval interface
-    if (node.SkipFrame(refreshRate, curScreenInfo.skipFrameInterval)) {
+    if (node.SkipFrame(refreshRate, screenProperty.GetScreenSkipFrameInterval())) {
         RS_TRACE_NAME("SkipFrame, screenId:" + std::to_string(node.GetScreenId()));
-        screenManager->PostForceRefreshTask();
+        RSMainThread::Instance()->PostForceRefreshTask();
         return;
     }
 

@@ -27,7 +27,7 @@
 #include "refbase.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
 #include "pipeline/render_thread/rs_draw_frame.h"
-#include "vsync_distributor.h"
+#include "vsync_manager_agent.h"
 #include "vsync_receiver.h"
 
 #include "command/rs_command.h"
@@ -46,7 +46,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "pipeline/hwc/rs_direct_composition_helper.h"
 #include "pipeline/hwc/rs_hwc_context.h"
-#include "feature/hyper_graphic_manager/hgm_context.h"
+#include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
 #include "feature/vrate/rs_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
@@ -66,6 +66,7 @@ namespace OHOS::Rosen {
 class AccessibilityObserver;
 #endif
 class HgmFrameRateManager;
+class HgmRPContext;
 class RSUniRenderVisitor;
 struct FrameRateRangeData;
 namespace Detail {
@@ -96,9 +97,11 @@ class RSMainThread {
 public:
     static RSMainThread* Instance();
 
-    void Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
-        const std::shared_ptr<AppExecFwk::EventHandler>& handler);
-    void Start();
+    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        const std::shared_ptr<VSyncReceiver>& receiver);
+    void OnScreenConnected(const sptr<RSScreenProperty>& property, const std::shared_ptr<HgmClient>& hgmClient);
+    void OnScreenDisconnected(ScreenId screenId);
+    void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
     void UpdateFocusNodeId(NodeId focusNodeId);
     void UpdateNeedDrawFocusChange(NodeId id);
@@ -194,10 +197,7 @@ public:
     void SetFocusAppInfo(const FocusAppInfo& info);
     const std::unordered_map<NodeId, bool>& GetCacheCmdSkippedNodes() const;
 
-    sptr<VSyncDistributor> rsVSyncDistributor_;
-    sptr<VSyncController> rsVSyncController_;
-    sptr<VSyncController> appVSyncController_;
-    sptr<VSyncGenerator> vsyncGenerator_;
+    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
 
     void ReleaseSurface();
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface);
@@ -221,6 +221,8 @@ public:
     void CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
+        void PostForceRefreshTask();
+    void RemoveForceRefreshTask();
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
         pid_t pid = 0, bool isLite = false);
     void CountMem(int pid, MemoryGraphic& mem);
@@ -261,10 +263,6 @@ public:
     std::vector<NodeId>& GetDrawStatusVec()
     {
         return curDrawStatusVec_;
-    }
-    void SetAppVSyncDistributor(const sptr<VSyncDistributor>& appVSyncDistributor)
-    {
-        appVSyncDistributor_ = appVSyncDistributor;
     }
 
     DeviceType GetDeviceType() const;
@@ -380,6 +378,7 @@ public:
 
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
 
+    bool IsFoldScreenSwitching(const std::shared_ptr<RSBaseRenderNode>& rootNode);
     static bool GetMultiDisplay(const std::shared_ptr<RSBaseRenderNode>& rootNode);
 
     bool GetMultiDisplayChange() const
@@ -446,7 +445,6 @@ public:
     void InitVulkanErrorCallback(Drawing::GPUContext* gpuContext);
     void NotifyUnmarshalTask(int64_t uiTimestamp);
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
-    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void SetBufferInfo(uint64_t id, const std::string &name, uint32_t queueSize,
         int32_t bufferCount, int64_t lastConsumeTime, bool isUrgent);
     void GetFrontBufferDesiredPresentTimeStamp(
@@ -464,6 +462,19 @@ public:
     bool HasDRMOrSurfaceLockLayer() const;
 
     bool IsReadyForSyncTask() const;
+
+    // used for ScaleImageAsync
+    //void MarkScaledImageDirty(uint64_t nodeId);
+
+    void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
+    bool HasDRMOrSurfaceLockLayer() const;
+    void JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds);
+
+    void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token);
+    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+    void SetScreenFrameGravity(ScreenId id, Gravity gravity);
 
     bool TransitionDataMutexLockIfNoCommands();
     void TransitionDataMutexUnlock();
@@ -490,7 +501,15 @@ private:
 
     void OnVsync(uint64_t timestamp, uint64_t frameCount, void* data);
     void ProcessCommand();
+    void CreateScreenNode(const sptr<RSScreenProperty>& property);
+    void DestroyScreenNode(ScreenId screenId);
+    void HandleScreenPropertyChange(const sptr<RSScreenProperty>& property);
+    void HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& lastProperty,
+                                             const sptr<RSScreenProperty>& property);
+    void HandlePowerStatusChanged(const RSScreenProperty& lastProperty, const sptr<RSScreenProperty>& property);
+    void UpdateScreenProperty(const sptr<RSScreenProperty>& property);
     void UpdateSubSurfaceCnt();
+    void HandleGameNode();
     void Animate(uint64_t timestamp);
     void ConsumeAndUpdateAllNodes();
     void ReleaseAllNodesBuffer();
@@ -513,7 +532,6 @@ private:
     void SetRSEventDetectorLoopStartTag();
     void SetRSEventDetectorLoopFinishTag();
     void CheckSystemSceneStatus();
-    void RegisterScreenNodeListener();
     void UpdateScreenNodeScreenId();
 
     uint32_t GetRefreshRate() const;
@@ -547,6 +565,11 @@ private:
     uint32_t GetForceCommitReason() const;
     void RegisterHwcEvent();
 
+    void ClearScreenSpecialLayerRecord(ScreenId screenId);
+    void UpdateScreenSpecialLayer(const RSScreenProperty& newProperty, const RSScreenProperty& oldProperty = {});
+    void SetScreenSpecialLayerStatus(
+        ScreenId screenId, std::unordered_map<SpecialLayerType, std::unordered_set<NodeId>>& screenSpecialLayerInfos);
+
     // used for informing hgm the bundle name of SurfaceRenderNodes
     void InformHgmNodeInfo();
     void CheckIfNodeIsBundle(std::shared_ptr<RSSurfaceRenderNode> node);
@@ -559,6 +582,7 @@ private:
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
+    // todo:存疑
     void ProcessScreenHotPlugEvents();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
@@ -604,14 +628,14 @@ private:
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
         std::vector<std::unique_ptr<RSTransactionData>>& transactionVec);
-    class RSScreenNodeListener : public RSIScreenNodeListener {
-    public:
-        ~RSScreenNodeListener() override = default;
+    // class RSScreenNodeListener : public RSIScreenNodeListener {
+    // public:
+    //     ~RSScreenNodeListener() override = default;
 
-        void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) override;
-        void OnScreenDisconnect(ScreenId id) override;
-        void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
-    };
+    //     void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) override;
+    //     void OnScreenDisconnect(ScreenId id) override;
+    //     void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
+    // };
 
     bool IfStatusBarDirtyOnly();
 
@@ -630,9 +654,7 @@ private:
 
     std::atomic<bool> ifStatusBarDirtyOnly_ = false;
     const uint8_t opacity_ = 255;
-    bool vsyncControlEnabled_ = true;
     bool systemAnimatedScenesEnabled_ = false;
-    bool isFoldScreenDevice_ = false;
     mutable std::atomic_bool hasWiredMirrorDisplay_ = false;
     mutable std::atomic_bool hasVirtualMirrorDisplay_ = false;
 
@@ -700,6 +722,7 @@ private:
     uint64_t prePerfTimestamp_ = 0;
     uint64_t lastCleanCacheTimestamp_ = 0;
     uint64_t focusLeashWindowId_ = 0;
+    uint32_t defaultScreenRefreshRate_ = 0;
     std::string focusLeashWindowName_ = "";
     std::string appWindowName_ = "";
     uint32_t appPid_ = 0;
@@ -708,12 +731,9 @@ private:
     ScreenId screenNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
-    std::atomic<bool> isRunning_ = false;
-    std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSContext> context_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;
-    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::shared_ptr<RSBaseRenderEngine> renderEngine_;
     std::shared_ptr<RSBaseEventDetector> rsCompositionTimeoutDetector_;
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr; // display safterWatermask(true) or hide it(false)
@@ -736,6 +756,8 @@ private:
     int64_t requestNextVsyncTime_ = -1;
     bool isHdrSwitchChanged_ = false;
     bool isColorTemperatureOn_ = false;
+
+    LppVideoHandler lppVideoHandler_;
 
     /**
      * @brief A set to store buffer IDs of images that are about to be unmapped from GPU cache.
@@ -768,6 +790,9 @@ private:
     std::mutex unmarshalMutex_;
 
     mutable std::mutex uniRenderMutex_;
+
+    // for fixed pipeline
+    PipelineParam pipelineParam_;
 
     // Used to refresh the whole display when luminance is changed
     std::unordered_map<ScreenId, bool> displayLuminanceChanged_;
@@ -811,6 +836,10 @@ private:
     std::unordered_map<uint32_t, NodeTreeDumpTask> nodeTreeDumpTasks_;
 
     std::unordered_map<pid_t, uint32_t> registerSurfaceWaterMaskCount_;
+
+    // ipc
+    mutable std::mutex conncetionMutex_;
+    std::map<sptr<IRemoteObject>, sptr<RSIClientToRenderConnection>> connections_;
 
     // for ui first
     std::mutex mutex_;
@@ -857,7 +886,6 @@ private:
     // for record fastcompose time change
     uint64_t lastFastComposeTimeStamp_ = 0;
     uint64_t lastFastComposeTimeStampDiff_ = 0;
-    std::atomic<bool> waitForDVSyncFrame_ = false;
     std::atomic<uint64_t> vsyncRsTimestamp_ = 0;
     std::string dumpInfo_;
     std::atomic<uint32_t> currentNum_ = 0;
@@ -869,10 +897,15 @@ private:
 #endif
 
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> consumeAndUpdateNode_;
-    HgmContext hgmContext_;
     std::mutex dumpInfoMutex_;
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
+
+    void AddHgmClient(ScreenId screenId, const std::shared_ptr<HgmClient>& hgmClient);
+    void NotifyRenderServiceProcessHgmFrameRate();
+    mutable std::mutex hgmMutex_;
+    std::shared_ptr<HgmClient> hgmClient_ = nullptr;
+    std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #endif // RS_MAIN_THREAD

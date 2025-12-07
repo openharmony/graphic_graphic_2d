@@ -27,8 +27,8 @@ namespace Rosen {
 
 RSRenderServiceListener::~RSRenderServiceListener() {}
 
-RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode)
-    : surfaceRenderNode_(surfaceRenderNode)
+RSRenderServiceListener::RSRenderServiceListener(std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode, RSUniRenderThread* uniRenderThread)
+    : surfaceRenderNode_(surfaceRenderNode), uniRenderThread_(uniRenderThread)
 {}
 
 void RSRenderServiceListener::OnBufferAvailable()
@@ -171,7 +171,13 @@ void RSRenderServiceListener::CleanLayerBufferCache()
         return;
     }
     uint64_t surfaceId = consumer->GetUniqueId();
-    RSRenderComposerManager::GetInstance().CleanLayerBufferBySurfaceId(surfaceId);
+    auto rsRenderComposerClientMap = uniRenderThread_->GetRSRenderComposerClientMap();
+    for (auto iter = rsRenderComposerClientMap.begin(); iter != rsRenderComposerClientMap.end(); iter++) {
+        if (iter->second->GetRSLayer(node->GetId()) != nullptr) {
+            iter->second->CleanLayerBufferBySurfaceId(surfaceId);
+            break;
+        }
+    }
 }
 
 void RSRenderServiceListener::OnGoBackground()
@@ -190,7 +196,7 @@ void RSRenderServiceListener::OnGoBackground()
         RSMainThread::Instance()->AddToUnmappedCacheSet(tmpSet);
         surfaceHandler->ResetBufferAvailableCount();
         surfaceHandler->CleanCache();
-        node->UpdateBufferInfo(nullptr, {}, nullptr, nullptr);
+        node->UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
         node->SetNotifyRTBufferAvailable(false);
         node->SetContentDirty();
         node->ResetHardwareEnabledStates();

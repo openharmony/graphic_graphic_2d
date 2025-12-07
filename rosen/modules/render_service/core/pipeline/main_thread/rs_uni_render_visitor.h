@@ -179,6 +179,7 @@ private:
     }
     bool InitScreenInfo(RSScreenRenderNode& node);
     bool InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node);
+    void UpdateScreenValidity(RSScreenRenderNode& node);
 
     void UpdateCompositeType(RSScreenRenderNode& node);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
@@ -277,8 +278,8 @@ private:
     void HandlePixelFormat(RSScreenRenderNode& node);
     bool IsHardwareComposerEnabled();
 
+    void UpdateScreenSpecialLayersRecord(const RSSurfaceRenderNode& node);
     void UpdateSpecialLayersRecord(RSSurfaceRenderNode& node);
-    void UpdateBlackListRecord(RSSurfaceRenderNode& node);
     void DealWithSpecialLayer(RSSurfaceRenderNode& node);
     void SendRcdMessage(RSScreenRenderNode& node);
 
@@ -294,8 +295,11 @@ private:
         if (specialLayerMgr.Find(IS_GENERAL_SPECIAL) || isSkipDrawInVirtualScreen_) {
             return false; // surface is special layer
         }
-        if (!allWhiteList_.empty() || allBlackList_.count(node.GetId()) != 0) {
-            return false; // white list is not empty, or surface is in black list
+        // if (!allWhiteList_.empty()) {
+        //     return false; // white list is not empty, or surface is in black list
+        // }
+        if (!specialLayerMgr.FindScreenHasType(SpecialLayerType::IS_BLACK_LIST).empty()) {
+            return false; // surface is in black list
         }
         return true;
     }
@@ -382,11 +386,7 @@ private:
     // record DRM nodes
     std::vector<std::weak_ptr<RSSurfaceRenderNode>> drmNodes_;
     int16_t occlusionSurfaceOrder_ = DEFAULT_OCCLUSION_SURFACE_ORDER;
-    sptr<RSScreenManager> screenManager_;
-    static std::unordered_set<NodeId> allBlackList_; // The collection of blacklist for all screens
-    static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
-    // The info of whitelist contains screenId
-    std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
+
 
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region accumulatedOcclusionRegionBehindWindow_; // Accumulate transparent area
@@ -501,6 +501,8 @@ private:
 
     // used for finding the first effect render node to check to need to enabled debug
     bool hasEffectNodeInParent_ = false;
+
+    bool isScreenHasMirrorDisplay_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS
