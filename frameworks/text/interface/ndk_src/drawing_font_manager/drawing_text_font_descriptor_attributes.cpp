@@ -72,6 +72,13 @@ OH_Drawing_ErrorCode GetFontFullDescriptorItalic(const Drawing::FontParser::Font
     return OH_DRAWING_SUCCESS;
 }
 
+OH_Drawing_ErrorCode GetFontFullDescriptorIndex(const Drawing::FontParser::FontDescriptor& fontFullDescriptor,
+    int& value)
+{
+    value = static_cast<int>(fontFullDescriptor.index);
+    return OH_DRAWING_SUCCESS;
+}
+
 OH_Drawing_ErrorCode GetFontFullDescriptorMono(const Drawing::FontParser::FontDescriptor& fontFullDescriptor,
     bool& value)
 {
@@ -116,11 +123,66 @@ OH_Drawing_ErrorCode GetFontFullDescriptorSubFamilyName(const Drawing::FontParse
     return TranslateStringToOHDrawingString(fontFullDescriptor.fontSubfamily, value);
 }
 
+OH_Drawing_ErrorCode GetFontFullDescriptorLocalPostscriptName(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.localPostscriptName, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorLocalFullName(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.localFullName, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorLocalFamilyName(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.localFamilyName, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorLocalSubFamilyName(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.localSubFamilyName, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorVersion(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.version, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorManufacture(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.manufacture, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorCopyright(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.copyright, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorTrademark(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.trademark, value);
+}
+
+OH_Drawing_ErrorCode GetFontFullDescriptorLicense(
+    const Drawing::FontParser::FontDescriptor& fontFullDescriptor, OH_Drawing_String& value)
+{
+    return TranslateStringToOHDrawingString(fontFullDescriptor.license, value);
+}
+
 static std::unordered_map<OH_Drawing_FontFullDescriptorAttributeId, FontFullDescriptorIntGetter>
     g_fontFullDescriptorIntGetters = {
         { FULL_DESCRIPTOR_ATTR_I_WEIGHT, GetFontFullDescriptorWeight },
         { FULL_DESCRIPTOR_ATTR_I_WIDTH, GetFontFullDescriptorWidth },
         { FULL_DESCRIPTOR_ATTR_I_ITALIC, GetFontFullDescriptorItalic },
+        { FULL_DESCRIPTOR_ATTR_I_INDEX,  GetFontFullDescriptorIndex },
     };
 
 static std::unordered_map<OH_Drawing_FontFullDescriptorAttributeId, FontFullDescriptorBoolGetter>
@@ -136,6 +198,15 @@ static std::unordered_map<OH_Drawing_FontFullDescriptorAttributeId, FontFullDesc
         { FULL_DESCRIPTOR_ATTR_S_FULL_NAME, GetFontFullDescriptorFullName },
         { FULL_DESCRIPTOR_ATTR_S_FAMILY_NAME, GetFontFullDescriptorFamilyName },
         { FULL_DESCRIPTOR_ATTR_S_SUB_FAMILY_NAME, GetFontFullDescriptorSubFamilyName },
+        { FULL_DESCRIPTOR_ATTR_S_LOCAL_POSTSCRIPT_NAME, GetFontFullDescriptorLocalPostscriptName },
+        { FULL_DESCRIPTOR_ATTR_S_LOCAL_FULL_NAME, GetFontFullDescriptorLocalFullName },
+        { FULL_DESCRIPTOR_ATTR_S_LOCAL_FAMILY_NAME, GetFontFullDescriptorLocalFamilyName },
+        { FULL_DESCRIPTOR_ATTR_S_LOCAL_SUB_FAMILY_NAME, GetFontFullDescriptorLocalSubFamilyName },
+        { FULL_DESCRIPTOR_ATTR_S_VERSION, GetFontFullDescriptorVersion },
+        { FULL_DESCRIPTOR_ATTR_S_MANUFACTURE, GetFontFullDescriptorManufacture },
+        { FULL_DESCRIPTOR_ATTR_S_COPYRIGHT, GetFontFullDescriptorCopyright },
+        { FULL_DESCRIPTOR_ATTR_S_TRADEMARK, GetFontFullDescriptorTrademark },
+        { FULL_DESCRIPTOR_ATTR_S_LICENSE, GetFontFullDescriptorLicense },
     };
 } // namespace OHOS::Rosen::Text
 
