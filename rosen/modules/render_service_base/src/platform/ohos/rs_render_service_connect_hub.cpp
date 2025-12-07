@@ -24,8 +24,8 @@
 #include <unistd.h>
 
 #include "message_parcel.h"
-#include "rs_client_to_service_connection_proxy.h"
-#include "rs_client_to_render_connection_proxy.h"
+#include "transaction/zidl/rs_client_to_service_connection_proxy.h"
+#include "transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "rs_render_service_proxy.h"
 
 #include "pipeline/rs_render_thread.h"
@@ -168,7 +168,7 @@ bool RSRenderServiceConnectHub::Connect()
     renderConn_ = renderConn;
 
     if (onConnectCallback_) {
-        onConnectCallback_(conn_);
+        onConnectCallback_(renderConn_);
     }
 
     return true;

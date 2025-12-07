@@ -386,6 +386,22 @@ int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
     }
     return renderPiplineClient_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
+
+bool RSRenderInterface::GetHighContrastTextState()
+{
+    return renderPiplineClient_->GetHighContrastTextState();
+}
+
+bool RSRenderInterface::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
+{
+    return renderPiplineClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+
+}
+
+bool RSRenderInterface::SetGlobalDarkColorMode(bool isDark)
+{
+    return renderPiplineClient_->SetGlobalDarkColorMode(isDark);
+}
 #endif
 }
 }

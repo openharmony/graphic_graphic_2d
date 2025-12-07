@@ -27,6 +27,7 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "vsync_distributor.h"
+#include "rs_render_pipeline_agent.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,12 +35,8 @@ class HgmFrameRateManager;
 class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
-        pid_t remotePid,
-        wptr<RSRenderService> renderService,
-        RSMainThread* mainThread,
-        sptr<RSScreenManager> screenManager,
-        sptr<IRemoteObject> token,
-        sptr<VSyncDistributor> distributor);
+    pid_t remotePid, RSMainThread* mainThread,
+    sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
     RSClientToRenderConnection& operator=(const RSClientToRenderConnection&) = delete;
@@ -64,6 +61,40 @@ private:
     // IPC RSIRenderServiceConnection Interfaces
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
+    
+    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+        bool& success) override;
+
+    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
+
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+        sptr<Surface>& sfc, bool unobscured) override;
+
+    ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
+
+    ErrCode RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) override;
+
+    ErrCode RegisterBufferAvailableListener(
+        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
+
+    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) override;
+
+    ErrCode SetGlobalDarkColorMode(bool isDark) override;
+
+    ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
+
+    ErrCode SetSystemAnimatedScenes(
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
+
+    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) override;
+
+    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
+
+    bool GetHighContrastTextState() override;
+
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
@@ -124,6 +155,7 @@ private:
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
+    sptr<RSRenderPipelineAgent> renderPipelineAgent_;
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread& renderThread_;
 #endif

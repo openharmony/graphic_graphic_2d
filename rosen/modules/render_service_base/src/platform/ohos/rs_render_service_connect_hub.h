@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-using OnConnectCallback = std::function<void(sptr<RSIClientToServiceConnection>&)>; //遗漏，仅注册clienttoservice
+using OnConnectCallback = std::function<void(sptr<RSIClientToRenderConnection>&)>; //遗漏，仅注册clienttoservice
 class RSRenderServiceConnectHub : public RefBase {
 public:
     static std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetRenderService();

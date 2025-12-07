@@ -73,6 +73,32 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     return {conn, renderConn};
 }
 
+sptr<ReplyToRenderInfo> RSRenderServiceProxy::RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIRenderService::GetDescriptor())) {
+        RS_LOGE("dmulti_process %{public}s: WriteInterfaceToken failed", __func__);
+        return nullptr;
+    }
+    if (!data.WriteParcelable(connectToServiceInfo.GetRefPtr())) {
+        RS_LOGE("dmulti_process %{public}s: WriteParcelable failed", __func__);
+        return nullptr;
+    }
+    RS_LOGI("dmulti_process conn write in remoteObj successfully");
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        RS_LOGE("dmulti_process %{public}s: SendRequest failed, err is %{public}d", __func__, err);
+        return nullptr;
+    }
+    auto replyToRenderInfo = sptr<ReplyToRenderInfo>(reply.ReadParcelable<ReplyToRenderInfo>());
+    RS_LOGI("dmulti_process rsRenderServiceProxy read reply successfully");
+    return replyToRenderInfo;
+}
+
 bool RSRenderServiceProxy::RemoveConnection(const sptr<RSIConnectionToken>& token)
 {
     if (token == nullptr) {

@@ -29,6 +29,74 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
+bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
+{
+    return {};
+}
+
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    bool unobscured)
+{
+    return std::make_shared<RSSurfaceWindows>(reinterpret_cast<OnRenderFunc>(config.additionalData));
+}
+bool RSRenderPipelineClient::RegisterBufferAvailableListener(
+    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::RegisterBufferClearListener(
+    NodeId id, const BufferAvailableCallback &callback)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
+{
+    return {};
+}
+
+void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+    bool dynamicHardwareEnable)
+{
+}
+
+uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+{
+    return {};
+}
+
+bool RSRenderPipelineClient::GetHighContrastTextState()
+{
+    return false;
+}
+
 void RSRenderPipelineClient::TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
     std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR)
 {

@@ -97,9 +97,6 @@ public:
 
     bool GetUniRenderEnabled();
 
-    bool CreateNode(const RSSurfaceRenderNodeConfig& config);
-    bool CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
-    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, bool unobscured = false);
     std::shared_ptr<VSyncReceiver> CreateVSyncReceiver(
         const std::string& name,
         const std::shared_ptr<OHOS::AppExecFwk::EventHandler> &looper = nullptr,
@@ -117,7 +114,6 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
 
 #ifndef ROSEN_CROSS_PLATFORM
-    std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
 
@@ -237,14 +233,6 @@ public:
 
     void SetScreenBacklight(ScreenId id, uint32_t level);
 
-    bool RegisterBufferAvailableListener(
-        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
-
-    bool RegisterBufferClearListener(
-        NodeId id, const BufferClearCallback &callback);
-
-    bool UnregisterBufferAvailableListener(NodeId id);
-
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys);
@@ -262,8 +250,6 @@ public:
     int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation);
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
-
-    bool SetGlobalDarkColorMode(bool isDark);
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 
@@ -287,9 +273,6 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType);
 
-    bool GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
-    bool GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
     bool RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface);
     int32_t RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index);
     bool UnRegisterTypeface(uint32_t uniqueId);
@@ -323,8 +306,6 @@ public:
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
     void SetAppWindowNum(uint32_t num);
-
-    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
@@ -366,10 +347,6 @@ public:
     void ReportRsSceneJankEnd(AppInfo info);
 
     void ReportGameStateData(GameStateData info);
-
-    void SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
-
-    uint32_t SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 
     void SetCacheEnabledForRotation(bool isEnabled);
 
@@ -420,8 +397,6 @@ public:
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
     void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
-
-    bool GetHighContrastTextState();
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 

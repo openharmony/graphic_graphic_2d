@@ -2533,7 +2533,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             bool success;
-            if (SetWatermark(name, watermark, success) != ERR_OK || !success) {
+            if (SetWatermark(callingPid, name, watermark, success) != ERR_OK || !success) {
                 RS_LOGE("RSClientToServiceConnectionStub::SetWatermark failed");
             }
             break;

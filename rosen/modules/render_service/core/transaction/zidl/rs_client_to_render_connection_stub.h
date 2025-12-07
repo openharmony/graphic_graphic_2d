@@ -21,8 +21,8 @@
 #include <message_option.h>
 #include <message_parcel.h>
 
-#include "platform/ohos/rs_iclient_to_render_connection.h"
-#include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
+#include "platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
 #include "ipc_security/rs_ipc_interface_code_security_manager.h"
 #include "transaction/rs_render_service_security_utils.h"
 

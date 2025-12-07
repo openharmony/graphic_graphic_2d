@@ -33,6 +33,42 @@ public:
     ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
+    bool FillParcelWithTransactionData(std::unique_ptr<RSTransactionData>& transactionData,
+        std::shared_ptr<MessageParcel>& data);
+
+    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+        bool& success) override;
+
+    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) override;
+
+    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+        sptr<Surface>& sfc, bool unobscured) override;
+
+    ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
+
+    ErrCode RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) override;
+
+    ErrCode RegisterBufferAvailableListener(
+        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
+
+    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) override;
+
+    ErrCode SetGlobalDarkColorMode(bool isDark) override;
+
+    ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
+
+    ErrCode SetSystemAnimatedScenes(
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
+
+    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) override;
+
+    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
+
+    bool GetHighContrastTextState() override;
+
     ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) override;
 
     void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,23 +13,19 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_CONNECTION_TOKEN_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_CONNECTION_TOKEN_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_H
+#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_H
 
-#include "rs_iclient_to_render_connection.h"
-#include "rs_iclient_to_service_connection.h"
+#include "ipc_security/rs_ipc_interface_code_underlying_type.h"
 
 namespace OHOS {
 namespace Rosen {
-
-class RSIConnectionToken : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSIConnectionToken");
-    RSIConnectionToken() = default;
-    virtual ~RSIConnectionToken() noexcept = default;
+enum class RSIRenderServiceInterfaceCode : CodeUnderlyingType {
+    CREATE_CONNECTION = 0,
+    REMOVE_CONNECTION = 1,
+    REGISTER_RENDER_PROCESS_CONNECTION = 2,
 };
-
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_CONNECTION_TOKEN_H
+#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_H

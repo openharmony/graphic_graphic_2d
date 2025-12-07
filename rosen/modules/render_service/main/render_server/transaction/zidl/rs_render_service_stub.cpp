@@ -16,6 +16,8 @@
 #include "rs_render_service_stub.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include <iremote_proxy.h>
+#include "message_parcel.h"
+#include "platform\ohos\transaction\rs_render_connection_parcel_info.h"
 namespace OHOS {
 namespace Rosen {
 class RSConnectionTokenProxy : public IRemoteProxy<RSIConnectionToken> {
@@ -102,6 +104,19 @@ int RSRenderServiceStub::OnRemoteRequest(
             } else {
                 reply.WriteBool(false);
             }
+            break;
+        }
+        }
+        case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REGISTER_RENDER_PROCESS_CONNECTION): {
+            auto interfaceToken = data.ReadInterfaceToken();
+            if (interfaceToken != RSIRenderService::GetDescriptor()) {
+                RS_LOGE("dmulti_process RSRenderServiceStub::REGISTER_RENDER_PROCESS_CONNECTION Read interfaceToken failed.");
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            auto connectToServiceInfo = sptr<ConnectToServiceInfo>(data.ReadParcelable<ConnectToServiceInfo>());
+            auto replyToRenderInfo = RegisterRenderProcessConnection(connectToServiceInfo);
+            reply.WriteParcelable(replyToRenderInfo.GetRefPtr());
             break;
         }
         default: {

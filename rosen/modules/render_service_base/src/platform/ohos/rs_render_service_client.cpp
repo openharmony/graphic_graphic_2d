@@ -55,6 +55,7 @@
 namespace OHOS {
 namespace Rosen {
 std::shared_ptr<RSIRenderClient> RSIRenderClient::client_ = nullptr;
+std::shared_ptr<RSIRenderClient> RSIRenderClient::renderClient_ = nullptr;
 
 std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
 {
@@ -63,27 +64,11 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
     return client_;
 }
 
-void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
+std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
 {
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->CommitTransaction(transactionData);
-    } else {
-        RS_LOGE_LIMIT(
-            __func__, __line__, "RSRenderServiceClient::CommitTransaction failed, clientToService is nullptr");
-    }
-}
-
-void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
-{
-    if (task == nullptr) {
-        return;
-    }
-
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->ExecuteSynchronousTask(task);
-    }
+    static std::once_flag once_flag_render;
+    std::call_once(once_flag_render, []() { renderClient_ = std::make_shared<RSRenderPipelineClient>(); });
+    return renderClient_;
 }
 
 bool RSRenderServiceClient::GetUniRenderEnabled()
@@ -127,51 +112,6 @@ bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemS
     return clientToService->GetTotalAppMemSize(cpuMemSize, gpuMemSize) == ERR_OK;
 }
 
-bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return false;
-    }
-    bool success;
-    clientToService->CreateNode(displayNodeConfig, nodeId, success);
-    return success;
-}
-
-bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return false;
-    }
-    bool success;
-    clientToService->CreateNode(config, success);
-    return success;
-}
-
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return nullptr;
-    }
-
-    sptr<Surface> surface = nullptr;
-    ErrCode err = clientToService->CreateNodeAndSurface(config, surface, unobscured);
-    if ((err != ERR_OK) || (surface == nullptr)) {
-        ROSEN_LOGE("RSRenderServiceClient::CreateNodeAndSurface surface is nullptr.");
-        return nullptr;
-    }
-#ifdef USE_VIDEO_PROCESSING_ENGINE
-    surface = RSVpeManager::GetInstance().CheckAndGetSurface(surface, config);
-    if (surface == nullptr) {
-        ROSEN_LOGE("RSVpeManager::CheckAndGetSurface surface is nullptr.");
-        return nullptr;
-    }
-#endif
-    return CreateRSSurface(surface);
-}
 
 std::shared_ptr<RSSurface> RSRenderServiceClient::CreateRSSurface(const sptr<Surface> &surface)
 {
@@ -935,101 +875,6 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
     clientToService->SetScreenBacklight(id, level);
 }
 
-class CustomBufferAvailableCallback : public RSBufferAvailableCallbackStub
-{
-public:
-    explicit CustomBufferAvailableCallback(const BufferAvailableCallback &callback) : cb_(callback) {}
-    ~CustomBufferAvailableCallback() override {};
-
-    void OnBufferAvailable() override
-    {
-        if (cb_ != nullptr) {
-            cb_();
-        }
-    }
-
-private:
-    BufferAvailableCallback cb_;
-};
-
-class CustomBufferClearCallback : public RSBufferClearCallbackStub
-{
-public:
-    explicit CustomBufferClearCallback(const BufferClearCallback &callback) : cb_(callback) {}
-    ~CustomBufferClearCallback() override {};
-
-    void OnBufferClear() override
-    {
-        if (cb_ != nullptr) {
-            cb_();
-        }
-    }
-
-private:
-    BufferClearCallback cb_;
-};
-
-bool RSRenderServiceClient::RegisterBufferAvailableListener(
-    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return false;
-    }
-    std::lock_guard<std::mutex> lock(mapMutex_);
-    auto iter = isFromRenderThread ? bufferAvailableCbRTMap_.find(id) : bufferAvailableCbUIMap_.find(id);
-    if (isFromRenderThread && iter != bufferAvailableCbRTMap_.end()) {
-        HILOG_COMM_WARN("RSRenderServiceClient::RegisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " already, bufferAvailableCbRTMap_", iter->first);
-    }
-
-    if (!isFromRenderThread && iter != bufferAvailableCbUIMap_.end()) {
-        HILOG_COMM_WARN("RSRenderServiceClient::RegisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " already, bufferAvailableCbUIMap_", iter->first);
-        bufferAvailableCbUIMap_.erase(iter);
-    }
-
-    sptr<RSIBufferAvailableCallback> bufferAvailableCb = new CustomBufferAvailableCallback(callback);
-    clientToService->RegisterBufferAvailableListener(id, bufferAvailableCb, isFromRenderThread);
-    if (isFromRenderThread) {
-        bufferAvailableCbRTMap_.emplace(id, bufferAvailableCb);
-    } else {
-        bufferAvailableCbUIMap_.emplace(id, bufferAvailableCb);
-    }
-    return true;
-}
-
-bool RSRenderServiceClient::RegisterBufferClearListener(NodeId id, const BufferClearCallback& callback)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return false;
-    }
-    sptr<RSIBufferClearCallback> bufferClearCb = new CustomBufferClearCallback(callback);
-    clientToService->RegisterBufferClearListener(id, bufferClearCb);
-    return true;
-}
-
-
-bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
-{
-    std::lock_guard<std::mutex> lock(mapMutex_);
-    auto iter = bufferAvailableCbRTMap_.find(id);
-    if (iter != bufferAvailableCbRTMap_.end()) {
-        bufferAvailableCbRTMap_.erase(iter);
-    } else {
-        ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " has not registered RT callback", id);
-    }
-    iter = bufferAvailableCbUIMap_.find(id);
-    if (iter != bufferAvailableCbUIMap_.end()) {
-        bufferAvailableCbUIMap_.erase(iter);
-    } else {
-        ROSEN_LOGD("RSRenderServiceClient::UnregisterBufferAvailableListener "
-                   "Node %{public}" PRIu64 " has not registered UI callback", id);
-    }
-    return true;
-}
 
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
@@ -1246,30 +1091,6 @@ int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenTy
     return clientToService->GetScreenType(id, screenType);
 }
 
-bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::GetBitmap clientToService == nullptr!");
-        return false;
-    }
-    bool success;
-    clientToService->GetBitmap(id, bitmap, success);
-    return success;
-}
-
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::GetPixelmap: clientToService is nullptr");
-        return false;
-    }
-    bool success;
-    clientToService->GetPixelmap(id, pixelmap, rect, drawCmdList, success);
-    return success;
-}
 
 bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface)
 {
@@ -1650,18 +1471,6 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
     }
 }
 
-bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SetSystemAnimatedScenes clientToService == nullptr!");
-        return false;
-    }
-    bool success;
-    clientToService->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation, success);
-    return success;
-}
-
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -1736,26 +1545,6 @@ void RSRenderServiceClient::ReportGameStateData(GameStateData info)
     if (clientToService != nullptr) {
         clientToService->ReportGameStateData(info);
     }
-}
-
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-    bool dynamicHardwareEnable)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
-    }
-}
-
-uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        uint32_t resCode;
-        clientToService->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
-        return resCode;
-    }
-    return static_cast<uint32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
 }
 
 void RSRenderServiceClient::NotifyLightFactorStatus(int32_t lightFactorStatus)
@@ -2001,36 +1790,6 @@ void RSRenderServiceClient::SetFreeMultiWindowStatus(bool enable)
     clientToService->SetFreeMultiWindowStatus(enable);
 }
 
-void RSRenderServiceClient::TriggerOnFinish(const FinishCallbackRet& ret) const
-{
-    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
-    {
-        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
-        if (auto iter = surfaceBufferCallbacks_.find(ret.uid); iter != std::cend(surfaceBufferCallbacks_)) {
-            callback = iter->second;
-        }
-    }
-    if (!callback) {
-        ROSEN_LOGD("RSRenderServiceClient::TriggerOnFinish callback is null");
-        return;
-    }
-    callback->OnFinish(ret);
-}
-
-void RSRenderServiceClient::TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const
-{
-    std::shared_ptr<SurfaceBufferCallback> callback = nullptr;
-    {
-        std::shared_lock<std::shared_mutex> lock { surfaceBufferCallbackMutex_ };
-        if (auto iter = surfaceBufferCallbacks_.find(ret.uid); iter != std::cend(surfaceBufferCallbacks_)) {
-            callback = iter->second;
-        }
-    }
-    if (callback) {
-        callback->OnAfterAcquireBuffer(ret);
-    }
-}
-
 void RSRenderServiceClient::SetLayerTop(const std::string &nodeIdStr, bool isTop)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -2061,24 +1820,6 @@ public:
 private:
     RSRenderServiceClient* client_;
 };
-
-void RSRenderServiceClient::TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp)
-{
-    std::function<void()> callback = nullptr;
-    {
-        std::lock_guard<std::mutex> lock{ transactionDataCallbackMutex_ };
-        auto iter = transactionDataCallbacks_.find(std::make_pair(token, timeStamp));
-        if (iter != std::end(transactionDataCallbacks_)) {
-            callback = iter->second;
-            transactionDataCallbacks_.erase(iter);
-        }
-    }
-    if (callback) {
-        RS_LOGD("TriggerTransactionDataCallbackAndErase: invoke callback, timeStamp: %{public}"
-            PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-        std::invoke(callback);
-    }
-}
 
 void RSRenderServiceClient::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
@@ -2163,15 +1904,6 @@ void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
         return;
     }
     clientToService->NotifyPageName(packageName, pageName, isEnter);
-}
-
-bool RSRenderServiceClient::GetHighContrastTextState()
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        return clientToService->GetHighContrastTextState();
-    }
-    return false;
 }
 
 bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)

@@ -145,15 +145,15 @@ void RSUIDirector::InitHybridRender()
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::GetHybridRenderEnabled()) {
         CommitTransactionCallback callback =
-            [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+            [] (std::shared_ptr<RSIRenderClient> &renderPiplineClient,
             std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
             std::shared_ptr<RSTransactionHandler> transactionHandler) {
-            auto task = [renderServiceClient, transactionData = std::move(rsTransactionData),
+            auto task = [renderPiplineClient, transactionData = std::move(rsTransactionData),
                 &transactionDataIndex, transactionHandler]() mutable {
                 bool isNeedCommit = true;
-                RSModifiersDrawThread::ConvertTransaction(transactionData, renderServiceClient, isNeedCommit);
+                RSModifiersDrawThread::ConvertTransaction(transactionData, renderPiplineClient, isNeedCommit);
                 if (isNeedCommit) {
-                    renderServiceClient->CommitTransaction(transactionData);
+                    renderPiplineClient->CommitTransaction(transactionData);
                 }
                 transactionDataIndex = transactionData->GetIndex();
                 // destroy semaphore after commitTransaction for which syncFence was duped

@@ -254,6 +254,28 @@ public:
      * @return Returns 0 success, otherwise, failed.
      */
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+
+    // WMS set dark color display mode to RS
+    /**
+     * @brief Notify if system themes switch to dark mode.
+     * @param isDark whether is dark mode.
+     * @return True if success, false if failed.
+     */
+    bool SetGlobalDarkColorMode(bool isDark);
+
+    /*
+     * @brief Set the system overload Animated Scenes to RS for special load shedding.
+     * @param systemAnimatedScenes indicates the system animation scene.
+     * @param isRegularAnimation indicates irregular windows in the animation scene.
+     * @return true if succeed, otherwise false.
+     */
+    bool SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation = false);
+    
+    /**
+     * @brief Get high contrast text state.
+     * @return Return true if high contrast text enabled, otherwise false.
+     */
+    bool GetHighContrastTextState();
 #endif
 
 private:

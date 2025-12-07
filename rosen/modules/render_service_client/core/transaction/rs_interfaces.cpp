@@ -461,7 +461,7 @@ bool RSInterfaces::UnRegisterTypeface(uint32_t uniqueId)
 
 bool RSInterfaces::SetGlobalDarkColorMode(bool isDark)
 {
-    return renderServiceClient_->SetGlobalDarkColorMode(isDark);
+    return RSRenderInterface::GetInstance().SetGlobalDarkColorMode(isDark);
 }
 
 int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
@@ -728,7 +728,8 @@ int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefre
 
 bool RSInterfaces::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
-    return renderServiceClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+    return RSRenderInterface::GetInstance().SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+
 }
 
 int32_t RSInterfaces::RegisterOcclusionChangeCallback(const OcclusionChangeCallback& callback)
@@ -1108,7 +1109,7 @@ int32_t RSInterfaces::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
 // LCOV_EXCL_START
 bool RSInterfaces::GetHighContrastTextState()
 {
-    return renderServiceClient_->GetHighContrastTextState();
+    return RSRenderInterface::GetInstance().GetHighContrastTextState();
 }
 // LCOV_EXCL_STOP
 bool RSInterfaces::SetBehindWindowFilterEnabled(bool enabled)

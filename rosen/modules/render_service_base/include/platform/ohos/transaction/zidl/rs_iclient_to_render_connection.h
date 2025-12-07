@@ -74,7 +74,42 @@ public:
     virtual ~RSIClientToRenderConnection() = default;
 
     virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
+
     virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
+
+    virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+        bool& success) = 0;
+
+    virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
+
+    virtual ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+        sptr<Surface>& sfc, bool unobscured) = 0;
+
+    virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
+
+    virtual ErrCode RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
+
+    virtual ErrCode RegisterBufferAvailableListener(
+        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
+
+    virtual ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) = 0;
+
+    virtual ErrCode SetGlobalDarkColorMode(bool isDark) = 0;
+
+    virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
+
+    virtual ErrCode SetSystemAnimatedScenes(
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) = 0;
+
+    virtual ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable) = 0;
+
+    virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
+
+    virtual bool GetHighContrastTextState() = 0;
+
     virtual ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode) = 0;
     
     virtual void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,

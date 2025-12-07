@@ -17,8 +17,11 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_PROXY_H
 
 #include <iremote_proxy.h>
-#include <platform/ohos/rs_irender_service.h>
-#include <platform/ohos/rs_irender_service_ipc_interface_code.h>
+
+#include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
+#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -31,6 +34,7 @@ public:
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
         const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
 
 private:
     static inline BrokerDelegator<RSRenderServiceProxy> delegator_;

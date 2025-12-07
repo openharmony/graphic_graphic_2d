@@ -69,15 +69,7 @@ public:
     RSIClientToServiceConnection() = default;
     virtual ~RSIClientToServiceConnection() noexcept = default;
 
-    virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
-    virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
-
     virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
-
-    virtual ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success) = 0;
-    virtual ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool& success) = 0;
-    virtual ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-        bool unobscured = false) = 0;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,
@@ -205,8 +197,6 @@ public:
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
 
-    virtual ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) = 0;
-
     virtual RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) = 0;
 
     virtual ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) = 0;
@@ -229,12 +219,6 @@ public:
 
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 
-    virtual ErrCode RegisterBufferAvailableListener(
-        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
-
-    virtual ErrCode RegisterBufferClearListener(
-        NodeId id, sptr<RSIBufferClearCallback> callback) = 0;
-
     virtual int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) = 0;
 
     virtual int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) = 0;
@@ -252,8 +236,6 @@ public:
     virtual int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) = 0;
 
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) = 0;
-
-    virtual ErrCode SetGlobalDarkColorMode(bool isDark) = 0;
 
     virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) = 0;
 
@@ -279,9 +261,6 @@ public:
 
     virtual int32_t GetScreenType(ScreenId id, RSScreenType& screenType) = 0;
 
-    virtual ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) = 0;
-    virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
     virtual bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) = 0;
     virtual int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) = 0;
     virtual bool UnRegisterTypeface(uint64_t globalUniqueId) = 0;
@@ -314,9 +293,6 @@ public:
 
     virtual int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t pid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) = 0;
-
-    virtual ErrCode SetSystemAnimatedScenes(
-        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) = 0;
 
     virtual void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) = 0;
 
@@ -360,11 +336,6 @@ public:
     virtual void ReportRsSceneJankStart(AppInfo info) = 0;
 
     virtual void ReportRsSceneJankEnd(AppInfo info) = 0;
-
-    virtual ErrCode SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-        bool dynamicHardwareEnable) = 0;
-
-    virtual ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) = 0;
 
     virtual ErrCode SetCacheEnabledForRotation(bool isEnabled) = 0;
 
@@ -416,8 +387,6 @@ public:
 
     virtual ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) = 0;
-
-    virtual bool GetHighContrastTextState() = 0;
 
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
 

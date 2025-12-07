@@ -27,6 +27,12 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderServiceClient()
     return client;
 }
 
+std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
+{
+    static std::shared_ptr<RSIRenderClient> client = std::make_shared<RSRenderPipelineClient>();
+    return client;
+}
+
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
 }
@@ -72,22 +78,6 @@ void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string& 
 bool RSRenderServiceClient::GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize)
 {
     return {};
-}
-
-bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
-{
-    return {};
-}
-
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
-{
-    return std::make_shared<RSSurfaceWindows>(reinterpret_cast<OnRenderFunc>(config.additionalData));
 }
 
 class VSyncReceiverWindows : public VSyncReceiver {
@@ -351,23 +341,6 @@ void RSRenderServiceClient::SetScreenBacklight(ScreenId id, uint32_t level)
 {
 }
 
-bool RSRenderServiceClient::RegisterBufferAvailableListener(
-    NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::RegisterBufferClearListener(
-    NodeId id, const BufferAvailableCallback &callback)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
-{
-    return {};
-}
-
 int32_t RSRenderServiceClient::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
 {
     return {};
@@ -409,11 +382,6 @@ int32_t RSRenderServiceClient::SetVirtualScreenAutoRotation(ScreenId id, bool is
 }
 
 bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
 {
     return {};
 }
@@ -470,17 +438,6 @@ int32_t RSRenderServiceClient::SetScreenColorSpace(ScreenId id, GraphicCM_ColorS
 }
 
 int32_t RSRenderServiceClient::GetScreenType(ScreenId id, RSScreenType& screenType)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
-{
-    return {};
-}
-
-bool RSRenderServiceClient::GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-    const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     return {};
 }
@@ -599,11 +556,6 @@ void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
 {
 }
 
-bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
-{
-    return {};
-}
-
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
 {
 }
@@ -639,16 +591,6 @@ void RSRenderServiceClient::ReportRsSceneJankEnd(AppInfo info)
 
 void RSRenderServiceClient::ReportGameStateData(GameStateData info)
 {
-}
-
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-    bool dynamicHardwareEnable)
-{
-}
-
-uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
-{
-    return {};
 }
 
 void RSRenderServiceClient::NotifyLightFactorStatus(int32_t lightFactorStatus)
@@ -802,11 +744,6 @@ int32_t SetOverlayDisplayMode(int32_t mode)
 void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
-}
-
-bool RSRenderServiceClient::GetHighContrastTextState()
-{
-    return false;
 }
 
 bool RSRenderServiceClient::SetBehindWindowFilterEnabled(bool enabled)

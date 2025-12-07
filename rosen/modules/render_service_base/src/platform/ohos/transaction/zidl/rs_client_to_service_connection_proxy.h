@@ -30,15 +30,7 @@ public:
     explicit RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSClientToServiceConnectionProxy() noexcept = default;
 
-    ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
-    ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
-
     ErrCode GetUniRenderEnabled(bool& enable) override;
-
-    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& configg, bool& success) override;
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeIdg, bool& success) override;
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-        bool unobscured = false) override;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
                                           const std::string& name,
@@ -162,7 +154,6 @@ public:
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
 
-    ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) override;
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) override;
 
     ErrCode GetScreenActiveMode(uint64_t id, RSScreenModeInfo& screenModeInfo) override;
@@ -182,12 +173,6 @@ public:
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
 
-    ErrCode RegisterBufferAvailableListener(
-        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
-
-    ErrCode RegisterBufferClearListener(
-        NodeId id, sptr<RSIBufferClearCallback> callback) override;
-
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode) override;
 
     int32_t GetScreenSupportedMetaDataKeys(ScreenId id, std::vector<ScreenHDRMetadataKey>& keys) override;
@@ -205,8 +190,6 @@ public:
     int32_t SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation) override;
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) override;
-
-    ErrCode SetGlobalDarkColorMode(bool isDark) override;
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) override;
 
@@ -232,9 +215,6 @@ public:
 
     int32_t GetScreenType(ScreenId id, RSScreenType& screenType) override;
 
-    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success) override;
-    ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
     int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
@@ -266,9 +246,6 @@ public:
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
-
-    ErrCode SetSystemAnimatedScenes(
-        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
@@ -311,11 +288,6 @@ public:
     void ReportRsSceneJankStart(AppInfo info) override;
 
     void ReportRsSceneJankEnd(AppInfo info) override;
-
-    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
-        bool dynamicHardwareEnable) override;
-
-    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode) override;
 
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
@@ -365,8 +337,6 @@ public:
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
 
-    bool GetHighContrastTextState() override;
-
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
@@ -389,8 +359,6 @@ public:
 
     bool WriteSurfaceCaptureAreaRect(const Drawing::Rect& specifiedAreaRect, MessageParcel& data);
 private:
-    bool FillParcelWithTransactionData(
-        std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data);
 
     void ReportDataBaseRs(MessageParcel& data, MessageParcel& reply, MessageOption& option, DataBaseRs info);
 
