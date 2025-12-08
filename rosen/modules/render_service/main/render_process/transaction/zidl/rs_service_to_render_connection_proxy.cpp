@@ -751,7 +751,7 @@ ErrCode RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId(NodeId& windowNod
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint64(windowNodeId)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: windowNodeId:%{public}lu err.", windowNodeId);
+        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: windowNodeId:%{public}zu err.", windowNodeId);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);

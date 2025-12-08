@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "dfx/rs_service_dump_manager.h"
+#include "rs_service_dump_manager.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 

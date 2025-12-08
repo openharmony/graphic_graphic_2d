@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_CORE_TRANSACTION_RS_CONNECT_TO_RENDER_PROCESS_H
 
 #include "transaction/zidl/rs_connect_to_render_process_stub.h"
-#include "rs_render_process.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "render_server/rs_render_service.h"
 #include "rs_render_pipeline_agent.h"

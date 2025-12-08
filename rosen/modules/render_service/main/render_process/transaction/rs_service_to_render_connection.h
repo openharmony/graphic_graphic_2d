@@ -16,7 +16,6 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 
-#include "rs_render_process_agent.h"
 #include "render_server/rs_render_service_agent.h"
 #include "rs_render_pipeline_agent.h"
 
