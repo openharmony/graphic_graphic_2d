@@ -1569,7 +1569,7 @@ void AniCanvas::DrawPoint(ani_env* env, ani_object obj, ani_double x, ani_double
 
 bool GetPoints(ani_env* env, ani_object pointsObj, uint32_t size, Drawing::Point* point)
 {
-    ani_boolean isPointClass;
+    ani_boolean isPointClass = false;
     for (uint32_t i = 0; i < size; i++) {
         ani_ref pointRef;
         if (ANI_OK != env->Object_CallMethodByName_Ref(

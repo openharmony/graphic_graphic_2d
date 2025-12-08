@@ -49,15 +49,25 @@ private:
     void CollectSurfaceSize(const RSSurfaceRenderParams& params, TvPQMetadata& metaData);
     void CollectColorPrimaries(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
     void CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
-    bool NeedDisableCache(TvPQMetadata& oldMetadata, const TvPQMetadata& newMetadata);
+    bool CheckCacheValid();
+    static uint8_t GetPriority(TvPQMetadata& metadata);
+    static bool HasNoVideo(const TvPQMetadata& metadata)
+    {
+        return metadata.sceneTag == 0;
+    }
+    static bool HasVideo(const TvPQMetadata& metadata)
+    {
+        return metadata.sceneTag != 0;
+    }
     RSTvMetadataManager() = default;
     ~RSTvMetadataManager() = default;
     RSTvMetadataManager(const RSTvMetadataManager&) = delete;
     RSTvMetadataManager& operator =(const RSTvMetadataManager&) = delete;
 
     NodeId cachedSurfaceNodeId_{0};
-    TvPQMetadata metadata_;
-    TvPQMetadata cachedMetadata_;
+    NodeId recordedSurfaceNodeId_{0};
+    TvPQMetadata metadata_{};
+    TvPQMetadata cachedMetadata_{};
     mutable std::mutex mutex_;
 };
 } // namespace OHOS::Rosen

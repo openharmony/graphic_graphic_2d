@@ -878,6 +878,51 @@ HWTEST_F(RSInterfacesTest, GetScreenBacklight002, Function | SmallTest | Level2)
 }
 
 /*
+* Function: GetPanelPowerStatus
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPanelPowerStatus
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, GetPanelPowerStatus001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    // set screen on
+    rsInterfaces->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait 50000us to ensure SetScreenPowerStatus done.
+    auto powerStatus = rsInterfaces->GetScreenPowerStatus(screenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
+    auto panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_ON);
+
+    // set screen off
+    rsInterfaces->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait 50000us to ensure SetScreenPowerStatus done.
+    powerStatus = rsInterfaces->GetScreenPowerStatus(screenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_OFF);
+    panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_OFF);
+}
+
+/*
+* Function: GetPanelPowerStatus
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPanelPowerStatus with invalid screenId
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, GetPanelPowerStatus002, Function | SmallTest | Level2)
+{
+    auto screenId = INVALID_SCREEN_ID;
+    auto panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+}
+
+/*
 * Function: SetScreenChangeCallback
 * Type: Function
 * Rank: Important(2)

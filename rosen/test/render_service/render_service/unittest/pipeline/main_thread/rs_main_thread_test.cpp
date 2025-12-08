@@ -1203,18 +1203,6 @@ HWTEST_F(RSMainThreadTest, ProcessCommandForUniRenderTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetWatermarkImg
- * @tc.desc: GetWatermarkImg test
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, GetWatermarkImg, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_EQ(mainThread->GetWatermarkImg(), nullptr);
-}
-
-/**
  * @tc.name: IsWatermarkFlagChanged
  * @tc.desc: IsWatermarkFlagChanged test
  * @tc.type: FUNC
@@ -3567,36 +3555,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes003, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckNodeHasToBePreparedByPid001
- * @tc.desc: CheckNodeHasToBePreparedByPid Test, Classify By Root
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, CheckNodeHasToBePreparedByPid001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    bool isClassifyByRoot = true;
-    mainThread->CheckNodeHasToBePreparedByPid(id, isClassifyByRoot);
-}
-
-/**
- * @tc.name: CheckNodeHasToBePreparedByPid002
- * @tc.desc: CheckNodeHasToBePreparedByPid Test, not Classify By Root
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, CheckNodeHasToBePreparedByPid002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    NodeId id = 1;
-    bool isClassifyByRoot = false;
-    mainThread->CheckNodeHasToBePreparedByPid(id, isClassifyByRoot);
-}
-
-/**
  * @tc.name: SetVSyncRateByVisibleLevel001
  * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when RSVisibleLevel is RS_SEMI_DEFAULT_VISIBLE
  * @tc.type: FUNC
@@ -4456,90 +4414,6 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateNeedDrawFocusChange001
- * @tc.desc: test UpdateNeedDrawFocusChange while node don't has parent
- * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange001, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    ASSERT_NE(node, nullptr);
-
-    ASSERT_NE(mainThread->context_, nullptr);
-
-    NodeId nodeId = node->GetId();
-    pid_t pid = ExtractPid(nodeId);
-    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
-    mainThread->UpdateNeedDrawFocusChange(id);
-    ASSERT_TRUE(node->GetNeedDrawFocusChange());
-}
-
-/**
- * @tc.name: UpdateNeedDrawFocusChange002
- * @tc.desc: test UpdateNeedDrawFocusChange while node's parent isn't leash window
- * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange002, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->AddChild(node);
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-
-    ASSERT_NE(mainThread->context_, nullptr);
-    NodeId nodeId = node->GetId();
-    pid_t pid = ExtractPid(nodeId);
-    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
-    NodeId parentNodeId = parentNode->GetId();
-    pid_t parentNodePid = ExtractPid(parentNodeId);
-    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
-    mainThread->UpdateNeedDrawFocusChange(id);
-    ASSERT_TRUE(node->GetNeedDrawFocusChange());
-}
-
-/**
- * @tc.name: UpdateNeedDrawFocusChange003
- * @tc.desc: test UpdateNeedDrawFocusChange while node's parent is leash window
- * @tc.type: FUNC
- * @tc.require: issueI9LOXQ
- */
-HWTEST_F(RSMainThreadTest, UpdateNeedDrawFocusChange003, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-
-    NodeId id = 0;
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id + 1, mainThread->context_);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->AddChild(node);
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-
-    ASSERT_NE(mainThread->context_, nullptr);
-    NodeId nodeId = node->GetId();
-    pid_t pid = ExtractPid(nodeId);
-    mainThread->context_->nodeMap.renderNodeMap_[pid][nodeId] = node;
-    NodeId parentNodeId = parentNode->GetId();
-    pid_t parentNodePid = ExtractPid(parentNodeId);
-    mainThread->context_->nodeMap.renderNodeMap_[parentNodePid][parentNodeId] = parentNode;
-    mainThread->UpdateNeedDrawFocusChange(id);
-    ASSERT_FALSE(node->GetNeedDrawFocusChange());
-}
-
-/**
  * @tc.name: UpdateFocusNodeId001
  * @tc.desc: test UpdateFocusNodeId while focusNodeId don't change
  * @tc.type: FUNC
@@ -5038,24 +4912,6 @@ HWTEST_F(RSMainThreadTest, IsHardwareEnabledNodesNeedSync, TestSize.Level2)
     node3->SetDstRect(dstRect);
     mainThread->hardwareEnabledNodes_.emplace_back(node3);
     ASSERT_EQ(mainThread->IsHardwareEnabledNodesNeedSync(), true);
-}
-
-/**
- * @tc.name: IsSingleDisplay
- * @tc.desc: test IsSingleDisplay, rootNode = nullptr
- * @tc.type: FUNC
- * @tc.require: issueIAS924
- */
-HWTEST_F(RSMainThreadTest, IsSingleDisplay, TestSize.Level2)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    ASSERT_NE(mainThread->context_, nullptr);
-    auto rootNode = mainThread->context_->globalRootRenderNode_;
-    ASSERT_EQ(mainThread->IsSingleDisplay(), true);
-    mainThread->context_->globalRootRenderNode_ = nullptr;
-    ASSERT_EQ(mainThread->IsSingleDisplay(), false);
-    mainThread->context_->globalRootRenderNode_ = rootNode;
 }
 
 /**

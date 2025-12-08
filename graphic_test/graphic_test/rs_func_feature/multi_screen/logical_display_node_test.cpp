@@ -533,4 +533,302 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, LOGICAL_DISPLAY_N
     RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
 }
 
+/*
+ * @tc.name: SetSecurityDisplayTest001
+ * @tc.desc: test SetSecurityDisplay when SetSecurityDisplay true and has security surfacenode
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDisplayTest001)
+{
+    uint32_t width = 1260;
+    uint32_t height = 2720;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetSecurityDisplayTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+    LOGI("SetSecurityDisplayTest001 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
+        screenId, displayNode->GetId());
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGRAY);
+
+    // SetSecurityDisplay true
+    displayNode->SetSecurityDisplay(true);
+
+    RSSurfaceNodeConfig surfaceNodeConfig0;
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    surfaceNode0->SetBounds({ 0, 0, 500, 500 });
+    surfaceNode0->SetFrame({ 0, 0, 500, 500 });
+    surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
+    surfaceNode0->SetSecurityLayer(true);
+
+    displayNode->RSNode::AddChild(surfaceNode0);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetSecurityDisplayTest002
+ * @tc.desc: test SetSecurityDisplay when SetSecurityDisplay false but has security surfacenode
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDisplayTest002)
+{
+    uint32_t width = 1260;
+    uint32_t height = 2720;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetSecurityDisplayTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+    LOGI("SetSecurityDisplayTest002 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
+        screenId, displayNode->GetId());
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGRAY);
+
+    // SetSecurityDisplay true
+    displayNode->SetSecurityDisplay(false);
+
+    RSSurfaceNodeConfig surfaceNodeConfig0;
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    surfaceNode0->SetBounds({ 0, 0, 500, 500 });
+    surfaceNode0->SetFrame({ 0, 0, 500, 500 });
+    surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
+    surfaceNode0->SetSecurityLayer(true);
+
+    displayNode->RSNode::AddChild(surfaceNode0);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetSecurityDisplayTest003
+ * @tc.desc: test SetSecurityDisplay when SetSecurityDisplay true, but has no security surfacenode
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDisplayTest003)
+{
+    uint32_t width = 1260;
+    uint32_t height = 2720;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetSecurityDisplayTest003", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+    LOGI("SetSecurityDisplayTest003 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
+        screenId, displayNode->GetId());
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGRAY);
+
+    // SetSecurityDisplay true
+    displayNode->SetSecurityDisplay(true);
+
+    RSSurfaceNodeConfig surfaceNodeConfig0;
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    surfaceNode0->SetBounds({ 0, 0, 500, 500 });
+    surfaceNode0->SetFrame({ 0, 0, 500, 500 });
+    surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
+    surfaceNode0->SetSecurityLayer(false);
+
+    displayNode->RSNode::AddChild(surfaceNode0);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetSecurityDisplayTest004
+ * @tc.desc: test SetSecurityDisplay when SetSecurityDisplay false and has no security surfacenode
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDisplayTest004)
+{
+    uint32_t width = 1260;
+    uint32_t height = 2720;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetSecurityDisplayTest004", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+    LOGI("SetSecurityDisplayTest004 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
+        screenId, displayNode->GetId());
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGRAY);
+
+    // SetSecurityDisplay true
+    displayNode->SetSecurityDisplay(false);
+
+    RSSurfaceNodeConfig surfaceNodeConfig0;
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    surfaceNode0->SetBounds({ 0, 0, 500, 500 });
+    surfaceNode0->SetFrame({ 0, 0, 500, 500 });
+    surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
+    surfaceNode0->SetSecurityLayer(false);
+
+    displayNode->RSNode::AddChild(surfaceNode0);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetDisplayNodeMirrorConfigTest001
+ * @tc.desc: test SetDisplayNodeMirrorConfig
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMirrorConfigTest001)
+{
+    uint32_t width = 1260;
+    uint32_t height = 2720;
+    ScreenId screenId = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetDisplayNodeMirrorConfigTest001", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+    RSDisplayNodeConfig displayNodeConfig = { screenId, false, 0, true };
+    auto displayNode = RSDisplayNode::Create(displayNodeConfig);
+    ASSERT_NE(displayNode, nullptr);
+    LOGI("SetDisplayNodeMirrorConfigTest001 screenId[%{public}" PRIu64 "], nodeId[%{public}" PRIu64 "]",
+        screenId, displayNode->GetId());
+    displayNode->SetBounds({ 0, 0, width, height });
+    displayNode->SetFrame({ 0, 0, width, height });
+    displayNode->SetBackgroundColor(SK_ColorGREEN);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId, false, 1, true };
+    displayNode->SetDisplayNodeMirrorConfig(displayNodeConfig1);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSSurfaceNodeConfig surfaceNodeConfig0;
+    auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    surfaceNode0->SetBounds({ 0, 0, 500, 500 });
+    surfaceNode0->SetFrame({ 0, 0, 500, 500 });
+    surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
+    displayNode->RSNode::AddChild(surfaceNode0);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId);
+}
+
+/*
+ * @tc.name: SetDisplayNodeMirrorConfigTest002
+ * @tc.desc: test SetDisplayNodeMirrorConfig
+ * @tc.type: FUNC
+ */
+GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMirrorConfigTest002)
+{
+    uint32_t width = 1260;
+    uint32_t height = 2720;
+
+    // mirrorSourceScreen
+    ScreenId screenId1 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetDisplayNodeMirrorConfigTest002", width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId1, INVALID_SCREEN_ID);
+
+    RSDisplayNodeConfig displayNodeConfig1 = { screenId1, false, 0, true };
+    auto displayNode1 = RSDisplayNode::Create(displayNodeConfig1);
+    ASSERT_NE(displayNode1, nullptr);
+
+    RSSurfaceNodeConfig surfaceNodeConfig;
+    auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
+    surfaceNode1->SetBounds({ 0, 0, 300, 400 });
+    surfaceNode1->SetFrame({ 0, 0, 300, 400 });
+    surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
+
+    displayNode1->SetBounds({ 0, 0, width, height });
+    displayNode1->SetFrame({ 0, 0, width, height });
+    displayNode1->SetBackgroundColor(SK_ColorGRAY);
+    displayNode1->RSNode::AddChild(surfaceNode1);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    // mirrorScreen
+    auto csurface2 = Surface::CreateSurfaceAsConsumer();
+    csurface2->SetDefaultUsage(
+        BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB);
+    auto producer2 = csurface2->GetProducer();
+    auto psurface2 = Surface::CreateSurfaceAsProducer(producer2);
+
+    ScreenId screenId2 = RSInterfaces::GetInstance().CreateVirtualScreen(
+        "SetDisplayNodeMirrorConfigTest002", width, height, psurface2, INVALID_SCREEN_ID, -1, {});
+    EXPECT_NE(screenId2, INVALID_SCREEN_ID);
+
+    RSDisplayNodeConfig displayNodeConfig2 = { screenId2, false, 0, true };
+    auto displayNode2 = RSDisplayNode::Create(displayNodeConfig2);
+    ASSERT_NE(displayNode2, nullptr);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    RSDisplayNodeConfig displayNodeConfig3 = { screenId2, true, displayNode1->GetId(), true };
+    displayNode2->SetDisplayNodeMirrorConfig(displayNodeConfig3);
+    displayNode2->SetBounds({ 0, 0, width, height });
+    displayNode2->SetFrame({ 0, 0, width, height });
+    displayNode2->SetBackgroundColor(SK_ColorGREEN);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+
+    auto callback = std::make_shared<CustomizedSurfaceCapture>();
+    RSInterfaces::GetInstance().TakeSurfaceCapture(displayNode2, callback);
+    if (!CheckSurfaceCaptureCallback(callback)) {
+        LOGE("TakeSurfaceCapture failed");
+    }
+
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId1);
+    RSInterfaces::GetInstance().RemoveVirtualScreen(screenId2);
+}
 } // namespace OHOS::Rosen

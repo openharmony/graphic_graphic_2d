@@ -456,6 +456,7 @@ void RSScreenManager::OnHwcDeadEvent()
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         for (auto it = screens_.begin(); it != screens_.end();) {
             if (it->second && !it->second->IsVirtual()) {
+                TriggerCallbacks(it->first, ScreenEvent::DISCONNECTED, ScreenChangeReason::HWCDEAD);
                 auto node = screens_.extract(it++);
                 screens.insert(std::move(node));
             } else {
@@ -587,7 +588,7 @@ void RSScreenManager::ProcessPendingConnections()
         if (!isHwcDead_) {
             NotifyScreenNodeChange(id, true);
             TriggerCallbacks(id, ScreenEvent::CONNECTED);
-        } else if (id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
+        } else {
             TriggerCallbacks(id, ScreenEvent::CONNECTED, ScreenChangeReason::HWCDEAD);
         }
         auto screen = GetScreen(id);
@@ -1956,6 +1957,17 @@ void RSScreenManager::SetScreenBacklight(ScreenId id, uint32_t level)
         return;
     }
     screenBacklight_[id] = level;
+}
+
+PanelPowerStatus RSScreenManager::GetPanelPowerStatus(ScreenId id) const
+{
+    auto screen = GetScreen(id);
+    if (screen == nullptr) {
+        RS_LOGE("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    }
+    auto status = screen->GetPanelPowerStatus();
+    return status;
 }
 
 ScreenInfo RSScreenManager::QueryDefaultScreenInfo() const

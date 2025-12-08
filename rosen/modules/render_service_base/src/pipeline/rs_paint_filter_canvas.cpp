@@ -1938,22 +1938,26 @@ std::shared_ptr<RSPaintFilterCanvasBase::CornerData> RSPaintFilterCanvas::Genera
     switch (pos) {
         case Drawing::RoundRect::CornerPos::TOP_LEFT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetLeft(), rect.GetTop(), rect.GetLeft() + radius.GetX(), rect.GetTop() + radius.GetY());
+                rect.GetLeft(), rect.GetTop(),
+                rect.GetLeft() + radius.GetX() * MAX_CURVE_X, rect.GetTop() + radius.GetY() * MAX_CURVE_X);
             break;
         }
         case Drawing::RoundRect::CornerPos::TOP_RIGHT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetRight() - radius.GetX(), rect.GetTop(), rect.GetRight(), rect.GetTop() + radius.GetY());
+                rect.GetRight() - radius.GetX() * MAX_CURVE_X, rect.GetTop(),
+                rect.GetRight(), rect.GetTop() + radius.GetY() * MAX_CURVE_X);
             break;
         }
         case Drawing::RoundRect::CornerPos::BOTTOM_LEFT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetLeft(), rect.GetBottom() - radius.GetY(), rect.GetLeft() + radius.GetX(), rect.GetBottom());
+                rect.GetLeft(), rect.GetBottom() - radius.GetY() * MAX_CURVE_X,
+                rect.GetLeft() + radius.GetX() * MAX_CURVE_X, rect.GetBottom());
             break;
         }
         case Drawing::RoundRect::CornerPos::BOTTOM_RIGHT_POS: {
             relativeRect = Drawing::Rect(
-                rect.GetRight() - radius.GetX(), rect.GetBottom() - radius.GetY(), rect.GetRight(), rect.GetBottom());
+                rect.GetRight() - radius.GetX() * MAX_CURVE_X, rect.GetBottom() - radius.GetY() * MAX_CURVE_X,
+                rect.GetRight(), rect.GetBottom());
             break;
         }
         default: {

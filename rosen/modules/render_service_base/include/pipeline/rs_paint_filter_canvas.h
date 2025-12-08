@@ -157,6 +157,9 @@ public:
         uint32_t saveCount_ = 0;
     };
 
+    // an enlargement scale for expanding snapshot and drawing areas.
+    static constexpr SkScalar MAX_CURVE_X = 1.7f;
+
     using DrawFunc = std::function<void(Drawing::Canvas& canvas)>;
 
     uint32_t CustomSaveLayer(DrawFunc customFunc);

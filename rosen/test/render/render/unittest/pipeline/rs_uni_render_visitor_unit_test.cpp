@@ -62,7 +62,6 @@ constexpr uint32_t DEFAULT_CANVAS_WIDTH = 800;
 constexpr uint32_t DEFAULT_CANVAS_HEIGHT = 600;
 const OHOS::Rosen::RectI DEFAULT_RECT = { 0, 80, 1000, 1000 };
 const OHOS::Rosen::RectI DEFAULT_FILTER_RECT = { 0, 0, 500, 500 };
-const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr int MAX_ALPHA = 255;
 constexpr int SCREEN_WIDTH = 3120;
 constexpr int SCREEN_HEIGHT = 1080;

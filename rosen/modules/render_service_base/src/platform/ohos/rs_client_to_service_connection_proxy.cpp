@@ -1949,6 +1949,7 @@ bool RSClientToServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteUint8(static_cast<uint8_t>(captureConfig.captureType)) || !data.WriteBool(captureConfig.isSync) ||
         !data.WriteBool(captureConfig.isHdrCapture) ||
         !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.WriteBool(captureConfig.needErrorCode) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -1960,7 +1961,11 @@ bool RSClientToServiceConnectionProxy::WriteSurfaceCaptureConfig(
         !data.WriteFloat(captureConfig.specifiedAreaRect.right_) ||
         !data.WriteFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.WriteUInt64Vector(captureConfig.blackList) ||
-        !data.WriteUint32(captureConfig.backGroundColor)) {
+        !data.WriteUint32(captureConfig.backGroundColor) ||
+        !data.WriteUint32(captureConfig.colorSpace.first) ||
+        !data.WriteBool(captureConfig.colorSpace.second) ||
+        !data.WriteUint32(captureConfig.dynamicRangeMode.first) ||
+        !data.WriteBool(captureConfig.dynamicRangeMode.second)) {
         ROSEN_LOGE("WriteSurfaceCaptureConfig: WriteSurfaceCaptureConfig captureConfig err.");
         return false;
     }
@@ -2323,6 +2328,37 @@ void RSClientToServiceConnectionProxy::SetScreenBacklight(ScreenId id, uint32_t 
         ROSEN_LOGE("SetScreenBacklight: SendRequest failed");
         return;
     }
+}
+
+ErrCode RSClientToServiceConnectionProxy::GetPanelPowerStatus(uint64_t screenId, uint32_t& status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        ROSEN_LOGE("GetPanelPowerStatus: WriteInterfaceToken GetDescriptor err.");
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("GetPanelPowerStatus: WriteUint64 id err.");
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PANEL_POWER_STATUS);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("%{public}s: sendrequest error: %{public}d", __func__, err);
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+        return ERR_INVALID_OPERATION;
+    }
+    if (!reply.ReadUint32(status)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetPanelPowerStatus Read status failed");
+        status = PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnectionProxy::RegisterBufferClearListener(

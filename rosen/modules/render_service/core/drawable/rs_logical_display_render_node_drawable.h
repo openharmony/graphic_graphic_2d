@@ -39,9 +39,6 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
-    int32_t GetSpecialLayerType(RSLogicalDisplayRenderParams& mainDisplayParams,
-        RSLogicalDisplayRenderParams* mirrorDisplayParams = nullptr, bool isSecLayerInVisibleRect = true);
-
     void SetOriginScreenRotation(const ScreenRotation& rotate)
     {
         originScreenRotation_ = rotate;

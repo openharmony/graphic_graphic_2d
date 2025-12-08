@@ -198,9 +198,48 @@ void RSSpecialLayerManager::ClearScreenSpecialLayer()
     screenSpecialLayer_.clear();
 }
 
-void RSSpecialLayerManager::ClearSpecialLayerIds()
+void RSSpecialLayerManager::MergeChildren(const RSSpecialLayerManager& childSlm)
+{
+    AddType(specialLayerType_, (childSlm.specialLayerType_ & HAS_GENERAL_SPECIAL));
+    for (const auto& [type, ids] : childSlm.specialLayerIds_) {
+        specialLayerIds_[type].insert(ids.begin(), ids.end());
+    }
+}
+
+void RSSpecialLayerManager::Clear()
 {
     specialLayerIds_.clear();
+    hasSlInVisibleRect_.clear();
+}
+
+void RSSpecialLayerManager::SetHasSlInVisibleRect(ScreenId screenId, bool hasSlInVisibleRect)
+{
+    hasSlInVisibleRect_[screenId] = hasSlInVisibleRect;
+}
+
+bool RSSpecialLayerManager::GetHasSlInVisibleRect(ScreenId screenId) const
+{
+    auto iter = hasSlInVisibleRect_.find(screenId);
+    if (iter != hasSlInVisibleRect_.end()) {
+        return iter->second;
+    }
+    return false;
+}
+
+std::unordered_set<NodeId> RSSpecialLayerManager::GetIds(uint32_t type) const
+{
+    std::unordered_set<NodeId> currentTypeIds;
+    type >>= SPECIAL_TYPE_NUM;
+    uint32_t currentType = SpecialLayerType::SECURITY;
+    while (type != 0) {
+        auto iter = specialLayerIds_.find(currentType);
+        if (iter != specialLayerIds_.end()) {
+            currentTypeIds.insert(iter->second.begin(), iter->second.end());
+        }
+        type >>= 1;
+        currentType <<= 1;
+    }
+    return currentTypeIds;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -66,6 +66,17 @@ std::string SkiaTypeface::GetFontPath() const
     return path;
 }
 
+// LCOV_EXCL_START
+int32_t SkiaTypeface::GetFontIndex() const
+{
+    if (skTypeface_ == nullptr) {
+        LOGD("SkTypeface nullptr");
+        return 0;
+    }
+    return skTypeface_->getFontIndex();
+}
+// LCOV_EXCL_STOP
+
 FontStyle SkiaTypeface::GetFontStyle() const
 {
     FontStyle fontStyle;

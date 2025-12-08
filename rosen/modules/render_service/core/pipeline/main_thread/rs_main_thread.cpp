@@ -231,7 +231,6 @@ constexpr const char* WALLPAPER_VIEW = "WallpaperView";
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DESKTOP_NAME_FOR_ROTATION = "SCBDesktop";
 const std::string PERF_FOR_BLUR_IF_NEEDED_TASK_NAME = "PerfForBlurIfNeeded";
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr const char* HIDE_NOTCH_STATUS = "persist.sys.graphic.hideNotch.status";
 constexpr const char* DRAWING_CACHE_DFX = "rosen.drawingCache.enabledDfx";
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
@@ -423,8 +422,7 @@ RSMainThread* RSMainThread::Instance()
     return &instance;
 }
 
-RSMainThread::RSMainThread() : rsParallelType_(RSSystemParameters::GetRsParallelType()),
-    mainThreadId_(std::this_thread::get_id())
+RSMainThread::RSMainThread() : rsParallelType_(RSSystemParameters::GetRsParallelType())
 {
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
@@ -570,7 +568,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
 
     isUniRender_ = RSUniRenderJudgement::IsUniRender();
     SetDeviceType();
-    isFoldScreenDevice_ = RSSystemProperties::IsFoldScreenFlag();
     auto taskDispatchFunc = [](const RSTaskDispatcher::RSTask& task, bool isSyncTask = false) {
         RSMainThread::Instance()->PostTask(task);
     };
@@ -1066,27 +1063,7 @@ void RSMainThread::UpdateFocusNodeId(NodeId focusNodeId)
     if (focusNodeId_ == focusNodeId || focusNodeId == INVALID_NODEID) {
         return;
     }
-    UpdateNeedDrawFocusChange(focusNodeId_);
-    UpdateNeedDrawFocusChange(focusNodeId);
     focusNodeId_ = focusNodeId;
-}
-
-void RSMainThread::UpdateNeedDrawFocusChange(NodeId id)
-{
-    const auto& nodeMap = context_->GetNodeMap();
-    auto node = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(nodeMap.GetRenderNode(id));
-    // while nodeMap can't find node, return instantly
-    if (!node) {
-        return;
-    }
-    auto parentNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
-    // while node's parent isn't LEASH_WINDOW_NODE, itselt need SetNeedDrawFocusChange
-    if (!parentNode || parentNode->GetSurfaceNodeType() != RSSurfaceNodeType::LEASH_WINDOW_NODE) {
-        node->SetNeedDrawFocusChange(true);
-        return;
-    }
-    // while node's parent is LEASH_WINDOW_NODE, parent need SetNeedDrawFocusChange
-    parentNode->SetNeedDrawFocusChange(true);
 }
 
 void RSMainThread::Start()
@@ -2584,7 +2561,6 @@ void RSMainThread::Render()
 #ifdef RS_ENABLE_GPU
         UniRender(rootNode);
 #endif
-        frameCount_++;
 #endif
     } else {
         auto rsVisitor = std::make_shared<RSRenderServiceVisitor>();
@@ -3215,7 +3191,6 @@ void RSMainThread::OnVsync(uint64_t timestamp, uint64_t frameCount, void* data)
     RS_PROFILER_PATCH_TIME(curTime_);
     requestNextVsyncNum_ = 0;
     vsyncId_ = frameCount;
-    frameCount_++;
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         MergeToEffectiveTransactionDataMap(cachedTransactionDataMap_);
@@ -4580,22 +4555,6 @@ SystemAnimatedScenes RSMainThread::GetSystemAnimatedScenes()
     return systemAnimatedScenes_;
 }
 
-bool RSMainThread::CheckNodeHasToBePreparedByPid(NodeId nodeId, bool isClassifyByRoot)
-{
-    std::lock_guard<std::mutex> lock(context_->activeNodesInRootMutex_);
-    if (context_->activeNodesInRoot_.empty() || nodeId == INVALID_NODEID) {
-        return false;
-    }
-    if (!isClassifyByRoot) {
-        // Match by PID
-        auto pid = ExtractPid(nodeId);
-        return std::any_of(context_->activeNodesInRoot_.begin(), context_->activeNodesInRoot_.end(),
-            [pid](const auto& iter) { return ExtractPid(iter.first) == pid; });
-    } else {
-        return context_->activeNodesInRoot_.count(nodeId);
-    }
-}
-
 void RSMainThread::ResetHardwareEnabledState(bool isUniRender)
 {
     if (isUniRender) {
@@ -4754,16 +4713,6 @@ std::shared_ptr<Drawing::Image> RSMainThread::GetWatermarkImg()
 bool RSMainThread::GetWatermarkFlag()
 {
     return watermarkFlag_;
-}
-
-bool RSMainThread::IsSingleDisplay()
-{
-    const std::shared_ptr<RSBaseRenderNode> rootNode = context_->GetGlobalRootRenderNode();
-    if (rootNode == nullptr) {
-        RS_LOGE("IsSingleDisplay GetGlobalRootRenderNode fail");
-        return false;
-    }
-    return rootNode->GetChildrenCount() == 1;
 }
 
 bool RSMainThread::HasMirrorDisplay() const
@@ -4988,11 +4937,6 @@ bool RSMainThread::ExchangeLuminanceChangingStatus(ScreenId id)
         it->second = false;
     }
     return ret;
-}
-
-bool RSMainThread::IsCurtainScreenOn() const
-{
-    return isCurtainScreenOn_;
 }
 
 int64_t RSMainThread::GetCurrentSystimeMs() const

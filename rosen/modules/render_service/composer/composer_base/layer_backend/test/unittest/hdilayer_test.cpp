@@ -745,6 +745,77 @@ HWTEST_F(HdiLayerTest, ClearBufferCache002, Function | MediumTest| Level1)
     hdiLayer_->rsLayer_ = nullptr;
     hdiLayer_->ClearBufferCache();
 }
+
+/**
+ * Function: ResetBufferCache001
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call ResetBufferCache() with rsLayer_ is nullptr
+ *                  2. check bufferCache_ is cleared and bufferCleared_ is true
+ */
+HWTEST_F(HdiLayerTest, ResetBufferCache001, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->bufferCache_.clear();
+    hdiLayer_->bufferCache_.push_back(1);
+    hdiLayer_->bufferCleared_ = false;
+    hdiLayer_->rsLayer_ = nullptr;
+
+    hdiLayer_->ResetBufferCache();
+
+    EXPECT_EQ(hdiLayer_->bufferCache_.size(), 0);
+    EXPECT_TRUE(hdiLayer_->bufferCleared_);
+}
+
+/**
+ * Function: ResetBufferCache002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call ResetBufferCache() with rsLayer_ is not nullptr but buffer is nullptr
+ *                  2. check bufferCache_ is cleared and bufferCleared_ is true
+ */
+HWTEST_F(HdiLayerTest, ResetBufferCache002, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->bufferCache_.clear();
+    hdiLayer_->bufferCache_.push_back(1);
+    hdiLayer_->bufferCleared_ = false;
+    hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    hdiLayer_->rsLayer_->SetBuffer(nullptr);
+
+    hdiLayer_->ResetBufferCache();
+
+    EXPECT_EQ(hdiLayer_->bufferCache_.size(), 0);
+    EXPECT_TRUE(hdiLayer_->bufferCleared_);
+}
+
+/**
+ * Function: ResetBufferCache003
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call ResetBufferCache() with rsLayer_ is not nullptr and buffer is not nullptr
+ *                  2. check bufferCache_ is cleared, bufferCleared_ is true, and currBuffer_ is set
+ */
+HWTEST_F(HdiLayerTest, ResetBufferCache003, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->bufferCache_.clear();
+    hdiLayer_->bufferCache_.push_back(1);
+    hdiLayer_->bufferCleared_ = false;
+    hdiLayer_->currBuffer_ = nullptr;
+    hdiLayer_->rsLayer_ = std::make_shared<RSSurfaceLayer>();
+    sptr<SurfaceBuffer> buffer = new SurfaceBufferImpl();
+    hdiLayer_->rsLayer_->SetBuffer(buffer);
+
+    hdiLayer_->ResetBufferCache();
+
+    EXPECT_EQ(hdiLayer_->bufferCache_.size(), 0);
+    EXPECT_TRUE(hdiLayer_->bufferCleared_);
+    EXPECT_EQ(hdiLayer_->currBuffer_, buffer);
+}
 } // namespace
 } // namespace Rosen
 } // namespace OHOS

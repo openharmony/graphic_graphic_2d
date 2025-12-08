@@ -126,7 +126,8 @@
           "media_foundation",
           "selinux_adapter",
           "runtime_core",
-          "hiview"
+          "hiview",
+          "i18n"
         ],
         "third_party": [
           "skia"

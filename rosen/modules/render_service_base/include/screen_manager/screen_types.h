@@ -115,6 +115,12 @@ typedef enum : uint32_t {
 } ScreenPowerStatus;
 
 typedef enum : uint32_t {
+    PANEL_POWER_STATUS_ON = 0,
+    PANEL_POWER_STATUS_OFF,
+    INVALID_PANEL_POWER_STATUS,
+} PanelPowerStatus;
+
+typedef enum : uint32_t {
     DISP_INTF_HDMI = 0,
     DISP_INTF_LCD,
     DISP_INTF_BT1120,

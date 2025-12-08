@@ -111,6 +111,10 @@ constexpr uint32_t NUM_24 = 24;
 constexpr uint32_t NUM_25 = 25;
 constexpr uint32_t NUM_26 = 26;
 constexpr uint32_t NUM_27 = 27;
+constexpr uint32_t NUM_28 = 28;
+constexpr uint32_t NUM_29 = 29;
+constexpr uint32_t NUM_30 = 30;
+constexpr uint32_t NUM_31 = 31;
 constexpr uint32_t NUM_1000 = 1000;
 constexpr int32_t ERR_NOT_SYSTEM_APP = 202;
 

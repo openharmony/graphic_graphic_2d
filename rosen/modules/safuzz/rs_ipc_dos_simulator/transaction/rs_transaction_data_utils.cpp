@@ -165,6 +165,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetFrameGravityNewVersionEnabled),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetAncoSrcCrop),
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetContainerWindowTransparent),
+    DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeSetClonedNodeId),
 
     /********** RSProxyNodeCommand **********/
     DECLARE_ADD_RANDOM(RSProxyNodeCommand, RSProxyNodeCreate),

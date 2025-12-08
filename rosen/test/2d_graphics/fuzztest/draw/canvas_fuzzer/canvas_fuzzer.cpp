@@ -153,6 +153,36 @@ bool CanvasFuzzTest002(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
+{
+    Canvas canvas;
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Image image;
+    image.BuildFromBitmap(bmp);
+    // Edge Light
+    Rect rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    std::vector<float> edgeColor = { GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>() };
+    std::vector<float> colors = { GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    std::vector<float> positions = { GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    auto hpsRadialMaskArgs = std::make_shared<Drawing::HpsRadialGradientMaskParameter>(GetObject<float>(),
+        GetObject<float>(), GetObject<float>(), GetObject<float>(), colors, positions);
+    std::vector<float> edgeDetectColor = { GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>() };
+    Drawing::HpsEdgeLightParameter::EdgeSobelParameter edgeSobelParams = { GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), edgeDetectColor };
+    auto hpsRadialArgs = std::make_shared<Drawing::HpsEdgeLightParameter>(rect, rect,
+        GetObject<float>(), GetObject<bool>(), GetObject<bool>(), edgeColor,
+        std::static_pointer_cast<Drawing::HpsMaskParameter>(hpsRadialMaskArgs), edgeSobelParams, 1);
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    hpsEffectParams.push_back(hpsRadialArgs);
+    canvas.DrawImageEffectHPS(image, hpsEffectParams);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -169,5 +199,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
     return 0;
 }

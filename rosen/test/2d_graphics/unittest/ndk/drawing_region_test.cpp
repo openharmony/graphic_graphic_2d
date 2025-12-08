@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -202,6 +202,281 @@ HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionEmpty007, TestSi
     Region* regionFinal = reinterpret_cast<Region*>(region);
     bool isEmptyFinal = regionFinal->IsEmpty();
     EXPECT_TRUE(isEmptyFinal);
+
+    OH_Drawing_RegionDestroy(region);
+    OH_Drawing_RectDestroy(rect);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region008
+ * @tc.desc: test for get boundary path.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionGetBoundaryPath008, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(200.0f, 200.0f, 400.0f, 400.0f);
+    OH_Drawing_Path* path = OH_Drawing_PathCreate();
+
+    EXPECT_EQ(OH_Drawing_RegionGetBoundaryPath(region1, path), OH_DRAWING_SUCCESS);
+    bool isEmpty = false;
+    EXPECT_EQ(OH_Drawing_PathIsEmpty(path, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+
+    OH_Drawing_RegionSetRect(region1, rect1);
+    OH_Drawing_RegionSetRect(region2, rect2);
+    EXPECT_TRUE(OH_Drawing_RegionOp(region1, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_UNION));
+
+    EXPECT_EQ(OH_Drawing_RegionGetBoundaryPath(nullptr, path), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionGetBoundaryPath(region1, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionGetBoundaryPath(region1, path), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(OH_Drawing_PathContains(path, 300.01f, 199.99f));
+    EXPECT_TRUE(OH_Drawing_PathContains(path, 300.01f, 200.01f));
+    EXPECT_TRUE(OH_Drawing_PathContains(path, 299.99f, 199.99f));
+    EXPECT_TRUE(OH_Drawing_PathContains(path, 299.99f, 200.01f));
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RectDestroy(rect2);
+    OH_Drawing_PathDestroy(path);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region009
+ * @tc.desc: test for get bounds.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionGetBounds009, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(200.0f, 200.0f, 400.0f, 400.0f);
+    OH_Drawing_RegionSetRect(region1, rect1);
+    OH_Drawing_RegionSetRect(region2, rect2);
+    EXPECT_TRUE(OH_Drawing_RegionOp(region1, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_UNION));
+
+    EXPECT_EQ(OH_Drawing_RegionGetBounds(nullptr, rect1), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionGetBounds(region1, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionGetBounds(region1, rect1), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RectGetLeft(rect1), 100.0f);
+    EXPECT_EQ(OH_Drawing_RectGetTop(rect1), 100.0f);
+    EXPECT_EQ(OH_Drawing_RectGetRight(rect1), 400.0f);
+    EXPECT_EQ(OH_Drawing_RectGetBottom(rect1), 400.0f);
+
+    EXPECT_EQ(OH_Drawing_RegionEmpty(region1), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RegionGetBounds(region1, rect1), OH_DRAWING_SUCCESS);
+    bool isEmpty = false;
+    EXPECT_EQ(OH_Drawing_RectIsEmpty(rect1, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region0010
+ * @tc.desc: test for is complex.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionIsComplex010, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(200.0f, 200.0f, 400.0f, 400.0f);
+    OH_Drawing_RegionSetRect(region1, rect1);
+    OH_Drawing_RegionSetRect(region2, rect2);
+    EXPECT_TRUE(OH_Drawing_RegionOp(region1, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_UNION));
+
+    bool isComplex = false;
+    EXPECT_EQ(OH_Drawing_RegionIsComplex(nullptr, &isComplex), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionIsComplex(region1, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionIsComplex(region1, &isComplex), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isComplex, true);
+    EXPECT_EQ(OH_Drawing_RegionIsComplex(region2, &isComplex), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isComplex, false);
+
+    EXPECT_EQ(OH_Drawing_RegionEmpty(region1), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RegionIsComplex(region1, &isComplex), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isComplex, false);
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region0011
+ * @tc.desc: test for is empty.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionIsEmpty011, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(0.0f, 0.0f, 0.0f, 0.0f);
+
+    bool isEmpty = false;
+    EXPECT_EQ(OH_Drawing_RegionIsEmpty(nullptr, &isEmpty), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionIsEmpty(region1, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionIsEmpty(region1, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+
+    OH_Drawing_RegionSetRect(region1, rect1);
+    EXPECT_EQ(OH_Drawing_RegionIsEmpty(region1, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, false);
+
+    EXPECT_EQ(OH_Drawing_RegionEmpty(region1), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RegionIsEmpty(region1, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+
+    OH_Drawing_RegionSetRect(region1, rect2);
+    EXPECT_EQ(OH_Drawing_RegionIsEmpty(region1, &isEmpty), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isEmpty, true);
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region0012
+ * @tc.desc: test for is rect.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionIsRect012, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(200.0f, 200.0f, 400.0f, 400.0f);
+    OH_Drawing_RegionSetRect(region1, rect1);
+    OH_Drawing_RegionSetRect(region2, rect2);
+    EXPECT_TRUE(OH_Drawing_RegionOp(region1, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_UNION));
+
+    bool isRect = false;
+    EXPECT_EQ(OH_Drawing_RegionIsRect(nullptr, &isRect), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionIsRect(region1, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionIsRect(region1, &isRect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isRect, false);
+    EXPECT_EQ(OH_Drawing_RegionIsRect(region2, &isRect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isRect, true);
+    EXPECT_EQ(OH_Drawing_RegionEmpty(region2), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(OH_Drawing_RegionIsRect(region2, &isRect), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isRect, false);
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region0013
+ * @tc.desc: test for quick contains.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionQuickContains013, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(200.0f, 200.0f, 400.0f, 400.0f);
+    OH_Drawing_RegionSetRect(region1, rect1);
+    OH_Drawing_RegionSetRect(region2, rect2);
+    EXPECT_TRUE(OH_Drawing_RegionOp(region1, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_UNION));
+
+    bool isContains = false;
+    EXPECT_EQ(OH_Drawing_RegionQuickContains(nullptr, 100, 100, 200, 200, &isContains),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionQuickContains(region1, 100, 100, 200, 200, nullptr),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionQuickContains(region1, 100, 100, 200, 200, &isContains), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isContains, false);
+    EXPECT_EQ(OH_Drawing_RegionQuickContains(region2, 200, 200, 300, 300, &isContains), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isContains, true);
+    EXPECT_EQ(OH_Drawing_RegionQuickContains(region2, 200, 200, 500, 500, &isContains), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isContains, false);
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region0014
+ * @tc.desc: test for quick reject.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionQuickReject014, TestSize.Level1)
+{
+    OH_Drawing_Region* region1 = OH_Drawing_RegionCreate();
+    bool isReject = false;
+    EXPECT_EQ(OH_Drawing_RegionQuickReject(region1, 100, 100, 200, 200, &isReject), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isReject, true);
+
+    OH_Drawing_Rect* rect1 = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_Region* region2 = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect2 = OH_Drawing_RectCreate(200.0f, 200.0f, 400.0f, 400.0f);
+    OH_Drawing_RegionSetRect(region1, rect1);
+    OH_Drawing_RegionSetRect(region2, rect2);
+    EXPECT_TRUE(OH_Drawing_RegionOp(region1, region2, OH_Drawing_RegionOpMode::REGION_OP_MODE_UNION));
+
+    EXPECT_EQ(OH_Drawing_RegionQuickReject(nullptr, 100, 100, 200, 200, &isReject),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionQuickReject(region1, 100, 100, 200, 200, nullptr),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    EXPECT_EQ(OH_Drawing_RegionQuickReject(region1, 200, 200, 200, 200, &isReject), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isReject, true);
+    EXPECT_EQ(OH_Drawing_RegionQuickReject(region1, 200, 200, 500, 500, &isReject), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isReject, false);
+    EXPECT_EQ(OH_Drawing_RegionQuickReject(region1, 600, 600, 700, 700, &isReject), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isReject, true);
+
+    OH_Drawing_RegionDestroy(region1);
+    OH_Drawing_RectDestroy(rect1);
+    OH_Drawing_RegionDestroy(region2);
+    OH_Drawing_RectDestroy(rect2);
+}
+
+/*
+ * @tc.name: NativeDrawingRegionTest_region0015
+ * @tc.desc: test for translate.
+ * @tc.type: FUNC
+ * @tc.require: 20649
+ */
+HWTEST_F(NativeDrawingRegionTest, NativeDrawingRegionTest_RegionTranslate015, TestSize.Level1)
+{
+    OH_Drawing_Region* region = OH_Drawing_RegionCreate();
+    OH_Drawing_Rect* rect = OH_Drawing_RectCreate(100.0f, 100.0f, 300.0f, 300.0f);
+    OH_Drawing_RegionSetRect(region, rect);
+
+    EXPECT_EQ(OH_Drawing_RegionTranslate(nullptr, 100, 100), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_RegionTranslate(region, 100, 100), OH_DRAWING_SUCCESS);
+    EXPECT_FALSE(OH_Drawing_RegionContains(region, 150, 150));
+    EXPECT_TRUE(OH_Drawing_RegionContains(region, 350, 350));
 
     OH_Drawing_RegionDestroy(region);
     OH_Drawing_RectDestroy(rect);

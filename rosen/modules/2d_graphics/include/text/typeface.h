@@ -63,6 +63,7 @@ public:
     std::string GetFamilyName() const;
 
     std::string GetFontPath() const;
+    int32_t GetFontIndex() const;
 
     /**
      * @brief   Get the fontStyle for this typeface.

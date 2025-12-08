@@ -108,6 +108,7 @@ public:
 
     int32_t SetDualScreenState(DualScreenStatus status);
 
+    PanelPowerStatus GetPanelPowerStatus() const;
     void SetScreenBacklight(uint32_t level);
     int32_t GetScreenBacklight() const;
     int32_t SetScreenConstraint(uint64_t frameId, uint64_t timestamp, ScreenConstraintType type);

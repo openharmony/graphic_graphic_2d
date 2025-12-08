@@ -605,10 +605,10 @@ int32_t HdiOutput::CommitAndGetReleaseFence(
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         for (const auto& [id, layer] : layerIdMap_) {
             if (layer) {
-                layer->ResetBufferCache();
+                layer->ClearBufferCache();
             }
         }
-        bufferCache_.clear();
+        ClearBufferCache();
     }
     return ret;
 }
@@ -1027,11 +1027,15 @@ void HdiOutput::ClearBufferCache()
     if (bufferCache_.empty()) {
         return;
     }
+    bufferCache_.clear();
+    if (device_ == nullptr) {
+        HLOGE("HdiOutput ClearBufferCache failed : HdiDevice is null");
+        return;
+    }
     int32_t ret = device_->ClearClientBuffer(screenId_);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGD("Call hdi ClearClientBuffer failed, ret is %{public}d", ret);
     }
-    bufferCache_.clear();
 }
 
 void HdiOutput::SetActiveRectSwitchStatus(bool flag)

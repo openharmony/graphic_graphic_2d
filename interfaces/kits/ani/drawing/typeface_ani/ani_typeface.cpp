@@ -39,6 +39,8 @@ ani_status AniTypeface::AniInit(ani_env *env)
         ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
         ani_native_function { "getFamilyName", ":C{std.core.String}",
             reinterpret_cast<void*>(GetFamilyName) },
+        ani_native_function { "isBold", nullptr, reinterpret_cast<void*>(IsBold) },
+        ani_native_function { "isItalic", nullptr, reinterpret_cast<void*>(IsItalic) },
     };
 
     std::array statitMethods = {

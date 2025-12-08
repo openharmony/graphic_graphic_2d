@@ -231,6 +231,8 @@ public:
 
     virtual void SetScreenBacklight(ScreenId id, uint32_t level) = 0;
 
+    virtual ErrCode GetPanelPowerStatus(ScreenId id, uint32_t& status) = 0;
+
     virtual ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) = 0;
 

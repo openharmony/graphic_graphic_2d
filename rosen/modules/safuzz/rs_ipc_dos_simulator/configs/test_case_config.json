@@ -1476,6 +1476,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_171",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSurfaceNodeSetClonedNodeId*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -1521,6 +1530,13 @@
     "testCaseDesc": "GET_ALL_SCREEN_IDS_TEST_001",
     "interfaceName": "GET_ALL_SCREEN_IDS",
     "inputParams": "",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "GET_PANEL_POWER_STATUS_TEST_001",
+    "interfaceName": "GET_PANEL_POWER_STATUS",
+    "inputParams": "WriteUint64;",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },

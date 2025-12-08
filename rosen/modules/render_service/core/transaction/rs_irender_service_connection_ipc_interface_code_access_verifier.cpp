@@ -381,10 +381,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = CheckPermission(code);
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_UI_CAPTURE_IN_RANGE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::TAKE_UI_CAPTURE_IN_RANGE");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
             hasPermission = CheckPermission(code);
             break;
@@ -640,6 +636,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PANEL_POWER_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PANEL_POWER_STATUS");
             break;
         }
         default: {

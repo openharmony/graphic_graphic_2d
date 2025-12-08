@@ -15,6 +15,7 @@
 
 #ifndef RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
 #define RENDER_SERVICE_BASE_CLIENT_RENDER_COMM_DEF_INFO_H
+#include "common/rs_common_def.h"
 #include "pixel_map.h"
 namespace OHOS {
 namespace Rosen {
@@ -26,6 +27,8 @@ public:
     virtual void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelmap) = 0;
     virtual void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelmap,
         std::shared_ptr<Media::PixelMap> pixelmapHDR) = 0;
+    virtual void OnSurfaceCaptureWithErrorCode(std::shared_ptr<Media::PixelMap> pixelmap,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR, CaptureError captureErrorCode) {}
 };
 
 } // namespace Rosen

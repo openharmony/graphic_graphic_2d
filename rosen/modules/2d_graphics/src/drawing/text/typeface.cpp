@@ -147,6 +147,13 @@ std::string Typeface::GetFontPath() const
     return (typefaceImpl_ == nullptr) ? "" : typefaceImpl_->GetFontPath();
 }
 
+// LCOV_EXCL_START
+std::int32_t Typeface::GetFontIndex() const
+{
+    return (typefaceImpl_ == nullptr) ? 0 : typefaceImpl_->GetFontIndex();
+}
+// LCOV_EXCL_STOP
+
 FontStyle Typeface::GetFontStyle() const
 {
     if (typefaceImpl_) {

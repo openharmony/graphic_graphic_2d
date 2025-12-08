@@ -124,5 +124,18 @@ HWTEST_F(UIFirstParamTest, SetClearCacheThreshold, Function | SmallTest | Level1
     uifirstParam.SetClearCacheThreshold(10);
     EXPECT_EQ(uifirstParam.GetClearCacheThreshold(), 10);
 }
+
+/**
+ * @tc.name: SetSizeChangedThreshold
+ * @tc.desc: Verify the SetSizeChangedThreshold function
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(UIFirstParamTest, SetSizeChangedThreshold, Function | SmallTest | Level1)
+{
+    UIFirstParam uifirstParam;
+    uifirstParam.SetSizeChangedThreshold(1);
+    EXPECT_EQ(uifirstParam.GetSizeChangedThreshold(), 1);
+}
 } // namespace Rosen
 } // namespace OHOS

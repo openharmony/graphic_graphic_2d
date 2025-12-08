@@ -1027,6 +1027,27 @@ int32_t RSScreen::GetScreenBacklight() const
     return static_cast<int32_t>(level);
 }
 
+PanelPowerStatus RSScreen::GetPanelPowerStatus() const
+{
+    if (IsVirtual()) {
+        RS_LOGW("%{public}s: virtual screen not support GetPanelPowerStatus.", __func__);
+        return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    }
+    if (!hdiScreen_) {
+        RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
+        return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    }
+    auto status = GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_ON;
+    auto ret = hdiScreen_->GetPanelPowerStatus(status);
+    if ((ret < 0) || (status >= GraphicPanelPowerStatus::GRAPHIC_PANEL_POWER_STATUS_BUTT)) {
+        RS_LOGE("%{public}s failed, ret: %{public}d, status: %{public}d",
+                __func__, ret, static_cast<uint32_t>(status));
+        return PanelPowerStatus::INVALID_PANEL_POWER_STATUS;
+    }
+    RS_LOGI("%{public}s acquired status: %{public}d", __func__, static_cast<uint32_t>(status));
+    return static_cast<PanelPowerStatus>(status);
+}
+
 int32_t RSScreen::GetScreenSupportedColorGamuts(std::vector<ScreenColorGamut> &mode) const
 {
     mode.clear();

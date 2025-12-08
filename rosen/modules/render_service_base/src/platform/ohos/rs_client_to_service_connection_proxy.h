@@ -184,6 +184,8 @@ public:
 
     void SetScreenBacklight(ScreenId id, uint32_t level) override;
 
+    ErrCode GetPanelPowerStatus(uint64_t screenId, uint32_t& status) override;
+
     ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread) override;
 

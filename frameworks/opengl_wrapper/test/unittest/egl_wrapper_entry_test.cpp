@@ -2320,6 +2320,37 @@ HWTEST_F(EglWrapperEntryTest, EglSwapBuffersWithDamageEXTImpl002, Level2)
 HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl001, Level1)
 {
     auto result = gWrapperHook.wrapper.eglGetNativeClientBufferANDROID(nullptr);
-    ASSERT_EQ(EGL_FALSE, result);
+    ASSERT_EQ(nullptr, result);
+}
+
+/**
+ * @tc.name: EglGetNativeClientBufferANDROIDImpl002
+ * @tc.desc: testing valid input case
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, EglGetNativeClientBufferANDROIDImpl002, Level1)
+{
+    OH_NativeBuffer_Config config {
+        .width = 32,
+        .height = 32,
+        .format = NATIVEBUFFER_PIXEL_FMT_RGBA_8888,
+        .usage = NATIVEBUFFER_USAGE_HW_RENDER | NATIVEBUFFER_USAGE_HW_TEXTURE
+    };
+    OH_NativeBuffer* nativeBuffer = OH_NativeBuffer_Alloc(&config);
+    ASSERT_NE(nullptr, nativeBuffer);
+    auto result = gWrapperHook.wrapper.eglGetNativeClientBufferANDROID((struct AHardwareBuffer*)nativeBuffer);
+    ASSERT_NE(nullptr, result);
+    OH_NativeBuffer_Unreference(nativeBuffer);
+}
+
+/**
+ * @tc.name: eglGetNativeClientBufferOHOSImpl001
+ * @tc.desc: testing invalid input case
+ * @tc.type: FUNC
+ */
+HWTEST_F(EglWrapperEntryTest, eglGetNativeClientBufferOHOSImpl001, Level1)
+{
+    auto result = gWrapperHook.wrapper.eglGetNativeClientBufferOHOS(nullptr);
+    ASSERT_EQ(nullptr, result);
 }
 } // OHOS::Rosen

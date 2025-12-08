@@ -940,6 +940,10 @@ void HdiLayer::ClearBufferCache()
     RS_TRACE_NAME_FMT("HdiOutput::ClearBufferCache, screenId=%u, layerId=%u, bufferCacheSize=%zu", screenId_, layerId_,
         bufferCache_.size());
     ResetBufferCache();
+    if (device_ == nullptr) {
+        HLOGE("device_ is nullptr.");
+        return;
+    }
     int32_t ret = device_->ClearLayerBuffer(screenId_, layerId_);
     CheckRet(ret, "ClearLayerBuffer");
 }
@@ -948,6 +952,9 @@ void HdiLayer::ResetBufferCache()
 {
     bufferCache_.clear();
     bufferCleared_ = true;
+    if (rsLayer_ != nullptr && rsLayer_->GetBuffer() != nullptr) {
+        currBuffer_ = rsLayer_->GetBuffer();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS
