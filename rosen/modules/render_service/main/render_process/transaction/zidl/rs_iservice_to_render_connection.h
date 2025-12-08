@@ -32,10 +32,6 @@ public:
     RSIServiceToRenderConnection() = default;
     virtual ~RSIServiceToRenderConnection() noexcept = default;
 
-    virtual int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty,
-        sptr<IRSRenderToComposerConnection> composerConn) = 0;
-    virtual int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) = 0;
-    virtual int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProeprty) = 0;
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;
     virtual int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) = 0;
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(

@@ -28,13 +28,8 @@ class RSServiceToRenderConnection : public RSServiceToRenderConnectionStub {
 public:
     RSServiceToRenderConnection(sptr<RSRenderServiceAgent> renderServiceAgent, sptr<RSRenderPipelineAgent> renderPipelineAgent) :
         renderServiceAgent_(renderServiceAgent), renderPipelineAgent_(renderPipelineAgent) {}
-    RSServiceToRenderConnection(sptr<RSRenderProcessAgent> renderProcessAgent, sptr<RSRenderPipelineAgent> renderPipelineAgent) :
-        renderProcessAgent_(renderProcessAgent), renderPipelineAgent_(renderPipelineAgent) {}
     virtual ~RSServiceToRenderConnection() noexcept = default;
 
-    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn) override;
-    int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
-    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProperty) override;
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void DoDump(std::unordered_set<std::u16string> &argSets) override;
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;

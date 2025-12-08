@@ -31,9 +31,6 @@ public:
     explicit RSServiceToRenderConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSServiceToRenderConnectionProxy() noexcept = default;
 
-    int32_t NotifyScreenConnectInfoToRender(const sptr<RSScreenProperty>& screenProperty, sptr<IRSRenderToComposerConnection> composerConn) override;
-    int32_t NotifyScreenDisconnectInfoToRender(ScreenId screenId) override;
-    int32_t NotifyScreenPropertyChangedInfoToRender(const sptr<RSScreenProperty>& screenProeprty) override;
     int32_t NotifyScreenRefresh(ScreenId id) override;
     void DoDump(std::unordered_set<std::u16string> &argSets) override;
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;

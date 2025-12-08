@@ -56,48 +56,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
     switch (code) {
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_CONNECT_INFO_TO_RENDER): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
-            bool hasComposerConn = data.ReadBool();
-            sptr<IRSRenderToComposerConnection> composerConn = nullptr;
-            if (hasComposerConn) {
-                auto remoteObj = data.ReadRemoteObject();
-                composerConn = iface_cast<IRSRenderToComposerConnection>(remoteObj);
-            }
-            auto replyMessage = NotifyScreenConnectInfoToRender(screenProperty, composerConn);
-            reply.WriteInt32(replyMessage);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_DISCONNECT_INFO_TO_RENDER): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto screenId = data.ReadUint64();
-            auto replyMessage = NotifyScreenDisconnectInfoToRender(screenId);
-            reply.WriteInt32(replyMessage);
-            break;
-        }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_PROPERTY_CHANGED_INFO_TO_RENDER): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto screenProperty = sptr<RSScreenProperty>(data.ReadParcelable<RSScreenProperty>());
-            auto replyMessage = NotifyScreenPropertyChangedInfoToRender(screenProperty);
-            reply.WriteInt32(replyMessage);
-            break;
-        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             auto interfaceToken = data.ReadInterfaceToken();
             if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
