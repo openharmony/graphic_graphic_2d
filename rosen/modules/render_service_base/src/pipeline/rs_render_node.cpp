@@ -468,7 +468,7 @@ const std::unordered_set<NodeId>& RSRenderNode::GetSubtreeParallelNodes()
 }
 #endif
 
-void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentType hdrType)
+void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId, HDRComponentType hdrType)
 {
     auto context = GetContext().lock();
     if (!context) {
@@ -485,6 +485,38 @@ void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentT
             parentSurface->IncreaseHDRNum(hdrType);
         } else {
             parentSurface->ReduceHDRNum(hdrType);
+        }
+
+        auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(screenNodeId);
+        if (!screenNode) {
+            ROSEN_LOGE("RSRenderNode::SetHdrNum: failed to get RSScreenRenderNode");
+            return;
+        }
+
+        HdrStatus fromHdrType = HdrStatus::NO_HDR;
+        uint32_t headroom = 0U;
+        switch (hdrType) {
+            case HDRComponentType::IMAGE:
+                fromHdrType = HdrStatus::HDR_PHOTO;
+                headroom = RSRenderNode::GetHdrPhotoHeadroom();
+                break;
+            case HDRComponentType::UICOMPONENT:
+                fromHdrType = HdrStatus::HDR_UICOMPONENT;
+                headroom = RSRenderNode::GetHdrUIComponentHeadroom();
+                break;
+            case HDRComponentType::EFFECT:
+                fromHdrType = HdrStatus::HDR_EFFECT;
+                headroom = RSRenderNode::GetHdrEffectHeadroom();
+                break;
+            default:
+                fromHdrType = HdrStatus::NO_HDR;
+                headroom = 0U;
+                break;
+        }
+        if (flag) {
+            screenNode->UpdateHeadroomMapIncrease(fromHdrType, headroom);
+        } else {
+            screenNode->UpdateHeadroomMapDecrease(fromHdrType, headroom);
         }
     }
 }
@@ -511,7 +543,10 @@ void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
         return;
     }
     if (IsOnTheTree()) {
-        SetHdrNum(enableHdrEffect, GetInstanceRootNodeId(), HDRComponentType::EFFECT);
+        float hdrEffectBrightness = 2.0F;
+        auto& rsLuminance = RSLuminanceControl::Get();
+        RSRenderNode::SetHdrEffectHeadroom(rsLuminance.ConvertScalerFromFloatToLevel(hdrEffectBrightness));
+        SetHdrNum(enableHdrEffect, GetInstanceRootNodeId(), GetScreenNodeId(), HDRComponentType::EFFECT);
     }
     UpdateHDRStatus(HdrStatus::HDR_EFFECT, enableHdrEffect);
     enableHdrEffect_ = enableHdrEffect;
@@ -582,7 +617,8 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDREffect Node[id:%{public}" PRIu64 " name:%{public}s]"
                    " parent's id:%{public}" PRIu64 " ",
             GetId(), GetNodeName().c_str(), parentNodeId);
-        SetHdrNum(flag, parentNodeId, HDRComponentType::EFFECT);
+        NodeId actualScreenNodeId = flag ? screenNodeId : screenNodeId_;
+        SetHdrNum(flag, parentNodeId, actualScreenNodeId, HDRComponentType::EFFECT);
     }
 
     if (isOnTheTree_ != flag) {
@@ -3908,6 +3944,11 @@ float RSRenderNode::GetHDRBrightness() const
     return modifier->Getter<float>(ModifierNG::RSPropertyType::HDR_BRIGHTNESS, 1.f); // 1.f defaule value
 }
 
+void RSRenderNode::SetHDRUIBrightness(float brightness)
+{
+    RSRenderNode::SetHdrUIComponentHeadroom(RSLuminanceControl::Get().ConvertScalerFromFloatToLevel(brightness));
+}
+
 bool RSRenderNode::HasChildrenOutOfRect() const
 {
     if (GetRenderProperties().GetClipToBounds() || GetRenderProperties().GetClipToFrame()) {
@@ -5270,5 +5311,61 @@ void RSRenderNode::ResetFilterInfo()
     // reset filterRegionInfo_ and will regenerate in postPrepare if need
     filterRegionInfo_ = nullptr;
 }
+
+void RSRenderNode::CheckHdrHeadroomInfoPointer()
+{
+    if (!headroomInfo_) {
+        headroomInfo_ = std::make_unique<HeadroomInfo>();
+    }
+}
+
+void RSRenderNode::SetHdrPhotoHeadroom(uint32_t headroom)
+{
+    RSRenderNode::CheckHdrHeadroomInfoPointer();
+    if (headroomInfo_) {
+        headroomInfo_->hdrPhotoHeadroom = headroom;
+    }
+}
+
+void RSRenderNode::SetHdrEffectHeadroom(uint32_t headroom)
+{
+    RSRenderNode::CheckHdrHeadroomInfoPointer();
+    if (headroomInfo_) {
+        headroomInfo_->hdrEffectHeadroom = headroom;
+    }
+}
+
+void RSRenderNode::SetHdrUIComponentHeadroom(uint32_t headroom)
+{
+    RSRenderNode::CheckHdrHeadroomInfoPointer();
+    if (headroomInfo_) {
+        headroomInfo_->hdrUIComponentHeadroom = headroom;
+    }
+}
+
+uint32_t RSRenderNode::GetHdrPhotoHeadroom() const
+{
+    if (headroomInfo_) {
+        return headroomInfo_->hdrPhotoHeadroom;
+    }
+    return RSRenderNode::DEFAULT_HEADROOM_VALUE;
+}
+
+uint32_t RSRenderNode::GetHdrEffectHeadroom() const
+{
+    if (headroomInfo_) {
+        return headroomInfo_->hdrEffectHeadroom;
+    }
+    return RSRenderNode::DEFAULT_HEADROOM_VALUE;
+}
+
+uint32_t RSRenderNode::GetHdrUIComponentHeadroom() const
+{
+    if (headroomInfo_) {
+        return headroomInfo_->hdrUIComponentHeadroom;
+    }
+    return RSRenderNode::DEFAULT_HEADROOM_VALUE;
+}
+
 } // namespace Rosen
 } // namespace OHOS

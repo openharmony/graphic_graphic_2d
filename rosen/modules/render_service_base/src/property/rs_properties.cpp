@@ -2454,7 +2454,8 @@ void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
         if (oldHDRUIStatus != newHDRUIStatus) {
             node->UpdateHDRStatus(HdrStatus::HDR_UICOMPONENT, newHDRUIStatus);
             if (node->IsOnTheTree()) {
-                node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+                node->SetHdrNum(newHDRUIStatus,
+                    node->GetInstanceRootNodeId(), node->GetScreenNodeId(), HDRComponentType::UICOMPONENT);
                 node->UpdateDisplayHDRNodeMap(newHDRUIStatus, node->GetLogicalDisplayNodeId());
             }
         }

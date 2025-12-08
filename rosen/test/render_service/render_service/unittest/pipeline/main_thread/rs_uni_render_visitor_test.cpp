@@ -1248,6 +1248,10 @@ HWTEST_F(RSUniRenderVisitorTest, CheckPixelFormat, TestSize.Level1)
     rsSurfaceRenderNode->hdrPhotoNum_ = 0;
     rsSurfaceRenderNode->hdrEffectNum_ = 1;
     rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
+    rsSurfaceRenderNode->hdrPhotoNum_ = 0;
+    rsSurfaceRenderNode->hdrEffectNum_ = 0;
+    rsSurfaceRenderNode->hdrUIComponentNum_ = 1;
+    rsUniRenderVisitor->CheckPixelFormat(*rsSurfaceRenderNode);
     ASSERT_EQ(rsSurfaceRenderNode->IsContentDirty(), true);
 }
 

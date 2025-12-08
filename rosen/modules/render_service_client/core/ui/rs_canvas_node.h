@@ -180,6 +180,13 @@ public:
         std::shared_ptr<Drawing::DrawCmdList> drawCmdList = nullptr, const Drawing::Rect* rect = nullptr);
     
     /**
+     * @brief Set a pixel map.
+     *
+     * @param pixelMap A shared pointer to a Media::PixelMap object.
+     */
+    void SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap);
+
+    /**
      * @brief Resets the surface with the specified width and height.
      *
      * @param width The new width of the surface.

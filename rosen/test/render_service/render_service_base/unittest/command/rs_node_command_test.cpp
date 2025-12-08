@@ -505,6 +505,29 @@ HWTEST_F(RSNodeCommandTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetHDRUIBrightness
+ * @tc.desc: SetHDRUIBrightness test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, SetHDRUIBrightness, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    NodeId nodeId = static_cast<NodeId>(1);
+    float brightness = 2.0F;
+    RSNodeCommandHelper::SetHDRUIBrightness(*context, nodeId, brightness);
+
+    auto node = std::make_shared<RSRenderNode>(nodeId, context);
+    ASSERT_NE(node, nullptr);
+    context->nodeMap.RegisterRenderNode(node);
+    uint32_t incorrectHeadroom = static_cast<uint32_t>(-1);
+    node->SetHdrUIComponentHeadroom(incorrectHeadroom);
+    RSNodeCommandHelper::SetHDRUIBrightness(*context, nodeId, brightness);
+    ASSERT_NE(node->headroomInfo_, nullptr);
+    ASSERT_NE(node->GetHdrUIComponentHeadroom(), incorrectHeadroom);
+}
+
+/**
  * @tc.name: MarkRepaintBoundary
  * @tc.desc: test results of MarkRepaintBoundary
  * @tc.type: FUNC

@@ -70,7 +70,7 @@ public:
     static void CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surfaceNode, RSScreenRenderNode& screenNode);
     static void CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
         std::shared_ptr<RSScreenRenderNode> screenNode);
-    static void UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId);
+    static bool UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, float& scaler);
     static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
     static bool GetRGBA1010108Enabled();
