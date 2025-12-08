@@ -325,7 +325,7 @@ public:
         baseMaterialType_ = baseMaterialType;
     }
 
-    float GetBaseMaterialType()
+    float GetBaseMaterialType() const
     {
         return baseMaterialType_;
     }
@@ -335,7 +335,7 @@ public:
         materialColor_ = materialColor;
     }
 
-    const Vector4f GetMaterialColor()
+    const Vector4f GetMaterialColor() const
     {
         return materialColor_;
     }
