@@ -84,10 +84,6 @@ bool RSRenderService::Init()
     RS_LOGD("dmulti_process %{public}s: renderService init", __func__);
     system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "false");
 
-    // Read multi-screen configuration from XML
-    RS_LOGD("dmulti_process %{public}s: Parse Render_Mode_Config", __func__);
-    ParseMultiProcessXml();
-
     // Initialize runner_, handler_, and watchdog
     runner_ = AppExecFwk::EventRunner::Create(false);
     handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);

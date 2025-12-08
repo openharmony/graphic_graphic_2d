@@ -15,7 +15,7 @@
 
 #include "feature/hyper_graphic_manager/hgm_rp_context.h"
 
-#include "hgm_xml_parser.h"
+#include "rp_hgm_xml_parser.h"
 
 namespace OHOS {
 namespace Rosen {
