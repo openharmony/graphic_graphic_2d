@@ -1722,7 +1722,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect003, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issuesICKNNB
  */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect006, TestSize.Level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect004, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     const std::string collaborationBundleName = "com.example.devicecollaboration";
@@ -1782,7 +1782,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect006, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issuesICKNNB
  */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect005, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -1842,7 +1842,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issuesICKNNB
  */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect006, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
@@ -1901,49 +1901,47 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect008, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issuesICKNNB
  */
-HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect009, TestSize.Level2)
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
     NodeId id = 0;
-    auto leashWindowNode1 = std::make_shared<RSSurfaceRenderNode>(++id);
-    leashWindowNode1->InitRenderParams();
-    leashWindowNode1->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-
-    auto surfaceNode1 = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode1->InitRenderParams();
-    surfaceNode1->isHardwareEnabledNode_ = true;
     RectI rect{0, 0, 100, 100};
-    surfaceNode1->SetDstRect(rect);
-    surfaceNode1->renderProperties_.boundsGeo_->absRect_ = rect;
-    leashWindowNode1->childHardwareEnabledNodes_.emplace_back(surfaceNode1);
-    auto surfaceNode2 = std::make_shared<RSSurfaceRenderNode>(++id);
-    surfaceNode2->InitRenderParams();
-    surfaceNode2->isHardwareEnabledNode_ = true;
-    leashWindowNode1->childHardwareEnabledNodes_.emplace_back(surfaceNode2);
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode3 = nullptr;
-    leashWindowNode1->childHardwareEnabledNodes_.emplace_back(surfaceNode3);
-
-    auto rsContext = std::make_shared<RSContext>();
-    auto screenNode = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext);
-    rsUniRenderVisitor->curScreenNode_ = screenNode;
-    rsUniRenderVisitor->curScreenNode_->curMainAndLeashSurfaceNodes_.push_back(leashWindowNode1);
-    std::shared_ptr<RSSurfaceRenderNode> leashWindowNode2 = nullptr;
-    leashWindowNode2->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    rsUniRenderVisitor->curScreenNode_->curMainAndLeashSurfaceNodes_.push_back(leashWindowNode2);
-
     auto filterNode = std::make_shared<RSRenderNode>(++id);
     ASSERT_NE(filterNode, nullptr);
     filterNode->SetOldDirtyInSurface(rect);
-    filterNode->instanceRootNodeId_ = 1;
     filterNode->GetHwcRecorder().SetZOrderForHwcEnableByFilter(100);
     filterNode->GetHwcRecorder().SetBlendWithBackground(true);
 
-    std::shared_ptr<RSSurfaceRenderNode> surfaceNode4 = nullptr;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode4, *filterNode, 10);
-    ASSERT_TRUE(surfaceNode1->isHardwareForcedDisabled_);
+    std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
+    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode, *filterNode, 10);
+
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode2 = std::make_shared<RSScreenRenderNode>(20, 0, rsContext);
+    rsUniRenderVisitor->curScreenNode_ = screenNode2;
+
+    std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode1 = nullptr;
+    RSMainThread::Instance()->selfDrawingNodes_.emplace_back(selfDrawingNode1);
+
+    auto selfDrawingNode2 = std::make_shared<RSSurfaceRenderNode>(++id);
+    selfDrawingNode2->InitRenderParams();
+    selfDrawingNode2->screenNodeId_ = 21;
+    selfDrawingNode2->renderProperties_.boundsGeo_->absRect_ = rect;
+    RSMainThread::Instance()->selfDrawingNodes_.emplace_back(selfDrawingNode2);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode, *filterNode, 10);
+    ASSERT_FALSE(selfDrawingNode2->isHardwareForcedDisabled_);
+
+    auto selfDrawingNode3 = std::make_shared<RSSurfaceRenderNode>(++id);
+    selfDrawingNode3->InitRenderParams();
+    selfDrawingNode3->screenNodeId_ = 20;
+    selfDrawingNode3->renderProperties_.boundsGeo_->absRect_ = rect;
+    RSMainThread::Instance()->selfDrawingNodes_.emplace_back(selfDrawingNode3);
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode, *filterNode, 10);
+    ASSERT_TRUE(selfDrawingNode3->isHardwareForcedDisabled_);
 }
 
 /**
