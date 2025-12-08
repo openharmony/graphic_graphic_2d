@@ -28,8 +28,8 @@ private:
     std::set<uint64_t> lastLppLayerId_;
 
 public:
-    void AddLppLayerId(const std::vector<LayerInfoPtr>& layers);
-    void RemoveLayerId(const std::vector<LayerInfoPtr>& layers);
+    void AddLppLayerId(const std::vector<RSLayerPtr>& layers);
+    void RemoveLayerId(const std::vector<RSLayerPtr>& layers);
     std::set<uint64_t> GetLppLayerId();
     bool IsLppLayerChange();
 };

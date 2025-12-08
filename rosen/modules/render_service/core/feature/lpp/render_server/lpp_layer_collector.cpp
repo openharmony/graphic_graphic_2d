@@ -15,7 +15,7 @@
 #include "feature/lpp/render_server/lpp_layer_collector.h"
 
 namespace OHOS::Rosen {
-void LppLayerColletor::AddLppLayerId(const std::vector<LayerInfoPtr>& layers)
+void LppLayerColletor::AddLppLayerId(const std::vector<RSLayerPtr>& layers)
 {
     lastLppLayerId_ = lppLayerId_;
     lppLayerId_.clear();
@@ -29,7 +29,7 @@ void LppLayerColletor::AddLppLayerId(const std::vector<LayerInfoPtr>& layers)
     }
 }
 
-void LppLayerColletor::RemoveLayerId(const std::vector<LayerInfoPtr>& layers)
+void LppLayerColletor::RemoveLayerId(const std::vector<RSLayerPtr>& layers)
 {
     for (const auto& layer : layers) {
         bool isLppLayer =
