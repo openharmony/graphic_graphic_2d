@@ -124,24 +124,24 @@ bool RPHgmConfigData::Marshalling(Parcel& parcel) const
     }
 
     uint32_t powerConfigSize = static_cast<uint32_t>(componentPowerConfig_.size());
-    flag = parcel.WriteUint32(powerConfigSize);
-    if (!flag) {
+    success = parcel.WriteUint32(powerConfigSize);
+    if (!success) {
         RS_LOGE("RPHgmConfigData::Marshalling parse power config failed");
-        return flag;
+        return success;
     }
 
     for (const auto& item : componentPowerConfig_) {
-        flag = parcel.WriteString(item.first) && parcel.WriteInt32(item.second);
-        if (!flag) {
+        success = parcel.WriteString(item.first) && parcel.WriteInt32(item.second);
+        if (!success) {
             RS_LOGE("RPHgmConfigData::Marshalling parse power config item failed");
-            return flag;
+            return success;
         }
     }
 
-    flag = parcel.WriteBool(isVideoSwitchOn_);
-    if (!flag) {
+    success = parcel.WriteBool(isVideoSwitchOn_);
+    if (!success) {
         RS_LOGE("RPHgmConfigData::Marshalling parse isVideoSwitchOn config item failed");
-        return flag;
+        return success;
     }
     return success;
 }
