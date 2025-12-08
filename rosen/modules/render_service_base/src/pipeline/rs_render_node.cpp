@@ -2815,15 +2815,16 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
         isDirtyRegionUpdated_ = true;
         return;
     }
-    // force update if no next vsync when skip-frame enabled
-    if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
-        filterDrawable->MarkForceClearCacheWithLastFrame();
-        return;
-    }
 
     // when background changed, skip-frame will enabled if filter region > 400 and blur radius > 25
     if (IsLargeArea(snapshotRegion.GetWidth(), snapshotRegion.GetHeight())) {
         filterDrawable->MarkFilterRegionIsLargeArea();
+    }
+    
+    // force update if no next vsync when skip-frame enabled
+    if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
+        filterDrawable->MarkForceClearCacheWithLastFrame();
+        return;
     }
 }
 
