@@ -42,14 +42,19 @@ struct GlobalDirtyRegionInfo {
     int64_t globalDirtyRegionAreas = 0;
     int32_t globalFramesNumber = 0;
     int32_t skipProcessFramesNumber = 0;
+    int32_t commandCount = 0;
+    int32_t consumeBufferSize = 0;
+    int32_t frameAnimationCount = 0;
     pid_t mostSendingPidWhenDisplayNodeSkip = 0;
     GlobalDirtyRegionInfo()
         : globalDirtyRegionAreas(), globalFramesNumber(), skipProcessFramesNumber(),
-          mostSendingPidWhenDisplayNodeSkip() {}
+          commandCount(), consumeBufferSize(), frameAnimationCount(), mostSendingPidWhenDisplayNodeSkip() {}
     GlobalDirtyRegionInfo(int64_t globalDirtyRegionAreas_, int32_t globalFramesNumber_,
-        int32_t skipProcessFramesNumber_, pid_t mostSendingPidWhenDisplayNodeSkip_)
+        int32_t skipProcessFramesNumber_, int32_t commandCount_, int32_t consumeBufferSize_,
+        int32_t frameAnimationCount_, pid_t mostSendingPidWhenDisplayNodeSkip_)
         : globalDirtyRegionAreas(globalDirtyRegionAreas_), globalFramesNumber(globalFramesNumber_),
-          skipProcessFramesNumber(skipProcessFramesNumber_),
+          skipProcessFramesNumber(skipProcessFramesNumber_), commandCount(commandCount_),
+          consumeBufferSize(consumeBufferSize_), frameAnimationCount(frameAnimationCount_),
           mostSendingPidWhenDisplayNodeSkip(mostSendingPidWhenDisplayNodeSkip_) {}
 };
 
@@ -61,6 +66,9 @@ public:
     void UpdateActiveDirtyInfoForDFX(NodeId id, const std::string& windowName, Rect damage);
     void UpdateGlobalDirtyInfoForDFX(RectI rect);
     void AddSkipProcessFramesNumberForDFX(pid_t sendingPid);
+    void AddCommandNumberForDFX();
+    void AddConsumeBufferNumberForDFX();
+    void AddFrameAnimationNumberForDFX();
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() const;
     GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo() const;
     void ResetActiveDirtyRegionInfo();

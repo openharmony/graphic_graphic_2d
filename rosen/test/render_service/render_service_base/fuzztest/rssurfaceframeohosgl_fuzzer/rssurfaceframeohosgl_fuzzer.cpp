@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -72,11 +72,11 @@ bool Init(const uint8_t* data, size_t size)
 
 void InitRenderContext()
 {
-    g_context = std::make_shared<RenderContext>();
+    g_context = RenderContext::Create();
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
 #ifdef RS_ENABLE_GL
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-        g_context->InitializeEglContext();
+        g_context->Init();
     }
 #endif
 #ifdef RS_ENABLE_VK
@@ -91,7 +91,7 @@ void InitRenderContext()
     g_context->SetUpGpuContext();
 #endif
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-    g_rsSurfaceFrameOhosGl->SetRenderContext(g_context.get());
+    g_rsSurfaceFrameOhosGl->SetRenderContext(g_context);
 }
 
 void ReleaseRenderContext()

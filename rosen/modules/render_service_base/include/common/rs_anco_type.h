@@ -15,6 +15,8 @@
 #ifndef RS_ANCO_TYPE_H
 #define RS_ANCO_TYPE_H
 
+#include <cstdint>
+
 namespace OHOS::Rosen {
 enum class AncoFlags : uint32_t {
     IS_ANCO_NODE = 0x0001,

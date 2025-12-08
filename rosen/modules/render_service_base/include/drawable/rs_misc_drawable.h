@@ -29,6 +29,7 @@
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
+class RSColorPickerManager;
 namespace Drawing {
 class DrawCmdList;
 }
@@ -56,6 +57,31 @@ private:
     bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node);
     friend class RSRenderNode;
     friend class RSRenderNodeDrawableAdapter;
+};
+
+// RSColorPickerDrawable, pick color for current content of canvas
+class RSColorPickerDrawable : public RSDrawable {
+public:
+    explicit RSColorPickerDrawable();
+    ~RSColorPickerDrawable() override = default;
+
+    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
+    bool OnUpdate(const RSRenderNode& content) override;
+    void OnSync() override;
+    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+
+private:
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    NodeId nodeId_ = INVALID_NODEID;
+    ColorPlaceholder stagingPlaceholder_ = ColorPlaceholder::NONE;
+    ColorPlaceholder placeholder_ = ColorPlaceholder::NONE;
+    ColorPickStrategyType stagingStrategy_ = ColorPickStrategyType::NONE;
+    ColorPickStrategyType strategy_ = ColorPickStrategyType::NONE;
+    uint64_t stagingInterval_ = 0;
+    uint64_t interval_ = 0;
+
+    bool needSync_ = false;
+    std::shared_ptr<RSColorPickerManager> colorPickerManager_;
 };
 
 // RSCustomModifierDrawable, for drawing custom modifiers

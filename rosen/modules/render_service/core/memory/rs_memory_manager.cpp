@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -373,12 +373,12 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
+        RSTypefaceCache::Instance().Dump(log);
     } else {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
         RSMainThread::Instance()->RenderServiceAllNodeDump(log);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
     }
-    RSTypefaceCache::Instance().Dump(log);
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
     memStat.DumpMemoryStatistics(&gpuTracer);
@@ -607,7 +607,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
 
     /* ShaderCache */
     log.AppendFormat("\n---------------\nShader Caches:\n");
-    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
     if (!isLite) {

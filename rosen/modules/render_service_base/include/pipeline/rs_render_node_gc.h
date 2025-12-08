@@ -34,6 +34,7 @@ namespace {
     const int OFF_TREE_BUCKET_MAX_SIZE = 500;
     const char* OFF_TREE_TASK = "ReleaseNodeFromTree";
     const char* DELETE_NODE_TASK = "ReleaseNodeMemory";
+    const char* DELETE_NODE_OFF_TREE_TASK = "ReleaseNodeOffTreeMemory";
     const char* DELETE_DRAWABLE_TASK = "ReleaseDrawableMemory";
     const uint32_t NODE_BUCKET_THR_LOW = 4;
     const uint32_t NODE_BUCKET_THR_HIGH = 100;
@@ -64,7 +65,7 @@ public:
     void NodeDestructorInner(RSRenderNode* ptr);
     bool IsBucketQueueEmpty();
     void ReleaseNodeBucket();
-    void ReleaseNodeMemory();
+    void ReleaseNodeMemory(bool highPriority = false);
     void SetMainTask(gcTask hook) {
         mainTask_ = hook;
     }
@@ -73,12 +74,12 @@ public:
     void AddToOffTreeNodeBucket(pid_t pid,
         std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>>& renderNodeMap);
     void ReleaseOffTreeNodeBucket();
-    void ReleaseFromTree();
+    void ReleaseFromTree(AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IDLE);
 
     static void DrawableDestructor(DrawableV2::RSRenderNodeDrawableAdapter* ptr);
     void DrawableDestructorInner(DrawableV2::RSRenderNodeDrawableAdapter* ptr);
     void ReleaseDrawableBucket();
-    void ReleaseDrawableMemory();
+    void ReleaseDrawableMemory(bool highPriority = false);
     void SetRenderTask(gcTask hook) {
         renderTask_ = hook;
     }
@@ -95,6 +96,16 @@ public:
     void SetScbPid(pid_t pid)
     {
         scbPid_ = pid;
+    }
+
+    void SetImageReleaseFunc(std::function<void()> func)
+    {
+        imageReleaseFunc_ = func;
+    }
+
+    void SetDrawableReleaseFunc(std::function<void(bool)> func)
+    {
+        drawableReleaseFunc_ = func;
     }
 
 private:
@@ -128,6 +139,9 @@ private:
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::weak_ptr<RSBaseRenderNode>>> notOnTreeNodeMap_;
     std::set<pid_t> backgroundPidSet_;
     pid_t scbPid_;
+
+    std::function<void()> imageReleaseFunc_;
+    std::function<void(bool)> drawableReleaseFunc_;
 };
 } // namespace Rosen
 } // namespace OHOS

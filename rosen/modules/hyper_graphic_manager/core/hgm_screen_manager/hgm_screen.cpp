@@ -72,19 +72,6 @@ int32_t HgmScreen::SetActiveRefreshRate(int32_t sceneId, uint32_t rate)
     return modeIdToApply;
 }
 
-int32_t HgmScreen::SetRateAndResolution(int32_t sceneId, uint32_t rate, int32_t width, int32_t height)
-{
-    if (!IfSwitchToRate(sceneId, rate)) {
-        return HGM_ERROR;
-    }
-
-    int32_t modeIdToApply = GetModeIdViaResolutionAndRate(width, height, rate);
-    if (modeIdToApply >= 0) {
-        SetActiveModeId(modeIdToApply);
-    }
-    return modeIdToApply;
-}
-
 int32_t HgmScreen::SetRefreshRateRange(uint32_t minRate, uint32_t maxRate)
 {
     minRefreshRateRange_ = minRate;

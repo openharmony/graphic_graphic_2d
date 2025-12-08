@@ -23,9 +23,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniBrush final {
 public:
-    AniBrush() = default;
-    explicit AniBrush(const Brush& brush) : brush_(brush) {}
-    ~AniBrush() = default;
+    explicit AniBrush(std::shared_ptr<Brush> brush = nullptr) : brush_(brush) {}
+    ~AniBrush();
 
     static ani_status AniInit(ani_env *env);
 
@@ -33,14 +32,31 @@ public:
     static void ConstructorWithBrush(ani_env* env, ani_object obj, ani_object aniBrushObj);
     static void SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter);
     static ani_int GetAlpha(ani_env* env, ani_object obj);
+    static void SetColorWithObject(ani_env* env, ani_object obj, ani_object aniColor);
+    static void SetColorWithARGB(ani_env* env, ani_object obj, ani_int alpha,
+        ani_int red, ani_int green, ani_int blue);
+    static void SetColor(ani_env* env, ani_object obj, ani_int color);
+    static ani_object GetColor(ani_env* env, ani_object obj);
+    static ani_int GetHexColor(ani_env* env, ani_object obj);
+    static void SetAntiAlias(ani_env* env, ani_object obj, ani_boolean aa);
+    static ani_boolean IsAntiAlias(ani_env* env, ani_object obj);
     static void SetAlpha(ani_env* env, ani_object obj, ani_int alpha);
     static void SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode);
     static void Reset(ani_env*  env, ani_object obj);
+    static ani_object GetColorFilter(ani_env* env, ani_object obj);
+    static void SetImageFilter(ani_env* env, ani_object obj, ani_object imageFilterObj);
+    static void SetMaskFilter(ani_env* env, ani_object obj, ani_object maskFilterObj);
+    static void SetShadowLayer(ani_env* env, ani_object obj, ani_object shadowLayerObj);
+    static void SetShaderEffect(ani_env* env, ani_object obj, ani_object shaderEffectObj);
 
-    Brush& GetBrush();
+    std::shared_ptr<Brush> GetBrush();
 
 private:
-    Brush brush_;
+    static ani_object BrushTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetBrushAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Brush>* GetBrushPtrAddr();
+    std::shared_ptr<Brush> brush_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

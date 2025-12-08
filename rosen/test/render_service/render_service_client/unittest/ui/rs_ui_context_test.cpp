@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "transaction/rs_transaction.h"
 
 #include "ui/rs_canvas_node.h"
@@ -75,6 +76,39 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     ASSERT_TRUE(flag);
     uiContext2->rsTransactionHandler_ = nullptr;
     uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, SetRequestVsyncCallback, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
+    uiContext->SetRequestVsyncCallback(nullptr);
+}
+
+/**
+ * @tc.name: RequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
+    uiContext->SetRequestVsyncCallback(nullptr);
+    EXPECT_EQ(uiContext->requestVsyncCallback_, nullptr);
+    uiContext->RequestVsyncCallback();
+
+    // test requestVsyncCallback_ not null
+    uiContext->SetRequestVsyncCallback([]() {});
+    EXPECT_NE(uiContext->requestVsyncCallback_, nullptr);
+    uiContext->RequestVsyncCallback();
 }
 
 /**
@@ -211,5 +245,72 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
     ASSERT_FALSE(transaction == nullptr);
     transaction->rsTransactionHandler_ = nullptr;
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+}
+
+/**
+ * @tc.name: MoveModifierTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, MoveModifierTest001, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    curContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+    auto canvasNode = RSCanvasNode::Create(false, false, curContext);
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    rsCustomModifier->OnAttach(*canvasNode);
+    ASSERT_NE(rsCustomModifier->node_.lock(), nullptr);
+    curContext->rsModifierManager_->AddModifier(rsCustomModifier);
+    auto notMoveModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    curContext->rsModifierManager_->AddModifier(notMoveModifier);
+    ASSERT_EQ(curContext->rsModifierManager_->modifiers_.size(), 2);
+
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    newContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+
+    curContext->MoveModifier(newContext, canvasNode->GetId());
+    ASSERT_EQ(curContext->rsModifierManager_->modifiers_.size(), 1);
+    ASSERT_EQ(newContext->rsModifierManager_->modifiers_.size(), 1);
+}
+
+/**
+ * @tc.name: MoveModifierTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, MoveModifierTest002, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    curContext->rsModifierManager_ = nullptr;
+    curContext->MoveModifier(nullptr, id);
+
+    curContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    curContext->rsModifierManager_->AddModifier(rsCustomModifier);
+    ASSERT_FALSE(curContext->rsModifierManager_->modifiers_.empty());
+
+    curContext->MoveModifier(nullptr, id);
+    ASSERT_FALSE(curContext->rsModifierManager_->modifiers_.empty());
+}
+
+/**
+ * @tc.name: MoveModifierTest003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, MoveModifierTest003, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    curContext->rsModifierManager_ = nullptr;
+    ASSERT_EQ(curContext->rsModifierManager_, nullptr);
+
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    newContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+    ASSERT_NE(newContext->rsModifierManager_, nullptr);
+
+    curContext->MoveModifier(nullptr, id);
+    ASSERT_TRUE(newContext->rsModifierManager_->modifiers_.empty());
 }
 } // namespace OHOS::Rosen

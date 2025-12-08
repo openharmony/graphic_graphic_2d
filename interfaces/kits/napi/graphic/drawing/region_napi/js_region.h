@@ -27,7 +27,7 @@ namespace Drawing {
 class JsRegion final {
 public:
     explicit JsRegion(std::shared_ptr<Region> region) : m_region(region) {};
-    ~JsRegion() {};
+    ~JsRegion();
 
     static napi_value Init(napi_env env, napi_value exportObj);
     static napi_value Constructor(napi_env env, napi_callback_info info);
@@ -48,8 +48,13 @@ public:
     static napi_value SetRect(napi_env env, napi_callback_info info);
     static napi_value SetRegion(napi_env env, napi_callback_info info);
     static napi_value SetPath(napi_env env, napi_callback_info info);
+    static napi_value RegionTransferDynamic(napi_env env, napi_callback_info info);
 
     Region* GetRegion();
+    std::shared_ptr<Region> GetRegionPtr()
+    {
+        return m_region;
+    }
 
 private:
     napi_value OnGetBoundaryPath(napi_env env, napi_callback_info info);
@@ -67,6 +72,7 @@ private:
     napi_value OnSetRect(napi_env env, napi_callback_info info);
     napi_value OnSetRegion(napi_env env, napi_callback_info info);
     napi_value OnSetPath(napi_env env, napi_callback_info info);
+    static napi_value CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region);
 
     static thread_local napi_ref constructor_;
     std::shared_ptr<Region> m_region = nullptr;

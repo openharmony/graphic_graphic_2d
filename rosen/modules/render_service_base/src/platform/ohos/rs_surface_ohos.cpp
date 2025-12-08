@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,12 @@
 #include "rs_surface_ohos.h"
 namespace OHOS {
 namespace Rosen {
-RenderContext* RSSurfaceOhos::GetRenderContext()
+std::shared_ptr<RenderContext> RSSurfaceOhos::GetRenderContext()
 {
     return context_;
 }
 
-void RSSurfaceOhos::SetRenderContext(RenderContext* context)
+void RSSurfaceOhos::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
     context_ = context;
 }

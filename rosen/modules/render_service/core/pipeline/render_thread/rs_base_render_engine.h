@@ -182,7 +182,7 @@ public:
 
     // [PLANNING]: this is a work-around for the lack of colorgamut conversion and yuv support in GPU.
     // We should remove this function in someday.
-    static bool NeedForceCPU(const std::vector<LayerInfoPtr>& layers);
+    static bool NeedForceCPU(const std::vector<RSLayerPtr>& layers);
 
     // There would only one user(thread) to renderFrame(request frame) at one time.
     // for framebuffer surface
@@ -213,10 +213,10 @@ public:
     std::shared_ptr<Drawing::Image> CreateImageFromBuffer(RSPaintFilterCanvas& canvas,
         BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
         const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
 #else
-    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU = false,
+    virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
         const ScreenInfo& screenInfo = {}) = 0;
 #endif
 
@@ -254,11 +254,11 @@ public:
 #ifdef RS_ENABLE_VK
     const std::shared_ptr<Drawing::GPUContext> GetSkContext() const
     {
-        return skContext_;
-    }
-    const std::shared_ptr<Drawing::GPUContext> GetCaptureSkContext() const
-    {
-        return captureSkContext_;
+        if (renderContext_ != nullptr) {
+            return renderContext_->GetSharedDrGPUContext();
+        } else {
+            return nullptr;
+        }
     }
 #endif
     void DumpVkImageInfo(std::string &dumpString);
@@ -278,10 +278,6 @@ private:
 #if (defined RS_ENABLE_GL) || (defined RS_ENABLE_VK)
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
 #endif // RS_ENABLE_GL || RS_ENABLE_VK
-#ifdef RS_ENABLE_VK
-    std::shared_ptr<Drawing::GPUContext> skContext_ = nullptr;
-    std::shared_ptr<Drawing::GPUContext> captureSkContext_ = nullptr;
-#endif
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
     using SurfaceId = uint64_t;
 #ifdef USE_VIDEO_PROCESSING_ENGINE

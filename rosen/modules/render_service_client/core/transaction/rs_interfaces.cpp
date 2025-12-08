@@ -17,6 +17,7 @@
 #include <functional>
 
 #include "rs_interfaces.h"
+#include "rs_render_interface.h"
 #include "rs_trace.h"
 
 #include "platform/common/rs_system_properties.h"
@@ -56,7 +57,7 @@ RSInterfaces::~RSInterfaces() noexcept
 
 int32_t RSInterfaces::SetFocusAppInfo(const FocusAppInfo& info)
 {
-    return renderServiceClient_->SetFocusAppInfo(info);
+    return RSRenderInterface::GetInstance().SetFocusAppInfo(info);
 }
 
 ScreenId RSInterfaces::GetDefaultScreenId()
@@ -80,11 +81,12 @@ ScreenId RSInterfaces::CreateVirtualScreen(
     uint32_t width,
     uint32_t height,
     sptr<Surface> surface,
-    ScreenId mirrorId,
+    ScreenId associatedScreenId,
     int flags,
     std::vector<NodeId> whiteList)
 {
-    return renderServiceClient_->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList);
+    return renderServiceClient_->CreateVirtualScreen(
+        name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
@@ -285,97 +287,57 @@ int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMap
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithBlur(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
-    if (blurRadius < 1) {
-        ROSEN_LOGW("%{public}s no blur effect", __func__);
-        return TakeSurfaceCapture(node, callback, captureConfig);
-    }
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    RSSurfaceCaptureBlurParam blurParam;
-    blurParam.isNeedBlur = true;
-    blurParam.blurRadius = blurRadius;
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, blurParam);
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureWithBlur(node, callback, captureConfig, blurRadius);
 }
 
 bool RSInterfaces::TakeSelfSurfaceCapture(std::shared_ptr<RSSurfaceNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    return renderServiceClient_->TakeSelfSurfaceCapture(node->GetId(), callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSelfSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::SetWindowFreezeImmediately(std::shared_ptr<RSSurfaceNode> node, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig, float blurRadius)
 {
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    RSSurfaceCaptureBlurParam blurParam;
-    if (ROSEN_GE(blurRadius, 1.f)) {
-        blurParam.isNeedBlur = true;
-        blurParam.blurRadius = blurRadius;
-    }
-    return renderServiceClient_->SetWindowFreezeImmediately(
-        node->GetId(), isFreeze, callback, captureConfig, blurParam);
+    return RSRenderInterface::GetInstance().SetWindowFreezeImmediately(
+        node, isFreeze, callback, captureConfig, blurRadius);
 }
 
 bool RSInterfaces::TakeSurfaceCaptureWithAllWindows(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig,
     bool checkDrmAndSurfaceLock)
 {
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    return renderServiceClient_->TakeSurfaceCaptureWithAllWindows(
-        node->GetId(), callback, captureConfig, checkDrmAndSurfaceLock);
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureWithAllWindows(
+        node, callback, captureConfig, checkDrmAndSurfaceLock);
 }
 
 bool RSInterfaces::FreezeScreen(std::shared_ptr<RSDisplayNode> node, bool isFreeze)
 {
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    return renderServiceClient_->FreezeScreen(node->GetId(), isFreeze);
+    return RSRenderInterface::GetInstance().FreezeScreen(node, isFreeze);
 }
 
 bool RSInterfaces::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    return renderServiceClient_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
+    return RSRenderInterface::GetInstance().SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(std::shared_ptr<RSDisplayNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    if (!node) {
-        ROSEN_LOGE("%{public}s node is nullptr", __func__);
-        return false;
-    }
-    return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSurfaceCapture(node, callback, captureConfig);
 }
 
 bool RSInterfaces::TakeSurfaceCapture(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
 {
-    return renderServiceClient_->TakeSurfaceCapture(id, callback, captureConfig);
+    return RSRenderInterface::GetInstance().TakeSurfaceCapture(id, callback, captureConfig);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -445,103 +407,34 @@ bool RSInterfaces::TakeSurfaceCaptureForUI(std::shared_ptr<RSNode> node,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY,
     bool isSync, const Drawing::Rect& specifiedAreaRect)
 {
-    if (!node) {
-        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureForUI rsnode is nullpter return");
-        return false;
-    }
-    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
-    if (node->IsTextureExportNode()) {
-        ROSEN_LOGD("RSInterfaces::TakeSurfaceCaptureForUI rsNode [%{public}" PRIu64
-            "] is textureExportNode, set isSync false", node->GetId());
-        isSync = false;
-    }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
-        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureForUI unsupported node type return");
-        return false;
-    }
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = scaleX;
-    captureConfig.scaleY = scaleY;
-    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    captureConfig.isSync = isSync;
-    captureConfig.specifiedAreaRect = specifiedAreaRect;
-    if (RSSystemProperties::GetUniRenderEnabled()) {
-        if (isSync) {
-            node->SetTakeSurfaceForUIFlag();
-        }
-        return renderServiceClient_->TakeSurfaceCapture(node->GetId(), callback, captureConfig, {}, specifiedAreaRect);
-    } else {
-        return TakeSurfaceCaptureForUIWithoutUni(node->GetId(), callback, scaleX, scaleY);
-    }
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureForUI(node, callback, scaleX, scaleY,
+        isSync, specifiedAreaRect);
+}
+
+bool RSInterfaces::TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+    std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureForUIWithConfig(node, callback, captureConfig);
 }
 
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>>
     RSInterfaces::TakeSurfaceCaptureSoloNodeList(std::shared_ptr<RSNode> node)
 {
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    if (!node) {
-        ROSEN_LOGW("RSInterfaces::TakeSurfaceCaptureSoloNodeList rsnode is nullpter return");
-        return pixelMapIdPairVector;
-    }
-    if (!((node->GetType() == RSUINodeType::ROOT_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (node->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (node->GetType() == RSUINodeType::SURFACE_NODE))) {
-        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureSoloNodeList unsupported node type return");
-        return pixelMapIdPairVector;
-    }
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.isSoloNodeUiCapture = true;
-    if (RSSystemProperties::GetUniRenderEnabled()) {
-        pixelMapIdPairVector = renderServiceClient_->TakeSurfaceCaptureSoloNode(node->GetId(), captureConfig);
-        return pixelMapIdPairVector;
-    } else {
-        ROSEN_LOGE("RSInterfaces::TakeSurfaceCaptureSoloNodeList UniRender is not enabled return");
-        return pixelMapIdPairVector;
-    }
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureSoloNodeList(node);
 }
 
 bool RSInterfaces::TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
     bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync)
 {
-    if (!beginNode) {
-        ROSEN_LOGW("RSInterfaces::TakeUICaptureInRange beginNode is nullpter return");
-        return false;
-    }
-    if (!endNode) {
-        return TakeSurfaceCaptureForUI(beginNode, callback, scaleX, scaleY, isSync);
-    }
-    // textureExportNode process cmds in renderThread of application, isSync is unnecessary.
-    if (beginNode->IsTextureExportNode()) {
-        ROSEN_LOGD("RSInterfaces::TakeUICaptureInRange beginNode [%{public}" PRIu64
-            "] is textureExportNode, set isSync false", beginNode->GetId());
-        isSync = false;
-    }
-    if (!((beginNode->GetType() == RSUINodeType::ROOT_NODE) ||
-          (beginNode->GetType() == RSUINodeType::CANVAS_NODE) ||
-          (beginNode->GetType() == RSUINodeType::CANVAS_DRAWING_NODE) ||
-          (beginNode->GetType() == RSUINodeType::SURFACE_NODE))) {
-        ROSEN_LOGE("RSInterfaces::TakeUICaptureInRange unsupported node type return");
-        return false;
-    }
-    RSSurfaceCaptureConfig captureConfig;
-    captureConfig.scaleX = scaleX;
-    captureConfig.scaleY = scaleY;
-    captureConfig.captureType = SurfaceCaptureType::UICAPTURE;
-    captureConfig.isSync = isSync;
-    captureConfig.uiCaptureInRangeParam.endNodeId = endNode->GetId();
-    captureConfig.uiCaptureInRangeParam.useBeginNodeSize = useBeginNodeSize;
-    if (RSSystemProperties::GetUniRenderEnabled()) {
-        if (isSync) {
-            beginNode->SetTakeSurfaceForUIFlag();
-        }
-        return renderServiceClient_->TakeUICaptureInRange(beginNode->GetId(), callback, captureConfig);
-    } else {
-        return TakeSurfaceCaptureForUIWithoutUni(beginNode->GetId(), callback, scaleX, scaleY);
-    }
+    return RSRenderInterface::GetInstance().TakeUICaptureInRange(
+        beginNode, endNode, useBeginNodeSize, callback, scaleX, scaleY, isSync);
+}
+
+bool RSInterfaces::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+    bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig)
+{
+    return RSRenderInterface::GetInstance().TakeUICaptureInRangeWithConfig(beginNode, endNode,
+        useBeginNodeSize, callback, captureConfig);
 }
 
 int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
@@ -557,7 +450,7 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
         }
         RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
             tf->GetFamilyName().c_str(), tf->GetHash());
-        return renderServiceClient_->RegisterTypeface(tf->GetHash(), tf->GetSize(), tf->GetFd());
+        return renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
@@ -660,23 +553,16 @@ void RSInterfaces::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
     renderServiceClient_->SetScreenPowerStatus(id, status);
 }
 
+int32_t RSInterfaces::SetDualScreenState(ScreenId id, DualScreenStatus status)
+{
+    return renderServiceClient_->SetDualScreenState(id, status);
+}
+
 #endif // !ROSEN_ARKUI_X
 bool RSInterfaces::TakeSurfaceCaptureForUIWithoutUni(NodeId id,
     std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY)
 {
-    std::function<void()> offscreenRenderTask = [scaleX, scaleY, callback, id, this]() -> void {
-        ROSEN_LOGD(
-            "RSInterfaces::TakeSurfaceCaptureForUIWithoutUni callback->OnOffscreenRender nodeId:"
-            "[%{public}" PRIu64 "]", id);
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSRenderThread::TakeSurfaceCaptureForUIWithoutUni");
-        std::shared_ptr<RSDividedUICapture> rsDividedUICapture =
-            std::make_shared<RSDividedUICapture>(id, scaleX, scaleY);
-        std::shared_ptr<Media::PixelMap> pixelmap = rsDividedUICapture->TakeLocalCapture();
-        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        callback->OnSurfaceCapture(pixelmap);
-    };
-    RSRenderThread::Instance().PostTask(offscreenRenderTask);
-    return true;
+    return RSRenderInterface::GetInstance().TakeSurfaceCaptureForUIWithoutUni(id, callback,  scaleX, scaleY);
 }
 
 #ifndef ROSEN_ARKUI_X
@@ -714,6 +600,11 @@ void RSInterfaces::SetScreenBacklight(ScreenId id, uint32_t level)
 {
     RS_LOGD("RSInterfaces::SetScreenBacklight: ScreenId: %{public}" PRIu64 ", level: %{public}u", id, level);
     renderServiceClient_->SetScreenBacklight(id, level);
+}
+
+PanelPowerStatus RSInterfaces::GetPanelPowerStatus(ScreenId id)
+{
+    return renderServiceClient_->GetPanelPowerStatus(id);
 }
 
 int32_t RSInterfaces::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
@@ -800,7 +691,7 @@ int32_t RSInterfaces::GetScreenHDRFormat(ScreenId id, ScreenHDRFormat& hdrFormat
 
 int32_t RSInterfaces::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
-    return renderServiceClient_->GetScreenHDRStatus(id, hdrStatus);
+    return RSRenderInterface::GetInstance().GetScreenHDRStatus(id, hdrStatus);
 }
 
 int32_t RSInterfaces::SetScreenHDRFormat(ScreenId id, int32_t modeIdx)
@@ -850,7 +741,7 @@ void RSInterfaces::SetScreenOffset(ScreenId id, int32_t offSetX, int32_t offSetY
 
 void RSInterfaces::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    return renderServiceClient_->SetScreenFrameGravity(id, gravity);
+    RSRenderInterface::GetInstance().SetScreenFrameGravity(id, gravity);
 }
 
 int32_t RSInterfaces::SetVirtualScreenRefreshRate(ScreenId id, uint32_t maxRefreshRate, uint32_t& actualRefreshRate)
@@ -1040,12 +931,12 @@ bool RSInterfaces::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::str
     return renderServiceClient_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
 }
 
-void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
+void RSInterfaces::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     if (!RSFrameRatePolicy::GetInstance()->GetTouchOrPointerAction(touchStatus)) {
         return;
     }
-    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt);
+    renderServiceClient_->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
 }
 
 void RSInterfaces::NotifyDynamicModeEvent(bool enableDynamicMode)
@@ -1126,11 +1017,7 @@ void RSInterfaces::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 
 void RSInterfaces::DropFrameByPid(const std::vector<int32_t> pidList)
 {
-    if (pidList.empty()) {
-        return;
-    }
-    RS_TRACE_NAME("DropFrameByPid");
-    renderServiceClient_->DropFrameByPid(pidList);
+    RSRenderInterface::GetInstance().DropFrameByPid(pidList);
 }
 
 int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExtensionCallback& callback, bool unobscured)
@@ -1140,7 +1027,7 @@ int32_t RSInterfaces::RegisterUIExtensionCallback(uint64_t userId, const UIExten
 
 bool RSInterfaces::SetAncoForceDoDirect(bool direct)
 {
-    return renderServiceClient_->SetAncoForceDoDirect(direct);
+    return RSRenderInterface::GetInstance().SetAncoForceDoDirect(direct);
 }
 
 bool RSInterfaces::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
@@ -1155,40 +1042,23 @@ void RSInterfaces::SetFreeMultiWindowStatus(bool enable)
 
 bool RSInterfaces::RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback)
 {
-    RS_LOGD("interface::RegisterTransactionDataCallback, timeStamp: %{public}"
-        PRIu64 " token: %{public}" PRIu64, timeStamp, token);
-    return renderServiceClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
+    return RSRenderInterface::GetInstance().RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 bool RSInterfaces::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     std::shared_ptr<SurfaceBufferCallback> callback)
 {
-    if (callback == nullptr) {
-        ROSEN_LOGE("RSInterfaces::RegisterSurfaceBufferCallback callback == nullptr.");
-        return false;
-    }
-    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid,
-        new (std::nothrow) RSDefaultSurfaceBufferCallback ({
-            .OnFinish = [callback](const FinishCallbackRet& ret) {
-                callback->OnFinish(ret);
-            },
-            .OnAfterAcquireBuffer = [callback](const AfterAcquireBufferRet& ret) {
-                callback->OnAfterAcquireBuffer(ret);
-            },
-        })
-    );
-    return renderServiceClient_->RegisterSurfaceBufferCallback(pid, uid, callback);
+    return RSRenderInterface::GetInstance().RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
 bool RSInterfaces::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
-    return renderServiceClient_->UnregisterSurfaceBufferCallback(pid, uid);
+    return RSRenderInterface::GetInstance().UnregisterSurfaceBufferCallback(pid, uid);
 }
 
 void RSInterfaces::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    renderServiceClient_->SetLayerTopForHWC(nodeId, isTop, zOrder);
+    RSRenderInterface::GetInstance().SetLayerTopForHWC(nodeId, isTop, zOrder);
 }
 
 void RSInterfaces::SetLayerTop(const std::string &nodeIdStr, bool isTop)
@@ -1215,7 +1085,7 @@ void RSInterfaces::NotifyScreenSwitched()
 
 void RSInterfaces::SetWindowContainer(NodeId nodeId, bool value)
 {
-    renderServiceClient_->SetWindowContainer(nodeId, value);
+    RSRenderInterface::GetInstance().SetWindowContainer(nodeId, value);
 }
 
 int32_t RSInterfaces::RegisterSelfDrawingNodeRectChangeCallback(
@@ -1276,7 +1146,7 @@ bool RSInterfaces::GetBehindWindowFilterEnabled(bool& enabled)
 
 void RSInterfaces::ClearUifirstCache(NodeId id)
 {
-    renderServiceClient_->ClearUifirstCache(id);
+    RSRenderInterface::GetInstance().ClearUifirstCache(id);
 }
 
 void RSInterfaces::AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,

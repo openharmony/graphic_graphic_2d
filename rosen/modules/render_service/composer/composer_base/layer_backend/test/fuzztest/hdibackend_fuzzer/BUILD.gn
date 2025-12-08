@@ -1,0 +1,46 @@
+# Copyright (c) 2022 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("../../layer_backend_test_config.gni")
+
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_base/layer_backend"
+
+##############################fuzztest##########################################
+ohos_fuzztest("HdiBackendFuzzTest") {
+  fuzz_config_file = "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend/test/fuzztest/hdibackend_fuzzer"
+  module_out_path = module_output_path
+
+  sources = [ "hdibackend_fuzzer.cpp" ]
+
+  include_dirs = layer_backend_fuzz_include_dirs
+  cflags = layer_backend_fuzztest_cflags
+
+  deps = layer_backend_test_deps
+  deps += [ layer_backend_test_impl_dep ]
+  external_deps = layer_backend_fuzz_external_deps
+}
+
+###############################################################################
+group("fuzztest") {
+  testonly = true
+  deps = []
+  deps += [
+    # deps file
+    ":HdiBackendFuzzTest",
+  ]
+}
+###############################################################################

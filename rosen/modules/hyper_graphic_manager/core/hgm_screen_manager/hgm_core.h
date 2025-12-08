@@ -266,7 +266,6 @@ public:
 
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate, bool shouldSendCallback = true);
-    static int32_t SetRateAndResolution(ScreenId id, int32_t sceneId, int32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
 
     void NotifyScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -290,8 +289,8 @@ public:
 
     // for LTPO
     void SetLtpoConfig();
-    void SetScreenConstraintConfig();
-    void SetPerformanceConfig();
+    void SetScreenConstraintConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
+    void SetPerformanceConfig(const PolicyConfigData::ScreenSetting& curScreenSetting);
     int64_t GetIdealPeriod(uint32_t rate);
     void RegisterRefreshRateModeChangeCallback(const RefreshRateModeChangeCallback& callback);
     void RegisterRefreshRateUpdateCallback(const RefreshRateUpdateCallback& callback);

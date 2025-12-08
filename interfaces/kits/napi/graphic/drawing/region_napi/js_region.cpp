@@ -42,6 +42,7 @@ napi_value JsRegion::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_FUNCTION("setRect", JsRegion::SetRect),
         DECLARE_NAPI_FUNCTION("setRegion", JsRegion::SetRegion),
         DECLARE_NAPI_FUNCTION("setPath", JsRegion::SetPath),
+        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsRegion::RegionTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -132,8 +133,8 @@ napi_value JsRegion::OnGetBoundaryPath(napi_env env, napi_callback_info info)
         return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
 
-    Path* path = new Path();
-    m_region->GetBoundaryPath(path);
+    std::shared_ptr<Path> path = std::make_shared<Path>();
+    m_region->GetBoundaryPath(path.get());
     return JsPath::CreateJsPath(env, path);
 }
 
@@ -483,9 +484,59 @@ napi_value JsRegion::OnSetPath(napi_env env, napi_callback_info info)
     return CreateJsValue(env, m_region->SetPath(*jsPath->GetPath(), *jsClip->GetRegion()));
 }
 
+napi_value JsRegion::CreateJsRegionDynamic(napi_env env, const std::shared_ptr<Region> region)
+{
+    napi_value result = nullptr;
+    napi_value constructor = nullptr;
+    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
+        ROSEN_LOGE("Failed to get the representation of constructor object");
+        return nullptr;
+    }
+    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
+        ROSEN_LOGE("Failed to instantiate JavaScript region instance");
+        return nullptr;
+    }
+    JsRegion* jsRegion = new JsRegion(region);
+    napi_status status = napi_wrap(env, result, jsRegion, JsRegion::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsRegion;
+        ROSEN_LOGE("Failed to wrap native instance");
+        return nullptr;
+    }
+    return result;
+}
+
+napi_value JsRegion::RegionTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv;
+    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_number) {
+        return nullptr;
+    }
+
+    int64_t addr = 0;
+    napi_get_value_int64(env, argv, &addr);
+    std::shared_ptr<Region> region = *reinterpret_cast<std::shared_ptr<Region>*>(addr);
+    if (region == nullptr) {
+        return nullptr;
+    }
+    return CreateJsRegionDynamic(env, region);
+}
+
 Region* JsRegion::GetRegion()
 {
     return m_region.get();
+}
+
+JsRegion::~JsRegion()
+{
+    m_region = nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

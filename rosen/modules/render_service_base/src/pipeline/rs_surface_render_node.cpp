@@ -30,6 +30,7 @@
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
+#include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "ipc_callbacks/rs_rt_refresh_callback.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
@@ -47,6 +48,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "visitor/rs_node_visitor.h"
 #include "render/rs_image_cache.h"
+#include "pipeline/rs_render_node_map.h"
 #ifndef ROSEN_CROSS_PLATFORM
 #include "metadata_helper.h"
 #include <v1_0/cm_color_space.h>
@@ -58,7 +60,7 @@ namespace Rosen {
 // set the offset value to prevent the situation where the float number
 // with the suffix 0.000x is still rounded up.
 constexpr float RECT_CEIL_DEVIATION = 0.001;
-
+constexpr size_t MAX_FILTER_CACHE_TYPES = 3;
 namespace {
 bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
 {
@@ -408,8 +410,10 @@ void RSSurfaceRenderNode::CollectSelfDrawingChild(
 void RSSurfaceRenderNode::FindScreenId()
 {
     // The results found across screen windows are inaccurate
+    if (screenId_ != INVALID_SCREEN_ID) {
+        return;
+    }
     auto nodeTemp = GetParent().lock();
-    screenId_ = -1;
     while (nodeTemp != nullptr) {
         if (nodeTemp->GetId() == 0) {
             break;
@@ -417,6 +421,10 @@ void RSSurfaceRenderNode::FindScreenId()
         if (nodeTemp->GetType() == RSRenderNodeType::SCREEN_NODE) {
             auto displayNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(nodeTemp);
             screenId_ = displayNode->GetScreenId();
+            auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+            if (surfaceParams != nullptr) {
+                surfaceParams->SetScreenId(screenId_);
+            }
             break;
         }
         nodeTemp = nodeTemp->GetParent().lock();
@@ -1233,7 +1241,7 @@ void RSSurfaceRenderNode::ReduceHDRNum(HDRComponentType hdrType)
 void RSSurfaceRenderNode::IncreaseCanvasGamutNum(GraphicColorGamut gamut)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    GraphicColorGamut canvasGamut = GamutCollector::MapGamutToStandard(gamut);
+    GraphicColorGamut canvasGamut = RSColorSpaceUtil::MapGamutToStandard(gamut);
     if (canvasGamut == GRAPHIC_COLOR_GAMUT_SRGB) {
         return;
     }
@@ -1256,7 +1264,7 @@ void RSSurfaceRenderNode::IncreaseCanvasGamutNum(GraphicColorGamut gamut)
 void RSSurfaceRenderNode::ReduceCanvasGamutNum(GraphicColorGamut gamut)
 {
 #ifndef ROSEN_CROSS_PLATFORM
-    GraphicColorGamut canvasGamut = GamutCollector::MapGamutToStandard(gamut);
+    GraphicColorGamut canvasGamut = RSColorSpaceUtil::MapGamutToStandard(gamut);
     if (gamut == GRAPHIC_COLOR_GAMUT_SRGB) {
         return;
     }
@@ -1398,7 +1406,7 @@ void RSSurfaceRenderNode::SetHardCursorStatus(bool status)
 
 void RSSurfaceRenderNode::SetColorSpace(GraphicColorGamut colorSpace)
 {
-    GraphicColorGamut newGamut = GamutCollector::MapGamutToStandard(colorSpace);
+    GraphicColorGamut newGamut = RSColorSpaceUtil::MapGamutToStandard(colorSpace);
     if (colorSpace_ == newGamut) {
         return;
     }
@@ -1427,7 +1435,7 @@ GraphicColorGamut RSSurfaceRenderNode::GetColorSpace() const
         bt2020Num = gamutCollector_.bt2020Num_;
         p3Num = gamutCollector_.p3Num_;
     }
-    GraphicColorGamut selfGamut = GamutCollector::MapGamutToStandard(colorSpace_);
+    GraphicColorGamut selfGamut = RSColorSpaceUtil::MapGamutToStandard(colorSpace_);
     GamutCollector::IncreaseInner(selfGamut, bt2020Num, p3Num);
     return GamutCollector::DetermineGamutStandard(bt2020Num, p3Num);
 }
@@ -1480,6 +1488,18 @@ void RSSurfaceRenderNode::UpdateColorSpaceWithMetadata()
     }
     SetColorSpace(RSColorSpaceUtil::PrimariesToGraphicGamut(colorSpaceInfo.primaries));
 #endif
+}
+
+void RSSurfaceRenderNode::UpdateNodeColorSpace()
+{
+    GraphicColorGamut nodeColorSpace = GetNodeColorSpace();
+    if (IsAppWindow()) {
+        nodeColorSpace = RSColorSpaceUtil::SelectBigGamut(colorSpace_, nodeColorSpace);
+    } else if (IsSelfDrawingType()) {
+        UpdateColorSpaceWithMetadata();
+        nodeColorSpace = RSColorSpaceUtil::SelectBigGamut(colorSpace_, nodeColorSpace);
+    }
+    SetNodeColorSpace(nodeColorSpace);
 }
 
 void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
@@ -1824,7 +1844,7 @@ void RSSurfaceRenderNode::AccumulateOcclusionRegion(Occlusion::Region& accumulat
     SetTreatedAsTransparent(false);
     // when a surfacenode is in animation (i.e. 3d animation), its dstrect cannot be trusted, we treated it as a full
     // transparent layer.
-    if ((GetAnimateState() || IsParentLeashWindowInScale()) && !isOcclusionInSpecificScenes_) {
+    if (GetAnimateState() || IsParentLeashWindowInScale()) {
         SetTreatedAsTransparent(true);
         return;
     }
@@ -2198,11 +2218,18 @@ void RSSurfaceRenderNode::UpdateFilterCacheStatusIfNodeStatic(const RectI& clipR
                 effectNode->SetRotationChanged(isRotationChanged);
             }
         }
-        if (node->GetRenderProperties().GetBackgroundFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
-        }
-        if (node->GetRenderProperties().GetFilter()) {
-            node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()));
+        using DrawablePair = std::pair<bool, RSDrawableSlot>;
+        std::array<DrawablePair, MAX_FILTER_CACHE_TYPES> filterCacheParas = {
+            DrawablePair{node->GetRenderProperties().GetBackgroundFilter() != nullptr,
+                RSDrawableSlot::BACKGROUND_FILTER},
+            DrawablePair{node->GetRenderProperties().GetMaterialFilter() != nullptr, RSDrawableSlot::MATERIAL_FILTER},
+            DrawablePair{node->GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+        };
+        for (auto& p : filterCacheParas) {
+            if (p.first) {
+                node->UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager_->GetCurrentFrameDirtyRegion()),
+                    p.second);
+            }
         }
         node->UpdateFilterCacheWithSelfDirty();
     }
@@ -2440,18 +2467,21 @@ bool RSSurfaceRenderNode::CheckIfOcclusionChanged() const
         GetDirtyManager()->IsActiveSurfaceRectChanged();
 }
 
-bool RSSurfaceRenderNode::CheckParticipateInOcclusion()
+bool RSSurfaceRenderNode::CheckParticipateInOcclusion(bool isAnimationOcclusionScenes)
 {
     // planning: Need consider others situation
     isParentScaling_ = false;
     auto nodeParent = GetParent().lock();
     if (nodeParent && nodeParent->IsScale()) {
         isParentScaling_ = true;
-        if (GetDstRectChanged() && !isOcclusionInSpecificScenes_) {
+        if (GetDstRectChanged() && !isAnimationOcclusionScenes) {
             return false;
         }
     }
-    if ((IsTransparent() && !NeedDrawBehindWindow()) || GetAnimateState() || IsRotating() || IsSubSurfaceNode()) {
+    // surface can't participate occlusion in transparent, animate, rotating, and sub surface scenes
+    // specific animate can be used for occlusion
+    if ((IsTransparent() && !NeedDrawBehindWindow()) ||
+        (GetAnimateState() && !isAnimationOcclusionScenes) || IsRotating() || IsSubSurfaceNode()) {
         return false;
     }
     return true;
@@ -2627,46 +2657,6 @@ void RSSurfaceRenderNode::AddAbilityComponentNodeIds(std::unordered_set<NodeId>&
 void RSSurfaceRenderNode::ResetAbilityNodeIds()
 {
     abilityNodeIds_.clear();
-}
-
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic()
-{
-    dirtyContentNodeNum_ = 0;
-    dirtyGeoNodeNum_ = 0;
-    dirtynodeNum_ = 0;
-    surfaceCacheContentStatic_ = IsOnlyBasicGeoTransform() && !IsCurFrameSwitchToPaint();
-}
-
-void RSSurfaceRenderNode::UpdateSurfaceCacheContentStatic(
-    const std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& activeNodeIds)
-{
-    dirtyContentNodeNum_ = 0;
-    dirtyGeoNodeNum_ = 0;
-    dirtynodeNum_ = activeNodeIds.size();
-    surfaceCacheContentStatic_ = (IsOnlyBasicGeoTransform() || GetForceUpdateByUifirst()) &&
-        !IsCurFrameSwitchToPaint();
-    if (dirtynodeNum_ == 0) {
-        RS_LOGD("Clear surface %{public}" PRIu64 " dirtynodes surfaceCacheContentStatic_:%{public}d",
-            GetId(), surfaceCacheContentStatic_);
-        return;
-    }
-    for (auto [id, subNode] : activeNodeIds) {
-        auto node = subNode.lock();
-        if (node == nullptr || (id == GetId() && surfaceCacheContentStatic_)) {
-            continue;
-        }
-        // classify active nodes except instance surface itself
-        if (node->IsContentDirty() && !node->IsNewOnTree() && !node->GetRenderProperties().IsGeoDirty()) {
-            dirtyContentNodeNum_++;
-        } else {
-            dirtyGeoNodeNum_++;
-        }
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateSurfaceCacheContentStatic [%s-%" PRIu64 "] "
-        "contentStatic: %d, dirtyContentNode: %zu, dirtyGeoNode: %zu",
-        GetName().c_str(), GetId(), surfaceCacheContentStatic_, dirtyContentNodeNum_, dirtyGeoNodeNum_);
-    // if mainwindow node only basicGeoTransform and no subnode dirty, it is marked as CacheContentStatic_
-    surfaceCacheContentStatic_ = surfaceCacheContentStatic_ && dirtyContentNodeNum_ == 0 && dirtyGeoNodeNum_ == 0;
 }
 
 void RSSurfaceRenderNode::AddChildHardwareEnabledNode(std::weak_ptr<RSSurfaceRenderNode> childNode)
@@ -2860,6 +2850,10 @@ void RSSurfaceRenderNode::UpdateCacheSurfaceDirtyManager(int bufferAge)
 void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
     NodeId cacheNodeId, NodeId uifirstRootNodeId, NodeId screenNodeId, NodeId logicalDisplayNodeId)
 {
+    if (!onTree) {
+        screenId_ = INVALID_SCREEN_ID;
+    }
+
 #ifdef RS_MEMORY_INFO_MANAGER
     RSMemoryInfoManager::SetSurfaceMemoryInfo(onTree, GetRSSurfaceHandler());
 #endif
@@ -2887,6 +2881,11 @@ void RSSurfaceRenderNode::SetIsOnTheTree(bool onTree, NodeId instanceRootNodeId,
         if (parentNode && parentNode->GetFirstLevelNodeId() != INVALID_NODEID) {
             firstLevelNodeId = parentNode->GetFirstLevelNodeId();
         }
+    }
+    if (auto context = GetContext().lock(); context && onTree) {
+        context->GetMutableNodeMap().ObtainLauncherNodeId(
+            std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this())
+        );
     }
     if (IsSecureUIExtension() || IsUnobscuredUIExtensionNode()) {
         if (onTree) {
@@ -3602,6 +3601,10 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
             return;
         }
     }
+
+    // [Attention] Update behind region for pc window keyframe feature
+    RSWindowKeyFrameRenderNode::UpdateKeyFrameBehindWindowRegion(*this, *context, region);
+
     RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %lu, BehindWindowRegion: %s",
         GetId(), region.ToString().c_str());
     RS_LOGD("RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",
@@ -3629,14 +3632,6 @@ RectI RSSurfaceRenderNode::GetFilterRect() const
 RectI RSSurfaceRenderNode::GetBehindWindowRegion() const
 {
     return drawBehindWindowRegion_;
-}
-
-bool RSSurfaceRenderNode::IsCurFrameSwitchToPaint()
-{
-    bool shouldPaint = ShouldPaint();
-    bool changed = shouldPaint && !lastFrameShouldPaint_;
-    lastFrameShouldPaint_ = shouldPaint;
-    return changed;
 }
 
 void RSSurfaceRenderNode::SetApiCompatibleVersion(uint32_t apiCompatibleVersion)
@@ -3829,23 +3824,6 @@ GraphicColorGamut RSSurfaceRenderNode::GamutCollector::GetFirstLevelNodeGamut() 
     }
     GraphicColorGamut finalGamut = DetermineGamutStandard(bt2020Num, p3Num);
     return finalGamut;
-}
-
-GraphicColorGamut RSSurfaceRenderNode::GamutCollector::MapGamutToStandard(GraphicColorGamut gamut)
-{
-    switch (gamut) {
-        case GRAPHIC_COLOR_GAMUT_ADOBE_RGB:
-        case GRAPHIC_COLOR_GAMUT_DCI_P3:
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_P3:
-            return GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-        case GRAPHIC_COLOR_GAMUT_BT2020:
-        case GRAPHIC_COLOR_GAMUT_BT2100_PQ:
-        case GRAPHIC_COLOR_GAMUT_BT2100_HLG:
-        case GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020:
-            return GRAPHIC_COLOR_GAMUT_BT2020;
-        default:
-            return GRAPHIC_COLOR_GAMUT_SRGB;
-    }
 }
 
 GraphicColorGamut RSSurfaceRenderNode::GamutCollector::DetermineGamutStandard(int bt2020Num, int p3Num)

@@ -26,13 +26,13 @@ RSScreenChangeCallbackProxy::RSScreenChangeCallbackProxy(const sptr<IRemoteObjec
 }
 
 void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event,
-    ScreenChangeReason reason)
+    ScreenChangeReason reason, sptr<IRemoteObject> obj)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
 
-    if(!data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIScreenChangeCallback::GetDescriptor())) {
         ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteInterfaceToken failed");
         return;
     }
@@ -49,10 +49,21 @@ void RSScreenChangeCallbackProxy::OnScreenChanged(ScreenId id, ScreenEvent event
         ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteUint8 reason failed");
         return;
     }
+    if (obj) {
+        if (!data.WriteBool(true) || !data.WriteRemoteObject(obj)) {
+            ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteRemoteObject obj failed");
+            return;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged WriteBool false failed");
+            return;
+        }
+    }
 
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIScreenChangeCallbackInterfaceCode::ON_SCREEN_CHANGED);
-    
+
     auto remote = Remote();
     if (remote == nullptr) {
         ROSEN_LOGE("RSScreenChangeCallbackProxy::OnScreenChanged: remote is null!");

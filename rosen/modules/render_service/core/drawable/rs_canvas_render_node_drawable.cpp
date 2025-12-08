@@ -100,8 +100,6 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
-    auto linkedDrawable = std::static_pointer_cast<RSRootRenderNodeDrawable>(
-        params->GetLinkedRootNodeDrawable().lock());
     auto needOcclusionSkip = paintFilterCanvas->IsQuickDrawState() ?
         true : GetOpincDrawCache().PreDrawableCacheState(*params, isOpincDropNodeExt_);
     RSAutoCanvasRestore acr(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
@@ -110,7 +108,7 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     paintFilterCanvas->SetHDRBrightness(params->GetHDRBrightness());
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     SetOcclusionCullingEnabled((!uniParam || uniParam->IsOpDropped()) && GetOpDropped() && needOcclusionSkip &&
-        !params->HasUnobscuredUEC() && LIKELY(linkedDrawable == nullptr) && !params->GetDrawingCacheChanged());
+        !params->HasUnobscuredUEC() && !params->GetDrawingCacheChanged());
     if (IsOcclusionCullingEnabled() && QuickReject(canvas, params->GetLocalDrawRect())) {
         SetDrawSkipType(DrawSkipType::OCCLUSION_SKIP);
         return;
@@ -135,16 +133,9 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
-    // [Attention] Only used in PC window resize scene now
-    if (UNLIKELY(linkedDrawable != nullptr)) {
-        linkedDrawable->DrawWindowKeyFrameOffscreenBuffer(*paintFilterCanvas, params->GetFrameRect(),
-            params->GetAlpha(), params->GetRSFreezeFlag());
-        return;
-    }
-
     if (LIKELY(isDrawingCacheEnabled_)) {
         GetOpincDrawCache().BeforeDrawCache(canvas, *params, isOpincDropNodeExt_);
-        if (!drawBlurForCache_) {
+        if (!IsDrawingBlurForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params);
@@ -200,7 +191,7 @@ void RSCanvasRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         return;
     }
     if (LIKELY(isDrawingCacheEnabled_)) {
-        if (canvas.GetUICapture() && !drawBlurForCache_) {
+        if (canvas.GetUICapture() && !IsDrawingBlurForCache()) {
             GenerateCacheIfNeed(canvas, *params);
         }
         CheckCacheTypeAndDraw(canvas, *params, true);

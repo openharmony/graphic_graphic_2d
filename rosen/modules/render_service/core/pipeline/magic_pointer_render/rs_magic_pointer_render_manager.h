@@ -59,13 +59,13 @@ private:
     std::shared_ptr<Drawing::Image> GetIntersectImageByLayer(BufferDrawParam& param);
     bool GetIntersectImageBySubset(std::shared_ptr<Drawing::GPUContext> gpuContext);
     std::shared_ptr<Drawing::Image> GetImageTexture(std::shared_ptr<Drawing::Image>& image);
-    void GetRectAndTargetLayer(std::vector<LayerInfoPtr>& layers, RectI& pRect, int displayNodeIndex);
+    void GetRectAndTargetLayer(std::vector<RSLayerPtr>& layers, RectI& pRect, int displayNodeIndex);
     void RunColorPickerTaskBackground(BufferDrawParam& param);
     static int16_t CalcAverageLuminance(std::shared_ptr<Drawing::Image> image);
 
 private:
     RectI rect_;
-    LayerInfoPtr target_;
+    RSLayerPtr target_;
 #if (defined (RS_ENABLE_GL) && defined (RS_ENABLE_EGLIMAGE)) || defined (RS_ENABLE_VK)
     std::shared_ptr<RSImageManager> imageManager_ = nullptr;
 #endif

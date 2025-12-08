@@ -49,12 +49,10 @@ void HMSymbolTxt::SetRenderColor(const std::vector<RSSColor>& colorList)
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
     for (const auto& color : colorList) {
         auto gradient =  std::make_shared<SymbolGradient>();
-        std::vector<Drawing::ColorQuad> colors;
         Drawing::Color color1;
         color1.SetRgb(color.r, color.g, color.b);
         color1.SetAlphaF(color.a);
-        colors.push_back(color1.CastToColorQuad());
-        gradient->SetColors(colors);
+        gradient->SetColors({ color1 });
         gradients.push_back(gradient);
     }
     symbolColor_.gradients = gradients;
@@ -84,12 +82,23 @@ std::vector<RSSColor> HMSymbolTxt::GetRenderColor() const
         if (isInvalid) {
             continue;
         }
-        auto gradientColor = gradient->GetColors()[0];
-        Drawing::Color color(gradientColor);
+        auto color = gradient->GetColors()[0];
         RSSColor scolor = {color.GetAlphaF(), color.GetRed(), color.GetGreen(), color.GetBlue()};
         colorList.push_back(scolor);
     }
     return colorList;
+}
+
+std::vector<ColorPlaceholder> HMSymbolTxt::GetRenderColorPlaceholder() const
+{
+    std::vector<ColorPlaceholder> placeholderList;
+    for (const auto& gradient : symbolColor_.gradients) {
+        if (gradient == nullptr || gradient->GetColors().empty()) {
+            continue;
+        }
+        placeholderList.push_back(gradient->GetColors()[0].GetPlaceholder());
+    }
+    return placeholderList;
 }
 
 RSSymbolRenderingStrategy HMSymbolTxt::GetRenderMode() const

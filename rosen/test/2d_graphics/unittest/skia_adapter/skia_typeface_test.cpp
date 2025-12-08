@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,20 @@ HWTEST_F(SkiaTypefaceTest, GetTableData001, TestSize.Level1)
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface1->GetTableData(tag, 0, size, tableData.get());
     ASSERT_TRUE(retTableData == size);
+}
+
+/**
+ * @tc.name: GetBold001
+ * @tc.desc: Test GetBold
+ * @tc.type: FUNC
+ * @tc.require:20650
+ */
+HWTEST_F(SkiaTypefaceTest, GetBold001, TestSize.Level1)
+{
+    auto typeface1 = SkiaTypeface::MakeDefault();
+    ASSERT_TRUE(!typeface1->GetBold());
+    auto typeface2 = std::make_shared<SkiaTypeface>(nullptr);
+    ASSERT_TRUE(!typeface2->GetBold());
 }
 
 /**
@@ -456,6 +470,23 @@ HWTEST_F(SkiaTypefaceTest, Serialize001, TestSize.Level1)
     auto typeface = SkiaTypeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
     ASSERT_TRUE(typeface->Serialize() != nullptr);
+}
+
+/**
+ * @tc.name: GetFontIndex001
+ * @tc.desc: Test for get font index
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetFontIndex001, TestSize.Level1)
+{
+    std::string TEST_TTC_PATH = "/system/fonts/NotoSansCJK-Regular.ttc";
+    auto typeface = SkiaTypeface::MakeFromFile(TEST_TTC_PATH.c_str(), 1);
+    EXPECT_EQ(typeface->GetFontIndex(), 1);
+
+    // improved the test case coverage rate
+    SkiaTypeface emptyTypeface(nullptr);
+    EXPECT_EQ(emptyTypeface.GetTypeface(), nullptr);
+    EXPECT_EQ(emptyTypeface.GetFontIndex(), 0);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -59,6 +59,7 @@ private:
     void Start() {}
     void Stop() {}
     void SendCommand(const std::string command, int outTime) {}
+    std::pair<double, double> ReceiveTimeInfo() const { return std::make_pair(0.0, 0.0); }
 #endif
 };
 

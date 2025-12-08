@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -368,6 +368,47 @@ OH_Drawing_ErrorCode OH_Drawing_MatrixPreConcat(OH_Drawing_Matrix* cMatrix, OH_D
     Matrix* otherMatrix = CastToMatrix(other);
 
     matrix->PreConcat(*otherMatrix);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_MatrixIsAffine(const OH_Drawing_Matrix* cMatrix, bool* isAffine)
+{
+    const Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr || isAffine == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isAffine = matrix->IsAffine();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_MatrixPreSkew(OH_Drawing_Matrix* cMatrix, float kx, float ky, float px, float py)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    matrix->PreSkew(kx, ky, px, py);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_MatrixRectStaysRect(const OH_Drawing_Matrix* cMatrix, bool* isRectStaysRect)
+{
+    const Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr || isRectStaysRect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isRectStaysRect = matrix->RectStaysRect();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_MatrixSetSinCos(OH_Drawing_Matrix* cMatrix, float sinValue, float cosValue,
+    float px, float py)
+{
+    Matrix* matrix = CastToMatrix(cMatrix);
+    if (matrix == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    matrix->SetSinCos(sinValue, cosValue, px, py);
     return OH_DRAWING_SUCCESS;
 }
 

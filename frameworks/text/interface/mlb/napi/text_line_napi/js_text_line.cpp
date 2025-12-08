@@ -240,10 +240,6 @@ napi_value JsTextLine::OnGetGlyphRuns(napi_env env, napi_callback_info info)
         return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
     }
     std::vector<std::unique_ptr<Run>> runs = textLine_->GetGlyphRuns();
-    if (runs.empty()) {
-        TEXT_LOGE("Run is empty");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
     napi_value array = nullptr;
     NAPI_CALL(env, napi_create_array(env, &array));
     uint32_t index = 0;

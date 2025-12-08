@@ -15,7 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#include "ipc_callbacks/surface_capture_callback_proxy.h"
 #include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "mock_iremote_object.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -26,7 +28,8 @@ public:
     RSSurfaceCaptureCallbackStubMock() = default;
     virtual ~RSSurfaceCaptureCallbackStubMock() = default;
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR = nullptr) override {};
+        Media::PixelMap* pixelmap, CaptureError captureErrCode = CaptureError::CAPTURE_OK,
+        Media::PixelMap* pixelmapHDR = nullptr) override {};
 };
 
 class RSSurfaceCaptureCallbackStubTest : public testing::Test {
@@ -89,6 +92,213 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnRemoteRequest003
+ * @tc.desc: Verify function OnRemoteRequest if code exist and data has no content
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
+
+    auto ret = data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor());
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint64(0);
+    EXPECT_EQ(ret, true);
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    Media::PixelMap* pixelmap = nullptr;
+    ret = data.WriteParcelable(pixelmap);
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint8(100);
+    EXPECT_EQ(ret, true);
+
+    auto res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
+
+    auto ret = data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor());
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint64(0);
+    EXPECT_EQ(ret, true);
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    Media::PixelMap* pixelmap = nullptr;
+    ret = data.WriteParcelable(pixelmap);
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint8(0);
+    EXPECT_EQ(ret, true);
+
+    auto res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: OnRemoteRequest005
+ * @tc.desc: Verify function OnRemoteRequest if code ON_SURFACE_CAPTURE and data has no captureErrCode
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE);
+
+    auto ret = data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor());
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint64(0);
+    EXPECT_EQ(ret, true);
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    Media::PixelMap* pixelmap = nullptr;
+    ret = data.WriteParcelable(pixelmap);
+
+    auto res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: OnRemoteRequest006
+ * @tc.desc: Verify function OnRemoteRequest if code ON_SURFACE_CAPTURE_HDR and data has wrong captureErrCode
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR);
+
+    auto ret = data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor());
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint64(0);
+    EXPECT_EQ(ret, true);
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    Media::PixelMap* pixelmap = nullptr;
+    ret = data.WriteParcelable(pixelmap);
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint8(100);
+    EXPECT_EQ(ret, true);
+
+    auto res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: OnRemoteRequest007
+ * @tc.desc: Verify function OnRemoteRequest if code ON_SURFACE_CAPTURE_HDR and data has right captureErrCode
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest007, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR);
+
+    auto ret = data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor());
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint64(0);
+    EXPECT_EQ(ret, true);
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    Media::PixelMap* pixelmap = nullptr;
+    ret = data.WriteParcelable(pixelmap);
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint8(0);
+    EXPECT_EQ(ret, true);
+    ret = data.WriteParcelable(pixelmap);
+    EXPECT_EQ(ret, true);
+
+    auto res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: OnRemoteRequest008
+ * @tc.desc: Verify function OnRemoteRequest if code exist and data has no content
+ * @tc.type:FUNC
+ * @tc.require: issueIAKP5Y
+ */
+HWTEST_F(RSSurfaceCaptureCallbackStubTest, OnRemoteRequest008, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    ASSERT_TRUE(remoteMocker != nullptr);
+    remoteMocker->sendRequestResult_ = 1;
+    auto rsSurfaceCaptureCallbackProxy = std::make_shared<RSSurfaceCaptureCallbackProxy>(remoteMocker);
+    ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
+    RSSurfaceCaptureConfig captureConfig;
+
+    uint32_t code = static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR);
+
+    auto ret = data.WriteInterfaceToken(RSISurfaceCaptureCallback::GetDescriptor());
+    EXPECT_EQ(ret, true);
+    ret = data.WriteUint64(0);
+    EXPECT_EQ(ret, true);
+    ret = rsSurfaceCaptureCallbackProxy->WriteSurfaceCaptureConfig(captureConfig, data);
+    EXPECT_EQ(ret, true);
+    Media::PixelMap* pixelmap = nullptr;
+    ret = data.WriteParcelable(pixelmap);
+    EXPECT_EQ(ret, true);
+
+    int res = stub->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
  * @tc.name: ReadSurfaceCaptureConfig
  * @tc.desc: Verify the ReadSurfaceCaptureConfig error case
  * @tc.type:FUNC
@@ -101,5 +311,4 @@ HWTEST_F(RSSurfaceCaptureCallbackStubTest, ReadSurfaceCaptureConfig, TestSize.Le
     int res = stub->ReadSurfaceCaptureConfig(captureConfig, data);
     ASSERT_EQ(res, false);
 }
-
 } // namespace OHOS::Rosen

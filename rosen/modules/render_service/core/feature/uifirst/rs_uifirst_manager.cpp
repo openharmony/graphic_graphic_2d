@@ -59,7 +59,6 @@ namespace {
         auto curTime = std::chrono::system_clock::now().time_since_epoch();
         return std::chrono::duration_cast<std::chrono::milliseconds>(curTime).count();
     }
-    constexpr float CACHE_SIZE_SPIKE_THRESHOLD = 0.1f;
 };
 
 RSUifirstManager& RSUifirstManager::Instance()
@@ -186,6 +185,7 @@ void RSUifirstManager::ResetUifirstNode(std::shared_ptr<RSSurfaceRenderNode>& no
         nodePtr->SetIsNodeToBeCaptured(false);
         rsSubThreadCache.ResetUifirst();
     }
+    rsSubThreadCache.ResetCacheReuseCount();
 }
 
 void RSUifirstManager::ResetWindowCache(std::shared_ptr<RSSurfaceRenderNode>& nodePtr)
@@ -662,6 +662,23 @@ bool RSUifirstManager::HandlePurgeBehindWindow(PendingPostNodeMap::iterator& it)
     }
 }
 
+void RSUifirstManager::ShouldAutoCleanCache(NodeId id, DrawableV2::RsSubThreadCache& subThreadCache)
+{
+    if (GetUiFirstMode() != UiFirstModeType::MULTI_WINDOW_MODE || clearCacheThreshold_ <= 0 ||
+        !RSSystemProperties::GetUIFirstAutoClearCacheEnabled()) {
+        return;
+    }
+    if (subthreadProcessingNode_.find(id) == subthreadProcessingNode_.end() &&
+        !subThreadCache.CheckCacheSurface()) {
+        RS_LOGD("cachesurface already cleared. id:%{public}" PRIu64, id);
+        return;
+    }
+    subThreadCache.AddCacheReuseCount();
+    if (subThreadCache.GetCacheReuseCount() >= clearCacheThreshold_) {
+        AddMarkedClearCacheNode(id);
+    }
+}
+
 void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRenderNode>& node, bool staticContent,
     DrawableV2::RsSubThreadCache& subThreadCache)
 {
@@ -692,6 +709,7 @@ void RSUifirstManager::OnPurgePendingPostNodesInner(std::shared_ptr<RSSurfaceRen
     }
 
     subThreadCache.SetUifirstSurfaceCacheContentStatic(staticContent);
+    ShouldAutoCleanCache(node->GetId(), subThreadCache);
 }
 
 bool RSUifirstManager::CommonPendingNodePurge(PendingPostNodeMap::iterator& it)
@@ -759,6 +777,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
             RS_TRACE_NAME_FMT("Purge GetForceDrawWithSkipped name: %s %" PRIu64,
                 node->GetName().c_str(), drawable->GetId());
             ++it;
+            subThreadCache.ResetCacheReuseCount();
             continue;
         }
         RS_TRACE_NAME_FMT("Purge node name: %s, PurgeEnable:%d, HasCachedTexture:%d, staticContent: [%d %d] %" PRIu64,
@@ -771,6 +790,7 @@ void RSUifirstManager::DoPurgePendingPostNodes(PendingPostNodeMap& pendingNode)
         }
 
         ++it;
+        subThreadCache.ResetCacheReuseCount();
     }
 }
 
@@ -1727,7 +1747,8 @@ bool RSUifirstManager::IsArkTsCardCache(RSSurfaceRenderNode& node, bool animatio
     // card node only enabled uifirst on phone
     if (RSUifirstManager::Instance().GetUiFirstMode() != UiFirstModeType::SINGLE_WINDOW_MODE ||
         node.GetSurfaceNodeType() != RSSurfaceNodeType::ABILITY_COMPONENT_NODE ||
-        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos) {
+        node.GetName().find(ARKTSCARDNODE_NAME) == std::string::npos ||
+        node.GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
         return false;
     }
     bool isWhiteListCard = RSUifirstManager::Instance().NodeIsInCardWhiteList(node);
@@ -1771,24 +1792,14 @@ bool RSUifirstManager::IsCacheSizeValid(RSSurfaceRenderNode& node)
     }
 
     bool cacheSizeStable = ROSEN_EQ(lastCachedSize.x_ / cachedSize.x_,
-        lastCachedSize.y_ / cachedSize.y_, CACHE_SIZE_SPIKE_THRESHOLD);
+        lastCachedSize.y_ / cachedSize.y_, sizeChangedThreshold_);
     if (cacheSizeStable) {
-        RS_OPTIONAL_TRACE_NAME_FMT("[%s] cacheSizeStable cur[%f %f] last[%f %f]", node.GetName().c_str(),
-            cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_);
         return true;
     }
 
-    bool isCacheSizeRotated = !ROSEN_EQ(cachedSize.x_, cachedSize.y_) &&
-            ROSEN_EQ(cachedSize.x_, lastCachedSize.y_) && ROSEN_EQ(cachedSize.y_, lastCachedSize.x_);
-    // Rotated check will be deleted when threshold has been setted by CCM
-    if (!isCacheSizeRotated) {
-        RS_OPTIONAL_TRACE_NAME_FMT("[%s] CacheSizeRotated cur[%f %f] last[%f %f]", node.GetName().c_str(),
-            cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_);
-        return true;
-    }
-
-    RS_TRACE_NAME_FMT("[%s] cachedSize invalid cur[%f %f] last[%f %f] gravity %d", node.GetName().c_str(),
-        cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_, static_cast<int32_t>(gravity));
+    RS_TRACE_NAME_FMT("[%s] cachedSize invalid cur[%f %f] last[%f %f] gravity:%d threshold:%f",
+        node.GetName().c_str(), cachedSize.x_, cachedSize.y_, lastCachedSize.x_, lastCachedSize.y_,
+        static_cast<int32_t>(gravity), sizeChangedThreshold_);
     return false;
 }
 
@@ -2305,9 +2316,12 @@ void RSUifirstManager::ReadUIFirstCcmParam()
 #endif
     SetUiFirstType(UIFirstParam::GetUIFirstType());
     uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();
-    RS_LOGI("ReadUIFirstCcmParam isUiFirstOn_=%{public}d isCardUiFirstOn_=%{public}d"
-        " uifirstType_=%{public}d uiFirstEnableWindowThreshold_=%{public}d",
-        isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_);
+    clearCacheThreshold_ = UIFirstParam::GetClearCacheThreshold();
+    sizeChangedThreshold_ = UIFirstParam::GetSizeChangedThreshold();
+    RS_LOGI("ReadUIFirstCcmParam isUiFirstOn=%{public}d isCardUiFirstOn=%{public}d uifirstType=%{public}d"
+        " enableWindowThreshold=%{public}d clearCacheThreshold=%{public}d sizeChangedThreshold=%{public}f",
+        isUiFirstOn_, isCardUiFirstOn_, static_cast<int>(uifirstType_), uifirstWindowsNumThreshold_,
+        clearCacheThreshold_, sizeChangedThreshold_);
 }
 
 void RSUifirstManager::SetUiFirstType(int type)
@@ -2501,10 +2515,13 @@ void RSUifirstManager::ProcessMarkedNodeSubThreadCache()
                 (pendingPostCardNodes_.find(markedNode) != pendingPostCardNodes_.end())) {
                 continue;
             }
-            RS_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache id:%" PRIu64, markedNode);
-            RS_LOGI("ProcessMarkedNodeSubThreadCache id:%{public}" PRIu64, markedNode);
+            RS_TRACE_NAME_FMT("ProcessMarkedNodeSubThreadCache id:%" PRIu64 " name:%s",
+                markedNode, drawable->GetName().c_str());
+            RS_LOGI("ProcessMarkedNodeSubThreadCache id:%{public}" PRIu64 " name:%{public}s",
+                markedNode, drawable->GetName().c_str());
             auto& rsSubThreadCache = drawable->GetRsSubThreadCache();
             rsSubThreadCache.ClearCacheSurfaceOnly();
+            rsSubThreadCache.ResetCacheReuseCount();
         }
     }
     markedClearCacheNodes_.clear();

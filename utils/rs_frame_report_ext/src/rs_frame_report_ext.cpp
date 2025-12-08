@@ -102,6 +102,7 @@ void *RsFrameReportExt::LoadSymbol(const char *symName)
 
 int RsFrameReportExt::GetEnable()
 {
+    std::lock_guard<std::mutex> lock(getEnableFuncLock_);
     if (!frameSchedSoLoaded_) {
         return 0;
     }
@@ -118,6 +119,7 @@ int RsFrameReportExt::GetEnable()
 
 void RsFrameReportExt::HandleSwapBuffer()
 {
+    std::lock_guard<std::mutex> lock(handleSwapBufferFuncLock_);
     if (handleSwapBufferFunc_ == nullptr) {
         handleSwapBufferFunc_ = reinterpret_cast<HandleSwapBufferFunc>(LoadSymbol("HandleSwapBuffer"));
     }
@@ -130,6 +132,7 @@ void RsFrameReportExt::HandleSwapBuffer()
 
 void RsFrameReportExt::RequestNextVSync()
 {
+    std::lock_guard<std::mutex> lock(requestNextVSyncFuncLock_);
     if (requestNextVSyncFunc_ == nullptr) {
         requestNextVSyncFunc_ = reinterpret_cast<RequestNextVSyncFunc>(LoadSymbol("RequestNextVSync"));
     }
@@ -142,6 +145,7 @@ void RsFrameReportExt::RequestNextVSync()
 
 void RsFrameReportExt::ReceiveVSync()
 {
+    std::lock_guard<std::mutex> lock(receiveVSyncFuncLock_);
     if (receiveVSyncFunc_ == nullptr) {
         receiveVSyncFunc_ = reinterpret_cast<ReceiveVSyncFunc>(LoadSymbol("ReceiveVSync"));
     }

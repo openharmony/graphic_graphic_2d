@@ -21,6 +21,7 @@
 
 #include "drawable/rs_property_drawable_background.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -115,6 +116,40 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable002, TestSize.Level1)
     drawable->radius_ = 0.f;
     drawable->elevation_ = 1.0f;
     drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSShadowDrawable003
+ * @tc.desc: Shadow test with sdf filter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSShadowDrawable003, TestSize.Level1)
+{
+    NodeId id = 3;
+    RSRenderNode node(id);
+    auto shadowDrawable = std::make_shared<DrawableV2::RSShadowDrawable>();
+    auto sdfShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    EXPECT_NE(sdfShape, nullptr);
+    node.GetMutableRenderProperties().SetSDFShape(sdfShape);
+
+    Color shadowColor = Color();
+    node.GetMutableRenderProperties().SetShadowColor(shadowColor);
+    node.GetMutableRenderProperties().SetShadowRadius(1.0f);
+    shadowDrawable->OnUpdate(node);
+    shadowDrawable->OnSync();
+    EXPECT_TRUE(shadowDrawable->geContainer_ != nullptr);
+
+    auto drawFunc = shadowDrawable->CreateDrawFunc();
+    auto rect = std::make_shared<Drawing::Rect>();
+    Drawing::Canvas canvas;
+    drawFunc(&canvas, rect.get());
+    ASSERT_TRUE(true);
+
+    drawFunc(nullptr, rect.get());
+    ASSERT_TRUE(true);
+
+    drawFunc(&canvas, nullptr);
     ASSERT_TRUE(true);
 }
 
@@ -377,6 +412,8 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable004, TestSize.Le
 {
     EXPECT_EQ(Drawing::COLORTYPE_RGBA_8888,
         DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R8G8B8A8_UNORM));
+    EXPECT_EQ(Drawing::COLORTYPE_BGRA_8888,
+        DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_B8G8R8A8_UNORM));
     EXPECT_EQ(Drawing::COLORTYPE_RGBA_F16,
         DrawableV2::RSBackgroundImageDrawable::GetColorTypeFromVKFormat(VkFormat::VK_FORMAT_R16G16B16A16_SFLOAT));
     EXPECT_EQ(Drawing::COLORTYPE_RGB_565,
@@ -751,6 +788,31 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable008, TestSize.Level1)
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     filterCanvas->SetEffectIntersectWithDRM(false);
     ASSERT_FALSE(filterCanvas->GetEffectIntersectWithDRM());
+    auto rect = std::make_shared<Drawing::Rect>();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffect(true);
+    rsRenderNode->GetMutableRenderProperties().SetUseEffectType(0);
+    ASSERT_NE(rsRenderNode, nullptr);
+    auto drawableTwo = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(rsRenderNode);
+    auto drawable = std::make_shared<DrawableV2::RSUseEffectDrawable>(drawableTwo);
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), rect.get());
+    ASSERT_NE(drawFunc, nullptr);
+}
+
+/**
+ * @tc.name: RSUseEffectDrawable009
+ * @tc.desc: Test CreateDrawFunc
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSUseEffectDrawable009, TestSize.Level1)
+{
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    filterCanvas->SetIsParallelCanvas(true);
+
     auto rect = std::make_shared<Drawing::Rect>();
     auto rsContext = std::make_shared<RSContext>();
     auto rsRenderNode = std::make_shared<RSRenderNode>(9, rsContext);

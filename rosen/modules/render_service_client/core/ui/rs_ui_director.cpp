@@ -60,7 +60,6 @@
 
 namespace OHOS {
 namespace Rosen {
-std::function<void()> RSUIDirector::requestVsyncCallback_ = nullptr;
 static std::mutex g_vsyncCallbackMutex;
 static std::once_flag g_initDumpNodeTreeProcessorFlag;
 static std::once_flag g_isResidentProcessFlag;
@@ -84,6 +83,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std
 
     if (rsUIContext != nullptr) {
         rsUIContext_ = rsUIContext;
+        skipDestroyUIContext_ = true;
     } else if (isMultiInstance) {
         rsUIContext_ = RSUIContextManager::MutableInstance().CreateRSUIContext();
     }
@@ -344,7 +344,12 @@ void RSUIDirector::Destroy(bool isTextureExport)
     }
     GoBackground(isTextureExport);
     if (rsUIContext_ != nullptr) {
-        RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+        // When a child window reuses the instance of the parent window, do not remove the UIContext from the
+        // UIContextManager when the child window is destroyed, as this would cause the parent window or newly created
+        // child windows to be unable to find the UIContext during animation callback.
+        if (!skipDestroyUIContext_) {
+            RSUIContextManager::MutableInstance().DestroyContext(rsUIContext_->GetToken());
+        }
         rsUIContext_ = nullptr;
     }
     {
@@ -438,8 +443,11 @@ void RSUIDirector::SetRequestVsyncCallback(const std::function<void()>& callback
         return;
     }
     std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-    requestVsyncCallback_ = callback;
-    requestVsyncCallbacks_[this] = callback;
+    if (rsUIContext_) {
+        rsUIContext_->SetRequestVsyncCallback(callback);
+    } else {
+        requestVsyncCallbacks_[this] = callback;
+    }
 }
 
 void RSUIDirector::SetTimeStamp(uint64_t timeStamp, const std::string& abilityName)
@@ -700,18 +708,7 @@ void RSUIDirector::ProcessUIContextMessages(
                 RSContext context; // RSCommand->process() needs it
                 cmd->Process(context);
             }
-            if (counter->fetch_sub(1) == 1) {
-                std::unique_lock<std::mutex> lock(g_vsyncCallbackMutex);
-                if (requestVsyncCallback_ != nullptr) {
-                    requestVsyncCallback_();
-                } else {
-                    auto rsTransaction = rsUICtx->GetRSTransaction();
-                    if (rsTransaction != nullptr) {
-                        rsTransaction->FlushImplicitTransaction();
-                    }
-                }
-                ROSEN_LOGD("ProcessUIContextMessages end");
-            }
+            rsUICtx->RequestVsyncCallback();
         });
     }
 }

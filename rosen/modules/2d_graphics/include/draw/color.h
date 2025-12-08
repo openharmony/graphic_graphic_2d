@@ -21,6 +21,7 @@
 
 #include "common/rs_macros.h"
 #include "effect/color_space.h"
+#include "property/rs_color_picker_def.h"
 #include "utils/scalar.h"
 #include "utils/drawing_macros.h"
 
@@ -118,6 +119,7 @@ public:
     Color(const Color& c) noexcept;
     Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept;
     Color(ColorQuad rgba) noexcept;
+    Color(ColorPlaceholder ph) noexcept;
 
     uint32_t GetRed() const;
     uint32_t GetGreen() const;
@@ -142,10 +144,12 @@ public:
     void SetRgbF(scalar r, scalar g, scalar b, scalar a = 1.0);
 
     void SetColorQuad(uint32_t c);
-    inline ColorQuad CastToColorQuad() const
-    {
-        return ((alpha_ & 0xffu) << 24) | ((red_ & 0xffu) << 16) | ((green_ & 0xffu) << 8) | ((blue_ & 0xffu) << 0);
-    }
+    ColorQuad CastToColorQuad() const;
+
+    // Placeholder feature methods
+    bool IsPlaceholder() const;
+    ColorPlaceholder GetPlaceholder() const;
+    void SetPlaceholder(ColorPlaceholder ph);
 
     friend DRAWING_API bool operator==(const Color& c1, const Color& c2);
     friend DRAWING_API bool operator!=(const Color& c1, const Color& c2);
@@ -160,6 +164,7 @@ private:
     uint32_t green_;
     uint32_t blue_;
     Color4f color4f_;
+    ColorPlaceholder placeholder_ = ColorPlaceholder::NONE;
 };
 } // namespace Drawing
 } // namespace Rosen

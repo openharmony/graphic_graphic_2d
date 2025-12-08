@@ -118,7 +118,6 @@ public:
 
     uint32_t GetActiveRefreshRate() const;
     int32_t SetActiveRefreshRate(int32_t sceneId, uint32_t rate);
-    int32_t SetRateAndResolution(int32_t sceneId, uint32_t rate, int32_t width, int32_t height);
     int32_t SetRefreshRateRange(uint32_t minRate, uint32_t maxRate);
     int32_t AddScreenModeInfo(int32_t width, int32_t height, uint32_t rate, int32_t modeId);
 

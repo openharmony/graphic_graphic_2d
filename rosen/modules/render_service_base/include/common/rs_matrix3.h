@@ -73,7 +73,18 @@ public:
     Matrix3 Scale(const Vector2<T>& vec, T pivotx, T pivoty) const;
     Matrix3 ShearX(T y) const;
     Matrix3 ShearY(T x) const;
-
+    enum Index {
+        SCALE_X,
+        SKEW_X,
+        TRANS_X,
+        SKEW_Y,
+        SCALE_Y,
+        TRANS_Y,
+        PERSP_0,
+        PERSP_1,
+        PERSP_2,
+    };
+    static constexpr int MATRIX3_SIZE = 9;
 protected:
     T data_[9] = { 0 };
 };

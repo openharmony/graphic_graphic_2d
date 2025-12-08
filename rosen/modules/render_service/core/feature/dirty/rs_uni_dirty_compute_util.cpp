@@ -30,6 +30,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "params/rs_screen_render_params.h"
@@ -296,10 +297,14 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
 {
     bool effectNodeExpandDirty =
         filterNode.IsInstanceOf<RSEffectRenderNode>() && !filterNode.FirstFrameHasEffectChildren();
+    RectI filterSnapshotRect = filterNode.GetOldDirtyInSurface().JoinRect(
+        filterNode.GetFilterDrawableSnapshotRegion());
+    RectI filterDirtyRect = filterNode.GetOldDirtyInSurface().JoinRect(filterNode.GetFilterRegion());
     auto filterRegion = effectNodeExpandDirty ?
-        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterNode.GetOldDirtyInSurface()));
+        GetVisibleEffectRegion(filterNode) : Occlusion::Region(Occlusion::Rect(filterSnapshotRect));
     auto dirtyRegion = effectNodeExpandDirty ?
-        filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) : filterRegion;
+        filterRegion.Or(Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()))) :
+        Occlusion::Region(Occlusion::Rect(filterDirtyRect));
     if (filterNode.NeedDrawBehindWindow()) {
         filterRegion = Occlusion::Region(Occlusion::Rect(filterNode.GetFilterRect()));
         dirtyRegion = filterRegion;
@@ -308,8 +313,8 @@ FilterDirtyRegionInfo RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo
     auto& filterProperties = filterNode.GetRenderProperties();
     FilterDirtyRegionInfo filterInfo = {
         .id_ = filterNode.GetId(),
-        .intersectRegion_ = isSurface ? filterRegion : dirtyRegion,
-        .filterDirty_ = isSurface ? filterRegion : dirtyRegion,
+        .intersectRegion_ = filterRegion,
+        .filterDirty_ = dirtyRegion,
         .alignedFilterDirty_ = dirtyRegion.GetAlignedRegion(MAX_DIRTY_ALIGNMENT_SIZE),
         .belowDirty_ = preDirty.value_or(Occlusion::Region()),
         .isBackgroundFilterClean_ =
@@ -411,7 +416,8 @@ bool RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(
         if (UNLIKELY(displayDrawable == nullptr || displayParams == nullptr)) {
             continue;
         }
-        if (displayDrawable->GetSpecialLayerType(*displayParams) != NO_SPECIAL_LAYER) {
+        if (RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(*displayParams, &params) !=
+            DisplaySpecialLayerState::NO_SPECIAL_LAYER) {
             RS_TRACE_NAME("CheckVirtualExpandScreenSkip has special layer can not skip");
             return false;
         }

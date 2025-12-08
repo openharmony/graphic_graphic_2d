@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -129,12 +129,12 @@ bool RSSurfaceDarwin::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_
     return true;
 }
 
-RenderContext* RSSurfaceDarwin::GetRenderContext()
+std::shared_ptr<RenderContext> RSSurfaceDarwin::GetRenderContext()
 {
     return renderContext_;
 }
 
-void RSSurfaceDarwin::SetRenderContext(RenderContext* context)
+void RSSurfaceDarwin::SetRenderContext(std::shared_ptr<RenderContext> context)
 {
     renderContext_ = context;
 }

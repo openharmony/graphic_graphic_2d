@@ -29,7 +29,7 @@ public:
     virtual ~RSSurfaceCaptureCallbackProxy() noexcept = default;
 
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
-        Media::PixelMap* pixelmapHDR = nullptr) override;
+        CaptureError captureErrorCode, Media::PixelMap* pixelmapHDR = nullptr) override;
 
 private:
     static inline BrokerDelegator<RSSurfaceCaptureCallbackProxy> delegator_;

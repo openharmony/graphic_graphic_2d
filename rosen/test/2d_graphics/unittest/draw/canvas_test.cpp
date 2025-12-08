@@ -356,6 +356,69 @@ HWTEST_F(CanvasTest, CanvasDrawShadowStyleTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CanvasGetLocalShadowBoundTest001
+ * @tc.desc: Test for GetLocalShadowBounds function.
+ * @tc.type: FUNC
+ * @tc.require: I719NQ
+ */
+HWTEST_F(CanvasTest, CanvasGetLocalShadowBoundTest001, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    Rect rect;
+    ASSERT_TRUE(canvas != nullptr);
+    Path path;
+    path.AddRoundRect({500, 500, 1000, 1000}, 50.f, 50.f);
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(0.8, 0, 0, 0, 1.5, 0, 0.01, -0.003, 1);
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    ASSERT_TRUE(canvas->GetLocalShadowBounds(
+        matrix, path, planeParams, devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect));
+}
+
+
+/**
+ * @tc.name: CanvasGetLocalShadowBoundTest002
+ * @tc.desc: Test for GetLocalShadowBounds function.
+ * @tc.type: FUNC
+ * @tc.require: I719NQ
+ */
+HWTEST_F(CanvasTest, CanvasGetLocalShadowBoundTest002, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    Rect rect;
+    ASSERT_TRUE(canvas != nullptr);
+    Path path;
+    path.AddRoundRect({500, 500, 1000, 1000}, 50.f, 50.f);
+    Drawing::Matrix matrix;
+    matrix.SetMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    Point3 planeParams(1.0f, 0.0f, 0.0f);
+    Point3 devLightPos(1.0f, 1.0f, 1.0f);
+    ASSERT_TRUE(canvas->GetLocalShadowBounds(
+        matrix, path, planeParams, devLightPos, 1.0f, ShadowFlags::TRANSPARENT_OCCLUDER, true, rect) == false);
+}
+
+/**
+ * @tc.name: DrawImageEffectHPSStatisticsEmptyImage
+ * @tc.desc: Test DrawImageEffectHPS Statistics Effect With EmptyImage
+ * @tc.type: FUNC
+ * @tc.require: I91EH1
+ */
+HWTEST_F(CanvasTest, DrawImageEffectHPSStatisticsEmptyImage, TestSize.Level1)
+{
+    auto canvas = std::make_unique<Canvas>();
+    ASSERT_TRUE(canvas != nullptr);
+    Drawing::Image image;
+    Drawing::Rect srcRect = { 0.0f, 0.0f, 100.0f, 100.0f };
+    Drawing::Rect dstRect = { 0.0f, 0.0f, 1.0f, 1.0f };
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    hpsEffectParams.push_back(hpsStatisticsArgs);
+    ASSERT_TRUE(canvas->DrawImageEffectHPS(image, hpsEffectParams) == false);
+}
+
+/**
  * @tc.name: CanvasDrawRegionTest001
  * @tc.desc: Test for drawing Region on the Canvas.
  * @tc.type: FUNC
@@ -534,6 +597,31 @@ HWTEST_F(CanvasTest, HpsEffectParameterGetTypeTest001, TestSize.Level1)
     auto hpsMesaArgs = std::make_shared<Drawing::HpsMesaParameter>(srcRect, dstRect,
     10.f, 1.f, 2.f, 11.f, 12.f, 13.f, 14.f, 1, 256.f, 256.f);
     EXPECT_EQ(hpsMesaArgs->GetEffectType(), Drawing::HpsEffect::MESA);
+    // STATISTICS
+    auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
+        Drawing::HpsStatisticsType::MEAN);
+    EXPECT_EQ(hpsStatisticsArgs->GetEffectType(), Drawing::HpsEffect::STATISTICS);
+    // PIXEL_MAP_MASK
+    std::vector<float> colors2 = { 0, 0, 0, 0 };
+    auto sharedImage = std::make_shared<Drawing::Image>(image);
+    std::array<float, 9> transformMatrix = {0.312f, 0.0f, 0.344f, 0.0f, 0.691f, 0.154f, 0.0f, 0.0f, 1.0f};
+    auto hpsPixelMaskArgs = std::make_shared<Drawing::HpsPixelMapMaskParameter>(sharedImage, dstRect, transformMatrix,
+        colors2);
+    EXPECT_EQ(hpsPixelMaskArgs->GetMaskType(), Drawing::HpsMask::PIXEL_MAP_MASK);
+    // RADIAL_GRADIENT_MASK
+    std::vector<float> edgeColor = { 0.63922, 0.81961, 1.00, 0 };
+    std::vector<float> colors = { 1.00f, 1.00f, 0.00f };
+    std::vector<float> positions = { 0.00f, 0.91142f, 1.00f };
+    auto hpsRadialMaskArgs = std::make_shared<Drawing::HpsRadialGradientMaskParameter>(1.00,
+        0.33934, 0.92116, 0.92116, colors, positions);
+    EXPECT_EQ(hpsRadialMaskArgs->GetMaskType(), Drawing::HpsMask::RADIAL_GRADIENT_MASK);
+    // EDGE_LIGHT
+    std::vector<float> edgeDetectColor = { 0.22, 0.707, 0.875, 0.000 };
+    Drawing::HpsEdgeLightParameter::EdgeSobelParameter edgeSobelParams = { 0.1, 0.2, 0.3, edgeDetectColor };
+    auto hpsRadialArgs = std::make_shared<Drawing::HpsEdgeLightParameter>(srcRect, dstRect,
+        1, true, true, edgeColor, std::static_pointer_cast<Drawing::HpsMaskParameter>(hpsRadialMaskArgs),
+        edgeSobelParams, 1);
+    EXPECT_EQ(hpsRadialArgs->GetEffectType(), Drawing::HpsEffect::EDGE_LIGHT);
 }
 
 /**

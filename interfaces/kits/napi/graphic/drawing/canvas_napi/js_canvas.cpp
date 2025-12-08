@@ -218,6 +218,7 @@ static const napi_property_descriptor g_properties[] = {
     DECLARE_NAPI_FUNCTION("isClipEmpty", JsCanvas::IsClipEmpty),
     DECLARE_NAPI_FUNCTION("quickRejectPath", JsCanvas::QuickRejectPath),
     DECLARE_NAPI_FUNCTION("quickRejectRect", JsCanvas::QuickRejectRect),
+    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsCanvas::CanvasTransferDynamic),
 };
 
 napi_value JsCanvas::Constructor(napi_env env, napi_callback_info info)
@@ -1342,7 +1343,7 @@ bool GetPositions(napi_env env, uint32_t pointLength, napi_value& positionsArray
     uint32_t positionsSize = 0;
     if (napi_get_array_length(env, positionsArray, &positionsSize) != napi_ok) {
         ROSEN_LOGE("JsCanvas::OnDrawVertices positionsArray is invalid");
-        NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
+        NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid positions params.");
         return false;
     };
     if (positionsSize != pointLength) {
@@ -1353,7 +1354,6 @@ bool GetPositions(napi_env env, uint32_t pointLength, napi_value& positionsArray
     positions.resize(positionsSize);
     if (!OnMakePoints(env, positions.data(), positionsSize, positionsArray)) {
         ROSEN_LOGE("JsCanvas::OnDrawVertices positions is invalid");
-        NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
         return false;
     }
     return true;
@@ -1373,7 +1373,6 @@ bool GetTexs(napi_env env, uint32_t pointLength, napi_value& texsArray,
         texs.resize(texsSize);
         if (!OnMakePoints(env, texs.data(), texsSize, texsArray)) {
             ROSEN_LOGE("JsCanvas::OnDrawVertices texs is invalid");
-            NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid texs params.");
             return false;
         }
     }
@@ -1399,7 +1398,7 @@ bool GetColors(napi_env env, uint32_t pointLength, napi_value& colorsArray,
             uint32_t vertex = 0;
             if (napi_get_value_uint32(env, tempVertex, &vertex) != napi_ok) {
                 ROSEN_LOGE("JsCanvas::OnDrawVertices colors is invalid");
-                NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid colors params.");
+                NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid colors params.");
                 return false;
             }
             colorsPtr[i] = vertex;
@@ -1427,11 +1426,11 @@ bool GetIndices(napi_env env, uint32_t indicesLength, napi_value& indicesArray,
             uint32_t vertex = 0;
             if (napi_get_value_uint32(env, tempVertex, &vertex) != napi_ok) {
                 ROSEN_LOGE("JsCanvas::OnDrawVertices indices is Invalid");
-                NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indices params.");
+                NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid indices params.");
                 return false;
             }
             if (vertex > std::numeric_limits<uint16_t>::max()) {
-                ROSEN_LOGE("AniCanvas::OnDrawVertices indices value exceeds uint16_t range");
+                ROSEN_LOGE("JsCanvas::OnDrawVertices indices value exceeds uint16_t range");
                 NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indices params.");
                 return false;
             }
@@ -1455,38 +1454,38 @@ napi_value JsCanvas::OnDrawVertices(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_EIGHT] = {nullptr};
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_EIGHT);
     int32_t vertexCount = 0;
-    GET_INT32_CHECK_GE_ZERO_PARAM(ARGC_ONE, vertexCount);
+    napi_get_value_int32(env, argv[ARGC_ONE], &vertexCount);
     if (vertexCount < VERTEX_COUNT_MIN_SIZE) {
         ROSEN_LOGE("JsCanvas::OnDrawVertices vertexCount is Invalid");
         return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid vertexCount params.");
     }
+    int32_t indexCountTemp = 0;
+    napi_get_value_int32(env, argv[ARGC_FIVE], &indexCountTemp);
+    if (indexCountTemp < VERTEX_COUNT_MIN_SIZE && indexCountTemp != 0) {
+        ROSEN_LOGE("JsCanvas::OnDrawVertices indexCount is Invalid");
+        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indexCount params.");
+    }
+    uint32_t indexCount = static_cast<uint32_t>(indexCountTemp);
     uint32_t pointLength = static_cast<uint32_t>(vertexCount);
+    int32_t vertexModeTemp = -1;
+    GET_ENUM_PARAM_RANGE(ARGC_ZERO, vertexModeTemp, 0, static_cast<int32_t>(VertexMode::LAST_VERTEXMODE));
+    int32_t blendModeTemp = -1;
+    GET_ENUM_PARAM_RANGE(ARGC_SEVEN, blendModeTemp, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
     std::vector<Drawing::Point> positions;
     std::vector<Drawing::Point> texs;
     std::unique_ptr<uint32_t[]> colors;
     std::unique_ptr<uint16_t[]> indices;
-    uint32_t indexCount = 0;
-    napi_get_value_uint32(env, argv[ARGC_FIVE], &indexCount);
-    if (indexCount < VERTEX_COUNT_MIN_SIZE && indexCount != 0) {
-        ROSEN_LOGE("JsCanvas::OnDrawVertices indexCount is Invalid");
-        return NapiThrowError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid indexCount params.");
-    }
     if ((GetPositions(env, pointLength, argv[ARGC_TWO], positions)) == false ||
         (GetTexs(env, pointLength, argv[ARGC_THREE], texs)) == false ||
         (GetColors(env, pointLength, argv[ARGC_FOUR], colors)) == false ||
         (GetIndices(env, indexCount, argv[ARGC_SIX], indices)) == false) {
         return nullptr;
     }
-    int32_t modeTemp = 0;
-    GET_ENUM_PARAM(ARGC_ZERO, modeTemp, 0, static_cast<int32_t>(VertexMode::LAST_VERTEXMODE));
-    auto vertexMode = static_cast<VertexMode>(modeTemp);
-    GET_ENUM_PARAM(ARGC_SEVEN, modeTemp, 0, static_cast<int32_t>(BlendMode::LUMINOSITY));
-    auto blendMode = static_cast<BlendMode>(modeTemp);
     std::unique_ptr<Vertices> vertices = std::make_unique<Vertices>();
-    bool result = vertices->MakeCopy(vertexMode, vertexCount, positions.data(),
+    bool result = vertices->MakeCopy(static_cast<VertexMode>(vertexModeTemp), vertexCount, positions.data(),
         texs.data(), colors.get(), indices.get() ? indexCount : 0, indices.get());
     if (result) {
-        JS_CALL_DRAWING_FUNC(m_canvas->DrawVertices(*vertices, blendMode));
+        JS_CALL_DRAWING_FUNC(m_canvas->DrawVertices(*vertices, static_cast<BlendMode>(blendModeTemp)));
     }
     return nullptr;
 }
@@ -2003,7 +2002,7 @@ napi_value JsCanvas::OnSaveLayer(napi_env env, napi_callback_info info)
             return NapiThrowError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 std::string("Incorrect ") + __FUNCTION__ + " parameter" + std::to_string(ARGC_ONE) + " type.");
         }
-        drawingBrushPtr = jsBrush->GetBrush();
+        drawingBrushPtr = jsBrush->GetBrush().get();
     }
     ret = m_canvas->GetSaveCount();
     SaveLayerOps saveLayerOps = SaveLayerOps(drawingRectPtr, drawingBrushPtr);
@@ -2613,6 +2612,56 @@ napi_value JsCanvas::OnResetMatrix(napi_env env, napi_callback_info info)
     }
     m_canvas->ResetMatrix();
     return nullptr;
+}
+
+napi_value JsCanvas::CanvasTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 3;
+    napi_value argv[ARGC_THREE] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_THREE) {
+        return nullptr;
+    }
+    int64_t canvasAddr = 0;
+    if (napi_get_value_int64(env, argv[ARGC_ZERO], &canvasAddr) != napi_ok) {
+        return nullptr;
+    }
+    Canvas* canvas = reinterpret_cast<Canvas*>(canvasAddr);
+    if (canvas == nullptr) {
+        return nullptr;
+    }
+    bool owned = false;
+    if (napi_get_value_bool(env, argv[ARGC_TWO], &owned) != napi_ok) {
+        return nullptr;
+    }
+#ifdef ROSEN_OHOS
+    int64_t pixelMapAddr = 0;
+    if (napi_get_value_int64(env, argv[ARGC_ONE], &pixelMapAddr) != napi_ok) {
+        return nullptr;
+    }
+    std::shared_ptr<Media::PixelMap> pixelMap = *reinterpret_cast<std::shared_ptr<Media::PixelMap>*>(pixelMapAddr);
+    if (pixelMap == nullptr) {
+        return nullptr;
+    }
+#endif
+    JsCanvas* jsCanvas = new JsCanvas(canvas, owned);
+#ifdef ROSEN_OHOS
+    jsCanvas->mPixelMap_ = pixelMap;
+#endif
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        delete jsCanvas;
+        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Create canvas object failed!");
+        return nullptr;
+    }
+    napi_status status = napi_wrap(env, result, jsCanvas, JsCanvas::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsCanvas;
+        ROSEN_LOGE("JsCanvas::CanvasTransferDynamic Failed to wrap native instance");
+        return nullptr;
+    }
+    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    return result;
 }
 
 } // namespace Drawing

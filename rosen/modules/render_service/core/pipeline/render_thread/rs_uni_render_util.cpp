@@ -76,7 +76,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
@@ -653,8 +652,8 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     return bufferDrawParam;
 }
 
-BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(sptr<SurfaceBuffer> buffer,
-    sptr<SyncFence> acquireFence, bool forceCPU)
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(sptr<SurfaceBuffer> buffer, sptr<SyncFence> acquireFence,
+    bool forceCPU)
 {
     BufferDrawParam bufferDrawParam;
     bufferDrawParam.useCPU = forceCPU;
@@ -672,7 +671,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(sptr<SurfaceBuffer> buffe
     bufferDrawParam.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "RSUniRenderUtil::CreateBufferDrawParam(SurfaceBuffer): Parameters creation completed");
+        "RSUniRenderUtil::CreateBufferDrawParam(buffer): Parameters creation completed");
     return bufferDrawParam;
 }
 
@@ -840,7 +839,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSScreenRenderNode&
     return params;
 }
 
-BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
+BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
     if (layer == nullptr) {
@@ -917,7 +916,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
+        "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
     return params;
 }
 

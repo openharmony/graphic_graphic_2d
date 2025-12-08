@@ -482,6 +482,38 @@ HWTEST_F(ColorPickerUnittest, GetAverageColor, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetAlphaZeroTransparentProportion
+ * @tc.desc: GetAlphaZeroTransparentProportion is Zero
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ColorPickerUnittest, GetAlphaZeroTransparentProportion, TestSize.Level1)
+{
+    size_t bufferSize = 0;
+    uint8_t* buffer = GetJpgBuffer(bufferSize);
+    ASSERT_NE(buffer, nullptr);
+
+    uint32_t errorCode = 0;
+    SourceOptions opts;
+    opts.formatHint = "image/jpeg";
+    std::unique_ptr<ImageSource> imageSource = ImageSource::CreateImageSource(buffer, bufferSize, opts, errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    ASSERT_NE(imageSource.get(), nullptr);
+
+    DecodeOptions decodeOpts;
+    std::unique_ptr<PixelMap> pixmap = imageSource->CreatePixelMap(decodeOpts, errorCode);
+    ASSERT_NE(pixmap.get(), nullptr);
+
+    std::shared_ptr<ColorPicker> pColorPicker = ColorPicker::CreateColorPicker(std::move(pixmap), errorCode);
+    ASSERT_EQ(errorCode, SUCCESS);
+    EXPECT_NE(pColorPicker, nullptr);
+
+    auto proportion = pColorPicker->GetAlphaZeroTransparentProportion();
+    EXPECT_EQ(proportion, 0.);
+}
+
+/**
  * @tc.name: GetAverageColor001
  * @tc.desc: GetAverageColor is ERR_EFFECT_INVALID_VALUE
  * @tc.type: FUNC

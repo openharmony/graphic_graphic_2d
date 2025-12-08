@@ -25,8 +25,7 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class JsBrush final {
 public:
-    JsBrush();
-    explicit JsBrush(const Brush& brush);
+    explicit JsBrush(std::shared_ptr<Brush> brush = nullptr) : brush_(brush) {}
     ~JsBrush();
 
     static napi_value Init(napi_env env, napi_value exportObj);
@@ -50,13 +49,17 @@ public:
     static napi_value SetShadowLayer(napi_env env, napi_callback_info info);
     static napi_value SetShaderEffect(napi_env env, napi_callback_info info);
     static napi_value Reset(napi_env env, napi_callback_info info);
+    static napi_value BrushTransferDynamic(napi_env env, napi_callback_info info);
 
-    Brush* GetBrush();
+    std::shared_ptr<Brush> GetBrush()
+    {
+        return brush_;
+    }
 
 private:
+    static napi_value CreateJsBrushDynamic(napi_env env, const std::shared_ptr<Brush> brush);
     static thread_local napi_ref constructor_;
-
-    Brush* brush_;
+    std::shared_ptr<Brush> brush_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

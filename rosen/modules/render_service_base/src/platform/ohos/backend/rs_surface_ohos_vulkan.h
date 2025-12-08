@@ -100,8 +100,8 @@ private:
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
     int32_t mPresentCount = 0;
     std::list<NativeWindowBuffer*> mSurfaceList;
-    std::list<std::pair<NativeWindowBuffer*, int>> protectedSurfaceBufferList_;
-    std::mutex protectedSurfaceBufferListMutex_;
+    NativeWindowBuffer* mPreAllocateProtectedBuffer = nullptr;
+    int mProtectedFenceFd = -1;
     std::list<std::pair<NativeWindowBuffer*, int>> hpaeSurfaceBufferList_;
     std::mutex hpaeSurfaceBufferListMutex_;
     std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo> mSurfaceMap;
@@ -117,6 +117,7 @@ private:
     void SubmitGpuAndHpaeTask(const uint64_t& preFrameId, const uint64_t& curFrameId);
     void SubmitHapeTask(const uint64_t& curFrameId);
 #endif
+    void ReleasePreAllocateBuffer();
 };
 
 } // namespace Rosen

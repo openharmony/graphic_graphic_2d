@@ -86,14 +86,6 @@ void RSCanvasNodeCommandHelper::SetHDRPresent(RSContext& context, NodeId nodeId,
     }
 }
 
-// [Attention] Only used in PC window resize scene now
-void RSCanvasNodeCommandHelper::SetLinkedRootNodeId(RSContext& context, NodeId nodeId, NodeId rootNodeId)
-{
-    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
-        node->SetLinkedRootNodeId(rootNodeId);
-    }
-}
-
 void RSCanvasNodeCommandHelper::SetColorGamut(RSContext& context, NodeId nodeId, uint32_t colorGamut)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {

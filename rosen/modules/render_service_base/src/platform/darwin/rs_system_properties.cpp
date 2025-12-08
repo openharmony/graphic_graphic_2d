@@ -117,6 +117,11 @@ AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetAnimationOcclusionEnabled()
+{
+    return {};
+}
+
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
 {
     return {};
@@ -130,6 +135,11 @@ PartialRenderType RSSystemProperties::GetPartialRenderEnabled()
 PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 {
     return {};
+}
+
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+    return false;
 }
 
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
@@ -502,6 +512,11 @@ bool RSSystemProperties::GetTargetUIFirstDfxEnabled(std::vector<std::string>& Su
     return false;
 }
 
+bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetWideColorSpaceEnabled()
 {
     return true;
@@ -733,6 +748,11 @@ bool RSSystemProperties::GetVKImageUseEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
+{
+    return false;
+}
+
 void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;
@@ -781,7 +801,17 @@ bool RSSystemProperties::GetAIBarOptEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSupportScreenFreezeEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
 {
     return false;
 }
@@ -813,6 +843,21 @@ bool RSSystemProperties::GetNodeMemClearEnabled()
 bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     return false;
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetDefaultMemClearEnabled()
+{
+    return true;
 }
 } // namespace Rosen
 } // namespace OHOS

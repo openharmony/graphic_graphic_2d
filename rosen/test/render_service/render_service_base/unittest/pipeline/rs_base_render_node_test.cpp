@@ -496,6 +496,9 @@ HWTEST_F(RSBaseRenderNodeTest, MarkNodeGroup, TestSize.Level1)
 HWTEST_F(RSBaseRenderNodeTest, CheckDrawingCacheType, TestSize.Level1)
 {
     auto node = std::make_shared<RSBaseRenderNode>(id + 1, context);
+    node->InitRenderParams();
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+
     node->CheckDrawingCacheType();
     ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
 
@@ -506,6 +509,10 @@ HWTEST_F(RSBaseRenderNodeTest, CheckDrawingCacheType, TestSize.Level1)
     node->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_ANIM;
     node->CheckDrawingCacheType();
     ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::TARGETED_CACHE);
+
+    node->ExcludedFromNodeGroup(true);
+    node->CheckDrawingCacheType();
+    ASSERT_EQ(node->drawingCacheType_, RSDrawingCacheType::DISABLED_CACHE);
 }
 
 /**
@@ -974,7 +981,7 @@ HWTEST_F(RSBaseRenderNodeTest, UpdateDisplaySyncRange, TestSize.Level1)
     auto node = std::make_shared<RSBaseRenderNode>(id, context);
     node->UpdateDisplaySyncRange();
 
-    node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
     node->UpdateDisplaySyncRange();
     ASSERT_NE(node->displaySync_, nullptr);
 }
@@ -994,7 +1001,7 @@ HWTEST_F(RSBaseRenderNodeTest, Animate, TestSize.Level1)
     int64_t leftDelayTime = 0;
     node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
 
-    node->displaySync_ = std::make_shared<RSRenderDisplaySync>(1);
+    node->displaySync_ = std::make_unique<RSRenderDisplaySync>(1);
     node->Animate(timestamp, leftDelayTime, period, isDisplaySyncEnabled);
     ASSERT_TRUE(true);
 }

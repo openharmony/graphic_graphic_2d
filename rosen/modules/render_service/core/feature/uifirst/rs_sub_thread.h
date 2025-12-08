@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,7 +39,8 @@
 namespace OHOS::Rosen {
 class RSSubThread {
 public:
-    RSSubThread(RenderContext* context, uint32_t threadIndex) : threadIndex_(threadIndex), renderContext_(context) {}
+    RSSubThread(std::shared_ptr<RenderContext> context, uint32_t threadIndex)
+        : threadIndex_(threadIndex), renderContext_(context) {}
     ~RSSubThread();
 
     pid_t Start();
@@ -69,8 +70,6 @@ public:
     }
 
 private:
-    void CreateShareEglContext();
-    void DestroyShareEglContext();
     std::shared_ptr<Drawing::GPUContext> CreateShareGrContext();
     void SetHighContrastIfEnabled(RSPaintFilterCanvas& canvas);
     bool CheckValid(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable);
@@ -78,10 +77,7 @@ private:
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     uint32_t threadIndex_ = UNI_RENDER_THREAD_INDEX;
-    RenderContext *renderContext_ = nullptr;
-#ifdef RS_ENABLE_GL
-    EGLContext eglShareContext_ = EGL_NO_CONTEXT;
-#endif
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
     std::shared_ptr<Drawing::GPUContext> grContext_ = nullptr;
     std::mutex mutex_;
     std::queue<std::shared_ptr<Drawing::Surface>> tmpSurfaces_;

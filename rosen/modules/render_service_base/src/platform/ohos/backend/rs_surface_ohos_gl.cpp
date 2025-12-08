@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "window.h"
 #include <hilog/log.h>
 #include "pipeline/rs_render_thread.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,7 +41,7 @@ void RSSurfaceOhosGl::SetSurfacePixelFormat(int32_t pixelFormat)
 RSSurfaceOhosGl::~RSSurfaceOhosGl()
 {
     if (context_ != nullptr) {
-        context_->DestroyEGLSurface(mEglSurface);
+        std::static_pointer_cast<RenderContextGL>(context_)->DestroyEGLSurface(mEglSurface);
     }
     DestoryNativeWindow(mWindow);
     mWindow = nullptr;
@@ -50,7 +51,7 @@ RSSurfaceOhosGl::~RSSurfaceOhosGl()
 std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosGl::RequestFrame(int32_t width, int32_t height,
     uint64_t uiTimestamp, bool useAFBC, bool isProtected)
 {
-    RenderContext* context = GetRenderContext();
+    auto context = std::static_pointer_cast<RenderContextGL>(GetRenderContext());
     if (context == nullptr) {
         ROSEN_LOGE("RSSurfaceOhosGl::RequestFrame, GetRenderContext failed!");
         return nullptr;
@@ -110,7 +111,7 @@ void RSSurfaceOhosGl::SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& fram
 
 bool RSSurfaceOhosGl::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp)
 {
-    RenderContext* context = GetRenderContext();
+    auto context = std::static_pointer_cast<RenderContextGL>(GetRenderContext());
     if (context == nullptr) {
         ROSEN_LOGE("RSSurfaceOhosGl::FlushFrame, GetRenderContext failed!");
         return false;
@@ -128,8 +129,9 @@ void RSSurfaceOhosGl::ClearBuffer()
     if (context_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
         ROSEN_LOGD("RSSurfaceOhosGl: Clear surface buffer!");
         DestoryNativeWindow(mWindow);
-        context_->MakeCurrent(EGL_NO_SURFACE);
-        context_->DestroyEGLSurface(mEglSurface);
+        auto context = std::static_pointer_cast<RenderContextGL>(GetRenderContext());
+        context->MakeCurrent(EGL_NO_SURFACE);
+        context->DestroyEGLSurface(mEglSurface);
         mEglSurface = EGL_NO_SURFACE;
         mWindow = nullptr;
         producer_->GoBackground();
@@ -141,8 +143,9 @@ void RSSurfaceOhosGl::ResetBufferAge()
     if (context_ != nullptr && mEglSurface != EGL_NO_SURFACE && producer_ != nullptr) {
         ROSEN_LOGD("RSSurfaceOhosGl: Reset Buffer Age!");
         DestoryNativeWindow(mWindow);
-        context_->MakeCurrent(EGL_NO_SURFACE, context_->GetEGLContext());
-        context_->DestroyEGLSurface(mEglSurface);
+        auto context = std::static_pointer_cast<RenderContextGL>(GetRenderContext());
+        context->MakeCurrent(EGL_NO_SURFACE, context->GetEGLContext());
+        context->DestroyEGLSurface(mEglSurface);
         mEglSurface = EGL_NO_SURFACE;
         mWindow = nullptr;
     }

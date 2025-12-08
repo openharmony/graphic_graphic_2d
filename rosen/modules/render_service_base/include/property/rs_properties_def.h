@@ -135,7 +135,8 @@ enum class RSClipToBoundsType : int16_t {
     CLIP_PATH,
     CLIP_RRECT,
     CLIP_IRECT,
-    CLIP_RECT
+    CLIP_RECT,
+    CLIP_SDF
 };
 
 struct RSDynamicBrightnessPara {
@@ -404,6 +405,12 @@ enum class UnionType : int16_t {
     UNION,
     SMOOTH_UNION,
     MAX = SMOOTH_UNION
+};
+
+enum class EffectRectType : uint8_t {
+    TOTAL = 0,
+    SNAPSHOT = 1,
+    DRAW = 2,
 };
 } // namespace Rosen
 } // namespace OHOS

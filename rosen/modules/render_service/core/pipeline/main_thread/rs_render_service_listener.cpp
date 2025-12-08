@@ -15,14 +15,13 @@
 
 #include "pipeline/main_thread/rs_render_service_listener.h"
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "frame_report.h"
-#include "sync_fence.h"
-#include "common/rs_optional_trace.h"
+#include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "sync_fence.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -40,17 +39,6 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
-    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
-    surfaceHandler->IncreaseAvailableBuffer();
-    auto consumer = surfaceHandler->GetConsumer();
-    if (consumer) {
-        uint64_t uniqueId = consumer->GetUniqueId();
-        bool isActiveGame = FrameReport::GetInstance().IsActiveGameWithUniqueId(uniqueId);
-        if (isActiveGame) {
-            std::string name = node->GetName();
-            FrameReport::GetInstance().SetPendingBufferNum(name, surfaceHandler->GetAvailableBufferCount());
-        }
-    }
 
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
@@ -67,6 +55,9 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
 
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    surfaceHandler->IncreaseAvailableBuffer();
+    auto consumer = surfaceHandler->GetConsumer();
     if (consumer) {
         bool supportFastCompose = false;
         GSError ret =  consumer->GetBufferSupportFastCompose(supportFastCompose);
@@ -180,21 +171,7 @@ void RSRenderServiceListener::CleanLayerBufferCache()
         return;
     }
     uint64_t surfaceId = consumer->GetUniqueId();
-    RSHardwareThread::Instance().PostTask([surfaceId]() {
-        sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-        if (!screenManager) {
-            RS_LOGE("RSRenderServiceListener get screenManager fail!");
-            return;
-        }
-        std::vector<ScreenId> screenIds = screenManager->GetAllScreenIds();
-        for (size_t i = 0; i < screenIds.size(); ++i) {
-            auto output = screenManager->GetOutput(screenIds[i]);
-            if (output == nullptr) {
-                continue;
-            }
-            output->CleanLayerBufferBySurfaceId(surfaceId);
-        }
-    });
+    RSRenderComposerManager::GetInstance().CleanLayerBufferBySurfaceId(surfaceId);
 }
 
 void RSRenderServiceListener::OnGoBackground()

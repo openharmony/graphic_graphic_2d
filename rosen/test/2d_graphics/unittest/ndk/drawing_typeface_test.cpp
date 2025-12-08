@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -224,6 +224,40 @@ HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromCurrent002, Tes
 
     OH_Drawing_FontArgumentsDestroy(fontArgs);
     OH_Drawing_TypefaceDestroy(current);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypefaceIsBold
+ * @tc.desc: Test OH_Drawing_TypefaceIsBold
+ * @tc.type: FUNC
+ * @tc.require: 20650
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceIsBold, TestSize.Level1)
+{
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateDefault();
+    bool isBold = false;
+    EXPECT_EQ(OH_Drawing_TypefaceIsBold(nullptr, &isBold), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_TypefaceIsBold(typeface, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_TypefaceIsBold(typeface, &isBold), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isBold, false);
+    OH_Drawing_TypefaceDestroy(typeface);
+}
+
+/*
+ * @tc.name: OH_Drawing_TypefaceIsItalic
+ * @tc.desc: Test OH_Drawing_TypefaceIsItalic
+ * @tc.type: FUNC
+ * @tc.require: 20650
+ */
+HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceIsItalic, TestSize.Level1)
+{
+    OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateDefault();
+    bool isItalic = false;
+    EXPECT_EQ(OH_Drawing_TypefaceIsItalic(nullptr, &isItalic), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_TypefaceIsItalic(typeface, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_TypefaceIsItalic(typeface, &isItalic), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(isItalic, false);
+    OH_Drawing_TypefaceDestroy(typeface);
 }
 } // namespace Drawing
 } // namespace Rosen

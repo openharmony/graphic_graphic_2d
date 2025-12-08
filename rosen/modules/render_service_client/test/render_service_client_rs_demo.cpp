@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ constexpr int SURFACE_NODE_SIZE = 100;
 constexpr int SLEEP_TIME = 8;
 }
 #ifdef RS_ENABLE_GPU
-    RenderContext* rc_ = nullptr;
+    std::shared_ptr<RenderContext> rc_ = nullptr;
 #endif
 
 namespace pipelineTestUtils {
@@ -356,10 +356,10 @@ private:
 #ifdef RS_ENABLE_GPU
         std::cout << "RS_ENABLE_GPU is true. \n";
         std::cout << "Init RenderContext start. \n";
-            rc_ = RenderContextFactory::GetInstance().CreateEngine();
+            rc_ = RenderContext::Create();
             if (rc_) {
                 std::cout << "Init RenderContext success.\n";
-                rc_->InitializeEglContext();
+                rc_->Init();
             } else {
                 std::cout << "Init RenderContext failed, RenderContext is nullptr.\n";
             }

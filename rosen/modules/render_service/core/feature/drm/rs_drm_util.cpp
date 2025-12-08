@@ -16,11 +16,11 @@
 #include "rs_drm_util.h"
 #include <parameters.h>
 #include "common/rs_background_thread.h"
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
+#include "graphic_feature_param_manager.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_effect_render_node.h"
-#include "graphic_feature_param_manager.h"
+#include "rs_render_composer_manager.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -129,7 +129,7 @@ void RSDrmUtil::PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRender
         return;
     }
     auto preAllocateProtectedBufferTask = [buffer = protectedBuffer, screenId = protectedLayerScreenId]() {
-        RSHardwareThread::Instance().PreAllocateProtectedBuffer(buffer, screenId);
+        RSRenderComposerManager::GetInstance().PreAllocateProtectedBuffer(screenId, buffer);
     };
     RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
 }

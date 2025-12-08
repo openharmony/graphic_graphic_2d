@@ -27,7 +27,7 @@ namespace OHOS::Rosen {
 class RSTvMetadataManager {
 public:
     static RSTvMetadataManager& Instance();
-    static void CopyFromLayersToSurface(const std::vector<LayerInfoPtr>& layers,
+    static void CopyFromLayersToSurface(const std::vector<RSLayerPtr>& layers,
         std::shared_ptr<RSSurfaceOhos>& surface);
 
     void RecordAndCombineMetadata(const TvPQMetadata& metadata);
@@ -35,7 +35,7 @@ public:
     void Reset();
     void ResetDpPixelFormat();
     TvPQMetadata GetMetadata() const;
-    static void CombineMetadataForAllLayers(const std::vector<LayerInfoPtr>& layers);
+    static void CombineMetadataForAllLayers(const std::vector<RSLayerPtr>& layers);
     void UpdateTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     void RecordTvMetadata(const RSSurfaceRenderParams& params, const sptr<SurfaceBuffer>& buffer);
     static bool IsSdpInfoAppId(const std::string& bundleName);
@@ -49,15 +49,25 @@ private:
     void CollectSurfaceSize(const RSSurfaceRenderParams& params, TvPQMetadata& metaData);
     void CollectColorPrimaries(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
     void CollectHdrType(const sptr<SurfaceBuffer>& buffer, TvPQMetadata& metaData);
-    bool NeedDisableCache(TvPQMetadata& oldMetadata, const TvPQMetadata& newMetadata);
+    bool CheckCacheValid();
+    static uint8_t GetPriority(TvPQMetadata& metadata);
+    static bool HasNoVideo(const TvPQMetadata& metadata)
+    {
+        return metadata.sceneTag == 0;
+    }
+    static bool HasVideo(const TvPQMetadata& metadata)
+    {
+        return metadata.sceneTag != 0;
+    }
     RSTvMetadataManager() = default;
     ~RSTvMetadataManager() = default;
     RSTvMetadataManager(const RSTvMetadataManager&) = delete;
     RSTvMetadataManager& operator =(const RSTvMetadataManager&) = delete;
 
     NodeId cachedSurfaceNodeId_{0};
-    TvPQMetadata metadata_;
-    TvPQMetadata cachedMetadata_;
+    NodeId recordedSurfaceNodeId_{0};
+    TvPQMetadata metadata_{};
+    TvPQMetadata cachedMetadata_{};
     mutable std::mutex mutex_;
 };
 } // namespace OHOS::Rosen

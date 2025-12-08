@@ -23,9 +23,8 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniRegion final {
 public:
-    AniRegion() = default;
-    explicit AniRegion(const Region& region) : region_(region) {}
-    ~AniRegion() = default;
+    explicit AniRegion(std::shared_ptr<Region> region = nullptr) : region_(region) {}
+    ~AniRegion();
 
     static ani_status AniInit(ani_env *env);
 
@@ -34,11 +33,23 @@ public:
     static void ConstructorWithRect(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
         ani_int bottom);
     static void SetEmpty(ani_env* env, ani_object obj);
+    static ani_boolean QuickReject(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+        ani_int bottom);
+    static ani_boolean SetRect(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+        ani_int bottom);
+    static ani_boolean IsRegionContained(ani_env* env, ani_object obj, ani_object aniRegionObj);
+    static ani_boolean Op(ani_env* env, ani_object obj, ani_object aniRegionObj, ani_enum_item aniRegionOp);
+    static ani_boolean SetPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_enum_item aniClipRegion);
+    static ani_boolean IsPointContained(ani_env* env, ani_object obj, ani_int dx, ani_int dy);
 
-    Region& GetRegion();
+    std::shared_ptr<Region> GetRegion();
 
 private:
-    Region region_;
+    static ani_object RegionTransferStatic(
+        ani_env* env, [[maybe_unused]]ani_object obj, ani_object output, ani_object input);
+    static ani_long GetRegionAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Region>* GetRegionPtrAddr();
+    std::shared_ptr<Region> region_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

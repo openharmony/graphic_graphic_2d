@@ -87,7 +87,8 @@ public:
 
     void GenerateAndUpdateGEVisualEffect();
 
-    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+    void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound, const Drawing::RectF& materialDst,
+        float geoWidth, float geoHeight);
     void SetDisplayHeadroom(float headroom);
 
     bool CanSkipFrame() const
@@ -117,7 +118,6 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
 
     bool NeedForceSubmit() const override;
-
 private:
     struct DrawImageRectAttributes {
         Drawing::Rect src;
@@ -175,6 +175,7 @@ private:
     void ProfilerLogImageEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer,
         const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
         const std::shared_ptr<Drawing::Image>& outImage);
+    RectF CalcRect(const RectF& bound, EffectRectType type) const override;
     std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters_;

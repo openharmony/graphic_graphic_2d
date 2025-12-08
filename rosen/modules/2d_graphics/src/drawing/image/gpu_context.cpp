@@ -184,7 +184,8 @@ void GPUContext::PurgeUnlockedResourcesByPid(bool scratchResourcesOnly, const st
     impl_->PurgeUnlockedResourcesByPid(scratchResourcesOnly, exitedPidSet);
 }
 
-void GPUContext::RegisterVulkanErrorCallback(const std::function<void()>& vulkanErrorCallback)
+void GPUContext::RegisterVulkanErrorCallback(
+    const std::function<void(const std::vector<pid_t>&, const std::string&, bool)>& vulkanErrorCallback)
 {
     impl_->RegisterVulkanErrorCallback(vulkanErrorCallback);
 }
@@ -350,6 +351,11 @@ void GPUContextOptions::SetIsUniRender(bool isUniRender)
 bool GPUContextOptions::GetIsUniRender() const
 {
     return isUniRender_;
+}
+
+void GPUContext::SetParam(const std::string& name, const std::string& value)
+{
+    impl_->SetParam(name, value);
 }
 } // namespace Drawing
 } // namespace Rosen

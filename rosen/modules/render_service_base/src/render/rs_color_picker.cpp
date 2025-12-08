@@ -34,6 +34,12 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
+constexpr float RED_PROPORTION_FOR_CONTRAST = 0.299f;
+constexpr float GREEN_PROPORTION_FOR_CONTRAST = 0.587f;
+constexpr float BLUE_PROPORTION_FOR_CONTRAST = 0.114f;
+constexpr float BLACK_THRESHOLD_FOR_CONTRAST = 186.f;
+}
 
 std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::shared_ptr<Drawing::Pixmap>& pixmap,
     uint32_t &errorCode)
@@ -43,7 +49,7 @@ std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::share
         errorCode = RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    
+
     RSColorPicker *colorPicker = new (std::nothrow) RSColorPicker(pixmap);
     if (colorPicker == nullptr) {
         ROSEN_LOGE("[ColorPicker]failed to create ColorPicker with pixmap.");
@@ -283,6 +289,41 @@ uint32_t RSColorPicker::HSVtoRGB(HSV hsv) const
     }
     rgb = r << ARGB_R_SHIFT | g << ARGB_G_SHIFT | b << ARGB_B_SHIFT;
     return rgb;
+}
+
+uint32_t RSColorPicker::GetContrastColor(Drawing::ColorQuad& color) const
+{
+    uint32_t errorCode = GetAverageColor(color);
+    auto red = Drawing::Color::ColorQuadGetR(color);
+    auto green = Drawing::Color::ColorQuadGetG(color);
+    auto blue = Drawing::Color::ColorQuadGetB(color);
+    float value = red * RED_PROPORTION_FOR_CONTRAST + green * GREEN_PROPORTION_FOR_CONTRAST +
+        blue * BLUE_PROPORTION_FOR_CONTRAST;
+    color = value > BLACK_THRESHOLD_FOR_CONTRAST ? Drawing::Color::COLOR_BLACK : Drawing::Color::COLOR_WHITE;
+    return errorCode;
+}
+
+uint32_t RSColorPicker::PickColor(Drawing::ColorQuad& color, ColorPickStrategyType strategy)
+{
+    uint32_t errorCode = 0;
+    switch (strategy) {
+        case ColorPickStrategyType::AVERAGE: {
+            errorCode = GetAverageColor(color);
+            break;
+        }
+        case ColorPickStrategyType::DOMINANT: {
+            errorCode = GetLargestProportionColor(color);
+            break;
+        }
+        case ColorPickStrategyType::CONTRAST: {
+            errorCode = GetContrastColor(color);
+            break;
+        }
+        default: {
+            errorCode = RS_COLOR_PICKER_ERROR;
+        }
+    }
+    return errorCode;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -272,10 +272,14 @@ bool PathFuzzTest007(const uint8_t* data, size_t size)
 
     Path path;
     path.IsEmpty();
+    path.IsInverseFillType();
+    path.ToggleInverseFillType();
     path.MoveTo(GetObject<scalar>(), GetObject<scalar>());
     path.LineTo(GetObject<scalar>(), GetObject<scalar>());
     path.LineTo(GetObject<scalar>(), GetObject<scalar>());
     path.IsEmpty();
+    path.IsInverseFillType();
+    path.ToggleInverseFillType();
     Path newPath;
     path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), &newPath, GetObject<bool>(), GetObject<bool>());
     path.GetSegment(GetObject<scalar>(), GetObject<scalar>(), nullptr, GetObject<bool>(), GetObject<bool>());

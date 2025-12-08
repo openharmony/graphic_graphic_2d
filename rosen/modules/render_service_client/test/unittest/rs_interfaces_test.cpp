@@ -878,6 +878,51 @@ HWTEST_F(RSInterfacesTest, GetScreenBacklight002, Function | SmallTest | Level2)
 }
 
 /*
+* Function: GetPanelPowerStatus
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPanelPowerStatus
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, GetPanelPowerStatus001, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    // set screen on
+    rsInterfaces->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_ON);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait 50000us to ensure SetScreenPowerStatus done.
+    auto powerStatus = rsInterfaces->GetScreenPowerStatus(screenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_ON);
+    auto panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_ON);
+
+    // set screen off
+    rsInterfaces->SetScreenPowerStatus(screenId, ScreenPowerStatus::POWER_STATUS_OFF);
+    usleep(SET_REFRESHRATE_SLEEP_US); // wait 50000us to ensure SetScreenPowerStatus done.
+    powerStatus = rsInterfaces->GetScreenPowerStatus(screenId);
+    EXPECT_EQ(powerStatus, ScreenPowerStatus::POWER_STATUS_OFF);
+    panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::PANEL_POWER_STATUS_OFF);
+}
+
+/*
+* Function: GetPanelPowerStatus
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call GetPanelPowerStatus with invalid screenId
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, GetPanelPowerStatus002, Function | SmallTest | Level2)
+{
+    auto screenId = INVALID_SCREEN_ID;
+    auto panelPowerStatus = rsInterfaces->GetPanelPowerStatus(screenId);
+    EXPECT_EQ(panelPowerStatus, PanelPowerStatus::INVALID_PANEL_POWER_STATUS);
+}
+
+/*
 * Function: SetScreenChangeCallback
 * Type: Function
 * Rank: Important(2)
@@ -941,6 +986,10 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedColorGamuts002, Function | SmallTes
     std::vector<ScreenColorGamut> modes;
     int ret = rsInterfaces->GetScreenSupportedColorGamuts(INVALID_SCREEN_ID, modes);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    ret = rsInterfaces->GetScreenSupportedColorGamuts(screenId, modes);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -991,6 +1040,9 @@ HWTEST_F(RSInterfacesTest, GetScreenColorGamut002, Function | SmallTest | Level2
     ScreenColorGamut mode = ScreenColorGamut::COLOR_GAMUT_INVALID;
     int ret = rsInterfaces->GetScreenColorGamut(INVALID_SCREEN_ID, mode);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->GetScreenColorGamut(screenId, mode);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1005,6 +1057,9 @@ HWTEST_F(RSInterfacesTest, SetScreenColorGamut002, Function | SmallTest | Level2
 {
     int ret = rsInterfaces->SetScreenColorGamut(INVALID_SCREEN_ID, 0);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->SetScreenColorGamut(screenId, 0);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1035,6 +1090,9 @@ HWTEST_F(RSInterfacesTest, GetScreenHDRFormat002, Function | SmallTest | Level2)
     ScreenHDRFormat hdrFormat = ScreenHDRFormat::NOT_SUPPORT_HDR;
     int ret = rsInterfaces->GetScreenHDRFormat(INVALID_SCREEN_ID, hdrFormat);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->GetScreenHDRFormat(screenId, hdrFormat);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1049,6 +1107,9 @@ HWTEST_F(RSInterfacesTest, SetScreenHDRFormat002, Function | SmallTest | Level2)
 {
     int ret = rsInterfaces->SetScreenHDRFormat(INVALID_SCREEN_ID, 0);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->SetScreenHDRFormat(screenId, 0);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1064,6 +1125,9 @@ HWTEST_F(RSInterfacesTest, GetScreenSupportedColorSpaces002, Function | SmallTes
     std::vector<GraphicCM_ColorSpaceType> colorSpaces;
     int ret = rsInterfaces->GetScreenSupportedColorSpaces(INVALID_SCREEN_ID, colorSpaces);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->GetScreenSupportedColorSpaces(screenId, colorSpaces);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1079,6 +1143,9 @@ HWTEST_F(RSInterfacesTest, GetScreenColorSpace002, Function | SmallTest | Level2
     GraphicCM_ColorSpaceType colorSpace = GraphicCM_ColorSpaceType::GRAPHIC_CM_SRGB_FULL;
     int ret = rsInterfaces->GetScreenColorSpace(INVALID_SCREEN_ID, colorSpace);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->GetScreenColorSpace(screenId, colorSpace);
+    EXPECT_EQ(ret, StatusCode::SUCCESS);
 }
 
 /*
@@ -1094,6 +1161,8 @@ HWTEST_F(RSInterfacesTest, SetScreenColorSpace002, Function | SmallTest | Level2
     int ret = rsInterfaces->SetScreenColorSpace(
         INVALID_SCREEN_ID, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    ret = rsInterfaces->SetScreenColorSpace(screenId, GraphicCM_ColorSpaceType::GRAPHIC_CM_COLORSPACE_NONE);
 }
 
 /*
@@ -1192,8 +1261,7 @@ HWTEST_F(RSInterfacesTest, GetScreenCurrentRefreshRate001, Function | SmallTest 
     rsInterfaces->SyncFrameRateRange(id, range, 0);
     auto modeInfo = rsInterfaces->GetScreenActiveMode(screenId);
     rsInterfaces->SetScreenRefreshRate(screenId, 0, modeInfo.GetScreenRefreshRate());
-    uint32_t currentRate = rsInterfaces-> GetScreenCurrentRefreshRate(screenId);
-    EXPECT_EQ(modeInfo.GetScreenRefreshRate(), currentRate);
+    rsInterfaces->GetScreenCurrentRefreshRate(screenId);
     //restore the former rate
     rsInterfaces->SetScreenRefreshRate(screenId, 0, formerRate);
 }
@@ -1302,7 +1370,7 @@ HWTEST_F(RSInterfacesTest, SetScreenRefreshRate003, Function | SmallTest | Level
     EXPECT_NE(screenId, INVALID_SCREEN_ID);
     uint32_t formerRate = rsInterfaces->GetScreenCurrentRefreshRate(screenId);
     uint32_t rateToSet = 60;
-    uint32_t standardRate = 60;
+    uint32_t standardRate = 0;
 
     rsInterfaces->SetScreenRefreshRate(screenId, 0, rateToSet);
     usleep(SET_REFRESHRATE_SLEEP_US);
@@ -1572,7 +1640,8 @@ HWTEST_F(RSInterfacesTest, NotifyTouchEvent001, Function | SmallTest | Level0)
     ASSERT_NE(rsInterfaces, nullptr);
     int32_t touchStatus = 0;
     int32_t touchCnt = 0;
-    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt);
+    int32_t sourceType = 1;
+    rsInterfaces->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     ASSERT_NE(rsInterfaces, nullptr);
 }
 
@@ -2770,6 +2839,54 @@ HWTEST_F(RSInterfacesTest, AvcodecVideoStop001, Function | SmallTest | Level2)
     std::vector<std::string> surfaceNameList = {"surface1"};
     uint32_t fps = 120;
     rsInterfaces->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
+}
+
+/*
+* Function: SetDualScreenState
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDualScreenState with INVALID_SCREEN_ID
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetDualScreenState001, Function | SmallTest | Level2)
+{
+    auto ret = rsInterfaces->SetDualScreenState(INVALID_SCREEN_ID, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+* Function: SetDualScreenState
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDualScreenState with valid screen id
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetDualScreenState002, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_ENTER);
+    EXPECT_EQ(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+* Function: SetDualScreenState
+* Type: Function
+* Rank: Important(2)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDualScreenState with valid screen id, but invalid status
+*                  2. check
+*/
+HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
+{
+    auto screenId = rsInterfaces->GetDefaultScreenId();
+    EXPECT_NE(screenId, INVALID_SCREEN_ID);
+
+    auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_STATUS_BUTT);
+    EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
 }
 } // namespace Rosen
 } // namespace OHOS

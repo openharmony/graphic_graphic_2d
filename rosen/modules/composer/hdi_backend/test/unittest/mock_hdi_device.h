@@ -37,6 +37,7 @@ public:
     MOCK_METHOD2(RegHwcDeadCallback, bool(OnHwcDeadCallback, void*));
     MOCK_METHOD2(RegScreenVBlankIdleCallback, int32_t(OnVBlankIdleCallback, void*));
     MOCK_METHOD4(SetScreenConstraint, int32_t(uint32_t, uint64_t, uint64_t, uint32_t));
+    MOCK_METHOD3(SetDisplayProperty, int32_t(uint32_t, uint32_t, uint64_t));
     MOCK_METHOD3(GetDisplayProperty, int32_t(uint32_t, uint32_t, uint64_t&));
     MOCK_METHOD2(GetScreenCapability, int32_t(uint32_t, GraphicDisplayCapability&));
     MOCK_METHOD2(GetScreenSupportedModes, int32_t(uint32_t, std::vector<GraphicDisplayModeInfo>&));
@@ -63,10 +64,12 @@ public:
     MOCK_METHOD2(GetHDRCapabilityInfos, int32_t(uint32_t, GraphicHDRCapability&));
     MOCK_METHOD2(GetSupportedMetaDataKey, int32_t(uint32_t, std::vector<GraphicHDRMetadataKey>&));
     MOCK_METHOD2(Commit, int32_t(uint32_t, sptr<SyncFence>&));
+    MOCK_METHOD2(GetPanelPowerStatus, int32_t(uint32_t, GraphicPanelPowerStatus&));
     MOCK_METHOD3(GetDisplayIdentificationData, int32_t(uint32_t, uint8_t&, std::vector<uint8_t>&));
     MOCK_METHOD3(SetDisplayPerFrameParameterSmq,
                  int32_t(uint32_t, const std::string&, const std::vector<int8_t>&));
     MOCK_METHOD2(RegHwcEventCallback, int32_t(const RSHwcEventCallback&, void*));
+    MOCK_METHOD2(GetScreenConnectionType, int32_t(uint32_t, GraphicDisplayConnectionType&));
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
@@ -108,6 +111,8 @@ public:
     MOCK_METHOD7(CommitAndGetReleaseFence, int32_t(uint32_t, sptr<SyncFence>&, int32_t&, bool&,
         std::vector<uint32_t>&, std::vector<sptr<SyncFence>>&, bool));
     MOCK_METHOD0(Destroy, void());
+
+    static GraphicPanelPowerStatus panelPowerStatusMock_;
 };
 } // namespace Mock
 } // namespace Rosen

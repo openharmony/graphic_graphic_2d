@@ -66,7 +66,8 @@ public:
         TextureOrigin origin, int sampleCnt, ColorType colorType,
         std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
-    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+        const std::shared_ptr<ColorSpace>& colorSpace = nullptr);
 #endif
     static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
     static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);

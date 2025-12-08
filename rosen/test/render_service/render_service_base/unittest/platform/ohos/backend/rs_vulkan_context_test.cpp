@@ -35,31 +35,17 @@ void RSVulkanContextTest::TearDownTestCase() {}
 void RSVulkanContextTest::SetUp() {}
 void RSVulkanContextTest::TearDown() {}
 
-/**
- * @tc.name: RSVulkanContext001
- * @tc.desc: test results of init RSVulkanContext for uniRender
- * @tc.type:FUNC
- * @tc.require: issueIBWFN1
- */
-HWTEST_F(RSVulkanContextTest, RSVulkanContext001, TestSize.Level1)
-{
-    RsVulkanContext::isHybridRender_ = false;
-    RsVulkanContext context;
-    ASSERT_NE(context.vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)], nullptr);
-}
-
-/**
- * @tc.name: RSVulkanContext002
- * @tc.desc: test results of init RSVulkanContext for hybrid render
- * @tc.type:FUNC
- * @tc.require: issueIBWFN1
- */
-HWTEST_F(RSVulkanContextTest, RSVulkanContext002, TestSize.Level1)
-{
-    RsVulkanContext::isHybridRender_ = true;
-    RsVulkanContext context;
-    ASSERT_NE(context.vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)], nullptr);
-}
+static std::vector<const char*> gMandatoryDeviceExtensions = {
+    VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+    VK_KHR_SAMPLER_YCBCR_CONVERSION_EXTENSION_NAME,
+    VK_KHR_MAINTENANCE1_EXTENSION_NAME,
+    VK_KHR_MAINTENANCE2_EXTENSION_NAME,
+    VK_KHR_MAINTENANCE3_EXTENSION_NAME,
+    VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME,
+    VK_KHR_BIND_MEMORY_2_EXTENSION_NAME,
+    VK_OHOS_NATIVE_BUFFER_EXTENSION_NAME,
+    VK_OHOS_EXTERNAL_MEMORY_EXTENSION_NAME,
+};
 
 /**
  * @tc.name: SetupLoaderProcAddresses001
@@ -88,25 +74,6 @@ HWTEST_F(RSVulkanContextTest, CreateInstance001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateInstance002
- * @tc.desc: test results of CreateInstance repeatedly
- * @tc.type:FUNC
- * @tc.require: issueIBWFN1
- */
-HWTEST_F(RSVulkanContextTest, CreateInstance002, TestSize.Level1)
-{
-    RsVulkanInterface rsVulkanInterface;
-
-    rsVulkanInterface.CreateInstance();
-    auto instance1 =  rsVulkanInterface.instance_;
-
-    rsVulkanInterface.CreateInstance();
-    auto instance2 =  rsVulkanInterface.instance_;
-
-    ASSERT_EQ(instance1, instance2);
-}
-
-/**
  * @tc.name: SelectPhysicalDevice001
  * @tc.desc: test results of SelectPhysicalDevice
  * @tc.type:FUNC
@@ -115,7 +82,6 @@ HWTEST_F(RSVulkanContextTest, CreateInstance002, TestSize.Level1)
 HWTEST_F(RSVulkanContextTest, SelectPhysicalDevice001, TestSize.Level1)
 {
     RsVulkanInterface rsVulkanInterface;
-    rsVulkanInterface.Init(VulkanInterfaceType::BASIC_RENDER, false);
     auto ret = rsVulkanInterface.SelectPhysicalDevice(true);
     EXPECT_TRUE(ret);
 }
@@ -224,7 +190,8 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext001, TestSize.Level2)
 HWTEST_F(RSVulkanContextTest, CreateDrawingContext002, TestSize.Level2)
 {
     RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
-    RsVulkanContext::drawingContextMap_[gettid()] = std::make_pair(nullptr, false);
+    DrawingContextProperty property;
+    RsVulkanContext::drawingContextMap_[gettid()] = property;
     ASSERT_NE(RsVulkanContext::GetSingleton().CreateDrawingContext(), nullptr);
 }
 
@@ -337,11 +304,11 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton003, TestSize.Level2)
     RsVulkanContext::SetRecyclable(true);
     RsVulkanContext::GetRecyclableSingleton();
 
-    RsVulkanContext::drawingContextMap_[gettid()] = {nullptr, false};
-    RsVulkanContext::protectedDrawingContextMap_[gettid()] = {nullptr, false};
+    DrawingContextProperty property;
+    RsVulkanContext::drawingContextMap_[gettid()] = property;
 
     RsVulkanContext::ReleaseRecyclableSingleton();
-    ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
 
     // restore
     RsVulkanContext::SetRecyclable(false);
@@ -359,10 +326,12 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton004, TestSize.Level2)
     RsVulkanContext::GetRecyclableSingleton();
 
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
-    RsVulkanContext::drawingContextMap_[gettid()] = {drawingContext, false};
-
     auto protectDrawingContext = std::make_shared<Drawing::GPUContext>();
-    RsVulkanContext::protectedDrawingContextMap_[gettid()] = {drawingContext, false};
+    DrawingContextProperty property;
+    property.unprotectContext = drawingContext;
+    property.protectContext = protectDrawingContext;
+
+    RsVulkanContext::drawingContextMap_[gettid()] = property;
 
     RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
@@ -383,7 +352,6 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableSingleton005, TestSize.Level2)
     RsVulkanContext::GetRecyclableSingleton();
 
     RsVulkanContext::drawingContextMap_.clear();
-    RsVulkanContext::protectedDrawingContextMap_.clear();
 
     RsVulkanContext::ReleaseRecyclableSingleton();
     ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
@@ -440,22 +408,6 @@ HWTEST_F(RSVulkanContextTest, GetRecyclableDrawingContext003, TestSize.Level2)
 }
 
 /**
- * @tc.name: ReleaseRecyclableDrawingContext001
- * @tc.desc: test ReleaseRecyclableDrawingContext for protected context
- * @tc.type:FUNC
- * @tc.require: issueICB7BS
- */
-HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext001, TestSize.Level2)
-{
-    RsVulkanContext::isProtected_ = true;
-    RsVulkanContext::ReleaseRecyclableDrawingContext();
-    ASSERT_TRUE(RsVulkanContext::protectedDrawingContextMap_.empty());
-
-    // restore
-    RsVulkanContext::isProtected_ = false;
-}
-
-/**
  * @tc.name: ReleaseRecyclableDrawingContext002
  * @tc.desc: test ReleaseRecyclableDrawingContext while drawingContextMap is empty
  * @tc.type:FUNC
@@ -467,7 +419,7 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext002, TestSize.Level
     RsVulkanContext::GetSingleton();
     RsVulkanContext::drawingContextMap_.clear();
     RsVulkanContext::ReleaseRecyclableDrawingContext();
-    ASSERT_TRUE(RsVulkanContext::protectedDrawingContextMap_.empty());
+    ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
 }
 
 /**
@@ -480,7 +432,10 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext003, TestSize.Level
 {
     RsVulkanContext::isProtected_ = false;
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
-    RsVulkanContext::drawingContextMap_[gettid()] = {drawingContext, true};
+    DrawingContextProperty property;
+    property.unprotectContext = drawingContext;
+    property.unprotectRecyclable = true;
+    RsVulkanContext::drawingContextMap_[gettid()] = property;
 
     RsVulkanContext::ReleaseRecyclableDrawingContext();
     ASSERT_TRUE(RsVulkanContext::drawingContextMap_.empty());
@@ -496,7 +451,9 @@ HWTEST_F(RSVulkanContextTest, ReleaseRecyclableDrawingContext004, TestSize.Level
 {
     RsVulkanContext::isProtected_ = false;
     auto drawingContext = std::make_shared<Drawing::GPUContext>();
-    RsVulkanContext::drawingContextMap_[gettid()] = {drawingContext, false};
+    DrawingContextProperty property;
+    property.unprotectContext = drawingContext;
+    RsVulkanContext::drawingContextMap_[gettid()] = property;
 
     RsVulkanContext::ReleaseRecyclableDrawingContext();
     ASSERT_FALSE(RsVulkanContext::drawingContextMap_.empty());
@@ -590,6 +547,105 @@ HWTEST_F(RSVulkanContextTest, RSVulkanContextDestruction, TestSize.Level2)
 
     // restore
     RsVulkanContext::SetRecyclable(false);
+}
+
+/**
+ * @tc.name: ConfigureFeatures_Test_00
+ * @tc.desc: Test ConfigureFeatures
+ * @tc.type:FUNC
+ * @tc.require:issuesIC7U3T
+*/
+HWTEST_F(RSVulkanContextTest, ConfigureFeatures_Test_00, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.ConfigureFeatures(true);
+    ASSERT_TRUE(testInterface.ycbcrFeature_.pNext == testInterface.protectedMemoryFeatures_);
+}
+
+/**
+ * @tc.name: ConfigureFeatures_Test_01
+ * @tc.desc: Test ConfigureFeatures
+ * @tc.type:FUNC
+ * @tc.require:issuesIC7U3T
+*/
+HWTEST_F(RSVulkanContextTest, ConfigureFeatures_Test_01, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    testInterface.ConfigureFeatures(false);
+    ASSERT_TRUE(testInterface.ycbcrFeature_.pNext == nullptr);
+}
+
+/**
+ * @tc.name: ConfigureExtensions_Test_00
+ * @tc.desc: Test ConfigureExtensions
+ * @tc.type:FUNC
+ * @tc.require:issuesIC7U3T
+*/
+HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_00, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    // mock missing mandatory ext
+    testInterface.vkEnumerateDeviceExtensionProperties =
+        [](VkPhysicalDevice device, const char*, uint32_t* count, VkExtensionProperties* props) {
+        *count = 0;
+        return VK_SUCCESS;
+    };
+    testInterface.ConfigureExtensions();
+    ASSERT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
+    for (const auto& ext:testInterface.deviceExtensions_) {
+        ASSERT_NE(std::find(gMandatoryDeviceExtensions.begin(), gMandatoryDeviceExtensions.end(), ext),
+                    gMandatoryDeviceExtensions.end());
+    }
+}
+
+/**
+ * @tc.name: ConfigureExtensions_Test_01
+ * @tc.desc: Test ConfigureExtensions
+ * @tc.type:FUNC
+ * @tc.require:issuesIC7U3T
+*/
+HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_01, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    // mock missing mandatory ext
+    testInterface.vkEnumerateDeviceExtensionProperties =
+        [](VkPhysicalDevice device, const char*, uint32_t* count, VkExtensionProperties* props) {
+        *count = 0;
+        return VK_ERROR_UNKNOWN;
+    };
+    testInterface.ConfigureExtensions();
+    ASSERT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
+    for (const auto& ext:testInterface.deviceExtensions_) {
+        ASSERT_NE(std::find(gMandatoryDeviceExtensions.begin(), gMandatoryDeviceExtensions.end(), ext),
+                    gMandatoryDeviceExtensions.end());
+    }
+}
+
+/**
+ * @tc.name: ConfigureExtensions_Test_02
+ * @tc.desc: Test ConfigureExtensions
+ * @tc.type:FUNC
+ * @tc.require:issuesIC7U3T
+*/
+HWTEST_F(RSVulkanContextTest, ConfigureExtensions_Test_02, TestSize.Level2)
+{
+    RsVulkanInterface testInterface;
+    // mock missing mandatory ext
+    testInterface.vkEnumerateDeviceExtensionProperties =
+        [](VkPhysicalDevice device, const char*, uint32_t* count, VkExtensionProperties* props) {
+        if (props != nullptr) {
+            return VK_ERROR_UNKNOWN;
+        } else {
+            *count = 0;
+            return VK_SUCCESS;
+        }
+    };
+    testInterface.ConfigureExtensions();
+    ASSERT_EQ(testInterface.deviceExtensions_.size(), gMandatoryDeviceExtensions.size());
+    for (const auto& ext:testInterface.deviceExtensions_) {
+        ASSERT_NE(std::find(gMandatoryDeviceExtensions.begin(), gMandatoryDeviceExtensions.end(), ext),
+                    gMandatoryDeviceExtensions.end());
+    }
 }
 
 /**
@@ -733,6 +789,35 @@ HWTEST_F(RSVulkanContextTest, CreateDrawingContext007, TestSize.Level2)
     singletonPtr.reset();
     RsVulkanContext::GetRecyclableSingleton();
     ASSERT_NE(RsVulkanContext::GetRecyclableSingletonPtr(), nullptr);
+}
+
+/**
+ * @tc.name: RequireSemaphoreTest
+ * @tc.desc: test results of RequireSemaphore
+ * @tc.type:FUNC
+ * @tc.require: issueICDVVY
+ */
+HWTEST_F(RSVulkanContextTest, RequireSemaphoreTest, TestSize.Level2)
+{
+    auto interface = std::make_shared<RsVulkanInterface>();
+    interface->Init(VulkanInterfaceType::BASIC_RENDER);
+    if (OHOS::Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::VULKAN) {
+        RsVulkanInterface::callbackSemaphoreInfofdDupCnt_ = 144000;
+        VkSemaphore res = interface->RequireSemaphore();
+        EXPECT_NE(res, VK_NULL_HANDLE);
+
+        RsVulkanInterface::callbackSemaphoreInfofdDupCnt_ = 144001;
+        res = interface->RequireSemaphore();
+        EXPECT_NE(res, VK_NULL_HANDLE);
+    } else {
+        RsVulkanInterface::callbackSemaphoreInfofdDupCnt_ = 144000;
+        VkSemaphore res = interface->RequireSemaphore();
+        EXPECT_EQ(res, VK_NULL_HANDLE);
+
+        RsVulkanInterface::callbackSemaphoreInfofdDupCnt_ = 144001;
+        res = interface->RequireSemaphore();
+        EXPECT_EQ(res, VK_NULL_HANDLE);
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

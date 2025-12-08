@@ -200,15 +200,23 @@ void RsFrameReport::CheckBeginFlushPoint()
     ReportSchedEvent(FrameSchedEvent::RS_BEGIN_FLUSH, {});
 }
 
-void RsFrameReport::ReportBufferCount(int count)
+void RsFrameReport::ReportBufferCount(uint32_t count)
 {
-    if (bufferCount_ == count) {
+    if (bufferCount_ == count || count == UINT32_MAX) {
         return;
     }
     bufferCount_ = count;
     std::unordered_map<std::string, std::string> payload = {};
     payload["bufferCount"] = std::to_string(count);
     ReportSchedEvent(FrameSchedEvent::RS_BUFFER_COUNT, payload);
+}
+
+void RsFrameReport::ReportComposerInfo(const int screenId, const int composerTid)
+{
+    std::unordered_map<std::string, std::string> payload;
+    payload.emplace("screenId", std::to_string(screenId));
+    payload.emplace("composerTid", std::to_string(composerTid));
+    ReportSchedEvent(FrameSchedEvent::RS_COMPOSER_INFO, payload);
 }
 
 void RsFrameReport::ReportHardwareInfo(int tid)

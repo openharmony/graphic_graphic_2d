@@ -203,9 +203,6 @@ public:
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo);
 
-    static int GetAccumulatedBufferCount();
-    static void IncAcquiredBufferCount();
-    static void DecAcquiredBufferCount();
     static pid_t GetLastSendingPid();
 
 private:

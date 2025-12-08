@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <functional>
 #include <vector>
 #include "js_fontdescriptor.h"
 
@@ -34,8 +35,46 @@ std::unordered_map<int, int> g_weightMap = {
     {900, static_cast<int>(FontWeight::W900)}
 };
 
+using FontDescriptorProperty = std::variant<
+    std::reference_wrapper<int>,
+    std::reference_wrapper<bool>,
+    std::reference_wrapper<std::string>>;
+using FontDescriptorPropertyList = std::vector<std::pair<const char*, FontDescriptorProperty>>;
+FontDescriptorPropertyList GenerateDescriptorPropList(FontDescSharedPtr fd)
+{
+    if (fd == nullptr) {
+        return {};
+    }
+    FontDescriptorPropertyList propList = {
+        {"path", fd->path},
+        {"postScriptName", fd->postScriptName},
+        {"fullName", fd->fullName},
+        {"fontFamily", fd->fontFamily},
+        {"fontSubfamily", fd->fontSubfamily},
+        {"width", fd->width},
+        {"italic", fd->italic},
+        {"monoSpace", fd->monoSpace},
+        {"symbolic", fd->symbolic},
+        {"localPostscriptName", fd->localPostscriptName},
+        {"localFullName", fd->localFullName},
+        {"localFamilyName", fd->localFamilyName},
+        {"localSubFamilyName", fd->localSubFamilyName},
+        {"version", fd->version},
+        {"manufacture", fd->manufacture},
+        {"copyright", fd->copyright},
+        {"trademark", fd->trademark},
+        {"license", fd->license},
+        {"index", fd->index},
+    };
+    return propList;
+}
 struct FontDescriptorsListContext : public FontPathResourceContext {
     std::vector<FontDescSharedPtr> fontDescriptersOutput;
+};
+
+struct FontUnicodeSetListContext : public FontPathResourceContext {
+    int32_t index{0};
+    std::vector<uint32_t> unicodeSetOutput;
 };
 
 bool ProcessFontPath(sptr<FontDescriptorsListContext> context, std::string& path)
@@ -55,6 +94,8 @@ napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("getSystemFontFullNamesByType", JsFontDescriptor::GetSystemFontFullNamesByType),
         DECLARE_NAPI_STATIC_FUNCTION("getFontDescriptorByFullName", JsFontDescriptor::GetFontDescriptorByFullName),
         DECLARE_NAPI_STATIC_FUNCTION("getFontDescriptorsFromPath", JsFontDescriptor::GetFontDescriptorsFromPath),
+        DECLARE_NAPI_STATIC_FUNCTION("getFontUnicodeSet", JsFontDescriptor::GetFontUnicodeSet),
+        DECLARE_NAPI_STATIC_FUNCTION("getFontCount", JsFontDescriptor::GetFontCount),
     };
     
     NAPI_CHECK_AND_THROW_ERROR(
@@ -122,20 +163,7 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
         TEXT_ERROR_CHECK(valueType == napi_object, return, "Parameter type is not object");
 
         cb->matchDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
-        std::vector<std::pair<const char*, std::variant<
-            std::reference_wrapper<std::string>,
-            std::reference_wrapper<int>,
-            std::reference_wrapper<bool>>>> properties = {
-                {"postScriptName", cb->matchDesc->postScriptName},
-                {"fullName", cb->matchDesc->fullName},
-                {"fontFamily", cb->matchDesc->fontFamily},
-                {"fontSubfamily", cb->matchDesc->fontSubfamily},
-                {"width", cb->matchDesc->width},
-                {"italic", cb->matchDesc->italic},
-                {"monoSpace", cb->matchDesc->monoSpace},
-                {"symbolic", cb->matchDesc->symbolic},
-            };
-
+        auto properties = GenerateDescriptorPropList(cb->matchDesc);
         for (auto& item : properties) {
             TEXT_CHECK(std::visit([&](auto& p) -> bool {
                 TEXT_ERROR_CHECK(CheckAndConvertProperty(env, argv[0], item.first, p.get()), return false,
@@ -156,7 +184,7 @@ napi_value JsFontDescriptor::MatchFontDescriptorsAsync(napi_env env, napi_callba
     auto complete = [env, cb](napi_value& output) {
         output = JsFontDescriptor::CreateFontDescriptorArray(env, cb->matchResult);
     };
-    return NapiAsyncWork::Enqueue(env, cb, "MatchFontDescriptors", executor, complete);
+    return NapiAsyncWork::Enqueue(env, cb, "MatchFontDescriptors", executor, complete).result;
 }
 
 bool JsFontDescriptor::SetProperty(napi_env env, napi_value object, const char* name, napi_value value)
@@ -178,21 +206,10 @@ bool JsFontDescriptor::ConvertFontDescWeight(napi_env env, napi_value obj, int w
 
 bool JsFontDescriptor::CreateAndSetProperties(napi_env env, napi_value fontDescriptor, FontDescSharedPtr item)
 {
-    std::vector<std::pair<const char*, std::variant<int, double, bool, std::string>>> properties = {
-        {"path", item->path},
-        {"postScriptName", item->postScriptName},
-        {"fullName", item->fullName},
-        {"fontFamily", item->fontFamily},
-        {"fontSubfamily", item->fontSubfamily},
-        {"width", item->width},
-        {"italic", item->italic},
-        {"monoSpace", item->monoSpace},
-        {"symbolic", item->symbolic},
-    };
-
+    auto properties = GenerateDescriptorPropList(item);
     for (const auto& prop : properties) {
         TEXT_CHECK(std::visit([&](auto& p) -> bool {
-            TEXT_CHECK(SetProperty(env, fontDescriptor, prop.first, CreateJsValue(env, p)), return false);
+            TEXT_CHECK(SetProperty(env, fontDescriptor, prop.first, CreateJsValue(env, p.get())), return false);
             return true;
         }, prop.second), return false);
     }
@@ -261,7 +278,7 @@ napi_value JsFontDescriptor::GetSystemFontFullNamesByType(napi_env env, napi_cal
         output = JsFontDescriptor::CreateFontList(env, context->fontList);
     };
 
-    return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "GetSystemFontFullNamesByType", executor, complete).result;
 }
 
 napi_value JsFontDescriptor::CreateFontList(napi_env env, std::unordered_set<std::string>& fontList)
@@ -311,7 +328,7 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
                 context->fontDescriptersOutput = TextEngine::FontParser::ParserFontDescriptorsFromStream(data, size);
                 return true;
             };
-            TEXT_ERROR_CHECK(ProcessResource(context->info, pathCB, fileCB), return,
+            TEXT_ERROR_CHECK(ProcessResource(context->info, pathCB, fileCB).success, return,
                 "Failed to execute function, path is invalid");
         }
     };
@@ -321,7 +338,89 @@ napi_value JsFontDescriptor::GetFontDescriptorsFromPath(napi_env env, napi_callb
         output = JsFontDescriptor::CreateFontDescriptorArray(env, fontDescripters);
     };
 
-    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorsFromPath", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorsFromPath", executor, complete).result;
+}
+
+napi_value JsFontDescriptor::GetFontUnicodeSet(napi_env env, napi_callback_info info)
+{
+    sptr<FontUnicodeSetListContext> context = sptr<FontUnicodeSetListContext>::MakeSptr();
+    auto inputParser = [env, context](size_t argc, napi_value* argv) {
+        TEXT_ERROR_CHECK(context != nullptr, return, "Fail to get parser, Context is null");
+        TEXT_ERROR_CHECK(argv != nullptr, return, "Argv is nullptr");
+        TEXT_ERROR_CHECK(context->status == napi_ok, return, "Status error, status=%{public}d",
+            static_cast<int>(context->status));
+        TEXT_ERROR_CHECK(argc == ARGC_TWO, return, "Argc is invalid %{public}zu", argc);
+        if (!ParseContextFilePath(env, argv, context, ARGC_ZERO)) {
+            TEXT_ERROR_CHECK(ParseResourceType(env, argv[ARGC_ZERO], context->info), return, "Parse resource error");
+        }
+        ConvertFromJsValue(env, argv[ARGC_ONE], context->index);
+    };
+
+    context->GetCbInfo(env, info, inputParser);
+
+    auto executor = [context]() {
+        TEXT_ERROR_CHECK(context != nullptr, return, "Failed to executor, Context is null");
+        if (!context->filePath.empty()) {
+            TEXT_ERROR_CHECK(SplitAbsolutePath(context->filePath), return, "Failed to split absolute font path");
+            context->unicodeSetOutput = TextEngine::FontParser::GetFontTypefaceUnicode(
+                context->filePath, context->index);
+        } else {
+            auto pathCB = [context](std::string& path) -> bool {
+                TEXT_ERROR_CHECK(SplitAbsolutePath(path), return false, "Failed to split absolute font path");
+                context->unicodeSetOutput = TextEngine::FontParser::GetFontTypefaceUnicode(path, context->index);
+                return true;
+            };
+            auto fileCB = [context](const void* data, size_t size) -> bool {
+                context->unicodeSetOutput = TextEngine::FontParser::GetFontTypefaceUnicode(data, size, context->index);
+                return true;
+            };
+            TEXT_ERROR_CHECK(ProcessResource(context->info, pathCB, fileCB).success, return,
+                "Failed to execute function, path is invalid");
+        }
+    };
+    auto complete = [env, context](napi_value& output) {
+        napi_value unicodeArray = nullptr;
+        TEXT_ERROR_CHECK(napi_create_array(env, &unicodeArray) == napi_ok, return, "Failed to create array");
+        uint32_t index = 0;
+        for (const auto& item: context->unicodeSetOutput) {
+            napi_value element = CreateJsValue(env, item);
+            napi_set_element(env, unicodeArray, index, element);
+            index++;
+        }
+        output = unicodeArray;
+    };
+
+    return NapiAsyncWork::Enqueue(env, context, "GetFontUnicodeSet", executor, complete).result;
+}
+
+napi_value JsFontDescriptor::GetFontCount(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = {nullptr};
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc < ARGC_ONE) {
+        TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
+        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
+    }
+    std::string familySrc;
+    if (ConvertFromJsValue(env, argv[ARGC_ZERO], familySrc) && SplitAbsolutePath(familySrc)) {
+        return CreateJsNumber(env, TextEngine::FontParser::GetFontCount(familySrc));
+    }
+    ResourceInfo resourceInfo;
+    int32_t fileCount = 0;
+    if (ParseResourceType(env, argv[ARGC_ZERO], resourceInfo)) {
+        auto pathCB = [&fileCount](std::string& path) -> bool {
+            fileCount = TextEngine::FontParser::GetFontCount(path);
+            return true;
+        };
+        auto fileCB = [&fileCount](const void* data, size_t size) -> bool {
+            const uint8_t* byteData = static_cast<const uint8_t*>(data);
+            std::vector<uint8_t> fontData(byteData, byteData + size);
+            fileCount = TextEngine::FontParser::GetFontCount(fontData);
+            return true;
+        };
+        ProcessResource(resourceInfo, pathCB, fileCB);
+    }
+    return CreateJsNumber(env, fileCount);
 }
 
 napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_callback_info info)
@@ -360,6 +459,6 @@ napi_value JsFontDescriptor::GetFontDescriptorByFullName(napi_env env, napi_call
         output = JsFontDescriptor::CreateFontDescriptor(env, context->resultDesc);
     };
 
-    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorByFullName", executor, complete);
+    return NapiAsyncWork::Enqueue(env, context, "GetFontDescriptorByFullName", executor, complete).result;
 }
 }

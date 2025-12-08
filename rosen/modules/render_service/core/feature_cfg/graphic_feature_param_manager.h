@@ -69,6 +69,9 @@
 #include "image_enhance_param.h"
 #include "video_metadata_param_parse.h"
 #include "video_metadata_param.h"
+#include "smart_cache_param_parse.h"
+#include "smart_cache_param.h"
+#include "gpu_cache_param_parse.h"
 
 namespace OHOS::Rosen {
 struct ModuleConfig {
@@ -123,6 +126,10 @@ const std::vector<ModuleConfig> FEATURE_MODULES = {
         [] { return std::make_unique<ImageEnhanceParam>(); }},
     {FEATURE_CONFIGS[VIDEO_METADATA], [] { return std::make_unique<VideoMetadataParamParse>(); },
         [] { return std::make_unique<VideoMetadataParam>(); }},
+    {FEATURE_CONFIGS[SMART_CACHE], [] { return std::make_unique<SmartCacheParamParse>(); },
+        [] { return std::make_unique<SmartCacheParam>(); }},
+    {FEATURE_CONFIGS[GPU_CACHE], [] { return std::make_unique<GpuCacheParamParse>(); },
+        [] { return std::make_unique<GpuCacheParam>(); }},
 };
 
 class GraphicFeatureParamManager : public RefBase {

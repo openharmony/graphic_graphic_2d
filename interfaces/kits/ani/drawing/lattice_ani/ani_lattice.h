@@ -23,18 +23,24 @@ namespace OHOS::Rosen {
 namespace Drawing {
 class AniLattice final {
 public:
-    explicit AniLattice(std::shared_ptr<Lattice> lattice = nullptr) : m_lattice(lattice) {}
+    explicit AniLattice(std::shared_ptr<Lattice> lattice = nullptr) : lattice_(lattice) {}
     ~AniLattice();
 
     static ani_status AniInit(ani_env *env);
     static ani_object CreateImageLattice(ani_env* env,
         ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
         ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors);
+    static ani_object CreateImageLatticeWithArrayInt(ani_env* env,
+        ani_object obj, ani_object xDivs, ani_object yDivs, ani_int fXCount,
+        ani_int fYCount, ani_object fBounds, ani_object fRectTypes, ani_object fColors);
 
     std::shared_ptr<Lattice> GetLattice();
 
 private:
-    std::shared_ptr<Lattice> m_lattice = nullptr;
+    static ani_object LatticeTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_long GetLatticeAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Lattice>* GetLatticePtrAddr();
+    std::shared_ptr<Lattice> lattice_ = nullptr;
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

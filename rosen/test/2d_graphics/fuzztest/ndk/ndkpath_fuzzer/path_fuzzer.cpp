@@ -59,6 +59,14 @@ void NativeDrawingPathTest001(const uint8_t* data, size_t size)
     OH_Drawing_PathClose(nullptr);
     OH_Drawing_PathClose(path);
 
+    bool isInverse = false;
+    OH_Drawing_PathIsInverseFillType(nullptr, &isInverse);
+    OH_Drawing_PathIsInverseFillType(path, nullptr);
+    OH_Drawing_PathIsInverseFillType(path, &isInverse);
+
+    OH_Drawing_PathToggleInverseFillType(nullptr);
+    OH_Drawing_PathToggleInverseFillType(path);
+
     OH_Drawing_Path* pathCopy = OH_Drawing_PathCreate();
     pathCopy = OH_Drawing_PathCopy(nullptr);
     pathCopy = OH_Drawing_PathCopy(path);

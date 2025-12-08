@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@
 #include "platform/common/rs_system_properties.h"
 #if defined(RS_ENABLE_UNI_RENDER)
 #ifdef RS_ENABLE_GL
+#include "render_context/new_render_context/render_context_gl.h"
 #include "render_context/render_context.h"
 #endif
 #ifdef RS_ENABLE_VK
@@ -64,28 +65,7 @@ void RSBackgroundThread::PostSyncTask(const std::function<void()>& task)
 }
 
 #if defined(RS_ENABLE_UNI_RENDER) && (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
-#ifdef RS_ENABLE_GL
-void RSBackgroundThread::CreateShareEglContext()
-{
-    if (RSSystemProperties::IsUseVulkan()) {
-        return;
-    }
-    if (renderContext_ == nullptr) {
-        RS_LOGE("renderContext_ is nullptr.");
-        return;
-    }
-    eglShareContext_ = renderContext_->CreateShareContext();
-    if (eglShareContext_ == EGL_NO_CONTEXT) {
-        RS_LOGE("eglShareContext_ is EGL_NO_CONTEXT");
-        return;
-    }
-    if (!eglMakeCurrent(renderContext_->GetEGLDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE, eglShareContext_)) {
-        RS_LOGE("eglMakeCurrent failed.");
-        return;
-    }
-}
-#endif
-void RSBackgroundThread::InitRenderContext(RenderContext* context)
+void RSBackgroundThread::InitRenderContext(std::shared_ptr<RenderContext> context)
 {
     renderContext_ = context;
     PostTask([this]() {
@@ -119,7 +99,7 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::CreateShareGPUContext()
             RS_LOGE("BuildFromVK fail");
             return nullptr;
         }
-        CreateShareEglContext();
+        renderContext_->CreateShareContext();
 
         Drawing::GPUContextOptions options = {};
         auto handler = std::make_shared<MemoryHandler>();

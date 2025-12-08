@@ -22,6 +22,7 @@
 #include "EGL/egl.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_egl_image_manager.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,7 +35,8 @@ std::shared_ptr<RSImageManager> RSImageManager::Create(std::shared_ptr<RenderCon
 #endif
     } else {
         if (renderContext != nullptr) {
-            imageManager = std::make_shared<RSEglImageManager>(renderContext->GetEGLDisplay());
+            imageManager = std::make_shared<RSEglImageManager>(
+                std::static_pointer_cast<RenderContextGL>(renderContext)->GetEGLDisplay());
         }
     }
     return imageManager;

@@ -1,0 +1,207 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+# Common include directories for all layer_backend tests
+layer_backend_test_include_dirs = [
+  "$graphic_2d_root/interfaces/inner_api/common",
+  "$graphic_2d_root/rosen/include/common",
+  "$graphic_2d_root/rosen/modules/2d_graphics/include",
+  "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+  "$graphic_2d_root/rosen/modules/composer/vsync/include",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/common",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service_base/include",
+  "$graphic_2d_root/rosen/modules/render_service_base/src",
+  "$graphic_2d_root/rosen/modules/utils",
+]
+
+# Common include directories for fuzz tests (simplified)
+layer_backend_fuzz_include_dirs = [
+  "$graphic_2d_root/interfaces/inner_api/common",
+  "$graphic_2d_root/rosen/include/common",
+  "$graphic_2d_root/rosen/modules/2d_graphics/include",
+  "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/common",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service_base/include",
+  "$graphic_2d_root/rosen/modules/render_service_base/src",
+  "$graphic_2d_root/rosen/modules/utils",
+]
+
+# Common dependencies for all layer_backend tests
+layer_backend_test_deps = [
+  "$graphic_2d_root/rosen/modules/composer:libcomposer",
+  "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  "$graphic_2d_root/utils:scoped_bytrace",
+]
+
+# Static library containing common layer_backend implementation (hdi_backend, hdi_layer, hdi_output)
+layer_backend_test_impl_dep = "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend/test/test_common:layer_backend_test_impl"
+
+# Common external dependencies for unit tests and system tests
+layer_backend_test_external_deps = [
+  "c_utils:utils",
+  "drivers_interface_display:display_commontype_idl_headers",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+  "drivers_interface_display:libdisplay_composer_proxy_1.0",
+  "drivers_interface_display:libdisplay_composer_proxy_1.1",
+  "eventhandler:libeventhandler",
+  "googletest:gmock_main",
+  "googletest:gtest_main",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "hitrace:hitrace_meter",
+  "init:libbegetutil",
+  "ipc:ipc_core",
+  "libxml2:libxml2",
+  "samgr:samgr_proxy",
+]
+
+
+# Common external dependencies for fuzz tests (simplified)
+layer_backend_fuzz_external_deps = [
+  "c_utils:utils",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+  "eventhandler:libeventhandler",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "init:libbegetutil",
+  "ipc:ipc_core",
+  "libxml2:libxml2",
+]
+
+# Common cflags for unit tests
+layer_backend_unittest_cflags = [
+  "-Wall",
+  "-Werror",
+  "-g3",
+  "-Dprivate=public",
+  "-Dprotected=public",
+]
+
+# Common cflags for fuzz tests
+layer_backend_fuzztest_cflags = [
+  "-g",
+  "-O0",
+  "-Wno-unused-variable",
+  "-fno-omit-frame-pointer",
+  "-Dprivate=public",
+  "-Dprotected=public",
+]
+
+# Common include directories for system tests (using absolute paths for compatibility)
+layer_backend_systemtest_include_dirs = [
+  "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+  "//foundation/graphic/graphic_2d/rosen/include/common",
+  "//foundation/graphic/graphic_2d/rosen/2d_graphics/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/common",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/config",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/utils",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/connection",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/layer_backend",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/layer_backend/test",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/pipeline",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/render_layer",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/transaction",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_client/layer",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_client/pipeline",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+  "//foundation/graphic/graphic_2d/rosen/modules/utils",
+]
+
+# Common dependencies for system tests (using absolute paths for compatibility)
+layer_backend_systemtest_deps = [
+  "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+  "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+  "//foundation/graphic/graphic_2d/utils:socketpair",
+]
+
+# Common external dependencies for system tests
+layer_backend_systemtest_external_deps = [
+  "c_utils:utils",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+  "eventhandler:libeventhandler",
+  "googletest:gmock_main",
+  "googletest:gtest_main",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "init:libbegetutil",
+  "ipc:ipc_core",
+  "libxml2:libxml2",
+]
+
+# Common cflags for system tests
+layer_backend_systemtest_cflags = [
+  "-Wall",
+  "-Werror",
+  "-g3",
+]
+
+# Add sensor dependency and define if sensors_sensor part exists
+if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+  layer_backend_test_external_deps += [ "sensor:sensor_interface_native" ]
+  layer_backend_fuzz_external_deps += [ "sensor:sensor_interface_native" ]
+  layer_backend_systemtest_external_deps += [ "sensor:sensor_interface_native" ]
+}
+if (use_memmgr_plugin || use_memmgr) {
+  layer_backend_test_external_deps += [ "memmgr:memmgrclient" ]
+  layer_backend_fuzz_external_deps += [ "memmgr:memmgrclient" ]
+  layer_backend_systemtest_external_deps += [ "memmgr:memmgrclient" ]
+}

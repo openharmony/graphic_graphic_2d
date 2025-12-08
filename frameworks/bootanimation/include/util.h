@@ -31,6 +31,8 @@
 #include "zlib.h"
 #include <parameters.h>
 
+#include "platform/drawing/rs_surface.h"
+
 namespace OHOS {
 static const int NUMBER_TWO = 2;
 static const int READ_SIZE = 8192;
@@ -139,6 +141,7 @@ using PlayerParams = struct PlayerParams {
     bool soundEnabled = false;
     BootAnimationCallback* callback;
     std::string resPath;
+    bool isFrameRateEnable = false;
 };
 
 void PostTask(std::function<void()> func, uint32_t delayTime = 0);

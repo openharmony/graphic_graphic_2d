@@ -67,7 +67,8 @@ public:
         size_t rowBytes);
     bool BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha = false) override;
 #ifdef RS_ENABLE_GPU
-    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+        const std::shared_ptr<ColorSpace>& colorSpace = nullptr);
     bool BuildFromSurface(GPUContext& gpuContext, Surface& surface, TextureOrigin origin,
         BitmapFormat bitmapFormat, const std::shared_ptr<ColorSpace>& colorSpace) override;
     bool BuildFromBitmap(GPUContext& gpuContext, const Bitmap& bitmap, bool ignoreAlpha = false) override;

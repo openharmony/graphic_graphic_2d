@@ -139,6 +139,7 @@ HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyParagraphStyle001, TestSize.Leve
     typographyStyle.lineStyleHeightOnlyInit = true;
     typographyStyle.paragraphSpacing = FLOAT_TEST_SIZE_NOT_DEFAULT;
     typographyStyle.isEndAddParagraphSpacing = true;
+    typographyStyle.compressHeadPunctuation = true;
     typographyStyle.verticalAlignment = TextVerticalAlign::BOTTOM;
     typographyStyle.textHeightBehavior = TextHeightBehavior::DISABLE_FIRST_ASCENT;
     std::bitset<static_cast<size_t>(RelayoutParagraphStyleAttribute::PARAGRAPH_STYLE_ATTRIBUTE_BUTT)>
@@ -164,6 +165,7 @@ HWTEST_F(OHDrawingStyleCopyTest, OH_Drawing_CopyParagraphStyle001, TestSize.Leve
     EXPECT_TRUE(typographyStyleCopy.lineStyleHeightOnlyInit);
     EXPECT_NEAR(typographyStyleCopy.paragraphSpacing, FLOAT_TEST_SIZE_NOT_DEFAULT, FLOAT_DATA_EPSILON);
     EXPECT_TRUE(typographyStyleCopy.isEndAddParagraphSpacing);
+    EXPECT_TRUE(typographyStyleCopy.compressHeadPunctuation);
     EXPECT_EQ(typographyStyleCopy.verticalAlignment, TextVerticalAlign::BOTTOM);
     EXPECT_EQ(typographyStyleCopy.textHeightBehavior, TextHeightBehavior::DISABLE_FIRST_ASCENT);
     EXPECT_EQ(typographyStyleCopy.relayoutChangeBitmap, myRelayoutChangeBitmap);

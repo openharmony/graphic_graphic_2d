@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,8 +63,10 @@ void RSProxyTest::TearDown() {}
 HWTEST_F(RSProxyTest, CreateConnection_Test, TestSize.Level1)
 {
     ASSERT_NE(renderService, nullptr);
-    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(nullptr);
-    ASSERT_EQ(conn, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(nullptr);
+    ASSERT_EQ(connPair.first, nullptr);
+    ASSERT_EQ(connPair.second, nullptr);
 }
 
 /**
@@ -78,10 +80,12 @@ HWTEST_F(RSProxyTest, CreateConnection, TestSize.Level1)
     ASSERT_NE(renderService, nullptr);
     MessageParcel data;
     auto remoteObj = data.ReadRemoteObject();
-    sptr<RSIConnectionToken>  token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     ASSERT_NE(token, nullptr);
-    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token);
-    ASSERT_NE(conn, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(token);
+    ASSERT_NE(connPair.first, nullptr);
+    ASSERT_NE(connPair.second, nullptr);
 }
 
 /**
@@ -95,8 +99,8 @@ HWTEST_F(RSProxyTest, SetRenderContext, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosRaster raster(width, height);
-    std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
-    raster.SetRenderContext(renderContext.get());
+    auto renderContext = RenderContext::Create();
+    raster.SetRenderContext(renderContext);
     ASSERT_NE(raster.renderContext_, nullptr);
 }
 } // namespace Rosen

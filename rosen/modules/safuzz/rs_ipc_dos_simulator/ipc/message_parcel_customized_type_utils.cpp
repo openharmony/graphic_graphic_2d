@@ -29,6 +29,7 @@
 #include "transaction/rs_application_agent_impl.h"
 #endif
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 #include "transaction/rs_render_service_client_utils.h"
 #include "transaction/rs_transaction_data_utils.h"
 #include "vsync_iconnection_token.h"
@@ -36,6 +37,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr useconds_t DELAY = 6000000;
 #define DECLARE_WRITE_RANDOM(type) { "Write" #type, MessageParcelCustomizedTypeUtils::WriteRandom##type }
 
 const std::unordered_map<std::string, std::function<bool(MessageParcel&, const TestCaseParams&)>>
@@ -52,6 +54,9 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(HgmConfigChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(HgmRefreshRateModeChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(HgmRefreshRateUpdateCallbackSptr),
+    DECLARE_WRITE_RANDOM(Uint64AndEventInfoPairVector),
+    DECLARE_WRITE_RANDOM(StringAndEventInfoPairVector),
+    DECLARE_WRITE_RANDOM(StringAndStringPairVector),
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     DECLARE_WRITE_RANDOM(PointerLuminanceChangeCallbackSptr),
 #endif
@@ -72,6 +77,7 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(DrawingRect),
     DECLARE_WRITE_RANDOM(DrawingDrawCmdListSharedPtr),
     DECLARE_WRITE_RANDOM(RSSyncTaskSharedPtr),
+    DECLARE_WRITE_RANDOM(SharedTypefaceFd),
 };
 
 #define DECLARE_WRITE_RANDOM_TO_VECTOR(type) \
@@ -148,8 +154,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBufferAvailableCallbackSptr(Me
     const TestCaseParams& /* testCaseParams */)
 {
     BufferAvailableCallback callback = []() {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferAvailableCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferAvailableCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIBufferAvailableCallback> obj = new CustomBufferAvailableCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -164,8 +170,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBufferClearCallbackSptr(Messag
     const TestCaseParams& /* testCaseParams */)
 {
     BufferClearCallback callback = []() {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferClearCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomBufferClearCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIBufferClearCallback> obj = new CustomBufferClearCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -179,8 +185,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmConfigChangeCallbackSptr(Me
     const TestCaseParams& /* testCaseParams */)
 {
     HgmConfigChangeCallback callback = [](std::shared_ptr<RSHgmConfigData>) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmConfigChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmConfigChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmConfigChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -196,8 +202,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateModeChangeCallba
 {
     HgmRefreshRateModeChangeCallback callback = [](int32_t) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateModeChangeCallbackSptr "
-            "enter dead lock");
-        while (true) {}
+            "sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateModeChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -212,8 +218,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSp
     const TestCaseParams& /* testCaseParams */)
 {
     HgmRefreshRateUpdateCallback callback = [](int32_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateUpdateCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -224,13 +230,65 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSp
     return true;
 }
 
+bool MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::vector<std::pair<uint64_t, EventInfo>> dataVec =
+        RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector();
+    for (const auto& data : dataVec) {
+        if (!messageParcel.WriteUint64(data.first)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector WriteUint64 failed");
+            return false;
+        }
+        if (!data.second.Serialize(messageParcel)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomUint64AndEventInfoPairVector "
+                "WriteEventInfo failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::vector<std::pair<std::string, EventInfo>> dataVec =
+        RandomDataCustomizedType::GetRandomStringAndEventInfoPairVector();
+    for (const auto& data : dataVec) {
+        if (!messageParcel.WriteString(data.first)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector WriteString failed");
+            return false;
+        }
+        if (!data.second.Serialize(messageParcel)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndEventInfoPairVector "
+                "WriteEventInfo failed");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    std::vector<std::pair<std::string, std::string>> dataVec =
+        RandomDataCustomizedType::GetRandomStringAndStringPairVector();
+    for (const auto& data : dataVec) {
+        if (!messageParcel.WriteString(data.first) || !messageParcel.WriteString(data.second)) {
+            SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomStringAndStringPairVector WriteString failed");
+            return false;
+        }
+    }
+    return true;
+}
+
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 bool MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
     PointerLuminanceChangeCallback callback = [](int32_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomPointerLuminanceChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIPointerLuminanceChangeCallback> obj = new CustomPointerLuminanceChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -247,8 +305,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpda
 {
     FrameRateLinkerExpectedFpsUpdateCallback callback = [](int32_t, const std::string&, int32_t) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomFrameRateLinkerExpectedFpsUpdateCallbackSptr "
-            "enter dead lock");
-        while (true) {}
+            "sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> obj =
         new CustomFrameRateLinkerExpectedFpsUpdateCallback(callback);
@@ -264,8 +322,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr(Me
     const TestCaseParams& /* testCaseParams */)
 {
     OcclusionChangeCallback callback = [](std::shared_ptr<RSOcclusionData>) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIOcclusionChangeCallback> obj = new CustomOcclusionChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -279,7 +337,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomOcclusionChangeCallbackSptr(Me
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferCallbackSptr "
             "rsClient is nullptr");
@@ -298,8 +356,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceOcclusionChangeCallback
     const TestCaseParams& /* testCaseParams */)
 {
     SurfaceOcclusionChangeCallback callback = [](float) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceOcclusionChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceOcclusionChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSISurfaceOcclusionChangeCallback> obj = new CustomSurfaceOcclusionChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -314,8 +372,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomUIExtensionCallbackSptr(Messag
     const TestCaseParams& /* testCaseParams */)
 {
     UIExtensionCallback callback = [](std::shared_ptr<RSUIExtensionData>, uint64_t) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomUIExtensionCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomUIExtensionCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIUIExtensionCallback> obj = new CustomUIExtensionCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -330,8 +388,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
     const TestCaseParams& /* testCaseParams */)
 {
     ScreenChangeCallback callback = [](ScreenId, ScreenEvent, ScreenChangeReason) {
-        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr enter dead lock");
-        while (true) {}
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSIScreenChangeCallback> obj = new CustomScreenChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -345,7 +403,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr(Messa
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceCaptureCallbackSptr "
             "rsClient is nullptr");
@@ -376,7 +434,7 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomBrightnessInfoChangeCallbackSp
 bool MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)
 {
-    RSRenderServiceClient* rsClient = RSInterfaces::GetInstance().renderServiceClient_.get();
+    RSRenderPipelineClient* rsClient = RSRenderInterface::GetInstance().renderPiplineClient_.get();
     if (rsClient == nullptr) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomTransactionDataCallbackSptr "
             "rsClient is nullptr");
@@ -396,8 +454,8 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallb
 {
     SelfDrawingNodeRectChangeCallback callback = [](std::shared_ptr<RSSelfDrawingNodeRectData>) {
         SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallbackSptr "
-            "enter dead lock");
-        while (true) {}
+            "sleep 6s");
+        usleep(DELAY);
     };
     sptr<RSISelfDrawingNodeRectChangeCallback> obj = new CustomSelfDrawingNodeRectChangeCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
@@ -490,6 +548,18 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomRSTransactionDataToVector(
     SAFUZZ_LOGI("MessageParcelCustomizedTypeUtils::WriteRandomRSTransactionDataToVector command count: %lu",
         transactionData->GetCommandCount());
     return RSRenderServiceConnectionProxyVariant::FillParcelVectorWithTransactionData(transactionData, messageParcels);
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd(
+    MessageParcel& messageParcel, const TestCaseParams& /* testCaseParams */)
+{
+    std::shared_ptr<Drawing::Typeface> typeface = RandomTypeface::GetRandomTypeface();
+    if (typeface == nullptr) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSharedTypefaceFd typeface is nullptr");
+        return false;
+    }
+    int fd = (typeface->GetFd() == INVALID_FD) ? 0 : typeface->GetFd();
+    return messageParcel.WriteFileDescriptor(fd);
 }
 } // namespace Rosen
 } // namespace OHOS

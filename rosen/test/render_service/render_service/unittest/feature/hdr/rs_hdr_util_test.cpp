@@ -24,6 +24,7 @@
 #include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_test_util.h"
@@ -268,17 +269,17 @@ HWTEST_F(RSHdrUtilTest, UpdateSurfaceNodeNitTest002, TestSize.Level1)
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0);
 
     auto& nodeMap = context->GetMutableNodeMap();
-    NodeId screenRenderNodeId = 1;
-    ScreenId screenId = 1;
-    auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
-    bool res = nodeMap.RegisterRenderNode(screenRenderNode);
+    NodeId displayNodeId = 5;
+    RSDisplayNodeConfig config;
+    auto displayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+    bool res = nodeMap.RegisterRenderNode(displayRenderNode);
     ASSERT_EQ(res, true);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // screenNode is nullptr
-    node->screenNodeId_ = screenRenderNodeId;
-    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(node->GetScreenNodeId());
-    ASSERT_NE(screenNode, nullptr);
-    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // screenNode is not nullptr
-    screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is nullptr
+    node->logicalDisplayNodeId_ = displayNodeId;
+    auto displayNode = context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(node->GetLogicalDisplayNodeId());
+    ASSERT_NE(displayNode, nullptr);
+    RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // displayNode is not nullptr
+    displayNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f);
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // update surfaceNode HDRBrightnessFactor
     RSHdrUtil::UpdateSurfaceNodeNit(*node, 0); // not update surfaceNode HDRBrightnessFactor
     EXPECT_EQ(node->GetHDRBrightnessFactor(), 0.5f);
@@ -435,34 +436,52 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatWithSelfDrawingNodeTest, TestSize.Level1
  */
 HWTEST_F(RSHdrUtilTest, LuminanceChangeSetDirtyTest, TestSize.Level1)
 {
+    NodeId displayNodeId = 5;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+
     NodeId screenRenderNodeId = 2;
     ScreenId screenId = 0;
     auto context = std::make_shared<RSContext>();
     auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
-
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
     screenRenderNode->SetIsLuminanceStatusChange(true);
-    screenRenderNode->InsertHDRNode(screenRenderNodeId);
-    EXPECT_NE(screenRenderNode->hdrNodeList_.find(screenRenderNodeId), screenRenderNode->hdrNodeList_.end());
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
-    
+
+    std::shared_ptr<RSLogicalDisplayRenderNode> nullNode;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(6, context);
+    screenRenderNode->children_.emplace_back(nullNode); // null
+    RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
+
+    screenRenderNode->children_.clear();
+    screenRenderNode->children_.emplace_back(surfaceNode); // not displayNode
+    RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
+
+    screenRenderNode->children_.clear();
+    screenRenderNode->children_.emplace_back(displayNode);
+    RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
+
+    displayNode->IncreaseHDRNode(screenRenderNodeId);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
+    RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
+
     NodeId nodeId1 = 0;
     auto node1 = std::make_shared<RSRenderNode>(nodeId1);
     pid_t pid1 = ExtractPid(nodeId1);
     context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    screenRenderNode->InsertHDRNode(nodeId1);
+    displayNode->IncreaseHDRNode(nodeId1);
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
-    
+
     pid_t pid = ExtractPid(screenRenderNodeId);
     context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
-    
+
     ScreenId screenId2 = 1;
     std::shared_ptr<RSContext> context2;
     auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, screenId2, context2);
-    screenRenderNode->InsertHDRNode(3);
+    displayNode->IncreaseHDRNode(3);
     RSHdrUtil::LuminanceChangeSetDirty(*screenRenderNode);
-    EXPECT_NE(screenRenderNode->hdrNodeList_.find(3), screenRenderNode->hdrNodeList_.end());
+    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
 }
 
 /**

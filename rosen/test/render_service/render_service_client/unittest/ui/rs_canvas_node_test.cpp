@@ -3626,21 +3626,6 @@ HWTEST_F(RSCanvasNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetLinkedRootNodeId
- * @tc.desc: test SetLinkedRootNodeId
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSCanvasNodeTest, SetLinkedRootNodeId, TestSize.Level1)
-{
-    NodeId rootNodeId = static_cast<NodeId>(1);
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    EXPECT_NE(canvasNode, nullptr);
-    canvasNode->SetLinkedRootNodeId(rootNodeId);
-    EXPECT_EQ(rootNodeId, canvasNode->GetLinkedRootNodeId());
-}
-
-/**
  * @tc.name: ConstructorWithNodeId
  * @tc.desc: test constructor with node id
  * @tc.type: FUNC
@@ -3653,53 +3638,6 @@ HWTEST_F(RSCanvasNodeTest, ConstructorWithNodeId, TestSize.Level1)
     RSCanvasNode canvasNode(isRenderServiceNode, id);
     EXPECT_EQ(canvasNode.IsRenderServiceNode(), isRenderServiceNode);
     EXPECT_EQ(canvasNode.GetId(), id);
-}
-
-/**
- * @tc.name: Marshalling
- * @tc.desc: test Marshalling
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSCanvasNodeTest, Marshalling, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    EXPECT_NE(canvasNode, nullptr);
-
-    Parcel parcel;
-    EXPECT_TRUE(canvasNode->Marshalling(parcel));
-}
-
-/**
- * @tc.name: UnMarshalling001
- * @tc.desc: test UnMarshalling
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSCanvasNodeTest, UnMarshalling001, TestSize.Level1)
-{
-    Parcel parcel;
-    auto canvasNode = RSCanvasNode::Unmarshalling(parcel);
-    EXPECT_TRUE(canvasNode == nullptr);
-}
-
-/**
- * @tc.name: UnMarshalling002
- * @tc.desc: test UnMarshalling
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSCanvasNodeTest, UnMarshalling002, TestSize.Level1)
-{
-    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    ASSERT_NE(canvasNode, nullptr);
-
-    Parcel parcel;
-    EXPECT_TRUE(canvasNode->Marshalling(parcel));
-    auto canvasNodeUm = RSCanvasNode::Unmarshalling(parcel);
-    ASSERT_NE(canvasNodeUm, nullptr);
-    EXPECT_EQ(canvasNodeUm->IsRenderServiceNode(), canvasNode->IsRenderServiceNode());
-    EXPECT_EQ(canvasNodeUm->GetId(), canvasNode->GetId());
 }
 
 /**

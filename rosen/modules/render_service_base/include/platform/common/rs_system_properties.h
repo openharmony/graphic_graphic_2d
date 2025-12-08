@@ -181,9 +181,11 @@ public:
     static bool GetAceTestMode();
     static DirtyRegionDebugType GetDirtyRegionDebugType();
     static AdvancedDirtyRegionType GetAdvancedDirtyRegionEnabled();
+    static bool GetAnimationOcclusionEnabled();
     static DirtyAlignType GetDirtyAlignEnabled();
     static PartialRenderType GetPartialRenderEnabled();
     static PartialRenderType GetUniPartialRenderEnabled();
+    static bool GetRenderNodeLazyLoadEnabled();
     static StencilPixelOcclusionCullingType GetStencilPixelOcclusionCullingEnabled();
     static float GetClipRectThreshold();
     static bool GetAllSurfaceVisibleDebugEnabled();
@@ -277,6 +279,7 @@ public:
     static bool GetUIFirstDirtyDebugEnabled();
     static bool GetTargetUIFirstDfxEnabled(std::vector<std::string>& SurfaceNames);
     static bool GetUIFirstBehindWindowFilterEnabled();
+    static bool GetUIFirstAutoClearCacheEnabled();
     static bool GetWideColorSpaceEnabled();
     static bool GetSkipUnpremulEnabled();
     static bool GetSubtreeParallelEnable();
@@ -372,6 +375,7 @@ public:
     static void SetTypicalResidentProcess(bool isTypicalResidentProcess);
 
     static bool GetVKImageUseEnabled();
+    static bool GetVKImageAdaptationForWallpaperEnabled();
     static void SetBehindWindowFilterEnabled(bool enabled);
     static bool GetBehindWindowFilterEnabled();
     static bool GetSubThreadControlFrameRate();
@@ -379,12 +383,15 @@ public:
     static bool GetCompositeLayerEnabled();
     static bool GetEarlyZEnable();
     static bool GetAIBarOptEnabled();
+    static bool GetAIBarDirectCompositeFullEnabled();
     static bool GetRSMemoryInfoManagerParam();
     static bool GetSelfDrawingDirtyRegionEnabled();
     static bool GetOptBatchRemovingOnRemoteDiedEnabled();
     static bool GetGpuDirtyApsEnabled();
     static bool GetSupportScreenFreezeEnabled();
+    static bool GetScaleImageAsyncEnabled();
     static bool GetMemoryWatermarkEnabled();
+    static bool GetPreparePhaseQuickSkipEnabled();
 
     static bool GetBootCompleted();
 
@@ -393,6 +400,10 @@ public:
     static bool GetNodeMemClearEnabled();
 
     static bool GetRSNodeExceedKillEnabled();
+
+    static bool GetCanvasDrawingNodePreAllocateDmaEnabled();
+    static bool GetCanvasDrawingNodeRenderDmaEnabled();
+    static bool GetDefaultMemClearEnabled();
 
 private:
     RSSystemProperties() = default;

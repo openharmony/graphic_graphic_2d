@@ -16,18 +16,12 @@
 #ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_H
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_H
 
-#include "rs_irender_service_connection.h"
+#include "rs_irender_connection_token.h"
+#include "rs_iclient_to_render_connection.h"
+#include "rs_iclient_to_service_connection.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSIConnectionToken : public IRemoteBroker {
-public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RSConnectionToken");
-
-    RSIConnectionToken() = default;
-    virtual ~RSIConnectionToken() noexcept = default;
-};
-
 class RSIRenderService : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderService");
@@ -35,7 +29,8 @@ public:
     RSIRenderService() = default;
     virtual ~RSIRenderService() noexcept = default;
 
-    virtual sptr<RSIRenderServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) = 0;
+    virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
+        const sptr<RSIConnectionToken>& token) = 0;
     virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
 };
 } // namespace Rosen

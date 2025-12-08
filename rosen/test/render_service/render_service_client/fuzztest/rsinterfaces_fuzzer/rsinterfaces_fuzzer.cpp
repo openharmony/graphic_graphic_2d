@@ -18,6 +18,7 @@
 #include <securec.h>
 
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -124,6 +125,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 
     // test
     auto& rsInterfaces = RSInterfaces::GetInstance();
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     PointerLuminanceChangeCallback callback = [](int32_t) {};
@@ -181,19 +183,19 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.SetMirrorScreenVisibleRect(static_cast<ScreenId>(id), rect);
 
     auto callback1 = std::make_shared<SurfaceCaptureFuture>();
-    rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
+    rsRenderInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
 
     auto callback2 = std::make_shared<SurfaceCaptureFuture>();
     RSDisplayNodeConfig displayConfig = {
         static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
     auto displayNode = RSDisplayNode::Create(displayConfig);
-    rsInterfaces.TakeSurfaceCapture(displayNode, callback2);
+    rsRenderInterfaces.TakeSurfaceCapture(displayNode, callback2);
 
     auto callback3 = std::make_shared<SurfaceCaptureFuture>();
     RSSurfaceNodeConfig surfaceConfig;
     surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
     auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
-    rsInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
+    rsRenderInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
     bool enable = GetData<bool>();
     rsInterfaces.SetCastScreenEnableSkipWindow(static_cast<ScreenId>(id), enable);
     rsInterfaces.RemoveVirtualScreen(static_cast<ScreenId>(id));
@@ -218,7 +220,7 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     uint32_t systemAnimatedScenes = GetData<uint32_t>();
     rsInterfaces.SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes));
 
-    rsInterfaces.SetHwcNodeBounds(static_cast<NodeId>(id), 1.0f, 1.0f, 1.0f, 1.0f);
+    rsRenderInterfaces.SetHwcNodeBounds(static_cast<NodeId>(id), 1.0f, 1.0f, 1.0f, 1.0f);
 
     rsInterfaces.MarkPowerOffNeedProcessOneFrame();
     rsInterfaces.DisablePowerOffRenderControl(static_cast<ScreenId>(id));
@@ -280,8 +282,8 @@ bool DoDropFrameByPid(const uint8_t* data, size_t size)
     };
 
     // test
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.DropFrameByPid(pidList);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.DropFrameByPid(pidList);
     return true;
 }
 
@@ -363,8 +365,8 @@ bool DoClearUifirstCache(const uint8_t* data, size_t size)
     NodeId nodeId = GetData<NodeId>();
 
     // test
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.ClearUifirstCache(nodeId);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.ClearUifirstCache(nodeId);
     return true;
 }
 
@@ -379,8 +381,8 @@ bool DoTakeSurfaceCaptureWithAllWindows(const uint8_t* data, size_t size)
     RSSurfaceCaptureConfig captureConfig;
 
     // test
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.TakeSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.TakeSurfaceCaptureWithAllWindows(displayNode, callback, captureConfig, checkDrmAndSurfaceLock);
     return true;
 }
 
@@ -393,8 +395,8 @@ bool DoFreezeScreen(const uint8_t* data, size_t size)
     bool isFreeze = GetData<bool>();
 
     // test
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.FreezeScreen(displayNode, isFreeze);
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.FreezeScreen(displayNode, isFreeze);
     return true;
 }
 } // namespace Rosen

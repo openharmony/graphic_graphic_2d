@@ -30,6 +30,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -253,7 +254,7 @@ HWTEST_F(RSUniRenderUtilTest, GetMatrixOfBufferToRelRect_002, Function | SmallTe
 HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_001, Function | SmallTest | Level2)
 {
     bool forceCPU = false;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
 
@@ -269,7 +270,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_002, Function | SmallTe
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(surfaceNode, nullptr);
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetBuffer(buffer, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
@@ -285,7 +286,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_003, Function | SmallTe
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetBuffer(nullptr, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
 }
@@ -301,7 +302,7 @@ HWTEST_F(RSUniRenderUtilTest, CreateLayerBufferDrawParam_004, Function | SmallTe
     bool forceCPU = false;
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     ASSERT_NE(surfaceNode, nullptr);
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetBuffer(nullptr, surfaceNode->GetRSSurfaceHandler()->GetAcquireFence());
     auto csurface = IConsumerSurface::Create();
     layer->SetSurface(csurface);
@@ -630,40 +631,6 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam011, TestSize.Level2)
 }
 
 /*
- * @tc.name: CreateBufferDrawParam003
- * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueIAJOWI
- */
-HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam003, TestSize.Level2)
-{
-    bool forceCPU = false;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
-    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
-    ASSERT_EQ(params.buffer, nullptr);
-}
-
-/*
- * @tc.name: CreateBufferDrawParam004
- * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
- * @tc.type: FUNC
- * @tc.require: issueIAJOWI
- */
-HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam004, TestSize.Level2)
-{
-    bool forceCPU = false;
-    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
-    ASSERT_NE(surfaceNode, nullptr);
-    auto buffer = nullptr;
-    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
-    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
-    ASSERT_EQ(params.buffer, nullptr);
-}
-
-/*
  * @tc.name: DealWithRotationAndGravityForRotationFixed
  * @tc.desc: test DealWithRotationAndGravityForRotationFixed
  * @tc.type: FUNC
@@ -954,6 +921,40 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam010, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateBufferDrawParam012
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam012, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
+    ASSERT_NE(params.buffer, nullptr);
+}
+
+/*
+ * @tc.name: CreateBufferDrawParam013
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam013, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = nullptr;
+    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
+    ASSERT_EQ(params.buffer, nullptr);
+}
+
+/*
  * @tc.name: FlushDmaSurfaceBuffer001
  * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is nullptr
  * @tc.type: FUNC
@@ -1002,17 +1003,15 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff001, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
         auto screenManager = CreateOrGetScreenManager();
-        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = false;
+        screenManager->powerOffNeedProcessOneFrame_ = false;
 
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
         EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
         EXPECT_TRUE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
     }
 }
@@ -1028,20 +1027,18 @@ HWTEST_F(RSUniRenderUtilTest, CheckRenderSkipIfScreenOff002, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
         auto screenManager = CreateOrGetScreenManager();
-        OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-            static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
 
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_ON_ADVANCED;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_SUSPEND;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
-        screenManagerImpl.powerOffNeedProcessOneFrame_ = true;
-        screenManagerImpl.screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        screenManager->powerOffNeedProcessOneFrame_ = true;
+        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
         EXPECT_FALSE(RSUniRenderUtil::CheckRenderSkipIfScreenOff(false, screenId));
     }
 }

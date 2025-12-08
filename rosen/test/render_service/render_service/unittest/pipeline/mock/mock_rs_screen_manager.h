@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace Mock {
-class RSScreenManagerMock : public OHOS::Rosen::impl::RSScreenManager {
+class RSScreenManagerMock : public OHOS::Rosen::RSScreenManager {
 public:
     static sptr<RSScreenManagerMock> GetInstance();
 

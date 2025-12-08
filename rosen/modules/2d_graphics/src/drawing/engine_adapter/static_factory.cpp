@@ -188,14 +188,15 @@ std::shared_ptr<Surface> StaticFactory::MakeRenderTarget(GPUContext* gpuContext,
     return EngineStaticFactory::MakeRenderTarget(gpuContext, budgeted, imageInfo);
 }
 
-std::shared_ptr<Image> StaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+std::shared_ptr<Image> StaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+    const std::shared_ptr<ColorSpace>& colorSpace)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE
     if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
-        return DDGRStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+        return DDGRStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
     }
 #endif
-    return EngineStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory);
+    return EngineStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
 }
 #endif
 

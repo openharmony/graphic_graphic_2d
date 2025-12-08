@@ -137,6 +137,8 @@ public:
             extInfo = "ACE_COMPONENT";
         } else if (type_ & DISPLAY_SOLOIST_FRAME_RATE_TYPE) {
             extInfo = "DISPLAY_SOLOIST";
+        } else if (type_ & NATIVE_VSYNC_FRAME_RATE_TYPE) {
+            extInfo = "NATIVE_VSYNC";
         }
         if ((type_ & ANIMATION_STATE_FIRST_FRAME) != 0) {
             extInfo += "_FIRST_UI_ANIMATION_FRAME";
@@ -150,7 +152,7 @@ public:
             { REFRESH_DRAG_FRAME_RATE_TYPE, "REFRESH_DRAG" },
             { SWIPER_DRAG_FRAME_RATE_TYPE, "SWIPER_DRAG" },
             { SCROLLABLE_DRAG_FRAME_RATE_TYPE, "SCROLLABLE_DRAG" },
-            { SCROLLBAR_DRAG_FRAME_RATE_TYPE, "SCROLLBAR_DRAG_FRAME_RATE_TYPE" },
+            { SCROLLBAR_DRAG_FRAME_RATE_TYPE, "SCROLLBAR_DRAG" },
             { SPLIT_DRAG_FRAME_RATE_TYPE, "SPLIT_DRAG" },
             { PICKER_DRAG_FRAME_RATE_TYPE, "PICKER_DRAG" },
             { SCROLLABLE_MULTI_TASK_FRAME_RATE_TYPE, "SCROLLABLE_MULTI_TASK" },

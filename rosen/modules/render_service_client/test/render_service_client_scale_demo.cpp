@@ -53,8 +53,8 @@ public:
     RsSurfaceNodeScaleTestDemo()
     {
 #ifdef RS_ENABLE_GPU
-        renderContext_ = std::make_unique<RenderContext>();
-        renderContext_->InitializeEglContext();
+        renderContext_ = RenderContext::Create();
+        renderContext_->Init();
 #endif // RS_ENABLE_GPU
 
         sptr<WindowOption> option(new WindowOption());
@@ -96,7 +96,7 @@ public:
 
 #ifdef RS_ENABLE_GPU
         if (renderContext_ != nullptr) {
-            rsSurface->SetRenderContext(renderContext_.get());
+            rsSurface->SetRenderContext(renderContext_);
         }
 #endif // RS_ENABLE_GPU
 
@@ -140,7 +140,7 @@ public:
 
 private:
 #ifdef RS_ENABLE_GPU
-    std::unique_ptr<RenderContext> renderContext_;
+    std::shared_ptr<RenderContext> renderContext_;
 #endif // RS_ENABLE_GPU
 
     sptr<Window> window_;

@@ -30,6 +30,10 @@ namespace OHOS::Rosen::Text {
 
     typedef OH_Drawing_ErrorCode (*TypographyStyleIntGetter)(const TypographyStyle*, int*);
 
+    typedef OH_Drawing_ErrorCode (*TypographyStyleBoolSetter)(TypographyStyle*, bool);
+
+    typedef OH_Drawing_ErrorCode (*TypographyStyleBoolGetter)(const TypographyStyle*, bool*);
+
     OH_Drawing_ErrorCode SetLineSpacing(TypographyStyle* style, double value)
     {
         style->lineSpacing = value;
@@ -95,6 +99,42 @@ namespace OHOS::Rosen::Text {
         *value = static_cast<int>(style->fontWidth);
         return OH_DRAWING_SUCCESS;
     }
+    
+    OH_Drawing_ErrorCode SetCompressHeadPunctuation(TypographyStyle* style, bool value)
+    {
+        style->compressHeadPunctuation = value;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetCompressHeadPunctuation(const TypographyStyle* style, bool* value)
+    {
+        *value = static_cast<bool>(style->compressHeadPunctuation);
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode SetIncludeFontPadding(TypographyStyle* style, bool value)
+    {
+        style->includeFontPadding = value;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetIncludeFontPadding(const TypographyStyle* style, bool* value)
+    {
+        *value = style->includeFontPadding;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode SetFallbackLineSpacing(TypographyStyle* style, bool value)
+    {
+        style->fallbackLineSpacing = value;
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetFallbackLineSpacing(const TypographyStyle* style, bool* value)
+    {
+        *value = style->fallbackLineSpacing;
+        return OH_DRAWING_SUCCESS;
+    }
 
     static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleDoubleSetter>
         g_typographyStyleDoubleSetters = {
@@ -120,6 +160,20 @@ namespace OHOS::Rosen::Text {
         g_typographyStyleIntGetters = {
             { TYPOGRAPHY_STYLE_ATTR_I_LINE_HEIGHT_STYLE, GetLineHeightStyle },
             { TYPOGRAPHY_STYLE_ATTR_I_FONT_WIDTH, GetTypographyStyleFontWidth},
+    };
+
+    static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleBoolSetter>
+        g_typographyStyleBoolSetters = {
+            { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, SetCompressHeadPunctuation },
+            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, SetIncludeFontPadding },
+            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, SetFallbackLineSpacing },
+    };
+
+    static std::unordered_map<OH_Drawing_TypographyStyleAttributeId, TypographyStyleBoolGetter>
+        g_typographyStyleBoolGetters = {
+            { TYPOGRAPHY_STYLE_ATTR_B_COMPRESS_HEAD_PUNCTUATION, GetCompressHeadPunctuation },
+            { TYPOGRAPHY_STYLE_ATTR_B_INCLUDE_FONT_PADDING, GetIncludeFontPadding },
+            { TYPOGRAPHY_STYLE_ATTR_B_FALLBACK_LINE_SPACING, GetFallbackLineSpacing },
     };
 }
 
@@ -170,6 +224,32 @@ OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeInt(OH_Drawing_Typogr
     }
     auto it = Text::g_typographyStyleIntGetters.find(id);
     if (it == Text::g_typographyStyleIntGetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(reinterpret_cast<const TypographyStyle*>(style), value);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_SetTypographyStyleAttributeBool(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, bool value)
+{
+    if (style == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto it = Text::g_typographyStyleBoolSetters.find(id);
+    if (it == Text::g_typographyStyleBoolSetters.end()) {
+        return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
+    }
+    return it->second(reinterpret_cast<TypographyStyle*>(style), value);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetTypographyStyleAttributeBool(OH_Drawing_TypographyStyle* style,
+    OH_Drawing_TypographyStyleAttributeId id, bool* value)
+{
+    if (style == nullptr || value == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto it = Text::g_typographyStyleBoolGetters.find(id);
+    if (it == Text::g_typographyStyleBoolGetters.end()) {
         return OH_DRAWING_ERROR_ATTRIBUTE_ID_MISMATCH;
     }
     return it->second(reinterpret_cast<const TypographyStyle*>(style), value);

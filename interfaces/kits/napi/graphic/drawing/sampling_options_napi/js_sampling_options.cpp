@@ -24,6 +24,7 @@ const std::string CLASS_NAME = "SamplingOptions";
 napi_value JsSamplingOptions::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
+        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", SamplingOptionsTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -96,9 +97,50 @@ JsSamplingOptions::~JsSamplingOptions()
     m_samplingOptions = nullptr;
 }
 
-std::shared_ptr<SamplingOptions> JsSamplingOptions::GetSamplingOptions()
+napi_value JsSamplingOptions::CreateJsSamplingOptionsDynamic(
+    napi_env env, const std::shared_ptr<SamplingOptions> samplingOptions)
 {
-    return m_samplingOptions;
+    napi_value result = nullptr;
+    napi_value constructor = nullptr;
+    if (napi_get_reference_value(env, constructor_, &constructor) != napi_ok) {
+        ROSEN_LOGE("Failed to get the representation of constructor object");
+        return nullptr;
+    }
+    if (napi_new_instance(env, constructor, 0, nullptr, &result) != napi_ok || result == nullptr) {
+        ROSEN_LOGE("Failed to instantiate JavaScript SamplingOptions instance");
+        return nullptr;
+    }
+    JsSamplingOptions* jsSamplingOptions = new JsSamplingOptions(samplingOptions);
+    napi_status status = napi_wrap(env, result, jsSamplingOptions, JsSamplingOptions::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsSamplingOptions;
+        ROSEN_LOGE("Failed to wrap native instance");
+        return nullptr;
+    }
+    return result;
+}
+
+napi_value JsSamplingOptions::SamplingOptionsTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv;
+    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_number) {
+        return nullptr;
+    }
+
+    int64_t addr = 0;
+    napi_get_value_int64(env, argv, &addr);
+    std::shared_ptr<SamplingOptions> samplingOptions = *reinterpret_cast<std::shared_ptr<SamplingOptions>*>(addr);
+    if (samplingOptions == nullptr) {
+        return nullptr;
+    }
+    return CreateJsSamplingOptionsDynamic(env, samplingOptions);
 }
 
 } // namespace Drawing

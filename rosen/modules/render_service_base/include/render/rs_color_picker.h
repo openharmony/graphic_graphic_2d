@@ -19,6 +19,7 @@
 #include <iostream>
 #include "image/pixmap.h"
 #include "draw/color.h"
+#include "property/rs_properties_def.h"
 #include "rs_color_extract.h"
 
 namespace OHOS {
@@ -42,6 +43,8 @@ public:
     NATIVEEXPORT uint32_t GetHighestSaturationColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT uint32_t GetAverageColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT bool IsBlackOrWhiteOrGrayColor(uint32_t color) const;
+    uint32_t PickColor(Drawing::ColorQuad& color, ColorPickStrategyType strategy);
+    uint32_t GetContrastColor(Drawing::ColorQuad &color) const;
 
 private:
     RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap);

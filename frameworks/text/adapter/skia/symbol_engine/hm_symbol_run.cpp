@@ -95,15 +95,18 @@ void HMSymbolRun::SetRenderColor(const RSSymbolRenderingStrategy& renderMode, RS
         SetSymbolRenderColor(renderMode, colorList, symbolInfo);
     }
 
+    auto placeholderList = symbolTxt_.GetRenderColorPlaceholder();
     std::vector<std::shared_ptr<SymbolGradient>> gradients;
-    for (const auto& group : symbolInfo.renderGroups) {
+    for (size_t i = 0; i < symbolInfo.renderGroups.size(); ++i) {
         auto gradient = std::make_shared<SymbolGradient>();
-        std::vector<Drawing::ColorQuad> colorQuads;
+        auto groupColor = symbolInfo.renderGroups[i].color;
         Drawing::Color color;
-        color.SetRgb(group.color.r, group.color.g, group.color.b);
-        color.SetAlphaF(group.color.a);
-        colorQuads.push_back(color.CastToColorQuad());
-        gradient->SetColors(colorQuads);
+        color.SetRgb(groupColor.r, groupColor.g, groupColor.b);
+        color.SetAlphaF(groupColor.a);
+        if (i < placeholderList.size()) {
+            color.SetPlaceholder(placeholderList[i]);
+        }
+        gradient->SetColors({ color });
         gradients.push_back(gradient);
     }
     gradients_ = std::move(gradients);
@@ -153,9 +156,7 @@ void HMSymbolRun::SetGradientOrDefinedColor(const RSSymbolLayers& symbolInfo)
             const auto& group = symbolInfo.renderGroups[i];
             color.SetRgb(group.color.r, group.color.g, group.color.b);
             color.SetAlphaF(group.color.a);
-            std::vector<Drawing::ColorQuad> colorQuads;
-            colorQuads.push_back(color.CastToColorQuad());
-            gradient->SetColors(colorQuads);
+            gradient->SetColors({ color });
             gradients.push_back(gradient);
         }
     }
@@ -454,8 +455,7 @@ void HMSymbolRun::DrawSymbolShadow(RSCanvas* canvas, const std::vector<RSPath>& 
         color = shadow.color;
         bool isNeedSet = i < gradients_.size() && gradients_[i] && !gradients_[i]->GetColors().empty();
         if (isNeedSet) {
-            auto colorQuad = gradients_[i]->GetColors()[0];
-            RSColor color1(colorQuad);
+            auto color1 = gradients_[i]->GetColors()[0];
             color.SetAlphaF(shadow.color.GetAlphaF() * color1.GetAlphaF());
         }
         brush.SetColor(color);

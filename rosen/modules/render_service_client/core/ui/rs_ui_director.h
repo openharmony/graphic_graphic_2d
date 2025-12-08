@@ -380,12 +380,12 @@ private:
     int surfaceWidth_ = 0;
     int surfaceHeight_ = 0;
     std::string cacheDir_;
-    static std::function<void()> requestVsyncCallback_;
     bool isHgmConfigChangeCallbackReg_ = false;
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
     std::weak_ptr<RSRootNode> rootNode_;
     bool dvsyncUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
+    bool skipDestroyUIContext_ = false;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

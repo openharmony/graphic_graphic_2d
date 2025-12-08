@@ -19,6 +19,7 @@
 #include "hdi_device.h"
 #include "v1_2/include/idisplay_composer_interface.h"
 #include "v1_3/include/idisplay_composer_interface.h"
+#include "v1_4/include/idisplay_composer_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +35,7 @@ public:
     bool RegHwcDeadCallback(OnHwcDeadCallback callback, void *data) override;
     int32_t RegScreenVBlankIdleCallback(OnVBlankIdleCallback callback, void *data) override;
     int32_t SetScreenConstraint(uint32_t screenId, uint64_t frameId, uint64_t timestamp, uint32_t type) override;
+    int32_t SetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t propertyValue) override;
     int32_t GetDisplayProperty(uint32_t screenId, uint32_t propertyId, uint64_t& propertyValue) override;
     int32_t GetScreenCapability(uint32_t screenId, GraphicDisplayCapability &info) override;
     int32_t GetScreenSupportedModes(uint32_t screenId, std::vector<GraphicDisplayModeInfo> &modes) override;
@@ -65,6 +67,7 @@ public:
     int32_t CommitAndGetReleaseFence(uint32_t screenId, sptr<SyncFence> &fence, int32_t &skipState, bool &needFlush,
         std::vector<uint32_t>& layers, std::vector<sptr<SyncFence>>& fences, bool isValidated) override;
     int32_t GetDisplayIdentificationData(uint32_t screenId, uint8_t& outPort, std::vector<uint8_t>& edidData) override;
+    int32_t GetScreenConnectionType(uint32_t screenId, GraphicDisplayConnectionType& outType) override;
     /* set & get device screen info end */
 
     /* set & get device layer info begin */
@@ -112,6 +115,7 @@ public:
     int32_t ClearClientBuffer(uint32_t screenId) override;
     void Destroy() override;
     int32_t RegHwcEventCallback(const RSHwcEventCallback& callback, void *data) override;
+    int32_t GetPanelPowerStatus(uint32_t devId, GraphicPanelPowerStatus& status) override;
 
 private:
     HdiDeviceImpl(const HdiDeviceImpl& rhs) = delete;

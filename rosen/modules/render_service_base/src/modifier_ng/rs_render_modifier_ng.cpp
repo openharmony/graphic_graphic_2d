@@ -22,6 +22,7 @@
 #include "modifier_ng/appearance/rs_alpha_render_modifier.h"
 #include "modifier_ng/appearance/rs_background_filter_render_modifier.h"
 #include "modifier_ng/appearance/rs_behind_window_filter_render_modifier.h"
+#include "modifier_ng/appearance/rs_color_picker_render_modifier.h"
 #include "modifier_ng/appearance/rs_blend_render_modifier.h"
 #include "modifier_ng/appearance/rs_border_render_modifier.h"
 #include "modifier_ng/appearance/rs_compositing_filter_render_modifier.h"
@@ -82,6 +83,7 @@ static const std::unordered_map<RSModifierType, RSRenderModifier::ResetFunc> g_r
     { RSModifierType::FOREGROUND_FILTER,        RSForegroundFilterRenderModifier::ResetProperties },
     { RSModifierType::BACKGROUND_NG_SHADER,     RSBackgroundNGShaderRenderModifier::ResetProperties },
     { RSModifierType::FOREGROUND_SHADER,        RSForegroundShaderRenderModifier::ResetProperties },
+    { RSModifierType::COLOR_PICKER,             RSColorPickerRenderModifier::ResetProperties },
     { RSModifierType::BOUNDS,                   RSBoundsRenderModifier::ResetProperties },
     { RSModifierType::MATERIAL_FILTER,          RSMaterialFilterRenderModifier::ResetProperties },
 };
@@ -124,6 +126,7 @@ std::array<RSRenderModifier::Constructor, MODIFIER_TYPE_COUNT> RSRenderModifier:
     [] { return std::make_shared<RSBackgroundNGShaderRenderModifier>(); },                       // BACKGROUND_NG_SHADER
     [] { return std::make_shared<RSForegroundShaderRenderModifier>(); },                         // FOREGROUND_SHADER
     [] { return std::make_shared<RSMaterialFilterRenderModifier>(); },                           // MATERIAL_FILTER
+    [] { return std::make_shared<RSColorPickerRenderModifier>(); },                              // COLOR_PICKER
     nullptr,                                                                                     // CHILDREN
 };
 

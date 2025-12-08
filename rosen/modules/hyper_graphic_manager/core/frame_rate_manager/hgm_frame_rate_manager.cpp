@@ -64,6 +64,16 @@ constexpr int DISPLAY_SUCCESS = 1;
 constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+
+bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
+{
+    if (sourceType != TouchSourceType::SOURCE_TYPE_MOUSE &&
+        sourceType != TouchSourceType::SOURCE_TYPE_TOUCHPAD) {
+        return false;
+    }
+    return touchStatus == TOUCH_MOVE || touchStatus == TOUCH_BUTTON_DOWN || touchStatus == TOUCH_BUTTON_UP ||
+           touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
+}
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -391,10 +401,10 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
     frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
-        HGM_LOGD("ltpo type: %{public}s", finalRange.GetAllTypeDescription().c_str());
-        RS_TRACE_NAME_FMT("ltpo type: %s", finalRange.GetAllTypeDescription().c_str());
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d]",
-            frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_);
+        auto allTypeDescription = finalRange.GetAllTypeDescription();
+        HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d],"
+            " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
@@ -794,7 +804,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
+void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
     if (frameVoter_.GetVoterGamesEffective() && touchManager_.GetState() == TouchState::DOWN_STATE) {
@@ -804,9 +814,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP)) {
         return;
     }
-    HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt]() {
-        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP ||
-            touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END) {
+    HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt, sourceType]() {
+        if (IsMouseOrTouchPadEvent(touchStatus, sourceType)) {
             HandlePointerTask(pid, touchStatus, touchCnt);
         } else {
             HandleTouchTask(pid, touchStatus, touchCnt);
@@ -1321,7 +1330,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                     HandlePackageEvent(DEFAULT_PID, {}); // handle empty pkg
                     break;
                 case CleanPidCallbackType::TOUCH_EVENT:
-                    HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, LAST_TOUCH_CNT);
+                    HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, LAST_TOUCH_CNT,
+                        TouchSourceType::SOURCE_TYPE_TOUCHSCREEN);
                     break;
                 case CleanPidCallbackType::GAMES:
                     DeliverRefreshRateVote({"VOTER_GAMES"}, false);
@@ -1420,21 +1430,23 @@ bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
     bool isOtherSelfNodeOnTree = false;
     std::string gameNodeName = GetGameNodeName();
     nodeMap.TraverseSurfaceNodes(
-        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
+        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree, &nodeMap]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
             if (surfaceNode->IsOnTheTree() &&
                 surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+                auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                    nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
                 if (gameNodeName == surfaceNode->GetName()) {
                     isGameSelfNodeOnTree = true;
-                } else {
+                } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
                     isOtherSelfNodeOnTree = true;
                 }
             }
         });
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other node no tree: %d",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other visible node on tree: %d",
                       isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
     isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
     return isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;

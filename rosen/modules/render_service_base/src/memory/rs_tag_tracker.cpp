@@ -106,6 +106,9 @@ std::string RSTagTracker::TagType2String(TAGTYPE type)
         case TAG_OPINC :
             tagType = "opinc";
             break;
+        case TAG_CANVAS_DRAWING_NODE :
+            tagType = "canvas_drawing_node";
+            break;
         case TAG_UNTAGGED :
             tagType = "untagged";
             break;

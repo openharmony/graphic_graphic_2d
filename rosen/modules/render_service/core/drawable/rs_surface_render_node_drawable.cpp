@@ -41,7 +41,6 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
-#include "gfx/fps_info/rs_surface_fps_manager.h"
 
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_node_stats.h"
@@ -104,6 +103,9 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
     RSRenderThreadParams& uniParams) const
 {
+    if (RSUniRenderThread::GetCaptureParam().isMirror_) {
+        return false;
+    }
     if (!surfaceParams.GetNeedCacheSurface()) {
         return false;
     }
@@ -326,11 +328,11 @@ Drawing::Region RSSurfaceRenderNodeDrawable::CalculateVisibleDirtyRegion(
         return resultRegion;
     }
 
-    auto visibleRegion = surfaceParams.GetVisibleRegion();
     auto& uniParam = RSUniRenderThread::Instance().GetRSRenderThreadParams();
     if (!uniParam) {
         return resultRegion;
     }
+    auto visibleRegion = surfaceParams.GetVisibleRegion();
     if (uniParam->IsOcclusionEnabled() && visibleRegion.IsEmpty() && !surfaceParams.IsFirstLevelCrossNode()) {
         return resultRegion;
     }
@@ -718,10 +720,11 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
         surfaceParams->GetVisibleRegion().GetRegionInfo().c_str());
 
+    const auto& bounds = surfaceParams->GetBounds();
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
-            "OcclusionVisible:%{public}d Bound:%{public}s",
-        surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(),
-        surfaceParams->GetBounds().ToString().c_str());
+            "OcclusionVisible:%{public}d Bound:(%{public}f, %{public}f, %{public}f, %{public}f)",
+        surfaceParams->GetId(), name_.c_str(), surfaceParams->GetOcclusionVisible(), bounds.GetLeft(), bounds.GetTop(),
+        bounds.GetWidth(), bounds.GetHeight());
 
     RSUiFirstProcessStateCheckerHelper stateCheckerHelper(
         surfaceParams->GetFirstLevelNodeId(), surfaceParams->GetUifirstRootNodeId(), nodeId_);
@@ -1115,7 +1118,8 @@ bool RSSurfaceRenderNodeDrawable::DrawSpecialLayer(RSPaintFilterCanvas& canvas, 
     }
 
     const auto& specialLayerManager = surfaceParams.GetSpecialLayerMgr();
-    bool isSecLayersNotExempted = specialLayerManager.Find(SpecialLayerType::SECURITY) && !uniParams->GetSecExemption();
+    bool isSecLayersNotExempted = specialLayerManager.Find(SpecialLayerType::SECURITY) &&
+        !uniParams->GetSecExemption() && !RSUniRenderThread::GetCaptureParam().needCaptureSpecialLayer_;
     bool needSkipDrawWhite =
         RSUniRenderThread::GetCaptureParam().isNeedBlur_ || RSUniRenderThread::GetCaptureParam().isSelfCapture_;
     // Draw White
@@ -1209,7 +1213,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             surfaceParams.GetUifirstNodeEnableParam() != MultiThreadCacheType::NONE) {
             return;
         }
-        if (RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
+        if (!canvas.GetUICapture() && RSSystemParameters::GetUIFirstCaptrueReuseEnabled() &&
             subThreadCache_.DealWithUIFirstCache(this, canvas, surfaceParams, *uniParams)) {
             if (RSUniRenderThread::GetCaptureParam().isSingleSurface_) {
                 RS_LOGI("%{public}s DealWithUIFirstCache", __func__);
@@ -1345,15 +1349,6 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
     DrawSelfDrawingNodeBuffer(canvas, surfaceParams, params);
 }
 
-bool RSSurfaceRenderNodeDrawable::RecordTimestamp(NodeId id, uint32_t seqNum)
-{
-    uint64_t currentTime = static_cast<uint64_t>(
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count());
-    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    return surfaceFpsManager.RecordPresentTime(id, currentTime, seqNum);
-}
-
 bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
                                                 RSRenderThreadParams& uniParam,
                                                 RSSurfaceRenderParams& surfaceParams, bool isCapture)
@@ -1445,8 +1440,6 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
 #endif
     if (params.buffer == nullptr) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
-    } else {
-        RecordTimestamp(surfaceParams.GetId(), params.buffer->GetSeqNum());
     }
     auto bgColor = surfaceParams.GetBackgroundColor();
     if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {

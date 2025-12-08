@@ -73,4 +73,17 @@ HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreate003, TestSize.Level1)
     EXPECT_EQ(shader->GetType(), RSNGEffectType::GRADIENT_FLOW_COLORS);
 }
 
+/**
+ * @tc.name: RSNGShaderBaseCreateCircleFlowlight
+ * @tc.desc: Calling Create(RSNGEffectType::CIRCLE_FLOWLIGHT)
+ *           should return a non-null RSNGCircleFlowlight instance
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateCircleFlowlight, TestSize.Level1)
+{
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::CIRCLE_FLOWLIGHT);
+    ASSERT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::CIRCLE_FLOWLIGHT);
+}
+
 } // namespace OHOS::Rosen

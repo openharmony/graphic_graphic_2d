@@ -21,6 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "property/rs_color_picker_def.h"
 #include "surface_type.h"
 #include "draw/color.h"
 
@@ -41,6 +42,7 @@ public:
     RSColor(int16_t red, int16_t green, int16_t blue) noexcept;
     RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha,
         GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) noexcept;
+    explicit RSColor(ColorPlaceholder ph) noexcept;
 
     RSColor(const RSColor& rhs) noexcept
     {
@@ -49,6 +51,7 @@ public:
         blue_ = rhs.blue_;
         alpha_ = rhs.alpha_;
         colorSpace_ = rhs.colorSpace_;
+        placeholder_ = rhs.placeholder_;
     }
 
     RSColor& operator=(const RSColor& rhs) noexcept
@@ -58,6 +61,7 @@ public:
         blue_ = rhs.blue_;
         alpha_ = rhs.alpha_;
         colorSpace_ = rhs.colorSpace_;
+        placeholder_ = rhs.placeholder_;
         return *this;
     }
 
@@ -102,6 +106,18 @@ public:
 
     void Dump(std::string& out) const;
 
+    bool IsPlaceholder() const
+    {
+        return placeholder_ != ColorPlaceholder::NONE;
+    }
+
+    ColorPlaceholder GetPlaceholder() const
+    {
+        return placeholder_;
+    }
+
+    Drawing::Color ConvertToDrawingColor() const;
+
     static constexpr size_t GetBytesPerPixelInt()
     {
         return sizeof(int64_t);
@@ -115,6 +131,7 @@ private:
         int16_t red_ : 16;
     };
     GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    ColorPlaceholder placeholder_ = ColorPlaceholder::NONE;
 };
 } // namespace Rosen
 } // namespace OHOS

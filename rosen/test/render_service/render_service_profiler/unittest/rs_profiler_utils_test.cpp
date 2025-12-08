@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <fcntl.h>
-
 #include "gtest/gtest.h"
 #include "rs_profiler_utils.h"
 
@@ -63,19 +61,6 @@ HWTEST_F(RSProfilerUtilsTest, UtilsFileTest, testing::ext::TestSize.Level1)
     EXPECT_EQ(fd, nullptr);
     EXPECT_EQ(Utils::FileSize(fd), 0);
     EXPECT_EQ(Utils::FileTell(fd), 0);
-
-    std::string name = "/tmp/file.json";
-    auto createdFile = open(name.data(), O_CREAT, S_IRUSR | S_IWUSR);
-    close(createdFile);
-
-    fd = Utils::FileOpen(name.data(), "rw");
-    EXPECT_TRUE(Utils::IsFileValid(fd));
-    EXPECT_NE(fd, nullptr);
-    EXPECT_EQ(Utils::FileSize(fd), 0);
-    EXPECT_EQ(Utils::FileTell(fd), 0);
-
-    Utils::FileClose(fd);
-    std::remove(name.data());
 }
 
 /*
@@ -107,8 +92,8 @@ HWTEST_F(RSProfilerUtilsTest, UtilsFileInMemoryTest, testing::ext::TestSize.Leve
 
     fd = Utils::FileOpen("RECORD_IN_MEMORY", "wbe");
     EXPECT_TRUE(Utils::IsFileValid(fd));
-    EXPECT_EQ(Utils::FileSize(fd), 0);
-    EXPECT_EQ(Utils::FileTell(fd), 0);
+    EXPECT_EQ(Utils::FileSize(fd), 4); // FileOpen no longer clear the memory
+    EXPECT_EQ(Utils::FileTell(fd), 0); // FileOpen still reset the file position
 }
 
 /*

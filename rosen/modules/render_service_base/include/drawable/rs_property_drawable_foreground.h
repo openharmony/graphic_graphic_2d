@@ -27,6 +27,7 @@ class RSFilter;
 class RSBorder;
 class RSNGRenderShaderBase;
 class RSProperties;
+class RSParticlesDrawable;
 namespace Drawing {
 class GEShader;
 class RuntimeEffect;
@@ -190,7 +191,7 @@ private:
 
 class RSPointLightDrawable : public RSDrawable {
 public:
-    RSPointLightDrawable(const RSProperties &properties) : properties_(properties) {}
+    RSPointLightDrawable() = default;
     ~RSPointLightDrawable() override = default;
     void OnSync() override;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
@@ -198,21 +199,31 @@ public:
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
     bool GetEnableEDR() const override
     {
-        return enableEDREffect_;
+        return stagingEnableEDREffect_;
     }
 
 private:
-    const RSProperties &properties_;
     std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> lightSourcesAndPosVec_;
-    RectI rect_  = {};
+    std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> stagingLightSourcesAndPosVec_;
+    IlluminatedType stagingIlluminatedType_ = IlluminatedType::INVALID;
     IlluminatedType illuminatedType_ = IlluminatedType::INVALID;
+    float borderWidth_ = 0.0f;
+    float stagingBorderWidth_ = 0.0f;
+    NodeId screenNodeId_ = INVALID_NODEID;
+    NodeId stagingScreenNodeId_ = INVALID_NODEID;
+    NodeId nodeId_ = INVALID_NODEID;
+    NodeId stagingNodeId_ = INVALID_NODEID;
+    RRect stagingRRect_ = {};
+    bool stagingEnableEDREffect_ = false;
+    bool enableEDREffect_ = false;
+    std::shared_ptr<Drawing::ShaderEffect> stagingSDFShaderEffect_;
+    std::shared_ptr<Drawing::ShaderEffect> sdfShaderEffect_;
+
     Drawing::RoundRect borderRRect_ = {};
     Drawing::RoundRect contentRRect_ = {};
 
-    NodeId screenNodeId_ = INVALID_NODEID;
-    bool enableEDREffect_ = false;
+    bool needSync_ = false;
     float displayHeadroom_ = 0.0f;
-    float borderWidth_ = 0.0f;
     void DrawLight(Drawing::Canvas* canvas) const;
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetFeatheringBoardLightShaderBuilder();
@@ -227,8 +238,12 @@ private:
     std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeNormalLightShaderBuilder() const;
     void DrawContentLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
         Drawing::Brush& brush, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
+    bool DrawSDFContentLight(Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const;
     void DrawBorderLight(Drawing::Canvas& canvas, std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder,
         Drawing::Pen& pen, const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const;
+    bool DrawSDFBorderLight(Drawing::Canvas& canvas,
+        std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect) const;
 
     template <const char* lightString>
     static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetLightShaderBuilder()
@@ -287,6 +302,7 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
+    std::shared_ptr<RSParticlesDrawable> cachedDrawable_;
 };
 
 class RSPixelStretchDrawable : public RSDrawable {

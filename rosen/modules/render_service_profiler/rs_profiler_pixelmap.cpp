@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <message_parcel.h>
 #include <securec.h>
 #include <surface_buffer.h>
@@ -132,16 +133,15 @@ bool PixelMapStorage::Push(uint64_t id, const ImageInfo& info, const PixelMemInf
     if (!Fits(static_cast<size_t>(memory.bufferSize))) {
         return false;
     }
-    auto ret = true;
 
     if (IsSharedMemory(memory)) {
-        ret = PushSharedMemory(id, info, memory, skipBytes);
+        PushSharedMemory(id, info, memory, skipBytes);
     } else if (IsDmaMemory(memory)) {
-        ret = PushDmaMemory(id, info, memory, skipBytes);
+        PushDmaMemory(id, info, memory, skipBytes);
     } else {
-        ret = PushHeapMemory(id, info, memory, skipBytes);
+        PushHeapMemory(id, info, memory, skipBytes);
     }
-    return ret;
+    return true;
 }
 
 bool PixelMapStorage::PullSharedMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
@@ -224,7 +224,6 @@ bool PixelMapStorage::PullDmaMemory(uint64_t id, const ImageInfo& info, PixelMem
     if (!CopyImageData(image, memory.base, image->dmaSize)) {
         return false;
     }
-    // solve pink artefacts problem during replay (GPU reads texture when it's still not updated)
     surfaceBuffer->FlushCache();
 
     memory.context = IncrementSurfaceBufferReference(surfaceBuffer);
@@ -300,9 +299,18 @@ bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMe
 bool PixelMapStorage::DefaultHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
 {
     memory.allocatorType = AllocatorType::HEAP_ALLOC;
-    memory.base = reinterpret_cast<uint8_t*>(malloc(memory.bufferSize));
+    auto bufferPtr = malloc(memory.bufferSize);
+    if (!bufferPtr) {
+        return false;
+    }
+    memory.base = reinterpret_cast<uint8_t*>(bufferPtr);
     if (memory.base) {
-        memset_s(memory.base, memory.bufferSize, 0, memory.bufferSize);
+        auto ret = memset_s(memory.base, memory.bufferSize, 0, memory.bufferSize);
+        if (ret != EOK) {
+            free(memory.base);
+            memory.base = nullptr;
+            return false;
+        }
     }
     memory.context = nullptr;
 
@@ -385,7 +393,11 @@ void PixelMapStorage::ExtractAlpha(const ImageData& image, ImageData& alpha, con
 bool PixelMapStorage::PushImage(
     uint64_t id, const ImageData& data, size_t skipBytes, BufferHandle* buffer, const ImageProperties* properties)
 {
-    if (data.empty() || (buffer && ((buffer->width == 0) || (buffer->height == 0)))) {
+    if (data.empty()) {
+        return false;
+    }
+
+    if (buffer && ((buffer->width == 0) || (buffer->height == 0))) {
         return false;
     }
 
@@ -461,9 +473,9 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
                 TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
                 header->magicNumber = 'JPEG';
                 header->properties = *properties;
-                header->totalOriginalSize = data.size();
+                header->totalOriginalSize = static_cast<int32_t>(data.size());
                 header->rgbEncodedSize = rgbEncodedSize;
-                header->alphaOriginalSize = alpha.size();
+                header->alphaOriginalSize = static_cast<int32_t>(alpha.size());
                 header->alphaEncodedSize = alphaEncodedSize;
             }
         }
@@ -474,7 +486,7 @@ EncodedType PixelMapStorage::TryEncodeTexture(const ImageProperties* properties,
             encodedType = EncodedType::XLZ4;
             TextureHeader* header = reinterpret_cast<TextureHeader*>(image.data.data());
             header->magicNumber = 'XLZ4';
-            header->totalOriginalSize = data.size();
+            header->totalOriginalSize = static_cast<int32_t>(data.size());
         }
     }
     return encodedType;
@@ -646,7 +658,7 @@ bool PixelMapStorage::CopyImageData(Image* image, uint8_t* dstImage, size_t dstS
                 header->totalOriginalSize);
         }
     } else if (header->magicNumber == 'XLZ4' && image->data.size() >= sizeof(TextureHeader)) {
-        int32_t sourceSize = image->data.size() - sizeof(TextureHeader);
+        int32_t sourceSize = static_cast<int32_t>(image->data.size() - sizeof(TextureHeader));
         int32_t decodedTotalBytes = DecodeSeqLZ4(srcStart, result, sourceSize, header->totalOriginalSize);
         if (decodedTotalBytes == header->totalOriginalSize) {
             image->data.clear();
@@ -779,10 +791,14 @@ bool RSProfiler::MarshalPixelMap(Parcel& parcel, const std::shared_ptr<Media::Pi
         return map->Marshalling(parcel);
     }
 
-    uint64_t id =
-        IsWriteEmulationMode() ? ImageCache::New() : Utils::ComposeNodeId(Utils::GetPid(), map->GetUniqueId());
-
-    constexpr uint64_t flagIsImage = 1ull << 62;
+    uint64_t id;
+    if (!IsWriteEmulationMode()) {
+        id = Utils::ComposeNodeId(Utils::GetPid(), map->GetUniqueId());
+    } else {
+        id = ImageCache::New();
+    }
+    constexpr uint32_t imageCacheFlagOffset = 62;
+    constexpr uint64_t flagIsImage = 1ull << imageCacheFlagOffset;
     id |= flagIsImage;
 
     if (!parcel.WriteUint64(id)) {
@@ -826,7 +842,7 @@ Media::PixelMap* RSProfiler::UnmarshalPixelMapNstd(Parcel& parcel,
     PIXEL_MAP_ERR error;
     auto map = Media::PixelMapRecordParcel::StartUnmarshalling(parcel, info, memory, error);
 
-    if ((IsReadMode() || IsReadEmulationMode()) && IsParcelMock(parcel)) {
+    if (IsPlaybackParcel(parcel)) {
         size_t skipBytes = 0u;
         if (PixelMapStorage::Pull(id, info, memory, skipBytes)) {
             parcel.SkipBytes(skipBytes);

@@ -77,11 +77,17 @@ namespace colorSpaceManager {
         this.nativePtr = nativePtr;
       }
     }
+
+    makePoint(x: double, y: double): Array<double> {
+      let point: Array<double> = [x, y];
+      return point;
+    }
+
     native getColorSpaceName(): ColorSpace
     native getWhitePoint(): Array<double>
     native getGamma(): double
   }
-  
+
   native function createByColorSpace(colorSpaceName: ColorSpace): ColorSpaceManager;
   native function createByColorSpacePrimaries(primaries: ColorSpacePrimaries, gamma: double): ColorSpaceManager;
 

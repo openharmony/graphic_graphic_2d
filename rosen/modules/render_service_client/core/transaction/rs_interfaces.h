@@ -71,7 +71,7 @@ public:
      * @param width Virtual screen width, max: MAX_VIRTUAL_SCREEN_WIDTH.
      * @param height Virtual screen height, max: MAX_VIRTUAL_SCREEN_HEIGHT.
      * @param surface Virtual screen surface, if not nullptr, vote for 60Hz.
-     * @param mirrorId Decide which screen id to mirror, INVALID_SCREEN_ID means do not mirror any screen.
+     * @param associatedScreenId Decide which screen id to bind, it can't be INVALID_SCREEN_ID when RS multi process.
      * @param flags Virtual screen security layer option, 0: screen level, 1: window level.
      * @param whiteList List of surface node id, only these nodes can be drawn on this screen.
      * @return Virtual screen id, INVALID_SCREEN_ID means failed.
@@ -81,7 +81,7 @@ public:
         uint32_t width,
         uint32_t height,
         sptr<Surface> surface,
-        ScreenId mirrorId = 0,
+        ScreenId associatedScreenId = 0,
         int flags = 0,
         std::vector<NodeId> whiteList = {});
 
@@ -285,6 +285,16 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     /**
+     * @brief Get component snapshot.
+     * @param node can be rootNode、surfaceNode、canvasNode、CanvasDrawingNode.
+     * @param callback When the snapshot is complete, the callback will be triggered.
+     * @param RSSurfaceCaptureConfig Indicates RSSurfaceCaptureConfig.
+     * @return return true if snaphot success, else return false.
+     */
+    bool TakeSurfaceCaptureForUIWithConfig(std::shared_ptr<RSNode> node,
+        std::shared_ptr<SurfaceCaptureCallback> callback, RSSurfaceCaptureConfig captureConfig = {});
+
+    /**
      * @brief Get snapshot of surfaceNode, and security layer area is a drawn as a blur instead of white.
      * @param node Indicates which node, usually point o a window.
      * @param callback When the snapshot is complete, the callback will be triggered.
@@ -393,6 +403,19 @@ public:
      */
     bool TakeUICaptureInRange(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode, bool useBeginNodeSize,
         std::shared_ptr<SurfaceCaptureCallback> callback, float scaleX, float scaleY, bool isSync);
+
+    /**
+     * @brief Get component snapshot Within the given node range.
+     * @param beginNode Indicates first child of snapshot.
+     * @param endNode Indicates end child of snapshot.
+     * @param useBeginNodeSize Indicates Whether use the size of begin node.
+     * @param callback When the snapshot is complete, the callback will be triggered.
+     * @param RSSurfaceCaptureConfig Indicates RSSurfaceCaptureConfig.
+     * @return return true if snaphot success, else return false.
+     */
+    bool TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginNode, std::shared_ptr<RSNode> endNode,
+        bool useBeginNodeSize, std::shared_ptr<SurfaceCaptureCallback> callback,
+        RSSurfaceCaptureConfig captureConfig = {});
 
     /**
      * @brief Simplify the original interfaces set boundaries for cursor movemonet and reduce the workload.
@@ -548,7 +571,15 @@ public:
      * @param status The status to set to the screen.
      */
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
-    
+
+    /**
+     * @brief Set dual-screen display mode.
+     * @param id Id of the screen to set.
+     * @param status The status to set to the screen, see DualScreenStatus
+     * @return 0 means success, others failed.
+     */
+    int32_t SetDualScreenState(ScreenId id, DualScreenStatus status);
+
     /**
      * @brief Get active mode of the screen.
      * @param id Id of the screen to get active mode.
@@ -669,6 +700,13 @@ public:
      * @param level The value of backlight.
      */
     void SetScreenBacklight(ScreenId id, uint32_t level);
+
+    /**
+     * @brief Get power status of the specified screen.
+     * @param id Id of the screen.
+     * @return PanelPowerStatus.
+     */
+    PanelPowerStatus GetPanelPowerStatus(ScreenId id);
 
     int32_t GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode);
 
@@ -1039,8 +1077,9 @@ public:
      * @brief Notify touch event.
      * @param touchStatus status of touch.
      * @param touchCnt the count of touch.
+     * @param sourceType the input type from multiinput.
      */
-    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
 
     /**
      * @brief Notify dynamic mode event.

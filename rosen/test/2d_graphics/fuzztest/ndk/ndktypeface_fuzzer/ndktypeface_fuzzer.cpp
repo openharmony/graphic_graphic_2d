@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,17 @@ void NativeDrawingTypefaceTest001(const uint8_t* data, size_t size)
     }
     path[path_size - 1] = '\0';
     OH_Drawing_Typeface* typeface = OH_Drawing_TypefaceCreateDefault();
+
+    bool isBold = false;
+    OH_Drawing_TypefaceIsBold(nullptr, &isBold);
+    OH_Drawing_TypefaceIsBold(typeface, nullptr);
+    OH_Drawing_TypefaceIsBold(typeface, &isBold);
+
+    bool isItalic = false;
+    OH_Drawing_TypefaceIsItalic(nullptr, &isItalic);
+    OH_Drawing_TypefaceIsItalic(typeface, nullptr);
+    OH_Drawing_TypefaceIsItalic(typeface, &isItalic);
+
     OH_Drawing_TypefaceCreateFromFile(nullptr, 0);
     OH_Drawing_Typeface* typefaceOne = OH_Drawing_TypefaceCreateFromFile(path, index);
 

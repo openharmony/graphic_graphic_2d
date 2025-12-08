@@ -18,6 +18,7 @@
 #include <securec.h>
 
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -78,25 +79,26 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     int32_t rangeSize = GetData<int32_t>();
 #endif
     auto& rsInterfaces = RSInterfaces::GetInstance();
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     rsInterfaces.SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
     PointerLuminanceChangeCallback callback = [](int32_t) {};
     rsInterfaces.RegisterPointerLuminanceChangeCallback(callback);
 #endif
     auto callback1 = std::make_shared<SurfaceCaptureFuture>();
-    rsInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
+    rsRenderInterfaces.TakeSurfaceCapture(static_cast<NodeId>(GetData<uint64_t>()), callback1);
     
     auto callback2 = std::make_shared<SurfaceCaptureFuture>();
     RSDisplayNodeConfig displayConfig = {
         static_cast<ScreenId>(GetData<uint64_t>()), GetData<bool>(), static_cast<NodeId>(GetData<uint64_t>())};
     auto displayNode = RSDisplayNode::Create(displayConfig);
-    rsInterfaces.TakeSurfaceCapture(displayNode, callback2);
+    rsRenderInterfaces.TakeSurfaceCapture(displayNode, callback2);
 
     auto callback3 = std::make_shared<SurfaceCaptureFuture>();
     RSSurfaceNodeConfig surfaceConfig;
     surfaceConfig.surfaceId = static_cast<NodeId>(GetData<uint64_t>());
     auto surfaceNode = RSSurfaceNode::Create(surfaceConfig);
-    rsInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
+    rsRenderInterfaces.TakeSurfaceCapture(surfaceNode, callback3);
     rsInterfaces.MarkPowerOffNeedProcessOneFrame();
     rsInterfaces.NotifyScreenSwitched();
     return true;

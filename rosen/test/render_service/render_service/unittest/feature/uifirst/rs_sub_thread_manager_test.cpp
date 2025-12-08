@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,10 +53,10 @@ HWTEST_F(RsSubThreadManagerTest, StartTest, TestSize.Level1)
     rsSubThreadManager->Start(nullptr);
     EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
 
-    auto renderContext = std::make_shared<RenderContext>();
-    std::shared_ptr<RSSubThread> subThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto renderContext = RenderContext::Create();
+    std::shared_ptr<RSSubThread> subThread = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->threadList_.push_back(subThread);
-    rsSubThreadManager->Start(renderContext.get());
+    rsSubThreadManager->Start(renderContext);
     EXPECT_FALSE(rsSubThreadManager->threadList_.empty());
     rsSubThreadManager->threadList_.clear();
 }
@@ -71,8 +71,8 @@ HWTEST_F(RsSubThreadManagerTest, PostTaskTest, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     rsSubThreadManager->PostTask([] {}, 5);
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->PostTask([] {}, 1);
     rsSubThreadManager->PostTask([] {}, 1, true);
@@ -89,9 +89,9 @@ HWTEST_F(RsSubThreadManagerTest, DumpMemTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     DfxString log;
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     std::shared_ptr<RSSubThread> curThread = nullptr;
-    auto curThreadf = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto curThreadf = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->DumpMem(log, false);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->threadList_.push_back(curThreadf);
@@ -109,9 +109,9 @@ HWTEST_F(RsSubThreadManagerTest, DumpMemTest002, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     DfxString log;
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     std::shared_ptr<RSSubThread> curThread = nullptr;
-    auto curThreadf = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto curThreadf = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->DumpMem(log, true);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->threadList_.push_back(curThreadf);
@@ -129,8 +129,8 @@ HWTEST_F(RsSubThreadManagerTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     std::shared_ptr<RSSubThread> curThreadf = nullptr;
-    auto renderContextt = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContextt.get(), 0);
+    auto renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     EXPECT_EQ(rsSubThreadManager->GetAppGpuMemoryInMB(), 0.f);
     rsSubThreadManager->threadList_.push_back(curThreadf);
     rsSubThreadManager->threadList_.push_back(curThread);
@@ -171,12 +171,12 @@ HWTEST_F(RsSubThreadManagerTest, ResetSubThreadGrContextTest001, TestSize.Level1
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     rsSubThreadManager->threadList_.clear();
-    auto renderContextf = std::make_shared<RenderContext>();
-    auto curThreadf = std::make_shared<RSSubThread>(renderContextf.get(), 0);
-    auto renderContexts = std::make_shared<RenderContext>();
-    auto curThreads = std::make_shared<RSSubThread>(renderContexts.get(), 1);
-    auto renderContextt = std::make_shared<RenderContext>();
-    auto curThreadt = std::make_shared<RSSubThread>(renderContextt.get(), 2);
+    auto renderContextf = RenderContext::Create();
+    auto curThreadf = std::make_shared<RSSubThread>(renderContextf, 0);
+    auto renderContexts = RenderContext::Create();
+    auto curThreads = std::make_shared<RSSubThread>(renderContexts, 1);
+    auto renderContext = RenderContext::Create();
+    auto curThreadt = std::make_shared<RSSubThread>(renderContext, 2);
     rsSubThreadManager->threadList_.clear();
     rsSubThreadManager->ResetSubThreadGrContext();
     EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
@@ -202,12 +202,12 @@ HWTEST_F(RsSubThreadManagerTest, CancelReleaseResourceTaskTest001, TestSize.Leve
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     EXPECT_TRUE(rsSubThreadManager->needCancelTask_);
-    auto renderContextf = std::make_shared<RenderContext>();
-    auto curThreadf = std::make_shared<RSSubThread>(renderContextf.get(), 0);
-    auto renderContexts = std::make_shared<RenderContext>();
-    auto curThreads = std::make_shared<RSSubThread>(renderContexts.get(), 1);
-    auto renderContextt = std::make_shared<RenderContext>();
-    auto curThreadt = std::make_shared<RSSubThread>(renderContextt.get(), 2);
+    auto renderContextf = RenderContext::Create();
+    auto curThreadf = std::make_shared<RSSubThread>(renderContextf, 0);
+    auto renderContexts = RenderContext::Create();
+    auto curThreads = std::make_shared<RSSubThread>(renderContexts, 1);
+    auto renderContext = RenderContext::Create();
+    auto curThreadt = std::make_shared<RSSubThread>(renderContext, 2);
     rsSubThreadManager->CancelReleaseResourceTask();
     EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
 
@@ -231,12 +231,12 @@ HWTEST_F(RsSubThreadManagerTest, CancelReleaseResourceTaskTest001, TestSize.Leve
 HWTEST_F(RsSubThreadManagerTest, ReleaseTextureTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
-    auto renderContextf = std::make_shared<RenderContext>();
-    auto curThreadf = std::make_shared<RSSubThread>(renderContextf.get(), 0);
-    auto renderContexts = std::make_shared<RenderContext>();
-    auto curThreads = std::make_shared<RSSubThread>(renderContexts.get(), 1);
-    auto renderContextt = std::make_shared<RenderContext>();
-    auto curThreadt = std::make_shared<RSSubThread>(renderContextt.get(), 2);
+    auto renderContextf = RenderContext::Create();
+    auto curThreadf = std::make_shared<RSSubThread>(renderContextf, 0);
+    auto renderContexts = RenderContext::Create();
+    auto curThreads = std::make_shared<RSSubThread>(renderContexts, 1);
+    auto renderContext = RenderContext::Create();
+    auto curThreadt = std::make_shared<RSSubThread>(renderContext, 2);
     rsSubThreadManager->ReleaseTexture();
     EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
 
@@ -256,12 +256,12 @@ HWTEST_F(RsSubThreadManagerTest, ReleaseTextureTest001, TestSize.Level1)
 HWTEST_F(RsSubThreadManagerTest, CancelReleaseTextureTaskTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
-    auto renderContextf = std::make_shared<RenderContext>();
-    auto curThreadf = std::make_shared<RSSubThread>(renderContextf.get(), 0);
-    auto renderContexts = std::make_shared<RenderContext>();
-    auto curThreads = std::make_shared<RSSubThread>(renderContexts.get(), 1);
-    auto renderContextt = std::make_shared<RenderContext>();
-    auto curThreadt = std::make_shared<RSSubThread>(renderContextt.get(), 2);
+    auto renderContextf = RenderContext::Create();
+    auto curThreadf = std::make_shared<RSSubThread>(renderContextf, 0);
+    auto renderContexts = RenderContext::Create();
+    auto curThreads = std::make_shared<RSSubThread>(renderContexts, 1);
+    auto renderContext = RenderContext::Create();
+    auto curThreadt = std::make_shared<RSSubThread>(renderContext, 2);
     rsSubThreadManager->CancelReleaseTextureTask();
     EXPECT_TRUE(rsSubThreadManager->threadList_.empty());
     EXPECT_TRUE(rsSubThreadManager->needCancelReleaseTextureTask_);
@@ -286,8 +286,8 @@ HWTEST_F(RsSubThreadManagerTest, CancelReleaseTextureTaskTest001, TestSize.Level
 HWTEST_F(RsSubThreadManagerTest, ReleaseSurfaceTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->ReleaseSurface(2);
     rsSubThreadManager->ReleaseSurface(0);
@@ -342,18 +342,18 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleRenderNodeDrawableTest, TestSize.Level1
 
     nodeDrawable->renderParams_ = std::make_unique<RSSurfaceRenderParams>(DEFAULT_ID);
     uint32_t index = 1;
-    auto context = std::make_shared<RenderContext>();
-    auto threadPtr = std::make_shared<RSSubThread>(context.get(), index);
+    auto context = RenderContext::Create();
+    auto threadPtr = std::make_shared<RSSubThread>(context, index);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadPtr;
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
     EXPECT_TRUE(nodeDrawable->GetRenderParams());
     EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 1);
 
-    auto threadSharedPtr = std::make_shared<RSSubThread>(context.get(), index);
+    auto threadSharedPtr = std::make_shared<RSSubThread>(context, index);
     threadSharedPtr->DoingCacheProcessNumInc();
     rsSubThreadManager->threadList_[rsSubThreadManager->defaultThreadIndex_] = threadSharedPtr;
-    auto threadShared = std::make_shared<RSSubThread>(context.get(), index);
+    auto threadShared = std::make_shared<RSSubThread>(context, index);
     rsSubThreadManager->threadList_[2] = threadShared;
     rsSubThreadManager->ScheduleRenderNodeDrawable(nodeDrawable);
     EXPECT_TRUE(rsSubThreadManager->defaultThreadIndex_ == 2);
@@ -393,8 +393,8 @@ HWTEST_F(RsSubThreadManagerTest, ScheduleReleaseCacheSurfaceOnlyTest, TestSize.L
     uint32_t index = 1;
     rsSubThreadManager->threadIndexMap_.insert(std::make_pair(id, index));
     surfaceDrawable->GetRsSubThreadCache().lastFrameUsedThreadIndex_ = 2;
-    auto context = std::make_shared<RenderContext>();
-    auto threadPtr = std::make_shared<RSSubThread>(context.get(), index);
+    auto context = RenderContext::Create();
+    auto threadPtr = std::make_shared<RSSubThread>(context, index);
     rsSubThreadManager->threadList_[1] = threadPtr;
     rsSubThreadManager->ScheduleReleaseCacheSurfaceOnly(surfaceDrawable);
     EXPECT_FALSE(rsSubThreadManager->threadList_.size());

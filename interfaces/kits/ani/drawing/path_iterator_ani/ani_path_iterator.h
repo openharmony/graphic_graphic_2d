@@ -30,10 +30,26 @@ public:
 
     static void ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPathObj);
 
+    static ani_object Next(ani_env* env, ani_object obj, ani_object aniPointArray, ani_object aniOffsetObj);
+
+    static ani_boolean HasNext(ani_env* env, ani_object obj);
+
+    static ani_enum_item Peek(ani_env* env, ani_object obj);
+
     PathIterator& GetPathIterator();
 
 private:
+    ani_object OnNext(ani_env* env, ani_object aniPointArray, ani_object aniOffsetObj);
+    ani_boolean OnHasNext(ani_env* env);
+    ani_enum_item OnPeek(ani_env* env, PathIterator& pathIterator);
+
+    PathVerb NextInternal();
+    PathVerb GetReturnVerb(const PathVerb& cachedVerb);
+
     PathIterator pathIterator_;
+    PathVerb verb_ = PathVerb::UNINIT;
+    bool done_ = false;
+    Point points_[MAX_PAIRS_PATHVERB] = {{0, 0}};
 };
 } // namespace Drawing
 } // namespace OHOS::Rosen

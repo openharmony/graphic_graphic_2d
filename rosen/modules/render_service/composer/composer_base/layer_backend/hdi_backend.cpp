@@ -1,0 +1,285 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "hdi_backend.h"
+#include "hdi_log.h"
+#include "hitrace_meter.h"
+#include "surface_buffer.h"
+
+namespace OHOS {
+namespace Rosen {
+
+HdiBackend* HdiBackend::GetInstance()
+{
+    static HdiBackend instance;
+
+    return &instance;
+}
+
+RosenError HdiBackend::RegScreenHotplug(OnScreenHotplugFunc func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("OnScreenHotplugFunc is null");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    onScreenHotplugCb_ = func;
+    onHotPlugCbData_ = data;
+
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+
+    int32_t ret = device_->RegHotPlugCallback(HdiBackend::OnHdiBackendHotPlugEvent, this);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegHotPlugCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+
+    return ROSEN_ERROR_OK;
+}
+
+RosenError HdiBackend::RegScreenRefresh(OnScreenRefreshFunc func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("OnScreenRefreshFunc is null");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    onScreenRefreshCb_ = func;
+    onRefreshCbData_ = data;
+
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+
+    int32_t ret = device_->RegRefreshCallback(HdiBackend::OnHdiBackendRefreshEvent, this);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegRefreshCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+
+    return ROSEN_ERROR_OK;
+}
+
+RosenError HdiBackend::RegHwcDeadListener(OnHwcDeadCallback func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("onHwcDeadCallbackFunc is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+
+    bool ret = device_->RegHwcDeadCallback(func, data);
+    if (!ret) {
+        HLOGE("RegHwcDeadCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+
+    return ROSEN_ERROR_OK;
+}
+
+RosenError HdiBackend::RegScreenVBlankIdleCallback(OnVBlankIdleCallback func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("OnScreenVBlankIdleFunc is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+
+    int32_t ret = device_->RegScreenVBlankIdleCallback(func, data);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegScreenVBlankIdleCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+
+    return ROSEN_ERROR_OK;
+}
+
+void HdiBackend::SetPendingMode(const OutputPtr& output, int64_t period, int64_t timestamp)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->SetPendingMode(period, timestamp);
+}
+
+void HdiBackend::StartSample(const OutputPtr &output)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->StartVSyncSampler(true); // force resample
+}
+ 
+void HdiBackend::SetVsyncSamplerEnabled(const OutputPtr& output, bool enabled)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return;
+    }
+    output->SetVsyncSamplerEnabled(enabled);
+}
+
+bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr& output)
+{
+    if (output == nullptr) {
+        HLOGE("output is nullptr.");
+        return false;
+    }
+    return output->GetVsyncSamplerEnabled();
+}
+
+void HdiBackend::ResetDevice()
+{
+    if (device_) {
+        device_->Destroy();
+        device_ = nullptr;
+    }
+    for (auto [id, output] : outputs_) {
+        output->ResetDevice();
+    }
+    outputs_.clear();
+}
+
+void HdiBackend::OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void* data)
+{
+    HLOGI("HotPlugEvent, screenId is %{public}u, connected is %{public}u", screenId, connected);
+    HdiBackend *hdiBackend = nullptr;
+    if (data != nullptr) {
+        hdiBackend = static_cast<HdiBackend *>(data);
+    } else {
+        hdiBackend = HdiBackend::GetInstance();
+    }
+
+    hdiBackend->OnHdiBackendConnected(screenId, connected);
+}
+
+void HdiBackend::OnHdiBackendRefreshEvent(uint32_t deviceId, void* data)
+{
+    HdiBackend *hdiBackend = nullptr;
+    if (data != nullptr) {
+        hdiBackend = static_cast<HdiBackend *>(data);
+    } else {
+        hdiBackend = HdiBackend::GetInstance();
+    }
+
+    hdiBackend->OnScreenRefresh(deviceId);
+}
+
+void HdiBackend::OnScreenRefresh(uint32_t deviceId)
+{
+    if (onScreenRefreshCb_ != nullptr) {
+        onScreenRefreshCb_(deviceId, onRefreshCbData_);
+    }
+}
+
+void HdiBackend::OnHdiBackendConnected(uint32_t screenId, bool connected)
+{
+    if (connected) {
+        CreateHdiOutput(screenId);
+    }
+
+    OnScreenHotplug(screenId, connected);
+}
+
+void HdiBackend::CreateHdiOutput(uint32_t screenId)
+{
+    OutputPtr newOutput = HdiOutput::CreateHdiOutput(screenId);
+    newOutput->Init();
+    outputs_.emplace(screenId, newOutput);
+}
+
+void HdiBackend::OnScreenHotplug(uint32_t screenId, bool connected)
+{
+    auto iter = outputs_.find(screenId);
+    if (iter == outputs_.end()) {
+        HLOGE("invalid hotplug screen id[%{public}u]", screenId);
+        return;
+    }
+
+    if (onScreenHotplugCb_ != nullptr) {
+        onScreenHotplugCb_(iter->second, connected, onHotPlugCbData_);
+    }
+
+    if (!connected) {
+        outputs_.erase(iter);
+    }
+}
+
+RosenError HdiBackend::InitDevice()
+{
+    if (device_ != nullptr) {
+        return ROSEN_ERROR_OK;
+    }
+
+    device_ = HdiDevice::GetInstance();
+    if (device_ == nullptr) {
+        HLOGE("Get HdiDevice failed");
+        return ROSEN_ERROR_NOT_INIT;
+    }
+
+    HLOGI("Init device succeed");
+    return ROSEN_ERROR_OK;
+}
+
+RosenError HdiBackend::SetHdiBackendDevice(HdiDevice* device)
+{
+    if (device == nullptr) {
+        HLOGE("Input HdiDevice is null");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+
+    if (device_ != nullptr) {
+        HLOGW("HdiDevice has been changed");
+        return ROSEN_ERROR_OK;
+    }
+    device_ = device;
+    return ROSEN_ERROR_OK;
+}
+
+RosenError HdiBackend::RegHwcEventCallback(RSHwcEventCallback func, void* data)
+{
+    if (func == nullptr) {
+        HLOGE("HwcEventCallback is null.");
+        return ROSEN_ERROR_INVALID_ARGUMENTS;
+    }
+ 
+    RosenError retCode = InitDevice();
+    if (retCode != ROSEN_ERROR_OK) {
+        return retCode;
+    }
+ 
+    int32_t ret = device_->RegHwcEventCallback(func, data);
+    if (ret != GRAPHIC_DISPLAY_SUCCESS) {
+        HLOGE("RegHwcEventCallback failed, ret is %{public}d", ret);
+        return ROSEN_ERROR_API_FAILED;
+    }
+    return ROSEN_ERROR_OK;
+}
+} // namespace Rosen
+} // namespace OHOS

@@ -106,6 +106,7 @@ public:
     std::string resPath_;
     bool isSoundEnabled_ = false;
     std::shared_ptr<Media::Player> mediaPlayer_;
+    bool isFrameRateEnable_ = false;
 };
 } // namespace OHOS
 

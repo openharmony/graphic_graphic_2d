@@ -125,8 +125,6 @@ bool DoRemoveChild(const uint8_t* data, size_t size)
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
     RSSurfaceNodeConfig config1;
     RSSurfaceNode::SharedPtr child = RSSurfaceNode::Create(config1);
-    int index = GetData<int>();
-    surfaceNode->AddChild(child, index);
     surfaceNode->RemoveChild(child);
     return true;
 }
@@ -535,7 +533,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     
     /* Run your code on data */
     OHOS::Rosen::DoCreate(data, size);
-    OHOS::Rosen::DoRemoveChild(data, size);
     OHOS::Rosen::DoSetAndGet(data, size);
     OHOS::Rosen::DoSetBufferAvailableCallback(data, size);
     OHOS::Rosen::DoSetBoundsChangedCallback(data, size);

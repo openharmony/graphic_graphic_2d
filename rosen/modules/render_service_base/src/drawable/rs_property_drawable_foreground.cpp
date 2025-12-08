@@ -22,11 +22,13 @@
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_shader_base.h"
+#include "effect/rs_render_shape_base.h"
 #include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "property/rs_point_light_manager.h"
+#include "render/rs_drawing_filter.h"
 #include "render/rs_effect_luminance_manager.h"
 #include "render/rs_particles_drawable.h"
 
@@ -476,6 +478,12 @@ Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDraw
 {
     auto ptr = std::static_pointer_cast<const RSForegroundFilterRestoreDrawable>(shared_from_this());
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (ptr->foregroundFilter_ && ptr->foregroundFilter_->IsDrawingFilter() && rect) {
+            auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(ptr->foregroundFilter_);
+            drawingFilter->SetGeometry(canvas->GetTotalMatrix(), canvas->GetDeviceClipBounds(), Drawing::Rect{},
+                rect->GetWidth(), rect->GetHeight());
+        }
+
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
         RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
@@ -585,12 +593,34 @@ bool RSBorderDrawable::OnUpdate(const RSRenderNode& node)
 void RSBorderDrawable::DrawBorder(const RSProperties& properties, Drawing::Canvas& canvas,
     const std::shared_ptr<RSBorder>& border, const bool& isOutline)
 {
-    const std::shared_ptr<RSSDFEffectFilter> sdfEffectFilter = properties.GetSDFEffectFilter();
-    if (sdfEffectFilter && border->GetStyle() == BorderStyle::SOLID) {
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape && border->GetStyle() == BorderStyle::SOLID) {
+        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
+        std::shared_ptr<Drawing::GEShaderShape> geShape =
+            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+        auto geFilter = std::make_shared<Drawing::GEVisualEffect>(
+            Drawing::GE_SHADER_SDF_BORDER, Drawing::DrawingPaintType::BRUSH);
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_SHAPE, geShape);
+        Drawing::GESDFBorderParams borderParam;
         auto borderColor = border->GetColor();
-        Drawing::Color color(
+        borderParam.color = Drawing::Color(
             borderColor.GetRed(), borderColor.GetGreen(), borderColor.GetBlue(), borderColor.GetAlpha());
-        sdfEffectFilter->SetBorder(color, border->GetWidth());
+        borderParam.width = border->GetWidth();
+        geFilter->SetParam(Drawing::GE_SHADER_SDF_BORDER_BORDER, borderParam);
+        std::shared_ptr<Drawing::GEVisualEffectContainer> geContainer_ =
+            std::make_shared<Drawing::GEVisualEffectContainer>();
+        geContainer_->AddToChainedFilter(geFilter);
+        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+        bool isZero = isOutline ? border->GetRadiusFour().IsZero() : properties.GetCornerRadius().IsZero();
+        Drawing::Rect rect;
+        if (isZero) {
+            rect = RSPropertyDrawableUtils::Rect2DrawingRect(isOutline ?
+                properties.GetBoundsRect().MakeOutset(border->GetWidthFour()) : properties.GetBoundsRect());
+        } else {
+            rect = RSPropertyDrawableUtils::RRect2DrawingRRect(
+                RSPropertyDrawableUtils::GetRRectForDrawingBorder(properties, border, isOutline)).GetRect();
+        }
+        geRender->DrawShaderEffect(canvas, *geContainer_, rect);
         return;
     }
     Drawing::Brush brush;
@@ -666,7 +696,7 @@ bool RSOutlineDrawable::OnUpdate(const RSRenderNode& node)
 
 RSDrawable::Ptr RSPointLightDrawable::OnGenerate(const RSRenderNode& node)
 {
-    if (auto ret = std::make_shared<RSPointLightDrawable>(node.GetRenderProperties()); ret->OnUpdate(node)) {
+    if (auto ret = std::make_shared<RSPointLightDrawable>(); ret->OnUpdate(node)) {
         return std::move(ret);
     }
     return nullptr;
@@ -686,49 +716,68 @@ Drawing::RecordingCanvas::DrawFunc RSPointLightDrawable::CreateDrawFunc() const
 
 bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
 {
-    const auto& illuminatedPtr = properties_.GetIlluminated();
+    const RSProperties& properties = node.GetRenderProperties();
+    const auto& illuminatedPtr = properties.GetIlluminated();
     if (!illuminatedPtr || !illuminatedPtr->IsIlluminatedValid()) {
         return false;
     }
-    enableEDREffect_ = illuminatedPtr->GetIlluminatedType() == IlluminatedType::NORMAL_BORDER_CONTENT;
-    if (enableEDREffect_) {
-        screenNodeId_ = node.GetScreenNodeId();
+    const auto& lightSourcesAndPosMap = illuminatedPtr->GetLightSourcesAndPosMap();
+    if (lightSourcesAndPosMap.empty()) {
+        stagingEnableEDREffect_ = false;
+        return true;
     }
+    stagingLightSourcesAndPosVec_.clear();
+    stagingLightSourcesAndPosVec_.reserve(lightSourcesAndPosMap.size());
+    stagingLightSourcesAndPosVec_.assign(lightSourcesAndPosMap.begin(), lightSourcesAndPosMap.end());
+    stagingIlluminatedType_ = illuminatedPtr->GetIlluminatedType();
+    stagingBorderWidth_ = std::max(0.0f, std::ceil(properties.GetIlluminatedBorderWidth()));
+    stagingRRect_ = RRect(properties.GetRRect());
+    stagingNodeId_ = node.GetId();
+    stagingScreenNodeId_ = node.GetScreenNodeId();
+    auto sdfShape = properties.GetSDFShape();
+    if (sdfShape) {
+        std::shared_ptr<Drawing::GEVisualEffect> geVisualEffect = sdfShape->GenerateGEVisualEffect();
+        std::shared_ptr<Drawing::GEShaderShape> geShape =
+            geVisualEffect ? geVisualEffect->GenerateShaderShape() : nullptr;
+        stagingSDFShaderEffect_ = geShape ? geShape->GenerateDrawingShader(0.0f, 0.0f) : nullptr;
+    }
+    auto begin = stagingLightSourcesAndPosVec_.begin();
+    auto end = begin + std::min(static_cast<size_t>(MAX_LIGHT_SOURCES), stagingLightSourcesAndPosVec_.size());
+    bool needEDR =
+        std::any_of(begin, end, [](const auto& pair) { return ROSEN_GNE(pair.first->GetLightIntensity(), 1.0f); });
+    stagingEnableEDREffect_ = needEDR && stagingIlluminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT;
+    needSync_ = true;
     return true;
 }
 
 void RSPointLightDrawable::OnSync()
 {
-    lightSourcesAndPosVec_.clear();
-    const auto& lightSourcesAndPosMap  = properties_.GetIlluminated()->GetLightSourcesAndPosMap();
-    for (auto &pair : lightSourcesAndPosMap) {
-        lightSourcesAndPosVec_.push_back(pair);
-    }
-    properties_.GetIlluminated()->ClearLightSourcesAndPosMap();
-    if (lightSourcesAndPosVec_.empty()) {
+    if (!needSync_) {
         return;
     }
+    lightSourcesAndPosVec_ = std::move(stagingLightSourcesAndPosVec_);
     if (lightSourcesAndPosVec_.size() > MAX_LIGHT_SOURCES) {
         std::sort(lightSourcesAndPosVec_.begin(), lightSourcesAndPosVec_.end(), [](const auto& x, const auto& y) {
             return x.second.x_ * x.second.x_ + x.second.y_ * x.second.y_ <
                    y.second.x_ * y.second.x_ + y.second.y_ * y.second.y_;
         });
     }
-    illuminatedType_ = properties_.GetIlluminated()->GetIlluminatedType();
-    borderWidth_ = std::ceil(properties_.GetIlluminatedBorderWidth());
-    borderWidth_ = borderWidth_ > 0.0f ? borderWidth_ : 0.0f;
-    auto& rrect = properties_.GetRRect();
+    illuminatedType_ = stagingIlluminatedType_;
+    enableEDREffect_ = stagingEnableEDREffect_;
+    borderWidth_ = stagingBorderWidth_;
+    screenNodeId_ = stagingScreenNodeId_;
+    nodeId_ = stagingNodeId_;
+    sdfShaderEffect_ = std::move(stagingSDFShaderEffect_);
     // half width and half height requires divide by 2.0f
     Vector4f width = { borderWidth_ / 2.0f };
-    auto borderRRect = rrect.Inset(width);
+    auto borderRRect = stagingRRect_.Inset(width);
     borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
-    contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(rrect);
-    if (properties_.GetBoundsGeometry()) {
-        rect_ = properties_.GetBoundsGeometry()->GetAbsRect();
-    }
+    contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(stagingRRect_);
+
     if (enableEDREffect_) {
         displayHeadroom_ = RSEffectLuminanceManager::GetInstance().GetDisplayHeadroom(screenNodeId_);
     }
+    needSync_ = false;
 }
 
 float RSPointLightDrawable::GetBrightnessMapping(float headroom, float input)
@@ -836,11 +885,11 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalL
     if (!builder) {
         return nullptr;
     }
-    constexpr float DEFAULT_BUMP_FACTOR = 3.0f;
-    constexpr float DEFAULT_GRADIENT_RADIUS = 10.0f;
-    constexpr float DEFAULT_BULGE_RADIUS = 15.0f;
-    constexpr float DEFAULT_EPSLION = 1.0f;
-    constexpr float DEFAULT_ATTENUATION_COEFF = 1.0f;
+    constexpr float DEFAULT_BUMP_FACTOR = 1.0f;
+    constexpr float DEFAULT_GRADIENT_RADIUS = 6.0f;
+    constexpr float DEFAULT_BULGE_RADIUS = 8.0f;
+    constexpr float DEFAULT_EPSILON = 2.0f;
+    constexpr float DEFAULT_ATTENUATION_COEFF = 0.3f;
     constexpr float CORNER_RADIUS_SCALE_FACTOR = 1.31f;
     constexpr float CORNER_THRESHOLD_FACTOR = 1.7f;
     constexpr float G2_CURVEATURE_K = 2.77f;
@@ -852,7 +901,7 @@ std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeNormalL
     builder->SetUniform("bumpFactor", DEFAULT_BUMP_FACTOR);
     builder->SetUniform("gradientRadius", DEFAULT_GRADIENT_RADIUS);
     builder->SetUniform("bulgeRadius", DEFAULT_BULGE_RADIUS);
-    builder->SetUniform("eps", DEFAULT_EPSLION);
+    builder->SetUniform("eps", DEFAULT_EPSILON);
     builder->SetUniform("attenuationCoeff", DEFAULT_ATTENUATION_COEFF);
     if (cornerRadius * CORNER_THRESHOLD_FACTOR * PARAM_TWO < std::min(rectWidth, rectHeight)) {
         builder->SetUniform("roundCurvature", G2_CURVEATURE_K);
@@ -873,6 +922,9 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     if (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT) {
         builder = MakeNormalLightShaderBuilder();
     } else if (illuminatedType_ == IlluminatedType::FEATHERING_BORDER) {
+        if (sdfShaderEffect_ != nullptr) { // FEATHERING_BORDER not support SDF effect
+            return;
+        }
         builder = MakeFeatheringBoardLightShaderBuilder();
     } else {
         builder = GetPhongShaderBuilder();
@@ -1041,17 +1093,78 @@ const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetN
     return GetLightShaderBuilder<NORMAL_LIGHT_SHADER_STRING>();
 }
 
+namespace {
+static constexpr char SDF_CONTENT_LIGHT_SHADER_STRING[](R"(
+    uniform shader light;
+    uniform shader sdf;
+
+    mediump vec4 main(vec2 coord)
+    {
+        vec4 lightColor = Light.eval(coord);
+        vec4 sdfColor = sdf.eval(coord);
+        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor.a)) * mix(1.0, -sdfColor.a, step(-1.0, sdfColor.a));
+    }
+)");
+
+static constexpr char SDF_BORDER_LIGHT_SHADER_STRING[](R"(
+    uniform shader light;
+    uniform shader sdf;
+    uniform float borderWidth;
+
+    mediump vec4 main(vec2 coord)
+    {
+        vec4 lightColor = Light.eval(coord);
+        vec4 sdfColor = sdf.eval(coord);
+        return lightColor * clamp((borderWidth * 0.5 - abs(sdfColor.a + borderWidth * 0.5)), 0.0, 1.0);
+    }
+)");
+}
+
+bool RSPointLightDrawable::DrawSDFContentLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect, Drawing::Brush& brush) const
+{
+    auto sdfLightBuilder = GetLightShaderBuilder<SDF_CONTENT_LIGHT_SHADER_STRING>();
+    if (!sdfLightBuilder || !lightShaderEffect) {
+        return false;
+    }
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
+    sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
+    lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);
+    brush.SetShaderEffect(lightShaderEffect);
+    if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
+        brush.SetAntiAlias(true);
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::SaveLayerOps slo(&contentRRect_.GetRect(), &brush);
+        canvas.SaveLayer(slo);
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(contentRRect_.GetRect());
+        canvas.DetachBrush();
+        canvas.Restore();
+    } else {
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(contentRRect_.GetRect());
+        canvas.DetachBrush();
+    }
+    return true;
+}
+
 void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Brush& brush,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
 {
-    float contentIntensityCoefficient = illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT ? 1.0f : 0.3f;
+    float contentIntensityCoefficient = illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT ? 0.5f : 0.3f;
     float specularStrengthArr[MAX_LIGHT_SOURCES] = { 0 };
     for (int i = 0; i < MAX_LIGHT_SOURCES; i++) {
         specularStrengthArr[i] = lightIntensityArray[i] * contentIntensityCoefficient;
     }
     lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
+    if (sdfShaderEffect_) {
+        DrawSDFContentLight(canvas, shader, brush);
+        return;
+    }
+
     brush.SetShaderEffect(shader);
     if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
@@ -1070,6 +1183,39 @@ void RSPointLightDrawable::DrawContentLight(Drawing::Canvas& canvas,
     }
 }
 
+bool RSPointLightDrawable::DrawSDFBorderLight(Drawing::Canvas& canvas,
+    std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect) const
+{
+    auto sdfLightBuilder = GetLightShaderBuilder<SDF_BORDER_LIGHT_SHADER_STRING>();
+    if (!sdfLightBuilder || !lightShaderEffect) {
+        return false;
+    }
+    sdfLightBuilder->SetChild("light", lightShaderEffect);
+    sdfLightBuilder->SetChild("sdf", sdfShaderEffect_);
+    sdfLightBuilder->SetUniform("borderWidth", borderWidth_);
+    lightShaderEffect = sdfLightBuilder->MakeShader(nullptr, false);
+
+    Drawing::Brush brush;
+    brush.SetAntiAlias(true);
+    brush.SetShaderEffect(lightShaderEffect);
+    if ((illuminatedType_ == IlluminatedType::BLEND_CONTENT) ||
+        (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT)) {
+        brush.SetBlendMode(Drawing::BlendMode::OVERLAY);
+        Drawing::Brush maskPaint;
+        Drawing::SaveLayerOps slo(&borderRRect_.GetRect(), &maskPaint);
+        canvas.SaveLayer(slo);
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(contentRRect_.GetRect());
+        canvas.DetachBrush();
+        canvas.Restore();
+    } else {
+        canvas.AttachBrush(brush);
+        canvas.DrawRect(borderRRect_.GetRect());
+        canvas.DetachBrush();
+    }
+    return true;
+}
+
 void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     std::shared_ptr<Drawing::RuntimeShaderBuilder>& lightBuilder, Drawing::Pen& pen,
     const std::array<float, MAX_LIGHT_SOURCES>& lightIntensityArray) const
@@ -1080,6 +1226,11 @@ void RSPointLightDrawable::DrawBorderLight(Drawing::Canvas& canvas,
     }
     lightBuilder->SetUniform("specularStrength", specularStrengthArr, MAX_LIGHT_SOURCES);
     std::shared_ptr<Drawing::ShaderEffect> shader = lightBuilder->MakeShader(nullptr, false);
+    if (sdfShaderEffect_) {
+        DrawSDFBorderLight(canvas, shader);
+        return;
+    }
+    
     pen.SetShaderEffect(shader);
     float borderWidth = std::ceil(borderWidth_);
     pen.SetWidth(borderWidth);
@@ -1121,11 +1272,15 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
     const auto& particles = particleVector.GetParticleVector();
     auto bounds = properties.GetDrawRegion();
     auto imageCount = particleVector.GetParticleImageCount();
-    auto imageVector = particleVector.GetParticleImageVector();
-    auto particleDrawable = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
-    if (particleDrawable != nullptr) {
-        particleDrawable->Draw(canvas, bounds);
+    auto& imageVector = particleVector.GetParticleImageVector();
+
+    if (cachedDrawable_ == nullptr) {
+        cachedDrawable_ = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
+    } else {
+        cachedDrawable_->UpdateData(particles, imageVector, imageCount);
     }
+
+    cachedDrawable_->Draw(canvas, bounds);
     return true;
 }
 } // namespace DrawableV2

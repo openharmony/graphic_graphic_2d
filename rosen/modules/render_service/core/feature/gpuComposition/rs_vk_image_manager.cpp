@@ -17,19 +17,19 @@
 
 #include <parameter.h>
 #include <parameters.h>
+#include "common/rs_optional_trace.h"
 #include "include/core/SkColorSpace.h"
 #include "native_buffer_inner.h"
+#include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_task_dispatcher.h"
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_task_dispatcher.h"
+#include "rs_render_composer_manager.h"
 #include "rs_trace.h"
-#include "common/rs_optional_trace.h"
-#include "params/rs_surface_render_params.h"
 
 #ifdef USE_M133_SKIA
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
@@ -304,8 +304,8 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(RSPaintF
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}" PRIu64 " marked for deletion from cache, unmapping",
             buffer->GetBufferId());
         UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
-        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
-            static_cast<BufferDeletedFlag>(0)) {
+        if (((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
+            static_cast<BufferDeletedFlag>(0)) && RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()) {
             buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         }
     }

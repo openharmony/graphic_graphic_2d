@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "file_ex.h"
 #include "memory/rs_memory_manager.h"
 #include "render/rs_typeface_cache.h"
 
@@ -245,8 +246,12 @@ HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
  * @tc.type:FUNC
  */
 HWTEST_F(RSTypefaceCacheTest, DumpTest001, TestSize.Level1) {
-    auto typeface = Drawing::Typeface::MakeDefault();
-    uint64_t uniqueId = 1;
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/NotoSansCJK-Regular.ttc", content);
+    auto typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "");
+    ASSERT_NE(typeface, nullptr);
+    uint64_t uniqueId = typeface->GetHash();
     RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
     DfxString log;
     RSTypefaceCache::Instance().Dump(log);
@@ -254,6 +259,7 @@ HWTEST_F(RSTypefaceCacheTest, DumpTest001, TestSize.Level1) {
     EXPECT_TRUE(log.GetString().find("pid") != std::string::npos);
     EXPECT_TRUE(log.GetString().find("hash_value") != std::string::npos);
     EXPECT_TRUE(log.GetString().find("familyname") != std::string::npos);
+    EXPECT_TRUE(log.GetString().find("Pss") != std::string::npos);
 }
 
 /**

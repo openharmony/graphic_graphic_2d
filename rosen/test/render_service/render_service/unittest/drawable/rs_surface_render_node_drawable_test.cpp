@@ -1076,27 +1076,6 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnGeneralProcess_StoppedByRangeCapTest
 }
 
 /**
- * @tc.name: RecordTimestamp
- * @tc.desc: Test RecordTimestamp
- * @tc.type: FUNC
- * @tc.require: IBE7GI
- */
-HWTEST_F(RSSurfaceRenderNodeDrawableTest, RecordTimestamp, TestSize.Level1)
-{
-    uint32_t seqNum = 0;
-    uint64_t currentTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    std::string name("surfacefps");
-    auto& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
-    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
-    surfaceFpsManager.RegisterSurfaceFps(DEFAULT_ID, name);
-    EXPECT_FALSE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
-    seqNum = 1;
-    EXPECT_TRUE(surfaceFpsManager.RecordPresentTime(DEFAULT_ID, currentTime, seqNum));
-    surfaceFpsManager.UnregisterSurfaceFps(DEFAULT_ID);
-}
-
-/**
  * @tc.name: CheckIfSurfaceSkipInMirrorOrScreenshot001
  * @tc.desc: Test CheckIfSurfaceSkipInMirrorOrScreenshot for main screen
  * @tc.type: FUNC
@@ -2004,6 +1983,36 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface010, TestSize.Level2)
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
     ASSERT_NE(surfaceParams, nullptr);
     RSRenderThreadParamsManager::Instance().renderThreadParams_ = nullptr;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+}
+
+/**
+ * @tc.name: CaptureSurface011
+ * @tc.desc: test CaptureSurface when UICapture is true or false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, CaptureSurface011, TestSize.Level2)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable_->renderParams_.get());
+    ASSERT_NE(surfaceParams, nullptr);
+    auto rsRenderThreadParams = std::make_unique<RSRenderThreadParams>();
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams));
+
+    CaptureParam captureParam;
+    RSUniRenderThread::SetCaptureParam(captureParam);
+    auto rsRenderThreadParams1 = std::make_unique<RSRenderThreadParams>();
+    rsRenderThreadParams1->isUIFirstDebugEnable_ = true;
+    surfaceParams->SetUifirstNodeEnableParam(MultiThreadCacheType::LEASH_WINDOW);
+    surfaceParams->SetGlobalPositionEnabled(true);
+    surfaceParams->SetUifirstUseStarting(0);
+    surfaceParams->SetWindowInfo(false, true, false);
+
+    surfaceParams->matrix_.SetMatrix(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    RSUniRenderThread::Instance().Sync(std::move(rsRenderThreadParams1));
+    RSUniRenderThread::GetCaptureParam().isSingleSurface_ = true;
+    surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
+    canvas_->SetUICapture(true);
     surfaceDrawable_->CaptureSurface(*canvas_, *surfaceParams);
 }
 

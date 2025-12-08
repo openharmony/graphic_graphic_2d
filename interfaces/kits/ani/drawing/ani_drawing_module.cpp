@@ -19,9 +19,13 @@
 #include "canvas_ani/ani_canvas.h"
 #include "color_filter_ani/ani_color_filter.h"
 #include "font_ani/ani_font.h"
+#include "text_blob_ani/ani_text_blob.h"
+#include "tool_ani/ani_tool.h"
 #include "matrix_ani/ani_matrix.h"
 #include "path_ani/ani_path.h"
 #include "path_iterator_ani/ani_path_iterator.h"
+#include "path_effect_ani/ani_path_effect.h"
+#include "shader_effect_ani/ani_shader_effect.h"
 #include "pen_ani/ani_pen.h"
 #include "region_ani/ani_region.h"
 #include "round_rect_ani/ani_round_rect.h"
@@ -29,8 +33,11 @@
 #include "typeface_ani/ani_typeface.h"
 #include "typeface_arguments_ani/ani_typeface_arguments.h"
 #include "rect_utils_ani/ani_rect_utils.h"
+#include "image_filter_ani/ani_image_filter.h"
+#include "mask_filter_ani/ani_mask_filter.h"
+#include "shadow_layer_ani/ani_shadow_layer.h"
 
-const char* ANI_CLASS_CLEANER_NAME = "L@ohos/graphics/drawing/drawing/Cleaner;";
+const char* ANI_CLASS_CLEANER_NAME = "@ohos.graphics.drawing.drawing.Cleaner";
 
 template <typename T>
 void SafeDelete(ani_long& ptr)
@@ -69,15 +76,23 @@ static void Clean(ani_env* env, ani_object object)
         {"Font", SafeDelete<OHOS::Rosen::Drawing::AniFont>},
         {"Lattice", SafeDelete<OHOS::Rosen::Drawing::AniLattice>},
         {"Matrix", SafeDelete<OHOS::Rosen::Drawing::AniMatrix>},
+        {"Tool", SafeDelete<OHOS::Rosen::Drawing::AniTool>},
         {"Path", SafeDelete<OHOS::Rosen::Drawing::AniPath>},
         {"PathIterator", SafeDelete<OHOS::Rosen::Drawing::AniPathIterator>},
+        {"PathEffect", SafeDelete<OHOS::Rosen::Drawing::AniPathEffect>},
+        {"ShaderEffect", SafeDelete<OHOS::Rosen::Drawing::AniShaderEffect>},
         {"Pen", SafeDelete<OHOS::Rosen::Drawing::AniPen>},
         {"Region", SafeDelete<OHOS::Rosen::Drawing::AniRegion>},
         {"RoundRect", SafeDelete<OHOS::Rosen::Drawing::AniRoundRect>},
         {"SamplingOptions", SafeDelete<OHOS::Rosen::Drawing::AniSamplingOptions>},
         {"Typeface", SafeDelete<OHOS::Rosen::Drawing::AniTypeface>},
+        {"TextBlob", SafeDelete<OHOS::Rosen::Drawing::AniTextBlob>},
         {"TypefaceArguments", SafeDelete<OHOS::Rosen::Drawing::AniTypefaceArguments>},
-        {"RectUtils", SafeDelete<OHOS::Rosen::Drawing::AniRectUtils>}};
+        {"RectUtils", SafeDelete<OHOS::Rosen::Drawing::AniRectUtils>},
+        {"ImageFilter", SafeDelete<OHOS::Rosen::Drawing::AniImageFilter>},
+        {"MaskFilter", SafeDelete<OHOS::Rosen::Drawing::AniMaskFilter>},
+        {"ShadowLayer", SafeDelete<OHOS::Rosen::Drawing::AniShadowLayer>},
+    };
 
     auto it = deleteMap.find(className);
     if (it != deleteMap.end()) {
@@ -97,7 +112,7 @@ static ani_status AniCleanerInit(ani_env* env)
     }
 
     std::array methods = {
-        ani_native_function{"clean", ":V", reinterpret_cast<void*>(Clean)},
+        ani_native_function{"clean", ":", reinterpret_cast<void*>(Clean)},
     };
 
     ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
@@ -123,6 +138,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniCanvas::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniColorFilter::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniFont::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniTextBlob::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniPen::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniSamplingOptions::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTypeface::AniInit(env) != ANI_OK ||
@@ -130,10 +146,16 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm* vm, uint32_t* result)
         OHOS::Rosen::Drawing::AniMatrix::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniPath::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniPathIterator::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniPathEffect::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniShaderEffect::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniRegion::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniRoundRect::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniTool::AniInit(env) != ANI_OK ||
         OHOS::Rosen::Drawing::AniTypefaceArguments::AniInit(env) != ANI_OK ||
-        OHOS::Rosen::Drawing::AniRectUtils::AniInit(env) != ANI_OK) {
+        OHOS::Rosen::Drawing::AniRectUtils::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniImageFilter::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniMaskFilter::AniInit(env) != ANI_OK ||
+        OHOS::Rosen::Drawing::AniShadowLayer::AniInit(env) != ANI_OK) {
         ROSEN_LOGE("[ANI_Constructor] Init failed");
         return ANI_ERROR;
     }

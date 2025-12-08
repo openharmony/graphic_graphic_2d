@@ -32,7 +32,7 @@ void SymbolGradientFuzzTest(const uint8_t* data, size_t size)
     float p3 = fdp.ConsumeFloatingPoint<float>();
     Drawing::TileMode tileMode = static_cast<Drawing::TileMode>(fdp.ConsumeIntegral<uint8_t>());
     SymbolGradient gradient = SymbolGradient();
-    std::vector<Drawing::ColorQuad> colors = {color1, color2, color3};
+    std::vector<Drawing::Color> colors = {color1, color2, color3};
     std::vector<float> positions = {p1, p2, p3};
     Drawing::Point offset = Drawing::Point(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
     gradient.CreateGradientShader(offset);
@@ -71,7 +71,7 @@ void SymbolLineGradientFuzzTest(const uint8_t* data, size_t size)
     float p3 = fdp.ConsumeFloatingPoint<float>();
     Drawing::TileMode tileMode = static_cast<Drawing::TileMode>(fdp.ConsumeIntegral<uint8_t>());
     float angle = fdp.ConsumeFloatingPoint<float>();
-    std::vector<Drawing::ColorQuad> colors = {color1, color2, color3};
+    std::vector<Drawing::Color> colors = {color1, color2, color3};
     std::vector<float> positions = {p1, p2, p3};
 
     SymbolLineGradient gradient = SymbolLineGradient(angle);
@@ -111,7 +111,7 @@ void SymbolRadialGradientFuzzTest(const uint8_t* data, size_t size)
     float bottom = fdp.ConsumeFloatingPoint<float>();
     Drawing::Rect bounds = Drawing::Rect(left, top, right, bottom);
     Drawing::Point offset = Drawing::Point(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
-    std::vector<Drawing::ColorQuad> colors = {color1, color2, color3};
+    std::vector<Drawing::Color> colors = {color1, color2, color3};
     std::vector<float> positions = {p1, p2, p3};
     Drawing::Point centerPt = Drawing::Point(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());
 
@@ -145,7 +145,7 @@ std::shared_ptr<SymbolGradient> SymbolGradientFuzzTestGet(const uint8_t* data, s
     float p2 = fdp.ConsumeFloatingPoint<float>();
     float p3 = fdp.ConsumeFloatingPoint<float>();
     Drawing::TileMode tileMode = static_cast<Drawing::TileMode>(fdp.ConsumeIntegral<uint8_t>());
-    std::vector<Drawing::ColorQuad> colors = {color1, color2, color3};
+    std::vector<Drawing::Color> colors = {color1, color2, color3};
     std::vector<float> positions = {p1, p2, p3};
     uint16_t gradientIndes = fdp.ConsumeIntegral<uint16_t>();
     Drawing::Point centerPt = Drawing::Point(fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>());

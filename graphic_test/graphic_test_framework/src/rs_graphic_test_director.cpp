@@ -310,7 +310,7 @@ std::pair<double, double> RSGraphicTestDirector::ReceiveProfilerTimeInfo()
     if (profilerThread_) {
         return profilerThread_->ReceiveTimeInfo();
     }
-    return {};
+    return std::pair<double, double>(0.0, 0.0);
 }
 
 void RSGraphicTestDirector::SendProfilerCommand(const std::string command, int outTime)

@@ -224,7 +224,7 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
             return nullptr;
         }
 
-        std::shared_ptr<RenderContext> renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+        auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
         if (renderContext == nullptr) {
             LOGE("CreateFromWindow: get renderContext failed.");
             return nullptr;
@@ -273,7 +273,7 @@ bool DrawingSurfaceUtils::FlushSurface(Drawing::Surface* surface)
             surface->GetCanvas()->Flush();
         }
 
-        std::shared_ptr<RenderContext> renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+        auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
         if (renderContext == nullptr) {
             LOGE("FlushSurface: get renderContext failed.");
             return false;

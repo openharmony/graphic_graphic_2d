@@ -204,7 +204,7 @@ void AniParagraph::PaintOnPath(
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Path unavailable.");
         return;
     }
-    aniParagraph->typography_->Paint(aniCanvas->GetCanvas(), &aniPath->GetPath(), hOffset, vOffset);
+    aniParagraph->typography_->Paint(aniCanvas->GetCanvas(), aniPath->GetPath().get(), hOffset, vOffset);
 }
 
 ani_double AniParagraph::GetMaxWidth(ani_env* env, ani_object object)

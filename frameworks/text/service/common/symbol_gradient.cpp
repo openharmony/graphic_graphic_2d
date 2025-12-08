@@ -18,7 +18,7 @@
 
 namespace OHOS::Rosen {
 
-void SymbolGradient::SetColors(const std::vector<Drawing::ColorQuad>& colors)
+void SymbolGradient::SetColors(const std::vector<Drawing::Color>& colors)
 {
     colors_ = colors;
 }
@@ -33,9 +33,18 @@ void SymbolGradient::SetTileMode(Drawing::TileMode tileMode)
     tileMode_ = tileMode;
 }
 
-const std::vector<Drawing::ColorQuad>& SymbolGradient::GetColors() const
+const std::vector<Drawing::Color>& SymbolGradient::GetColors() const
 {
     return colors_;
+}
+
+std::vector<Drawing::ColorQuad> SymbolGradient::GetColorQuads() const
+{
+    std::vector<Drawing::ColorQuad> colorQuads;
+    for (auto& color : colors_) {
+        colorQuads.emplace_back(color.CastToColorQuad());
+    }
+    return colorQuads;
 }
 
 const std::vector<float>& SymbolGradient::GetPositions() const
@@ -172,7 +181,8 @@ std::shared_ptr<Drawing::ShaderEffect> SymbolLineGradient::CreateGradientShader(
     auto endPoint = endPoint_;
     startPoint.Offset(offset.GetX(), offset.GetY());
     endPoint.Offset(offset.GetX(), offset.GetY());
-    return Drawing::ShaderEffect::CreateLinearGradient(startPoint, endPoint, colors_, positions_, tileMode_);
+    auto colorQuads = GetColorQuads();
+    return Drawing::ShaderEffect::CreateLinearGradient(startPoint, endPoint, colorQuads, positions_, tileMode_);
 }
 
 static float AngleToRadian(float angle)
@@ -326,6 +336,7 @@ std::shared_ptr<Drawing::ShaderEffect> SymbolRadialGradient::CreateGradientShade
     }
     auto centerPt = centerPt_;
     centerPt.Offset(offset.GetX(), offset.GetY());
-    return Drawing::ShaderEffect::CreateRadialGradient(centerPt, radius_, colors_, positions_, tileMode_);
+    auto colorQuads = GetColorQuads();
+    return Drawing::ShaderEffect::CreateRadialGradient(centerPt, radius_, colorQuads, positions_, tileMode_);
 }
 } // namespace OHOS::Rosen

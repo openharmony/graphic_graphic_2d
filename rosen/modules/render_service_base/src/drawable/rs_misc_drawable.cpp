@@ -21,6 +21,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/colorpicker/rs_color_picker_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -150,6 +151,56 @@ Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
 #endif
             const auto& drawable = ptr->childrenDrawableVec_[i];
             drawable->Draw(*canvas);
+        }
+    };
+}
+
+// ==================== RSColorPickerDrawable =====================
+RSColorPickerDrawable::RSColorPickerDrawable()
+{
+    colorPickerManager_ = std::make_shared<RSColorPickerManager>();
+}
+RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
+{
+    if (auto ret = std::make_shared<RSColorPickerDrawable>(); ret->OnUpdate(node)) {
+        return std::move(ret);
+    }
+    return nullptr;
+}
+
+bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
+{
+    stagingNodeId_ = node.GetId();
+    stagingPlaceholder_ = node.GetRenderProperties().GetColorPickerPlaceholder();
+    stagingStrategy_ = node.GetRenderProperties().GetColorPickerStrategy();
+    stagingInterval_ = node.GetRenderProperties().GetColorPickerInterval();
+    needSync_ = true;
+    return stagingPlaceholder_ != ColorPlaceholder::NONE;
+}
+
+void RSColorPickerDrawable::OnSync()
+{
+    if (!needSync_) {
+        return;
+    }
+    nodeId_ = stagingNodeId_;
+    placeholder_ = stagingPlaceholder_;
+    strategy_ = stagingStrategy_;
+    interval_ = stagingInterval_;
+    needSync_ = false;
+}
+
+Drawing::RecordingCanvas::DrawFunc RSColorPickerDrawable::CreateDrawFunc() const
+{
+    auto ptr = std::static_pointer_cast<const RSColorPickerDrawable>(shared_from_this());
+    return [ptr, this](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        if (colorPickerManager_) {
+            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+            if (paintFilterCanvas != nullptr) {
+                auto color = colorPickerManager_->GetColorPicked(*paintFilterCanvas, rect, nodeId_, strategy_,
+                    interval_);
+                paintFilterCanvas->SetColorPicked(placeholder_, color);
+            }
         }
     };
 }

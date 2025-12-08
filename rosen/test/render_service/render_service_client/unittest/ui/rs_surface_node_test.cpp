@@ -234,6 +234,28 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBounds005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LoadRenderNodeIfNeed001
+ * @tc.desc: Test LoadRenderNodeIfNeed func with RSSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSSurfaceNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->lazyLoad_ = true;
+    surfaceNode->isTextureExportNode_ = true;
+
+    Vector4f quaternion(0, 0,
+        TestSrc::limitNumber::floatLimit[2], TestSrc::limitNumber::floatLimit[0]);
+    surfaceNode->SetBounds(quaternion);
+    surfaceNode->modifiersNG_.emplace(0, nullptr);
+
+    surfaceNode->LoadRenderNodeIfNeed();
+    EXPECT_EQ(surfaceNode->lazyLoad_, false);
+}
+
+/**
  * @tc.name: SetandGetBounds006
  * @tc.desc:
  * @tc.type:FUNC

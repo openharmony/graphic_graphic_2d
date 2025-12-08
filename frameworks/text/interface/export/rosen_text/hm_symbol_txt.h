@@ -20,6 +20,8 @@
 #include <cstdint>
 #include <iostream>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 #include "draw/color.h"
@@ -59,8 +61,15 @@ struct SymbolColor {
 class RS_EXPORT HMSymbolTxt {
 public:
     HMSymbolTxt() {}
-    HMSymbolTxt(const HMSymbolTxt& other) = default;
-    HMSymbolTxt& operator=(const HMSymbolTxt& other) = default;
+    HMSymbolTxt(const HMSymbolTxt& other) {
+        CloneSelf(other);
+    };
+    HMSymbolTxt& operator=(const HMSymbolTxt& other) {
+        if (this != &other) {
+            CloneSelf(other);
+        }
+        return *this;
+    };
     ~HMSymbolTxt() {}
 
     void SetRenderColor(const std::vector<Drawing::DrawingSColor>& colorList);
@@ -98,6 +107,8 @@ public:
     bool GetFirstActive() const;
 
     std::vector<Drawing::DrawingSColor> GetRenderColor() const;
+
+    std::vector<ColorPlaceholder> GetRenderColorPlaceholder() const;
 
     Drawing::DrawingSymbolRenderingStrategy GetRenderMode() const;
 
@@ -144,6 +155,8 @@ private:
     SymbolBitmapType relayoutChangeBitmap_;
     std::optional<SymbolShadow> symbolShadow_;
     bool isFirstActive_ = false;
+    mutable std::shared_mutex gradientsMutex_;
+    void CloneSelf(const HMSymbolTxt& other);
 };
 }
 }

@@ -20,6 +20,7 @@
 #include "gtest/gtest.h"
 #include "gtest/hwext/gtest-ext.h"
 #include "rs_profiler.h"
+#include "rs_profiler_file.h"
 #include "rs_profiler_log.h"
 #include "rs_profiler_cache.h"
 #include "rs_profiler_pixelmap.h"
@@ -28,8 +29,6 @@
 #include "utils/data.h"
 
 #include "rs_profiler_command.h"
-
-#include "rs_profiler_file.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/rs_render_service.h"
@@ -40,77 +39,24 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 
 /*
-* @tc.name: IsPlaybackParcel
-* @tc.desc: Test IsPlaybackParcel
-* @tc.type: FUNC
-* @tc.require:
-*/
+ * @tc.name: IsPlaybackParcel
+ * @tc.desc: Test IsPlaybackParcel
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, IsPlaybackParcel, Level1)
 {
+    auto oldSubMode = RSProfiler::GetSubMode();
     RSProfiler::SetSubMode(SubMode::READ_EMUL);
     Parcel parcel;
     EXPECT_FALSE(RSProfiler::IsPlaybackParcel(parcel));
+    RSProfiler::SetSubMode(oldSubMode);
 }
 
 /*
-* @tc.name: Interface Test
-* @tc.desc: RSProfiler Interface Test
-* @tc.type: FUNC
-* @tc.require:
-*/
-HWTEST(RSProfilerBaseTest, SurfaceOnDrawMatchOptimize, Level1)
-{
-    EXPECT_NO_THROW({
-        bool defaultValue = false;
-
-        RSProfiler::testing_ = true;
-        bool useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetSubMode(SubMode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_FALSE(useNodeMatchOptimize);
-
-        RSProfiler::testing_ = false;
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetSubMode(SubMode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_FALSE(useNodeMatchOptimize);
-
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_FALSE(useNodeMatchOptimize);
-
-        defaultValue = true;
-
-        RSProfiler::testing_ = true;
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetSubMode(SubMode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        RSProfiler::testing_ = false;
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetSubMode(SubMode::READ_EMUL);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-
-        useNodeMatchOptimize = defaultValue;
-        RSProfiler::SetMode(Mode::NONE);
-        RSProfiler::SurfaceOnDrawMatchOptimize(useNodeMatchOptimize);
-        EXPECT_TRUE(useNodeMatchOptimize);
-    });
-}
-
+ * @tc.name: SendReceiveRSLog
+ * @tc.desc: Test SendReceiveRSLog
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, SendReceiveRSLog, Level1)
 {
     std::string magicWord = "XYZABC";
@@ -123,6 +69,11 @@ HWTEST(RSProfilerBaseTest, SendReceiveRSLog, Level1)
     EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP_YUV && msg.msg_ == magicWord), true);
 }
 
+/*
+ * @tc.name: PixelMapPushCheckJSON1
+ * @tc.desc: Test PixelMapPushCheckJSON
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON1, Level1)
 {
     RSProfiler::testing_ = true;
@@ -153,6 +104,11 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON1, Level1)
     EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP && msg.msg_.find(checkValue) != std::string::npos), true);
 }
 
+/*
+ * @tc.name: PixelMapPushCheckJSON2
+ * @tc.desc: Test PixelMapPushCheckJSON
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
 {
     RSProfiler::testing_ = true;
@@ -183,6 +139,11 @@ HWTEST(RSProfilerBaseTest, PixelMapPushCheckJSON2, Level1)
     EXPECT_EQ((msg.type_ == RSProfilerLogType::PIXELMAP && msg.msg_.find(checkValue) != std::string::npos), true);
 }
 
+/*
+ * @tc.name: ReceiveSendMessageBase
+ * @tc.desc: Test ReceiveSendMessageBase
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, ReceiveSendMessageBase, Level1)
 {
     std::string msg;
@@ -197,6 +158,11 @@ HWTEST(RSProfilerBaseTest, ReceiveSendMessageBase, Level1)
     EXPECT_EQ((msg == checkValue), true);
 }
 
+/*
+ * @tc.name: RSLOGE1
+ * @tc.desc: Test RSLOGE
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, RSLOGE1, Level1)
 {
     RSProfiler::testing_ = true;
@@ -221,6 +187,11 @@ HWTEST(RSProfilerBaseTest, RSLOGE1, Level1)
     EXPECT_EQ((logmsg.type_ == RSProfilerLogType::ERROR && logmsg.msg_ == checkValue), true);
 }
 
+/*
+ * @tc.name: RSLOGW1
+ * @tc.desc: Test RSLOGW
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, RSLOGW1, Level1)
 {
     RSProfiler::testing_ = true;
@@ -245,6 +216,11 @@ HWTEST(RSProfilerBaseTest, RSLOGW1, Level1)
     EXPECT_EQ((logmsg.type_ == RSProfilerLogType::WARNING && logmsg.msg_ == checkValue), true);
 }
 
+/*
+ * @tc.name: RSLOGW2
+ * @tc.desc: Test RSLOGW
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerBaseTest, RSLOGW2, Level1)
 {
     RSProfiler::testing_ = true;
@@ -269,6 +245,11 @@ HWTEST(RSProfilerBaseTest, RSLOGW2, Level1)
     EXPECT_EQ(msg, checkValue);
 }
 
+/*
+ * @tc.name: LightBlurMetrics
+ * @tc.desc: Test LightBlurMetrics
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, LightBlurMetrics, Level1)
 {
     RSProfiler::testing_ = true;
@@ -296,6 +277,11 @@ HWTEST(RSProfilerMetrics, LightBlurMetrics, Level1)
     EXPECT_EQ(endBlurAreaMetric, "15.000000");
 }
 
+/*
+ * @tc.name: HPSBlursMetrics
+ * @tc.desc: Test HPSBlursMetrics
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, HPSBlursMetrics, Level1)
 {
     RSProfiler::testing_ = true;
@@ -327,6 +313,11 @@ HWTEST(RSProfilerMetrics, HPSBlursMetrics, Level1)
     EXPECT_EQ(endBlurAreaMetric, "102.000000");
 }
 
+/*
+ * @tc.name: KawaseBlurMetrics
+ * @tc.desc: Test KawaseBlurMetrics
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, KawaseBlurMetrics, Level1)
 {
     RSProfiler::testing_ = true;
@@ -353,6 +344,11 @@ HWTEST(RSProfilerMetrics, KawaseBlurMetrics, Level1)
     EXPECT_EQ(endBlurAreaMetric, "9.000000");
 }
 
+/*
+ * @tc.name: MESABlurMetrics
+ * @tc.desc: Test MESABlurMetrics
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, MESABlurMetrics, Level1)
 {
     RSProfiler::testing_ = true;
@@ -377,6 +373,11 @@ HWTEST(RSProfilerMetrics, MESABlurMetrics, Level1)
     EXPECT_EQ(endBlurAreaMetric, "0.000000");
 }
 
+/*
+ * @tc.name: AllBlurMetrics
+ * @tc.desc: Test AllBlurMetrics
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, AllBlurMetrics, Level1)
 {
     RSProfiler::testing_ = true;
@@ -432,7 +433,11 @@ HWTEST(RSProfilerMetrics, AllBlurMetrics, Level1)
     EXPECT_EQ(endBlurAreaMetric, "154.000000");
 }
 
-
+/*
+ * @tc.name: ShaderCallMetric
+ * @tc.desc: Test ShaderCallMetric
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, ShaderCallMetric, Level1)
 {
     RSProfiler::testing_ = true;
@@ -456,6 +461,11 @@ HWTEST(RSProfilerMetrics, ShaderCallMetric, Level1)
     EXPECT_EQ(blurAredShaderCallsMetric, "8.000000");
 }
 
+/*
+ * @tc.name: DoNoAddNegativeBlurMetrics
+ * @tc.desc: Test DoNoAddNegativeBlurMetrics
+ * @tc.type: FUNC
+ */
 HWTEST(RSProfilerMetrics, DoNoAddNegativeBlurMetrics, Level1)
 {
     RSProfiler::testing_ = true;
@@ -482,32 +492,38 @@ HWTEST(RSProfilerMetrics, DoNoAddNegativeBlurMetrics, Level1)
 }
 
 class RecorRsProfileRecordTest : public testing::Test {
-    protected:
+protected:
     void SetUp() override
     {
         renderService = GetAndInitRenderService();
         RSProfiler::Init(renderService);
     }
 
-    private:
+private:
     sptr<RSRenderService> GetAndInitRenderService()
     {
         sptr<RSRenderService> renderService(new RSRenderService());
         if (renderService) {
             renderService->mainThread_ = RSMainThread::Instance();
+            renderService->screenManager_ = CreateOrGetScreenManager();
         }
         if (renderService->mainThread_) {
-            renderService->mainThread_->context_ = std::make_shared<RSContext>();
-            renderService->mainThread_->context_->Initialize();
+            renderService->mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
+            renderService->mainThread_->handler_ =
+                std::make_shared<AppExecFwk::EventHandler>(renderService->mainThread_->runner_);
         }
         return renderService;
     }
 
-    private:
+private:
     sptr<RSRenderService> renderService;
 };
 
-
+/*
+ * @tc.name: RecordStartFail
+ * @tc.desc: Test RecordStartFail
+ * @tc.type: FUNC
+ */
 HWTEST_F(RecorRsProfileRecordTest, RecordStartFail, Level1)
 {
     ArgList args;
@@ -518,6 +534,11 @@ HWTEST_F(RecorRsProfileRecordTest, RecordStartFail, Level1)
     EXPECT_FALSE(RSProfiler::IsRecordingMode());
 }
 
+/*
+ * @tc.name: RecordStartSuccess
+ * @tc.desc: Test RecordStartSuccess
+ * @tc.type: FUNC
+ */
 HWTEST_F(RecorRsProfileRecordTest, RecordStartSuccess, Level1)
 {
     ArgList args;
@@ -526,8 +547,14 @@ HWTEST_F(RecorRsProfileRecordTest, RecordStartSuccess, Level1)
     RSProfiler::RecordStart(args); // record starting
     EXPECT_TRUE(RSProfiler::IsWriteMode());
     EXPECT_TRUE(RSProfiler::IsRecordingMode());
+    usleep(200000);
 }
 
+/*
+ * @tc.name: RecordUpdate
+ * @tc.desc: Test RecordUpdate
+ * @tc.type: FUNC
+ */
 HWTEST_F(RecorRsProfileRecordTest, RecordUpdate, Level1)
 {
     ArgList args;
@@ -542,6 +569,11 @@ HWTEST_F(RecorRsProfileRecordTest, RecordUpdate, Level1)
     EXPECT_FALSE(RSProfiler::IsWriteMode());
 }
 
+/*
+ * @tc.name: RecordMetrics
+ * @tc.desc: Test RecordMetrics
+ * @tc.type: FUNC
+ */
 HWTEST_F(RecorRsProfileRecordTest, RecordMetrics, Level1)
 {
     EXPECT_NO_THROW({
@@ -549,8 +581,12 @@ HWTEST_F(RecorRsProfileRecordTest, RecordMetrics, Level1)
     });
 }
 
-HWTEST(RSProfilerMarshalTest, MarshalNode, TestSize.Level1 | Standard)
-{
+/*
+ * @tc.name: MarshalNode
+ * @tc.desc: Test MarshalNode
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerMarshalTest, MarshalNode, TestSize.Level1 | Standard) {
     auto context_sptr = std::make_shared<RSContext>();
     RSRenderNode node(123, context_sptr, false);
     std::stringstream data;
@@ -569,8 +605,12 @@ HWTEST(RSProfilerMarshalTest, MarshalNode, TestSize.Level1 | Standard)
     EXPECT_EQ(words, 1u);
 }
 
-HWTEST(RSProfilerMarshalTest, MarshalNodes, TestSize.Level1 | Standard)
-{
+/*
+ * @tc.name: MarshalNodes
+ * @tc.desc: Test MarshalNodes
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerMarshalTest, MarshalNodes, TestSize.Level1 | Standard) {
     auto context_sptr = std::make_shared<RSContext>();
     RSRenderNode node(123, context_sptr, false);
     std::stringstream data;
@@ -589,8 +629,12 @@ HWTEST(RSProfilerMarshalTest, MarshalNodes, TestSize.Level1 | Standard)
     EXPECT_EQ(words, 1u);
 }
 
-HWTEST(RSProfilerMarshalTest, MarshalTree, TestSize.Level1 | Standard)
-{
+/*
+ * @tc.name: MarshalTree
+ * @tc.desc: Test MarshalTree
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerMarshalTest, MarshalTree, TestSize.Level1 | Standard) {
     auto context_sptr = std::make_shared<RSContext>();
     RSRenderNode node(123, context_sptr, false);
     std::stringstream data;
@@ -609,8 +653,12 @@ HWTEST(RSProfilerMarshalTest, MarshalTree, TestSize.Level1 | Standard)
     EXPECT_EQ(words, 1u);
 }
 
-HWTEST(RSProfilerMarshalTest, MarshalSubTreeLo, TestSize.Level1 | Standard)
-{
+/*
+ * @tc.name: MarshalSubTreeLo
+ * @tc.desc: Test MarshalSubTreeLo
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerMarshalTest, MarshalSubTreeLo, TestSize.Level1 | Standard) {
     auto context_sptr = std::make_shared<RSContext>();
     RSRenderNode node(123, context_sptr, false);
     std::stringstream data;
@@ -629,8 +677,12 @@ HWTEST(RSProfilerMarshalTest, MarshalSubTreeLo, TestSize.Level1 | Standard)
     EXPECT_EQ(words, 1u);
 }
 
-HWTEST(RSProfilerMarshalTest, MarshalNodeModifiers, TestSize.Level1 | Standard)
-{
+/*
+ * @tc.name: MarshalNodeModifiers
+ * @tc.desc: Test MarshalNodeModifiers
+ * @tc.type: FUNC
+ */
+HWTEST(RSProfilerMarshalTest, MarshalNodeModifiers, TestSize.Level1 | Standard) {
     auto context_sptr = std::make_shared<RSContext>();
     RSRenderNode node(123, context_sptr, false);
     std::stringstream data;
@@ -648,5 +700,4 @@ HWTEST(RSProfilerMarshalTest, MarshalNodeModifiers, TestSize.Level1 | Standard)
 
     EXPECT_EQ(words, 1u);
 }
-
 } // namespace OHOS::Rosen

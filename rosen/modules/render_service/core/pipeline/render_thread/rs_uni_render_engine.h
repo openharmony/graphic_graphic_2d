@@ -33,19 +33,19 @@ public:
         DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, BufferDrawParam& params, PreProcessFunc preProcess,
         PostProcessFunc postProcess) override;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
 #else
-    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<LayerInfoPtr>& layers, bool forceCPU,
+    void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
         const ScreenInfo& screenInfo = {}) override;
 #endif
 private:
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    GraphicColorGamut ComputeTargetColorGamut(const std::vector<LayerInfoPtr>& layers);
+    GraphicColorGamut ComputeTargetColorGamut(const std::vector<RSLayerPtr>& layers);
 #endif
-    void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+    void DrawHdiLayerWithParams(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
         BufferDrawParam& params);
-    void DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const LayerInfoPtr& layer,
+    void DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
         const ScreenInfo& screenInfo);
 };
 } // namespace Rosen

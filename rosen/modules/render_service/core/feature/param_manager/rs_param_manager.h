@@ -60,6 +60,7 @@ public:
     void SubscribeEvent();
     void UnSubscribeEvent();
     void OnReceiveEvent(const AAFwk::Want &want);
+    bool IsCloudDisableSubtree();
 
 private:
     class ParamCommonEventSubscriber : public EventFwk::CommonEventSubscriber {
