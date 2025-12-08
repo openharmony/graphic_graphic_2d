@@ -937,6 +937,16 @@ namespace text {
     });
   }
 
+  native function getFontUnicodeSetSync(path: Resource | string, index: int) : Array<int>;
+
+  export async function getFontUnicodeSet(path: Resource | string, index: int) : Promise<Array<int>> {
+    return taskpool.execute((): Array<int> => {
+      return getFontUnicodeSetSync(path, index);
+    }) as Promise<Array<int>>;
+  }
+
+  native function getFontCount(path: Resource | string) : int;
+
   export enum SystemFontType {
     ALL = 1 << 0,
     GENERIC = 1 << 1,
@@ -956,6 +966,16 @@ namespace text {
     italic?: int;
     monoSpace?: boolean;
     symbolic?: boolean;
+    localPostscriptName?: string;
+    localFullName?: string;
+    localFamilyName?: string;
+    localSubFamilyName?: string;
+    version?: string;
+    manufacture?: string;
+    copyright?: string;
+    trademark?: string;
+    license?: string;
+    index?: int;
   }
 
   class FontDescriptorInternal implements FontDescriptor {
@@ -969,6 +989,16 @@ namespace text {
     italic?: int;
     monoSpace?: boolean;
     symbolic?: boolean;
+    localPostscriptName?: string;
+    localFullName?: string;
+    localFamilyName?: string;
+    localSubFamilyName?: string;
+    version?: string;
+    manufacture?: string;
+    copyright?: string;
+    trademark?: string;
+    license?: string;
+    index?: int;
     constructor(
       path: string,
       postScriptName: string,
@@ -980,6 +1010,16 @@ namespace text {
       italic: int,
       monoSpace: boolean,
       symbolic: boolean,
+      localPostscriptName: string,
+      localFullName: string,
+      localFamilyName: string,
+      localSubFamilyName: string,
+      version: string,
+      manufacture: string,
+      copyright: string,
+      trademark: string,
+      license: string,
+      index: int,
     ) {
       this.path = path;
       this.postScriptName = postScriptName;
@@ -991,6 +1031,16 @@ namespace text {
       this.italic = italic;
       this.monoSpace = monoSpace;
       this.symbolic = symbolic;
+      this.localPostscriptName = localPostscriptName;
+      this.localFullName = localFullName;
+      this.localFamilyName = localFamilyName;
+      this.localSubFamilyName = localSubFamilyName;
+      this.version = version;
+      this.manufacture = manufacture;
+      this.copyright = copyright;
+      this.trademark = trademark;
+      this.license = license;
+      this.index = index;
     }
   }
 
