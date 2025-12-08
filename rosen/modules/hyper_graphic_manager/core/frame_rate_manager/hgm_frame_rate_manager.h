@@ -128,6 +128,7 @@ public:
     int32_t AdaptiveStatus() const { return isAdaptive_.load(); }
     // called by RSHardwareThread
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_.load(); };
+    void SetIsGameNodeOnTree(bool isGameNodeOnTree) { isGameNodeOnTree_.store(isGameNodeOnTree); };
     void UniProcessDataForLtpo(uint64_t timestamp, std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker,
         const FrameRateLinkerMap& appFrameRateLinkers, const std::map<uint64_t, int>& vRatesMap);
 
@@ -159,10 +160,9 @@ public:
         isNeedUpdateAppOffset_ = isNeedUpdateAppOffset;
     }
 
-    // only called by RSMainThread
-    bool UpdateUIFrameworkDirtyNodes(std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp);
-    // only called by RSMainThread
-    bool HandleGameNode(const RSRenderNodeMap& nodeMap);
+    // only called by RenderService
+    bool UpdateUIFrameworkDirtyNodes(
+        const std::unordered_map<std::string, pid_t>& uIFrameworkDirtyNodeNameMap, uint64_t timestamp);
 
     HgmSimpleTimer& GetRsFrameRateTimer() { return rsFrameRateTimer_; };
 
@@ -179,6 +179,10 @@ public:
     void UpdateSoftVSync(bool followRs);
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void SetAdaptiveVsyncUpdateCallback(std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback)
+    {
+        adaptiveVsyncUpdateCallback_ = adaptiveVsyncUpdateCallback;
+    }
 
 private:
     friend class HgmUserDefineImpl;
@@ -257,6 +261,15 @@ private:
         }
     }
     void SyncHgmConfigUpdateCallback();
+    void TriggerAdaptiveVsyncUpdateCallback()
+    {
+        if (adaptiveVsyncUpdateCallback_ &&
+            (lastIsAdaptive_.load() != isAdaptive_.load() || lastGameNodeName_ != curGameNodeName_)) {
+            lastIsAdaptive_.store(isAdaptive_.load());
+            lastGameNodeName_ = curGameNodeName_;
+            adaptiveVsyncUpdateCallback_(lastIsAdaptive_, lastGameNodeName_);
+        }
+    }
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
 
@@ -334,6 +347,11 @@ private:
     
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
+
+    pid_t renderProcessPid_;
+    std::atomic<int32_t> lastIsAdaptive_ = SupportASStatus::NOT_SUPPORT;
+    std::string lastGameNodeName_;
+    std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback_ = nullptr;
     std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback_ = nullptr;
 };
 } // namespace Rosen

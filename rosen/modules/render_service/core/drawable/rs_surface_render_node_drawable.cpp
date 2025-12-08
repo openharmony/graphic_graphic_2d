@@ -92,6 +92,46 @@ RSSurfaceRenderNodeDrawable::RSSurfaceRenderNodeDrawable(std::shared_ptr<const R
     consumerOnDraw_ = surfaceNode->GetRSSurfaceHandler()->GetConsumer();
 #endif
     subThreadCache_.SetNodeId(surfaceNode->GetId());
+
+    id_ = surfaceNode->GetId();
+
+    if (surfaceNode->IsSelfDrawingType()) {
+        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(curDisplayScreenId_);
+        if (composerClient != nullptr) {
+            PipelineParam param = composerClient->GetPipelineParam();
+            SurfaceFpsOp op {
+                static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_UPDATE),
+                id_,
+                name_,
+            };
+            param.SurfaceFpsOpList.push_back(op);
+            param.SurfaceFpsOpNum++;
+            composerClient->UpdatePipelineParam(param);
+        }
+    }
+}
+
+RSSurfaceRenderNodeDrawable::~RSSurfaceRenderNodeDrawable()
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(GetRenderParams().get());
+    if (!surfaceParams) {
+        RS_LOGE("~RSSurfaceRenderNodeDrawable params is nullptr");
+        return;
+    }
+    if (surfaceParams->IsSelfDrawingType()) {
+        std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(curDisplayScreenId_);
+        if (composerClient != nullptr) {
+            PipelineParam param = composerClient->GetPipelineParam();
+            SurfaceFpsOp op {
+                static_cast<uint32_t>(SurfaceFpsOpType::SURFACE_FPS_REMOVE),
+                id_,
+                name_,
+            };
+            param.SurfaceFpsOpList.push_back(op);
+            param.SurfaceFpsOpNum++;
+            composerClient->UpdatePipelineParam(param);
+        }
+    }
 }
 
 RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -1298,6 +1338,8 @@ void RSSurfaceRenderNodeDrawable::DealWithSelfDrawingNodeBuffer(
             VideoInfo videoInfo;
             auto surfaceNodeImage = renderEngine->CreateImageFromBuffer(canvas, params, videoInfo);
 
+            RSUniRenderThread::Instance().OnDrawBuffer(consumerOnDraw_, params.buffer, surfaceParams.GetBufferOwnerCount());
+
             // Use to adapt to AIBar DSS solution
             Color solidLayerColor = RgbPalette::Transparent();
             if (surfaceParams.GetIsHwcEnabledBySolidLayer()) {
@@ -1434,9 +1476,6 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_DRAWSELFDRAWINGNODEBUFFER);
 #endif
-    if (params.buffer == nullptr) {
-        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer params.buffer is nullptr");
-    }
     auto bgColor = surfaceParams.GetBackgroundColor();
     if (surfaceParams.GetHardwareEnabled() && surfaceParams.GetIsHwcEnabledBySolidLayer()) {
         bgColor = surfaceParams.GetSolidLayerColor();
@@ -1466,6 +1505,7 @@ void RSSurfaceRenderNodeDrawable::DrawSelfDrawingNodeBuffer(
     } else {
         renderEngine->DrawSurfaceNodeWithParams(canvas, *this, params);
     }
+    RSUniRenderThread::Instance().OnDrawBuffer(consumerOnDraw_, params.buffer, surfaceParams.GetBufferOwnerCount());
 }
 
 bool RSSurfaceRenderNodeDrawable::HasCornerRadius(const RSSurfaceRenderParams& surfaceParams) const

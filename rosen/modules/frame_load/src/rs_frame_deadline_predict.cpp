@@ -30,16 +30,16 @@ RsFrameDeadlinePredict& RsFrameDeadlinePredict::GetInstance()
 
 RsFrameDeadlinePredict::RsFrameDeadlinePredict() {}
 
-void RsFrameDeadlinePredict::ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag)
+void RsFrameDeadlinePredict::ReportRsFrameDeadline(uint32_t rate, int64_t period, bool ltpoEnabled, bool forceRefreshFlag)
 {
     int64_t extraReserve = 0;
     int64_t vsyncOffset = 0;
-    uint32_t currentRate = hgmCore.GetFrameRateMgr()->GetCurrRefreshRate();
-    int64_t idealPeriod = hgmCore.GetIdealPeriod(currentRate);
+    uint32_t currentRate = rate;
+    int64_t idealPeriod = period;
     int64_t drawingTime = idealPeriod;
 
     if (currentRate == OLED_120_HZ) {
-        if (hgmCore.GetLtpoEnabled()) {
+        if (ltpoEnabled) {
             vsyncOffset = CreateVSyncGenerator()->GetVSyncOffset();
             if (vsyncOffset > SINGLE_SHIFT && vsyncOffset <= DOUBLE_SHIFT) {
                 extraReserve = SINGLE_SHIFT;

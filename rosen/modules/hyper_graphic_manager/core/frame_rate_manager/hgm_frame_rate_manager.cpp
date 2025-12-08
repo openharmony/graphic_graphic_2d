@@ -526,10 +526,14 @@ void HgmFrameRateManager::FrameRateReport()
         rates[UNI_APP_PID] = OLED_60_HZ;
         slideModeChange_ = false;
     }
-    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
-        GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
-    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) = %d, APP(%d) = %d",
-        GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+
+    if (renderProcessPid_ != 0) {
+        rates[renderProcessPid_] = currRefreshRate_;
+    }
+    HGM_LOGD("FrameRateReport: RS(%{public}d) RP(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
+        GetRealPid(), renderProcessPid_, rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) RP(%d) = %d, APP(%d) = %d",
+        GetRealPid(), renderProcessPid_, rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
     schedulePreferredFpsChange_ = false;
@@ -756,6 +760,7 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
     HgmEventDistributor::Instance()->HandlePackageEvent(packageList);
     MarkVoteChange("VOTER_SCENE");
     UpdateAppSupportedState();
+    HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(packageList);
 }
 
 void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eventInfo)
@@ -1296,6 +1301,7 @@ VoteInfo HgmFrameRateManager::ProcessRefreshRateVote()
     auto [min, max] = voteRange;
     SetResultVoteInfo(resultVoteInfo, min, max);
     ProcessAdaptiveSync(resultVoteInfo.voterName);
+    TriggerAdaptiveVsyncUpdateCallback();
 
     auto sampler = CreateVSyncSampler();
     sampler->SetAdaptive(isAdaptive_.load() == SupportASStatus::SUPPORT_AS);
@@ -1371,7 +1377,7 @@ void HgmFrameRateManager::UpdateEnergyConsumptionConfig()
 }
 
 bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
-    std::vector<std::weak_ptr<RSRenderNode>>& uiFwkDirtyNodes, uint64_t timestamp)
+    const std::unordered_map<std::string, pid_t>& uiFrameworkDirtyNodeNameMap, uint64_t timestamp)
 {
     timestamp_ = timestamp;
     HgmEnergyConsumptionPolicy::Instance().CheckOnlyVideoCallExist();
@@ -1379,30 +1385,18 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
         surfaceData_.clear();
         return false;
     }
-    std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeName;
-    for (auto iter = uiFwkDirtyNodes.begin(); iter != uiFwkDirtyNodes.end();) {
-        auto renderNode = iter->lock();
-        if (renderNode == nullptr) {
-            iter = uiFwkDirtyNodes.erase(iter);
-        } else {
-            if (renderNode->IsDirty()) {
-                uiFrameworkDirtyNodeName[renderNode->GetNodeName()] = ExtractPid(renderNode->GetId());
-            }
-            ++iter;
-        }
-    }
 
-    if (uiFrameworkDirtyNodeName.empty() && surfaceData_.empty() &&
+    if (uiFrameworkDirtyNodeNameMap.empty() && surfaceData_.empty() &&
         (timestamp - lastPostIdleDetectorTaskTimestamp_) < BUFFER_IDLE_TIME_OUT) {
         return false;
     }
-    HgmTaskHandleThread::Instance().PostTask([this, uiFrameworkDirtyNodeName, timestamp,
+    HgmTaskHandleThread::Instance().PostTask([this, uiFrameworkDirtyNodeNameMap, timestamp,
                                               surfaceData = surfaceData_]() {
         for (const auto& [surfaceName, pid, uiFwkType] : surfaceData) {
             if (multiAppStrategy_.CheckPidValid(pid, true)) {
                 idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid, uiFwkType);
             }
-        }
+        }uiFrameworkDirtyNodeNameMap
         for (const auto& [uiFwkDirtyNodeName, pid] : uiFrameworkDirtyNodeName) {
             if (multiAppStrategy_.CheckPidValid(pid, true)) {
                 idleDetector_.UpdateSurfaceTime(uiFwkDirtyNodeName, timestamp, pid, UIFWKType::FROM_UNKNOWN);
@@ -1412,34 +1406,6 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
     surfaceData_.clear();
     lastPostIdleDetectorTaskTimestamp_ = timestamp;
     return true;
-}
-
-bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
-{
-    bool isGameSelfNodeOnTree = false;
-    bool isOtherSelfNodeOnTree = false;
-    std::string gameNodeName = GetGameNodeName();
-    nodeMap.TraverseSurfaceNodes(
-        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree, &nodeMap]
-        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
-            if (surfaceNode == nullptr) {
-                return;
-            }
-            if (surfaceNode->IsOnTheTree() &&
-                surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
-                auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-                    nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
-                if (gameNodeName == surfaceNode->GetName()) {
-                    isGameSelfNodeOnTree = true;
-                } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
-                    isOtherSelfNodeOnTree = true;
-                }
-            }
-        });
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other visible node on tree: %d",
-                      isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
-    isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
-    return isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;
 }
 
 void HgmFrameRateManager::HandleAppStrategyConfigEvent(pid_t pid, const std::string& pkgName,
@@ -1622,6 +1588,8 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
     }
     data->SetSmallSizeArea(screenSetting.smallSizeArea);
     data->SetSmallSizeLength(screenSetting.smallSizeLength);
+    data->SetComponentPowerConfig(screenSetting.componentPowerConfig);
+    data->SetVideoSwitch(configData->videoFrameRateVoteSwitch_);
     for (auto& [animType, dynamicSetting] : screenSetting.smallSizeAnimationDynamicSettings) {
         for (auto& [animName, dynamicConfig] : dynamicSetting) {
             data->AddSmallSizeAnimDynamicItem({
@@ -1636,6 +1604,14 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
     }
     TriggerHgmConfigUpdateCallback(data,
         hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
+}
+
+void HgmFrameRateManager::UpdateRenderProcessPid(ScreenId screenId, pid_t pid)
+{
+    auto screenIds = HgmCore::Instance().GetScreenIds();
+    if (find(screenIds.begin(), screenIds.end(), screenId) != screenIds.end()) {
+        renderProcessPid_ = pid;
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -105,11 +105,10 @@ public:
     void SetWindowContainer(std::shared_ptr<RSBaseRenderNode> container);
     std::shared_ptr<RSBaseRenderNode> GetWindowContainer() const;
 
-    using ScreenStatusNotifyTask = std::function<void(bool)>;
+    using ScreenSwitchFinishTask = std::function<void(ScreenId)>;
+    static void SetScreenSwitchFinishTask(ScreenSwitchFinishTask task);
 
-    static void SetScreenStatusNotifyTask(ScreenStatusNotifyTask task);
-
-    void NotifyScreenNotSwitching();
+    void NotifyScreenSwitchFinish(ScreenId id);
 
     ScreenRotation GetRotation() const;
     void UpdateRotation();
@@ -229,7 +228,7 @@ private:
     // window Container
     std::shared_ptr<RSBaseRenderNode> windowContainer_;
 
-    static inline ScreenStatusNotifyTask screenStatusNotifyTask_ = nullptr;
+    static inline ScreenSwitchFinishTask screenSwitchFinishTask_ = nullptr;
 
     friend class DisplayNodeCommandHelper;
 };

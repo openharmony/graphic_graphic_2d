@@ -1010,6 +1010,10 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         surfaceBuffer->buffer = returnValue.buffer;
         surfaceBuffer->acquireFence = returnValue.fence;
         surfaceBuffer->timestamp = returnValue.timestamp;
+        surfaceBuffer->RegisterReleaseBufferListener([](uint64_t seqNum){
+            RSUniRenderThread::Instance().BufferReleaseCallBack(seqNum);
+        });
+        RSUniRenderThread::Instance().AddPendingReleaseBuffer(consumer, surfaceBuffer->buffer, SyncFence::InvalidFence());
         RS_LOGD_IF(DEBUG_PIPELINE,
             "RsDebug surfaceHandler(id: %{public}" PRIu64 ") AcquireBuffer success, acquireTimeStamp = "
             "%{public}" PRIu64 ", buffer timestamp = %{public}" PRId64 ", seq = %{public}" PRIu32 ".",
@@ -1291,40 +1295,39 @@ Drawing::Matrix RSBaseRenderUtil::GetGravityMatrix(
     return gravityMatrix;
 }
 
-ScreenId RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(RSSurfaceRenderParams* nodeParams)
+std::optional<RSScreenProperty> RSBaseRenderUtil::GetScreenPropertyFromSurfaceRenderParams(
+    RSSurfaceRenderParams* nodeParams)
 {
-    ScreenId screenId = 0;
     if (gettid() == RSUniRenderThread::Instance().GetTid()) { // Check whether the thread is in the UniRenderThread.
         auto ancestorDrawable = nodeParams->GetAncestorScreenDrawable().lock();
         if (ancestorDrawable == nullptr) {
-            return screenId;
+            return std::nullopt;
         }
         auto ancestorDisplayDrawable =
             std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(ancestorDrawable);
         if (ancestorDisplayDrawable == nullptr) {
-            return screenId;
+            return std::nullopt;
         }
         auto& ancestorParam = ancestorDisplayDrawable->GetRenderParams();
         if (ancestorParam == nullptr) {
-            return screenId;
+            return std::nullopt;
         }
         auto renderParams = static_cast<RSScreenRenderParams*>(ancestorParam.get());
         if (renderParams == nullptr) {
-            return screenId;
+            return std::nullopt;
         }
-        screenId = renderParams->GetScreenId();
-    } else {
-        std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
-        auto displayLock = nodeParams->GetAncestorScreenNode().lock();
-        if (displayLock != nullptr) {
-            ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
-        }
-        if (ancestor == nullptr) {
-            return screenId;
-        }
-        screenId = ancestor->GetScreenId();
+        return renderParams->GetScreenProperty();
     }
-    return screenId;
+
+    std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
+    auto displayLock = nodeParams->GetAncestorScreenNode().lock();
+    if (displayLock != nullptr) {
+        ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
+    }
+    if (ancestor == nullptr) {
+        return std::nullopt;
+    }
+    return ancestor->GetScreenProperty();
 }
 
 int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodeParams)
@@ -1344,16 +1347,10 @@ int32_t RSBaseRenderUtil::GetScreenRotationOffset(RSSurfaceRenderParams* nodePar
         return rotationDegree;
     }
 
-    ScreenId screenId = GetScreenIdFromSurfaceRenderParams(nodeParams);
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager) {
-        rotationDegree =
-            static_cast<int32_t>(RSBaseRenderUtil::RotateEnumToInt(screenManager->GetScreenCorrection(screenId)));
-    } else {
-        RS_LOGE("RSBaseRenderUtil::GetScreenRotationOffset: screenManager is nullptr");
+    auto screenProperty = GetScreenPropertyFromSurfaceRenderParams(nodeParams);
+    if (screenProperty.has_value()) {
+        rotationDegree = static_cast<int32_t>(RotateEnumToInt(screenProperty->GetScreenCorrection()));
     }
-    RS_LOGD("RSBaseRenderUtil::GetScreenRotationOffset: ScreenId: %{public}" PRIu64 ", RotationOffset: %{public}d",
-        screenId, rotationDegree);
     return rotationDegree;
 }
 

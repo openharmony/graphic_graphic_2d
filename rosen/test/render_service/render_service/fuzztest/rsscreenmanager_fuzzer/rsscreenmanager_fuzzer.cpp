@@ -95,11 +95,6 @@ void SetVirtualScreenRefreshRate()
     CreateOrGetScreenManager()->SetVirtualScreenRefreshRate(screenId, maxRefreshRate, actualRefreshRate);
 }
 
-void IsAllScreensPowerOff()
-{
-    CreateOrGetScreenManager()->IsAllScreensPowerOff();
-}
-
 void PostForceRefreshTask()
 {
     CreateOrGetScreenManager()->PostForceRefreshTask();
@@ -586,12 +581,6 @@ void GetScreenSupportedColorSpaces()
     CreateOrGetScreenManager()->GetScreenSupportedColorSpaces(screenId, colorSpaces);
 }
 
-void IsScreenPowerOff()
-{
-    ScreenId screenId = GetData<Rosen::ScreenId>();
-    CreateOrGetScreenManager()->IsScreenPowerOff(screenId);
-}
-
 void DisablePowerOffRenderControl()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -625,7 +614,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::InitScreenManger,
         OHOS::Rosen::GetActiveScreenId,
         OHOS::Rosen::SetVirtualScreenRefreshRate,
-        OHOS::Rosen::IsAllScreensPowerOff,
         OHOS::Rosen::PostForceRefreshTask,
         OHOS::Rosen::RemoveForceRefreshTask,
         OHOS::Rosen::TrySimpleProcessHotPlugEvents,
@@ -696,7 +684,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetScreenColorSpace,
         OHOS::Rosen::SetScreenColorSpace,
         OHOS::Rosen::GetScreenSupportedColorSpaces,
-        OHOS::Rosen::IsScreenPowerOff,
         OHOS::Rosen::DisablePowerOffRenderControl,
         OHOS::Rosen::SetScreenHasProtectedLayer,
         OHOS::Rosen::IsVisibleRectSupportRotation,

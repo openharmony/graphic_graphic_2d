@@ -69,27 +69,16 @@ RSUniHwcPrevalidateUtil::RSUniHwcPrevalidateUtil()
     isCopybitSupported_ = RSSystemParameters::GetIsCopybitSupported();
 }
 
-void RSUniHwcPrevalidateUtil::Init()
-{
-    RS_LOGI("[%{public}s]:register OnHwcEvent Func", __func__);
-    if (handleEventFunc_ == nullptr) {
-        RS_LOGW("[%{public}s]:handleEventFunc is nullptr", __func__);
-        return;
-    }
-    auto hdiBackend = HdiBackend::GetInstance();
-    if (hdiBackend && hdiBackend->RegHwcEventCallback(&RSUniHwcPrevalidateUtil::OnHwcEvent, this) != 0) {
-        RS_LOGW("[%{public}s]:Failed to register OnHwcEvent Func", __func__);
-    }
-}
- 
 void RSUniHwcPrevalidateUtil::OnHwcEvent(
-    uint32_t devId, uint32_t eventId, const std::vector<int32_t>& eventData, void* data)
+    uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    if (!GetInstance().handleEventFunc_) {
-        RS_LOGI_IF(DEBUG_PREVALIDATE, "RSUniHwcPrevalidateUtil::HandleEvent handleEventFunc is null");
+    if (!handleEventFunc_) {
+        RS_LOGI("RSUniHwcPrevalidateUtil::HandleEvent handleEventFunc is null");
         return;
     }
-    GetInstance().handleEventFunc_(devId, eventId, eventData);
+    RS_LOGI("RSUniHwcPrevalidateUtil::HandleEvent deviceId:%{public}" PRIu64 ", eventId:%{public}" PRIu32 "",
+        deviceId, eventId);
+    handleEventFunc_(devId, eventId, eventData);
 }
 
 RSUniHwcPrevalidateUtil::~RSUniHwcPrevalidateUtil()

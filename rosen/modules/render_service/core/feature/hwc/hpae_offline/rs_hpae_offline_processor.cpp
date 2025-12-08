@@ -20,8 +20,6 @@
 #include <vector>
 
 #include "display_engine/rs_luminance_control.h"
-#include "hdi_layer.h"
-#include "hdi_layer_info.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 #include "surface_type.h"

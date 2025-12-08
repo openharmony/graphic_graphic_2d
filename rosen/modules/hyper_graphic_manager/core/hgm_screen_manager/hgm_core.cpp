@@ -34,23 +34,6 @@
 
 namespace OHOS::Rosen {
 namespace {
-std::map<uint32_t, int64_t> IDEAL_PERIOD = {
-    { 144, 6944444 },
-    { 120, 8333333 },
-    { 90, 11111111 },
-    { 80, 12500000 },
-    { 72, 13888888 },
-    { 60, 16666666 },
-    { 48, 20833333 },
-    { 45, 22222222 },
-    { 40, 25000000 },
-    { 36, 27777777 },
-    { 30, 33333333 },
-    { 24, 41666666 },
-    { 20, 50000000 },
-    { 15, 66666666 },
-    { 10, 100000000 },
-};
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MIN = -16000000; // ns
 constexpr int64_t RENDER_VSYNC_OFFSET_DELAY_MAX = 16000000; // ns
 } // namespace
@@ -421,7 +404,7 @@ void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& a
 }
 
 int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize,
-    const std::vector<GraphicDisplayModeInfo>& supportedModes)
+    const std::vector<RSScreenModeInfo>& supportedModes)
 {
     // add a physical screen to hgm during hotplug event
     HILOG_COMM_INFO("HgmCore adding screen : " PUBI64 "", id);
@@ -451,7 +434,8 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
     int32_t modeId = 0;
     int32_t result = EXEC_SUCCESS;
     for (const auto& mode : supportedModes) {
-        if (newScreen->AddScreenModeInfo(mode.width, mode.height, mode.freshRate, modeId) != EXEC_SUCCESS) {
+        if (newScreen->AddScreenModeInfo(mode.GetScreenWidth(), mode.GetScreenHeight(),
+            mode.GetScreenRefreshRate(), modeId) != EXEC_SUCCESS) {
             HGM_LOGW("failed to add a screen profile to the screen : %{public}" PRIu64, id);
             result = HGM_ERROR;
             continue;
@@ -591,5 +575,15 @@ int64_t HgmCore::GetIdealPeriod(uint32_t rate)
         return IDEAL_PERIOD[rate];
     }
     return 0;
+}
+
+void HgmCore::SetScreenManager(RSScreenManager* screenManager)
+{
+    screenManager_ = screenManager;
+}
+
+RSScreenManager* HgmCore::GetScreenManager()
+{
+    return screenManager_;
 }
 } // namespace OHOS::Rosen

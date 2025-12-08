@@ -67,7 +67,7 @@ void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
     if (MetadataHelper::GetCropRectMetadata(buffer.buffer, crop) == GSERROR_OK) {
         buffer.buffer->SetCropMetadata({crop.left, crop.top, crop.width, crop.height});
     }
-    UpdateBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp);
+    UpdateBuffer(buffer.buffer, buffer.acquireFence, buffer.damageRect, buffer.timestamp, buffer.bufferOwnerCount_);
     SetCurrentFrameBufferConsumed();
     RS_LOGD_IF(DEBUG_PIPELINE,
         "RsDebug surfaceHandler(id: %{public}" PRIu64 ") buffer update, "
@@ -76,7 +76,8 @@ void RSSurfaceHandler::ConsumeAndUpdateBufferInner(SurfaceBufferEntry& buffer)
 }
 
 void RSSurfaceHandler::UpdateBuffer(
-    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage, const int64_t timestamp)
+    const sptr<SurfaceBuffer>& buffer, const sptr<SyncFence>& acquireFence, const Rect& damage,
+    const int64_t timestamp, std::shared_ptr<BufferOwnerCount> bufferOwnerCount)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (preBuffer_.buffer != nullptr) {
@@ -85,8 +86,10 @@ void RSSurfaceHandler::UpdateBuffer(
     }
     preBuffer_ = buffer_;
     buffer_.buffer = buffer;
+    buffer_.bufferOwnerCount_ = bufferOwnerCount;
     if (buffer != nullptr) {
         buffer_.seqNum = buffer->GetBufferId();
+		buffer_.bufferOwnerCount_->seqNum_ = buffer_.seqNum;
         buffer_.buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
     }
     buffer_.acquireFence = acquireFence;

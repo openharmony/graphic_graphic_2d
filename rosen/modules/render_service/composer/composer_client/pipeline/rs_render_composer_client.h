@@ -18,29 +18,67 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <functional>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <vector>
-#include <map>
-#include <functional>
-
+#include "irs_render_to_composer_connection.h"
 #include "rs_layer_context.h"
-#include "rs_render_to_composer_connection.h"
+#include "vsync_manager_agent.h"
 
 namespace OHOS {
 namespace Rosen {
-class RSLayerTransactionHandler;
 class RSRenderComposerClient {
 public:
-    explicit RSRenderComposerClient(const sptr<RSRenderToComposerConnection>& conn);
+    explicit RSRenderComposerClient(bool isMultiProcess, const sptr<IRSRenderToComposerConnection>& conn);
     ~RSRenderComposerClient() = default;
-    static std::shared_ptr<RSRenderComposerClient> Create(const sptr<RSRenderToComposerConnection>& conn);
-    void AddLayer(const std::shared_ptr<RSLayer> rsLayer);
-    void ClearAllLayers();
-    void CommitLayers();
 
+    static std::shared_ptr<RSRenderComposerClient> Create(bool isMultiProcess,
+        const sptr<IRSRenderToComposerConnection>& conn);
+
+    void AddLayer(const std::shared_ptr<RSLayer>& rsLayer);
+    void RemoveLayer(RSLayerId layerId);
+    void ClearAllLayers();
+    std::shared_ptr<RSLayer> GetLayer(RSLayerId rsLayerId);
+
+    void CommitLayer(CommitLayerInfo& commitLayerInfo);
+    void ReleaseLayerBuffers(uint64_t screenId,
+        std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
+
+    bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc);
+
+    std::shared_ptr<RSLayerContext> GetRSLayerContext() const;
+
+    inline bool IsMultiProcess() const
+    {
+        return isMultiProcess_;
+    }
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    void ClearFrameBuffers();
+    uint32_t GetUnExecuteTaskNum();
+    void UpdatePipelineParam(const PipelineParam& pipelineParam);
+    PipelineParam GetPipelineParam();
+    int GetAccumulatedBufferCount();
+    void DumpLayersInfo(std::string &dumpString);
+    void DumpCurrentFrameLayers();
+    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
+    void SetScreenBacklight(uint32_t level);
 private:
+    bool WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock);
+    void NotifyComposerThreadCanExecuteTask();
+    void IncUnExecuteTaskNum();
+    void SubUnExecuteTaskNum();
     std::shared_ptr<RSLayerContext> rsLayerContext_;
+    bool isMultiProcess_;
+    sptr<IRSRenderToComposerConnection> connection_;
+    std::condition_variable composerThreadTaskCond_;
+    std::atomic<uint32_t> unExecuteTaskNum_ = 0;
+    std::atomic<int> acquiredBufferCount_ = 0;
+    PipelineParam pipelineParam_;
+    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

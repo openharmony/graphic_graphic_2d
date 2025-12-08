@@ -26,6 +26,7 @@
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
 #include "pipeline/render_thread/rs_divided_render_util.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"

@@ -27,7 +27,7 @@ namespace OHOS::Rosen {
 class RsFrameDeadlinePredict {
 public:
     static RsFrameDeadlinePredict& GetInstance();
-    void ReportRsFrameDeadline(OHOS::Rosen::HgmCore& hgmCore, bool forceRefreshFlag);
+    void ReportRsFrameDeadline(uint32_t rate, int64_t period, bool ltpoEnabled, bool forceRefreshFlag);
 
 private:
     RsFrameDeadlinePredict();

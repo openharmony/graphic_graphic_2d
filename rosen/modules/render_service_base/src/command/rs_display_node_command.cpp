@@ -123,8 +123,8 @@ void DisplayNodeCommandHelper::SetScreenId(RSContext& context, NodeId id, uint64
         return;
     }
 
+    logicalDisplayNode->NotifyScreenSwitchFinish(logicalDisplayNode->GetScreenId());
     logicalDisplayNode->SetScreenId(screenId);
-    logicalDisplayNode->NotifyScreenNotSwitching();
     for (auto& child : *(logicalDisplayNode->GetChildren())) {
         if (!child) {
             continue;

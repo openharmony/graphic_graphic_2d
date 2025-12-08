@@ -35,6 +35,8 @@
 #include "sync_fence.h"
 #endif
 
+#include "pipeline/rs_surface_handler.h"
+
 namespace OHOS::Rosen {
 #define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")
 #define RENDER_RECT_PARAM_TO_STRING(rect) (std::string(#rect "[") + (rect).ToString() + "] ")
@@ -57,6 +59,40 @@ typedef enum {
     RS_PARAM_OWNED_BY_DRAWABLE_UIFIRST,
     RS_PARAM_INVALID,
 } RSRenderParamsType;
+
+typedef enum {
+    SURFACE_FPS_DEFAULT,
+    SURFACE_FPS_UPDATE,
+    SURFACE_FPS_REMOVE,
+} SurfaceFpsOpType;
+
+struct SurfaceFpsOp {
+    uint32_t surfaceFpsOpType = 0;
+    NodeId surfaceNodeId = 0;
+    std::string surfaceName = "";
+};
+
+struct PipelineParam {
+    uint64_t frameTimestamp = 0;
+    int64_t actualTimestamp = 0;
+    uint64_t fastComposeTimeStampDiff = 0;
+    uint64_t vsyncId = 0;
+    uint64_t pendingConstraintRelativeTime = 0;
+    uint32_t pendingScreenRefreshRate = 0;
+    bool isForceRefresh = false;
+    bool hasGameScene = false;
+    uint32_t SurfaceFpsOpNum = 0;
+    std::vector<SurfaceFpsOp> SurfaceFpsOpList;
+
+    void ResetSurfaceFpsOp() {
+        SurfaceFpsOpNum = 0;
+        SurfaceFpsOpList = std::vector<SurfaceFpsOp>();
+    }
+
+    uint32_t GetSurfaceFpsOpNum() {
+        return (SurfaceFpsOpNum < SurfaceFpsOpList.size()) ? SurfaceFpsOpNum : SurfaceFpsOpList.size();
+    }
+};
 
 class RSB_EXPORT RSRenderParams {
 public:
@@ -414,9 +450,9 @@ public:
 
     // overrided surface params
 #ifndef ROSEN_CROSS_PLATFORM
-    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) {}
+    virtual void SetBuffer(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect) {}
     virtual sptr<SurfaceBuffer> GetBuffer() const { return nullptr; }
-    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer) {}
+    virtual void SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount) {}
     virtual sptr<SurfaceBuffer> GetPreBuffer() { return nullptr; }
     virtual void SetAcquireFence(const sptr<SyncFence>& acquireFence) {}
     virtual sptr<SyncFence> GetAcquireFence() const { return nullptr; }
@@ -424,6 +460,14 @@ public:
     {
         static const Rect defaultRect = {};
         return defaultRect;
+    }
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const
+    {
+        return nullptr;
+    }
+    virtual std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const
+    {
+        return nullptr;
     }
 #endif
     virtual const RSLayerInfo& GetLayerInfo() const;

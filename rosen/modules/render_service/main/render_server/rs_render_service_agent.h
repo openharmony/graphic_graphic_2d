@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_SERVICE_RS_RENDER_SERVICE_AGENT_H
 #define RENDER_SERVICE_MAIN_RENDER_SERVICE_RS_RENDER_SERVICE_AGENT_H
 
+#include "feature/hyper_graphic_manager/hgm_context.h"
 #include "rs_render_service.h"
 
 namespace OHOS {
@@ -56,6 +57,16 @@ public:
         PostTaskImmediate([t(std::move(scheduledTask))]() { t->Run(); });
         return std::move(taskFuture);
     }
+
+    sptr<IRemoteObject> GetConnectToRenderToken(ScreenId screenId);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+        const std::unordered_set<ScreenId>& screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+        const sptr<HgmServiceToProcessInfo>& ServiceToProcessInfo);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
+    void FpsDump(std::string& dumpString, std::string& arg);
+    const std::shared_ptr<HgmContext>& GetHgmContext() const { return renderService_.GetHgmContext(); }
+    void RemoveToken(const sptr<RSIConnectionToken>& token);
 
 private:
     RSRenderService& renderService_;

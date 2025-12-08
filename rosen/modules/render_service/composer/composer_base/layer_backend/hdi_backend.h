@@ -17,13 +17,12 @@
 #define RENDER_SERVICE_COMPOSER_BASE_LAYER_BACKEND_HDI_BACKEND_H
 
 #include <functional>
-#include <unordered_map>
 #include <refbase.h>
-
-#include "hdi_device.h"
-#include "hdi_screen.h"
-#include "hdi_output.h"
+#include <unordered_map>
 #include "graphic_error.h"
+#include "hdi_device.h"
+#include "hdi_output.h"
+#include "hdi_screen.h"
 #include "surface_type.h"
 
 namespace OHOS {
@@ -47,7 +46,7 @@ public:
 
     /* only used for mock tests */
     RosenError SetHdiBackendDevice(HdiDevice* device);
-    void StartSample(const OutputPtr &output);
+    void StartSample(const OutputPtr& output);
     /* set a temporary period used only for VSyncSampler::GetHardwarePeriod interface */
     void SetPendingMode(const OutputPtr& output, int64_t period, int64_t timestamp);
     void SetVsyncSamplerEnabled(const OutputPtr& output, bool enabled);
@@ -63,7 +62,7 @@ private:
     HdiBackend(HdiBackend&& rhs) = delete;
     HdiBackend& operator=(HdiBackend&& rhs) = delete;
 
-    HdiDevice *device_ = nullptr;
+    HdiDevice* device_ = nullptr;
     void* onHotPlugCbData_ = nullptr;
     void* onRefreshCbData_ = nullptr;
     OnScreenHotplugFunc onScreenHotplugCb_ = nullptr;

@@ -337,14 +337,17 @@ bool RSProperties::UpdateGeometry(
         parentMatrix = &(sandbox_->matrix_.value());
     }
     boundsGeo_->UpdateMatrix(parentMatrix, offset);
+	auto renderNode = backref_.lock();
     const auto& lightSourcePtr = GetLightSource();
-    if (lightSourcePtr && lightSourcePtr ->IsLightSourceValid()) {
+    if (lightSourcePtr && lightSourcePtr ->IsLightSourceValid() && renderNode) {
         CalculateAbsLightPosition();
-        RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
+        auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
+        RSPointLightManager::Instance(logicalDisplayNodeId)->AddDirtyLightSource(backref_);
     }
     const auto& illuminatedPtr = GetIlluminated();
-    if (illuminatedPtr && illuminatedPtr->IsIlluminatedValid()) {
-        RSPointLightManager::Instance()->AddDirtyIlluminated(backref_);
+    if (illuminatedPtr && illuminatedPtr->IsIlluminatedValid() && renderNode) {
+		auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
+        RSPointLightManager::Instance(logicalDisplayNodeId)->AddDirtyIlluminated(backref_);
     }
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         auto rect = boundsGeo_->GetAbsRect();
@@ -3755,10 +3758,11 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     }
     bool preIntensityIsZero = ROSEN_EQ(preIntensity, 0.f);
     bool curIntensityIsZero = ROSEN_EQ(lightIntensity, 0.f);
+    auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
     if (preIntensityIsZero && !curIntensityIsZero) { // 0 --> non-zero
-        RSPointLightManager::Instance()->RegisterLightSource(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->RegisterLightSource(renderNode);
     } else if (!preIntensityIsZero && curIntensityIsZero) { // non-zero --> 0
-        RSPointLightManager::Instance()->UnRegisterLightSource(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->UnRegisterLightSource(renderNode);
     }
 }
 
@@ -3856,7 +3860,12 @@ int RSProperties::GetIlluminatedType() const
 void RSProperties::CalculateAbsLightPosition()
 {
     auto lightSourceAbsRect = boundsGeo_->GetAbsRect();
-    auto rotation = RSPointLightManager::Instance()->GetScreenRotation();
+    auto renderNode = backref_.lock();
+    if (!renderNode) {
+        return;
+    }
+    auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
+    auto rotation = RSPointLightManager::Instance(logicalDisplayNodeId)->GetScreenRotation();
     Vector4f lightAbsPosition = Vector4f();
     auto lightPos = GetLightSource()->GetLightPosition();
     switch (rotation) {

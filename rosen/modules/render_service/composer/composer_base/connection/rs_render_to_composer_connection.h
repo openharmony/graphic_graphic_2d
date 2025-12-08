@@ -15,18 +15,22 @@
 #ifndef RENDER_SERVICE_COMPOSER_BASE_CONNECTION_RS_RENDER_TO_COMPOSER_CONNECTION_H
 #define RENDER_SERVICE_COMPOSER_BASE_CONNECTION_RS_RENDER_TO_COMPOSER_CONNECTION_H
 
-#include "rs_layer_transaction_data.h"
 #include "rs_render_composer_agent.h"
+#include "rs_render_to_composer_connection_stub.h"
 
 namespace OHOS::Rosen {
-class RSRenderToComposerConnection : public RefBase {
+class RSRenderToComposerConnection : public RSRenderToComposerConnectionStub {
 public:
     RSRenderToComposerConnection(const std::string& name, uint64_t screenId,
         std::shared_ptr<RSRenderComposerAgent> rsRenderComposerAgent);
     ~RSRenderToComposerConnection() noexcept override = default;
 
-    void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData);
-
+    void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
+    void ClearFrameBuffers() override;
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
+    void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
+    void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds) override;
+    void SetScreenBacklight(uint32_t level) override;
 private:
     uint64_t screenId_ = 0;
     std::shared_ptr<RSRenderComposerAgent> rsRenderComposerAgent_;

@@ -33,8 +33,6 @@
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -47,6 +45,8 @@
 #include "render/rs_skia_filter.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "screen_manager/rs_screen_mode_info.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/native_buffer_utils.h"

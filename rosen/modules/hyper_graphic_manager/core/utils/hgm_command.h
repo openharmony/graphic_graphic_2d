@@ -17,6 +17,7 @@
 #define HGM_COMMAND_H
 
 #include <cinttypes>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -58,6 +59,24 @@ enum OledRefreshRate {
     OLED_120_HZ = 120,
     OLED_144_HZ = 144,
     OLED_MAX_HZ = 1000,
+};
+
+inline std::map<uint32_t, int64_t> IDEAL_PERIOD = {
+    { 144, 6944444 },
+    { 120, 8333333 },
+    { 90, 11111111 },
+    { 80, 12500000 },
+    { 72, 13888888 },
+    { 60, 16666666 },
+    { 48, 20833333 },
+    { 45, 22222222 },
+    { 40, 25000000 },
+    { 36, 27777777 },
+    { 30, 33333333 },
+    { 24, 41666666 },
+    { 20, 50000000 },
+    { 15, 66666666 },
+    { 10, 100000000 },
 };
 
 enum HgmErrCode {

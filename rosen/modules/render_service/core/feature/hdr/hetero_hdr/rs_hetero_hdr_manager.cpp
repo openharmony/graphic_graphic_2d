@@ -21,6 +21,7 @@
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_hpae.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "hetero_hdr/rs_hdr_pattern_manager.h"
 #include "metadata_helper.h"
@@ -107,7 +108,18 @@ bool RSHeteroHDRManager::FixConditionPrejudgment(std::shared_ptr<DrawableV2::RSS
     // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
     float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
     Vector2f boundSize = surfaceParams->GetCacheSize();
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
+    auto screenNodeptr = surfaceParams->GetAncestorScreenNode().lock();
+    if (!screenNodeptr) {
+        RS_LOGE("[hdrHetero]:RSHDRBUfferLayer FixConditionPrejudgment screenNodeptr is nullptr");
+        return nullptr;
+    }
+    auto ancestorNode = screenNodeptr->ReinterpretCastTo<RSScreenRenderNode>();
+    if (!ancestorNode) {
+        RS_LOGE("[hdrHetero]:RSHDRBUfferLayer FixConditionPrejudgment ancestorNode is nullptr");
+        return nullptr;
+    }
+	// todo get screeninfo from drawable
+    ScreenInfo curScreenInfo = ancestorNode->GetScreenProperty().GetScreenInfo();
     bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
         (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
 
@@ -141,7 +153,17 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
     Vector2f boundSize = surfaceParams->GetCacheSize();
 
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
+    auto screenNodeptr = surfaceParams->GetAncestorScreenNode().lock();
+    if (!screenNodeptr) {
+        RS_LOGE("[hdrHetero]:RSHDRBUfferLayer GetFixedDstRectStatus screenNodeptr is nullptr");
+        return nullptr;
+    }
+    auto ancestorNode = screenNodeptr->ReinterpretCastTo<RSScreenRenderNode>();
+    if (!ancestorNode) {
+        RS_LOGE("[hdrHetero]:RSHDRBUfferLayer GetFixedDstRectStatus ancestorNode is nullptr");
+        return nullptr;
+    }
+    ScreenInfo curScreenInfo = ancestorNode->GetScreenProperty().GetScreenInfo();
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
     bool isVertical = (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         transform == GraphicTransformType::GRAPHIC_ROTATE_270);
@@ -427,7 +449,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
         return;
     }
     curNodeId_ = 0;
-    uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
+    uint64_t curFrameId = RSUniRenderThread::Instance().GetVsyncId();
     RSHDRPatternManager::Instance().MHCSetVsyncId(curFrameId);
     FindParentLeashWindowNode();
 
@@ -558,7 +580,7 @@ bool RSHeteroHDRManager::IsHDRSurfaceNodeSkipped(
         RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager IsHDRSurfaceNodeSkipped FilterCache Skip");
         return true;
     }
-    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {
+    if (RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(GetScreenIDByDrawable(surfaceDrawable))) {
         return true;
     }
     if (!surfaceDrawable->ShouldPaint()) {

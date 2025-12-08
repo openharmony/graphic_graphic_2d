@@ -227,6 +227,17 @@ std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCache(uint
     return nullptr;
 }
 
+std::vector<std::pair<uint64_t, std::shared_ptr<Drawing::Typeface>>> RSTypefaceCache::GetCachedTypeface() const
+{
+    std::lock_guard<std::mutex> lock(mapMutex_);
+    std::vector<std::pair<uint64_t, std::shared_ptr<Drawing::Typeface>>> typefaceCache;
+    for (auto it = typefaceHashMap_.begin(); it != typefaceHashMap_.end(); it++) {
+        auto [typeface, ref] = it->second;
+        typefaceCache.push_back(std::make_pair(it->first, typeface));
+    }
+    return typefaceCache;
+}
+
 std::shared_ptr<Drawing::Typeface> RSTypefaceCache::GetDrawingTypefaceCacheByHash(uint64_t uniqueId) const
 {
     std::lock_guard lock(mapMutex_);

@@ -191,6 +191,21 @@ const std::unordered_set<NodeType>& RSScreenProperty::GetTypeBlackList() const
     return typeBlackList_;
 }
 
+const std::unordered_set<NodeId>& RSScreenProperty::GetGlobalBlackList() const
+{
+    return globalBlackList_;
+}
+
+const std::unordered_set<NodeId> RSScreenProperty::GetMergeBlackList() const
+{
+    if (!skipWindow_) {
+        return blackList_;
+    }
+    std::unordered_set<NodeId> blackList = blackList_;
+    blackList.insert(globalBlackList_.begin(), globalBlackList_.end());
+    return blackList;
+}
+
 const std::vector<NodeId>& RSScreenProperty::GetSecurityExemptionList() const
 {
     return securityExemptionList_;
@@ -440,6 +455,13 @@ bool RSScreenProperty::Marshalling(Parcel& data) const
     blackListVec.assign(blackList_.begin(), blackList_.end());
     if (!data.WriteUInt64Vector(blackListVec)) {
         ROSEN_LOGE("WriteScreenProperty: WriteUInt64Vector blackList err.");
+        return false;
+    }
+
+    std::vector<uint64_t> globalBlackListVec;
+    globalBlackListVec.assign(globalBlackList_.begin(), globalBlackList_.end());
+    if (!data.WriteUInt64Vector(globalBlackListVec)) {
+        ROSEN_LOGE("WriteScreenProperty: WriteUInt64Vector globalBlackList err.");
         return false;
     }
 
@@ -709,6 +731,13 @@ bool RSScreenProperty::UnmarshallingData(Parcel& data)
         return false;
     }
     blackList_ = std::unordered_set<NodeId>(blackListVec.begin(), blackListVec.end());
+
+    std::vector<NodeId> globalBlackListVec;
+    if (!data.ReadUInt64Vector(&globalBlackListVec)) {
+        ROSEN_LOGE("RSScreenProperty::Unmarshalling: ReadUInt64Vector globalBlackList err.");
+        return false;
+    }
+    globalBlackList_ = std::unordered_set<NodeId>(globalBlackListVec.begin(), globalBlackListVec.end());
 
     std::vector<uint8_t> typeBlackListVec;
     if (!data.ReadUInt8Vector(&typeBlackListVec)) {

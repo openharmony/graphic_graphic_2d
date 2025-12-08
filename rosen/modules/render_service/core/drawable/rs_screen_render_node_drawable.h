@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_handler.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "rs_render_composer_client.h"
 
 namespace OHOS::Rosen {
 namespace DrawableV2 {

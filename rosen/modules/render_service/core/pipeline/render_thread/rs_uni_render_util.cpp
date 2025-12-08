@@ -374,12 +374,7 @@ Occlusion::Region RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual(
     RSScreenRenderParams& screenParams, bool isSecScreen)
 {
     Occlusion::Region allSurfaceVisibleDirtyRegion;
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSUniRenderUtil::MergeVisibleDirtyRegionInVirtual, failed to get screen manager!");
-        return allSurfaceVisibleDirtyRegion;
-    }
-    auto curBlackList = screenManager->GetVirtualScreenBlackList(screenParams.GetScreenId());
+    auto curBlackList = screenParams.GetScreenProperty().GetBlackList();
     for (auto it = allSurfaceNodeDrawables.rbegin(); it != allSurfaceNodeDrawables.rend(); ++it) {
         auto surfaceNodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(*it);
         if (surfaceNodeDrawable == nullptr) {
@@ -1036,7 +1031,7 @@ std::vector<GrBackendSemaphore> RSUniRenderUtil::PrepareHdrSemaphoreVector(GrBac
 #endif
 
 void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-    Drawing::GPUContext* const grContext, bool optFenceWait)
+    Drawing::GPUContext* const grContext, bool optFenceWait, sptr<SyncFence>& acquireFence)
 {
     if (!surface || !grContext) {
         RS_LOGE("RSUniRenderUtil::OptimizedFlushAndSubmit cacheSurface or grContext are nullptr");
@@ -1084,6 +1079,26 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
         drawingFlushInfo.finishedContext = destroyInfo;
         surface->Flush(&drawingFlushInfo);
         grContext->Submit();
+
+        if (acquireFence) {
+            int fenceFd = -1;
+            auto backendTexture = surface->GetBackendTexture().GetTextureInfo().GetVKTextureInfo();;
+
+            auto err = RsVulkanContext::HookedVkQueueSignalReleaseImageOHOS(
+                vkContext.GetQueue(), 1, &semaphore,
+                backendTexture ? backendTexture->vkImage : VK_NULL_HANDLE /* VkImage */, &fenceFd);
+            if (err != VK_SUCCESS) {
+                if (err == VK_ERROR_DEVICE_LOST) {
+                    vkContext.DestroyAllSemaphoreFence();
+                }
+                RsVulkanInterface::CallbackSemaphoreInfo::DestroyCallbackRefsFromRS(destroyInfo);
+                destroyInfo = nullptr;
+                ROSEN_LOGE("QueueSignalReleaseImageOHOS failed %{public}d", err);
+                return;
+            }
+            acquireFence = SyncFence::MergeFence("OptimizedFlushAndSubmit", acquireFence, sptr<SyncFence>(new SyncFence(fenceFd)));
+        }
+
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);
         RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
     } else {
@@ -1247,34 +1262,6 @@ void RSUniRenderUtil::FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap)
         if (err != GSERROR_OK) {
             RS_LOGE("RSUniRenderUtil::FlushDmaSurfaceBuffer InvalidateCache failed, GSError=%{public}d", err);
         }
-    }
-}
-
-bool RSUniRenderUtil::CheckRenderSkipIfScreenOff(bool extraFrame, std::optional<ScreenId> screenId)
-{
-    if (!RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
-        return false;
-    }
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("RSUniRenderUtil::CheckRenderSkipIfScreenOff, failed to get screen manager!");
-        return false;
-    }
-    // in certain cases such as wireless display, render skipping may be disabled.
-    auto disableRenderControlScreensCount = screenManager->GetDisableRenderControlScreensCount();
-    auto isScreenOff = screenId.has_value() ?
-        screenManager->IsScreenPowerOff(screenId.value()) : screenManager->IsAllScreensPowerOff();
-    RS_TRACE_NAME_FMT("CheckRenderSkipIfScreenOff disableRenderControl:[%d], PowerOff:[%d]",
-        disableRenderControlScreensCount, isScreenOff);
-    if (disableRenderControlScreensCount != 0 || !isScreenOff) {
-        return false;
-    }
-    if (extraFrame && screenManager->GetPowerOffNeedProcessOneFrame()) {
-        RS_LOGI("RSUniRenderUtil::CheckRenderSkipIfScreenOff screen power off, one more frame.");
-        screenManager->ResetPowerOffNeedProcessOneFrame();
-        return false;
-    } else {
-        return !screenManager->GetPowerOffNeedProcessOneFrame();
     }
 }
 

@@ -283,7 +283,6 @@ private:
  */
 HWTEST_F(RsRenderComposerTest, ConstructAndHandlerReady, TestSize.Level1)
 {
-    EXPECT_GE(rsRenderComposer_->GetThreadTid(), 0);
     // Directly use RSRenderComposer to verify that posting task works without crash
     std::atomic<bool> ran{false};
     rsRenderComposer_->PostTask([&ran]() { ran.store(true); });

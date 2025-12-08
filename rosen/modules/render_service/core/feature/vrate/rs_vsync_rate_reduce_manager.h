@@ -62,22 +62,14 @@ public:
         return isReduceBySystemAnimatedScenes_;
     }
     void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes);
-    void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
+    void Init();
     void ResetFrameValues(uint32_t refreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
-    void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
-
-    std::map<uint64_t, int> GetVrateMap()
+    std::map<NodeId, int> GetVrateMap()
     {
-        return linkersRateMap_;
-    }
-
-    bool SetVSyncRatesChangeStatus(bool newState)
-    {
-        return needPostTask_.exchange(newState);
+        return vSyncRateMap_;
     }
 
     bool GetVRateDeviceSupport() const
@@ -85,13 +77,11 @@ public:
         return isDeviceSupprotVRate_;
     }
 private:
-    void NotifyVRates();
     int UpdateRatesLevel();
     void CalcRates();
     bool CheckNeedNotify();
     int GetRateByBalanceLevel(double vVal);
     void EnqueueFrameDuration(float duration);
-    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);
     static Occlusion::Rect CalcMaxVisibleRect(const Occlusion::Region& region, int appWindowArea);
     static float CalcVValByAreas(int windowArea, int maxVisRectArea, int visTotalArea);
@@ -128,10 +118,8 @@ private:
 
     bool isDeviceSupprotVRate_ = false;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;
-    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     std::map<NodeId, uint64_t> windowLinkerMap_;
     std::map<uint64_t, int> linkersRateMap_;
-    std::atomic<bool> needPostTask_{ false };
 };
 
 } // namespace Rosen

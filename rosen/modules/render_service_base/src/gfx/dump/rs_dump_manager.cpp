@@ -19,11 +19,14 @@
 #include <future>
 
 #include "platform/common/rs_log.h"
+#include "securec.h"
 #include "rs_trace.h"
 
 namespace OHOS::Rosen {
 // Define a static constant to represent the fixed length of HELPINFO_CMD
 static const size_t HELPINFO_CMD_FIXED_LENGTH = 30;
+constexpr int32_t SHARE_MEM_ALLOC = 2;
+constexpr int32_t MAX_BUFFER_SIZE = 32 * 1024 * 1024;
 
 RSDumpManager::RSDumpManager()
 {
@@ -152,6 +155,143 @@ void RSDumpManager::DumpHelpInfo(std::string &out)
         out.append("|")
             .append(entry.second.helpInfo)
             .append("\n");
+    }
+}
+
+bool RSDumpManager::WriteFileDescriptor(Parcel &parcel, int fd) const
+{
+    if (fd < 0) {
+        RS_LOGI("RSDumpManager::WriteFileDescriptor get fd failed, fd:[%{public}d].", fd);
+        return false;
+    }
+    int dupFd = dup(fd);
+    if (dupFd < 0) {
+        RS_LOGI("RSDumpManager::WriteFileDescriptor dup fd failed, dupFd:[%{public}d].", dupFd);
+        return false;
+    }
+    sptr<IPCFileDescriptor> descriptor = new IPCFileDescriptor(dupFd);
+    bool result = parcel.WriteObject<IPCFileDescriptor>(descriptor);
+    if (!result) {
+        close(dupFd);
+    }
+    return result;
+}
+ 
+int RSDumpManager::ReadFileDescriptor(Parcel &parcel)
+{
+    sptr<IPCFileDescriptor> descriptor = parcel.ReadObject<IPCFileDescriptor>();
+    if (descriptor == nullptr) {
+        RS_LOGI("RSDumpManager::ReadFileDescriptor get descriptor failed");
+        return -1;
+    }
+    int fd = descriptor->GetFd();
+    if (fd < 0) {
+        RS_LOGI("RSDumpManager::ReadFileDescriptor get fd failed, fd:[%{public}d].", fd);
+        return -1;
+    }
+    return dup(fd);
+}
+ 
+bool RSDumpManager::WriteAshmemDataToParcel(Parcel &parcel, size_t size, const char* dataPtr)
+{
+    std::string name = "Parcel DumpString";
+    int fd = AshmemCreate(name.c_str(), size);
+    RS_LOGI("AshmemCreate:[%{public}d].", fd);
+    if (fd < 0) {
+        RS_LOGE("RSDumpManager::WriteAshmemDataToParcel failed fd=%{public}d invalid", fd);
+        return false;
+    }
+ 
+    int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
+    ROSEN_LOGI("AshmemSetProt:[%{public}d].", result);
+    if (result < 0) {
+        ::close(fd);
+        return false;
+    }
+    void *ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == MAP_FAILED) {
+        ::close(fd);
+        RS_LOGE("WriteAshmemData map failed, errno:%{public}d", errno);
+        return false;
+    }
+    ROSEN_LOGI("mmap success");
+ 
+    if (memcpy_s(ptr, size, dataPtr, size) != EOK) {
+        ::munmap(ptr, size);
+        ::close(fd);
+        RS_LOGE("WriteAshmemData memcpy_s error");
+        return false;
+    }
+ 
+    RS_LOGI("memcpy mmap success");
+    if (!WriteFileDescriptor(parcel, fd)) {
+        ::munmap(ptr, size);
+        ::close(fd);
+        RS_LOGE("WriteAshmemData WriteFileDescriptor error");
+        return false;
+    }
+    
+    ::munmap(ptr, size);
+    ::close(fd);
+    return true;
+}
+ 
+char *RSDumpManager::ReadAshmemDataFromParcel(Parcel &parcel, int32_t size)
+{
+    char *base = nullptr;
+    int fd = ReadFileDescriptor(parcel);
+    if (!CheckAshmemSize(fd, size)) {
+        RS_LOGE("RSDumpManager::ReadAshmemDataFromParcel check ashmem size failed, fd:[%{public}d].", fd);
+        close(fd);
+        return nullptr;
+    }
+    if (size <= 0 || size > MAX_BUFFER_SIZE) {
+        RS_LOGE("RSDumpManager::ReadAshmemDataFromParcel"
+                " malloc parameter bufferSize:[%{public}d] error.", size);
+        close(fd);
+        return nullptr;
+    }
+ 
+    void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (ptr == MAP_FAILED) {
+        RS_LOGE("RSDumpManager::ReadAshmemDataFromParcel mmap error");
+        ::close(fd);
+        return base;
+    }
+ 
+    base = static_cast<char *>(malloc(size));
+    if (base == nullptr) {
+        RS_LOGE("RSDumpManager::ReadAshmemDataFromParcel malloc error");
+        ReleaseMemory(SHARE_MEM_ALLOC, ptr, &fd, size);
+        return base;
+    }
+    if (memcpy_s(base, size, ptr, size) != 0) {
+        RS_LOGE("RSDumpManager::ReadAshmemDataFromParcel memcpy_s error");
+        ReleaseMemory(SHARE_MEM_ALLOC, ptr, &fd, size);
+        free(base);
+        base = nullptr;
+        return base;
+    }
+ 
+    RS_LOGI("RSDumpManager::ReadAshmemDataFromParcel success");
+    ReleaseMemory(SHARE_MEM_ALLOC, ptr, &fd, size);
+    return base;
+}
+ 
+void RSDumpManager::ReleaseMemory(int32_t allocType, void *addr, void *context, uint32_t size)
+{
+    if (allocType == SHARE_MEM_ALLOC) {
+        if (context != nullptr) {
+            int *fd = static_cast<int *>(context);
+            if (addr != nullptr) {
+                ::munmap(addr, size);
+            }
+            if (fd != nullptr) {
+                ::close(*fd);
+            }
+            context = nullptr;
+            addr = nullptr;
+        }
     }
 }
 }  // namespace OHOS::Rosen

@@ -25,13 +25,15 @@ public:
     ~HFBCParam() = default;
 
     static const std::unordered_map<std::string, std::string>& GetHfbcConfigMap();
-
+    static bool GetHfbcControlMode();
+    static void SetHfbcControlMode(bool mode);
 protected:
     static void SetHfbcConfigForApp(const std::string& appName, const std::string& val);
 
 private:
     // <"pkgName", "1">
     inline static std::unordered_map<std::string, std::string> hfbcConfig_ = {};
+    inline static bool controlMode_ = false;
 
     friend class HFBCParamParse;
 };

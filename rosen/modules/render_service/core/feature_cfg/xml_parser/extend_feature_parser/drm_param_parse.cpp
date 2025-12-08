@@ -52,10 +52,7 @@ int32_t DRMParamParse::ParseDrmInternal(xmlNode &node)
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "DrmEnabled") {
-            DRMParam::SetDrmEnable(isEnabled);
-            RS_LOGI("DRMParamParse parse DrmEnabled %{public}d", DRMParam::IsDrmEnable());
-        } else if (name == "MockAllBlurEffectIntersectWithDRMEnabled") {
+        if (name == "MockAllBlurEffectIntersectWithDRMEnabled") {
             DRMParam::SetMockAllBlurEffectIntersectWithDRMEnable(isEnabled);
             RS_LOGI("DRMParamParse parse MockAllBlurEffectIntersectWithDRMEnabled %{public}d",
                 DRMParam::IsMockAllBlurEffectIntersectWithDRMEnable());

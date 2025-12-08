@@ -64,5 +64,52 @@ std::shared_ptr<RSRenderFrameRateLinker> RSRenderFrameRateLinkerMap::GetFrameRat
     return frameRateLinkerMap_.count(id) ? frameRateLinkerMap_[id] : nullptr;
 }
 
+bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
+    int32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    bool success = false;
+    for (auto& [id, linker] : frameRateLinkerMap_) {
+        if (ExtractPid(id) == dstPid && linker != nullptr) {
+            linker->RegisterExpectedFpsUpdateCallback(listenerPid, callback);
+            success = true;
+        }
+    }
+
+    if (!success) {
+        ROSEN_LOGE("RegisterFrameRateLinkerExpectedFpsUpdateCallback failed: cannot register callback to any linker by"
+            " dstPid=%{public}d", dstPid);
+    }
+    return success;
+}
+
+void RSRenderFrameRateLinkerMap::UnRegisterExpectedFpsUpdateCallbackByListener(pid_t listenerPid)
+{
+    for (auto& [_, linker] : frameRateLinkerMap_) {
+        if (linker != nullptr) {
+            linker->RegisterExpectedFpsUpdateCallback(listenerPid, nullptr);
+        }
+    }
+}
+
+void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(const std::unordered_set<FrameRateLinkerId>& unregisterIds)
+{
+    for (const auto destoryId : unregisterIds) {
+        ROSEN_LOGI("RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker id: %{public}" PRIu64, destoryId);
+        frameRateLinkerMap_.erase(destoryId);
+    }
+}
+
+void RSRenderFrameRateLinkerMap::UpdateFrameRateLinker(const FrameRateLinkerUpdateInfoMap& updateInfoMap)
+{
+    for (const auto& [linkerId, updateInfo] : updateInfoMap) {
+        auto linker = GetFrameRateLinker(linkerId);
+        if (linker == nullptr) {
+            continue;
+        }
+        linker->SetExpectedRange(updateInfo.range);
+        linker->SetAnimatorExpectedFrameRate(updateInfo.animatorExpectedFrameRate);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

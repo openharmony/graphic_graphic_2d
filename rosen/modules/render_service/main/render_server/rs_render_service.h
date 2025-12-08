@@ -20,104 +20,90 @@
 #include <map>
 #include <unordered_set>
 
-#include "screen_manager/rs_screen_manager.h"
-#include "transaction/zidl/rs_render_service_stub.h"
+#include "rs_render_pipeline.h"
+#include "rs_render_mode_config.h"
+#include "rs_render_single_process_manager.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
+#include "vsync_manager_agent.h"
+#include "vsync_iconnection_token.h"
 #include "vsync_receiver.h"
+#include "dfx/rs_service_dumper.h"
+
+#include "screen_manager/rs_screen_manager.h"
+#include "transaction/zidl/rs_render_service_stub.h"
+#include "feature/hyper_graphic_manager/hgm_context.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSMainThread;
-class RSRenderServiceConnection;
-
 class RSRenderService : public RSRenderServiceStub {
 public:
-    RSRenderService();
-    ~RSRenderService() noexcept;
+    RSRenderService() = default;
+    ~RSRenderService() noexcept = default;
 
     RSRenderService(const RSRenderService&) = delete;
     RSRenderService& operator=(const RSRenderService&) = delete;
 
     bool Init();
     void Run();
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-        GetConnection(sptr<RSIConnectionToken>& token) override
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto tokenObj = token->AsObject();
-        auto iter = connections_.find(tokenObj);
-        if (iter == connections_.end()) {
-            RS_LOGE("GetConnection: connections_ cannot find token");
-            return {nullptr, nullptr};
-        }
-        return iter->second;
-    }
-    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
+
 private:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
-    void DoDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
-    void DumpNodesNotOnTheTree(std::string& dumpString) const;
-    void DumpAllNodesMemSize(std::string& dumpString) const;
-    void DumpGpuInfo(std::string& dumpString) const;
-    void DumpRSEvenParam(std::string& dumpString) const;
-    void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;
-    void DumpRefreshRateCounts(std::string& dumpString) const;
-    void DumpClearRefreshRateCounts(std::string& dumpString) const;
-    void DumpJankStatsRs(std::string& dumpString) const;
-#ifdef RS_ENABLE_VK
-    void DumpVkTextureLimit(std::string& dumpString) const;
-#endif
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
 
-    void DumpExistPidMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const;
+    sptr<RSIClientToServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
+    bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
-    void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-        const std::u16string& arg) const;
-    void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-        bool isLite = false) const;
-    void FPSDumpProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
-        const std::u16string& arg) const;
-    void DumpFps(std::string& dumpString, std::string& layerName) const;
-    void FPSDumpClearProcess(std::unordered_set<std::u16string>& argSets,
-        std::string& dumpString, const std::u16string& arg) const;
-    void ClearFps(std::string& dumpString, std::string& layerName) const;
-
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-        CreateConnection(const sptr<RSIConnectionToken>& token) override;
-    void RegisterRcdMsg();
-
-    // RS dump init
-    void RSGfxDumpInit();
-    void RegisterRSGfxFuncs();
-    void RegisterRSTreeFuncs();
-    void RegisterMemFuncs();
-    void RegisterFpsFuncs();
-    void RegisterGpuFuncs();
-    void RegisterBufferFuncs();
     void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
-
+    void InitCCMConfig();
     // RS Filter CCM init
     void FilterCCMInit();
+
+    void ParseMultiProcessXml();
+    void CoreComponentsInit();
+    void VsyncComponentInit();
+    void RenderProcessManagerInit();
+    bool SAMgrRegister();
+
+    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
+    void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
+    void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
+    void FpsDump(std::string& dumpString, std::string& arg);
+    const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
+
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+    sptr<RSScreenManager> screenManager_ = nullptr;
+    sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
+    sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
+    sptr<VSyncSampler> vsyncSampler_ = nullptr;
+    sptr<VSyncController> rsVSyncController_ = nullptr;
+    sptr<VSyncController> appVSyncController_ = nullptr;
+    sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
+    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
+    std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
+    std::shared_ptr<const RenderModeConfig> renderModeConfig_ = nullptr;
+    std::shared_ptr<HgmContext> hgmContext_ = nullptr;
+
+    // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
-    sptr<RSScreenManager> screenManager_;
-
-    friend class RSRenderServiceConnection;
-    mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
-        connections_;
-
-    sptr<VSyncController> rsVSyncController_;
-    sptr<VSyncController> appVSyncController_;
-
-    sptr<VSyncDistributor> rsVSyncDistributor_;
-    sptr<VSyncDistributor> appVSyncDistributor_;
-
-    bool isRcdServiceRegister_ = false;
+    std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
 
     friend class RSRenderServiceAgent;
+    friend class RSRenderProcessManager;
+    friend class RSSingleRenderProcessManager;
+    friend class RSConnectToRenderProcess;
+    friend class RSClientToRenderConnection;
+    friend class RSClientToServiceConnection;
+    mutable std::mutex mutex_;
+    std::map<sptr<IRemoteObject>, sptr<RSIClientToServiceConnection>> connections_;
+
+    std::shared_ptr<RSServiceDumper> rsDumper_;
+
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

@@ -37,6 +37,7 @@
 #include "xml_parser.h"
 
 namespace OHOS::Rosen {
+class RSScreenManager;
 class HgmFrameRateManager;
 using RefreshRateModeChangeCallback = std::function<void(int32_t)>;
 using RefreshRateUpdateCallback = std::function<void(int32_t)>;
@@ -77,105 +78,57 @@ public:
         return mImageEnhanceScene_;
     }
 
-    // called by RSMainThread
+    // called by RenderService
     void SetPendingScreenRefreshRate(uint32_t rate)
     {
         pendingScreenRefreshRate_.store(rate);
     }
 
-    // called by RSMainThread/RSUniRenderThread
+    // called by RenderService
     uint32_t GetPendingScreenRefreshRate() const
     {
         return pendingScreenRefreshRate_.load();
     }
 
-    // called by HgmThread
+    // called by RenderService
     // the rate takes effect at the latest hardware timing
     void SetScreenRefreshRateImme(uint32_t rate)
     {
         screenRefreshRateImme_.store(rate);
     }
 
-    // called by HardwareThread
+    // called by RenderService
     uint32_t GetScreenRefreshRateImme()
     {
         // 0 means disenable
         return screenRefreshRateImme_.exchange(0);
     }
 
-    // called by RSMainThread
+    // called by RenderService
     void SetPendingConstraintRelativeTime(uint64_t relativeTime)
     {
         pendingConstraintRelativeTime_.store(relativeTime);
     }
 
-    // called by RSMainThread/RSUniRenderThread
+    // called by RenderService
     uint64_t GetPendingConstraintRelativeTime() const
     {
         return pendingConstraintRelativeTime_.load();
     }
 
-    // called by RSMainThread
+    // called by RenderService
     void SetTimestamp(uint64_t timestamp)
     {
         timestamp_.store(timestamp);
     }
 
-    // called by RSMainThread/RSUniRenderThread
+    // called by RenderService
     uint64_t GetCurrentTimestamp() const
     {
         return timestamp_.load();
     }
 
-    // called by RSMainThread
-    void SetActualTimestamp(int64_t timestamp)
-    {
-        actualTimestamp_.store(timestamp);
-    }
-
-    // called by RSMainThread/RSUniRenderThread
-    int64_t GetActualTimestamp() const
-    {
-        return actualTimestamp_.load();
-    }
-
-    // called by RSMainThread
-    void SetVsyncId(uint64_t vsyncId)
-    {
-        vsyncId_.store(vsyncId);
-    }
-
-    // called by RSMainThread/RSUniRenderThread
-    uint64_t GetVsyncId() const
-    {
-        return vsyncId_.load();
-    }
-
-    // called by RSMainThread
-    void SetForceRefreshFlag(bool isForceRefresh)
-    {
-        isForceRefresh_.store(isForceRefresh);
-    }
-
-    // called by RSMainThread/RSUniRenderThread
-    bool GetForceRefreshFlag() const
-    {
-        return isForceRefresh_.load();
-    }
-
-    // called by RSMainThread
-    void SetFastComposeTimeStampDiff(uint64_t fastComposeTimeStampDiff)
-    {
-        fastComposeTimeStampDiff_.store(fastComposeTimeStampDiff);
-    }
-
-    // called by RSMainThread/RSUniRenderThread
-    uint64_t GetFastComposeTimeStampDiff() const
-    {
-        return fastComposeTimeStampDiff_.load();
-    }
-
-    // called by RSMainThread
+    // called by RenderService
     bool SetHgmTaskFlag(bool value)
     {
         return postHgmTaskFlag_.exchange(value);
@@ -252,18 +205,6 @@ public:
         return pluseNum_;
     }
 
-    // called by RSMainThread/RSUniRenderThread
-    bool GetDirectCompositionFlag() const
-    {
-        return doDirectComposition_.load();
-    }
-
-    // called by RSMainThread
-    void SetDirectCompositionFlag(bool doDirectComposition)
-    {
-        doDirectComposition_.store(doDirectComposition);
-    }
-
     // set refresh rates
     int32_t SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate, bool shouldSendCallback = true);
     int32_t SetRefreshRateMode(int32_t refreshRateMode);
@@ -273,7 +214,7 @@ public:
 
     // screen interface
     int32_t AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize,
-        const std::vector<GraphicDisplayModeInfo>& supportedModes = {});
+        const std::vector<RSScreenModeInfo>& supportedModes = {});
     int32_t RemoveScreen(ScreenId id);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id) const;
     int32_t GetCurrentRefreshRateMode() const;
@@ -343,6 +284,11 @@ public:
     {
         return hfbcConfig_;
     }
+
+    void SetScreenManager(RSScreenManager* screenManager);
+
+    RSScreenManager* GetScreenManager();
+
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
 private:
     HgmCore();
@@ -412,6 +358,7 @@ private:
     std::atomic<int64_t> rsPhaseOffset_{ 0 };
     std::atomic<int64_t> appPhaseOffset_{ 0 };
     std::atomic<bool> isVsyncOffsetCustomized_{ false };
+    RSScreenManager screenManager_;
 
     friend class HWCParam;
 };

@@ -180,7 +180,7 @@ void RSVsyncRateReduceManager::SetUniVsync()
     RS_TRACE_FUNC();
     UpdateRatesLevel();
     CalcRates();
-    NotifyVRates();
+    lastVSyncRateMap_ = vSyncRateMap_;
 }
 
 int RSVsyncRateReduceManager::UpdateRatesLevel()
@@ -277,36 +277,6 @@ void RSVsyncRateReduceManager::CalcRates()
     }
 }
 
-void RSVsyncRateReduceManager::NotifyVRates()
-{
-    if (vSyncRateMap_.empty() || !CheckNeedNotify()) {
-        return;
-    }
-
-    linkersRateMap_.clear();
-    for (const auto& [nodeId, rate]: vSyncRateMap_) {
-        std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetSurfaceNodeLinkerIds(nodeId);
-        if (rate != 0 && RSSystemParameters::GetVRateControlEnabled()) {
-            for (auto linkerId : linkerIds) {
-                linkersRateMap_.emplace(linkerId, rate);
-                RS_OPTIONAL_TRACE_NAME_FMT("NotifyVRates linkerid = %" PRIu64 " nodeId=%" PRIu64
-                    " rate=%d isSysAnimate=%d", linkerId, nodeId, rate, isSystemAnimatedScenes_);
-                RS_LOGD("NotifyVRates linkerid = %{public}" PRIu64 " nodeId=%{public}"
-                    PRIu64 " rate=%{public}d isSysAnimate=%{public}d", linkerId, nodeId, rate, isSystemAnimatedScenes_);
-            }
-        }
-        auto iter = lastVSyncRateMap_.find(nodeId);
-        if (iter != lastVSyncRateMap_.end() && iter->second == rate) {
-            continue;
-        }
-        if (RSSystemParameters::GetVRateControlEnabled()) {
-            needPostTask_.exchange(true);
-        }
-        appVSyncDistributor_->SetQosVSyncRate(nodeId, rate, isSystemAnimatedScenes_);
-    }
-
-    lastVSyncRateMap_ = vSyncRateMap_;
-}
 int RSVsyncRateReduceManager::GetRateByBalanceLevel(double vVal)
 {
     if (std::abs(vVal - V_VAL_LEVEL_BEHINDWINDOW) < 10e-6) {
@@ -431,26 +401,6 @@ uint64_t RSVsyncRateReduceManager::Now()
             .count();
 }
 
-void RSVsyncRateReduceManager::SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
-    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces)
-{
-    if (!vRateConditionQualified_) {
-        return;
-    }
-    if (!RSMainThread::Instance()->IsSystemAnimatedScenesListEmpty()) {
-        visMapForVsyncRate.clear();
-        for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
-            auto curSurface = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-            if (curSurface == nullptr || curSurface->GetDstRect().IsEmpty() || curSurface->IsLeashWindow()) {
-                continue;
-            }
-            visMapForVsyncRate[curSurface->GetId()] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
-        }
-        isReduceBySystemAnimatedScenes_ = true;
-    }
-    NotifyVSyncRates(visMapForVsyncRate);
-}
-
 bool RSVsyncRateReduceManager::CheckNeedNotify()
 {
     bool surfaceIdsChanged = lastAllMainAndLeashWindowNodesIds_ != curAllMainAndLeashWindowNodesIds_;
@@ -488,55 +438,8 @@ bool RSVsyncRateReduceManager::CheckNeedNotify()
     return true;
 }
 
-void RSVsyncRateReduceManager::NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncVisLevelMap)
+void RSVsyncRateReduceManager::Init()
 {
-    RS_TRACE_NAME_FMT("NotifyVSyncRates vSyncRates.size=[%lu]", vSyncVisLevelMap.size());
-    if (vSyncVisLevelMap.empty()) {
-        return;
-    }
-    auto notifyVsyncFunc = [distributor = appVSyncDistributor_] (NodeId nodeId, RSVisibleLevel level) {
-        bool isSysAnimate = false;
-        int32_t rate = DEFAULT_RATE;
-        if (level == RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE) {
-            rate = SIMI_VISIBLE_RATE;
-        } else if (level == RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE) {
-            isSysAnimate = true;
-            rate = SYSTEM_ANIMATED_SCENES_RATE;
-        } else if (level == RSVisibleLevel::RS_INVISIBLE) {
-            rate = INVISBLE_WINDOW_RATE;
-        } else {
-            rate = DEFAULT_RATE;
-        }
-        distributor->SetQosVSyncRate(nodeId, rate, isSysAnimate);
-        RS_OPTIONAL_TRACE_NAME_FMT("NotifyVSyncRates nodeId=%" PRIu64 " rate=%d isSysAnimate=%d", nodeId, rate,
-            isSysAnimate);
-    };
-
-    bool isVisibleChanged = lastVisMapForVSyncVisLevel_.size() != vSyncVisLevelMap.size();
-    if (!isVisibleChanged) {
-        auto iterCur = vSyncVisLevelMap.begin();
-        auto iterLast = lastVisMapForVSyncVisLevel_.begin();
-        for (; iterCur != vSyncVisLevelMap.end(); iterCur++, iterLast++) {
-            if (iterCur->first != iterLast->first || iterCur->second != iterLast->second) {
-                isVisibleChanged = true;
-                notifyVsyncFunc(iterCur->first, iterCur->second);
-            }
-        }
-        if (isVisibleChanged) {
-            lastVisMapForVSyncVisLevel_ = vSyncVisLevelMap;
-        }
-    } else {
-        lastVisMapForVSyncVisLevel_.clear();
-        for (const auto& [nodeId, visLevel] : vSyncVisLevelMap) {
-            notifyVsyncFunc(nodeId, visLevel);
-            lastVisMapForVSyncVisLevel_.emplace(nodeId, visLevel);
-        }
-    }
-}
-
-void RSVsyncRateReduceManager::Init(const sptr<VSyncDistributor>& appVSyncDistributor)
-{
-    appVSyncDistributor_ = appVSyncDistributor;
     isDeviceSupprotVRate_ = VRateParam::GetVRateEnable();
     vRateReduceEnabled_ = isDeviceSupprotVRate_ && RSSystemParameters::GetVSyncControlEnabled();
     RS_LOGI("Init vRateReduceEnabled_ is %{public}d", vRateReduceEnabled_);
@@ -555,7 +458,7 @@ void RSVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     vSyncRateMap_.clear();
     curAllMainAndLeashWindowNodesIds_.clear();
     visMapForVSyncVisLevel_.clear();
-    vRateConditionQualified_ = rsRefreshRate > 0 && appVSyncDistributor_ != nullptr;
+    vRateConditionQualified_ = rsRefreshRate > 0;
     if (!vRateConditionQualified_) {
         return;
     }

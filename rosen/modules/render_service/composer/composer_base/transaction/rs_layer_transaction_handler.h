@@ -16,11 +16,13 @@
 #ifndef RENDER_SERVICE_COMPOSER_BASE_TRANSACTION_RS_LAYER_TRANSACTION_HANDLER_H
 #define RENDER_SERVICE_COMPOSER_BASE_TRANSACTION_RS_LAYER_TRANSACTION_HANDLER_H
 
+#include <event_handler.h>
 #include <memory>
 #include <queue>
 #include <stack>
+#include "rs_layer_parcel.h"
 #include "rs_layer_transaction_data.h"
-#include "rs_render_to_composer_connection.h"
+#include "rs_render_to_composer_connection_proxy.h"
 
 namespace OHOS::Rosen {
 class RSB_EXPORT RSLayerTransactionHandler final {
@@ -28,19 +30,22 @@ public:
     RSLayerTransactionHandler() = default;
     ~RSLayerTransactionHandler() = default;
 
-    void SetRSComposerConnection(const sptr<RSRenderToComposerConnection>& rsComposerConnection);
-    void AddLayer(const std::shared_ptr<RSLayer>& rsLayer);
-    void ClearAllLayers();
-    void CommitRSLayerTransaction();
+    void SetRSComposerConnectionProxy(const sptr<IRSRenderToComposerConnection>& rsComposerConnection);
+    void AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId = 0);
+    void CommitRSLayerTransaction(CommitLayerInfo& commitLayerInfo, uint64_t timestamp = 0, const std::string& abilityName = "");
+    bool IsEmpty() const;
 
 private:
-    RSLayerTransactionHandler(RSLayerTransactionHandler&) = delete;
-    RSLayerTransactionHandler(RSLayerTransactionHandler&&) = delete;
-    RSLayerTransactionHandler& operator=(RSLayerTransactionHandler&) = delete;
-    RSLayerTransactionHandler& operator=(RSLayerTransactionHandler&&) = delete;
+    RSLayerTransactionHandler(const RSLayerTransactionHandler&) = delete;
+    RSLayerTransactionHandler(const RSLayerTransactionHandler&&) = delete;
+    RSLayerTransactionHandler& operator=(const RSLayerTransactionHandler&) = delete;
+    RSLayerTransactionHandler& operator=(const RSLayerTransactionHandler&&) = delete;
+    void CheckScreenInfoIsChanged(ScreenInfo& screenInfo);
 
     std::unique_ptr<RSLayerTransactionData> rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
-    sptr<RSRenderToComposerConnection> rsComposerConnection_;
+    sptr<IRSRenderToComposerConnection> rsComposerConnection_;
+    uint64_t timestamp_ = 0;
+    ScreenInfo screenInfo_;
 };
 
 } // namespace OHOS::Rosen

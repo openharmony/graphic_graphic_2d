@@ -27,12 +27,14 @@ public:
     ~RSRenderComposerContext() = default;
 
     std::vector<std::shared_ptr<RSLayer>> GetRSLayersVec();
-    void SetRSLayersVec(std::vector<std::shared_ptr<RSLayer>>&& layersVec);
-    void ClearAllRSLayers();
+    std::shared_ptr<RSLayer> GetRSRenderLayer(RSLayerId rsLayerId);
+    void AddRSRenderLayer(RSLayerId rsLayerId, std::shared_ptr<RSLayer> rsLayer);
+    void RemoveRSRenderLayer(RSLayerId rsLayerId);
+    uint64_t GetRSRenderLayerCount();
 
 private:
     std::mutex mutex_;
-    std::vector<std::shared_ptr<RSLayer>> layersVec_;
+    std::unordered_map<RSLayerId, std::shared_ptr<RSLayer>> layersMap_;
 };
 } // namespace OHOS::Rosen
 

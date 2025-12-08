@@ -1142,7 +1142,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             bool enabled{false};
             int32_t type{0};
             if (!data.ReadBool(enabled) || !data.ReadInt32(type)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_SHOW_REFRESH_RATE_ENABLED Read parcel failed!");
+                RS_LOGE("RSClientToServiceConnectionStub::SET_SHOW_REFRESH_RATE_ENABLED Read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }

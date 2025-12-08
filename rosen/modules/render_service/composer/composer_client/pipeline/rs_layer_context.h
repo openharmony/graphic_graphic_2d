@@ -19,30 +19,56 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-
+#include "irs_render_to_composer_connection.h"
 #include "rs_layer.h"
 #include "rs_layer_transaction_handler.h"
-#include "rs_render_to_composer_connection.h"
 
 namespace OHOS {
 namespace Rosen {
+
+using OnBufferReleaseFunc = std::function<void(uint64_t, sptr<SyncFence>)>;
+
 class RSC_EXPORT RSLayerContext : public std::enable_shared_from_this<RSLayerContext> {
 public:
     RSLayerContext();
-    RSLayerContext(RSLayerContext&) = delete;
-    RSLayerContext(RSLayerContext&&) = delete;
-    RSLayerContext& operator=(RSLayerContext&) = delete;
-    RSLayerContext& operator=(RSLayerContext&&) = delete;
+    RSLayerContext(const RSLayerContext&) = delete;
+    RSLayerContext(const RSLayerContext&&) = delete;
+    RSLayerContext& operator=(const RSLayerContext&) = delete;
+    RSLayerContext& operator=(const RSLayerContext&&) = delete;
     virtual ~RSLayerContext() = default;
 
-    void SetRenderComposerClientConnection(const sptr<RSRenderToComposerConnection>& conn);
-    void AddLayer(const std::shared_ptr<RSLayer> rsLayer);
+    std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;
+    void SetRenderComposerClientConnection(const sptr<IRSRenderToComposerConnection>& conn);
+
+    void AddLayer(const std::shared_ptr<RSLayer>& rsLayer);
+    void RemoveLayer(RSLayerId layerId);
     void ClearAllLayers();
-    void CommitLayers();
+    std::shared_ptr<RSLayer> GetLayer(RSLayerId rsLayerId) const;
+
+    void CommitLayer(CommitLayerInfo& commitLayerInfo);
+    void ReleaseLayerBuffers(uint64_t screenId,
+        std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
+    void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    void ClearFrameBuffers();
+    void DumpLayersInfo(std::string &dumpString);
+    void DumpCurrentFrameLayers();
+
+    bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc)
+    {
+        if (onBufferReleaseFunc_ == nullptr) {
+            onBufferReleaseFunc_ = onBufferReleaseFunc;
+        }
+        return true;
+    }
 
 private:
-    std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;
+    void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer, const sptr<SyncFence>& previousReleaseFence);
     std::shared_ptr<RSLayerTransactionHandler> rsLayerTransactionHandler_;
+    std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers_;
+    sptr<IRSRenderToComposerConnection> rsComposerConnection_;
+
+    OnBufferReleaseFunc onBufferReleaseFunc_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

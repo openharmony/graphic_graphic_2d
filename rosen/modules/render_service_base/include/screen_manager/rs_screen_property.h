@@ -26,6 +26,7 @@
 #endif
 
 namespace OHOS::Rosen {
+class RSScreenManager;
 class RSB_EXPORT RSScreenProperty : public Parcelable {
 public:
     RSScreenProperty();
@@ -70,6 +71,8 @@ public:
     const std::unordered_set<NodeId>& GetWhiteList() const;
     const std::unordered_set<NodeId>& GetBlackList() const;
     const std::unordered_set<NodeType>& GetTypeBlackList() const;
+    const std::unordered_set<NodeId>& GetGlobalBlackList() const;
+    const std::unordered_set<NodeId> GetMergeBlackList() const;
     const std::vector<NodeId>& GetSecurityExemptionList() const;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const;
     bool EnableSkipWindow() const;
@@ -124,6 +127,7 @@ private:
     bool isSupportRotation_ = false;
     std::unordered_set<NodeId> whiteList_ = {};
     std::unordered_set<NodeId> blackList_ = {};
+    std::unordered_set<NodeId> globalBlackList_ = {};
     std::unordered_set<NodeType> typeBlackList_ = {};
     std::vector<NodeId> securityExemptionList_;
     std::shared_ptr<Media::PixelMap> securityMask_;

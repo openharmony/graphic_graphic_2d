@@ -156,14 +156,81 @@ bool RSSpecialLayerManager::FindWithScreen(uint64_t screenId, uint32_t type) con
     return HasType(screenSpecialLayer_.at(screenId), type);
 }
 
-void RSSpecialLayerManager::ClearScreenSpecialLayer()
+uint32_t RSSpecialLayerManager::GetWithScreen(uint64_t screenId) const
 {
-    screenSpecialLayer_.clear();
+    if (screenSpecialLayer_.find(screenId) == screenSpecialLayer_.end()) {
+        return SpecialLayerType::NONE;
+    }
+    return screenSpecialLayer_.at(screenId);
 }
 
-void RSSpecialLayerManager::ClearSpecialLayerIds()
+void RSSpecialLayerManager::AddIdsWithScreen(uint64_t screenId, uint32_t type, NodeId id)
 {
-    specialLayerIds_.clear();
+    uint32_t isType = type & IS_GENERAL_SPECIAL;
+    uint32_t currentType = SpecialLayerType::SECURITY;
+    while (isType != 0) {
+        auto IsSpecial = isType & 1;
+        if (IsSpecial) {
+            screenSpecialLayerIds_[screenId][currentType].insert(id);
+            AddType(screenSpecialLayer_[screenId], currentType << SPECIAL_TYPE_NUM);
+        }
+        isType >>= 1;
+        currentType <<= 1;
+    }
+}
+
+void RSSpecialLayerManager::RemoveIdsWithScreen(uint64_t screenId, uint32_t type, NodeId id)
+{
+    uint32_t isType = type & IS_GENERAL_SPECIAL;
+    uint32_t currentType = SpecialLayerType::SECURITY;
+    while (isType != 0) {
+        auto IsSpecial = isType & 1;
+        if (IsSpecial) {
+            if (screenSpecialLayerIds_.find(screenId) == screenSpecialLayerIds_.end()) {
+                break;
+            }
+            auto& specialLayerIds = screenSpecialLayerIds_.at(screenId);
+            if (specialLayerIds.find(currentType) == specialLayerIds.end()) {
+                break;
+            }
+            auto& typeIds = specialLayerIds.at(currentType);
+            typeIds.erase(id);
+            // check weather 'screenSpecialLayerIds_[screenId][currentType]' is empty
+            if (typeIds.empty()) {
+                specialLayerIds.erase(currentType);
+                DeleteType(screenSpecialLayer_[screenId], currentType << SPECIAL_TYPE_NUM);
+            }
+            // check weather 'screenSpecialLayerIds_[screenId]' is empty
+            if (specialLayerIds.empty()) {
+                screenSpecialLayerIds_.erase(screenId);
+            }
+        }
+        isType >>= 1;
+        currentType <<= 1;
+    }
+}
+
+const std::unordered_set<uint64_t> RSSpecialLayerManager::FindScreenHasType(uint32_t type) const
+{
+    std::unordered_set<uint64_t> screenIds;
+    for (const auto& [screenId, specialLayerType] : screenSpecialLayer_) {
+        if (HasType(specialLayerType, type)) {
+            screenIds.insert(screenId);
+        }
+    }
+    return screenIds;
+}
+
+void RSSpecialLayerManager::ClearAllScreenSpecialLayer()
+{
+    screenSpecialLayer_.clear();
+    screenSpecialLayerIds_.clear();
+}
+
+void RSSpecialLayerManager::ClearScreenSpecialLayer(uint64_t screenId)
+{
+    screenSpecialLayer_.erase(screenId);
+    screenSpecialLayerIds_.erase(screenId);
 }
 } // namespace Rosen
 } // namespace OHOS

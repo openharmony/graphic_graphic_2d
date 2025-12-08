@@ -42,7 +42,7 @@ class RSScreenRenderNodeDrawable;
 class RSLogicalDisplayRenderNodeDrawable;
 class RSSurfaceRenderNodeDrawable : public RSRenderNodeDrawable {
 public:
-    ~RSSurfaceRenderNodeDrawable() = default;
+    ~RSSurfaceRenderNodeDrawable();
 
     static RSRenderNodeDrawable::Ptr OnGenerate(std::shared_ptr<const RSRenderNode> node);
     void OnDraw(Drawing::Canvas& canvas) override;
@@ -213,6 +213,7 @@ private:
 
     Drawing::Region curSurfaceDrawRegion_ {};
     mutable std::mutex drawRegionMutex_;
+    NodeId id_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

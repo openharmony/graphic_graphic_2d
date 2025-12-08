@@ -171,9 +171,6 @@ bool RSRenderNodeMap::RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>
         AddUIExtensionSurfaceNode(surfaceNode);
         ObtainLauncherNodeId(surfaceNode);
         ObtainScreenLockWindowNodeId(surfaceNode);
-        if (surfaceNode->IsSelfDrawingType()) {
-            RSSurfaceFpsManager::GetInstance().RegisterSurfaceFps(id, surfaceNode->GetName());
-        }
     } else if (nodePtr->GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
         auto canvasDrawingNode = nodePtr->ReinterpretCastTo<RSCanvasDrawingRenderNode>();
         canvasDrawingNodeMap_.emplace(id, canvasDrawingNode);
@@ -218,7 +215,6 @@ void RSRenderNodeMap::UnregisterRenderNode(NodeId id)
     if (it != surfaceNodeMap_.end()) {
         RemoveUIExtensionSurfaceNode(it->second);
         surfaceNodeMap_.erase(id);
-        RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(id);
     }
     residentSurfaceNodeMap_.erase(id);
     screenNodeMap_.erase(id);
@@ -288,7 +284,6 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
     EraseIf(surfaceNodeMap_, [pid, useBatchRemoving, this](const auto& pair) -> bool {
         bool shouldErase = (ExtractPid(pair.first) == pid);
         if (shouldErase) {
-            RSSurfaceFpsManager::GetInstance().UnregisterSurfaceFps(pair.first);
             RemoveUIExtensionSurfaceNode(pair.second);
         }
         if (shouldErase && pair.second && useBatchRemoving) {
@@ -497,18 +492,6 @@ std::vector<NodeId> RSRenderNodeMap::GetSelfDrawingNodeInProcess(pid_t pid)
         instanceNode->CollectSelfDrawingChild(instanceNode, sortedSelfDrawingNodes);
     }
     return sortedSelfDrawingNodes;
-}
-
-const std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPid(pid_t nodePid) const
-{
-    for (auto &t : surfaceNodeMap_) {
-        if (ExtractPid(t.first) == nodePid && t.second->IsSelfDrawingType() && !t.second->IsRosenWeb()) {
-            return t.second->GetName();
-        }
-    }
-    ROSEN_LOGD("RSRenderNodeMap::GetSurfaceNameByPid no self drawing nodes belong to pid %{public}d",
-        static_cast<int32_t>(nodePid));
-    return "";
 }
 
 bool RSRenderNodeMap::AttachToDisplay(

@@ -102,7 +102,7 @@ public:
         std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
         uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex);
     static void OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>& surface,
-        Drawing::GPUContext* const grContext, bool optFenceWait = true);
+        Drawing::GPUContext* const grContext, bool optFenceWait = true, sptr<SyncFence>& acquireFence = invalidFence);
     static std::vector<GrBackendSemaphore> PrepareHdrSemaphoreVector(GrBackendSemaphore& backendSemaphore,
         std::shared_ptr<Drawing::Surface>& surface);
     static SecRectInfo GenerateSecRectInfoFromNode(RSRenderNode& node, RectI rect);
@@ -118,8 +118,6 @@ public:
     static void ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas, Drawing::Image& cacheImageProcessed,
         const RectF& rect);
     static void FlushDmaSurfaceBuffer(Media::PixelMap* pixelMap);
-    // RTthread needs to draw one more frame when screen is turned off. For other threads, use extraframe default value.
-    static bool CheckRenderSkipIfScreenOff(bool extraFrame = false, std::optional<ScreenId> screenId = std::nullopt);
     static void MultiLayersPerf(size_t layerNum);
     static Drawing::Rect GetImageRegions(float screenWidth, float screenHeight,
         float realImageWidth, float realImageHeight);
@@ -146,6 +144,7 @@ private:
 
     static inline int currentUIExtensionIndex_ = -1;
     static inline const std::string RELEASE_SURFACE_TASK = "releaseSurface";
+    static inline sptr<SyncFence> invalidFence = nullptr;
 };
 }
 }

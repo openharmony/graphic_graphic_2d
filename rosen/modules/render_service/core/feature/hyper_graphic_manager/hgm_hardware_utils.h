@@ -25,11 +25,7 @@ namespace Rosen {
 struct RefreshRateParam {
     uint32_t rate = 0;
     uint64_t frameTimestamp = 0;
-    int64_t actualTimestamp = 0;
-    uint64_t vsyncId = 0;
     uint64_t constraintRelativeTime = 0;
-    bool isForceRefresh = false;
-    uint64_t fastComposeTimeStampDiff = 0;
 };
 
 class HgmHardwareUtils {
@@ -38,28 +34,43 @@ public:
     ~HgmHardwareUtils() noexcept = default;
 
     void ExecuteSwitchRefreshRate(ScreenId screenId);
-    void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
-    void UpdateRefreshRateParam();
-    void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
+
+    void PerformSetActiveMode(ScreenId screenId, std::shared_ptr<HdiOutput> output);
+
+    void UpdateRefreshRateParam(uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp,
+        uint64_t pendingConstraintRelativeTime);
+
+    void SetScreenVBlankIdle(ScreenId screenId)
+    {
+        vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
+    }
 
     const RefreshRateParam& GetRefreshRateParam() const
     {
         return refreshRateParam_;
     }
 
-    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput);
+    void UpdateRefreshRateParamToRenderComposer(uint32_t& currentRate,
+        uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime);
 
-    void TransactRefreshRateParam(uint32_t& currentRate, RefreshRateParam& param);
+    void AddRefreshRateCount(ScreenId screenId);
 
+    void SwitchRefreshRate(ScreenId screenId, const std::shared_ptr<HdiOutput> hdiOutput);
+
+    void RefreshRateCounts(std::string& dumpString);
+
+    void ClearRefreshRateCounts(std::string& dumpString);
 private:
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
 
     HgmCore& hgmCore_ = HgmCore::Instance();
+    std::mutex switchRateMutex_;
     // key: ScreenId, value: <needRetrySetRate, retryCount>
     std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;
     RefreshRateParam refreshRateParam_;
     RSVBlankIdleCorrector vblankIdleCorrector_;
+    std::map<uint32_t, uint64_t> refreshRateCounts_;
 };
 } // namespace OHOS
 } // namespace Rosen

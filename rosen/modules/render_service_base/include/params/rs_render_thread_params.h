@@ -233,6 +233,26 @@ public:
         return fastComposeTimeStampDiff_;
     }
 
+    void SetHasGameScene(bool hasGameScene)
+    {
+        hasGameScene_ = hasGameScene;
+    }
+
+    bool GetHasGameScene() const
+    {
+        return hasGameScene_;
+    }
+
+    void SetDynamicRefreshRate(uint32_t defaultScreenRefreshRate)
+    {
+        defaultScreenRefreshRate_ = defaultScreenRefreshRate;
+    }
+
+    uint32_t GetDynamicRefreshRate() const
+    {
+        return defaultScreenRefreshRate_;
+    }
+
     const std::vector<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>& GetSelfDrawables() const
     {
         return selfDrawables_;
@@ -561,6 +581,8 @@ private:
     uint32_t pendingScreenRefreshRate_ = 0;
     uint64_t pendingConstraintRelativeTime_ = 0;
     uint64_t fastComposeTimeStampDiff_ = 0;
+    bool hasGameScene_ = false;
+    uint32_t defaultScreenRefreshRate_ = 0;
     // RSDirtyRectsDfx dfx
     std::vector<std::string> dfxTargetSurfaceNames_;
     bool hasDisplayHdrOn_ = false;

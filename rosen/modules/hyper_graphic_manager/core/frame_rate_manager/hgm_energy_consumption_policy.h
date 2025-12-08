@@ -35,9 +35,6 @@ public:
     void SetUiEnergyConsumptionConfig(std::unordered_map<std::string, std::string> uiPowerConfig);
     void SetAnimationEnergyConsumptionAssuranceMode(bool isEnergyConsumptionAssuranceMode);
     // called by RSMainThread
-    void StatisticAnimationTime(uint64_t timestamp);
-    void StartNewAnimation(const std::string& componentName);
-    // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
     
@@ -46,14 +43,14 @@ public:
     void PrintEnergyConsumptionLog(const FrameRateRange& rsRange);
     void SetVideoCallSceneInfo(const EventInfo& eventInfo);
     // called by RSMainThread
-    void StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName);
-    // called by RSMainThread
     void CheckOnlyVideoCallExist();
     // called by RSMainThread
     bool GetVideoCallVsyncChange();
     bool GetVideoCallFrameRate(pid_t pid, const std::string& vsyncName, FrameRateRange &finalRange);
     void SetCurrentPkgName(const std::vector<std::string>& pkgs);
     void SetEnergyConsumptionAssuranceSceneInfo(const EventInfo& eventInfo);
+    void HandleEnergyCommonData(const EnergyCommonDataMap &commonData);
+    bool GetPowerIdle();
 
 private:
     // <rateType, <isEnable, idleFps>>
@@ -84,6 +81,8 @@ private:
     // concurrency protection <<<
     std::atomic<bool> dragSceneEnable_ = { true };
     std::atomic<pid_t> dragSceneDisablePid_ = { 0 };
+    const static std::unordered_map<EnergyEvent, std::function<void(const std::unordered_map<std::string, std::string> &)>>
+        commonDataMapFunc_;
 
     HgmEnergyConsumptionPolicy();
     ~HgmEnergyConsumptionPolicy() = default;
@@ -94,8 +93,10 @@ private:
     static void ConverStrToInt(int& targetNum, std::string sourceStr, int defaultValue);
     void SetEnergyConsumptionRateRange(FrameRateRange& rsRange, int idleFps);
     int32_t GetComponentEnergyConsumptionConfig(const std::string& componentName);
-    // Invoked by the render_service thread
-    void GetComponentFps(FrameRateRange& rsRange);
+
+    void StartNewAnimation(const std::unordered_map<std::string, std::string> &commonData);
+    void VoterVideoFrameRate(const std::unordered_map<std::string, std::string> &commonData);
+    void StatisticAnimationTime(const std::unordered_map<std::string, std::string> &commonData);
     // called by hgm thread
     void VoterVideoCallFrameRate();
 };

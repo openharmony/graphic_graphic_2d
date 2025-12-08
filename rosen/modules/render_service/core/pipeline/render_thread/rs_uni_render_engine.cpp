@@ -20,9 +20,6 @@
 #include "info_collection/rs_layer_compose_collection.h"
 #include "rs_uni_render_engine.h"
 #include "rs_uni_render_util.h"
-#ifdef RS_ENABLE_GPU
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
-#endif
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 #include "metadata_helper.h"
 #endif
@@ -35,7 +32,6 @@
 namespace OHOS {
 namespace Rosen {
 
-using RSRcdManager = RSSingleton<RoundCornerDisplayManager>;
 namespace {
 const float REDRAW_DFX_ALPHA = 0.4f; // redraw dfx drawrect alpha
 }
@@ -98,8 +94,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             .b = 0,
             .a = 0
         };
-        auto layerSurface = layer->GetSurface();
-        if (layerSurface == nullptr) {
+        if (layer->GetBuffer() == nullptr) {
             const auto& layerColor = layer->GetLayerColor();
             if (layerColor.a != layerBlackColor.a || layerColor.r != layerBlackColor.r ||
                 layerColor.g != layerBlackColor.g || layerColor.b != layerBlackColor.b) {
@@ -113,7 +108,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
                 canvas.DrawColor(color);
             }
             continue;
-        } else if (RSRcdManager::GetInstance().CheckLayerIsRCD(layerSurface->GetName())) {
+        } else if (layer->IsScreenRCDLayer()) {
             continue;
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
@@ -124,14 +119,12 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
         params.screenId = screenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         params.targetColorGamut = colorGamut;
-        auto screenManager = CreateOrGetScreenManager();
-        if (screenManager != nullptr) {
-            params.sdrNits = layer->GetSdrNit();
-            params.tmoNits = layer->GetDisplayNit();
-            params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
-            // color temperature
-            params.layerLinearMatrix = layer->GetLayerLinearMatrix();
-        }
+
+        params.sdrNits = layer->GetSdrNit();
+        params.tmoNits = layer->GetDisplayNit();
+        params.displayNits = params.tmoNits / std::pow(layer->GetBrightnessRatio(), 2.2f); // gamma 2.2
+        // color temperature
+        params.layerLinearMatrix = layer->GetLayerLinearMatrix();
         if (RSHdrUtil::CheckIsHdrSurfaceBuffer(layer->GetBuffer()) == HdrStatus::NO_HDR) {
             params.brightnessRatio = layer->GetBrightnessRatio();
             if (RSHdrUtil::CheckIsSurfaceBufferWithMetadata(layer->GetBuffer())) {
@@ -141,18 +134,18 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             params.isHdrRedraw = true;
         }
 #endif
-        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layerSurface->GetName().c_str());
+        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layerSurface->GetSurfaceName().c_str());
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region
         auto dstRect = layer->GetLayerSize();
         if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
             RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
             RSUniRenderUtil::DrawRectForDfx(canvas, dst, Drawing::Color::COLOR_YELLOW, REDRAW_DFX_ALPHA,
-                layerSurface->GetName());
+                layerSurface->GetSurfaceName());
         }
     }
 
-    LayerComposeCollection::GetInstance().UpdateRedrawFrameNumberForDFX();
+    REDRAW_FRAME_NUMBER.fetch_add(1);
 }
 
 void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,

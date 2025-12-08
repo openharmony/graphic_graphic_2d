@@ -60,7 +60,6 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
 #endif
-#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/main_thread/rs_main_thread.h"

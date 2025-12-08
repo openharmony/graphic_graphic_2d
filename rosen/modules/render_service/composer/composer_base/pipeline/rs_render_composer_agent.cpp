@@ -27,6 +27,15 @@ RSRenderComposerAgent::RSRenderComposerAgent(const std::shared_ptr<RSRenderCompo
     : rsRenderComposer_(rsRenderComposer)
 {}
 
+void RSRenderComposerAgent::SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn)
+{
+    if (rsRenderComposer_ == nullptr) {
+        RS_LOGE("rsRenderComposer is nullptr");
+        return;
+    }
+    rsRenderComposer_->SetComposerToRenderConnection(conn);
+}
+
 void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData)
 {
     if (rsRenderComposer_ == nullptr) {
@@ -39,14 +48,21 @@ void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransac
     }
     uint32_t currentRate = 0;
     int64_t delayTime = 0;
-    RefreshRateParam param;
-    bool hasGameScene = false;
 
-    rsRenderComposer_->ComposerPrepare(param, currentRate, hasGameScene, delayTime);
-    rsRenderComposer_->ComposerProcess(param, currentRate, hasGameScene, delayTime, transactionData);
+    rsRenderComposer_->ComposerPrepare(currentRate, delayTime, transactionData->GetPipelineParam());
+    rsRenderComposer_->ComposerProcess(currentRate, delayTime, transactionData);
 }
 
-void RSRenderComposerAgent::OnScreenConnected(const std::shared_ptr<HdiOutput>& output)
+void RSRenderComposerAgent::ClearFrameBuffers()
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->ClearFrameBuffers();
+}
+
+void RSRenderComposerAgent::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
+    const sptr<RSScreenProperty>& property)
 {
     if (rsRenderComposer_ == nullptr) {
         return;
@@ -62,92 +78,52 @@ void RSRenderComposerAgent::OnScreenDisconnected()
     rsRenderComposer_->OnScreenDisconnected();
 }
 
-void RSRenderComposerAgent::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    rsRenderComposer_->PreAllocateProtectedBuffer(buffer);
-}
-
-uint32_t RSRenderComposerAgent::GetUnExecuteTaskNum()
-{
-    if (rsRenderComposer_ == nullptr) {
-        return 0;
-    }
-    return rsRenderComposer_->GetUnExecuteTaskNum();
-}
-
-int32_t RSRenderComposerAgent::GetAccumulatedBufferCount()
-{
-    if (rsRenderComposer_ == nullptr) {
-        return 0;
-    }
-    return rsRenderComposer_->GetAccumulatedBufferCount();
-}
-
-void RSRenderComposerAgent::PostTask(const std::function<void()>& task)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    rsRenderComposer_->PostTask(task);
-}
-
-GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return GSERROR_INVALID_ARGUMENTS;
-    }
-    return rsRenderComposer_->ClearFrameBuffers(isNeedResetContext);
-}
-
-void RSRenderComposerAgent::OnScreenVBlankIdleCallback(uint64_t timestamp)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    rsRenderComposer_->OnScreenVBlankIdleCallback(timestamp);
-}
-
-void RSRenderComposerAgent::RefreshRateCounts(std::string& dumpString)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    rsRenderComposer_->RefreshRateCounts(dumpString);
-}
-
-void RSRenderComposerAgent::ClearRefreshRateCounts(std::string& dumpString)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    rsRenderComposer_->ClearRefreshRateCounts(dumpString);
-}
-
-sptr<SyncFence> RSRenderComposerAgent::GetReleaseFence()
-{
-    if (rsRenderComposer_ == nullptr) {
-        return nullptr;
-    }
-    return rsRenderComposer_->GetReleaseFence();
-}
-
-bool RSRenderComposerAgent::WaitComposerTaskExecute()
-{
-    if (rsRenderComposer_ == nullptr) {
-        return false;
-    }
-    return rsRenderComposer_->WaitComposerTaskExecute();
-}
-
 void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    return rsRenderComposer_->CleanLayerBufferBySurfaceId(surfaceId);
+    rsRenderComposer_->CleanLayerBufferBySurfaceId(surfaceId);
+}
+
+void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->ClearRedrawGPUCompositionCache(bufferIds);
+}
+
+void RSRenderComposerAgent::SetScreenBacklight(uint32_t level)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->SetScreenBacklight(level);
+}
+
+void RSRenderComposerAgent::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->OnScreenVBlankIdleCallback(screenId, timestamp);
+}
+
+void RSRenderComposerAgent::SurfaceDump(std::string& dumpString)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->SurfaceDump(dumpString);
+}
+
+void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+{
+    if (rsRenderComposer_ == nullptr) {
+        return;
+    }
+    rsRenderComposer_->GetRefreshInfoToSP(dumpString, nodeId);
 }
 
 void RSRenderComposerAgent::FpsDump(std::string& dumpString, std::string& layerName)
@@ -166,14 +142,6 @@ void RSRenderComposerAgent::ClearFpsDump(std::string& dumpString, std::string& l
     rsRenderComposer_->ClearFpsDump(dumpString, layerName);
 }
 
-void RSRenderComposerAgent::DumpCurrentFrameLayers()
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    rsRenderComposer_->DumpCurrentFrameLayers();
-}
-
 void RSRenderComposerAgent::HitchsDump(std::string& dumpString, std::string& layerArg)
 {
     if (rsRenderComposer_ == nullptr) {
@@ -182,20 +150,20 @@ void RSRenderComposerAgent::HitchsDump(std::string& dumpString, std::string& lay
     rsRenderComposer_->HitchsDump(dumpString, layerArg);
 }
 
-void RSRenderComposerAgent::DumpVkImageInfo(std::string &dumpString)
+void RSRenderComposerAgent::RefreshRateCounts(std::string& dumpString)
 {
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->DumpVkImageInfo(dumpString);
+    rsRenderComposer_->RefreshRateCounts(dumpString);
 }
 
-void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderComposerAgent::ClearRefreshRateCounts(std::string& dumpString)
 {
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->ClearRedrawGPUCompositionCache(bufferIds);
+    rsRenderComposer_->ClearRefreshRateCounts(dumpString);
 }
 
 void RSRenderComposerAgent::SetScreenPowerOnChanged(bool flag)

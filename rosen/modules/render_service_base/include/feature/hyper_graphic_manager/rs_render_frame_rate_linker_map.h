@@ -15,6 +15,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_MAP_H
 #define RENDER_SERVICE_CLIENT_CORE_PIPELINE_RS_RENDER_FRAME_RATE_LINKER_MAP_H
 
+#include <unordered_set>
 #include <unordered_map>
 
 #include "common/rs_common_def.h"
@@ -23,11 +24,21 @@
 
 namespace OHOS {
 namespace Rosen {
+struct FrameRateLinkerUpdateInfo {
+    FrameRateRange range;
+    int32_t animatorExpectedFrameRate;
+};
+using FrameRateLinkerUpdateInfoMap = std::unordered_map<FrameRateLinkerId, FrameRateLinkerUpdateInfo>;
+
 class RSRenderFrameRateLinker;
 class RSB_EXPORT RSRenderFrameRateLinkerMap final {
 public:
+    explicit RSRenderFrameRateLinkerMap();
+    ~RSRenderFrameRateLinkerMap() = default;
     bool RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr);
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
+    void UnregisterFrameRateLinker(const std::unordered_set<FrameRateLinkerId>& unregisterIds);
+    void UpdateFrameRateLinker(const FrameRateLinkerUpdateInfoMap& updateInfoMap);
     void FilterFrameRateLinkerByPid(pid_t pid);
     std::shared_ptr<RSRenderFrameRateLinker> GetFrameRateLinker(FrameRateLinkerId id);
 
@@ -35,9 +46,11 @@ public:
     {
         return frameRateLinkerMap_;
     }
+
+    bool RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
+        int32_t dstPid, sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
+    void UnRegisterExpectedFpsUpdateCallbackByListener(pid_t listenerPid);
 private:
-    explicit RSRenderFrameRateLinkerMap();
-    ~RSRenderFrameRateLinkerMap() = default;
     RSRenderFrameRateLinkerMap(const RSRenderFrameRateLinkerMap&) = delete;
     RSRenderFrameRateLinkerMap(const RSRenderFrameRateLinkerMap&&) = delete;
     RSRenderFrameRateLinkerMap& operator=(const RSRenderFrameRateLinkerMap&) = delete;

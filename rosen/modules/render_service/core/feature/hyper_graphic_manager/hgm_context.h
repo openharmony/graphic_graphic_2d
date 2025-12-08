@@ -15,56 +15,124 @@
 #ifndef HGM_CONTEXT_H
 #define HGM_CONTEXT_H
 
-#include "hgm_frame_rate_manager.h"
-#include "rp_frame_rate_policy.h"
+#include "event_handler.h"
+#include "hdi_backend.h"
+#include "ipc_callbacks/rs_ihgm_config_change_callback.h"
+#include "hgm_info_parcel.h"
+#include "transaction/rp_hgm_config_data.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
 
 namespace OHOS {
 namespace Rosen {
+class HgmCore;
+class HgmFrameRateManager;
 
 class HgmContext {
 public:
-    HgmContext();
+    HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        const std::shared_ptr<HgmFrameRateManager>& frameRateMgr,
+        std::function<void(bool, ScreenId)> callbackFunc,
+        const sptr<VSyncDistributor>& appVSyncDistributor,
+        const sptr<VSyncDistributor>& rsVSyncDistributor);
     ~HgmContext() noexcept = default;
 
     void InitHgmTaskHandleThread(
-        sptr<VSyncController> rsVSyncController, sptr<VSyncController> appVSyncController,
-        sptr<VSyncGenerator> vsyncGenerator, sptr<VSyncDistributor> appVSyncDistributor);
-    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
-        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
-    void ProcessHgmFrameRate(uint64_t timestamp, sptr<VSyncDistributor> rsVSyncDistributor, uint64_t vsyncId);
+        const sptr<VSyncController>& rsVSyncController, const sptr<VSyncController>& appVSyncController,
+        const sptr<VSyncGenerator>& vsyncGenerator);
+    void InitHfbcConfig();
+    void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
+
+    void CleanAllWhenServiceConnectionDie(pid_t remotePid);
+    void CreateFrameRateLinker(const std::string& name, FrameRateLinkerId id, NodeId windowNodeId);
+    void NotifyDynamicModeEvent(bool enableDynamicModeEvent);
+    void NotifyRefreshRateEvent(pid_t pid, const EventInfo& eventInfo);
+    ErrCode NotifyLightFactorStatus(pid_t pid, int32_t lightFactorStatus);
+    ErrCode NotifyAppStrategyConfigChangeEvent(pid_t pid, const std::string& pkgName,
+        const std::vector<std::pair<std::string, std::string>>& newConfig);
+    uint32_t GetScreenCurrentRefreshRate(ScreenId id);
+    void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, int32_t animatorExpectedFrameRate);
+    int32_t RegisterHgmRefreshRateUpdateCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback);
+    int32_t RegisterHgmConfigChangeCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback);
+    int32_t RegisterHgmRefreshRateModeChangeCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback);
+    int32_t GetCurrentRefreshRateMode();
+    std::vector<int32_t> GetScreenSupportedRefreshRates(ScreenId id);
+    void SetWindowExpectedRefreshRate(pid_t pid, const std::unordered_map<uint64_t, EventInfo>& eventInfos);
+    void SetWindowExpectedRefreshRate(pid_t pid, const std::unordered_map<std::string, EventInfo>& eventInfos);
+    void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate);
+    void SetRefreshRateMode(int32_t refreshRateMode);
+    void HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt);
+    void NotifyPackageEvent(pid_t pid, const std::vector<std::string>& packageList);
+    void NotifyXComponentExpectedFrameRate(pid_t remotePid, const std::string& id, int32_t expectedFrameRate);
+    void NotifyHgmConfigEvent(const std::string& eventName, bool state);
+    void UnregisterFrameRateLinker(FrameRateLinkerId id);
+    bool NotifySoftVsyncRateDiscountEvent(
+        uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor);
+    void UpdateRenderProcessPid(ScreenId screenId, pid_t pid);
+
     FrameRateRange& GetRSCurrRangeRef()
     {
         return rsCurrRange_;
     }
-
     std::shared_ptr<RSRenderFrameRateLinker> GetRSFrameRateLinker() const
     {
         return rsFrameRateLinker_;
     }
 
-    const std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>& GetConvertFrameRateFunc() const
+    uint64_t GetCurrVsyncId()
     {
-        return convertFrameRateFunc_;
+        return currVsyncId_;
+    }
+    uint64_t GetLastForceUpdateVsyncId()
+    {
+        return lastForceUpdateVsyncId_;
+    }
+    void SetLastForceUpdateVsyncId(uint64_t currVsyncId)
+    {
+        lastForceUpdateVsyncId_ = currVsyncId;
+    }
+
+    void AddScreenToHgm(ScreenId screenId);
+
+    void RemoveScreenFromHgm(ScreenId screenId);
+
+    bool SetVSyncRatesChangeStatus(bool newState)
+    {
+        return needPostTask_.exchange(newState);
     }
 
 private:
     void InitHgmUpdateCallback();
-
+    void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
+    void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
+    void TransformNodeToLinkersRateMap(const sptr<HgmProcessToServiceInfo>& info);
+    std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_ = nullptr;
+    std::shared_ptr<HgmFrameRateManager> frameRateManager_ = nullptr;
+    HgmCore& hgmCore_;
     FrameRateRange rsCurrRange_;
     std::shared_ptr<RSRenderFrameRateLinker> rsFrameRateLinker_ = nullptr;
+    RSRenderFrameRateLinkerMap frameRateLinkerMap_;
     uint64_t currVsyncId_ = 0;
     uint64_t lastForceUpdateVsyncId_ = UINT64_MAX;
+
+    HgmDataChangeTypes hgmDataChangeTypes_;
 
     bool ltpoEnabled_ = false;
     bool isDelayMode_ = false;
     int32_t pipelineOffsetPulseNum_ = 0;
 
-    bool rpHgmConfigDataChange_ = false;
     std::shared_ptr<RPHgmConfigData> rpHgmConfigData_ = nullptr;
 
-    RPFrameRatePolicy rpFrameRatePolicy_;
-    std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)> convertFrameRateFunc_ = nullptr;
+    bool isAdaptive_ = false;
+    std::string gameNodeName_ = "";
+    std::function<void(bool, ScreenId)> requestRSNextVsyncFunc_;
+    mutable std::mutex hgmMutex_;
+    sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
+    sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
+    std::map<uint64_t, int> linkersRateMap_;
+    std::atomic<bool> needPostTask_{ false };
+    std::map<NodeId, int> lastVSyncRateMap_;
 };
 } // namespace OHOS
 } // namespace Rosen

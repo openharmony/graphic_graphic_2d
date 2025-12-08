@@ -101,39 +101,6 @@ void RSDrmUtil::DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::
     }
 }
 
-void RSDrmUtil::PreAllocateProtectedBuffer(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-    const std::shared_ptr<RSSurfaceHandler>& surfaceHandler)
-{
-    auto displayLock = surfaceNode->GetAncestorScreenNode().lock();
-    std::shared_ptr<RSScreenRenderNode> ancestor = nullptr;
-    if (displayLock != nullptr) {
-        ancestor = displayLock->ReinterpretCastTo<RSScreenRenderNode>();
-    }
-    if (ancestor == nullptr) {
-        return;
-    }
-    auto protectedLayerScreenId = ancestor->GetScreenId();
-    auto screenManager = CreateOrGetScreenManager();
-
-    auto output = screenManager->GetOutput(ToScreenPhysicalId(protectedLayerScreenId));
-    if (UNLIKELY(output == nullptr)) {
-        RS_LOGE("output is NULL");
-        return;
-    }
-    if (output->GetProtectedFrameBufferState()) {
-        return;
-    }
-    auto protectedBuffer = surfaceHandler->GetBuffer();
-    if (UNLIKELY(protectedBuffer == nullptr)) {
-        RS_LOGE("buffer is NULL");
-        return;
-    }
-    auto preAllocateProtectedBufferTask = [buffer = protectedBuffer, screenId = protectedLayerScreenId]() {
-        RSRenderComposerManager::GetInstance().PreAllocateProtectedBuffer(screenId, buffer);
-    };
-    RSBackgroundThread::Instance().PostTask(preAllocateProtectedBufferTask);
-}
-
 void RSDrmUtil::MarkBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
     const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
     const std::shared_ptr<RSScreenRenderNode>& curScreenNode)

@@ -515,6 +515,13 @@ std::string RSImage::PixelSamplingDump() const
     return oss.str().c_str();
 }
 
+void RSImage::ImageSamplingDump(uint64_t imageId) const
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    RSImageDetailEnhancerThread::Instance().ImageSamplingDump(imageId);
+#endif
+}
+
 void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas)
 {
     int minX = 0;
