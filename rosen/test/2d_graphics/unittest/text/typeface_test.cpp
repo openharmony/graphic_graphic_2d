@@ -245,6 +245,31 @@ HWTEST_F(TypefaceTest, NullTests001, TestSize.Level1)
     FontArguments arg;
     EXPECT_EQ(typeface->MakeClone(arg), nullptr);
 }
+
+/**
+ * @tc.name: GetVariationDesignPosition001
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(TypefaceTest, GetVariationDesignPosition001, TestSize.Level1)
+{
+    auto stream = std::make_unique<MemoryStream>(ttfData_.get(), ttfLen_);
+    ASSERT_NE(stream, nullptr);
+
+    auto typeface = Typeface::MakeFromStream(std::move(stream));
+    ASSERT_NE(typeface, nullptr);
+
+    uint32_t axis = 10;
+    float coValue = 10;
+    int coordinateCount = 2;
+    FontArguments::VariationPosition::Coordinate coordinates[] = {
+        {axis, coValue},
+        {axis, coValue}
+    };
+    int result = typeface->GetVariationDesignPosition(coordinates, coordinateCount);
+    EXPECT_EQ(result, 1);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

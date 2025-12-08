@@ -454,6 +454,16 @@ void SkiaTypeface::UpdateStream(std::unique_ptr<MemoryStream> stream)
         skTypeface_->updateStream(stream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream());
     }
 }
+
+int SkiaTypeface::GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate coordinates[],
+    int coordinateCount) const
+{
+    if (skTypeface_) {
+        return skTypeface_->getVariationDesignPosition(
+            reinterpret_cast<SkFontArguments::VariationPosition::Coordinate*>(coordinates), coordinateCount);
+    }
+    return 0;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

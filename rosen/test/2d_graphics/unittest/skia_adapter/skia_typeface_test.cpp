@@ -473,6 +473,27 @@ HWTEST_F(SkiaTypefaceTest, Serialize001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetVariationDesignPosition001
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaTypefaceTest, GetVariationDesignPosition001, TestSize.Level1)
+{
+    auto typeface = SkiaTypeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    uint32_t axis = 10;
+    float coValue = 10;
+    int coordinateCount = 2;
+    FontArguments::VariationPosition::Coordinate coordinates[] = {
+        {axis, coValue},
+        {axis, coValue}
+    };
+    int result = typeface->GetVariationDesignPosition(coordinates, coordinateCount);
+    ASSERT_EQ(result, 1);
+}
+
+/**
  * @tc.name: GetFontIndex001
  * @tc.desc: Test for get font index
  * @tc.type: FUNC

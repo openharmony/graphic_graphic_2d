@@ -149,6 +149,46 @@ HWTEST_F(SkiaStaticFactoryTest, MakeFromYUVAPixmaps002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MakeFromYUVAPixmaps003
+ * @tc.desc: Test MakeFromYUVAPixmaps
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+
+HWTEST_F(SkiaStaticFactoryTest, MakeFromYUVAPixmaps003, TestSize.Level1)
+{
+    OHOS::Rosen::Drawing::GPUContext gpuContext;
+    YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
+        YUVInfo::YUVDataType::UNORM_8);
+    void* memory = malloc(1024);
+    std::shared_ptr<ColorSpace> colorSpace = nullptr;
+    auto skiaStatic = SkiaStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
+    ASSERT_TRUE(memory != nullptr);
+    free(memory);
+}
+
+/**
+ * @tc.name: MakeFromYUVAPixmaps004
+ * @tc.desc: Test MakeFromYUVAPixmaps
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+
+HWTEST_F(SkiaStaticFactoryTest, MakeFromYUVAPixmaps004, TestSize.Level1)
+{
+    OHOS::Rosen::Drawing::GPUContext gpuContext;
+    YUVInfo info(100, 100, YUVInfo::PlaneConfig::Y_UV, YUVInfo::SubSampling::K420,
+        YUVInfo::YUVColorSpace::JPEG_FULL_YUVCOLORSPACE,
+        YUVInfo::YUVDataType::UNORM_8);
+    void* memory = malloc(1024);
+    std::shared_ptr<ColorSpace> colorSpace = std::make_shared<ColorSpace>(ColorSpace::ColorSpaceType::NO_TYPE);
+    auto skiaStatic = SkiaStaticFactory::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
+    ASSERT_TRUE(memory != nullptr);
+    free(memory);
+}
+
+/**
  * @tc.name: DeserializeTypeface001
  * @tc.desc: Test DeserializeTypeface
  * @tc.type: FUNC

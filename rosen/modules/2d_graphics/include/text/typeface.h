@@ -169,6 +169,9 @@ public:
      */
     void UpdateStream(std::unique_ptr<MemoryStream> stream);
 
+    int GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate coordinates[],
+        int coordinateCount) const;
+
     uint32_t GetIndex() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
