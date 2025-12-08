@@ -41,14 +41,6 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
         return ERR_INVALID_STATE;
     }
     switch (code) {
-        case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY): {
-            bool result = NotifyRenderProcessInitFinished();
-            if (!reply.WriteInt32(result)) {
-                RS_LOGE("%{public}s::NOTIFY_RENDER_PROCESS_READY WriteBool failed.", __func__);
-                return ERR_INVALID_STATE;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::REPLY_DUMP_RESULT_TO_SERVICE): {
             int32_t size = 0;
             if (!data.ReadInt32(size)) {

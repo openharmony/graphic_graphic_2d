@@ -29,7 +29,6 @@ public:
     RSIRenderToServiceConnection() = default;
     virtual ~RSIRenderToServiceConnection() noexcept = default;
 
-    virtual int32_t NotifyRenderProcessInitFinished() = 0;
     virtual void ReplyDumpResultToService(std::string& dumpString) = 0;
     virtual sptr<HgmServiceToProcessInfo> NotifyRenderServiceProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const std::unordered_set<ScreenId>& screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo) = 0;

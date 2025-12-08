@@ -27,12 +27,6 @@ RSRenderToServiceConnection::RSRenderToServiceConnection(sptr<RSRenderServiceAge
     renderProcessManagerAgent_(renderProcessManagerAgent),
     screenManagerAgent_(screenManagerAgent) {}
 
-int32_t RSRenderToServiceConnection::NotifyRenderProcessInitFinished()
-{
-    renderProcessManagerAgent_->GetRenderProcessReadyPromise(GetCallingPid());
-    return true;
-}
-
 void RSRenderToServiceConnection::ReplyDumpResultToService(std::string& dumpString)
 {
     RSServiceDumpManager::GetInstance().CollectDump(dumpString);

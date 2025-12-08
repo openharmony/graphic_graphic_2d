@@ -29,7 +29,6 @@ public:
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent);
     virtual ~RSRenderToServiceConnection() noexcept = default;
 
-    bool NotifyRenderProcessInitFinished() override;
     void ReplyDumpResultToService(std::string& dumpString) override;
     sptr<HgmServiceToProcessInfo> NotifyRenderServiceProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         std::unordered_set<ScreenId> screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo) override;

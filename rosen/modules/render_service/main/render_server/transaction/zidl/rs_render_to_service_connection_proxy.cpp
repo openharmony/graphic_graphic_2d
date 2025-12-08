@@ -24,30 +24,6 @@ namespace Rosen {
 RSRenderToServiceConnectionProxy::RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl) :
     IRemoteProxy<RSIRenderToServiceConnection>(impl) {}
 
-bool RSRenderToServiceConnectionProxy::NotifyRenderProcessInitFinished()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
-        RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return false;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_RENDER_PROCESS_READY);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s: SendRquest failed, err is %{public}d", __func__, err);
-        return false;
-    }
-    bool result = false;
-    if (!reply.ReadBool(result)) {
-        RS_LOGE("%{public}s: ReadBool failed.", __func__);
-        return false;
-    }
-    return result;
-}
-
 void RSRenderToServiceConnectionProxy::ReplyDumpResultToService(std::string& dumpString)
 {
     MessageParcel data;
