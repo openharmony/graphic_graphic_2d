@@ -1428,14 +1428,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_CLEAR_UIFIRST_CACHE:
             OHOS::Rosen::DoClearUifirstCache();
             break;
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         case OHOS::Rosen::DO_REGISTER_CANVAS_CALLBACK:
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
             OHOS::Rosen::DoRegisterCanvasCallback();
+#endif
             break;
         case OHOS::Rosen::DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER:
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
             OHOS::Rosen::DoSubmitCanvasPreAllocatedBuffer();
-            break;
 #endif
+            break;
         default:
             return -1;
     }
