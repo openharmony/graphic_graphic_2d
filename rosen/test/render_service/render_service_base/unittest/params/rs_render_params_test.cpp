@@ -917,4 +917,20 @@ HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
     renderParams->SetVirtualScreenWhiteListInfo(info);
     ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
 }
+
+/**
+ * @tc.name: SetCanvasDrawingResetSurfaceIndexTest
+ * @tc.desc: Test SetCanvasDrawingResetSurfaceIndex
+ * @tc.type: FUNC
+ * @tc.require:#issueICF7P6
+ */
+HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Level2)
+{
+    auto renderParams = std::make_unique<RSRenderParams>(1);
+    renderParams->canvasDrawingResetSurfaceIndex_ = 1;
+    renderParams->SetCanvasDrawingResetSurfaceIndex(1);
+    ASSERT_FALSE(renderParams->needSync_);
+    renderParams->SetCanvasDrawingResetSurfaceIndex(2);
+    ASSERT_TRUE(renderParams->needSync_);
+}
 } // namespace OHOS::Rosen

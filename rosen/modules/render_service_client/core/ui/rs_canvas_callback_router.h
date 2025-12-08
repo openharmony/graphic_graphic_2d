@@ -33,7 +33,7 @@ class RSCanvasDrawingNode;
 // RSUIContext->GetMutableNodeMap() or RSNodeMap::MutableInstance(), so the
 // global callback cannot directly query NodeMap. Instead, nodes register
 // themselves here with weak_ptr for lifecycle-safe routing.
-class RSCanvasCallbackRouter {
+class RSC_EXPORT RSCanvasCallbackRouter {
 public:
     static RSCanvasCallbackRouter& GetInstance();
 

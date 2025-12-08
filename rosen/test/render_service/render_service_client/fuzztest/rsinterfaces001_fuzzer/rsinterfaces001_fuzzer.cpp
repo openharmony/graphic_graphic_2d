@@ -62,6 +62,21 @@ class SurfaceCaptureFuture : public SurfaceCaptureCallback {
         std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
 };
 
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+class TestRSCanvasSurfaceBufferCallback : public RSICanvasSurfaceBufferCallback {
+public:
+    explicit TestRSCanvasSurfaceBufferCallback() = default;
+    virtual ~TestRSCanvasSurfaceBufferCallback() noexcept = default;
+
+    void OnCanvasSurfaceBufferChanged(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override {}
+
+    sptr<IRemoteObject> AsObject() override
+    {
+        return nullptr;
+    }
+};
+#endif
+
 bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -103,6 +118,34 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
     rsInterfaces.NotifyScreenSwitched();
     return true;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool RegisterCanvasCallbackFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    sptr<RSICanvasSurfaceBufferCallback> callback = new TestRSCanvasSurfaceBufferCallback();
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.RegisterCanvasCallback(callback);
+    return true;
+}
+
+bool SubmitCanvasPreAllocatedBufferFuzzTest(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId nodeId = GetData<NodeId>();
+    uint32_t resetSurfaceIndex = GetData<uint32_t>();
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    rsRenderInterfaces.SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
+    return true;
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
 
@@ -110,5 +153,9 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     OHOS::Rosen::RSPhysicalScreenFuzzTest(data, size);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    OHOS::Rosen::RegisterCanvasCallbackFuzzTest(data, size);
+    OHOS::Rosen::SubmitCanvasPreAllocatedBufferFuzzTest(data, size);
+#endif
     return 0;
 }

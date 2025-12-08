@@ -30,6 +30,9 @@
 #include "transaction/rs_client_to_render_connection.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "platform/ohos/backend/surface_buffer_utils.h"
+#endif
 #include "platform/ohos/rs_irender_service.h"
 #include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
@@ -102,7 +105,9 @@ const uint8_t DO_SET_COLOR_FOLLOW = 48;
 const uint8_t DO_SET_FORCE_REFRESH = 49;
 const uint8_t DO_CLEAR_UIFIRST_CACHE = 50;
 const uint8_t DO_CREATE_VSYNC_CONNECTION_BY_REMOTE_ID = 51;
-const uint8_t TARGET_SIZE = 52;
+const uint8_t DO_REGISTER_CANVAS_CALLBACK = 52;
+const uint8_t DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER = 53;
+const uint8_t TARGET_SIZE = 54;
 const uint32_t FUZZ_MAX_DROP_FRAME_LIST = 10000;
 
 sptr<RSIClientToServiceConnection> CONN = nullptr;
@@ -1190,6 +1195,50 @@ void DoCreateNode02()
     dataParcel.WriteBool(isMirror);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+void DoRegisterCanvasCallback()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    sptr<RSICanvasSurfaceBufferCallback> callback = iface_cast<RSICanvasSurfaceBufferCallback>(remoteObject);
+    bool hasCallback = GetData<bool>();
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteBool(hasCallback);
+    dataParcel.WriteRemoteObject(callback->AsObject());
+    dataParcel.RewindRead(0);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+
+void DoSubmitCanvasPreAllocatedBuffer()
+{
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+    MessageOption option;
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+    NodeId nodeId = GetData<uint64_t>();
+    uint32_t resetSurfaceIndex = GetData<uint32_t>();
+    uint32_t sequence = GetData<uint32_t>();
+    bool hasBuffer = GetData<bool>();
+    int width = GetData<int>();
+    int height = GetData<int>();
+    pid_t pid = GetData<pid_t>();
+    auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid, width, height);
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteUint64(nodeId);
+    dataParcel.WriteUint32(resetSurfaceIndex);
+    dataParcel.WriteUint32(sequence);
+    dataParcel.WriteBool(hasBuffer);
+    if (buffer != nullptr) {
+        buffer->WriteToMessageParcel(dataParcel);
+    }
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS
 
@@ -1379,6 +1428,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         case OHOS::Rosen::DO_CLEAR_UIFIRST_CACHE:
             OHOS::Rosen::DoClearUifirstCache();
             break;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+        case OHOS::Rosen::DO_REGISTER_CANVAS_CALLBACK:
+            OHOS::Rosen::DoRegisterCanvasCallback();
+            break;
+        case OHOS::Rosen::DO_SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER:
+            OHOS::Rosen::DoSubmitCanvasPreAllocatedBuffer();
+            break;
+#endif
         default:
             return -1;
     }

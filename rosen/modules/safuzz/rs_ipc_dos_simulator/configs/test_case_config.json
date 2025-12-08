@@ -2680,5 +2680,19 @@
     "inputParams": "",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "REGISTER_CANVAS_CALLBACK_TEST_001",
+    "interfaceName": "REGISTER_CANVAS_CALLBACK",
+    "inputParams": "WriteBool;WriteCanvasSurfaceBufferCallbackSptr;",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER_TEST_001",
+    "interfaceName": "SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER",
+    "inputParams": "WriteUint64;WriteUint32;WriteUint32;WriteBool;WriteSurfaceBufferSptr",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]
