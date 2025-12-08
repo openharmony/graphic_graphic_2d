@@ -198,4 +198,43 @@ HWTEST_F(RsCommonHookTest, SetAndGetImageEnhanceAlgoParams, TestSize.Level1)
     auto result1 = RsCommonHook::Instance().GetImageEnhanceAlgoParams("algoTest");
     EXPECT_EQ(result1.isValid, algoParam1.isValid);
 }
+
+/**
+ * @tc.name: IsImageEnhanceParamsValidTest
+ * @tc.desc: test results of IsImageEnhanceParamsValid
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RsCommonHookTest, IsImageEnhanceParamsValidTest, TestSize.Level1)
+{
+    RsCommonHook::Instance().imageEnhanceAlgoParams_.clear();
+    RsCommonHook::Instance().imageEnhanceParams_ = { .isValid = true };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = {};
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = {};
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+    RsCommonHook::Instance().imageEnhanceAlgoParams_.clear();
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = {};
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_.clear();
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = { .isValid = true };
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = true };
+    EXPECT_TRUE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = false };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = { .isValid = false };
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = true };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["SLR"] = { .isValid = false };
+    RsCommonHook::Instance().imageEnhanceAlgoParams_["ESR"] = { .isValid = false };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+
+    RsCommonHook::Instance().imageEnhanceParams_ = { .isValid = false };
+    EXPECT_FALSE(RsCommonHook::Instance().IsImageEnhanceParamsValid());
+}
 } // namespace OHOS::Rosen

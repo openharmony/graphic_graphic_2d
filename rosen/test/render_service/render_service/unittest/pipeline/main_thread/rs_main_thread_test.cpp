@@ -6621,17 +6621,17 @@ HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: MarkNodeDirty001
- * @tc.desc: Test MarkNodeDirty001
+ * @tc.name: MarkScaledImageDirty001
+ * @tc.desc: Test MarkScaledImageDirty001
  * @tc.type: FUNC
  * @tc.require:IBZ6NM
  */
-HWTEST_F(RSMainThreadTest, MarkNodeDirty001, TestSize.Level1)
+HWTEST_F(RSMainThreadTest, MarkScaledImageDirty001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     uint64_t nodeId = 12345;
-    mainThread->MarkNodeDirty(nodeId);
+    mainThread->MarkScaledImageDirty(nodeId);
 }
 
 /**

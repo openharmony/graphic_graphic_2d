@@ -400,8 +400,9 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* n
     return backendTexture;
 }
 
-std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
-    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface)
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBufferImpl(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace)
 {
     OH_NativeBuffer* nativeBuffer = OH_NativeBufferFromNativeWindowBuffer(nativeSurface.nativeWindowBuffer);
     if (nativeBuffer == nullptr) {
@@ -463,13 +464,19 @@ std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUConte
         Drawing::TextureOrigin::TOP_LEFT,
         1,
         imageInfo.GetColorType(),
-        Drawing::ColorSpace::CreateSRGB(),
+        colorSpace ? colorSpace : Drawing::ColorSpace::CreateSRGB(),
         DeleteVkImage,
         new VulkanCleanupHelper(RsVulkanContext::GetSingleton(),
             image, memory));
 
     nativeSurface.image = image;
     return surface;
+}
+
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface)
+{
+    return CreateFromNativeWindowBufferImpl(gpuContext, imageInfo, nativeSurface);
 }
 
 #ifdef RS_ENABLE_VK

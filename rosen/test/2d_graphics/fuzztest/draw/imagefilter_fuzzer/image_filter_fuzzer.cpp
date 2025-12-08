@@ -273,6 +273,7 @@ void ImageFilterFuzzTest006(const uint8_t* data, size_t size)
         return;
     }
 
+    // initialize
     Rect srcRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Rect dstRect = { GetObject<float>(), GetObject<float>(), GetObject<float>(), GetObject<float>() };
     Bitmap bitmap;

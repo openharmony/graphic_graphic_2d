@@ -143,6 +143,10 @@ bool MakeFromNativeWindowBuffer(std::shared_ptr<Drawing::GPUContext> skContext, 
 Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(NativeWindowBuffer* nativeWindowBuffer,
     int width, int height, bool isProtected = false);
 
+std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBufferImpl(Drawing::GPUContext* gpuContext,
+    const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface,
+    const std::shared_ptr<Drawing::ColorSpace>& colorSpace = nullptr);
+
 std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(Drawing::GPUContext* gpuContext,
     const Drawing::ImageInfo& imageInfo, NativeSurfaceInfo& nativeSurface);
 

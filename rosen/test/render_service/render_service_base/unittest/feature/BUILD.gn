@@ -241,6 +241,10 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
     "$rosen_root/modules/platform:eventhandler",
   ]
 
+  external_deps = [
+    "init:libbegetutil",
+  ]
+
   subsystem_name = "graphic"
 }
 
