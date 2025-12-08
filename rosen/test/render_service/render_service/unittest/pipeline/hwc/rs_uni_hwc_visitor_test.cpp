@@ -1896,7 +1896,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect006, TestSize.Level
 }
 
 /**
- * @tc.name: UpdateHwcNodeEnableByFilterRect009
+ * @tc.name: UpdateHwcNodeEnableByFilterRect007
  * @tc.desc: Test RSUniHwcVisitorTest.UpdateHwcNodeEnableByFilterRect
  * @tc.type: FUNC
  * @tc.require: issuesICKNNB
