@@ -1912,6 +1912,7 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level
     auto filterNode = std::make_shared<RSRenderNode>(++id);
     ASSERT_NE(filterNode, nullptr);
     filterNode->SetOldDirtyInSurface(rect);
+    filterNode->instanceRootNodeId_ = 1;
     filterNode->GetHwcRecorder().SetZOrderForHwcEnableByFilter(100);
     filterNode->GetHwcRecorder().SetBlendWithBackground(true);
 
