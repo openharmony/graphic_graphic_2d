@@ -81,11 +81,15 @@ void RSRenderServiceAgent::HandleTouchEvent(int32_t touchStatus, int32_t touchCn
 }
 
 void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-    const std::unordered_set<ScreenId>& screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
-    const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)
+    std::unordered_set<ScreenId> screenIds,
+    const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo)
 {
-    if (!renderService_.renderModeConfig_->GetIsMultiProcessModeEnabled()) {
-        renderService_.ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    if (GetHgmContext() == nullptr) {
+        return;
+    }
+
+    if (!GetRenderModeConfig()->GetIsMultiProcessModeEnabled()) {
+        GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
         return;
     }
     auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
@@ -93,7 +97,7 @@ void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyn
         return;
     }
     PostSyncTaskImmediate([this, timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo] {
-        renderService_.ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+        GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     });
 }
 

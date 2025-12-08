@@ -73,6 +73,7 @@ private:
     void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
     void FpsDump(std::string& dumpString, std::string& arg);
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
+    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const { return renderModeConfig_; }
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;

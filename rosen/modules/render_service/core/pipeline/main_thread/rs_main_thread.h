@@ -60,15 +60,14 @@
 #include "vsync_system_ability_listener.h"
 #endif
 
-#include "hgm_core.h"
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
-class HgmFrameRateManager;
+class HgmClient;
 class HgmRPContext;
+class RSIRenderToServiceConnection;
 class RSUniRenderVisitor;
-struct FrameRateRangeData;
 namespace Detail {
 template<typename Task>
 class ScheduledTask : public RefBase {

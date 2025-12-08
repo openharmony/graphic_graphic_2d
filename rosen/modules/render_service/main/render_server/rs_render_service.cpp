@@ -177,21 +177,21 @@ void RSRenderService::CoreComponentsInit()
     VsyncComponentInit();
     rsRenderComposerManager_->InitRsVsyncManagerAgent(rsVsyncManagerAgent_);
 
-    RS_LOGD("dmulti_process %{public}s: HgmContext init", __func__);
-    auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) -> void {
-        if (renderProcessManager_ == nullptr) {
-            RS_LOGE("dmulti_process %{public}s: renderProcessManager_ is nullptr", __func__);
-            return;
-        }
-        auto serviceToRenderConn = renderProcessManager_->GetServiceToRenderConn(activeScreenId);
-        if (serviceToRenderConn) {
-            serviceToRenderConn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
-        }
-    };
-    hgmContext_ = std::make_shared<HgmContext>(handler_, callbackFunc);
-    hgmContext_->InitHgmTaskHandleThread(
-        rsVSyncController_, appVSyncController_, vsyncGenerator_, appVSyncDistributor_);
-    hgmContext_->InitHfbcConfig();
+    if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
+        auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
+            if (renderProcessManager_ == nullptr) {
+                RS_LOGE("%{public}s: renderProcessManager_ is nullptr", __func__);
+                return;
+            }
+            if (auto serviceToRenderConn = renderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
+                serviceToRenderConn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+            }
+        };
+        hgmContext_ = std::make_shared<HgmContext>(handler_, frameRateMgr, callbackFunc,
+            appVSyncDistributor_, rsVSyncDistributor_);
+        hgmContext_->InitHgmTaskHandleThread(rsVSyncController_, appVSyncController_, vsyncGenerator_);
+        hgmContext_->InitHfbcConfig();
+    }
 
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
     rsDumper_->RsDumpInit();
@@ -379,7 +379,7 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
 void RSRenderService::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
     const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo)
 {
-    hgmContext_->ProcessHgmFrameRate(timestamp, rsVSyncDistributor_, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    hgmContext_->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
 }
 
 void RSRenderService::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)

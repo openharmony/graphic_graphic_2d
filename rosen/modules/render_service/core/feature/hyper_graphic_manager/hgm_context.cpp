@@ -347,6 +347,19 @@ void HgmContext::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& 
     });
 }
 
+int32_t HgmContext::RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t pid, int32_t dstPid,
+    sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback)
+{
+    if (dstPid == 0) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    HgmTaskHandleThread::Instance().PostTask([pid, dstPid, callbackFunc = std::move(callback)] {
+        HgmConfigCallbackManager::GetInstance()->RegisterXComponentExpectedFrameRateCallback(pid, dstPid, callbackFunc);
+    });
+
+    return StatusCode::SUCCESS;
+}
+
 int32_t HgmContext::RegisterHgmRefreshRateUpdateCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback)
 {
     HgmTaskHandleThread::Instance().PostSyncTask([pid, callbackFunc = std::move(callback)] {

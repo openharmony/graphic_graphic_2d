@@ -1886,7 +1886,7 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
         RS_LOGE("%{public}s hgmContext_ is nullptr", __func__);
         return -1;
     }
-    return StatusCode::SUCCESS;
+    return hgmContext_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(remotePid_, dstPid, callback);
 }
 
 ErrCode RSClientToServiceConnection::SetAppWindowNum(uint32_t num)

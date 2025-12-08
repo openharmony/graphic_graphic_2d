@@ -53,6 +53,8 @@ public:
         const std::vector<std::pair<std::string, std::string>>& newConfig);
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range, int32_t animatorExpectedFrameRate);
+    iint32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t pid, int32_t dstPid,
+        sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback);
     int32_t RegisterHgmRefreshRateUpdateCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback);
     int32_t RegisterHgmConfigChangeCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback);
     int32_t RegisterHgmRefreshRateModeChangeCallback(pid_t pid, sptr<RSIHgmConfigChangeCallback> callback);

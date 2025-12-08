@@ -39,7 +39,9 @@ sptr<IRemoteObject> RSRenderProcessManager::OnScreenConnected(ScreenId id, const
     RS_LOGD("%{public}s: rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
         __func__, property->GetScreenId(), property->GetWidth(), property->GetHeight());
     renderService_.rsRenderComposerManager_->OnScreenConnected(data.output, property);
-    renderService_.GetHgmContext()->AddScreenToHgm(id);
+    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->AddScreenToHgm(id);
+    }
     uint64_t vsyncEnabledScreenId = renderService_.vsyncSampler_->JudgeVSyncEnabledScreenWhileHotPlug(id, true);
     renderService_.vsyncSampler_->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId, renderService_.handler_);
     renderService_.screenManager_->SetScreenVsyncEnableById(vsyncEnabledScreenId, id, false);
@@ -50,7 +52,9 @@ void RSRenderProcessManager::OnScreenDisconnected(ScreenId id)
 {
     RS_LOGD("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
     renderService_.rsRenderComposerManager_->OnScreenDisconnected(id);
-    renderService_.GetHgmContext()->RemoveScreenFromHgm(id);
+    if (const auto& hgmContext = renderService_.GetHgmContext()) {
+        hgmContext->RemoveScreenFromHgm(id);
+    }
     uint64_t vsyncEnabledScreenId = renderService_.vsyncSampler_->JudgeVSyncEnabledScreenWhileHotPlug(id, false);
     renderService_.vsyncSampler_->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId, renderService_.handler_);
 }

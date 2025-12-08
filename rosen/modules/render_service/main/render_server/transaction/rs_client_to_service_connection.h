@@ -35,7 +35,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class HgmFrameRateManager;
+class HgmContext;
 class RSClientToServiceConnection : public RSClientToServiceConnectionStub {
 public:
     RSClientToServiceConnection(
@@ -414,6 +414,7 @@ private:
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;
+    std::shared_ptr<HgmContext> hgmContext_ = nullptr;
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread& renderThread_;
 #endif
