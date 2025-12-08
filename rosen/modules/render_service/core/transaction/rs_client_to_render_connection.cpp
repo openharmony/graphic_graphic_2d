@@ -77,7 +77,6 @@
 
 #include "hgm_config_callback_manager.h"
 #include "render_server/rs_render_service.h"
-#include "rs_render_process.h"
 
 #include "ipc_callbacks/buffer_available_callback.h"
 #include "ipc_callbacks/buffer_clear_callback.h"

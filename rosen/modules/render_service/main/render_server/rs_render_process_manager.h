@@ -18,7 +18,7 @@
 
 #include <vector>
 
-#include "irs_composer_to_render_connection"
+#include "irs_composer_to_render_connection.h"
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "render_process/transaction/zidl/rs_iservice_to_render_connection.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
