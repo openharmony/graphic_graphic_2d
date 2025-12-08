@@ -2416,6 +2416,7 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareScreenRenderNode005, TestSize.Level
     rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
 
     auto parent = std::make_shared<RSRenderNode>(1);
+    parent->InitRenderParams();
     rsScreenRenderNode->parent_ = parent;
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
 }
@@ -5345,6 +5346,7 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareChildren002, TestSize.Level2)
 {
     auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
     rsSurfaceRenderNode->lastFrameSubTreeSkipped_ = true;
     auto dirtyManager = rsSurfaceRenderNode->GetDirtyManager();
     ASSERT_NE(dirtyManager, nullptr);

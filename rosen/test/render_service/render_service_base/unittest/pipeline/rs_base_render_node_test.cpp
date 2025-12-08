@@ -442,7 +442,7 @@ HWTEST_F(RSBaseRenderNodeTest, SetGlobalAlpha, TestSize.Level1)
  * @tc.name: GetOptionalBufferSize
  * @tc.desc: test results of GetOptionalBufferSize
  * @tc.type:FUNC
- * @tc.require:
+ * @tc.require:issue21058
  */
 HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize, TestSize.Level1)
 {
@@ -461,6 +461,34 @@ HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize, TestSize.Level1)
     ASSERT_TRUE(true);
 }
 #endif
+
+/**
+ * @tc.name: GetOptionalBufferSize001
+ * @tc.desc: test results of GetOptionalBufferSize
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderNodeTest, GetOptionalBufferSize001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSBaseRenderNode>(id, context);
+    auto bufferSize = node->GetOptionalBufferSize();
+    ASSERT_EQ(bufferSize.x_, 0.0f);
+    ASSERT_EQ(bufferSize.y_, 0.0f);
+
+    node->renderProperties_.SetFrameWidth(2.f);
+    node->renderProperties_.SetFrameHeight(3.f);
+    node->isFrameModifierAdded_ = true;
+    bufferSize = node->GetOptionalBufferSize();
+    ASSERT_EQ(bufferSize.x_, 2.f);
+    ASSERT_EQ(bufferSize.y_, 3.f);
+
+    node->renderProperties_.SetBoundsWidth(4.f);
+    node->renderProperties_.SetBoundsHeight(5.f);
+    node->isBoundsModifierAdded_ = true;
+    bufferSize = node->GetOptionalBufferSize();
+    ASSERT_EQ(bufferSize.x_, 4.f);
+    ASSERT_EQ(bufferSize.y_, 5.f);
+}
 
 /**
  * @tc.name: MarkNodeGroup
