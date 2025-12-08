@@ -17,7 +17,7 @@
 #include <parameter.h>
 #include <parameters.h>
 #include "param/sys_param.h"
-#include "screen_manager/rs_screen_manager.h"
+#include "rs_screen_manager.h"
 #include "transaction/rs_interfaces.h"
 
 using namespace testing;
@@ -28,18 +28,18 @@ class VsyncEnabledScreenIdTest : public testing::Test {
 public:
     static constexpr uint32_t SLEEP_TIME_FOR_DELAY = 1000000; // 1000ms
 
-    impl::VSyncSampler* GetVSyncSamplerImplPtr();
+    VSyncSampler* GetVSyncSamplerImplPtr();
     RSScreenManager* GetRSScreenManagerImplPtr();
     void SetScreenPowerStatusDelay(sptr<RSScreenManager> screenManager, ScreenId id, ScreenPowerStatus status);
 };
 
-impl::VSyncSampler* VsyncEnabledScreenIdTest::GetVSyncSamplerImplPtr()
+VSyncSampler* VsyncEnabledScreenIdTest::GetVSyncSamplerImplPtr()
 {
     auto sampler = CreateVSyncSampler();
     if (sampler == nullptr) {
         return nullptr;
     }
-    return static_cast<impl::VSyncSampler*>(sampler.GetRefPtr());
+    return static_cast<VSyncSampler*>(sampler.GetRefPtr());
 }
 
 RSScreenManager* VsyncEnabledScreenIdTest::GetRSScreenManagerImplPtr()

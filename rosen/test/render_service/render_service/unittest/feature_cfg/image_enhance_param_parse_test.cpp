@@ -219,5 +219,45 @@ HWTEST_F(ImageEnhanceParamParseTest, ParseESRParam, Function | SmallTest | Level
     xmlFreeDoc(doc);
     doc = nullptr;
 }
+
+/**
+ * @tc.name: CheckParams
+ * @tc.desc: Verify the CheckParams
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, CheckParams, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    imageEnhanceParamParse.params_ = { false, 0, 1, 0.1, 1.1 };
+    EXPECT_TRUE(imageEnhanceParamParse.CheckParams());
+    imageEnhanceParamParse.params_ = { false, 1, 1, 0.1, 1.1 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckParams());
+    imageEnhanceParamParse.params_ = { false, 0, 1, 0.1, 0.1 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckParams());
+    imageEnhanceParamParse.params_ = { false, 1, 1, 0.1, 0.1 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckParams());
+}
+
+/**
+ * @tc.name: CheckAlgoParams
+ * @tc.desc: Verify the CheckAlgoParams
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(ImageEnhanceParamParseTest, CheckAlgoParams, Function | SmallTest | Level1)
+{
+    ImageEnhanceParamParse imageEnhanceParamParse;
+    RSImageDetailEnhanceAlgoParams algoParams = { false, {{ 0.1, 0.2, 0.3 }}, 0, 200 };
+    EXPECT_TRUE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {{ 0.1, 0.2, 0.3 }}, 200, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {}, 0, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {{ 0.2, 0.2, 0.3 }}, 0, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+    algoParams = { false, {{ 0.1, 0.3, 0.3 }, { 0.2, 0.4, 0.3 }}, 0, 200 };
+    EXPECT_FALSE(imageEnhanceParamParse.CheckAlgoParams(algoParams));
+}
 } // namespace Rosen
 } // namespace OHOS

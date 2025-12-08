@@ -54,7 +54,8 @@ void RSPhysicalScreenProcessorTest::TearDown() {}
 HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RSHardwareProcessor.
-    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    auto p = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, client);
     EXPECT_NE(p.get(), nullptr);
 }
 
@@ -67,7 +68,8 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(RSPhysicalScreenProcessorTest, CreateAndDestroy002, TestSize.Level1)
 {
     RSProcessorFactory factory;
-    auto p = factory.CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    auto p = factory.CreateProcessor(CompositeType::HARDWARE_COMPOSITE, client);
     EXPECT_NE(p.get(), nullptr);
 }
 
@@ -85,14 +87,15 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
     int32_t offsetY = 0;
     auto context = std::make_shared<RSContext>();
     RSScreenRenderNode rsDisplayRenderNode(id, screenId, context);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsHardwareProcessor);
     ASSERT_EQ(uniRenderThread.uniRenderEngine_, renderEngine);
-    ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_EQ(false, rsHardwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**
@@ -103,8 +106,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Init, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -128,8 +132,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface001, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface002, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsUniRenderProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        UNI_RENDER_COMPOSITE);
+        UNI_RENDER_COMPOSITE, client);
     ASSERT_NE(rsUniRenderProcessor, nullptr);
     NodeId id = 0;
     ScreenId screenId = 1;
@@ -146,8 +151,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface002, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface003, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -162,8 +168,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface003, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface004, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -178,8 +185,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface004, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface005, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -194,8 +202,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface005, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface006, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -210,8 +219,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface006, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface007, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -226,8 +236,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface007, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessSurface008, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
@@ -246,8 +257,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessScreenSurface, TestSize.Level1)
     ScreenId screenId = 1;
     auto context = std::make_shared<RSContext>();
     RSScreenRenderNode rsDisplayRenderNode(id, screenId, context);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        SOFTWARE_COMPOSITE);
+        SOFTWARE_COMPOSITE, client);
     ASSERT_NE(nullptr, rsHardwareProcessor);
     rsHardwareProcessor->ProcessScreenSurface(rsDisplayRenderNode);
 }
@@ -260,8 +272,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, ProcessScreenSurface, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, PostProcess001, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     rsHardwareProcessor->PostProcess();
 }
@@ -274,8 +287,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, PostProcess001, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, ProcessRcdSurface, TestSize.Level1)
 {
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     ASSERT_NE(rsHardwareProcessor, nullptr);
     NodeId id = 1;
     RCDSurfaceType type = RCDSurfaceType::BOTTOM;
@@ -329,7 +343,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, RequestPerf, TestSize.Level1)
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, CalculateScreenTransformMatrix, TestSize.Level1)
 {
-    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    auto rsHardwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
+        HARDWARE_COMPOSITE, client);
     NodeId displayNodeId = 0;
     RSDisplayNodeConfig config;
     auto context = std::make_shared<RSContext>();
@@ -347,8 +363,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CalculateScreenTransformMatrix, TestSize
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, CalculateMirrorAdaptiveCoefficient, TestSize.Level1)
 {   
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     float curWidth = 2.0f;
     float curHeight = 1.0f;
     float mirroredWidth = .0f;
@@ -369,8 +386,9 @@ HWTEST_F(RSPhysicalScreenProcessorTest, CalculateMirrorAdaptiveCoefficient, Test
  */
 HWTEST_F(RSPhysicalScreenProcessorTest, SetDisplayHasSecSurface, TestSize.Level1)
 {   
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr); 
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
-        HARDWARE_COMPOSITE);
+        HARDWARE_COMPOSITE, client);
     processor->SetSecurityDisplay(true);
     ASSERT_TRUE(processor->isSecurityDisplay_);
 
