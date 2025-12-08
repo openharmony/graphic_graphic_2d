@@ -60,6 +60,20 @@ public:
 
     void SetYDpi(float yDpi) { yDpi_ = yDpi; }
 
+    void SetComponentPowerConfig(const std::unordered_map<std::string, int32_t>& config)
+    {
+        componentPowerConfig_ = config;
+    }
+
+    const std::unordered_map<std::string, int32_t>& GetComponentPowerConfig() const
+    {
+        return componentPowerConfig_;
+    }
+
+    bool GetVideoSwitch() { return isVideoSwitchOn_; }
+
+    void SetVideoSwitch(bool isVideoSwitchOn) { isVideoSwitchOn_ = isVideoSwitchOn; }
+
 private:
     int32_t smallSizeArea_ = -1;
     int32_t smallSizeLength_ = -1;
@@ -68,6 +82,8 @@ private:
     float ppi_ = 1.0f;
     float xDpi_ = 1.0f;
     float yDpi_ = 1.0f;
+    std::unordered_map<std::string, int32_t> componentPowerConfig_;
+    bool isVideoSwitchOn_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

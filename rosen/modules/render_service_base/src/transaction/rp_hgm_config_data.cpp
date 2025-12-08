@@ -75,6 +75,15 @@ RPHgmConfigData* RPHgmConfigData::Unmarshalling(Parcel& parcel)
         AnimDynamicItem item = { std::move(type), std::move(name), minSpeed, maxSpeed, preferredFps };
         data->AddSmallSizeAnimDynamicItem(item);
     }
+
+    uint32_t powerConfigSize = parcel.ReadUint32();
+    for (uint32_t i = 0; i < powerConfigSize; i++) {
+        std::string key = parcel.ReadString();
+        int32_t value = parcel.ReadInt32();
+        data->componentPowerConfig_.emplace(key, value);
+    }
+
+    data->isVideoSwitchOn_ = parcel.ReadBool();
     return data;
 }
 
@@ -112,6 +121,27 @@ bool RPHgmConfigData::Marshalling(Parcel& parcel) const
             RS_LOGE("RPHgmConfigData::Marshalling parse small config item failed");
             return success;
         }
+    }
+
+    uint32_t powerConfigSize = static_cast<uint32_t>(componentPowerConfig_.size());
+    flag = parcel.WriteUint32(powerConfigSize);
+    if (!flag) {
+        RS_LOGE("RPHgmConfigData::Marshalling parse power config failed");
+        return flag;
+    }
+
+    for (const auto& item : componentPowerConfig_) {
+        flag = parcel.WriteString(item.first) && parcel.WriteInt32(item.second);
+        if (!flag) {
+            RS_LOGE("RPHgmConfigData::Marshalling parse power config item failed");
+            return flag;
+        }
+    }
+
+    flag = parcel.WriteBool(isVideoSwitchOn_);
+    if (!flag) {
+        RS_LOGE("RPHgmConfigData::Marshalling parse isVideoSwitchOn config item failed");
+        return flag;
     }
     return success;
 }
