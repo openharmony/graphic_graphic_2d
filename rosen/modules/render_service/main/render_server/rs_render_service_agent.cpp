@@ -87,18 +87,7 @@ void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyn
     if (GetHgmContext() == nullptr) {
         return;
     }
-
-    if (!GetRenderModeConfig()->GetIsMultiProcessModeEnabled()) {
-        GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
-        return;
-    }
-    auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
-    if (screenIds.find(activeScreenId) == screenIds.end()) {
-        return;
-    }
-    PostSyncTaskImmediate([this, timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo] {
-        GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
-    });
+    GetHgmContext()->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
 }
 
 void RSRenderServiceAgent::RemoveToken(const sptr<RSIConnectionToken>& token)

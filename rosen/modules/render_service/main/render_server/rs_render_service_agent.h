@@ -66,10 +66,6 @@ public:
     void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
     void FpsDump(std::string& dumpString, std::string& arg);
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return renderService_.GetHgmContext(); }
-    const std::shared_ptr<const RenderModeConfig>& GetRenderModeConfig() const
-    {
-        return renderService_.GetRenderModeConfig();
-    }
     void RemoveToken(const sptr<RSIConnectionToken>& token);
 
 private:
