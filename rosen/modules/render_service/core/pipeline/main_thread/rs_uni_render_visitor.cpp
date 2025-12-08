@@ -101,52 +101,6 @@ static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint64_t INPUT_HWC_LAYERS = 3;
 constexpr int TRACE_LEVEL_PRINT_NODEID = 6;
 
-bool CheckRootNodeReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
-{
-    if (child != nullptr && child->IsInstanceOf<RSRootRenderNode>()) {
-        auto rootNode = child->ReinterpretCastTo<RSRootRenderNode>();
-        const auto& property = rootNode->GetRenderProperties();
-        if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0 && rootNode->GetEnableRender()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool CheckScbReadyToDraw(const std::shared_ptr<RSBaseRenderNode>& child)
-{
-    if (child != nullptr && child->IsInstanceOf<RSCanvasRenderNode>()) {
-        auto canvasRenderNode = child->ReinterpretCastTo<RSCanvasRenderNode>();
-        const auto& property = canvasRenderNode->GetRenderProperties();
-        if (property.GetFrameWidth() > 0 && property.GetFrameHeight() > 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool IsFirstFrameReadyToDraw(const RSSurfaceRenderNode& node)
-{
-    bool result = false;
-    auto sortedChildren = node.GetSortedChildren();
-    if (node.IsScbScreen()) {
-        for (const auto& child : *sortedChildren) {
-            result = CheckScbReadyToDraw(child);
-        }
-        return result;
-    }
-    for (auto& child : *sortedChildren) {
-        result = CheckRootNodeReadyToDraw(child);
-        // when appWindow has abilityComponent node
-        if (child != nullptr && child->IsInstanceOf<RSSurfaceRenderNode>()) {
-            for (const auto& surfaceNodeChild : *child->GetSortedChildren()) {
-                result = CheckRootNodeReadyToDraw(surfaceNodeChild);
-            }
-        }
-    }
-    return result;
-}
-
 std::string VisibleDataToString(const VisibleData& val)
 {
     std::stringstream ss;
