@@ -155,6 +155,10 @@ ohos_unittest("vsync_sampler_test") {
 
   sources = [ "vsync_sampler_test.cpp" ]
 
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+
   deps = [ ":vsync_test_common" ]
 }
 
@@ -174,6 +178,10 @@ ohos_unittest("native_vsync_test") {
 ## UnitTest vsync_present_fence_test {{{
 ohos_unittest("vsync_present_fence_test") {
   module_out_path = module_out_path
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
 
   sources = [ "vsync_present_fence_test.cpp" ]
 

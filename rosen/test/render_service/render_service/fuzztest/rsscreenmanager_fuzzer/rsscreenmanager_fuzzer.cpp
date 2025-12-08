@@ -268,16 +268,6 @@ void GetVirtualScreenTypeBlackList()
     CreateOrGetScreenManager()->GetVirtualScreenTypeBlackList(screenId);
 }
 
-void GetAllBlackList()
-{
-    CreateOrGetScreenManager()->GetAllBlackList();
-}
-
-void GetAllWhiteList()
-{
-    CreateOrGetScreenManager()->GetAllWhiteList();
-}
-
 void RemoveVirtualScreen()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -639,8 +629,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::SetCastScreenEnableSkipWindow,
         OHOS::Rosen::GetVirtualScreenBlackList,
         OHOS::Rosen::GetVirtualScreenTypeBlackList,
-        OHOS::Rosen::GetAllBlackList,
-        OHOS::Rosen::GetAllWhiteList,
         OHOS::Rosen::RemoveVirtualScreen,
         OHOS::Rosen::SetScreenActiveMode,
         OHOS::Rosen::SetScreenActiveRect,
