@@ -22,6 +22,7 @@
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
+#include "ui/rs_ui_context.h"
 
 #include <chrono>
 #include <condition_variable>
@@ -135,8 +136,7 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
 
 void RSGraphicTestDirector::Run()
 {
-    rsUiDirector_ = RSUIDirector::Create();
-    rsUiDirector_->Init();
+    rsUiDirector_ = RSUIDirector::Create(nullptr);
 
     rsUiDirector_->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {
         if (task) {
@@ -191,7 +191,8 @@ std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait
     }
 
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
-    if (!RSInterfaces::GetInstance().TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
+    auto rsRenderInterface = rsUiDirector_->GetRSUIContext()->GetRSRenderInterface();
+    if (!rsRenderInterface->TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;
     }
 
