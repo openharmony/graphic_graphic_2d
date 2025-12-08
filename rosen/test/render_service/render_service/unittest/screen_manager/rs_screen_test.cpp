@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "screen_manager/rs_screen.h"
+#include "rs_screen.h"
 #include "mock_hdi_device.h"
 #include "multiscreen_param.h"
 
