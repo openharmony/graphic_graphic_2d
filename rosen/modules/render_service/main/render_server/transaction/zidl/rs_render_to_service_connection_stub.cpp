@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace Rosen {
-namesapce {
+namespace {
 constexpr uint32_t MAX_SCREEN_ID_COUNT = 64;
 }
 
