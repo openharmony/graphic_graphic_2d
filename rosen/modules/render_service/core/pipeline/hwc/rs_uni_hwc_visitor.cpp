@@ -905,7 +905,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
                 continue;
             }
             CalcHwcNodeEnableByFilterRect(hwcNode, filterNode, filterZOrder);
-            }
         }
     } else {
         const auto& hwcNodes = node->GetChildHardwareEnabledNodes();
