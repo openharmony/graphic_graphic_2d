@@ -5849,6 +5849,7 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    bool result;
     ASSERT_NE(mainThread, nullptr);
     auto receiver = mainThread->receiver_;
     if (mainThread->rsVSyncDistributor_ == nullptr) {
@@ -5863,8 +5864,8 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     mainThread->lastFastComposeTimeStamp_ = 0;
     mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
     mainThread->lastFastComposeTimeStamp_ = mainThread->timestamp_;
-    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_EQ(result, false);
     mainThread->receiver_ = receiver;
 }
 
@@ -5877,11 +5878,12 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    bool result;
     ASSERT_NE(mainThread, nullptr);
     uint64_t timestamp = mainThread->timestamp_;
     mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
-    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_EQ(result,false);
     mainThread->timestamp_ = timestamp;
 }
 
