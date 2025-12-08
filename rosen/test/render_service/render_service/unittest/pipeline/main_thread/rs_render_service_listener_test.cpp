@@ -165,8 +165,8 @@ HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
     rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), true);
-    ASSERT_EQ(node->GetAncoFlags(),0);
+    ASSERT_EQ(node->GetAncoFlags(), 0);
     rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), false);
-    ASSERT_EQ(node->GetAncoFlags(),0);
+    ASSERT_EQ(node->GetAncoFlags(), 0);
 }
 } // namespace OHOS::Rosen

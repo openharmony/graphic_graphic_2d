@@ -5883,7 +5883,7 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
     uint64_t timestamp = mainThread->timestamp_;
     mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
     result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_EQ(result,false);
+    ASSERT_EQ(result, false);
     mainThread->timestamp_ = timestamp;
 }
 
