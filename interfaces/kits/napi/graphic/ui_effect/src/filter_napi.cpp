@@ -1380,7 +1380,7 @@ bool FilterNapi::BuildFrostedGlassPara(napi_env env, napi_value* argv,
 napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 {
     static const size_t maxArgc = NUM_35;
-    static const size_t minArgc = NUM_31;
+    static const size_t minArgc = NUM_34;
     constexpr size_t requireArgc = maxArgc;
 
     napi_status status;
