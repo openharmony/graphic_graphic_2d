@@ -141,13 +141,6 @@ void RSRenderService::FilterCCMInit()
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 
-void RSRenderService::ParseRenderModeConfig()
-{
-    RS_LOGI("dmulti_process %{public}s: multiprocess parse start", __func__);
-    std::unique_ptr<RSRenderModeConfigParser> parser = std::make_unique<RSRenderModeConfigParser>();
-    renderModeConfig_ = parser->BuildRenderConfig();
-}
-
 void RSRenderService::CoreComponentsInit()
 {
 #ifdef RS_ENABLE_VK

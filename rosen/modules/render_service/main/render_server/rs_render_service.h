@@ -60,7 +60,6 @@ private:
     // RS Filter CCM init
     void FilterCCMInit();
 
-    void ParseMultiProcessXml();
     void CoreComponentsInit();
     void VsyncComponentInit();
     void RenderProcessManagerInit();
