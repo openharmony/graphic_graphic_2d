@@ -833,7 +833,8 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
     }
-    if (!RSUniRenderJudgement::IsUniRender() && !node.GetIsTextureExportNode()) {
+    if (!RSUniRenderJudgement::IsUniRender() && !node.GetIsTextureExportNode()
+        && node.GetSurfaceNodeType() != RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
         node.SetContextMatrix(contextMatrix);
         node.SetContextAlpha(canvas_->GetAlpha());
     }
@@ -1009,6 +1010,8 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
     auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
 
     canvas_->Save();
+    Drawing::Brush brush;
+    canvas_->AttachBrush(brush);
     Drawing::Rect originRect = Drawing::Rect(x, y, width + x, height + y);
 
     if (node.IsNotifyRTBufferAvailable()) {
@@ -1019,6 +1022,7 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
             canvas_->Clear(backgroundColor.AsArgbInt());
         }
     }
+    canvas_->DetachBrush();
     canvas_->Restore();
 }
 #endif
