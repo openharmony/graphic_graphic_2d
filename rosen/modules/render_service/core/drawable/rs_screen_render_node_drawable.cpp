@@ -604,7 +604,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     uniParam->SetCompositeType(params->GetCompositeType());
     params->SetDirtyAlignEnabled(uniParam->IsDirtyAlignEnabled());
     ScreenId paramScreenId = params->GetScreenId();
-    const auto& screenProperty = params->GetScreenProperty();
     offsetX_ = screenProperty.GetOffsetX();
     offsetY_ = screenProperty.GetOffsetY();
     curDisplayScreenId_ = paramScreenId;
@@ -636,7 +635,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     bool isVirtualExpandComposite = params->GetCompositeType() == CompositeType::UNI_RENDER_EXPAND_COMPOSITE;
     if (isVirtualExpandComposite) {
-        RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *this, screenManager);
+        RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *this);
         if (RSUniDirtyComputeUtil::CheckVirtualExpandScreenSkip(*params, *this)) {
             RS_TRACE_NAME("VirtualExpandScreenNode skip");
             return;
@@ -1014,10 +1013,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     auto rcdInfo = std::make_unique<RcdInfo>();
     DoScreenRcdTask(params->GetId(), processor, rcdInfo, screenInfo);
 
-    if (!RSRenderComposerManager::GetInstance().WaitComposerTaskExecute(screenInfo.id)) {
-        RS_LOGW("RSScreenRenderNodeDrawable::ondraw: hardwareThread task has too many to Execute");
-    }
-
     RS_TRACE_BEGIN("RSScreenRenderNodeDrawable CommitLayer");
     for (const auto& [screenNodeId, _, drawable] : hardwareDrawables) {
         if (UNLIKELY(!drawable || !drawable->GetRenderParams())) {
@@ -1061,24 +1056,24 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
     }
 #endif
-+    // {
-+    //     auto surfacehandler = GetRSSurfaceHandlerOnDraw();
-+    //     if (surfacehandler != nullptr) {
-+    //         {
-+    //             RS_TRACE_NAME_FMT("pengq yzy RSDisplayRenderNodeDrawable 18");
-+    //         }
-+    //         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfacehandler)) {
-+    //             {
-+    //                 RS_TRACE_NAME_FMT("pengq yzy RSDisplayRenderNodeDrawable 18");
-+    //             }
-+    //             auto syncFence = surfacehandler->GetAcquireFence();
-+    //             syncFence->Wait(200); // 3000ms
-+    //             auto pre = surfacehandler->GetPreBuffer();
-+    //             auto fence = surfacehandler->GetPreBufferReleaseFence();
-+    //             surfacehandler->GetConsumer()->ReleaseBuffer(pre, fence);
-+    //         }
-+    //     }
-+    // }
+    // {
+    //     auto surfacehandler = GetRSSurfaceHandlerOnDraw();
+    //     if (surfacehandler != nullptr) {
+    //         {
+    //             RS_TRACE_NAME_FMT("pengq yzy RSDisplayRenderNodeDrawable 18");
+    //         }
+    //         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfacehandler)) {
+    //             {
+    //                 RS_TRACE_NAME_FMT("pengq yzy RSDisplayRenderNodeDrawable 18");
+    //             }
+    //             auto syncFence = surfacehandler->GetAcquireFence();
+    //             syncFence->Wait(200); // 3000ms
+    //             auto pre = surfacehandler->GetPreBuffer();
+    //             auto fence = surfacehandler->GetPreBufferReleaseFence();
+    //             surfacehandler->GetConsumer()->ReleaseBuffer(pre, fence);
+    //         }
+    //     }
+    // }
 }
 
 void RSScreenRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)

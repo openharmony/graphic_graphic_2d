@@ -133,7 +133,6 @@ public:
     void SetHasProtectedLayer(bool hasProtectedLayer);
     bool GetHasProtectedLayer();
     int32_t SetScreenLinearMatrix(const std::vector<float>& matrix);
-    void InitDisplayPropertyForHardCursor();
 
     // virtual screen
     void SetProducerSurface(sptr<Surface> producerSurface);
@@ -163,9 +162,9 @@ public:
     const std::unordered_set<uint64_t>& GetGlobalBlackList();
     void AddGlobalBlackList(const std::vector<uint64_t>& globalBlackList);
     void RemoveGlobalBlackList(const std::vector<uint64_t>& globalBlackList);
-    const std::unordered_set<uint64_t> GetBlackList() const;
-    const std::unordered_set<uint8_t> GetTypeBlackList() const;
-    const std::unordered_set<uint64_t> GetWhiteList() const;
+    std::unordered_set<uint64_t> GetBlackList() const;
+    std::unordered_set<uint8_t> GetTypeBlackList() const;
+    std::unordered_set<uint64_t> GetWhiteList() const;
 
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
     const std::vector<uint64_t> GetSecurityExemptionList() const;
@@ -184,6 +183,7 @@ public:
     bool GetAndResetPSurfaceChange();
     void SetPSurfaceChange(bool pSurfaceChange);
     void SetDisablePowerOffRenderControl(bool disable);
+    bool GetAndResetVirtualScreenPlay();
 
     void SetScreenSwitchStatus(bool status);
 
@@ -236,6 +236,7 @@ private:
     static std::map<GraphicHDRFormat, ScreenHDRFormat> HDI_HDR_FORMAT_TO_RS_MAP;
     static std::map<ScreenHDRFormat, GraphicHDRFormat> RS_TO_HDI_HDR_FORMAT_MAP;
 
+    std::function<void(ScreenId, uint32_t)> onBackLightChange_;
     std::atomic<int32_t> backlightLevel_ = INVALID_BACKLIGHT_VALUE;
     std::atomic<bool> hasProtectedLayer_ = false;
 

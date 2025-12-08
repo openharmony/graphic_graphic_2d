@@ -1856,11 +1856,6 @@ void RSScreenManager::OnScreenPropertyChanged(const sptr<RSScreenProperty>& prop
 
 void RSScreenManager::OnScreenBacklightChanged(ScreenId id, uint32_t level)
 {
-    auto screen = GetScreen(id);
-    if (screen == nullptr) {
-        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-        return;
-    }
     callbackMgr_->NotifyScreenBacklightChanged(id, level);
 }
 

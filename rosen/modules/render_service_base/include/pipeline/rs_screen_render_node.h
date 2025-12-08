@@ -505,6 +505,7 @@ public:
     void SetForceFreeze(bool forceFreeze);
     bool GetForceFreeze() const;
 
+    void SetIsScreenValid(bool isValid);
     void CheckSurfaceChanged();
 
 protected:

@@ -23,7 +23,7 @@ RSScreenThreadSafeProperty::RSScreenThreadSafeProperty() : property_(sptr<RSScre
 
 RSScreenThreadSafeProperty::~RSScreenThreadSafeProperty() {}
 
-const sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
+sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
 {
     auto cloned = sptr<RSScreenProperty>::MakeSptr();
     UniqueLock lock(propertyMutex_);
@@ -73,7 +73,6 @@ const sptr<RSScreenProperty> RSScreenThreadSafeProperty::Clone() const
     cloned->screenStatus_ = property_->screenStatus_;
     cloned->virtualSecLayerOption_ = property_->virtualSecLayerOption_;
     cloned->isHardCursorSupport_ = property_->isHardCursorSupport_;
-    cloned->linearMatrix_ = property_->linearMatrix_;
     cloned->disablePowerOffRenderControl_ = property_->disablePowerOffRenderControl_;
     cloned->supportedColorGamuts_ = property_->supportedColorGamuts_;
     cloned->screenSwitchStatus_ = property_->screenSwitchStatus_;
@@ -379,12 +378,6 @@ void RSScreenThreadSafeProperty::SetIsHardCursorSupport(bool isHardCursorSupport
     property_->isHardCursorSupport_ = isHardCursorSupport;
 }
 
-void RSScreenThreadSafeProperty::SetLinearMatrix(std::vector<float> matrix)
-{
-    UniqueLock lock(propertyMutex_);
-    property_->linearMatrix_ = matrix;
-}
-
 void RSScreenThreadSafeProperty::SetSupportedColorGamuts(std::vector<ScreenColorGamut> colorGamuts)
 {
     UniqueLock lock(propertyMutex_);
@@ -672,12 +665,6 @@ bool RSScreenThreadSafeProperty::GetIsHardCursorSupport() const
 {
     SharedLock lock(propertyMutex_);
     return property_->isHardCursorSupport_;
-}
-
-std::vector<float> RSScreenThreadSafeProperty::GetLinearMatrix() const
-{
-    SharedLock lock(propertyMutex_);
-    return property_->linearMatrix_;
 }
 
 std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamuts() const

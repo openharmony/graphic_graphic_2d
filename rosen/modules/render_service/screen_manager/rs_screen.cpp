@@ -931,9 +931,9 @@ void RSScreen::SetScreenBacklight(uint32_t level)
     }
 
     RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id, level);
-    if (hdiScreen_->SetScreenBacklight(level) < 0) {
-        RS_LOGE("RSScreen_%{public}" PRIu64 " SetScreenBacklight error.", id);
-        return;
+
+    if (onBacklightChange_) {
+        onBacklightChange_(property_.GetId(), level);
     }
     if (!hasLogBackLightAfterPowerStatusChanged_) {
         HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64 ", level %{public}u done, last level is %{public}d",
@@ -1511,11 +1511,6 @@ int32_t RSScreen::SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask)
         onPropertyChange_(property_.Clone());
     }
     return SUCCESS;
-}
-
-std::shared_ptr<Media::PixelMap> RSScreen::GetSecurityMask() const
-{
-    return property_.GetSecurityMask();
 }
 
 void RSScreen::SetEnableVisibleRect(bool enable)

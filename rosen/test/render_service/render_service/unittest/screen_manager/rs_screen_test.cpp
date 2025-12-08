@@ -2343,22 +2343,6 @@ HWTEST_F(RSScreenTest, SetSecurityMaskTest, testing::ext::TestSize.Level1)
 }
 
 /*
- * @tc.name: GetScreenSecurityMask001
- * @tc.desc: GetScreenSecurityMask Test
- * @tc.type: FUNC
- * @tc.require: issueIBIQ0Q
- */
-HWTEST_F(RSScreenTest, GetSecurityMask001, testing::ext::TestSize.Level1)
-{
-    auto rsScreen = std::make_shared<RSScreen>(nullptr);
-    ASSERT_NE(nullptr, rsScreen);
-    rsScreen->property_.SetIsVirtual(true);
-    rsScreen->SetSecurityMask(nullptr);
-    auto SecurityMaskGet = rsScreen->GetSecurityMask();
-    ASSERT_EQ(SecurityMaskGet, nullptr);
-}
-
-/*
  * @tc.name: GetVirtualSecLayerOption001
  * @tc.desc: GetVirtualSecLayerOption Test
  * @tc.type: FUNC

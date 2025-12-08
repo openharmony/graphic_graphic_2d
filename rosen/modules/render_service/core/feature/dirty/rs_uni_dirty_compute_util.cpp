@@ -358,8 +358,7 @@ RectI RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(const RSSurfaceRenderNod
 }
 
 void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
-    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable,
-    const sptr<RSScreenManager>& screenManager)
+    RSScreenRenderParams& params, DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable)
 {
     // All other factors that may prevent skipping virtual expand screen need to be considered
     // update accumulated dirty region
@@ -370,10 +369,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    if (screenManager == nullptr) {
-        return;
-    }
-    auto currentBlackList = screenManager->GetVirtualScreenBlackList(params.GetScreenId());
+    auto currentBlackList = params->GetScreenProperty().GetMergeBlackList();
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
