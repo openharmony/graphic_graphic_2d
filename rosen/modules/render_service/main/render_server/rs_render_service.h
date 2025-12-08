@@ -66,7 +66,6 @@ private:
     void RenderProcessManagerInit();
     bool SAMgrRegister();
 
-    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
     void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);

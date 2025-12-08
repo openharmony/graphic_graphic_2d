@@ -34,7 +34,6 @@ public:
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
         const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
-    sptr<ReplyToRenderInfo> RegisterRenderProcessConnection(const sptr<ConnectToServiceInfo>& connectToServiceInfo) override;
 
 private:
     static inline BrokerDelegator<RSRenderServiceProxy> delegator_;
