@@ -183,6 +183,7 @@ public:
     {
         adaptiveVsyncUpdateCallback_ = adaptiveVsyncUpdateCallback;
     }
+    void UpdateRenderProcessPid(ScreenId screenId, pid_t pid);
 
 private:
     friend class HgmUserDefineImpl;

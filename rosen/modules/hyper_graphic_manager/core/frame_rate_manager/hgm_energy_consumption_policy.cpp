@@ -197,17 +197,6 @@ void HgmEnergyConsumptionPolicy::SetTouchState(TouchState touchState)
     }
 }
 
-void HgmEnergyConsumptionPolicy::GetComponentFps(FrameRateRange& range)
-{
-    if (!isTouchIdle_) {
-        return;
-    }
-    auto idleFps = GetComponentEnergyConsumptionConfig(range.GetComponentName());
-    if (idleFps != UNKNOWN_IDLE_FPS) {
-        SetEnergyConsumptionRateRange(range, idleFps);
-    }
-}
-
 void HgmEnergyConsumptionPolicy::GetAnimationIdleFps(FrameRateRange& rsRange)
 {
     if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {

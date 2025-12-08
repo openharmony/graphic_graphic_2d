@@ -1396,8 +1396,8 @@ bool HgmFrameRateManager::UpdateUIFrameworkDirtyNodes(
             if (multiAppStrategy_.CheckPidValid(pid, true)) {
                 idleDetector_.UpdateSurfaceTime(surfaceName, timestamp, pid, uiFwkType);
             }
-        }uiFrameworkDirtyNodeNameMap
-        for (const auto& [uiFwkDirtyNodeName, pid] : uiFrameworkDirtyNodeName) {
+        }
+        for (const auto& [uiFwkDirtyNodeName, pid] : uiFrameworkDirtyNodeNameMap) {
             if (multiAppStrategy_.CheckPidValid(pid, true)) {
                 idleDetector_.UpdateSurfaceTime(uiFwkDirtyNodeName, timestamp, pid, UIFWKType::FROM_UNKNOWN);
             }

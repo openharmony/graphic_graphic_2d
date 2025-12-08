@@ -21,8 +21,8 @@
 #include "animation/rs_frame_rate_range.h"
 #include "rp_frame_rate_policy.h"
 #include "feature/hyper_graphic_manager/hgm_rp_energy.h"
-#include "pipeline/rs_render_frame_rate_linker_map.h"
 #include "feature/hyper_graphic_manager/hgm_info_parcel.h"
+#include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 
 namespace OHOS {
 namespace Rosen {

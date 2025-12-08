@@ -358,7 +358,7 @@ private:
     std::atomic<int64_t> rsPhaseOffset_{ 0 };
     std::atomic<int64_t> appPhaseOffset_{ 0 };
     std::atomic<bool> isVsyncOffsetCustomized_{ false };
-    RSScreenManager screenManager_;
+    RSScreenManager* screenManager_;
 
     friend class HWCParam;
 };
