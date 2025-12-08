@@ -49,7 +49,6 @@
 #include "system/rs_system_parameters.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
 #include "render/rs_render_kawase_blur_filter.h"
 
 #include "text/font_mgr.h"

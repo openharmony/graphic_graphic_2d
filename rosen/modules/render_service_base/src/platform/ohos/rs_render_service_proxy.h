@@ -19,13 +19,11 @@
 #include <iremote_proxy.h>
 
 #include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
-#include "platform/ohos/transaction/rs_render_connect_parcel_info.h"
 #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
 #include "platform/ohos/transaction/zidl/rs_irender_service.h"
 
 namespace OHOS {
 namespace Rosen {
-
 class RSRenderServiceProxy : public IRemoteProxy<RSIRenderService> {
 public:
     explicit RSRenderServiceProxy(const sptr<IRemoteObject>& impl);
