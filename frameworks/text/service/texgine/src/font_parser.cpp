@@ -222,6 +222,10 @@ void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescri
         auto len = nameTable->nameRecord[i].length.Get();
         auto stringOffset = nameTable->nameRecord[i].stringOffset.Get();
         const char* data = stringStorage + stringOffset;
+        if (storageOffset + stringOffset + len > size) {
+            TEXT_LOGE("Invalid name table string offset or length");
+            continue;
+        }
         if (platformId == FontParser::PlatformId::MACINTOSH) {
 #ifdef BUILD_NON_SDK_VER
             std::string nameString = ConvertToString(std::string(data, len), "GB2312", "UTF-8");
