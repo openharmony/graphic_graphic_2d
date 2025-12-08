@@ -402,13 +402,13 @@ HWTEST_F(RSPipelineClientTest, FreezeScreen, TestSize.Level1)
 HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback001, TestSize.Level1)
 {
     NodeId id = 0;
-    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    ASSERT_NE(rsClient, nullptr);
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.isHdrCapture = true;
     std::shared_ptr<TestSurfaceCaptureCallback> callback = std::make_shared<TestSurfaceCaptureCallback>();
  
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
-    rsRenderPipelineClient->surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+    rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
  
     Media::InitializationOptions opts;
     opts.size.width = 480;
@@ -418,7 +418,7 @@ HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback001, TestSize.Level1
     std::shared_ptr<Media::PixelMap> pixelMapHDR = Media::PixelMap::Create(opts);
     ASSERT_NE(pixelMapHDR, nullptr);
  
-    rsRenderPipelineClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelMap,
+    rsClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelMap,
         CaptureError::CAPTURE_OK, pixelMapHDR);
     EXPECT_TRUE(callback->isOnCallBack_);
 }
@@ -432,13 +432,13 @@ HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback001, TestSize.Level1
 HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback002, TestSize.Level1)
 {
     NodeId id = 0;
-    ASSERT_NE(rsRenderPipelineClient, nullptr);
+    ASSERT_NE(rsClient, nullptr);
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.needErrorCode = true;
     std::shared_ptr<TestSurfaceCaptureCallback> callback = std::make_shared<TestSurfaceCaptureCallback>();
  
     std::vector<std::shared_ptr<SurfaceCaptureCallback>> callbackVector = {callback};
-    rsRenderPipelineClient->surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
+    rsClient->surfaceCaptureCbMap_.emplace(std::make_pair(id, captureConfig), callbackVector);
  
     Media::InitializationOptions opts;
     opts.size.width = 480;
@@ -448,7 +448,7 @@ HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback002, TestSize.Level1
     std::shared_ptr<Media::PixelMap> pixelMapHDR = Media::PixelMap::Create(opts);
     ASSERT_NE(pixelMapHDR, nullptr);
  
-    rsRenderPipelineClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelMap,
+    rsClient->TriggerSurfaceCaptureCallback(id, captureConfig, pixelMap,
         CaptureError::CAPTURE_OK, pixelMapHDR);
     EXPECT_TRUE(callback->isOnCallBack_);
 }
