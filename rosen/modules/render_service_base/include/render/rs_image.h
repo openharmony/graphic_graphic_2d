@@ -173,6 +173,10 @@ private:
     void DrawImageWithFirMatrixRotateOnCanvas(
         const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas) const;
     void ApplyImageOrientation(Drawing::Canvas& canvas);
+    void RsImageDraw(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+        const bool hdrImageDraw);
+    void DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+        int& minX, int& maxX, int& minY, int& maxY);
 #ifdef ROSEN_OHOS
     static bool UnmarshalIdSizeAndNodeId(Parcel& parcel, uint64_t& uniqueId, int& width, int& height, NodeId& nodeId);
     static bool UnmarshalImageProperties(
