@@ -247,15 +247,6 @@ void RSImage::DrawImageRect(
         DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
         return;
     }
-    //used for ScaleImageAsync
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    RSImageParams rsImageParams = {
-        pixelMap_, nodeId_, dst_, uniqueid_, image_, false
-    };
-    if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
-        return;
-    }
-#endif
     canvas.DrawImageRect(*image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
 }
 
@@ -649,11 +640,17 @@ void RSImage::DrawImageOnCanvas(
             DrawImageWithFirMatrixRotateOnCanvas(samplingOptions, canvas);
             return;
         }
+// used for ScaleImageAsync
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         RSImageParams rsImageParams = {
-            pixelMap_, nodeId_, dst_, uniqueid_, image_, false
+            pixelMap_, nodeId_, dst_, uniqueId_, image_
         };
-        if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
+        std::shared_ptr<Drawing::Image> dstImage =
+            RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(isScaledImageAsync_, rsImageParams);
+        if (dstImage) {
+            Drawing::Rect newSrcRect(0, 0, dstImage->GetWidth(), dstImage->GetHeight());
+            canvas.DrawImageRect(*dstImage, newSrcRect, dst_, samplingOptions,
+                Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
             return;
         }
 #endif
@@ -671,14 +668,6 @@ void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
     filter.SetMaskFilter(Drawing::MaskFilter::CreateBlurMaskFilter(Drawing::BlurType::NORMAL, sigma, false));
     pen.SetFilter(filter);
     canvas.AttachPen(pen);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    RSImageParams rsImageParams = {
-        pixelMap_, nodeId_, dst_, uniqueid_, image_, true
-    };
-    if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
-        return;
-    }
-#endif
     canvas.DrawImageRect(
         *image_, src_, dst_, samplingOptions, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachPen();

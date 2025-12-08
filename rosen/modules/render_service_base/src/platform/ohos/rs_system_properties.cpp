@@ -1732,7 +1732,7 @@ bool RSSystemProperties::GetBootCompleted()
 
 bool RSSystemProperties::GetMemoryWatermarkEnabled()
 {
-    static CachedHandle g_Handle = CachedParameterCreate("resourceschedule.memmgr.min.memory.watermark", "false");
+    static CachedHandle g_Handle = CachedParameterCreate("resourceschedule.memmgr.min.memmory.watermark", "false");
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     if (enable == nullptr || strcmp(enable, "true") == 0) {

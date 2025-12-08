@@ -99,6 +99,7 @@ if (defined(graphic_2d_ext_feature_enable_ddgr) &&
     configs = [ ":ddgr_config" ]
     configs += ddgr_src_set.configs
     external_deps = ddgr_src_set.public_external_deps
+    external_deps += ddgr_src_set.external_deps
     deps = ddgr_src_set.deps
 
     deps += [ ":generate_shader_register_code" ]

@@ -936,7 +936,7 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     }
 }
 
-void RSServiceToRenderConnectionProxy::HandleHwcPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+void RSServiceToRenderConnectionProxy::NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -960,7 +960,7 @@ void RSServiceToRenderConnectionProxy::HandleHwcPackageEvent(uint32_t listSize, 
             return;
         }
     }
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSserviceToRenderConnectionProxy::NotifyPackageEvent: Send Request err.");

@@ -406,38 +406,22 @@ public:
 };
 #endif
 
-void RSMainThread::MarkNodeDirty(uint64_t nodeId)
+// used for ScaleImageAsync
+void RSMainThread::MarkScaledImageDirty(uint64_t nodeId)
 {
     RSMainThread::Instance()->PostTask([nodeId]() {
-        if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
-            RSMainThread::Instance()->RequestNextVSync();
-        }
         auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
         auto node = nodeMap.GetRenderNode(nodeId);
         if (node) {
-            RS_LOGD("MarkNodeDirty success: %{public}" PRIu64 ".", nodeId);
+            RS_LOGD("MarkScaledImageDirty success: %{public}" PRIu64, nodeId);
             RSMainThread::Instance()->SetDirtyFlag();
             node->SetDirty(true);
+            if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
+                RSMainThread::Instance()->RequestNextVSync();
+            }
         }
     });
 }
-
-// used for ScaleImageAsync
-// void RSMainThread::MarkScaledImageDirty(uint64_t nodeId)
-// {
-//     RSMainThread::Instance()->PostTask([nodeId]() {
-//         auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-//         auto node = nodeMap.GetRenderNode(nodeId);
-//         if (node) {
-//             RS_LOGD("MarkScaledImageDirty success: %{public}" PRIu64, nodeId);
-//             RSMainThread::Instance()->SetDirtyFlag();
-//             node->SetDirty(true);
-//             if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
-//                 RSMainThread::Instance()->RequestNextVSync();
-//             }
-//         }
-//     });
-// }
 
 RSMainThread* RSMainThread::Instance()
 {
@@ -514,7 +498,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
 #endif
         pipelineParam_.frameTimestamp = timestamp_;
-        NotifyRenderServiceProcessHgmFrameRate();
+        NotifyRpHgmFrameRate();
         RS_PROFILER_ON_RENDER_BEGIN();
         // cpu boost feature start
         ffrt_cpu_boost_start(CPUBOOST_START_POINT);
@@ -619,7 +603,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #endif
     RsFrameReport::GetInstance().Init();
     RSImageDetailEnhancerThread::Instance().RegisterCallback(
-        std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
+        std::bind(&RSMainThread::MarkScaledImageDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNodeDirtyCallback(std::bind(&RSMainThread::MarkNodeDirty, this,
         std::placeholders::_1));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
@@ -791,9 +775,8 @@ void RSMainThread::AddHgmClient(ScreenId screenId, const std::shared_ptr<HgmClie
     hgmClient_->AddScreenId(screenId); 
 }
 
-void RSMainThread::NotifyRenderServiceProcessHgmFrameRate()
+void RSMainThread::NotifyRpHgmFrameRate()
 {
-    RS_LOGI("dmulti_process RSMainThread::NotifyRenderServiceProcessHgmFrameRate");
     if (hgmClient_ == nullptr) {
         RS_LOGI("dmulti_process hgmClient_ is nullptr");
         return;
@@ -816,7 +799,7 @@ void RSMainThread::NotifyRenderServiceProcessHgmFrameRate()
     info->uiFrameworkDirtyNodeNameMap = context_->GetUIFrameworkDirtyNodeNameMap();
     info->energyCommonData = hgmRPContext_->GetHgmRPEnergy()->GetEnergyCommonData();
     info->vRateMap = rsVsyncRateReduceManager_.GetVrateMap();
-    auto hgmServiceToProcessInfo = hgmClient_->NotifyRenderServiceProcessHgmFrameRate(timestamp_, vsyncId_, info);
+    auto hgmServiceToProcessInfo = hgmClient_->NotifyRpHgmFrameRate(timestamp_, vsyncId_, info);
     hgmRPContext_->SetServiceToProcessInfo(hgmServiceToProcessInfo,
         &pipelineParam_.pendingScreenRefreshRate, &pipelineParam_.pendingConstraintRelativeTime);
     hgmRPContext_->GetHgmRPEnergy()->ClearEnergyCommonData();

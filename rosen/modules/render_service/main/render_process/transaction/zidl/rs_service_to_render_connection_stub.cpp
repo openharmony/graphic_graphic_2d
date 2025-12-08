@@ -510,7 +510,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             DoDump(argSets);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_PACKAGE_EVENT) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
             auto interfaceToken = data.ReadInterfaceToken();
             if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
                 ret = ERR_INVALID_STATE;
@@ -542,7 +542,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            HandleHwcPackageEvent(listSize, packageList);
+            NotifyPackageEvnet(listSize, packageList);
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

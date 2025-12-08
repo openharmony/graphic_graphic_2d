@@ -1995,7 +1995,7 @@ void RSClientToServiceConnection::NotifyPackageEvent(uint32_t listSize, const st
     auto activeScreenId = HgmCore::Instance().GetActiveScreenId();
     auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(activeScreenId);
     if (serviceToRenderConn) {
-        serviceToRenderConn->HandleHwcPackageEvent(listSize, packageList);
+        serviceToRenderConn->NotifyPackageEvnet(listSize, packageList);
     }
 
     if (hgmContext_ != nullptr) {

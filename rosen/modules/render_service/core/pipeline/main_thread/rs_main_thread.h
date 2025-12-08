@@ -464,7 +464,7 @@ public:
     bool IsReadyForSyncTask() const;
 
     // used for ScaleImageAsync
-    //void MarkScaledImageDirty(uint64_t nodeId);
+    void MarkScaledImageDirty(uint64_t nodeId);
 
     void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
     bool HasDRMOrSurfaceLockLayer() const;
@@ -902,7 +902,7 @@ private:
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
     void AddHgmClient(ScreenId screenId, const std::shared_ptr<HgmClient>& hgmClient);
-    void NotifyRenderServiceProcessHgmFrameRate();
+    void NotifyRpHgmFrameRate();
     mutable std::mutex hgmMutex_;
     std::shared_ptr<HgmClient> hgmClient_ = nullptr;
     std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;

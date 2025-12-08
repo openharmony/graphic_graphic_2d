@@ -583,10 +583,21 @@ ErrCode RSRenderPipeline::CreatePixelMapFromSurface(sptr<Surface> surface, const
     return ERR_OK;
 }
 
+void RSRenderPipeline::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    HandleHwcPackageEvent(listSize, packageList);
+    HandleDisplayPackageEvent(listSize, packageList);
+}
+
 void RSRenderPipeline::HandleHwcPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
     RS_LOGI("RSHwcContext RSRenderPipeline::HandleHwcPackageEvent start");
     hwcContext_->CheckPackageInConfigList(packageList);
+}
+
+void RSRenderPipeline::HandleDisplayPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+{
+    RS_LOGD("ImageEnhanceManager RSRenderPipeline::HandleDisplayPackageEvent start");
     imageEnhanceManager_->CheckPackageInConfigList(packageList);
 }
 

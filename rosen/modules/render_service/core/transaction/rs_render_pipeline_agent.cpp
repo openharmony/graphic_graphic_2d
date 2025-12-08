@@ -187,10 +187,10 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphic(int pid, MemoryGraphic& memoryGr
     return ERR_INVALID_VALUE;
 }
 
-void RSRenderPipelineAgent::HandleHwcPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+void RSRenderPipelineAgent::NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList)
 {
     if (rsRenderPipeline_ != nullptr) {
-        rsRenderPipeline_->HandleHwcPackageEvent(listSize, packageList);
+        rsRenderPipeline_->NotifyPackageEvnet(listSize, packageList);
     }
 }
 
