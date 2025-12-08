@@ -118,7 +118,7 @@ static uint32_t LoadFromFontCollectionByIndex(OH_Drawing_FontCollection* fontCol
     }
 
     auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    if (fc->LoadFont(familyName, data, dataLength, i) == nullptr) {
+    if (fc->LoadFont(familyName, data, dataLength, index) == nullptr) {
         return ERROR_FILE_CORRUPTION;
     }
     return 0;
