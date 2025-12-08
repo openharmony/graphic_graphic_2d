@@ -71,6 +71,7 @@ private:
     void NotifyComposerThreadCanExecuteTask();
     void IncUnExecuteTaskNum();
     void SubUnExecuteTaskNum();
+    std::mutex clientMutex_;
     std::shared_ptr<RSLayerContext> rsLayerContext_;
     bool isMultiProcess_;
     sptr<IRSRenderToComposerConnection> connection_;

@@ -884,7 +884,7 @@ void RSSurfaceLayer::SetSolidColorLayerProperty(GraphicSolidColorLayerProperty s
         RSLayerCmdType::SOLID_COLOR_LAYER_PROPERTY, solidColorLayerProperty);
 }
 
-GraphicSolidColorLayerProperty RSSurfaceLayer::GetSolidColorLayerProperty()
+GraphicSolidColorLayerProperty RSSurfaceLayer::GetSolidColorLayerProperty() const
 {
     return solidColorLayerProperty_;
 }
@@ -1014,7 +1014,7 @@ void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::Buffe
     bufferOwnerCount_ = bufferOwnerCount;
 }
 
-std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetSeqNumFromBufferOwnerCounts(uint64_t seqNum)
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) const
 {
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     auto iter = bufferOwnerCounts_.find(seqNum);
@@ -1026,7 +1026,7 @@ std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetSeqNumFro
     return nullptr;
 }
 
-std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetBufferOwnerCount()
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetBufferOwnerCount() const
 {
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     return bufferOwnerCount_;

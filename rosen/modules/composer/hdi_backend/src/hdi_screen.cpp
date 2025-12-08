@@ -151,13 +151,6 @@ int32_t HdiScreen::SetScreenMode(uint32_t modeId)
     return ret;
 }
 
-int32_t HdiScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
-{
-    std::unique_lock<std::mutex> locker(mutex_);
-    CHECK_DEVICE_NULL(device_);
-    return device_->SetScreenActiveRect(screenId_, activeRect);
-}
-
 int32_t HdiScreen::SetScreenOverlayResolution(uint32_t width, uint32_t height) const
 {
     CHECK_DEVICE_NULL(device_);
@@ -180,12 +173,6 @@ int32_t HdiScreen::GetScreenBacklight(uint32_t &level) const
 {
     CHECK_DEVICE_NULL(device_);
     return device_->GetScreenBacklight(screenId_, level);
-}
-
-int32_t HdiScreen::SetScreenBacklight(uint32_t level) const
-{
-    CHECK_DEVICE_NULL(device_);
-    return device_->SetScreenBacklight(screenId_, level);
 }
 
 int32_t HdiScreen::SetScreenVsyncEnabled(bool enabled) const

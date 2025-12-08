@@ -34,8 +34,7 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
-    void OnScreenVBlankIdleCallback(uint64_t timestamp);
-    void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
+    void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void SurfaceDump(std::string& dumpString);
     void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
     void FpsDump(std::string& dumpString, std::string& layerName);

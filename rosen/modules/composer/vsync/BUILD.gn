@@ -94,6 +94,7 @@ ohos_shared_library("libvsync") {
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/utils/rs_frame_report_ext/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
   ]
 
   defines = []

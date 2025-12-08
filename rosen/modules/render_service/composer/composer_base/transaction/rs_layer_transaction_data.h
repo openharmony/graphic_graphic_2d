@@ -42,7 +42,7 @@ public:
     RSLayerTransactionData(RSLayerTransactionData&& other) :
         payload_(std::move(other.payload_)), timestamp_(std::move(other.timestamp_)),
         pid_(other.pid_), index_(other.index_) {}
-    ~RSLayerTransactionData() = default;
+    ~RSLayerTransactionData();
 
     [[nodiscard]]static RSLayerTransactionData* Unmarshalling(OHOS::MessageParcel& parcel);
     bool Marshalling(std::shared_ptr<OHOS::MessageParcel>& parcel);

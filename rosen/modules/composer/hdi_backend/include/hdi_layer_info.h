@@ -476,47 +476,6 @@ public:
         return isMaskLayer_;
     }
 
-    void CopyLayerInfo(const std::shared_ptr<HdiLayerInfo> &layerInfo)
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        zOrder_ = layerInfo->GetZorder();
-        layerRect_ = layerInfo->GetLayerSize();
-        boundRect_ = layerInfo->GetBoundSize();
-        visibleRegions_ = layerInfo->GetVisibleRegions();
-        dirtyRegions_ = layerInfo->GetDirtyRegions();
-        cropRect_ = layerInfo->GetCropRect();
-        matrix_ = layerInfo->GetMatrix();
-        gravity_ = layerInfo->GetGravity();
-        layerAlpha_ = layerInfo->GetAlpha();
-        transformType_ = layerInfo->GetTransformType();
-        compositionType_ = layerInfo->GetCompositionType();
-        blendType_ = layerInfo->GetBlendType();
-        colorTransformMatrix_ = layerInfo->GetColorTransform();
-        colorSpace_ = layerInfo->GetColorDataSpace();
-        layerColor_ = layerInfo->GetLayerColor();
-        metaData_ = layerInfo->GetMetaData();
-        metaDataSet_ = layerInfo->GetMetaDataSet();
-        tunnelHandle_ = layerInfo->GetTunnelHandle();
-        tunnelHandleChange_ = layerInfo->GetTunnelHandleChange();
-        sbuffer_ = layerInfo->GetBuffer();
-        pbuffer_= layerInfo->GetPreBuffer();
-        acquireFence_ = layerInfo->GetAcquireFence();
-        preMulti_ = layerInfo->IsPreMulti();
-        sdrNit_ = layerInfo->GetSdrNit();
-        displayNit_ = layerInfo->GetDisplayNit();
-        brightnessRatio_ = layerInfo->GetBrightnessRatio();
-        layerLinearMatrix_ = layerInfo->GetLayerLinearMatrix();
-        layerSource_ = layerInfo->GetLayerSourceTuning();
-        rotationFixed_ = layerInfo->GetRotationFixed();
-        arsrTag_ = layerInfo->GetLayerArsr();
-        copybitTag_ = layerInfo->GetLayerCopybit();
-        needBilinearInterpolation_ = layerInfo->GetNeedBilinearInterpolation();
-        tunnelLayerId_ = layerInfo->GetTunnelLayerId();
-        tunnelLayerProperty_ = layerInfo->GetTunnelLayerProperty();
-        ancoFlags_ = layerInfo->GetAncoFlags();
-        ignoreAlpha_ = layerInfo->GetIgnoreAlpha();
-    }
-
     RosenError SetLayerMaskInfo(LayerMask mask)
     {
         switch (mask) {

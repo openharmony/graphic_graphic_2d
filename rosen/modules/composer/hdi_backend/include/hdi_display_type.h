@@ -135,12 +135,18 @@ typedef struct {
     std::vector<uint32_t> deletingList;
 } GraphicLayerBuffer;
 
-typedef struct {
+using GraphicLayerColor = struct GraphicLayerColor {
     uint8_t r;
     uint8_t g;
     uint8_t b;
     uint8_t a;
-} GraphicLayerColor;
+
+    bool operator==(const GraphicLayerColor& color) const
+    {
+        return (r == color.r) && (g == color.g) && (b == color.b) && (a == color.a);
+    }
+};
+
 
 /*
  * @brief Enumerates the display connection type.

@@ -25,7 +25,7 @@
 #include "feature/gpuComposition/rs_egl_image_manager.h"
 #endif // RS_ENABLE_EGLIMAGE
 #include "feature/hdr/rs_hdr_util.h"
-#include "feature/lpp/lpp_video_handler.h"
+#include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #ifdef RS_ENABLE_TV_PQ_METADATA

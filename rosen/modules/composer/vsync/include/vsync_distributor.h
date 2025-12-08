@@ -189,6 +189,7 @@ public:
     void SetVSyncTimeUpdated();
     virtual int64_t GetLastUpdateTime();
     virtual void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
+    void InitDVSync(DVSyncFeatureParam dvsyncParam = {});
 private:
 
     // check, add more info
@@ -274,7 +275,6 @@ private:
     void DisableDVSyncController();
     void OnDVSyncEvent(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-    void InitDVSync(DVSyncFeatureParam dvsyncParam = {});
     void DVSyncAddConnection(const sptr<VSyncConnection> &connection);
     void DVSyncDisableVSync();
     void RecordEnableVsync();

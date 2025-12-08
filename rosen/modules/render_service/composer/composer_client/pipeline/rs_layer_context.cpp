@@ -26,11 +26,13 @@ RSLayerContext::RSLayerContext()
 
 std::shared_ptr<RSLayerTransactionHandler> RSLayerContext::GetRSLayerTransaction() const
 {
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     return rsLayerTransactionHandler_;
 }
 
 void RSLayerContext::SetRenderComposerClientConnection(const sptr<IRSRenderToComposerConnection>& conn)
 {
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsLayerTransactionHandler_ == nullptr) {
         RS_LOGE("RSLayerContext::SetRenderComposerClientConnection rsLayerTransactionHandler is nullptr");
         return;
@@ -42,6 +44,7 @@ void RSLayerContext::SetRenderComposerClientConnection(const sptr<IRSRenderToCom
 
 void RSLayerContext::AddLayer(const std::shared_ptr<RSLayer>& rsLayer)
 {
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
     if (rsLayer == nullptr) {
         return;
     }
@@ -54,6 +57,7 @@ void RSLayerContext::AddLayer(const std::shared_ptr<RSLayer>& rsLayer)
 
 void RSLayerContext::RemoveLayer(RSLayerId layerId)
 {
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
     auto iter = rsLayers_.find(layerId);
     if (iter == rsLayers_.end()) {
         return;
@@ -64,11 +68,13 @@ void RSLayerContext::RemoveLayer(RSLayerId layerId)
 
 void RSLayerContext::ClearAllLayers()
 {
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
     rsLayers_.clear();
 }
 
 std::shared_ptr<RSLayer> RSLayerContext::GetLayer(RSLayerId rsLayerId) const
 {
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
     auto it = rsLayers_.find(rsLayerId);
     if (it != rsLayers_.end()) {
         return it->second.lock();
@@ -78,6 +84,7 @@ std::shared_ptr<RSLayer> RSLayerContext::GetLayer(RSLayerId rsLayerId) const
 
 void RSLayerContext::DumpLayersInfo(std::string &dumpString)
 {
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
     for (auto iter = rsLayers_.begin(); iter != rsLayers_.end(); iter++) {
         auto rsLayer = iter->second.lock();
         if (rsLayer == nullptr) {
@@ -92,6 +99,7 @@ void RSLayerContext::DumpLayersInfo(std::string &dumpString)
 
 void RSLayerContext::DumpCurrentFrameLayers()
 {
+    std::unique_lock<std::mutex> lock(rsLayerMutex_);
     for (auto iter = rsLayers_.begin(); iter != rsLayers_.end(); iter++) {
         auto rsLayer = iter->second.lock();
         if (rsLayer != nullptr) {
@@ -102,6 +110,7 @@ void RSLayerContext::DumpCurrentFrameLayers()
 
 void RSLayerContext::CommitLayer(CommitLayerInfo& commitLayerInfo)
 {
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsLayerTransactionHandler_ == nullptr) {
         RS_LOGE("RSLayerContext::CommitLayers rsLayerTransactionHandler is nullptr");
         return;
@@ -241,6 +250,7 @@ void RSLayerContext::ReleaseLayerBuffers(uint64_t screenId,
 
 void RSLayerContext::ClearFrameBuffers()
 {
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsComposerConnection_ == nullptr) {
         RS_LOGE("RSLayerContext::ClearFrameBufferIfNeed rsComposerConnection_ is nullptr");
         return;
@@ -250,6 +260,7 @@ void RSLayerContext::ClearFrameBuffers()
 
 void RSLayerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
 {
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsComposerConnection_ == nullptr) {
         RS_LOGE("RSLayerContext::CleanLayerBufferBySurfaceId rsComposerConnection_ is nullptr");
         return;
