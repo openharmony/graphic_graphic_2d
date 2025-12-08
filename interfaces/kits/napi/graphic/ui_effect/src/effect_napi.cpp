@@ -926,7 +926,7 @@ bool EffectNapi::FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_
 
     Vector3f sdNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_12], sdNeg), false,
-        UIEFFECT_LOG_E("FillFrostedGlassSd: sdPos parse fail"));
+        UIEFFECT_LOG_E("FillFrostedGlassSd: sdNeg parse fail"));
     para->SetSdNeg(sdNeg);
 
     return true;
