@@ -1481,6 +1481,15 @@
     "inputParams": "WriteRSTransactionData",
     "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC",
+    "commandList": "RSSurfaceNodeSetClonedNodeId*100",
+    "commandListRepeat": 1
+  },
+  {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_171",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
     "commandList": "RSSetNeedUseCmdlistDrawRegion*100",
     "commandListRepeat": 1
   },

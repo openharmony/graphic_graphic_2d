@@ -153,7 +153,8 @@ public:
 
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-        std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
+        std::shared_ptr<Media::PixelMap> pixelmap, CaptureError captureErrorCode,
+        std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);
     void TriggerOnFinish(const FinishCallbackRet& ret) const;
     void TriggerOnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) const;
     void TriggerTransactionDataCallbackAndErase(uint64_t token, uint64_t timeStamp);

@@ -30,6 +30,10 @@
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_hisysevent.h"
 #include "platform/ohos/rs_jank_report_thread.h"
+#ifdef RES_SCHED_ENABLE
+#include "res_sched_client.h"
+#include "res_type.h"
+#endif
 #ifdef NOT_BUILD_FOR_OHOS_SDK
 #include "xperf_service_client.h"
 #endif
@@ -884,6 +888,12 @@ void RSJankStats::ReportEventFirstFrameByPid(pid_t appPid) const
     RS_TRACE_NAME_FMT("RSJankStats::ReportEventFirstFrame app pid %d", appPid);
     RSBackgroundThread::Instance().PostTask([appPid]() {
         RS_TRACE_NAME("RSJankStats::ReportEventFirstFrame in RSBackgroundThread");
+#ifdef RES_SCHED_ENABLE
+        std::unordered_map<std::string, std::string> mapPayLoad;
+        mapPayLoad["appPid"] = std::to_string(appPid);
+        ResourceSchedule::ResSchedClient::GetInstance().ReportData(
+            ResourceSchedule::ResType::RES_TYPE_FIRST_FRAME_DRAWN, 0, mapPayLoad);
+#endif
         RSHiSysEvent::EventWrite(RSEventName::FIRST_FRAME_DRAWN, RSEventType::RS_BEHAVIOR,
             "APP_PID", static_cast<int32_t>(appPid));
     });

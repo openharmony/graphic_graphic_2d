@@ -42,7 +42,20 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 break;
             }
             auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
-            OnSurfaceCapture(id, captureConfig, pixelmap);
+            uint8_t captureErrCode {0};
+            if (!data.ReadUint8(captureErrCode)) {
+                RS_LOGE("SISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE read captureErrCode failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (captureErrCode >= static_cast<uint8_t>(CaptureError::CAPTURE_ERROR_BOUNDARY_BUTT)) {
+                RS_LOGE("SISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE Read captureErrCode failed, "
+                    "type out of bounds!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            CaptureError captureErrCodeResult = static_cast<CaptureError>(captureErrCode);
+            OnSurfaceCapture(id, captureConfig, pixelmap, captureErrCodeResult);
             break;
         }
         case static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR): {
@@ -59,8 +72,21 @@ int RSSurfaceCaptureCallbackStub::OnRemoteRequest(
                 break;
             }
             auto pixelmap = data.ReadParcelable<OHOS::Media::PixelMap>();
+            uint8_t captureErrCode {0};
+            if (!data.ReadUint8(captureErrCode)) {
+                RS_LOGE("RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR read captureErrCode failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (captureErrCode >= static_cast<uint8_t>(CaptureError::CAPTURE_ERROR_BOUNDARY_BUTT)) {
+                RS_LOGE("RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE_HDR Read captureErrCode failed, "
+                    "type out of bounds!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            CaptureError captureErrCodeResult = static_cast<CaptureError>(captureErrCode);
             auto pixelmapHDR = data.ReadParcelable<OHOS::Media::PixelMap>();
-            OnSurfaceCapture(id, captureConfig, pixelmap, pixelmapHDR);
+            OnSurfaceCapture(id, captureConfig, pixelmap, captureErrCodeResult, pixelmapHDR);
             break;
         }
         default: {
@@ -77,6 +103,7 @@ bool RSSurfaceCaptureCallbackStub::ReadSurfaceCaptureConfig(RSSurfaceCaptureConf
     // read mainScreenRect only to reduce ipc data size
     if (!data.ReadBool(captureConfig.isHdrCapture) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||

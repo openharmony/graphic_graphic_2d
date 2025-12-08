@@ -94,7 +94,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         return false;
     }
     RS_LOGD("RSImage::HDRConvert HDRDraw pixelMap_ IsHdr: %{public}d", pixelMap_->IsHdr());
-    if (!pixelMap_->IsHdr()) {
+    if (!pixelMap_->IsHdr() && !IsHDRUiCapture()) {
         return false;
     }
 
@@ -141,6 +141,23 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 #else
     return false;
 #endif
+}
+
+bool RSImage::IsHDRUiCapture() const
+{
+    if (pixelMap_->GetPixelFormat() != Media::PixelFormat::RGBA_F16 ||
+        pixelMap_->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
+            return false; // HDR UiCapture must be DMA and use F16
+    }
+    auto colorSpaceName = pixelMap_->InnerGetGrColorSpace().GetColorSpaceName();
+    if (colorSpaceName != ColorManager::BT2020 &&
+        colorSpaceName != ColorManager::BT2020_HLG &&
+        colorSpaceName != ColorManager::BT2020_PQ &&
+        colorSpaceName != ColorManager::BT2020_HLG_LIMIT &&
+        colorSpaceName != ColorManager::BT2020_PQ_LIMIT) {
+        return false;
+    }
+    return true;
 }
 
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,

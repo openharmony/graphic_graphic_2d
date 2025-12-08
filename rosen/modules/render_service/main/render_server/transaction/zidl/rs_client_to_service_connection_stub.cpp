@@ -3828,6 +3828,7 @@ bool RSClientToServiceConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadUint8(captureType) || !data.ReadBool(captureConfig.isSync) ||
         !data.ReadBool(captureConfig.isHdrCapture) ||
         !data.ReadBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.ReadBool(captureConfig.needErrorCode) ||
         !data.ReadFloat(captureConfig.mainScreenRect.left_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.top_) ||
         !data.ReadFloat(captureConfig.mainScreenRect.right_) ||
@@ -3839,7 +3840,11 @@ bool RSClientToServiceConnectionStub::ReadSurfaceCaptureConfig(
         !data.ReadFloat(captureConfig.specifiedAreaRect.right_) ||
         !data.ReadFloat(captureConfig.specifiedAreaRect.bottom_) ||
         !data.ReadUInt64Vector(&captureConfig.blackList) ||
-        !data.ReadUint32(captureConfig.backGroundColor)) {
+        !data.ReadUint32(captureConfig.backGroundColor) ||
+        !data.ReadUint32(captureConfig.colorSpace.first) ||
+        !data.ReadBool(captureConfig.colorSpace.second) ||
+        !data.ReadUint32(captureConfig.dynamicRangeMode.first) ||
+        !data.ReadBool(captureConfig.dynamicRangeMode.second)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadSurfaceCaptureConfig Read captureConfig failed!");
         return false;
     }
