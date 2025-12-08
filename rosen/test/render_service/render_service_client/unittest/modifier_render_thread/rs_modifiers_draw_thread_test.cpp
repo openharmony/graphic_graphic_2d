@@ -48,7 +48,8 @@ public:
     RSRenderThreadClientHybridTest() = default;
     ~RSRenderThreadClientHybridTest() = default;
 
-    void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override {};
+    void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData,
+        ScreenId screenId = INVALID_SCREEN_ID) override {};
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {};
 };
 class RSModifiersDrawThreadTest : public testing::Test {
@@ -121,7 +122,7 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction002, TestSize.Level1
     std::unique_ptr<RSCommand> command = std::make_unique<RSAnimationCallback>(nodeId, 1, 1, FINISHED);
     transaction->AddRemoteCommand(command, nodeId, FollowType::NONE);
     CommitTransactionCallback callback =
-        [] (std::shared_ptr<RSIRenderClient> &renderServiceClient,
+        [] (std::shared_ptr<RSRenderPipelineClient> &renderServicePipelineClient,
         std::unique_ptr<RSTransactionData>&& rsTransactionData, uint32_t& transactionDataIndex,
         std::shared_ptr<RSTransactionHandler>) {};
     RSTransactionHandler::SetCommitTransactionCallback(callback);
