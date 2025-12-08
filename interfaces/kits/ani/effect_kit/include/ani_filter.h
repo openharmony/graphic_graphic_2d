@@ -28,6 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 enum class DrawError;
+static std::mutex getPixelMapPromiseMutex_;
 class AniFilter {
 public:
     AniFilter();

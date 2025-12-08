@@ -115,6 +115,7 @@ ani_object AniFilter::GetEffectPixelMap(ani_env* env, ani_object obj)
         EFFECT_LOG_E("thisFilter is null");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
+    std::lock_guard<std::mutex> lock(getPixelMapPromiseMutex_);
     if (thisFilter->Render(falseCpu) != DrawError::ERR_OK) {
         EFFECT_LOG_E("Render error");
         return AniEffectKitUtils::CreateAniUndefined(env);
