@@ -68,7 +68,6 @@
 #undef LOG_TAG
 #define LOG_TAG "RSRenderService"
 
-
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -83,10 +82,6 @@ bool RSRenderService::Init()
     // Set boot voting to false
     RS_LOGD("dmulti_process %{public}s: renderService init", __func__);
     system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "false");
-
-    // Read multi-screen configuration from XML
-    RS_LOGD("dmulti_process %{public}s: Parse Render_Mode_Config", __func__);
-    ParseMultiProcessXml();
 
     // Initialize runner_, handler_, and watchdog
     runner_ = AppExecFwk::EventRunner::Create(false);
@@ -144,13 +139,6 @@ void RSRenderService::FilterCCMInit()
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
     RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
-}
-
-void RSRenderService::ParseRenderModeConfig()
-{
-    RS_LOGI("dmulti_process %{public}s: multiprocess parse start", __func__);
-    std::unique_ptr<RSRenderModeConfigParser> parser = std::make_unique<RSRenderModeConfigParser>();
-    renderModeConfig_ = parser->BuildRenderConfig();
 }
 
 void RSRenderService::CoreComponentsInit()

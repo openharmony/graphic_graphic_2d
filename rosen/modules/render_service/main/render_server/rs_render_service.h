@@ -21,7 +21,6 @@
 #include <unordered_set>
 
 #include "rs_render_pipeline.h"
-#include "rs_render_mode_config.h"
 #include "rs_render_single_process_manager.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
@@ -60,7 +59,6 @@ private:
     // RS Filter CCM init
     void FilterCCMInit();
 
-    void ParseMultiProcessXml();
     void CoreComponentsInit();
     void VsyncComponentInit();
     void RenderProcessManagerInit();
