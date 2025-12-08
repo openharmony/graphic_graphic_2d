@@ -42,7 +42,7 @@ public:
 
     void SetScreenVBlankIdle(ScreenId screenId)
     {
-        vblankIdleCorrector_.SetScreenVBlankIdle(screenId);
+        vblankIdleCorrector_.SetScreenVBlankIdle();
     }
 
     const RefreshRateParam& GetRefreshRateParam() const

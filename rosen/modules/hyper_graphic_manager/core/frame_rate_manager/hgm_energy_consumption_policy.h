@@ -37,6 +37,7 @@ public:
     // called by RSMainThread
     void GetAnimationIdleFps(FrameRateRange& rsRange);
     void SetTouchState(TouchState touchState);
+    void StatisticsVideoCallBufferCount(pid_t pid, const std::string& surfaceName);
     
     bool GetUiIdleFps(FrameRateRange& rsRange, pid_t pid = 0);
     void SetRefreshRateMode(int32_t currentRefreshMode, std::string curScreenStrategyId);
