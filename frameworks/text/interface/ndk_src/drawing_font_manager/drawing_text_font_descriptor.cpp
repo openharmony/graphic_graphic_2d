@@ -364,9 +364,17 @@ OH_Drawing_String* OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType fontT
 {
     auto systemFontType = static_cast<int32_t>(fontType);
     std::unordered_set<std::string> fontPaths;
-    FontDescriptorMgrInstance.GetFontPathsByType(systemFontType, fontPaths);
-    std::unique_ptr<OH_Drawing_String[]> stringArr = std::make_unique<OH_Drawing_String[]>(fontPaths.size());
     size_t index = 0;
+    if (num == nullptr) {
+        num = &index;
+    }
+    FontDescriptorMgrInstance.GetFontPathsByType(systemFontType, fontPaths);
+    if (fontPaths.empty()) {
+        TEXT_LOGI_LIMIT3_MIN("Failed to GetFontPathsByType, font type: %{public}d", systemFontType);
+        *num = 0;
+        return nullptr;
+    }
+    std::unique_ptr<OH_Drawing_String[]> stringArr = std::make_unique<OH_Drawing_String[]>(fontPaths.size());
     for (const auto& path : fontPaths) {
         std::u16string utf16String = OHOS::Str8ToStr16(path);
         if (utf16String.empty()) {
@@ -384,10 +392,9 @@ OH_Drawing_String* OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType fontT
     }
     if (index == 0) {
         TEXT_LOGI_LIMIT3_MIN("Failed to get font path, font type: %{public}d", static_cast<int32_t>(fontType));
+        *num = 0;
         return nullptr;
     }
-    if (num != nullptr) {
-        *num = index;
-    }
+    *num = index;
     return stringArr.release();
 }
