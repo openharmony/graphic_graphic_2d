@@ -113,7 +113,8 @@ static uint32_t LoadFromFontCollectionByIndex(OH_Drawing_FontCollection* fontCol
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
     }
-    if ((data == nullptr) != (dataLength == 0)) {
+    if ((data == nullptr && dataLength != 0) ||
+        (data != nullptr && dataLength == 0)) {
         return ERROR_BUFFER_SIZE_ZERO;
     }
 

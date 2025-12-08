@@ -306,12 +306,11 @@ OH_Drawing_ErrorCode GetUnicodeArray(const std::vector<uint32_t>& fontUnicodeArr
     if (fontUnicodeArray.empty() || unicodeArray == nullptr || arrayLength == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
-    int32_t* result = static_cast<int32_t*>(malloc(fontUnicodeArray.size() * sizeof(int32_t)));
 
+    int32_t* result = static_cast<int32_t*>(malloc(fontUnicodeArray.size() * sizeof(int32_t)));
     if (result == nullptr) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
-
     for (size_t i = 0; i < fontUnicodeArray.size(); ++i) {
         result[i] = static_cast<int32_t>(fontUnicodeArray[i]);
     }
