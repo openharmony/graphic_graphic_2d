@@ -34,15 +34,15 @@ public:
 };
 
 ADD_COMMAND(RSDestroyRSLayerCmd,
-    ARG(RSLayerParcelType::RS_LAYER_DESTROY,
+    ARG(RS_LAYER_DESTROY,
         RSLayerParcelHelper::DestroyRSLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
 
 ADD_COMMAND(RSUpdateRSLayerCmd,
-    ARG(RSLayerParcelType::RS_LAYER_UPDATE,
+    ARG(RS_LAYER_UPDATE,
         RSLayerParcelHelper::UpdateRSLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
 
 ADD_COMMAND(RSUpdateRSRCDLayerCmd,
-    ARG(RSLayerParcelType::RS_RCD_LAYER_UPDATE,
+    ARG(RS_RCD_LAYER_UPDATE,
         RSLayerParcelHelper::UpdateRSLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
 
 } // namespace Rosen

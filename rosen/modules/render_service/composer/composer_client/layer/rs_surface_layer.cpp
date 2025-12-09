@@ -539,17 +539,17 @@ const GraphicPresentTimestamp& RSSurfaceLayer::GetPresentTimestamp() const
 
 void RSSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
-    if (IsSupportedPresentTimestamp_ == isSupported) {
+    if (isSupportedPresentTimestamp_ == isSupported) {
         return;
     }
-    IsSupportedPresentTimestamp_ = isSupported;
+    isSupportedPresentTimestamp_ = isSupported;
     SetRSLayerCmd<RSLayerIsSupportedPresentTimestampCmd, RSLayerCmdProperty<bool>>(
         RSLayerCmdType::IS_SUPPORTED_PRESENT_TIMESTAMP, isSupported);
 }
 
 bool RSSurfaceLayer::IsSupportedPresentTimestamp() const
 {
-    return IsSupportedPresentTimestamp_;
+    return isSupportedPresentTimestamp_;
 }
 
 void RSSurfaceLayer::SetSdrNit(float sdrNit)
@@ -987,7 +987,7 @@ void RSSurfaceLayer::Dump(std::string& result) const
     result += "solidColorLayer Composition type = " + std::to_string(solidColorLayerProperty_.compositionType) +
         " Zorder = " + std::to_string(solidColorLayerProperty_.zOrder) + ", ";
     result += "useDeviceOffline" + std::to_string(useDeviceOffline_) + ", ";
-    result += "ignoreAlpha" + td::to_string(ignoreAlpha_) + ", ";
+    result += "ignoreAlpha" + std::to_string(ignoreAlpha_) + ", ";
     result += "ancoSrcRect = [" + std::to_string(ancoSrcRect_.x) + ", " + std::to_string(ancoSrcRect_.y) + ", " +
         std::to_string(ancoSrcRect_.w) + ", " + std::to_string(ancoSrcRect_.h) + "]" + ";";
 }

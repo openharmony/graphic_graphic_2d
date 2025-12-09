@@ -53,12 +53,12 @@ void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransac
     rsRenderComposer_->ComposerProcess(currentRate, delayTime, transactionData);
 }
 
-void RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
+GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
 {
     if (rsRenderComposer_ == nullptr) {
-        return;
+        return GSERROR_INVALID_ARGUMENTS;
     }
-    rsRenderComposer_->ClearFrameBuffers(isNeedResetContext);
+    return rsRenderComposer_->ClearFrameBuffers(isNeedResetContext);
 }
 
 void RSRenderComposerAgent::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
@@ -86,7 +86,7 @@ void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     rsRenderComposer_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
-void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
+void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
 {
     if (rsRenderComposer_ == nullptr) {
         return;

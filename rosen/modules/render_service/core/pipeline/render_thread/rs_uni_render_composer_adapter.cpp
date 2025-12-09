@@ -1125,10 +1125,6 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
 
 RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
 {
-    if (output_ == nullptr) {
-        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer: output is nullptr");
-        return nullptr;
-    }
     auto drawable = node.GetRenderDrawable();
     if (!drawable) {
         RS_LOGE("RSUniRenderComposerAdapter::CreateLY fail, drawable is nullptr");
