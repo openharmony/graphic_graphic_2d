@@ -337,7 +337,6 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromBuffer(uint8_t* fontBuffe
     if (fontBuffer == nullptr || unicodeArray == nullptr || arrayLength == nullptr || length == 0) {
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
-
     auto result = TextEngine::FontParser::GetFontTypefaceUnicode(fontBuffer, length, index);
     return GetUnicodeArray(result, unicodeArray, arrayLength);
 }
