@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include <gtest/gtest.h>
 #include <memory>
 #include "platform/common/rs_system_properties.h"
 #include "render_context.h"
 #include "render_context/new_render_context/render_context_gl.h"
 using namespace testing::ext;
- 
+
 namespace OHOS::Rosen {
 class RenderContextGLTest : public testing::Test {
 public:
@@ -28,17 +28,17 @@ public:
     void SetUp() override;
     void TearDown() override;
 };
- 
+
 void RenderContextGLTest::SetUpTestCase() {}
 void RenderContextGLTest::TearDownTestCase() {}
 void RenderContextGLTest::SetUp() {}
 void RenderContextGLTest::TearDown() {}
- 
+
 /**
  * @tc.name: CleanAllShaderCache
  * @tc.desc: Verify the CleanAllShaderCache of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, CleanAllShaderCache, TestSize.Level1)
 {
     if (RSSystemProperties::IsUseVulkan()) {
@@ -48,17 +48,17 @@ HWTEST_F(RenderContextGLTest, CleanAllShaderCache, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContextGL>();
     std::string result = renderContext->CleanAllShaderCache();
     EXPECT_EQ(result, "");
- 
+
     renderContext->SetUpGpuContext();
     result = renderContext->CleanAllShaderCache();
     EXPECT_EQ(result, "");
 }
- 
+
 /**
  * @tc.name: GetShaderCacheSize
  * @tc.desc: Verify the GetShaderCacheSize of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, GetShaderCacheSize, TestSize.Level1)
 {
     if (RSSystemProperties::IsUseVulkan()) {
@@ -68,17 +68,17 @@ HWTEST_F(RenderContextGLTest, GetShaderCacheSize, TestSize.Level1)
     auto renderContext = std::make_shared<RenderContextGL>();
     auto result = renderContext->GetShaderCacheSize();
     EXPECT_EQ(result, "");
- 
+
     renderContext->SetUpGpuContext();
     result = renderContext->GetShaderCacheSize();
     EXPECT_NE(result, "");
 }
- 
+
 /**
  * @tc.name: ClearRedundantResources
  * @tc.desc: Verify the ClearRedundantResources of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, ClearRedundantResources, TestSize.Level1)
 {
     if (RSSystemProperties::IsUseVulkan()) {
@@ -87,17 +87,17 @@ HWTEST_F(RenderContextGLTest, ClearRedundantResources, TestSize.Level1)
     }
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->ClearRedundantResources();
- 
+
     renderContext->SetUpGpuContext();
     renderContext->ClearRedundantResources();
     EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
- 
+
 /**
  * @tc.name: DamageFrameTest
  * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextGLTest
  * @tc.type: FUNC
- */
+*/
 HWTEST_F(RenderContextGLTest, DamageFrameTest, Level1)
 {
     if (RSSystemProperties::IsUseVulkan()) {
@@ -113,7 +113,7 @@ HWTEST_F(RenderContextGLTest, DamageFrameTest, Level1)
     renderContext->DamageFrame(rects);
     EXPECT_NE(nullptr, renderContext->GetEGLDisplay());
 }
- 
+
 /**
  * @tc.name: QueryEglBufferAgeTest
  * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextGLTest
@@ -131,7 +131,7 @@ HWTEST_F(RenderContextGLTest, QueryEglBufferAgeTest, Level1)
     auto res = renderContext->QueryEglBufferAge();
     EXPECT_EQ(EGL_UNKNOWN, res);
 }
- 
+
 /**
  * @tc.name: RenderFrameTest
  * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextGLTest
@@ -151,8 +151,8 @@ HWTEST_F(RenderContextGLTest, RenderFrameTest, Level1)
     EXPECT_NE(renderContext->surface_, nullptr);
     renderContext->RenderFrame();
 }
- 
- 
+
+
 /**
  * @tc.name: AcquireSurfaceTest
  * @tc.desc: Verify the AcquireSurfaceTest of RenderContextGLTest
@@ -177,16 +177,16 @@ HWTEST_F(RenderContextGLTest, AcquireSurfaceTest, Function | SmallTest | Level2)
     renderContext->SetColorSpace(GRAPHIC_COLOR_GAMUT_ADOBE_RGB);
     surface = renderContext->AcquireSurface(0, 0);
     EXPECT_TRUE(surface == nullptr);
- 
+
     renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
     surface = renderContext->AcquireSurface(0, 0);
     EXPECT_TRUE(surface == nullptr);
- 
+
     renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_YCBCR_P010);
     surface = renderContext->AcquireSurface(0, 0);
     EXPECT_TRUE(surface != nullptr);
 }
- 
+
 /**
  * @tc.name: DestroyEGLSurface
  * @tc.desc: Verify the DestroyEGLSurface of RenderContextGLTest
@@ -201,13 +201,13 @@ HWTEST_F(RenderContextGLTest, DestroyEGLSurfaceTest, Function | SmallTest | Leve
     auto renderContext = std::make_shared<RenderContextGL>();
     renderContext->DestroyEGLSurface(renderContext->GetEGLSurface());
     EXPECT_EQ(renderContext->GetEGLSurface(), nullptr);
- 
+
     renderContext->Init();
     renderContext->MakeCurrent(renderContext->GetEGLSurface(), renderContext->GetEGLContext());
     renderContext->DestroyEGLSurface(renderContext->GetEGLSurface());
     EXPECT_EQ(renderContext->GetEGLSurface(), nullptr);
 }
- 
+
 /**
  * @tc.name: CreateEGLSurfaceTest
  * @tc.desc: Verify the CreateEGLSurfaceTest of RenderContextGLTest
@@ -222,7 +222,7 @@ HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level
     auto renderContext = std::make_shared<RenderContextGL>();
     EGLSurface eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
- 
+
     renderContext->Init();
     eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
@@ -230,7 +230,7 @@ HWTEST_F(RenderContextGLTest, CreateEGLSurfaceTest, Function | SmallTest | Level
     eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
 }
- 
+
 /**
  * @tc.name: SwapBuffersTest
  * @tc.desc: Verify the SwapBuffers of RenderContextGLTest
@@ -246,7 +246,7 @@ HWTEST_F(RenderContextGLTest, SwapBuffersTest, Function | SmallTest | Level2)
     renderContext->SwapBuffers(EGL_NO_SURFACE);
     EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
- 
+
 /**
  * @tc.name: CreateShareContextTest
  * @tc.desc: Verify the CreateShareContext of RenderContextGLTest
@@ -262,7 +262,7 @@ HWTEST_F(RenderContextGLTest, CreateEGLShareContextTest, Function | SmallTest | 
     renderContext->CreateEGLShareContext();
     EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
- 
+
 /**
  * @tc.name: MakeCurrentTest
  * @tc.desc: Verify the MakeCurrent of RenderContextGLTest
@@ -280,7 +280,7 @@ HWTEST_F(RenderContextGLTest, MakeCurrentTest, Function | SmallTest | Level2)
     renderContext->MakeCurrent(static_cast<EGLSurface>((void*)(0x1)), static_cast<EGLContext>((void*)(0x1)));
     EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
 }
- 
+
 /**
  * @tc.name: InitializeEglContextTest
  * @tc.desc: Verify the InitializeEglContext of RenderContextGLTest
@@ -296,7 +296,7 @@ HWTEST_F(RenderContextGLTest, InitializeEglContextTest, Function | SmallTest | L
     auto res = renderContext->Init();
     EXPECT_EQ(res, true);
 }
- 
+
 /**
  * @tc.name: CreatePbufferSurfaceTest001
  * @tc.desc: Verify the CreatePbufferSurface and GetPixelFormat of RenderContextGLTest
@@ -313,7 +313,7 @@ HWTEST_F(RenderContextGLTest, CreatePbufferSurfaceTest001, Level1)
     renderContext->CreatePbufferSurface();
     EXPECT_EQ(renderContext->GetEGLDisplay(), EGL_NO_DISPLAY);
 }
- 
+
 /**
  * @tc.name: SetUpGpuContextTest001
  * @tc.desc: Verify the SetUpGpuContext and GetPixelFormat of RenderContextGLTest
@@ -332,7 +332,7 @@ HWTEST_F(RenderContextGLTest, SetUpGpuContextTest, Level1)
     res = renderContext->SetUpGpuContext();
     EXPECT_EQ(res, true);
 }
- 
+
 /**
  * @tc.name: AbandonContextTest001
  * @tc.desc: Verify the AbandonContext and GetPixelFormat of RenderContextGLTest

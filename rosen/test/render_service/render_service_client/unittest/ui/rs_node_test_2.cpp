@@ -17,6 +17,8 @@
 
 #include "gtest/gtest.h"
 #include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/effect/include/rs_ui_mask_base.h"
+#include "ui_effect/effect/include/rs_ui_mask_shape.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
@@ -580,4 +582,241 @@ HWTEST_F(RSNodeTest2, DoFlushModifier, TestSize.Level1)
     rsNode->DoFlushModifier();
     EXPECT_EQ(rsNode->modifiersNG_.size(), 2);
 }
+
+/**
+ * @tc.name: GetLocalGeometry
+ * @tc.desc: test results of GetLocalGeometry
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, GetLocalGeometry, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    boundsModifier->SetBounds({ 10.f, 10.f, 100.f, 100.f });
+    rsNode->AddModifier(boundsModifier);
+    rsNode->UpdateLocalGeometry();
+    auto localGeometry = rsNode->GetLocalGeometry();
+    rsNode->MarkDirty(NodeDirtyType::GEOMETRY, false);
+    EXPECT_NE(localGeometry, nullptr);
+    EXPECT_EQ(localGeometry->x_, 10.f);
+    EXPECT_EQ(localGeometry->y_, 10.f);
+    EXPECT_EQ(localGeometry->width_, 100.f);
+    EXPECT_EQ(localGeometry->height_, 100.f);
+    auto property = boundsModifier->GetProperty(ModifierNG::RSPropertyType::BOUNDS);
+    EXPECT_NE(property, nullptr);
+    rsNode->UnregisterProperty(property->GetId());
+    rsNode->RemoveModifier(boundsModifier);
+    rsNode->UpdateLocalGeometry();
+    localGeometry = rsNode->GetLocalGeometry();
+    EXPECT_NE(localGeometry, nullptr);
+    EXPECT_EQ(localGeometry->x_, -INFINITY);
+    EXPECT_EQ(localGeometry->y_, -INFINITY);
+    EXPECT_EQ(localGeometry->width_, -INFINITY);
+    EXPECT_EQ(localGeometry->height_, -INFINITY);
+}
+
+/**
+ * @tc.name: SetSDFUnionOPShape
+ * @tc.desc: test results of SDF_UNION_OP_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetSDFUnionOPShape, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    // create SDF Shape
+    auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    auto shape = std::static_pointer_cast<RSNGSDFUnionOpshape>(shape0);
+    auto shapeX = RSNGShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    auto shapeY = RSNGShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+
+    shapeX = std::static_pointer_cast<RSNGShapeBase>(shapeX);
+    shapeY = std::static_pointer_cast<RSNGShapeBase>(shapeY);
+    shape->Setter<SDFUnionOpShapeShapeXTag>(shapeX);
+    shape->Setter<SDFUnionOpShapeShapeYTag>(shapeY);
+
+    // set shape
+    rsNode->SetSDFShape(shape);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_SHAPE), properties.end());
+
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_SHAPE), properties.end());
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_SHAPE), properties.end());
+}
+
+/**
+ * @tc.name: SetSDFSmoothUnionOPShape
+ * @tc.desc: test results of SDF_SMOOTH_UNION_OP_SHAPE
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetSDFSmoothUnionOPShape, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    // create SDF Shape
+    auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    auto shape = std::static_pointer_cast<RSNGSDFSmoothUnionOpshape>(shape0);
+    auto shapeX = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shapeY = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+
+    shapeX = std::static_pointer_cast<RSNGShapeBase>(shapeX);
+    shapeY = std::static_pointer_cast<RSNGShapeBase>(shapeY);
+
+    shape->Setter<SDFSmoothUnionOpShapeSpacingTag>(shapeX);
+    shape->Setter<SDFSmoothUnionOpShapeShapeXTag>(shapeX);
+    shape->Setter<SDFSmoothUnionOpShapeShapeYTag>(shapeY);
+
+    // set shape
+    rsNode->SetSDFShape(shape);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::SDF_SHAPE), properties.end());
+
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_SHAPE), properties.end());
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(properties.find(ModifierNG::RSPropertyType::SDF_SHAPE), properties.end());
+}
+
+/**
+ * @tc.name: SetSDFRRectShape
+ * @tc.desc: test results of SDF_RRECT_SHAPE and modifier path
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetSDFRRectShape, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetSDFShape(nullptr);
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    // create SDF Shape
+    auto shape0 = RSNGShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto shape = std::static_pointer_cast<RSNGSDFRRectShape>(shape0);
+
+    auto boundsModifier = std::make_shared<ModifierNG::RSBoundsModifier>();
+    rsNode->AddModifier(boundsModifier);
+
+    EXPECT_EQ(boundsModifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.0f);
+    EXPECT_EQ(boundsModifier->GetUseUnion(), false);
+
+    // test the path of using modifier to set these properties
+    boundsModifier->SetSDFShape(shape);
+    boundsModifier->SetUnionSpacing(0.5f);
+    boundsModifier->SetUseUnion(true);
+
+    EXPECT_NE(boundsModifier->GetSDFShape(), nullptr);
+    EXPECT_EQ(boundsModifier->GetUnionSpacing(), 0.5f);
+    EXPECT_EQ(boundsModifier->GetUseUnion(), true);
+}
+
+/**
+ * @tc.name: SetUseUnion
+ * @tc.desc: test results of RSNode::SetUseUnion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUseUnion, TestSize.Level1)
+{
+    auto modifierType = ModifierNG::RSModifierType::BOUNDS;
+    auto rsNode = RSCanvasNode::Create();
+
+    EXPECT_EQ(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+
+    rsNode->SetUseUnion(false);
+    auto& properties = rsNode->GetModifierCreatedBySetter(modifierType)->properties_;
+
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::USE_UNION), properties.end());
+
+    rsNode->SetUseUnion(true);
+    EXPECT_NE(rsNode->GetModifierCreatedBySetter(modifierType), nullptr);
+    EXPECT_NE(properties.find(ModifierNG::RSPropertyType::USE_UNION), properties.end());
+}
+
+/**
+ * @tc.name: SetUIMaterialFilter001
+ * @tc.desc: test results of SetUIMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUIMaterialFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetUIMaterialFilter(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
+/**
+ * @tc.name: SetUIMaterialFilter002
+ * @tc.desc: test results of SetUIMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUIMaterialFilter002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    std::shared_ptr<ContentLightPara> para = std::make_shared<ContentLightPara>();
+    float lightIntensity = 0.5f;
+    para->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para);
+
+    rsNode->SetUIMaterialFilter(filterObj.get());
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
+/**
+ * @tc.name: SetUIMaterialFilter003
+ * @tc.desc: test results of SetUIMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetUIMaterialFilter003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto filterObj = std::make_unique<Filter>();
+    filterObj->AddPara(nullptr);
+    std::shared_ptr<ContentLightPara> para1 = std::make_shared<ContentLightPara>();
+    float lightIntensity = 0.5f;
+    para1->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para1);
+    td::shared_ptr<ContentLightPara> para2 = std::make_shared<ContentLightPara>();
+    lightIntensity = 0.6f;
+    para2->SetLightIntensity(lightIntensity);
+    filterObj->AddPara(para2);
+
+    rsNode->SetUIMaterialFilter(filterObj.get());
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+}
+
+/**
+ * @tc.name: SetMaterialNGFilter001
+ * @tc.desc: test results of SetMaterialNGFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetMaterialNGFilter001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetMaterialNGFilter(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+
+    auto filter = std::make_shared<RSNGBlurFilter>();
+    rsNode->SetMaterialNGFilter(filter);
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+
+    rsNode->SetMaterialNGFilter(nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER);
+    ASSERT_NE(modifier, nullptr);
+    ASSERT_EQ(modifier->properties_.find(ModifierNG::RSPropertyType::MATERIAL_NG_FILTER), modifier->properties_.end());
+}
+
 } // namespace OHOS::Rosen
