@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
+#include "property/rs_color_picker_def.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include "color_space_convertor.h"
@@ -42,15 +43,13 @@ RSColor::RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha, Graphi
     red_ = red;
     green_ = green;
     blue_ = blue;
-    colorSpace_ = colorSpace;
+    colorSpace_ = static_cast<int16_t>(colorSpace);
 }
-
-RSColor::RSColor(ColorPlaceholder ph) noexcept : placeholder_(ph) {}
 
 bool RSColor::operator==(const RSColor& rhs) const
 {
     return red_ == rhs.red_ && green_ == rhs.green_ && blue_ == rhs.blue_ && alpha_ == rhs.alpha_ &&
-        colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_;
+           colorSpace_ == rhs.colorSpace_ && placeholder_ == rhs.placeholder_;
 }
 
 bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
@@ -62,20 +61,32 @@ bool RSColor::IsNearEqual(const RSColor& other, int16_t threshold) const
 
 RSColor RSColor::operator+(const RSColor& rhs) const
 {
-    if (*this == RSColor(0, 0, 0, 0) && rhs.IsPlaceholder()) {
-        return RSColor(rhs.placeholder_);
-    } else {
-        return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
+    if (UNLIKELY(placeholder_ != 0)) {
+        return *this;
     }
+    if (UNLIKELY(rhs.placeholder_ != 0)) {
+        return rhs;
+    }
+    return RSColor(red_ + rhs.red_, green_ + rhs.green_, blue_ + rhs.blue_, alpha_ + rhs.alpha_);
 }
 
 RSColor RSColor::operator-(const RSColor& rhs) const
 {
-    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_, rhs.colorSpace_);
+    if (UNLIKELY(placeholder_ != 0)) {
+        return *this;
+    }
+    if (UNLIKELY(rhs.placeholder_ != 0)) {
+        return rhs;
+    }
+    return RSColor(red_ - rhs.red_, green_ - rhs.green_, blue_ - rhs.blue_, alpha_ - rhs.alpha_,
+        static_cast<GraphicColorGamut>(rhs.colorSpace_));
 }
 
 RSColor RSColor::operator*(float scale) const
 {
+    if (UNLIKELY(placeholder_ != 0)) {
+        return *this;
+    }
     return RSColor(round(red_ * scale), round(green_ * scale), round(blue_ * scale), round(alpha_ * scale));
 }
 
@@ -198,7 +209,7 @@ Drawing::Color4f RSColor::GetColor4f() const
 
 GraphicColorGamut RSColor::GetColorSpace() const
 {
-    return colorSpace_;
+    return static_cast<GraphicColorGamut>(colorSpace_);
 }
 
 void RSColor::SetBlue(int16_t blue)
@@ -284,9 +295,17 @@ void RSColor::Dump(std::string& out) const
             out += " colorSpace: OTHER]";
             break;
     }
-    if (placeholder_ != ColorPlaceholder::NONE) {
-        out += " placeholder[" + std::to_string(static_cast<int>(placeholder_)) + "]";
+    if (IsPlaceholder()) {
+        out += " placeholder[" + std::to_string(placeholder_) + "]";
     }
+}
+ColorPlaceholder RSColor::GetPlaceholder() const
+{
+    return static_cast<ColorPlaceholder>(placeholder_);
+}
+bool RSColor::IsPlaceholder() const
+{
+    return placeholder_ != 0;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -159,12 +159,12 @@ public:
 private:
     void UpdateValueToFloat();
     void UpdateValueToInt();
-    uint32_t alpha_;
+    uint16_t alpha_;
+    uint16_t placeholder_ = 0; // enum ColorPlaceholder
     uint32_t red_;
     uint32_t green_;
     uint32_t blue_;
     Color4f color4f_;
-    ColorPlaceholder placeholder_ = ColorPlaceholder::NONE;
 };
 } // namespace Drawing
 } // namespace Rosen
