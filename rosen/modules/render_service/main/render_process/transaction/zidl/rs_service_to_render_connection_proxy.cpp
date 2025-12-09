@@ -751,7 +751,7 @@ ErrCode RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId(NodeId& windowNod
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint64(windowNodeId)) {
-        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: windowNodeId:%{public}zu err.", windowNodeId);
+        ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: windowNodeId:%{public}" PRIu64 "err.", windowNodeId);
         return ERR_INVALID_VALUE;
     }
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE);
@@ -1449,36 +1449,35 @@ std::vector<ActiveDirtyRegionInfo> RSServiceToRenderConnectionProxy::GetActiveDi
 
 GlobalDirtyRegionInfo RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo()
 {
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    GlobalDirtyRegionInfo globalDirtyRegionInfo;
-    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: WriteInterfaceToken failed");
-        return globalDirtyRegionInfo;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO);
-    int32_t err = Remote()->SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE(
-            "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: SendRequest failed, err is "
-            "%{public}d.",
-            err);
-        return globalDirtyRegionInfo;
-    }
-    int64_t globalDirtyRegionAreas{0};
-    int32_t globalFramesNumber{0};
-    int32_t skipProcessFramesNumber{0};
-    int32_t mostSendingPidWhenDisplayNodeSkip{0};
-    if (!reply.ReadInt64(globalDirtyRegionAreas) || !reply.ReadInt32(globalFramesNumber) ||
-        !reply.ReadInt32(skipProcessFramesNumber) || !reply.ReadInt32(mostSendingPidWhenDisplayNodeSkip)) {
-        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo Read parcel failed");
-        return globalDirtyRegionInfo;
-    }
-    return GlobalDirtyRegionInfo(
-        globalDirtyRegionAreas, globalFramesNumber, skipProcessFramesNumber, mostSendingPidWhenDisplayNodeSkip);
+    // MessageParcel data;
+    // MessageParcel reply;
+    // MessageOption option;
+    // GlobalDirtyRegionInfo globalDirtyRegionInfo;
+    // if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+    //     ROSEN_LOGE(
+    //         "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: WriteInterfaceToken failed");
+    //     return globalDirtyRegionInfo;
+    // }
+    // option.SetFlags(MessageOption::TF_SYNC);
+    // uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO);
+    // int32_t err = Remote()->SendRequest(code, data, reply, option);
+    // if (err != NO_ERROR) {
+    //     ROSEN_LOGE(
+    //         "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: SendRequest failed, err is "
+    //         "%{public}d.",
+    //         err);
+    //     return globalDirtyRegionInfo;
+    // }
+    // int64_t globalDirtyRegionAreas{0};
+    // int32_t globalFramesNumber{0};
+    // int32_t skipProcessFramesNumber{0};
+    // int32_t mostSendingPidWhenDisplayNodeSkip{0};
+    // if (!reply.ReadInt64(globalDirtyRegionAreas) || !reply.ReadInt32(globalFramesNumber) ||
+    //     !reply.ReadInt32(skipProcessFramesNumber) || !reply.ReadInt32(mostSendingPidWhenDisplayNodeSkip)) {
+    //     ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo Read parcel failed");
+    //     return globalDirtyRegionInfo;
+    // }
+    return globalDirtyRegionInfo; // Car
 }
 
 LayerComposeInfo RSServiceToRenderConnectionProxy::GetLayerComposeInfo()

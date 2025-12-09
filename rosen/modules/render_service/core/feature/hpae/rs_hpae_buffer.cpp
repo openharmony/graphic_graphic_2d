@@ -269,7 +269,7 @@ bool RSHpaeBuffer::CreateSurface(sptr<IBufferConsumerListener> listener)
     producerSurface_->SetQueueSize(HPAE_BUFFER_SIZE);
     producerSurface_->SetBufferName(HPAE_BUFFER_NAME);
 
-    auto client = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    auto client = std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
     auto surface = client->CreateRSSurface(producerSurface_);
     rsSurface_ = std::static_pointer_cast<RSSurfaceOhos>(surface);
     RS_LOGI("RSHpaeBuffer::CreateSurface end");

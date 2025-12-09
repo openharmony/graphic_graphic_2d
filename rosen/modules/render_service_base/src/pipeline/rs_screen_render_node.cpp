@@ -602,6 +602,11 @@ void RSScreenRenderNode::CheckSurfaceChanged()
 #endif
 }
 
+bool RSScreenRenderNode::IsVirtualSurfaceChanged() const
+{
+    return isVirtualSurfaceChanged_;
+}
+
 void RSScreenRenderNode::SetIsScreenValid(bool isValid)
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());

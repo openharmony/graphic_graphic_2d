@@ -507,6 +507,7 @@ public:
 
     void SetIsScreenValid(bool isValid);
     void CheckSurfaceChanged();
+    bool IsVirtualSurfaceChanged() const;
 
 protected:
     void OnSync() override;

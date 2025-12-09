@@ -18,7 +18,7 @@
 
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
-
+#include "platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code.h"
 namespace OHOS {
 namespace Rosen {
 class RSIRenderServiceConnectionInterfaceCodeAccessVerifier : public RSInterfaceCodeAccessVerifierBase {

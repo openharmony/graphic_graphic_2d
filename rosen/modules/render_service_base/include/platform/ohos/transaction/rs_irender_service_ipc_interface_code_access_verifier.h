@@ -17,7 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_IRENDER_SERVICE_INTERFACE_CODE_ACCESS_VERIFIER_H
 
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
-#include "platform/ohos/rs_irender_service_ipc_interface_code.h"
+#include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
 
 namespace OHOS {
 namespace Rosen {

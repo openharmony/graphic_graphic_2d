@@ -96,12 +96,11 @@ public:
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
 
-    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
-        bool& success);
+    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId);
 
-    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success);
+    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config);
 
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+    std::shared_ptr<RSSurface> CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
         sptr<Surface>& sfc, bool unobscured);
 
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app); // proxy Single
@@ -110,26 +109,26 @@ public:
         NodeId id, const BufferClearCallback& callback);
 
     ErrCode RegisterBufferAvailableListener(
-        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread);
 
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
 
     bool UnregisterBufferAvailableListener(NodeId id);
 
-    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
+    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap);
 
     ErrCode SetGlobalDarkColorMode(bool isDark);
 
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
-        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success);
+        const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList);
 
     ErrCode SetSystemAnimatedScenes(
-        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success);
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation);
 
     ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
         SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
 
-    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode);
+    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent);
 
     bool GetHighContrastTextState();
 

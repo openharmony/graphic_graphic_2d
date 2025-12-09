@@ -89,7 +89,7 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCH_FINISHED): {
             ScreenId id = 0;
-            if (!data.ReadUint64(screenId)) {
+            if (!data.ReadUint64(id)) {
                 RS_LOGE("%{public}s::NOTIFY_SCREEN_SWITCH_FINISHED ReadUint64 failed.", __func__);
                 return ERR_INVALID_STATE;
             }

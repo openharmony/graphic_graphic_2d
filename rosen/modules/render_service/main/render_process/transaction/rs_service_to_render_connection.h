@@ -19,7 +19,7 @@
 #include "render_server/rs_render_service_agent.h"
 #include "rs_render_pipeline_agent.h"
 
-#include "transaction/zidl/rs_service_to_render_connection_stub.h"
+#include "zidl/rs_service_to_render_connection_stub.h"
 
 namespace OHOS {
 namespace Rosen {
