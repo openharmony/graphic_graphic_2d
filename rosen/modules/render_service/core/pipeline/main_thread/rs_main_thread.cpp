@@ -2587,12 +2587,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
     }
 
 #ifdef RS_ENABLE_GPU
-<<<<<<< HEAD
     RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode,
             client, pipelineParam = pipelineParam_, &screenProperty]() mutable {
-=======
-    RSUniRenderThread::Instance().PostSyncTask([this, processor, client, screenNode, screenProperty.GetScreenInfo()]() mutable {
->>>>>>> 02ad9e1b8c655cafa06bf4aab1653eb637b9324d
         RS_TRACE_NAME("DoDirectComposition PostProcess");
         auto screenId = screenNode->GetScreenId();
         for (auto& surfaceNode : hardwareEnabledNodes_) {
@@ -2631,10 +2627,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
         DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenProperty.GetScreenInfo());
-<<<<<<< HEAD
-=======
-        HgmCore::Instance().SetDirectCompositionFlag(true);
->>>>>>> 02ad9e1b8c655cafa06bf4aab1653eb637b9324d
         processor->ProcessScreenSurface(*screenNode);
         if (client) {
             client->UpdatePipelineParam(pipelineParam);
