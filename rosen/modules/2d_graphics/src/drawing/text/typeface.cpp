@@ -336,6 +336,16 @@ void Typeface::UpdateStream(std::unique_ptr<MemoryStream> stream)
     }
 }
 
+int Typeface::GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate coordinates[],
+    int coordinateCount) const
+{
+    if (typefaceImpl_) {
+        return typefaceImpl_->GetVariationDesignPosition(coordinates,
+            coordinateCount);
+    }
+    return 0;
+}
+
 // Opentype font table constants
 constexpr size_t MIN_HEADER_LEN = 6;            // first four bytes tell the type, two subsequent bytes toc size
 constexpr size_t TABLE_COUNT = 4;               // Tables count is defined in fourth and fifth bytes

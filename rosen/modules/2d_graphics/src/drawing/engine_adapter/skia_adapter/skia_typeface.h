@@ -76,7 +76,8 @@ public:
     int32_t GetFd() const override;
     void SetFd(int32_t fd) override;
     void UpdateStream(std::unique_ptr<MemoryStream> stream) override;
-
+    int GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate  coordinates[],
+        int coordinateCount) const override;
 private:
     SkiaTypeface() = default;
 

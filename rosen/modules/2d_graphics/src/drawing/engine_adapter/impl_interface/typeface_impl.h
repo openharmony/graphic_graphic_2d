@@ -52,7 +52,8 @@ public:
     virtual int32_t GetFd() const = 0;
     virtual void SetFd(int32_t fd) = 0;
     virtual void UpdateStream(std::unique_ptr<MemoryStream> stream) = 0;
-
+    virtual int GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate coordinates[],
+        int coordinateCount) const = 0;
 protected:
     TypefaceImpl() noexcept = default;
 };
