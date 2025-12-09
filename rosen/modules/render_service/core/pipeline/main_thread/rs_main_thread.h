@@ -60,6 +60,11 @@
 #include "vsync_system_ability_listener.h"
 #endif
 
+#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "hgm_core.h"
+#include "feature/hyper_graphic_manager/hgm_client.h"
+#include "feature/hyper_graphic_manager/hgm_info_parcel.h"
+
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
@@ -465,8 +470,6 @@ public:
     // used for ScaleImageAsync
     void MarkScaledImageDirty(uint64_t nodeId);
 
-    void SetHasSurfaceLockLayer(bool hasSurfaceLockLayer);
-    bool HasDRMOrSurfaceLockLayer() const;
     void JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerIds);
 
     void RegisterScreenSwitchFinishCallback(sptr<RSIRenderToServiceConnection> conn);
