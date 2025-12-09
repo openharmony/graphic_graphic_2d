@@ -380,8 +380,8 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
-    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
+    rsSurfaceRenderNode->GetRSSurfaceHandler()->SetBuffer(buffer, acquireFence, damage, timestamp);
 
     // acquire buffer
     if (RSUniRenderJudgement::IsUniRender() && RSSystemParameters::GetControlBufferConsumeEnabled()) {
@@ -433,9 +433,8 @@ HWTEST_F(RSBaseRenderUtilTest, ReleaseBuffer_002, TestSize.Level2)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     int64_t timestamp = 0;
     Rect damage;
-    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
-    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler.SetBuffer(buffer, acquireFence, damage, timestamp);
     ASSERT_EQ(true, RSBaseRenderUtil::ReleaseBuffer(surfaceHandler));
 }
 
@@ -539,8 +538,8 @@ HWTEST_F(RSBaseRenderUtilTest, GetScreenIdFromSurfaceRenderParamsTest, TestSize.
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNode();
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceNode->stagingRenderParams_.get());
-    auto screenProperty = RSBaseRenderUtil::GetScreenPropertyFromSurfaceRenderParams(surfaceParams);
-    EXPECT_EQ(screenProperty.has_value(), true)
+    auto screenId = RSBaseRenderUtil::GetScreenIdFromSurfaceRenderParams(surfaceParams);
+    ASSERT_EQ(screenId, 0);
 }
 
 /*

@@ -14,19 +14,14 @@
  */
 
 #include "gtest/gtest.h"
-#include <thread>
-
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "event_handler.h"
 #include "pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "surface_buffer_impl.h"
 #include "metadata_helper.h"
-#include "rs_render_composer_manager.h"
 #include "screen_manager/rs_screen.h"
-#include "screen_manager/rs_screen_property.h"
 #include "rs_surface_layer.h"
 
 using namespace testing;
@@ -71,15 +66,6 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
 
     composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
     ASSERT_NE(composerAdapter_, nullptr);
-    auto runner = AppExecFwk::EventRunner::Create(false);
-    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    auto renderComposerManager = std::make_shared<RSRenderComposerManager>(handler);
-    auto output = std::make_shared<HdiOutput>(screenId_);
-    auto property = sptr<RSScreenProperty>();
-    renderComposerManager->OnScreenConnected(output, property);
-    auto client = std::make_shared<RSRenderComposerClient>(false,
-        renderComposerManager->rsComposerConnectionMap_[screenId_]);
-    composerAdapter_->Init(info, offsetX, offsetY, client);
 }
 
 void RSUniRenderComposerAdapterTest::TearDownTestCase()
@@ -87,13 +73,7 @@ void RSUniRenderComposerAdapterTest::TearDownTestCase()
     RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
 }
 
-void RSUniRenderComposerAdapterTest::TearDown()
-{
-    screenManager_ = OHOS::Rosen::RSScreenManager::GetInstance();
-    OHOS::Rosen::RSScreenManager& screenManager =
-        static_cast<OHOS::Rosen::RSScreenManager&>(*screenManager_);
-    screenManager.screens_.erase(screenId_);
-}
+void RSUniRenderComposerAdapterTest::TearDown() {}
 
 void RSUniRenderComposerAdapterTest::SetUp() {}
 
@@ -205,8 +185,8 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform004, TestSize.Lev
 HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSize.Level1)
 {
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    ASSERT_NE(surfaceNode, nullptr);
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -354,8 +334,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level2)
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
     auto surfaceHandler = screenDrawable->GetMutableRSSurfaceHandlerOnDraw();
     ASSERT_NE(surfaceHandler, nullptr);
-    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0, bufferOwnerCount);
+    surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0);
     surfaceHandler->SetAvailableBufferCount(0);
     composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*rsScreenNode);
@@ -444,8 +423,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
     GSError ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
 
-    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0, bufferOwnerCount);
+    surfaceHandler->SetBuffer(buffer, SyncFence::INVALID_FENCE, Rect(), 0);
 
     RSUniRenderComposerAdapter::SetBufferColorSpace(*screenDrawable);
 
@@ -504,8 +482,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
     auto surfaceHandler = screenDrawable->GetRSSurfaceHandlerOnDraw();
-    auto bufferOwnerCount = std::make_shared<RSSurfaceHandler::BufferOwnerCount>();
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
     composerAdapter_->SetBufferColorSpace(*screenDrawable);
 }
 

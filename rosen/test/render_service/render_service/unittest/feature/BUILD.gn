@@ -34,7 +34,6 @@ group("unittest") {
     ":RSUiCaptureTaskParallelTest",
     ":RSUniHwcComputeUtilTest",
     ":RSUniUiCaptureTest",
-    ":HgmRPContextTest",
     ":RSVBlankIdleCorrectorTest",
     ":HgmContextTest",
     ":LppVideoHandlerTest",
@@ -776,42 +775,6 @@ ohos_unittest("HgmContextTest") {
   }
 }
 
-## Build HgmRPContextTest
-ohos_unittest("HgmRPContextTest") {
-  module_out_path = module_output_path
-  sources = [
-    "hyper_graphic_manager/hgm_rp_context_test.cpp",
-    "hyper_graphic_manager/rp_frame_rate_policy_test.cpp",
-  ]
-  deps = [
-    ":rs_test_common",
-    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
-  ]
-  external_deps = [
-    "c_utils:utils",
-    "ffrt:libffrt",
-    "hilog:libhilog",
-    "hisysevent:libhisysevent",
-    "samgr:samgr_proxy",
-  ]
-  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
-    external_deps = [ "sensor:sensor_interface_native" ]
-  }
-  defines = []
-  defines += gpu_defines
-  if (defined(use_rosen_drawing) && use_rosen_drawing) {
-    defines += [ "USE_ROSEN_DRAWING" ]
-  }
-  if (defined(use_video_processing_engine) && use_video_processing_engine) {
-    include_dirs = []
-    defines += [ "USE_VIDEO_PROCESSING_ENGINE" ]
-    external_deps += [
-      "drivers_interface_display:libdisplay_commontype_proxy_1.0",
-      "video_processing_engine:videoprocessingengine",
-    ]
-  }
-}
-
 ## Build RSVBlankIdleCorrectorTest
 ohos_unittest("RSVBlankIdleCorrectorTest") {
   module_out_path = module_output_path
@@ -1221,12 +1184,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
-    "$graphic_2d_root/rosen/modules/render_service",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/main",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
@@ -1235,9 +1193,7 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
-    "$graphic_2d_root/rosen/modules/render_service/main",
     "$graphic_2d_root/rosen/modules/render_service_client/core",
-    "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/test/render_service/render_service/unittest",
