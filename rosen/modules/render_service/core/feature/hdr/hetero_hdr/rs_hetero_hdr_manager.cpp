@@ -21,6 +21,7 @@
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_hpae.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "hetero_hdr/rs_hdr_pattern_manager.h"
 #include "metadata_helper.h"
@@ -258,12 +259,6 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
     if (!isHdrOn_ || surfaceParams->GetColorFollow()) {
         RS_LOGD("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode isHdrOn is false or GetColorFollow is true");
         ClearBufferCache();
-        return false;
-    }
-    uint32_t unExecuteTaskNum = RSRenderComposerManager::GetInstance().GetUnExecuteTaskNum(screenId);
-    if (unExecuteTaskNum > UN_EXECUTE_TASK_NUM_MAX) {
-        RS_LOGW("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode unExecuteTaskNum%{public}" PRIu32,
-            unExecuteTaskNum);
         return false;
     }
     if (!CheckWindowOwnership(curNodeId_)) {

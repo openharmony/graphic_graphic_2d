@@ -418,12 +418,12 @@ bool RSSurfaceNode::SetBufferAvailableCallback(BufferAvailableCallback callback)
         std::lock_guard<std::mutex> lock(mutex_);
         callback_ = callback;
     }
-    auto renderPipelineClient =
-        std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
-    if (renderPipelineClient == nullptr) {
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient == nullptr) {
         return false;
     }
-    return renderPipelineClient->RegisterBufferAvailableListener(GetId(), [weakThis = weak_from_this()]() {
+    return renderServiceClient->RegisterBufferAvailableListener(GetId(), [weakThis = weak_from_this()]() {
         auto rsSurfaceNode = RSBaseNode::ReinterpretCast<RSSurfaceNode>(weakThis.lock());
         if (rsSurfaceNode == nullptr) {
             ROSEN_LOGE("RSSurfaceNode::SetBufferAvailableCallback this == null");
@@ -544,14 +544,14 @@ RSNode::SharedPtr RSSurfaceNode::UnmarshallingAsProxyNode(Parcel& parcel)
 
 bool RSSurfaceNode::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
-    return std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient())->
+    return std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
         CreateNode(config);
 }
 
 bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, SurfaceId surfaceId, bool unobscured)
 {
     if (surfaceId == 0) {
-        surface_ = std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient())->
+        surface_ = std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
         CreateNodeAndSurface(config, unobscured);
     } else {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -562,8 +562,8 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
                 GetId(), surfaceId);
             return false;
         }
-        surface_ = std::static_pointer_cast<RSRenderPipelineClient>(
-            RSIRenderClient::CreateRenderPiplineClient())->CreateRSSurface(surface);
+        surface_ = std::static_pointer_cast<RSRenderServiceClient>(
+            RSIRenderClient::CreateRenderServiceClient())->CreateRSSurface(surface);
         if (surface_ == nullptr) {
             ROSEN_LOGE(
                 "RSSurfaceNode::CreateNodeAndSurface nodeId is %{public}" PRIu64 " creat RSSurface fail", GetId());
@@ -658,10 +658,10 @@ RSSurfaceNode::~RSSurfaceNode()
     }
     RS_LOGI("RSSurfaceNode::~RSSurfaceNode, Node: %{public}" PRIu64 ", Name: %{public}s", GetId(), GetName().c_str());
     // both divided and unirender need to unregister listener when surfaceNode destroy
-    auto renderPipelineClient =
-        std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
-    if (renderPipelineClient != nullptr) {
-        renderPipelineClient->UnregisterBufferAvailableListener(GetId());
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderPiplineClient());
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->UnregisterBufferAvailableListener(GetId());
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         RSVpeManager::GetInstance().ReleaseVpeVideo(GetId());
 #endif
@@ -711,10 +711,10 @@ void RSSurfaceNode::DetachToDisplay(uint64_t screenId)
 
 void RSSurfaceNode::SetHardwareEnabled(bool isEnabled, SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable)
 {
-    auto rendePipelineClient =
-        std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
-    if (rendePipelineClient != nullptr) {
-        rendePipelineClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType, dynamicHardwareEnable);
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
+        renderServiceClient->SetHardwareEnabled(GetId(), isEnabled, selfDrawingType, dynamicHardwareEnable);
     }
 }
 
@@ -962,11 +962,11 @@ RSSurfaceNodeAbilityState RSSurfaceNode::GetAbilityState() const
 
 RSInterfaceErrorCode RSSurfaceNode::SetHidePrivacyContent(bool needHidePrivacyContent)
 {
-    auto rendePipelineClient =
-        std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
-    if (rendePipelineClient != nullptr) {
+    auto renderServiceClient =
+        std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient());
+    if (renderServiceClient != nullptr) {
         return static_cast<RSInterfaceErrorCode>(
-            rendePipelineClient->SetHidePrivacyContent(GetId(), needHidePrivacyContent));
+            renderServiceClient->SetHidePrivacyContent(GetId(), needHidePrivacyContent));
     }
     return RSInterfaceErrorCode::UNKNOWN_ERROR;
 }

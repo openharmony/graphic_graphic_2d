@@ -74,7 +74,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
 
 bool RSDisplayNode::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
-    return std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient())->
+    return std::static_pointer_cast<RSRenderServiceClient>(RSIRenderClient::CreateRenderServiceClient())->
         CreateNode(displayNodeConfig, nodeId);
 }
 
