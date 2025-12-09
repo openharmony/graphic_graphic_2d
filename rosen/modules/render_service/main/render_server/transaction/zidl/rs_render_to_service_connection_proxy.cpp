@@ -53,7 +53,7 @@ void RSRenderToServiceConnectionProxy::ReplyDumpResultToService(std::string& dum
     }
 }
 
-sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRPHgmFrameRate(uint64_t timestamp,
+sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRpHgmFrameRate(uint64_t timestamp,
     uint64_t vsyncId, const std::unordered_set<ScreenId>& screenIds,
     const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {
