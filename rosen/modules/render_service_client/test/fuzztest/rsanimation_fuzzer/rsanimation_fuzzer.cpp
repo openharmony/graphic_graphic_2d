@@ -363,7 +363,6 @@ namespace OHOS {
         auto motionPathOption = std::make_shared<RSMotionPathOption>(path);
         const RSAnimationTimingProtocol timingProtocol = {};
 
-        RSImplicitAnimatorMap::Instance().GetAnimator();
         auto testKeyframeParam = std::make_shared<RSImplicitKeyframeAnimationParam>(timingProtocol,
             RSAnimationTimingCurve::DEFAULT, fraction, 0);
         testKeyframeParam->GetType();
@@ -393,14 +392,6 @@ namespace OHOS {
         finishCallback->Execute();
         auto repeatCallback = std::make_shared<AnimationRepeatCallback>(nullptr);
         repeatCallback->Execute();
-    }
-
-    void RSImplicitAnimatorMapFuzzTest()
-    {
-        auto implicitAnimatorMap = RSImplicitAnimatorMap::Instance().GetAnimator();
-        if (implicitAnimatorMap == nullptr) {
-            return;
-        }
     }
 
     void RSInteractiveImplictAnimatorFuzzTest()
@@ -604,7 +595,6 @@ namespace OHOS {
         RsImplicitAnimatorFuzzTest();
         RsImplicitAnimatorParamFuzzTest();
         AnimationCallbackFuzzTest();
-        RSImplicitAnimatorMapFuzzTest();
         RSInteractiveImplictAnimatorFuzzTest();
         RSInterpolatingSpringAnimationFuzzTest();
         RSAnimation1FuzzTest();
@@ -621,4 +611,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DoSomethingInterestingWithMyAPI(data, size);
     return 0;
 }
-

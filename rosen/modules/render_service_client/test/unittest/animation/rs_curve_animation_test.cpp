@@ -17,6 +17,7 @@
 #include "rs_animation_test_utils.h"
 
 #include "animation/rs_curve_animation.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,7 +46,9 @@ HWTEST_F(RSCurveAnimationTest, GetTimingCurveTest001, TestSize.Level1)
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
+    sptr<IRemoteObject> remoteObject = nullptr;
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
     curveAnimation->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
     curveAnimation->SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve timingCurve = curveAnimation->GetTimingCurve();
