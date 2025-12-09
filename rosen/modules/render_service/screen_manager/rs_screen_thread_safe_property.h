@@ -77,7 +77,6 @@ public:
     void SetScreenStatus(VirtualScreenStatus screenStatus);
     void SetVirtualSecLayerOption(int32_t virtualSecLayerOption);
     void SetIsHardCursorSupport(bool isHardCursorSupport);
-    void SetLinearMatrix(std::vector<float> matrix);
     void SetSupportedColorGamuts(std::vector<ScreenColorGamut> colorGamuts);
     void SetDisablePowerOffRenderControl(bool disable);
     void SetScreenSwitchStatus(bool status);
@@ -128,8 +127,9 @@ public:
     VirtualScreenStatus GetScreenStatus() const;
     int32_t GetVirtualSecLayerOption() const;
     bool GetIsHardCursorSupport() const;
-    std::vector<float> GetLinearMatrix() const;
     std::vector<ScreenColorGamut> GetSupportedColorGamuts() const;
+
+    ScreenInfo GetScreenInfo() const;
 
 private:
     using SharedLock = std::shared_lock<std::shared_mutex>;

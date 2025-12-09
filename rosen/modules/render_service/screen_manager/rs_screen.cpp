@@ -1642,6 +1642,11 @@ sptr<RSScreenProperty> RSScreen::GetProperty() const
     return property_.Clone();
 }
 
+ScreenInfo RSScreen::GetScreenInfo() const
+{
+    return property_.GetScreenInfo();
+}
+
 void RSScreen::SetOnPropertyChangedCallback(std::function<void(const sptr<RSScreenProperty>&)> callback)
 {
     onPropertyChange_ = std::move(callback);

@@ -673,5 +673,11 @@ std::vector<ScreenColorGamut> RSScreenThreadSafeProperty::GetSupportedColorGamut
     return property_->supportedColorGamuts_;
 }
 
+ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetScreenInfo();
+}
+
 } // namespace Rosen
 } // namespace OHOS

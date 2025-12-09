@@ -808,7 +808,7 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
             }
             screen->SetGlobalBlackList(globalBlackList_);
         }
-        PrintScreenBlackList(std::string(__func__), id, castScreenBlackList_);
+        PrintScreenBlackList(std::string(__func__), id, globalBlackList_);
         return SUCCESS;
     }
     auto virtualScreen = GetScreen(id);
@@ -857,7 +857,7 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
             }
             screen->AddGlobalBlackList(blackList);
         }
-        PrintScreenBlackList(std::string(__func__), id, castScreenBlackList_);
+        PrintScreenBlackList(std::string(__func__), id, globalBlackList_);
         return SUCCESS;
     }
     auto virtualScreen = GetScreen(id);
@@ -889,7 +889,7 @@ int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::ve
             }
             screen->RemoveGlobalBlackList(blackList);
         }
-        PrintScreenBlackList(std::string(__func__), id, castScreenBlackList_);
+        PrintScreenBlackList(std::string(__func__), id, globalBlackList_);
         return SUCCESS;
     }
     auto virtualScreen = GetScreen(id);
