@@ -42,9 +42,10 @@
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
-#include "transaction/rs_client_to_render_connection.h"
-#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "render/rs_typeface_cache.h"
+
+#include "transaction/rs_client_to_render_connection.h"
+#include "transaction/rs_client_to_service_connection.h"
 
 namespace OHOS::Rosen {
 
@@ -231,11 +232,13 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
 
 bool RSProfiler::IsPowerOffScreen()
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        return false;
-    }
-    return screenManager->IsAllScreensPowerOff();
+    // TODO Car
+    // auto screenManager = CreateOrGetScreenManager();
+    // if (!screenManager) {
+    //     return false;
+    // }
+    // return screenManager->IsAllScreensPowerOff();
+    return false;
 }
 
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out)
@@ -457,63 +460,66 @@ void RSProfiler::OnRecvParcel(const MessageParcel* parcel, RSTransactionData* da
 
 void RSProfiler::CreateMockConnection(pid_t pid)
 {
-    if (!IsEnabled() || !g_renderService) {
-        return;
-    }
+    // TODO Car
+    // if (!IsEnabled() || !g_renderService) {
+    //     return;
+    // }
 
-    auto tokenObj = new IRemoteStub<RSIConnectionToken>();
+    // auto tokenObj = new IRemoteStub<RSIConnectionToken>();
 
-    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, g_renderService,
-        g_mainThread, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
+    // sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(pid, g_renderService,
+    //     g_mainThread, g_renderService->screenManager_, tokenObj, g_renderService->appVSyncDistributor_));
 
-    sptr<RSIClientToRenderConnection> newRenderConn(
-        new RSClientToRenderConnection(pid, g_renderService, g_mainThread, g_renderService->screenManager_,
-        tokenObj, g_renderService->appVSyncDistributor_));
+    // sptr<RSIClientToRenderConnection> newRenderConn(
+    //     new RSClientToRenderConnection(pid, g_renderService, g_mainThread, g_renderService->screenManager_,
+    //     tokenObj, g_renderService->appVSyncDistributor_));
  
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
+    // std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
-    // if connections_ has the same token one, replace it.
-    if (g_renderService->connections_.count(tokenObj) > 0) {
-        tmp = g_renderService->connections_.at(tokenObj);
-    }
-    g_renderService->connections_[tokenObj] = {newConn, newRenderConn};
-    lock.unlock();
-    g_mainThread->AddTransactionDataPidInfo(pid);
+    // std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    // // if connections_ has the same token one, replace it.
+    // if (g_renderService->connections_.count(tokenObj) > 0) {
+    //     tmp = g_renderService->connections_.at(tokenObj);
+    // }
+    // g_renderService->connections_[tokenObj] = {newConn, newRenderConn};
+    // lock.unlock();
+    // g_mainThread->AddTransactionDataPidInfo(pid);
 }
 
 RSClientToServiceConnection* RSProfiler::GetConnection(pid_t pid)
 {
-    if (!g_renderService) {
-        return nullptr;
-    }
+    // TODO Car
+    // if (!g_renderService) {
+    //     return nullptr;
+    // }
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    // std::unique_lock<std::mutex> lock(g_renderService->mutex_);
 
-    for (const auto& pair : g_renderService->connections_) {
-        auto connection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-        if (connection->remotePid_ == pid) {
-            return connection;
-        }
-    }
+    // for (const auto& pair : g_renderService->connections_) {
+    //     auto connection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
+    //     if (connection->remotePid_ == pid) {
+    //         return connection;
+    //     }
+    // }
 
     return nullptr;
 }
 
 pid_t RSProfiler::GetConnectionPid(RSIClientToServiceConnection* connection)
 {
-    if (!g_renderService || !connection) {
-        return 0;
-    }
+    // TODO Car
+    // if (!g_renderService || !connection) {
+    //     return 0;
+    // }
 
-    std::unique_lock<std::mutex> lock(g_renderService->mutex_);
+    // std::unique_lock<std::mutex> lock(g_renderService->mutex_);
 
-    for (const auto& pair : g_renderService->connections_) {
-        auto renderServiceConnection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
-        if (renderServiceConnection == connection) {
-            return renderServiceConnection->remotePid_;
-        }
-    }
+    // for (const auto& pair : g_renderService->connections_) {
+    //     auto renderServiceConnection = static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr());
+    //     if (renderServiceConnection == connection) {
+    //         return renderServiceConnection->remotePid_;
+    //     }
+    // }
 
     return 0;
 }
@@ -526,10 +532,10 @@ std::vector<pid_t> RSProfiler::GetConnectionsPids()
 
     std::unique_lock<std::mutex> lock(g_renderService->mutex_);
     std::vector<pid_t> pids;
-    pids.reserve(g_renderService->connections_.size());
-    for (const auto& pair : g_renderService->connections_) {
-        pids.push_back(static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr())->remotePid_);
-    }
+    // pids.reserve(g_renderService->connections_.size());
+    // for (const auto& pair : g_renderService->connections_) {
+    //     pids.push_back(static_cast<RSClientToServiceConnection*>(pair.second.first.GetRefPtr())->remotePid_);
+    // }
     return pids;
 }
 
@@ -1549,7 +1555,8 @@ void RSProfiler::DumpNodeSurface(const ArgList& args)
 {
     if (g_renderService) {
         std::string out;
-        g_renderService->DumpSurfaceNode(out, Utils::GetRootNodeId(args.Node()));
+        // TODO Car
+        // g_renderService->DumpSurfaceNode(out, Utils::GetRootNodeId(args.Node()));
         Respond(out);
     }
 }
@@ -2238,8 +2245,9 @@ double RSProfiler::PlaybackUpdate(double deltaTime)
             option.SetFlags(flags);
             option.SetWaitTime(waitTime);
 
-            MessageParcel reply;
-            connection->OnRemoteRequest(code, parcel.parcel, reply, option);
+            // TODO Car
+            // MessageParcel reply;
+            // connection->OnRemoteRequest(code, parcel.parcel, reply, option);
         }
     }
 
