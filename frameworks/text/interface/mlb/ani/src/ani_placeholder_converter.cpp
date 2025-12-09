@@ -20,36 +20,36 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+
 ani_status AniPlaceholderConverter::ParsePlaceholderSpanToNative(
     ani_env* env, ani_object obj, OHOS::Rosen::PlaceholderSpan& placeholderSpan)
 {
-    ani_boolean isObj = false;
-    ani_status ret = AniTextUtils::Object_InstanceOf(env, obj, ANI_INTERFACE_PLACEHOLDER_SPAN, &isObj);
-    if (ret != ANI_OK || !isObj) {
-        TEXT_LOGE("Object mismatch, ret %{public}d", ret);
-        return ret;
-    }
-    ret = env->Object_GetPropertyByName_Double(obj, "width", &placeholderSpan.width);
+    ani_status ret =
+        env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().placeholderSpanWidth, &placeholderSpan.width);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse width, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_GetPropertyByName_Double(obj, "height", &placeholderSpan.height);
+    ret = env->Object_CallMethod_Double(
+        obj, AniGlobalMethod::GetInstance().placeholderSpanHeight, &placeholderSpan.height);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse height, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, "align", placeholderSpan.alignment);
+    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::placeHolderAlignment,
+        AniGlobalMethod::GetInstance().placeholderSpanAlign, placeholderSpan.alignment);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse align, ret %{public}d", ret);
         return ret;
     }
-    ret = AniTextUtils::ReadEnumField(env, obj, "baseline", placeholderSpan.baseline);
+    ret = AniTextUtils::ReadEnumField(env, obj, AniTextEnum::textBaseLine,
+        AniGlobalMethod::GetInstance().placeholderSpanBaseline, placeholderSpan.baseline);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baseline, ret %{public}d", ret);
         return ret;
     }
-    ret = env->Object_GetPropertyByName_Double(obj, "baselineOffset", &placeholderSpan.baselineOffset);
+    ret = env->Object_CallMethod_Double(
+        obj, AniGlobalMethod::GetInstance().placeholderSpanBaselineOffset, &placeholderSpan.baselineOffset);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse baselineOffset, ret %{public}d", ret);
         return ret;
