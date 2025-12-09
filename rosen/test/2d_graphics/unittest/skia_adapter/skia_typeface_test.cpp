@@ -471,6 +471,23 @@ HWTEST_F(SkiaTypefaceTest, Serialize001, TestSize.Level1)
     ASSERT_NE(typeface, nullptr);
     ASSERT_TRUE(typeface->Serialize() != nullptr);
 }
+
+/**
+ * @tc.name: GetFontIndex001
+ * @tc.desc: Test for get font index
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetFontIndex001, TestSize.Level1)
+{
+    std::string TEST_TTC_PATH = "/system/fonts/NotoSansCJK-Regular.ttc";
+    auto typeface = SkiaTypeface::MakeFromFile(TEST_TTC_PATH.c_str(), 1);
+    EXPECT_EQ(typeface->GetFontIndex(), 1);
+
+    // improved the test case coverage rate
+    SkiaTypeface emptyTypeface(nullptr);
+    EXPECT_EQ(emptyTypeface.GetTypeface(), nullptr);
+    EXPECT_EQ(emptyTypeface.GetFontIndex(), 0);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

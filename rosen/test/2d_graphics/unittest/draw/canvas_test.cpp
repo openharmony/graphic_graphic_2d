@@ -600,7 +600,7 @@ HWTEST_F(CanvasTest, HpsEffectParameterGetTypeTest001, TestSize.Level1)
     // STATISTICS
     auto hpsStatisticsArgs = std::make_shared<Drawing::HpsStatisticsParameter>(srcRect, dstRect,
         Drawing::HpsStatisticsType::MEAN);
-    EXPECT_EQ(hpsMesaArgs->GetEffectType(), Drawing::HpsEffect::STATISTICS);
+    EXPECT_EQ(hpsStatisticsArgs->GetEffectType(), Drawing::HpsEffect::STATISTICS);
     // PIXEL_MAP_MASK
     std::vector<float> colors2 = { 0, 0, 0, 0 };
     auto sharedImage = std::make_shared<Drawing::Image>(image);

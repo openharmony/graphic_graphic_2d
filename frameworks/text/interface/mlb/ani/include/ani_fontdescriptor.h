@@ -32,6 +32,8 @@ private:
     static ani_object GetFontDescriptorByFullName(ani_env* env, ani_string fullName, ani_enum_item fontType);
     static ani_object MatchFontDescriptors(ani_env* env, ani_object desc);
     static ani_object GetFontDescriptorsFromPath(ani_env* env, ani_object path);
+    static ani_object GetFontUnicodeSet(ani_env* env, ani_object path, ani_int index);
+    static ani_int GetFontCount(ani_env* env, ani_object path);
 };
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_FONT_DESCRIPTOR_H

@@ -42,7 +42,6 @@ public:
     RSColor(int16_t red, int16_t green, int16_t blue) noexcept;
     RSColor(int16_t red, int16_t green, int16_t blue, int16_t alpha,
         GraphicColorGamut colorSpace = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB) noexcept;
-    explicit RSColor(ColorPlaceholder ph) noexcept;
 
     RSColor(const RSColor& rhs) noexcept
     {
@@ -106,15 +105,12 @@ public:
 
     void Dump(std::string& out) const;
 
-    bool IsPlaceholder() const
+    explicit RSColor(ColorPlaceholder ph) noexcept : RSColor()
     {
-        return placeholder_ != ColorPlaceholder::NONE;
+        placeholder_ = static_cast<uint16_t>(ph);
     }
-
-    ColorPlaceholder GetPlaceholder() const
-    {
-        return placeholder_;
-    }
+    bool IsPlaceholder() const;
+    ColorPlaceholder GetPlaceholder() const;
 
     Drawing::Color ConvertToDrawingColor() const;
 
@@ -130,8 +126,8 @@ private:
         int16_t green_ : 16;
         int16_t red_ : 16;
     };
-    GraphicColorGamut colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
-    ColorPlaceholder placeholder_ = ColorPlaceholder::NONE;
+    int16_t colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    uint16_t placeholder_ = 0; // enum ColorPlaceholder
 };
 } // namespace Rosen
 } // namespace OHOS
