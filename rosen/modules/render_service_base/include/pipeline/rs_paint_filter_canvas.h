@@ -30,6 +30,7 @@
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
+#include "cache/ge_cache_provider.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -358,6 +359,7 @@ public:
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
+        std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;

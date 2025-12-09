@@ -28,6 +28,8 @@
 #include "render/rs_hps_blur.h"
 #include "render/rs_render_filter_base.h"
 
+#include "cache/ge_cache_provider.h"
+
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
@@ -49,6 +51,7 @@ public:
     struct DrawImageRectParams {
         bool discardCanvas;
         bool offscreenDraw;
+        IGECacheProvider* geCacheProvider = nullptr;
     };
 
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
@@ -126,6 +129,7 @@ private:
         Drawing::Rect dst;
         bool discardCanvas;
         float brushAlpha;
+        IGECacheProvider* geCacheProvider = nullptr;
     };
     void DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const DrawImageRectAttributes& attr);

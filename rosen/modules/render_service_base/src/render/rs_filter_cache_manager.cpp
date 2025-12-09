@@ -23,6 +23,7 @@
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "src/image/SkImage_Base.h"
 
+#include "cache/ge_image_cache_provider.h"
 #include "common/rs_optional_trace.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
@@ -274,6 +275,8 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
         GenerateFilteredSnapshot(canvas, filter, dst);
     }
+
+    cachedFilteredSnapshot_->geCacheProvider_ = std::make_shared<GEImageCacheProvider>();
     // Keep a reference to the cached image, since CompactCache may invalidate it.
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     return cachedFilteredSnapshot;
@@ -350,7 +353,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     auto dst = Drawing::Rect(0, 0, offscreenRect.GetWidth(), offscreenRect.GetHeight());
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
-    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst, { false, true });
+    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst,
+        { false, true, cachedFilteredSnapshot_->geCacheProvider_.get() });
     filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
