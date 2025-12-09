@@ -369,7 +369,7 @@ void RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(
     params.SetAccumulatedHdrStatusChanged(params.GetAccumulatedHdrStatusChanged() || params.IsHDRStatusChanged());
 
     // update accumulated special layer status changed
-    auto currentBlackList = params->GetScreenProperty().GetMergeBlackList();
+    auto currentBlackList = params.GetScreenProperty().GetMergeBlackList();
     if (currentBlackList != params.GetLastBlackList()) {
         params.SetLastBlackList(currentBlackList);
         params.SetAccumulatedSpecialLayerStatusChanged(true);
@@ -463,19 +463,19 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
             continue;
         }
         ScreenId screenId = displayParams->GetScreenId();
-        auto curBlackList = screenManager->GetVirtualScreenBlackList(screenId);
-        auto curTypeBlackList = screenManager->GetVirtualScreenTypeBlackList(screenId);
+        // auto curBlackList = screenManager->GetVirtualScreenBlackList(screenId);
+        // auto curTypeBlackList = screenManager->GetVirtualScreenTypeBlackList(screenId);
 
-        const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
-            screenDirtyManager->GetTypeHwcDirtyRegion();
-        for (auto& typeHwcRect : typeHwcRectList) {
-            NodeType nodeType = static_cast<NodeType>(typeHwcRect.first);
-            if (curTypeBlackList.find(nodeType) == curTypeBlackList.end() &&
-                !typeHwcRect.second.IsEmpty()) {
-                RS_TRACE_NAME("CheckCurrentFrameHasDirtyInVirtual has typeHwcRect");
-                return true;
-            }
-        }
+        // const std::map<RSSurfaceNodeType, RectI>& typeHwcRectList =
+        //     screenDirtyManager->GetTypeHwcDirtyRegion();
+        // for (auto& typeHwcRect : typeHwcRectList) {
+        //     NodeType nodeType = static_cast<NodeType>(typeHwcRect.first);
+        //     if (curTypeBlackList.find(nodeType) == curTypeBlackList.end() &&
+        //         !typeHwcRect.second.IsEmpty()) {
+        //         RS_TRACE_NAME("CheckCurrentFrameHasDirtyInVirtual has typeHwcRect");
+        //         return true;
+        //     }
+        // }
         for (const auto& adapter : curAllSurfaceDrawables) {
             if (adapter == nullptr || adapter->GetNodeType() != RSRenderNodeType::SURFACE_NODE) {
                 RS_LOGD("CheckCurrentFrameHasDirtyInVirtual adapter is nullptr or error type");

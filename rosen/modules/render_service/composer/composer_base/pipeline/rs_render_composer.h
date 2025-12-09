@@ -129,7 +129,7 @@ private:
     }
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer);
     GSError ClearFrameBuffers(bool isNeedResetContext = true);
-    GSError ClearFrameBuffersInner(bool isNeedResetContext);
+    GSError ClearFrameBuffersInner(bool isNeedResetContext = true);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void UpdateForSurfaceFps(PipelineParam&);

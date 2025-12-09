@@ -30,6 +30,7 @@ enum class RSLayerParcelType : uint16_t {
     RS_LAYER_UPDATE,
     RS_RCD_LAYER_UPDATE,
 };
+
 enum class LayerMask : uint16_t {
     LAYER_MASK_NORMAL = 0,
     LAYER_MASK_HBM_SYNC = 1,

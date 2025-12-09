@@ -32,7 +32,7 @@ public:
     void OnScreenDisconnected();
     GSError ClearFrameBuffers(bool isNeedResetContext = true);  // majingtao
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
-    void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
+    void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void SurfaceDump(std::string& dumpString);

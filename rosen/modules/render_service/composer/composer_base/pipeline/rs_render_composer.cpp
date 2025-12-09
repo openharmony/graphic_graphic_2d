@@ -846,12 +846,14 @@ GSError RSRenderComposer::ClearFrameBuffersInner(bool isNeedResetContext)
     return hdiOutput_->ClearFrameBuffer();
 }
 
-void RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
+// majingtao
+GSError RSRenderComposer::ClearFrameBuffers(bool isNeedResetContext)
 {
     std::function<void()> task = [this, isNeedResetContext = isNeedResetContext]() {
         ClearFrameBuffersInner(isNeedResetContext);
     };
     PostTask(task);
+    return GSERROR_OK;
 }
 
 std::shared_ptr<RSSurfaceOhos> RSRenderComposer::CreateFrameBufferSurfaceOhos(const sptr<Surface>& surface)

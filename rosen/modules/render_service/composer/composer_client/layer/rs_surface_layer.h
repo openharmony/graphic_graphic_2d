@@ -35,7 +35,7 @@ class RSRenderLayerCmd;
 class RSSurfaceLayer : public RSLayer {
 public:
     RSSurfaceLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSLayerContext> rsLayerContext = nullptr);
-    ~RSSurfaceLayer() = default;
+    virtual ~RSSurfaceLayer();
 
     RSLayerId GetRSLayerId() const override;
     void SetRSLayerId(RSLayerId rsLayerId) override;

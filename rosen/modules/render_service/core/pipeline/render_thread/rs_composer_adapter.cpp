@@ -32,8 +32,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "rs_layer_factory.h"
-#include "rs_render_composer_manager.h"
-#include "rs_surface_layer.h"
 #include "rs_trace.h"
 #include "string_utils.h"
 
@@ -68,12 +66,6 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
     std::vector<GraphicIRect> damageRects;
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
-
-    // Initialize composerClient
-    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo.id);
-    if (composerClient_ == nullptr) {
-        return false;
-    }
 
     return true;
 }
@@ -110,11 +102,6 @@ bool RSComposerAdapter::Init(const RSScreenRenderNode& node, const ScreenInfo& s
     damageRects.emplace_back(damageRect);
     output_->SetOutputDamages(damageRects);
 
-    // Initialize composerClient
-    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo.id);
-    if (composerClient_ == nullptr) {
-        return false;
-    }
     return true;
 }
 
@@ -130,7 +117,7 @@ void RSComposerAdapter::CommitLayers(const std::vector<RSLayerPtr>& layers)
     // do composition.
     output_->SetRSLayers(layers);
     output_->Repaint();
-    composerClient_->ClearAllLayers();
+    composerClient_->ClearAllRSLayers();
 
     // get present timestamp from and set present timestamp to surface
     for (const auto& layer : layers) {
@@ -546,7 +533,7 @@ RSLayerPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
         info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
         info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
         surfaceHandler->GetGlobalZOrder(), info.zOrder, info.blendType);
-    LayerInfoPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
+    RSLayerPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateBufferLayer failed to create layer");
         return nullptr;
@@ -576,7 +563,7 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    LayerInfoPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
+    RSLayerPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateTunnelLayer failed to create layer");
         return nullptr;
@@ -636,7 +623,7 @@ RSLayerPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
         info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
-    LayerInfoPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
+    RSLayerPtr layer = RSLayerFactory::CreateRSLayer(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateLayer failed to create layer");
         return nullptr;
