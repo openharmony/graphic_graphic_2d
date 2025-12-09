@@ -134,14 +134,14 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             params.isHdrRedraw = true;
         }
 #endif
-        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layerSurface->GetSurfaceName().c_str());
+        RS_TRACE_NAME_FMT("DrawLayerWithParams, surface name: %s", layer->GetSurfaceName().c_str());
         DrawHdiLayerWithParams(canvas, layer, params);
         // Dfx for redraw region
         auto dstRect = layer->GetLayerSize();
         if (RSSystemProperties::GetHwcRegionDfxEnabled()) {
             RectI dst(dstRect.x, dstRect.y, dstRect.w, dstRect.h);
             RSUniRenderUtil::DrawRectForDfx(canvas, dst, Drawing::Color::COLOR_YELLOW, REDRAW_DFX_ALPHA,
-                layerSurface->GetSurfaceName());
+                layer->GetSurfaceName());
         }
     }
 
