@@ -81,6 +81,7 @@ public:
 };
 
 class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
+public:
     sptr<IRemoteObject> AsObject()
     {
         return nullptr;
@@ -816,7 +817,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture001, Function | SmallTest | Level
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.dynamicRangeMode.first = -1;
     captureConfig.dynamicRangeMode.second = false;
-    auto renderNode = std::make_shared<RSCavasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
     renderNode->renderProperties_.SetBoundsWidth(500.f);
     renderNode->renderProperties_.SetBoundsHeight(500.f);
     renderNode->InitRenderParams();
@@ -844,7 +845,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture002, Function | SmallTest | Level
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
     captureConfig.dynamicRangeMode.second = true;
-    auto renderNode = std::make_shared<RSCavasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
     renderNode->renderProperties_.SetBoundsWidth(500.f);
     renderNode->renderProperties_.SetBoundsHeight(500.f);
     renderNode->InitRenderParams();
@@ -868,7 +869,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture003, Function | SmallTest | Level
     RSSurfaceCaptureConfig captureConfig;
     captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
     captureConfig.dynamicRangeMode.second = true;
-    auto renderNode = std::make_shared<RSCavasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
     renderNode->renderProperties_.SetBoundsWidth(500.f);
     renderNode->renderProperties_.SetBoundsHeight(500.f);
     renderNode->InitRenderParams();
