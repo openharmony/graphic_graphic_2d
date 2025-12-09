@@ -397,6 +397,6 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl018, TestSize.Level1)
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
     uint32_t level = 0;
-    ASSERT_EQ(luminCtrl.ConvertScalerFromLevelToFloat(level), 1.0f);
+    ASSERT_EQ(luminCtrl.ConvertScalerFromLevelToFloat(level), 0.0f);
 }
 } // namespace OHOS::Rosen

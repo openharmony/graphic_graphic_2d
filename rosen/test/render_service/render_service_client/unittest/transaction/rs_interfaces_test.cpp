@@ -737,6 +737,67 @@ HWTEST_F(RSInterfacesTest, GetPidGpuMemoryInMBTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: TakeSurfaceCaptureForUITest
+ * @tc.desc: test results of TakeSurfaceCaptureForUI
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ6NM
+ */
+HWTEST_F(RSInterfacesTest, TakeSurfaceCaptureForUITest, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        explicit TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+    };
+    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    auto callback = std::make_shared<TestSurfaceCapture>();
+    auto canvasNode = RSCanvasNode::Create(false, true);
+    bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    auto res = instance.TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, false);
+    EXPECT_EQ(res, true);
+    res = instance.TakeSurfaceCaptureForUI(canvasNode, callback, 1.f, 1.f, true);
+    EXPECT_EQ(res, true);
+    res = instance.TakeSurfaceCaptureForUI(nullptr, callback);
+    EXPECT_EQ(res, false);
+    RSSystemProperties::isUniRenderEnabled_ = backupProperty;
+}
+
+/**
+ * @tc.name: TakeUICaptureInRangeTest
+ * @tc.desc: test results of TakeUICaptureInRange
+ * @tc.type: FUNC
+ * @tc.require: issuesIBZ6NM
+ */
+HWTEST_F(RSInterfacesTest, TakeUICaptureInRangeTest, TestSize.Level1)
+{
+    class TestSurfaceCapture : public SurfaceCaptureCallback {
+    public:
+        explicit TestSurfaceCapture() {}
+        ~TestSurfaceCapture() {}
+        void OnSurfaceCapture(std::shared_ptr<Media::PixelMap> pixelMap) override {}
+        void OnSurfaceCaptureHDR(std::shared_ptr<Media::PixelMap> pixelMap,
+            std::shared_ptr<Media::PixelMap> pixelMapHDR) override {}
+    };
+    RSRenderInterface& instance = RSRenderInterface::GetInstance();
+    auto callback = std::make_shared<TestSurfaceCapture>();
+    auto canvasNodeBegin = RSCanvasNode::Create(false, true);
+    auto canvasNodeEnd = RSCanvasNode::Create(false, true);
+    bool backupProperty = RSSystemProperties::isUniRenderEnabled_;
+    RSSystemProperties::isUniRenderEnabled_ = true;
+    auto res = instance.TakeUICaptureInRange(nullptr, canvasNodeEnd, false, callback, 1.f, 1.f, false);
+    EXPECT_EQ(res, false);
+    res = instance.TakeUICaptureInRange(canvasNodeBegin, canvasNodeEnd, false, callback, 1.f, 1.f, false);
+    EXPECT_EQ(res, true);
+    res = instance.TakeUICaptureInRange(canvasNodeBegin, canvasNodeEnd, false, callback, 1.f, 1.f, true);
+    EXPECT_EQ(res, true);
+    RSSystemProperties::isUniRenderEnabled_ = backupProperty;
+}
+
+/**
  * @tc.name: TaskSurfaceCaptureWithAllWindowsTest001
  * @tc.desc: Test TaskSurfaceCaptureWithAllWindows to capture display
  * @tc.type: FUNC
