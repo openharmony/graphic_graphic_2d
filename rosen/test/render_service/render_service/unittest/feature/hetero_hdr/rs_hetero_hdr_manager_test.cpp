@@ -1618,6 +1618,26 @@ HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest1, TestSize.Level1)
 HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest2, TestSize.Level1)
 {
     MockRSHeteroHDRManager mockRSHeteroHDRManager;
+    ScreenId screenId = 1;
+    mockRSHeteroHDRManager.WaitHardwareThreadTaskExecute(screenId);
+    mockRSHeteroHDRManager.needClear_ = true;
+    EXPECT_CALL(mockRSHeteroHDRManager, MHCGetFrameIdUsed()).WillRepeatedly(testing::Return(false));
+    mockRSHeteroHDRManager.ClearBufferCache();
+    EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 1);
+    mockRSHeteroHDRManager.framesNoApplyCnt_ = 6;
+    mockRSHeteroHDRManager.ClearBufferCache();
+    EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 7);
+}
+
+/**
+ * @tc.name: GetSurfaceDrawableByIDTest1
+ * @tc.desc: Test GetSurfaceDrawableByID
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, GetSurfaceDrawableByID1, TestSize.Level1)
+{
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
 
     NodeId id = 1;
     auto ret1 = RSHeteroHDRUtil::GetSurfaceDrawableByID(id);
