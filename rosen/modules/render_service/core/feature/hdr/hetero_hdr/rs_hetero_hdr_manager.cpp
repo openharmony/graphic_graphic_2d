@@ -417,7 +417,7 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
 
 bool RSHeteroHDRManager::HasHdrHeteroNode()
 {
-    uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
+    uint64_t curFrameId = RSUniRenderThread::Instance().GetVsyncId();
     return (pendingPostNodes_.size() == 1 && curFrameId != 0);
 }
 
@@ -427,7 +427,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
         return;
     }
     curNodeId_ = 0;
-    uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
+    uint64_t curFrameId = RSUniRenderThread::Instance().GetVsyncId();
     RSHDRPatternManager::Instance().MHCSetVsyncId(curFrameId);
     FindParentLeashWindowNode();
 
@@ -558,7 +558,7 @@ bool RSHeteroHDRManager::IsHDRSurfaceNodeSkipped(
         RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager IsHDRSurfaceNodeSkipped FilterCache Skip");
         return true;
     }
-    if (RSUniRenderUtil::CheckRenderSkipIfScreenOff()) {	
+    if (RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(GetScreenIDByDrawable(surfaceDrawable))) {	
         return true;	
     }
     if (!surfaceDrawable->ShouldPaint()) {

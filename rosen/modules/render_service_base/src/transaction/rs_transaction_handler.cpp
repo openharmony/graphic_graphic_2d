@@ -50,12 +50,19 @@ void RSTransactionHandler::SetRenderThreadClient(std::unique_ptr<RSIRenderClient
     }
 }
 
+void RSTransactionHandler::SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient)
+{
+    if (renderServiceClient != nullptr) {
+        renderServiceClient_ = renderServiceClient;
+    }
+}
+
 void RSTransactionHandler::AddCommand(
     std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand, FollowType followType, NodeId nodeId)
 {
 #ifndef SCREENLESS_DEVICE
-    if ((renderPiplineClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
-        RS_LOGE("RSTransactionHandler::add command fail, (renderPiplineClient_ and renderThreadClient_ is nullptr)"
+    if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
+        RS_LOGE("RSTransactionHandler::add command fail, (renderServiceClient_ and renderThreadClient_ is nullptr)"
                 " or command is nullptr");
         return;
     }
@@ -66,7 +73,7 @@ void RSTransactionHandler::AddCommand(
         "RSTransactionHandler::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu",
         nodeId, isRenderServiceCommand, followType);
-    if (renderPiplineClient_ != nullptr && isRenderServiceCommand) {
+    if (renderServiceClient_ != nullptr && isRenderServiceCommand) {
         AddRemoteCommand(command, nodeId, followType);
         return;
     }
@@ -82,7 +89,7 @@ void RSTransactionHandler::AddCommand(
 
 void RSTransactionHandler::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
-    if (renderPiplineClient_ == nullptr || command == nullptr) {
+    if (renderServiceClient_ == nullptr || command == nullptr) {
         return;
     }
 
@@ -94,14 +101,14 @@ void RSTransactionHandler::AddCommandFromRT(std::unique_ptr<RSCommand>& command,
 
 void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHandler> transactionHandler, NodeId nodeId)
 {
-    if (renderPiplineClient_ == nullptr && renderThreadClient_ == nullptr) {
-        RS_LOGE("RSTransactionHandler::MoveCommandByNodeId GetCommand fail, (renderPiplineClient_ and "
+    if (renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) {
+        RS_LOGE("RSTransactionHandler::MoveCommandByNodeId GetCommand fail, (renderServiceClient_ and "
                 "renderThreadClient_ is nullptr)");
         return;
     }
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
-    if (renderPiplineClient_ != nullptr) {
+    if (renderServiceClient_ != nullptr) {
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
     }
     if (renderThreadClient_ != nullptr) {
@@ -116,8 +123,8 @@ void RSTransactionHandler::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTa
         return;
     }
 
-    if (renderPiplineClient_ && isRenderServiceTask) {
-        renderPiplineClient_->ExecuteSynchronousTask(task);
+    if (renderServiceClient_ && isRenderServiceTask) {
+        renderServiceClient_->ExecuteSynchronousTask(task);
         return;
     }
 
@@ -158,7 +165,7 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
         }
     }
 
-    if (renderPiplineClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
+    if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
         return;
     }
 
@@ -168,11 +175,11 @@ void RSTransactionHandler::FlushImplicitTransaction(uint64_t timestamp, const st
     transactionData->token_ = token_;
     transactionData->tid_ = tid;
     if (RSSystemProperties::GetHybridRenderEnabled() && RSTransactionHandler::commitTransactionCallback_ != nullptr) {
-        RSTransactionHandler::commitTransactionCallback_(renderPiplineClient_,
+        RSTransactionHandler::commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_, shared_from_this());
         return;
     }
-    renderPiplineClient_->CommitTransaction(transactionData);
+    renderServiceClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
 }
 
@@ -217,11 +224,11 @@ bool RSTransactionHandler::IsEmpty() const
 void RSTransactionHandler::FlushImplicitTransactionFromRT(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutexForRT_);
-    if (renderPiplineClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
+    if (renderServiceClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
         implicitTransactionDataFromRT_->timestamp_ = timestamp;
         thread_local pid_t tid = gettid();
         implicitTransactionDataFromRT_->tid_= tid;
-        renderPiplineClient_->CommitTransaction(implicitTransactionDataFromRT_);
+        renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
         implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
     }
 }
@@ -280,11 +287,11 @@ void RSTransactionHandler::Commit(uint64_t timestamp)
     }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderPiplineClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
+        if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
             thread_local pid_t tid = gettid();
             implicitRemoteTransactionDataStack_.top()->tid_= tid;
-            renderPiplineClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
+            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
     }
@@ -312,12 +319,12 @@ void RSTransactionHandler::CommitSyncTransaction(uint64_t syncId, uint64_t times
     }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderPiplineClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
+        if (renderServiceClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
                                                    implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
             implicitRemoteTransactionDataStack_.top()->tid_ = tid;
             implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId);
-            renderPiplineClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
+            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
     }
