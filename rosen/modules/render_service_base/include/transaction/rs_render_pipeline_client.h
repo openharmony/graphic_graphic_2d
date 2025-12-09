@@ -107,7 +107,7 @@ public:
     ErrCode RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app); // proxy Single
 
     ErrCode RegisterBufferClearListener(
-        NodeId id, sptr<RSIBufferClearCallback> callback);
+        NodeId id, const BufferClearCallback& callback);
 
     ErrCode RegisterBufferAvailableListener(
         NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
