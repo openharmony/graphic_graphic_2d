@@ -214,7 +214,7 @@ void RSScreenPreprocessor::ConfigureScreenConnected(std::shared_ptr<HdiOutput>& 
             }
         }
         // 第二步: 配置连接消息
-        screenManager->ProcessScreenConnected(id, output);
+        screenManager->ProcessScreenConnected(output);
         // 第三步: 通知屏幕连接消息
         if (auto callbackMgr = callbackMgrWeak_.lock()) {
             ScreenPresenceEvent event = {.id = id, .connected = true, .reason = reason,
