@@ -3579,6 +3579,7 @@ void RSProperties::GenerateMaterialFilter()
 {
     // not support compose yet, so do not use ComposeNGRenderFilter
     if (!GetMaterialNGFilter()) {
+        GetEffect().materialFilter_ = nullptr;
         return;
     }
     auto filter = std::make_shared<RSDrawingFilter>();
