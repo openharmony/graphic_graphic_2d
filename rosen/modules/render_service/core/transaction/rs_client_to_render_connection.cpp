@@ -169,13 +169,13 @@ void RSClientToRenderConnection::CleanRenderNodes() noexcept
 
 void RSClientToRenderConnection::CleanFrameRateLinkers() noexcept
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+    // if (mainThread_ == nullptr) {
+    //     return;
+    // }
+    // auto& context = mainThread_->GetContext();
+    // auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
 
-    frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
+    // frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept

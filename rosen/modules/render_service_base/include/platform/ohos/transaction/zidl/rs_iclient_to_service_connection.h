@@ -69,6 +69,10 @@ public:
     RSIClientToServiceConnection() = default;
     virtual ~RSIClientToServiceConnection() noexcept = default;
 
+    virtual ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) = 0;
+
+    virtual ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) = 0;
+
     virtual ErrCode GetUniRenderEnabled(bool& enable) = 0;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
@@ -109,6 +113,9 @@ public:
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;
+    
+    virtual ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
+    std::shared_ptr<Media::PixelMap> watermark, bool& success) = 0;
 
     virtual uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,

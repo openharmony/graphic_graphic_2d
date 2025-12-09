@@ -165,19 +165,12 @@ RSClientToServiceConnection::~RSClientToServiceConnection() noexcept
 
 void RSClientToServiceConnection::CleanVirtualScreens() noexcept
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    if (screenManager_ != nullptr) {
-        for (const auto id : virtualScreenIds_) {
-            screenManager_->RemoveVirtualScreen(id);
-        }
+    if (screenManagerAgent_ == nullptr) {
+        RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
+        return;
     }
-    virtualScreenIds_.clear();
-
-    if (screenChangeCallback_ != nullptr && screenManager_ != nullptr) {
-        screenManager_->RemoveScreenChangeCallback(screenChangeCallback_);
-        screenChangeCallback_ = nullptr;
-    }
+    screenManagerAgent_->CleanVirtualScreens();
+    screenManagerAgent_->SetScreenChangeCallback(nullptr);
 }
 
 void RSClientToServiceConnection::CleanRenderNodes() noexcept
@@ -198,13 +191,13 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
 
 void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
+    // if (mainThread_ == nullptr) {
+    //     return;
+    // }
+    // auto& context = mainThread_->GetContext();
+    // auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
 
-    frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
+    // frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
 void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
@@ -379,6 +372,21 @@ ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& enable)
 {
     enable = RSUniRenderJudgement::IsUniRender();
     return  ERR_OK;
+}
+
+void RSClientToServiceConnection::GetSurfaceRootNodeId(NodeId& windowNodeId)
+{
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.size() == 0) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return;
+    }
+    for (auto conn : serviceToRenderConns) {
+        conn->GetSurfaceRootNodeId(windowNodeId);
+        if (windowNodeId != 0) {
+            return;
+        }
+    }
 }
 
 ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,

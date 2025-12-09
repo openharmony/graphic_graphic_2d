@@ -45,7 +45,7 @@ public:
         RSMainThread* mainThread,
         sptr<RSScreenManagerAgent> screenManagerAgent,
         sptr<IRemoteObject> token,
-        sptr<VSyncDistributor> distributor)
+        sptr<VSyncDistributor> distributor);
     ~RSClientToServiceConnection() noexcept;
     RSClientToServiceConnection(const RSClientToServiceConnection&) = delete;
     RSClientToServiceConnection& operator=(const RSClientToServiceConnection&) = delete;
@@ -82,6 +82,8 @@ private:
                                   const std::string& name,
                                   const sptr<VSyncIConnectionToken>& token,
                                   VSyncConnParam vsyncConnParam = {0, 0, false}) override;
+
+    void GetSurfaceRootNodeId(NodeId& windowNodeId);
 
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
     float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
@@ -413,12 +415,14 @@ private:
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
+    sptr<RSRenderServiceAgent> renderServiceAgent_;
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_ = nullptr;
     RSMainThread* mainThread_ = nullptr;
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread& renderThread_;
 #endif
-    sptr<RSScreenManager> screenManager_;
+    sptr<RSScreenManagerAgent> screenManagerAgent_;
     sptr<IRemoteObject> token_;
 
     std::unordered_map<pid_t, std::string> pidToBundleName_;
