@@ -117,7 +117,6 @@ private:
         return RSHDRPatternManager::Instance().MHCGetFrameIdUsed();
     }
 
-
     RSHeteroHDRBufferLayer rsHeteroHDRBufferLayer_{"HDRHeterogeneousLayer", INVALID_NODEID};
     std::unordered_map<NodeId, NodeId> ownedLeashWindowIdMap_;
     std::unordered_map<NodeId, NodeId> ownedAppWindowIdMap_;

@@ -290,7 +290,7 @@ bool RSHeteroHDRManager::CheckWindowOwnership(NodeId nodeId)
 
 void RSHeteroHDRManager::ClearBufferCache()
 {
-    if(!needClear_){
+    if (!needClear_) {
         return;
     }
     if (framesNoApplyCnt_ > MAX_RELEASE_FRAME_NUM && MHCGetFrameIdUsed()) {
@@ -739,9 +739,9 @@ void RSHeteroHDRManager::WaitHardwareThreadTaskExecute(ScreenId screenId)
         std::chrono::milliseconds(RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT),
         [screenId]() {
             return RSRenderComposerManager::GetInstance()
-                .GetUnExecuteTaskNum(screenId) <= RS_HARDWARE_THREAD_TASK_NUM; 
+                .GetUnExecuteTaskNum(screenId) <= RS_HARDWARE_THREAD_TASK_NUM;
         });
-    if(!ret) {
+    if (!ret) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager WaitHardwareThreadTaskExecute has too many hw tasks to execute");
     }
 }
