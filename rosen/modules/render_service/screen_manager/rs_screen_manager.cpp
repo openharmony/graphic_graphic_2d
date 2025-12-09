@@ -403,17 +403,18 @@ bool RSScreenManager::CheckFoldScreenIdBuiltIn(ScreenId id)
     if (id == BUILT_IN_MAIN_SCREEN_ID || id == BUILT_IN_EXTERNAL_SCREEN_ID) {
         return true;
     }
-    
+}
 
-void RSScreenManager::ProcessScreenConnected(ScreenId id, std::shared_ptr<HdiOutput>& output)
+void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
 {
-    auto screen = std::make_shared<RSScreen>(id, output);
+    auto screen = std::make_shared<RSScreen>(output);
     screen->SetOnPropertyChangedCallback(
         std::bind(&RSScreenManager::OnScreenPropertyChanged, this, std::placeholders::_1));
     screen->SetOnBacklightChangedCallback(
         std::bind(&RSScreenManager::OnScreenBacklightChanged, this, std::placeholders::_1, std::placeholders::_2));
 
     std::unique_lock<std::mutex> lock(screenMapMutex_);
+    ScreenId id = ToScreenId(output->GetScreenId());
     screens_[id] = screen;
     if (isFoldScreenFlag_ && CheckFoldScreenIdBuiltIn(id) && foldScreenIds_.size() < ORIGINAL_FOLD_SCREEN_AMOUNT) {
         foldScreenIds_[id] = {true, false};

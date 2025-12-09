@@ -461,12 +461,6 @@ uint32_t RSScreen::SetScreenActiveRect(const GraphicIRect& activeRect)
     }
     property_.SetReviseRect(RectI(reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h));
 
-    if (hdiScreen_->SetScreenActiveRect(reviseRect) < 0) {
-        HILOG_COMM_ERROR("SetScreenActiveRect failed: hdi SetScreenActiveRect failed, activeRect with revise:"
-            "(%{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ", %{public}" PRId32 ")",
-            reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
-        return StatusCode::HDI_ERROR;
-    }
     HILOG_COMM_INFO("SetScreenActiveRect success, reviseRect: (%{public}" PRId32 ", %{public}" PRId32 ", "
         "%{public}" PRId32 ", %{public}" PRId32 ")", reviseRect.x, reviseRect.y, reviseRect.w, reviseRect.h);
     if (onPropertyChange_) {
@@ -932,8 +926,8 @@ void RSScreen::SetScreenBacklight(uint32_t level)
 
     RS_LOGD("%{public}s id: %{public}" PRIu64 ", level is %{public}u", __func__, id, level);
 
-    if (onBacklightChange_) {
-        onBacklightChange_(property_.GetId(), level);
+    if (onBackLightChange_) {
+        onBackLightChange_(property_.GetId(), level);
     }
     if (!hasLogBackLightAfterPowerStatusChanged_) {
         HILOG_COMM_INFO("SetScreenBacklight id: %{public}" PRIu64 ", level %{public}u done, last level is %{public}d",
@@ -1655,7 +1649,7 @@ void RSScreen::SetOnPropertyChangedCallback(std::function<void(const sptr<RSScre
 
 void RSScreen::SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32_t)> callback)
 {
-    onBacklightChange_ = callback;
+    onBackLightChange_ = callback;
 }
 
 void RSScreen::SetDisablePowerOffRenderControl(bool disable)

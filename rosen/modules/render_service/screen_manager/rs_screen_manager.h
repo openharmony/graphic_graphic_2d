@@ -84,8 +84,6 @@ public:
     int32_t SetScreenSwitchingNotifyCallback(const sptr<RSIScreenSwitchingNotifyCallback>& callback);
     void DisplayDump(std::string& dumpString);
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
-    void ClearFrameBufferIfNeed();
-    void ReleaseScreenDmaBuffer(ScreenId screenId);
 
     /* only used for mock tests */
     void MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen);
