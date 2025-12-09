@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "transaction/rs_service_to_render_connection.h"
+#include "rs_service_to_render_connection.h"
 
 #include "rs_render_composer_client.h"
 #include "rs_trace.h"

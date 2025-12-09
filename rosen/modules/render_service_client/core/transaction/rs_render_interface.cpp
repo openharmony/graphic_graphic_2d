@@ -367,6 +367,22 @@ void RSRenderInterface::SetScreenFrameGravity(ScreenId id, int32_t gravity)
     return renderPiplineClient_->SetScreenFrameGravity(id, gravity);
 }
 
+bool RSRenderInterface::GetHighContrastTextState()
+{
+    return renderPiplineClient_->GetHighContrastTextState();
+}
+
+bool RSRenderInterface::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
+{
+    return renderPiplineClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+
+}
+
+bool RSRenderInterface::SetGlobalDarkColorMode(bool isDark)
+{
+    return renderPiplineClient_->SetGlobalDarkColorMode(isDark);
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSRenderInterface::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
@@ -385,22 +401,6 @@ int32_t RSRenderInterface::SubmitCanvasPreAllocatedBuffer(
         return INVALID_ARGUMENTS;
     }
     return renderPiplineClient_->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
-}
-
-bool RSRenderInterface::GetHighContrastTextState()
-{
-    return renderPiplineClient_->GetHighContrastTextState();
-}
-
-bool RSRenderInterface::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
-{
-    return renderPiplineClient_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
-
-}
-
-bool RSRenderInterface::SetGlobalDarkColorMode(bool isDark)
-{
-    return renderPiplineClient_->SetGlobalDarkColorMode(isDark);
 }
 #endif
 }

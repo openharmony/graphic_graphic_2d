@@ -17,7 +17,7 @@
 #define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_CONNECT_HUB_H
 
 #include <mutex>
-#include <platform/ohos/rs_irender_service.h>
+#include <platform/ohos/transaction/zidl/rs_irender_service.h>
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
