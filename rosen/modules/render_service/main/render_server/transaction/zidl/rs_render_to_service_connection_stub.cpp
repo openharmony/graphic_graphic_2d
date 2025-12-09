@@ -17,10 +17,6 @@
 #include "rs_render_to_service_connection_stub.h"
 
 #include "rs_irender_to_service_connection_ipc_interface_code.h"
-#include "rs_profiler.h"
-#include "rs_trace.h"
-
-#include "platform/common/rs_log.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSRenderToServiceConnectionStub"
@@ -66,7 +62,7 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
                 return ERR_INVALID_STATE;
             }
             uint32_t size = 0;
-            if (!data.ReadUint32(size) || size > MAX_SCREENID_ID_COUNT) {
+            if (!data.ReadUint32(size) || size > MAX_SCREEN_ID_COUNT) {
                 RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadSize failed.", __func__);
                 return ERR_INVALID_STATE;
             }
