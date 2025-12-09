@@ -153,10 +153,10 @@ void DrawingSample::Draw()
             for (auto& func : iter->second) {
                 drawLayer->DrawBuffer(func); // producer
                 drawLayer->FillHDILayer();   // consumer
-                std::vector<RSLayerPtr> layerVec;
+                std::vector<LayerInfoPtr> layerVec;
                 layerVec.emplace_back(drawLayer->GetHdiLayer());
                 curOutput_ = outputMap_[screenId];
-                curOutput_->SetLayerInfo(layerVec);
+                curOutput_->SetRSLayers(layerVec);
 
                 GraphicIRect damageRect;
                 damageRect.x = 0;

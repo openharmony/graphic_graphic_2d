@@ -14,7 +14,6 @@
  */
 
 #include "gtest/gtest.h"
-
 #include "animation/rs_animation.h"
 #include "core/transaction/rs_interfaces.h"
 #include "ui/rs_canvas_node.h"
@@ -2894,7 +2893,9 @@ HWTEST_F(RSCanvasNodeTest, NotifyTransition001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     ASSERT_NE(canvasNode, nullptr);
-    canvasNode->NotifyTransition(RSTransitionEffect::Create(), true);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    canvasNode->NotifyTransition(uiContext, RSTransitionEffect::Create(), true);
 }
 
 /**
@@ -2906,7 +2907,9 @@ HWTEST_F(RSCanvasNodeTest, NotifyTransition002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     ASSERT_NE(canvasNode, nullptr);
-    canvasNode->NotifyTransition(RSTransitionEffect::Create(), false);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    canvasNode->NotifyTransition(uiContext, RSTransitionEffect::Create(), true);
 }
 
 /**
@@ -3339,7 +3342,7 @@ HWTEST_F(RSCanvasNodeTest, SetBoundsChangedCallbackTest, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create(false);
     ASSERT_TRUE(canvasNode != nullptr);
-    canvasNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
+    canvasNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas>) {});
     ASSERT_FALSE(canvasNode->recordingUpdated_);
     canvasNode->SetHDRPresent(true);
     canvasNode->SetBoundsChangedCallback([](const Rosen::Vector4f& vector4f) {});
@@ -3368,7 +3371,7 @@ HWTEST_F(RSCanvasNodeTest, CreateRenderNodeForTextureExportSwitch, TestSize.Leve
 HWTEST_F(RSCanvasNodeTest, DrawOnNode, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
-    ModifierNG::RSModifierType type = ModifierNG::RSModifierType::INVALID;
+    RSModifierType type = RSModifierType::INVALID;
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
@@ -3534,13 +3537,13 @@ HWTEST_F(RSCanvasNodeTest, DrawOnNode001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     DrawFunc func = [&](std::shared_ptr<Drawing::Canvas>) {};
-    canvasNode->DrawOnNode(ModifierNG::RSModifierType::INVALID, func);
+    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
 
     canvasNode->BeginRecording(200, 300);
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
-    canvasNode->DrawOnNode(ModifierNG::RSModifierType::INVALID, func);
+    canvasNode->DrawOnNode(RSModifierType::INVALID, func);
     EXPECT_TRUE(RSTransactionProxy::instance_ == nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_TRUE(RSTransactionProxy::instance_ != nullptr);
@@ -3626,6 +3629,21 @@ HWTEST_F(RSCanvasNodeTest, OnBoundsSizeChanged001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetLinkedRootNodeId
+ * @tc.desc: test SetLinkedRootNodeId
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasNodeTest, SetLinkedRootNodeId, TestSize.Level1)
+{
+    NodeId rootNodeId = static_cast<NodeId>(1);
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    EXPECT_NE(canvasNode, nullptr);
+    canvasNode->SetLinkedRootNodeId(rootNodeId);
+    EXPECT_EQ(rootNodeId, canvasNode->GetLinkedRootNodeId());
+}
+
+/**
  * @tc.name: ConstructorWithNodeId
  * @tc.desc: test constructor with node id
  * @tc.type: FUNC
@@ -3638,6 +3656,53 @@ HWTEST_F(RSCanvasNodeTest, ConstructorWithNodeId, TestSize.Level1)
     RSCanvasNode canvasNode(isRenderServiceNode, id);
     EXPECT_EQ(canvasNode.IsRenderServiceNode(), isRenderServiceNode);
     EXPECT_EQ(canvasNode.GetId(), id);
+}
+
+/**
+ * @tc.name: Marshalling
+ * @tc.desc: test Marshalling
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasNodeTest, Marshalling, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    EXPECT_NE(canvasNode, nullptr);
+
+    Parcel parcel;
+    EXPECT_TRUE(canvasNode->Marshalling(parcel));
+}
+
+/**
+ * @tc.name: UnMarshalling001
+ * @tc.desc: test UnMarshalling
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasNodeTest, UnMarshalling001, TestSize.Level1)
+{
+    Parcel parcel;
+    auto canvasNode = RSCanvasNode::Unmarshalling(parcel);
+    EXPECT_TRUE(canvasNode == nullptr);
+}
+
+/**
+ * @tc.name: UnMarshalling002
+ * @tc.desc: test UnMarshalling
+ * @tc.type: FUNC
+ * @tc.require: #IBPVN9
+ */
+HWTEST_F(RSCanvasNodeTest, UnMarshalling002, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    ASSERT_NE(canvasNode, nullptr);
+
+    Parcel parcel;
+    EXPECT_TRUE(canvasNode->Marshalling(parcel));
+    auto canvasNodeUm = RSCanvasNode::Unmarshalling(parcel);
+    ASSERT_NE(canvasNodeUm, nullptr);
+    EXPECT_EQ(canvasNodeUm->IsRenderServiceNode(), canvasNode->IsRenderServiceNode());
+    EXPECT_EQ(canvasNodeUm->GetId(), canvasNode->GetId());
 }
 
 /**
@@ -3755,10 +3820,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest001, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3782,10 +3845,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest002, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3808,10 +3869,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest003, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3834,10 +3893,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr);
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);

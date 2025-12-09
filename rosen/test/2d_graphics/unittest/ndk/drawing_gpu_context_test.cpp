@@ -19,7 +19,6 @@
 #include "GLES3/gl32.h"
 #include "drawing_gpu_context.h"
 #include "drawing_gpu_context_manager.h"
-#include "2d_graphics/include/utils/system_properties.h"
 
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
@@ -182,17 +181,12 @@ HWTEST_F(NativeDrawingGpuContextTest, NativeDrawingGpuContextTest_GpuContextDest
 HWTEST_F(NativeDrawingGpuContextTest, CreateDrawingContextTest, TestSize.Level1)
 {
     auto ins = DrawingGpuContextManager::GetInstance().GetRenderContext();
-    if (Drawing::SystemProperties::IsUseGl()) {
-        if (ins != nullptr) {
-            auto context = DrawingGpuContextManager::GetInstance().CreateDrawingContext();
-            EXPECT_NE(context, nullptr);
-        } else {
-            auto context = DrawingGpuContextManager::GetInstance().CreateDrawingContext();
-            EXPECT_EQ(context, nullptr);
-        }
-    } else if (Drawing::SystemProperties::IsUseVulkan()) {
+    if (ins != nullptr) {
         auto context = DrawingGpuContextManager::GetInstance().CreateDrawingContext();
         EXPECT_NE(context, nullptr);
+    } else {
+        auto context = DrawingGpuContextManager::GetInstance().CreateDrawingContext();
+        EXPECT_EQ(context, nullptr);
     }
 }
 } // namespace Drawing

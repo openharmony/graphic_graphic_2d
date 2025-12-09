@@ -12,17 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #include <gtest/gtest.h>
 #include <memory>
 
-#include "render_context.h"
-
 #include "platform/common/rs_system_properties.h"
-#include "platform/ohos/backend/rs_vulkan_context.h"
+#include "render_context.h"
 #include "render_context/new_render_context/render_context_vk.h"
 using namespace testing::ext;
-
+ 
 namespace OHOS::Rosen {
 class RenderContextVKTest : public testing::Test {
 public:
@@ -31,12 +29,12 @@ public:
     void SetUp() override;
     void TearDown() override;
 };
-
+ 
 void RenderContextVKTest::SetUpTestCase() {}
 void RenderContextVKTest::TearDownTestCase() {}
 void RenderContextVKTest::SetUp() {}
 void RenderContextVKTest::TearDown() {}
-
+ 
 /**
  * @tc.name: CleanAllShaderCache
  * @tc.desc: Verify the CleanAllShaderCache of RenderContextVKTest
@@ -44,21 +42,25 @@ void RenderContextVKTest::TearDown() {}
  */
 HWTEST_F(RenderContextVKTest, CleanAllShaderCache, TestSize.Level1)
 {
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextVK>();
     EXPECT_NE(renderContext, nullptr);
-
-    RsVulkanContext::SetRecyclable(false);
-    auto& interface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    interface.memHandler_ = nullptr;
-
-    auto res = renderContext->CleanAllShaderCache();
-    EXPECT_EQ(res, "");
-
-    interface.memHandler_ = std::make_shared<MemoryHandler>();
-    res = renderContext->CleanAllShaderCache();
-    EXPECT_NE(res, "");
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    vkContext->vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
+    vkContext->vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)].memHandle_ = nullptr;
+    auto result = renderContext->CleanAllShaderCache();
+    EXPECT_EQ(result, "");
 }
-
+}
+ 
 /**
  * @tc.name: GetShaderCacheSize
  * @tc.desc: Verify the GetShaderCacheSize of RenderContextVKTest
@@ -66,14 +68,22 @@ HWTEST_F(RenderContextVKTest, CleanAllShaderCache, TestSize.Level1)
  */
 HWTEST_F(RenderContextVKTest, GetShaderCacheSize, TestSize.Level1)
 {
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextVK>();
     EXPECT_NE(renderContext, nullptr);
-
-    RsVulkanContext::SetRecyclable(false);
-    auto& interface = RsVulkanContext::GetSingleton().GetRsVulkanInterface();
-    interface.memHandler_ = nullptr;
-    auto res = renderContext->GetShaderCacheSize();
-    EXPECT_EQ(res, "");
+    auto vkContext = RsVulkanContext::GetInstance();
+    if (vkContext == nullptr) {
+        GTEST_LOG_(INFO) << "vulkan context is null, skip test";
+        return;
+    }
+    vkContext->InitVulkanContextForHybridRender();
+    vkContext->vulkanInterfaceType_ = VulkanInterfaceType::BASIC_RENDER;
+    vkContext->vulkanInterfaceVec_[size_t(VulkanInterfaceType::BASIC_RENDER)].memHandle_ = nullptr;
+    auto result = renderContext->GetShaderCacheSize();
+    EXPECT_EQ(result, "");
 }
 
 /**
@@ -83,13 +93,63 @@ HWTEST_F(RenderContextVKTest, GetShaderCacheSize, TestSize.Level1)
  */
 HWTEST_F(RenderContextVKTest, SetUpGpuContextTest, Level1)
 {
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
     auto renderContext = std::make_shared<RenderContextVK>();
     EXPECT_NE(renderContext, nullptr);
     renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
-    bool res = renderContext->SetUpGpuContext(nullptr);
+    bool res = renderContext->SetUpGpuContext();
     EXPECT_EQ(res, true);
     renderContext->drGPUContext_ = nullptr;
     res = renderContext->SetUpGpuContext(nullptr);
     EXPECT_EQ(res, true);
+}
+ 
+/**
+ * @tc.name: AbandonContextTest001
+ * @tc.desc: Verify the AbandonContext and GetPixelFormat of RenderContextVKTest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, AbandonContextTest, Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    renderContext->drGPUContext_ = nullptr;
+    auto res = renderContext->AbandonContext();
+    EXPECT_EQ(res, true);
+    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    res = renderContext->AbandonContext();
+    EXPECT_EQ(res, true);
+}
+
+/**
+ * @tc.name: CreateFromWindowTest
+ * @tc.desc: Verify the CreateFromWindow
+ * @tc.type: FUNC
+ */
+HWTEST_F(RenderContextVKTest, CreateFromWindowTest, Level1)
+{
+    if (!RSSystemProperties::IsUseVulkan()) {
+        GTEST_LOG_(INFO) << "opengl enable! skip vulkan test case";
+        return;
+    }
+    auto renderContext = std::make_shared<RenderContextVK>();
+    EXPECT_NE(renderContext, nullptr);
+    const int32_t width = 500;
+    const int32_t height = 500;
+    NativeWindow *window = nullptr;
+    ImageInfo imageInfo(width, height, COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE);
+    window = CreateNativeWindowFromSurface(&surf);
+    auto surface = renderContext-> CreateFromWindow(nullptr, imageInfo, window);
+    EXPECT_EQ(surface_, nullptr);
+    surface = renderContext->CreateFromWindow(nullptr, imageInfo, nullptr);
+    EXPECT_EQ(surface_, nullptr);
+    bool ret = renderContext->FlushSurface(nullptr);
+    EXPECT_EQ(ret, false);
 }
 } // namespace OHOS::Rosen

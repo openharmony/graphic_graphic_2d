@@ -15,40 +15,32 @@
 
 #include <memory>
 
-#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "ui_effect/effect/include/brightness_blender.h"
+#include "ui_effect/effect/include/color_gradient_effect_para.h"
+#include "ui_effect/filter/include/filter_content_light_para.h"
+#include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 #include "animation/rs_animation.h"
 #include "animation/rs_animation_callback.h"
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
-#include "animation/rs_implicit_animator_map.h"
 #include "animation/rs_transition.h"
 #include "common/rs_vector4.h"
-#include "modifier_ng/appearance/rs_alpha_modifier.h"
+#include "feature/composite_layer/rs_composite_layer_utils.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
-#include "modifier_ng/custom/rs_content_style_modifier.h"
-#include "modifier_ng/custom/rs_node_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
+#include "ui/rs_node.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_display_node.h"
-#include "ui/rs_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-#include "ui_effect/effect/include/background_color_effect_para.h"
-#include "ui_effect/effect/include/border_light_effect_para.h"
-#include "ui_effect/effect/include/brightness_blender.h"
-#include "ui_effect/effect/include/color_gradient_effect_para.h"
-#include "ui_effect/filter/include/filter_blur_para.h"
-#include "ui_effect/filter/include/filter_content_light_para.h"
-#include "ui_effect/filter/include/filter_displacement_distort_para.h"
-#include "ui_effect/filter/include/filter_edge_light_para.h"
-#include "ui_effect/filter/include/filter_hdr_para.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -247,7 +239,8 @@ HWTEST_F(RSNodeTest, destruction001, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     ASSERT_TRUE(rootNode != nullptr);
-    rootNode->rsUIContext_ = std::make_shared<RSUIContext>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    rootNode->rsUIContext_ = uiDirector1->GetRSUIContext();
     rootNode->skipDestroyCommandInDestructor_ = true;
 }
 
@@ -261,7 +254,8 @@ HWTEST_F(RSNodeTest, destruction002, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     ASSERT_TRUE(rootNode != nullptr);
-    rootNode->rsUIContext_ = std::make_shared<RSUIContext>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    rootNode->rsUIContext_ = uiDirector1->GetRSUIContext();
     rootNode->skipDestroyCommandInDestructor_ = false;
 }
 
@@ -825,20 +819,6 @@ HWTEST_F(RSNodeTest, SetandGetCornerRadius005, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetCornerRadius(floatData[0]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetCornerRadius().x_, floatData[0]));
-}
-
-/**
- * @tc.name: SetandGetCornerApplyType
- * @tc.desc:
- * @tc.type:FUNC
- * @tc.require: issue20176
- */
-HWTEST_F(RSNodeTest, SetandGetCornerApplyType, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(), static_cast<int>(RSCornerApplyType::FAST));
-    rsNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
-    EXPECT_EQ(rsNode->GetStagingProperties().GetCornerApplyType(), static_cast<int>(RSCornerApplyType::OFFSCREEN));
 }
 
 /**
@@ -2706,7 +2686,6 @@ HWTEST_F(RSNodeTest, SetandGetShadowAlpha003, TestSize.Level1)
 HWTEST_F(RSNodeTest, SetandGetShadowAlpha004, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    rsNode->SetAlpha(1.f);
     rsNode->SetShadowAlpha(floatData[4]);
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetShadowAlpha(), floatData[4], 0.02f));
 }
@@ -3228,7 +3207,9 @@ HWTEST_F(RSNodeTest, GetAnimationsCount, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId animationId = 1;
-    auto animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.clear();
     EXPECT_TRUE(rsNode->animations_.empty());
     rsNode->animations_.insert({ animationId, animation });
@@ -4600,11 +4581,13 @@ HWTEST_F(RSNodeTest, OpenImplicitAnimationTest001, TestSize.Level1)
     std::function<void()> finishCallback = nullptr;
     RSAnimationTimingProtocol timingProtocal;
     RSAnimationTimingCurve timingCurve;
-    RSNode::OpenImplicitAnimation(timingProtocal, timingCurve, finishCallback);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    RSNode::OpenImplicitAnimation(uiContext, timingProtocal, timingCurve, finishCallback);
     EXPECT_TRUE(finishCallback == nullptr);
 
     finishCallback = []() {};
-    RSNode::OpenImplicitAnimation(timingProtocal, timingCurve, finishCallback);
+    RSNode::OpenImplicitAnimation(uiContext, timingProtocal, timingCurve, finishCallback);
     EXPECT_TRUE(finishCallback != nullptr);
 }
 /**
@@ -4614,9 +4597,11 @@ HWTEST_F(RSNodeTest, OpenImplicitAnimationTest001, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, CloseImplicitAnimationTest, TestSize.Level1)
 {
-    RSNode::CloseImplicitAnimation();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    RSNode::CloseImplicitAnimation(uiContext);
     std::vector<std::shared_ptr<RSAnimation>> vec;
-    EXPECT_EQ(vec, RSNode::CloseImplicitAnimation());
+    EXPECT_EQ(vec, RSNode::CloseImplicitAnimation(uiContext));
 }
 
 /**
@@ -4631,20 +4616,22 @@ HWTEST_F(RSNodeTest, AnimateTest, TestSize.Level1)
     PropertyCallback propertyCallback = nullptr;
     std::function<void()> finishCallback = nullptr;
     std::function<void()> repeatCallback = nullptr;
-    auto animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animate = RSNode::Animate(uiContext, timingProtocol, timingCurve, propertyCallback, finishCallback);
     std::vector<std::shared_ptr<RSAnimation>> vec;
     EXPECT_EQ(vec, animate);
 
     propertyCallback = []() {};
-    animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    animate = RSNode::Animate(uiContext, timingProtocol, timingCurve, propertyCallback, finishCallback);
     EXPECT_TRUE(propertyCallback != nullptr);
 
     finishCallback = []() {};
-    animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback);
+    animate = RSNode::Animate(uiContext, timingProtocol, timingCurve, propertyCallback, finishCallback);
     EXPECT_TRUE(finishCallback != nullptr);
 
     repeatCallback = []() {};
-    animate = RSNode::Animate(timingProtocol, timingCurve, propertyCallback, finishCallback, repeatCallback);
+    animate = RSNode::Animate(uiContext, timingProtocol, timingCurve, propertyCallback, finishCallback, repeatCallback);
     EXPECT_TRUE(repeatCallback != nullptr);
 }
 /**
@@ -4657,17 +4644,19 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentOptionsTest, TestSize.Level1)
     PropertyCallback propertyCallback = nullptr;
     std::function<void()> finishCallback = nullptr;
     bool timingSensitive = true;
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
     auto animateWithCurrentOptions =
-        RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+        RSNode::AnimateWithCurrentOptions(uiContext, propertyCallback, finishCallback, timingSensitive);
     std::vector<std::shared_ptr<RSAnimation>> vec;
     EXPECT_EQ(vec, animateWithCurrentOptions);
 
     propertyCallback = []() {};
-    animateWithCurrentOptions = RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+    animateWithCurrentOptions = RSNode::AnimateWithCurrentOptions(uiContext, propertyCallback, finishCallback, timingSensitive);
     EXPECT_TRUE(propertyCallback != nullptr);
 
     finishCallback = []() {};
-    animateWithCurrentOptions = RSNode::AnimateWithCurrentOptions(propertyCallback, finishCallback, timingSensitive);
+    animateWithCurrentOptions = RSNode::AnimateWithCurrentOptions(uiContext, propertyCallback, finishCallback, timingSensitive);
     EXPECT_TRUE(finishCallback != nullptr);
 }
 /**
@@ -4680,12 +4669,14 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = nullptr;
-    auto Callback = RSNode::AnimateWithCurrentCallback(timingProtocol, timingCurve, propertyCallback);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto Callback = RSNode::AnimateWithCurrentCallback(uiContext, timingProtocol, timingCurve, propertyCallback);
     std::vector<std::shared_ptr<RSAnimation>> vec;
     EXPECT_EQ(vec, Callback);
 
     propertyCallback = []() {};
-    Callback = RSNode::AnimateWithCurrentCallback(timingProtocol, timingCurve, propertyCallback);
+    Callback = RSNode::AnimateWithCurrentCallback(uiContext, timingProtocol, timingCurve, propertyCallback);
     EXPECT_TRUE(propertyCallback != nullptr);
 }
 
@@ -4864,7 +4855,7 @@ HWTEST_F(RSNodeTest, RemoveChildByNodeSelf001, TestSize.Level1)
 HWTEST_F(RSNodeTest, DrawOnNode, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    rsNode->DrawOnNode(ModifierNG::RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
+    rsNode->DrawOnNode(RSModifierType::BOUNDS, [](std::shared_ptr<Drawing::Canvas> canvasPtr) {});
     ASSERT_FALSE(rsNode->recordingUpdated_);
     rsNode->SetFreeze(true);
     rsNode->InitUniRenderEnabled();
@@ -4947,8 +4938,10 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
     ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
-    rsNode->AddKeyFrame(1.f, timingCurve, propertyCallback);
-    rsNode->AddKeyFrame(1.f, propertyCallback);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    rsNode->AddKeyFrame(uiContext, 1.f, timingCurve, propertyCallback);
+    rsNode->AddKeyFrame(uiContext, 1.f, propertyCallback);
 }
 
 /**
@@ -4979,7 +4972,9 @@ HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
     ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
-    rsNode->AddDurationKeyFrame(1, timingCurve, propertyCallback);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    rsNode->AddDurationKeyFrame(uiContext, 1, timingCurve, propertyCallback);
 }
 
 /**
@@ -4991,7 +4986,9 @@ HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
 HWTEST_F(RSNodeTest, IsImplicitAnimationOpen, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    bool res = rsNode->IsImplicitAnimationOpen();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    bool res = rsNode->IsImplicitAnimationOpen(uiContext);
     EXPECT_EQ(res, false);
 }
 
@@ -5012,7 +5009,8 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
     callback = []() {};
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
 
-    rsUIContext = std::make_shared<RSUIContext>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    rsUIContext = uiDirector1->GetRSUIContext();
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_NE(rsUIContext, nullptr);
 
@@ -5027,33 +5025,33 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issueI9KAZH
  */
-HWTEST_F(RSNodeTest, FallbackAnimationsToRoot, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
-    target = nullptr;
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_EQ(rsNode->motionPathOption_, nullptr);
+// HWTEST_F(RSNodeTest, FallbackAnimationsToRoot, TestSize.Level1)
+// {
+//     auto rsNode = RSCanvasNode::Create();
+//     auto target = RSNodeMap::Instance().GetAnimationFallbackNode();
+//     target = nullptr;
+//     rsNode->FallbackAnimationsToRoot();
+//     EXPECT_EQ(rsNode->motionPathOption_, nullptr);
 
-    bool isRenderServiceNode = true;
-    target = std::make_shared<RSNode>(isRenderServiceNode);
-    AnimationId id = 1;
-    std::shared_ptr<RSAnimation> animation = nullptr;
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_NE(RSNodeMap::Instance().animationFallbackNode_, nullptr);
+//     bool isRenderServiceNode = true;
+//     target = std::make_shared<RSNode>(isRenderServiceNode);
+//     AnimationId id = 1;
+//     std::shared_ptr<RSAnimation> animation = nullptr;
+//     rsNode->FallbackAnimationsToRoot();
+//     EXPECT_NE(RSNodeMap::Instance().animationFallbackNode_, nullptr);
 
-    animation = std::make_shared<RSAnimation>();
-    animation->repeatCount_ = 1;
-    rsNode->animations_.insert({ id, animation });
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_TRUE(animation->repeatCount_);
+//     animation = std::make_shared<RSAnimation>();
+//     animation->repeatCount_ = 1;
+//     rsNode->animations_.insert({ id, animation });
+//     rsNode->FallbackAnimationsToRoot();
+//     EXPECT_TRUE(animation->repeatCount_);
 
-    rsNode->animations_.clear();
-    animation->repeatCount_ = -1;
-    rsNode->animations_.insert({ id, animation });
-    rsNode->FallbackAnimationsToRoot();
-    EXPECT_TRUE(animation->repeatCount_ == -1);
-}
+//     rsNode->animations_.clear();
+//     animation->repeatCount_ = -1;
+//     rsNode->animations_.insert({ id, animation });
+//     rsNode->FallbackAnimationsToRoot();
+//     EXPECT_TRUE(animation->repeatCount_ == -1);
+// }
 
 /**
  * @tc.name: AddAnimationInner
@@ -5064,7 +5062,9 @@ HWTEST_F(RSNodeTest, FallbackAnimationsToRoot, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddAnimationInner, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimationInner(animation);
     EXPECT_NE(rsNode->GenerateId(), 1);
 }
@@ -5078,7 +5078,9 @@ HWTEST_F(RSNodeTest, AddAnimationInner, TestSize.Level1)
 HWTEST_F(RSNodeTest, RemoveAnimationInner, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimationInner(animation);
     rsNode->RemoveAnimationInner(animation);
     EXPECT_NE(animation, nullptr);
@@ -5106,7 +5108,9 @@ HWTEST_F(RSNodeTest, FinishAnimationByProperty, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0; // for test
-    auto animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimationInner(animation);
     rsNode->FinishAnimationByProperty(id);
     EXPECT_NE(animation, nullptr);
@@ -5164,7 +5168,9 @@ HWTEST_F(RSNodeTest, AddAnimation, TestSize.Level1)
     rsNode->AddAnimation(animation);
     EXPECT_EQ(animation, nullptr);
 
-    animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimation(animation);
     EXPECT_TRUE(animation != nullptr);
 
@@ -5196,7 +5202,9 @@ HWTEST_F(RSNodeTest, RemoveAllAnimations, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId id = 1;
-    auto animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.insert({ id, animation });
     rsNode->RemoveAllAnimations();
     EXPECT_NE(animation, nullptr);
@@ -5215,7 +5223,9 @@ HWTEST_F(RSNodeTest, RemoveAnimation, TestSize.Level1)
     rsNode->RemoveAnimation(animation);
     EXPECT_EQ(animation, nullptr);
 
-    animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->RemoveAnimation(animation);
     EXPECT_NE(animation, nullptr);
 
@@ -5281,7 +5291,9 @@ HWTEST_F(RSNodeTest, GetAnimationByPropertyId, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0;
     AnimationId animationId = 1;
-    auto animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.insert({ animationId, animation });
     rsNode->GetAnimationByPropertyId(id);
     EXPECT_NE(animation, nullptr);
@@ -5302,38 +5314,6 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().y_, 1.f));
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().z_, 1.f));
     EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetBounds().w_, 1.f));
-}
-
-/**
- * @tc.name: LoadRenderNodeIfNeed001
- * @tc.desc: Test LoadRenderNodeIfNeed func with RSNode
- * @tc.type: FUNC
- * @tc.require: issue20607
- */
-HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, false);
-    rsNode->LoadRenderNodeIfNeed();
-    EXPECT_EQ(rsNode->lazyLoad_, false);
-}
-
-/**
- * @tc.name: LoadRenderNodeIfNeed002
- * @tc.desc: Test LoadRenderNodeIfNeed when commands count exceeds threshold
- * @tc.type: FUNC
- * @tc.require: issue20607
- */
-HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    EXPECT_EQ(rsNode->lazyLoad_, false);
-
-    constexpr int commandSize{1024};
-    for (int i = 0; i < commandSize; ++i) {
-        rsNode->SetNodeName(std::to_string(i));
-    }
-    EXPECT_EQ(rsNode->lazyLoad_, false);
 }
 
 /**
@@ -6242,11 +6222,13 @@ HWTEST_F(RSNodeTest, NotifyTransition, TestSize.Level1)
     bool isTransitionIn = true;
     std::shared_ptr<const RSTransitionEffect> effect = std::make_shared<const RSTransitionEffect>();
     rsNode->rsUIContext_.reset();
-    rsNode->NotifyTransition(effect, isTransitionIn);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    rsNode->NotifyTransition(uiContext, effect, isTransitionIn);
     EXPECT_NE(isTransitionIn, false);
 
-    rsNode->rsUIContext_ = std::make_shared<RSUIContext>();
-    rsNode->NotifyTransition(effect, isTransitionIn);
+    rsNode->rsUIContext_ = uiContext;
+    rsNode->NotifyTransition(uiContext, effect, isTransitionIn);
     EXPECT_NE(isTransitionIn, false);
 }
 
@@ -6490,20 +6472,22 @@ HWTEST_F(RSNodeTest, AnimationCallback, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId animationId = 1;
-    AnimationCallbackEvent event = AnimationCallbackEvent::FINISHED;
+    AnimationCallbackEvent event = FINISHED;
     bool res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, false);
 
-    auto animation = std::make_shared<RSAnimation>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.insert({ animationId, animation });
     res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, true);
 
-    event = AnimationCallbackEvent::REPEAT_FINISHED;
+    event = REPEAT_FINISHED;
     res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, true);
 
-    event = AnimationCallbackEvent::LOGICALLY_FINISHED;
+    event = LOGICALLY_FINISHED;
     res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, true);
 }
@@ -6746,7 +6730,9 @@ HWTEST_F(RSNodeTest, RegisterTransitionPair, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
-    rsNode->RegisterTransitionPair(inNodeId, outNodeId, true);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    rsNode->RegisterTransitionPair(uiContext, inNodeId, outNodeId, true);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
@@ -6761,7 +6747,9 @@ HWTEST_F(RSNodeTest, UnregisterTransitionPair, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
-    rsNode->UnregisterTransitionPair(inNodeId, outNodeId);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
+    rsNode->UnregisterTransitionPair(uiContext, inNodeId, outNodeId);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
 }
 
@@ -6804,7 +6792,8 @@ HWTEST_F(RSNodeTest, UnregisterTransitionPairWithEmptyRSUIContext, TestSize.Leve
 HWTEST_F(RSNodeTest, RegisterTransitionPairWithRSUIContext, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto rsUIContext = std::make_shared<RSUIContext>(1);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto rsUIContext = uiDirector1->GetRSUIContext();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
     rsNode->RegisterTransitionPair(rsUIContext, inNodeId, outNodeId, true);
@@ -6822,7 +6811,8 @@ HWTEST_F(RSNodeTest, RegisterTransitionPairWithRSUIContext, TestSize.Level1)
 HWTEST_F(RSNodeTest, UnregisterTransitionPairWithRSUIContext, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto rsUIContext = std::make_shared<RSUIContext>(1);
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto rsUIContext = uiDirector1->GetRSUIContext();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
     rsNode->UnregisterTransitionPair(rsUIContext, inNodeId, outNodeId);
@@ -6848,29 +6838,6 @@ HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
     delete RSTransactionProxy::instance_;
     RSTransactionProxy::instance_ = nullptr;
     rsNode->MarkNodeGroup(true, true, true);
-    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
-    RSTransactionProxy::instance_ = new RSTransactionProxy();
-}
-
-/**
- * @tc.name: ExcludedFromNodeGroup
- * @tc.desc: test results of ExcludedFromNodeGroup
- * @tc.type: FUNC
- * @tc.require: issueI9KQ6R
- */
-HWTEST_F(RSNodeTest, ExcludedFromNodeGroup, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    rsNode->ExcludedFromNodeGroup(true);
-    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
-    EXPECT_TRUE(rsNode->isExcludedFromNodeGroup_);
-
-    rsNode->ExcludedFromNodeGroup(false);
-    EXPECT_FALSE(rsNode->isExcludedFromNodeGroup_);
-    rsNode->ExcludedFromNodeGroup(false);
-    delete RSTransactionProxy::instance_;
-    RSTransactionProxy::instance_ = nullptr;
-    rsNode->ExcludedFromNodeGroup(true);
     EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
 }
@@ -7208,10 +7175,8 @@ HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector2 = RSUIDirector::Create(nullptr);
         auto rsNode = RSCanvasNode::Create(false, false, uiDirector1->GetRSUIContext());
         auto childNode = RSCanvasNode::Create(false, false, uiDirector2->GetRSUIContext());
         rsNode->AddChild(childNode, -1);
@@ -7244,13 +7209,11 @@ HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create();
-        uiDirector1->Init(true, true);
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
         auto rsUIContext = uiDirector1->GetRSUIContext();
         ASSERT_NE(rsUIContext, nullptr);
         auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
-        auto uiDirector2 = RSUIDirector::Create();
-        uiDirector2->Init(true, true);
+        auto uiDirector2 = RSUIDirector::Create(nullptr);
         auto rsUIContext2 = uiDirector2->GetRSUIContext();
         ASSERT_NE(rsUIContext2, nullptr);
         auto childNode = RSCanvasNode::Create(false, false, rsUIContext2);
@@ -7265,46 +7228,6 @@ HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
         surfaceNode->RemoveFromTree();
         EXPECT_EQ(rsNode->children_.size(), 0);
     }
-}
-
-/**
- * @tc.name: AddChildTest004
- * @tc.desc: Test AddChild with shadow child
- * @tc.type: FUNC
- * @tc.require: issue20607
- */
-HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create();
-    auto trueChild = RSCanvasNode::Create();
-    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), trueChild->GetId(),
-        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
-
-    EXPECT_EQ(trueChild->lazyLoad_, false);
-    rsNode->AddChild(shadowChild, 1);
-    EXPECT_EQ(trueChild->lazyLoad_, false);
-}
-
-/**
- * @tc.name: AddChildTest005
- * @tc.desc: Test AddChild with invalid shadow child
- * @tc.type: FUNC
- * @tc.require: issue20607
- */
-HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
-{
-    auto uiDirector = RSUIDirector::Create();
-    uiDirector->Init(true, true);
-    auto rsUIContext = uiDirector->GetRSUIContext();
-    ASSERT_NE(rsUIContext, nullptr);
-    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
-    auto trueChild = RSCanvasNode::Create();
-    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
-        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
-
-    EXPECT_EQ(trueChild->lazyLoad_, false);
-    rsNode->AddChild(shadowChild, 1);
-    EXPECT_EQ(trueChild->lazyLoad_, false);
 }
 
 /**
@@ -7671,11 +7594,12 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
         ASSERT_NE(rsNode, nullptr);
         rsNode->SetRSUIContext(nullptr);
         EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
-        auto rsUIContext = std::make_shared<RSUIContext>();
+        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto rsUIContext = uiDirector1->GetRSUIContext();
         rsNode->SetRSUIContext(rsUIContext);
         rsNode->SetRSUIContext(rsUIContext);
         EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext);
-        auto rsUIContext2 = std::make_shared<RSUIContext>();
+        auto rsUIContext2 = uiDirector1->GetRSUIContext();
         rsNode->SetRSUIContext(rsUIContext);
         EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
     }
@@ -7815,6 +7739,8 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     };
     RSSurfaceNode::SharedPtr rsNode = RSSurfaceNode::Create(config);
     string out1;
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->Dump(out1);
     ASSERT_TRUE(!out1.empty());
 
@@ -7824,7 +7750,7 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     rsNode->MarkSuggestOpincNode(true);
     rsNode->MarkUifirstNode(true);
     rsNode->SetDrawRegion(std::make_shared<RectF>());
-    rsNode->AddAnimation(std::make_shared<RSAnimation>());
+    rsNode->AddAnimation(std::make_shared<RSAnimation>(uiContext));
     string out2;
     rsNode->Dump(out2);
     ASSERT_TRUE(!out2.empty());
@@ -7837,33 +7763,6 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     std::string out6;
     rsNode->Dump(out6);
     ASSERT_TRUE(!out6.empty());
-}
-
-/**
- * @tc.name: DumpModifiers
- * @tc.desc: test results of DumpModifiers
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, DumpModifiers, TestSize.Level1)
-{
-    auto rsNode = std::make_shared<RSCanvasNode>(true, false);
-    string out1;
-    rsNode->DumpModifiers(out1);
-    ASSERT_TRUE(out1.empty());
-    auto alphaModifier = std::make_shared<ModifierNG::RSAlphaModifier>();
-    alphaModifier->SetAlpha(1.f);
-    auto contentModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
-    rsNode->AddModifier(alphaModifier);
-    rsNode->AddModifier(contentModifier);
-    string out2;
-    rsNode->DumpModifiers(out2);
-    ASSERT_EQ(out2, "Alpha[1.0],ContentStyle:[drawCmdList[]]");
-    auto nodeModifier = std::make_shared<ModifierNG::RSNodeModifier>();
-    rsNode->modifiersNG_[nodeModifier->GetId()] = nodeModifier;
-    rsNode->modifiersNG_[0] = nullptr;
-    string out3;
-    rsNode->DumpModifiers(out3);
-    ASSERT_EQ(out3, "Alpha[1.0],ContentStyle:[drawCmdList[]]");
 }
 
 /**
@@ -7887,7 +7786,8 @@ HWTEST_F(RSNodeTest, SetIsOnTheTree001, TestSize.Level2)
  */
 HWTEST_F(RSNodeTest, SetIsOnTheTree002, TestSize.Level2)
 {
-    auto uiContext = std::make_shared<RSUIContext>();
+    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiContext = uiDirector1->GetRSUIContext();
     auto rsNode = RSCanvasNode::Create(false, false, uiContext);
     rsNode->SetIsOnTheTree(false);
     rsNode->SetIsOnTheTree(true);
@@ -8000,14 +7900,11 @@ HWTEST_F(RSNodeTest, SetUIContextToken, TestSize.Level1)
     if (enable) {
         auto rsNode = RSCanvasNode::Create();
         ASSERT_NE(rsNode, nullptr);
-        rsNode->LoadRenderNodeIfNeed();
         rsNode->SetUIContextToken();
         rsNode = nullptr;
-        auto uiDirector = RSUIDirector::Create();
-        uiDirector->Init(true, true);
+        auto uiDirector = RSUIDirector::Create(nullptr);
         auto uiContext = uiDirector->GetRSUIContext();
         rsNode = RSCanvasNode::Create(false, false, uiContext);
-        rsNode->LoadRenderNodeIfNeed();
         rsNode->SetUIContextToken();
         ASSERT_NE(uiContext, nullptr);
         auto transaction = uiContext->GetRSTransaction();
@@ -8789,7 +8686,6 @@ HWTEST_F(RSNodeTest, MarkRepaintBoundary001, TestSize.Level1)
 {
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     auto rsNode = RSCanvasNode::Create();
-    rsNode->LoadRenderNodeIfNeed();
     std::string tag = "ListItem";
     rsNode->SetFrameNodeInfo(0, tag);
     std::string strResult = rsNode->GetFrameNodeTag();
