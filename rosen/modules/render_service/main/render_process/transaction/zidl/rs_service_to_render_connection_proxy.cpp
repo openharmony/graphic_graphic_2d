@@ -1452,7 +1452,7 @@ GlobalDirtyRegionInfo RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo
     // MessageParcel data;
     // MessageParcel reply;
     // MessageOption option;
-    // GlobalDirtyRegionInfo globalDirtyRegionInfo;
+    GlobalDirtyRegionInfo globalDirtyRegionInfo;
     // if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
     //     ROSEN_LOGE(
     //         "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: WriteInterfaceToken failed");
