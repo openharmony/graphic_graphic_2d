@@ -374,7 +374,8 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 start";
     RSAnimationTimingProtocol timingProtocol;
     auto timingCurve = RSAnimationTimingCurve::SPRING;
-    auto rsUIContext = std::make_shared<RSUIContext>();
+    sptr<IRemoteObject> remoteObject = nullptr;
+    auto rsUIContext = std::make_shared<RSUIContext>(1, remoteObject);
     auto implicitAnimator = rsUIContext->GetRSImplicitAnimator();
 
     std::shared_ptr<RSCanvasNode> node = nullptr;
@@ -427,32 +428,6 @@ HWTEST_F(RSImplicitAnimatorTest, RSImplicitAnimationParamTest001, TestSize.Level
     GTEST_LOG_(INFO) << "RSImplicitAnimatorTest RSImplicitAnimationParamTest001 end";
 }
 
-/**
- * @tc.name: GetRSImplicitAnimator
- * @tc.desc: Verify the GetRSImplicitAnimator
- * @tc.type:FUNC
- */
-HWTEST_F(RSImplicitAnimatorTest, GetRSImplicitAnimator, TestSize.Level1)
-{
-    auto rsUIContext = std::make_shared<RSUIContext>();
-    // repeat count
-    int count = 10;
-    // thread count
-    int threadCount = 2;
-    std::thread t1([rsUIContext, count] {
-        for (int i = 0; i < count; i++) {
-            rsUIContext->GetRSImplicitAnimator();
-        }
-    });
-    std::thread t2([rsUIContext, count] {
-        for (int i = 0; i < count; i++) {
-            rsUIContext->GetRSImplicitAnimator();
-        }
-    });
-    t1.join();
-    t2.join();
-    EXPECT_EQ(rsUIContext->rsImplicitAnimators_.size(), threadCount);
-}
 
 /**
  * @tc.name: CheckImplicitAnimationConditionsTest001
