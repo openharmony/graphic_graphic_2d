@@ -367,7 +367,7 @@ void RSScreenManagerAgent::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus s
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return;
     }
-    return screenManager_->SetScreenPowerStatus(id, status);
+    screenManager_->SetScreenPowerStatus(id, status);
 }
 
 void RSScreenManagerAgent::MarkPowerOffNeedProcessOneFrame()
@@ -625,7 +625,7 @@ void RSScreenManagerAgent::SetScreenOffset(ScreenId id, int32_t offsetX, int32_t
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return;
     }
-    return screenManager_->SetScreenOffset(id, offsetX, offsetY);
+    screenManager_->SetScreenOffset(id, offsetX, offsetY);
 }
 
 bool RSScreenManagerAgent::SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus)
@@ -643,7 +643,7 @@ void RSScreenManagerAgent::SetScreenSwitchStatus(ScreenId id, bool status)
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return;
     }
-    return screenManager_->SetScreenSwitchStatus(id, status);
+    screenManager_->SetScreenSwitchStatus(id, status);
 }
 } // namespace Rosen
 } // namespace OHOS

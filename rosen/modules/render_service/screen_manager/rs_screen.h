@@ -189,6 +189,7 @@ public:
 
     void SetOnPropertyChangedCallback(std::function<void(const sptr<RSScreenProperty>&)> callback);
     sptr<RSScreenProperty> GetProperty() const;
+    ScreenInfo GetScreenInfo() const;
 
     void SetOnBacklightChangedCallback(std::function<void(ScreenId, uint32_t)> callback);
 private:
