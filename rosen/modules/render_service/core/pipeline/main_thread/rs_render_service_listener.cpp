@@ -39,7 +39,9 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
     RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable node id:%{public}" PRIu64, node->GetId());
-
+    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
+    surfaceHandler->IncreaseAvailableBuffer();
+    auto consumer = surfaceHandler->GetConsumer();
     if (!node->IsNotifyUIBufferAvailable()) {
         // Only ipc for one time.
         RS_LOGD("RsDebug RSRenderServiceListener::OnBufferAvailable id = %{public}" PRIu64 " Notify"
@@ -55,9 +57,6 @@ void RSRenderServiceListener::OnBufferAvailable()
         return;
     }
 
-    auto surfaceHandler = node->GetMutableRSSurfaceHandler();
-    surfaceHandler->IncreaseAvailableBuffer();
-    auto consumer = surfaceHandler->GetConsumer();
     bool doFastCompose = false;
     if (consumer) {
         bool supportFastCompose = false;
