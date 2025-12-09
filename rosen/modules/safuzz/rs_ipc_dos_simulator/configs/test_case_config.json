@@ -1485,6 +1485,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_172",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetNeedUseCmdlistDrawRegion*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -2685,6 +2694,13 @@
     "testCaseDesc": "GET_PID_GPU_MEMORY_IN_MB_TEST_001",
     "interfaceName": "GET_PID_GPU_MEMORY_IN_MB",
     "inputParams": "WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST_TEST_001",
+    "interfaceName": "SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST",
+    "inputParams": "WriteInt32Vector",
     "writeInterfaceToken": true,
     "messageOption": "TF_ASYNC"
   }
