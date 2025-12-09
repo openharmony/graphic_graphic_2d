@@ -118,6 +118,10 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    std::shared_ptr<RSNGRenderShaderBase> GetStagingShader() const
+    {
+        return stagingShader_;
+    }
 private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;

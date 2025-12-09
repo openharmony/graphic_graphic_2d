@@ -21,6 +21,7 @@
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
 #include "drawable/rs_property_drawable_foreground.h"
+#include "effect/rs_render_shader_base.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 
@@ -394,6 +395,20 @@ inline void MarkAffectedSlots(const std::array<RSDrawableSlot, SIZE>& affectedSl
         }
     }
 }
+
+void MarkSDFShapeSlots(const RSDrawable::Vec& drawableVec, std::unordered_set<RSDrawableSlot>& dirtySlots)
+{
+    auto drawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_NG_SHADER)];
+    if (!drawable) {
+        return;
+    }
+    auto backgroundNGShaderDrawable = std::static_pointer_cast<RSBackgroundNGShaderDrawable>(drawable);
+    auto shader = backgroundNGShaderDrawable->GetStagingShader();
+    if (!shader || shader->GetType() != RSNGEffectType::FROSTED_GLASS_EFFECT) {
+        return;
+    }
+    dirtySlots.emplace(RSDrawableSlot::BACKGROUND_NG_SHADER);
+}
 } // namespace
 
 std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
@@ -412,6 +427,8 @@ std::unordered_set<RSDrawableSlot> RSDrawable::CalculateDirtySlotsNG(
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS)) ||
         dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::CLIP_TO_BOUNDS))) {
         MarkAffectedSlots(boundsDirtyTypes, drawableVec, dirtySlots);
+        // mark BackgroundNGDrawable dirty if it uses sdf shape
+        MarkSDFShapeSlots(drawableVec, dirtySlots);
     }
 
     if (dirtyTypes.test(static_cast<size_t>(ModifierNG::RSModifierType::SHADOW))) {
