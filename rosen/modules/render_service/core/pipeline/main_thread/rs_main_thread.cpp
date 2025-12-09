@@ -1770,7 +1770,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
     }
     nodeMap.TraverseSurfaceNodes(consumeAndUpdateNode_);
     lppVideoHandler_.JudgeRequestVsyncForLpp(vsyncId_);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi();
+    DelayedSingleton<RSFrameRateVote>::GetInstance()->CheckSurfaceAndUi(timestamp_);
     RSJankStats::GetInstance().AvcodecVideoCollectFinish();
     prevHdrSwitchStatus_ = RSLuminanceControl::Get().IsHdrPictureOn();
     if (requestNextVsyncTime_ != -1) {
