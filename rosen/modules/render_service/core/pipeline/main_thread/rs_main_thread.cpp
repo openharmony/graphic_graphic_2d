@@ -2586,11 +2586,9 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 #endif
     }
 
-    if (!RSRenderComposerManager::GetInstance().WaitComposerTaskExecute(screenNode->GetScreenId())) {
-        RS_LOGW("DoDirectComposition: ComposerThread task has too many to Execute");
-    }
 #ifdef RS_ENABLE_GPU
-    RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode, screenInfo]() mutable {
+    RSUniRenderThread::Instance().PostSyncTask([this, processor, screenNode,
+            client, pipelineParam = pipelineParam_, &screenProperty]() mutable {
         RS_TRACE_NAME("DoDirectComposition PostProcess");
         auto screenId = screenNode->GetScreenId();
         for (auto& surfaceNode : hardwareEnabledNodes_) {
@@ -2628,8 +2626,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             screenNode->GetForceCloseHdr() ? HdrStatus::NO_HDR : screenNode->GetDisplayHdrStatus());
         RSPointerWindowManager::Instance().HardCursorCreateLayerForDirect(processor);
         auto rcdInfo = std::make_unique<RcdInfo>();
-        DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenInfo);
-        HgmCore::Instance().SetDirectCompositionFlag(true);
+        DoScreenRcdTask(screenNode->GetId(), processor, rcdInfo, screenProperty.GetScreenInfo());
         processor->ProcessScreenSurface(*screenNode);
         if (client) {
             client->UpdatePipelineParam(pipelineParam);
