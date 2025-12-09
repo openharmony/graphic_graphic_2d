@@ -305,7 +305,7 @@ void RSRenderServiceVisitor::CreateCanvas(int32_t width, int32_t height, bool is
 
 bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
 {
-    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType());
+    processor_ = RSProcessorFactory::CreateProcessor(node.GetCompositeType(), nullptr);
     if (processor_ == nullptr) {
         RS_LOGE("CreateProcessor: processor_ is null!");
         return false;
@@ -318,9 +318,7 @@ bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
         processorRenderEngine_ = mainThread->GetRenderEngine();
     }
 
-    const auto& screenProperty = node.GetScreenProperty();
-    if (!processor_->Init(node, screenProperty.GetOffsetX(), screenProperty.GetOffsetY(),
-        mirrorNode ? mirrorNode->GetScreenId() : INVALID_SCREEN_ID, processorRenderEngine_)) {
+    if (!processor_->Init(node, screenProperty.GetOffsetX(), screenProperty.GetOffsetY(), processorRenderEngine_)) {
         RS_LOGE("ProcessDisplayRenderNode: processor init failed!");
         return false;
     }
