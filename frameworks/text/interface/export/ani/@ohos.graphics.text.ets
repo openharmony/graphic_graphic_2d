@@ -539,7 +539,7 @@ namespace text {
     name: string;
     value: int;
   }
-  
+
   class FontFeatureInternal implements FontFeature {
     name: string;
     value: int;
