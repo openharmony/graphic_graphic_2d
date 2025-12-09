@@ -691,7 +691,30 @@ HWTEST_F(HdiLayerTest, CheckAndUpdateLayerBufferCache001, Function | MediumTest|
     uint32_t index = 0;
     std::vector<uint32_t> deletingList = {};
     EXPECT_CALL(*hdiDeviceMock_, ClearLayerBuffer(_, _)).WillRepeatedly(testing::Return(0));
-    ASSERT_EQ(hdiLayer_->CheckAndUpdateLayerBufferCahce(sequence, index, deletingList), false);
+    ASSERT_EQ(hdiLayer_->CheckAndUpdateLayerBufferCache(sequence, index, deletingList), false);
+}
+
+/**
+ * Function: CheckAndUpdateLayerBufferCache002
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. call CheckAndUpdateLayerBufferCache()
+ *                  2. check ret
+ */
+HWTEST_F(HdiLayerTest, CheckAndUpdateLayerBufferCache002, Function | MediumTest| Level1)
+{
+    ASSERT_NE(hdiLayer_, nullptr);
+    hdiLayer_->bufferCache_.clear();
+    hdiLayer_->bufferCache_.push_back(1);
+    hdiLayer_->bufferCache_.push_back(2);
+    hdiLayer_->bufferCacheCountMax_ = 1;
+    hdiLayer_->rsLayer_ = HdiLayerTest::rsLayer_;
+    uint32_t sequence = 0;
+    uint32_t index = 0;
+    std::vector<uint32_t> deletingList = {};
+    EXPECT_CALL(*hdiDeviceMock_, ClearLayerBuffer(_, _)).WillRepeatedly(testing::Return(0));
+    ASSERT_EQ(hdiLayer_->CheckAndUpdateLayerBufferCache(sequence, index, deletingList), false);
 }
 
 /**

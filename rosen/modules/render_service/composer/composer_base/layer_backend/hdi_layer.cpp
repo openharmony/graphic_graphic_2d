@@ -151,7 +151,7 @@ int32_t HdiLayer::CreateLayer(const std::shared_ptr<RSLayer>& rsLayer)
         .type = rsLayer->GetType(),
         .pixFormat = GRAPHIC_PIXEL_FMT_RGBA_8888,
     };
-    int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, bufferCacheCountMax_, layerId);
+    int32_t ret = device_->CreateLayer(screenId_, hdiLayerInfo, SURFACE_MAX_QUEUE_SIZE, layerId);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("Create hwc layer failed, ret is %{public}d", ret);
         return ret;
@@ -263,7 +263,7 @@ int32_t HdiLayer::SetLayerDirtyRegion()
     return GRAPHIC_DISPLAY_SUCCESS;
 }
 
-bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index,
+bool HdiLayer::CheckAndUpdateLayerBufferCache(uint32_t sequence, uint32_t& index,
                                               std::vector<uint32_t>& deletingList)
 {
     uint32_t bufferCacheSize = (uint32_t)bufferCache_.size();
@@ -279,6 +279,10 @@ bool HdiLayer::CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index
             deletingList.push_back(i);
         }
         ResetBufferCache();
+        auto surface = rsLayer_->GetSurface();
+        if (surface != nullptr) {
+            surface->GetCycleBuffersNumber(bufferCacheCountMax_);
+        }
     }
     index = (uint32_t)bufferCache_.size();
     bufferCache_.push_back(sequence);
@@ -312,7 +316,7 @@ int32_t HdiLayer::SetLayerBuffer()
         ClearBufferCache();
         HLOGE("The count of this layer buffer cache is 0.");
     } else {
-        bufferCached = CheckAndUpdateLayerBufferCahce(currBuffer_->GetSeqNum(), index, deletingList);
+        bufferCached = CheckAndUpdateLayerBufferCache(currBuffer_->GetSeqNum(), index, deletingList);
     }
 
     GraphicLayerBuffer layerBuffer;

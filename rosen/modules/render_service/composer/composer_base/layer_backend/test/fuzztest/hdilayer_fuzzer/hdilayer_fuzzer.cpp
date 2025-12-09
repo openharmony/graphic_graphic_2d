@@ -162,7 +162,7 @@ namespace OHOS {
         hdiLayer->SetLayerCrop();
         hdiLayer->SetLayerVisibleRegion();
         hdiLayer->SetHdiDeviceMock(hdiDeviceMock);
-        hdiLayer->CheckAndUpdateLayerBufferCahce(sequence, index, deletingList);
+        hdiLayer->CheckAndUpdateLayerBufferCache(sequence, index, deletingList);
         hdiLayer->SetLayerMetaData();
         hdiLayer->SetLayerMetaDataSet();
         hdiLayer->SetReleaseFence(fence);
