@@ -2126,9 +2126,9 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     curScreenDirtyManager_->SetSurfaceSize(
         curScreenNode_->GetScreenInfo().width, curScreenNode_->GetScreenInfo().height);
     curScreenDirtyManager_->SetActiveSurfaceRect(curScreenNode_->GetScreenInfo().activeRect);
-    screenManager_->SetScreenHasProtectedLayer(node.GetScreenId(), false);
-    auto allBlackList = screenManager_->GetAllBlackList();
-    auto allWhiteList = screenManager_->GetAllWhiteList();
+    // screenManager_->SetScreenHasProtectedLayer(node.GetScreenId(), false);
+    // auto allBlackList = screenManager_->GetAllBlackList();
+    // auto allWhiteList = screenManager_->GetAllWhiteList();
     // if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
     //     allBlackList_ = std::move(allBlackList);
     //     allWhiteList_ = std::move(allWhiteList);
@@ -2496,7 +2496,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         surfaceNode->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " use hardCursor to display",
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
-        bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorOrVirtualScreen();
+        bool hasMirrorOrVirtualScreen = RSPointerWindowManager::Instance().HasMirrorOrVirtualScreen();
         RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !hasMirrorOrVirtualScreen);
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, curScreenNode_->GetScreenInfo());
         surfaceNode->UpdateHwcNodeLayerInfo(transform, isHardCursor);
