@@ -49,17 +49,17 @@ void RSRenderComposerClient::AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer)
     rsLayerContext_->AddRSLayer(rsLayer);
 }
 
-void RSRenderComposerClient::RemoveLayer(RSLayerId layerId)
+void RSRenderComposerClient::RemoveRSLayer(RSLayerId layerId)
 {
     std::unique_lock<std::mutex> lock(clientMutex_);
-    rsLayerContext_->RemoveLayer(layerId);
+    rsLayerContext_->RemoveRSLayer(layerId);
 }
 
-void RSRenderComposerClient::ClearAllLayers()
+void RSRenderComposerClient::ClearAllRSLayers()
 {
     RS_TRACE_NAME_FMT("RSRenderComposerClient::ClearAllLayers");
 	std::unique_lock<std::mutex> lock(clientMutex_);
-    rsLayerContext_->ClearAllLayers();
+    rsLayerContext_->ClearAllRSLayers();
 }
 
 std::shared_ptr<RSLayer> RSRenderComposerClient::GetRSLayer(RSLayerId rsLayerId)
@@ -68,7 +68,7 @@ std::shared_ptr<RSLayer> RSRenderComposerClient::GetRSLayer(RSLayerId rsLayerId)
     return rsLayerContext_->GetRSLayer(rsLayerId);
 }
 
-void RSRenderComposerClient::CommitLayer(CommitLayerInfo& commitLayerInfo)
+void RSRenderComposerClient::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
 {
     std::unique_lock<std::mutex> lock(clientMutex_);
     if (!WaitComposerThreadTaskExecute(lock)) {
@@ -80,7 +80,7 @@ void RSRenderComposerClient::CommitLayer(CommitLayerInfo& commitLayerInfo)
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetHardwareTaskNum(GetUnExecuteTaskNum());
     }
-    rsLayerContext_->CommitLayer(commitLayerInfo);
+    rsLayerContext_->CommitRSLayer(commitLayerInfo);
 }
 
 PipelineParam RSRenderComposerClient::GetPipelineParam()
