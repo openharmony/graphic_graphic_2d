@@ -29,7 +29,8 @@ public:
     HgmClient(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     ~HgmClient() = default;
 
-    sptr<HgmServiceToProcessInfo> NotifyRenderServiceProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId, sptr<HgmProcessToServiceInfo> info);
+    sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+        const sptr<HgmProcessToServiceInfo>& info);
     void AddScreenId(ScreenId screenId);
 
 private:

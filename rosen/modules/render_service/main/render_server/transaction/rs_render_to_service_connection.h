@@ -30,8 +30,9 @@ public:
     virtual ~RSRenderToServiceConnection() noexcept = default;
 
     void ReplyDumpResultToService(std::string& dumpString) override;
-    sptr<HgmServiceToProcessInfo> NotifyRenderServiceProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-        std::unordered_set<ScreenId> screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo) override;
+    sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+        const std::unordered_set<ScreenId>& screenIds,
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo) override;
     void NotifyScreenSwitchFinished(ScreenId screenId) override;
         
 private:

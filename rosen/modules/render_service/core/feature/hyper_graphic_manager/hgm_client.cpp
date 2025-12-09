@@ -30,13 +30,14 @@ std::shared_ptr<HgmClient> HgmClient::Create(const sptr<RSIRenderToServiceConnec
 HgmClient::HgmClient(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection) :
     renderToServiceConnection_(renderToServiceConnection) {}
 
-sptr<HgmServiceToProcessInfo> HgmClient::NotifyRenderServiceProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId, sptr<HgmProcessToServiceInfo> info)
+sptr<HgmServiceToProcessInfo> HgmClient::NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+    const sptr<HgmProcessToServiceInfo>& info)
 {
     if (renderToServiceConnection_ == nullptr) {
         RS_LOGE("%{public}s: renderToServiceConnection_ is nullptr", __func__);
         return nullptr;
     }
-    return renderToServiceConnection_->NotifyRenderServiceProcessHgmFrameRate(timestamp, vsyncId, screenIds_, info);
+    return renderToServiceConnection_->NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds_, info);
 }
 
 void HgmClient::AddScreenId(ScreenId screenId)

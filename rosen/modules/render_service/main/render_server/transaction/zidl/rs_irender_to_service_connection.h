@@ -30,7 +30,7 @@ public:
     virtual ~RSIRenderToServiceConnection() noexcept = default;
 
     virtual void ReplyDumpResultToService(std::string& dumpString) = 0;
-    virtual sptr<HgmServiceToProcessInfo> NotifyRenderServiceProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
+    virtual sptr<HgmServiceToProcessInfo> NotifyRPHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const std::unordered_set<ScreenId>& screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo) = 0;
     virtual void NotifyScreenSwitchFinished(ScreenId screenId) = 0;
 };
