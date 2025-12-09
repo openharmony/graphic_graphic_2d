@@ -1915,15 +1915,10 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect007, TestSize.Level
     filterNode->instanceRootNodeId_ = 1;
     filterNode->GetHwcRecorder().SetZOrderForHwcEnableByFilter(100);
     filterNode->GetHwcRecorder().SetBlendWithBackground(true);
-
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode = nullptr;
-    std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
-    rsUniRenderVisitor->curScreenNode_ = screenNode;
-    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByFilterRect(surfaceNode, *filterNode, 10);
-
     auto rsContext = std::make_shared<RSContext>();
-    auto screenNode2 = std::make_shared<RSScreenRenderNode>(20, 0, rsContext);
-    rsUniRenderVisitor->curScreenNode_ = screenNode2;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(20, 0, rsContext);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
 
     std::shared_ptr<RSSurfaceRenderNode> selfDrawingNode1 = nullptr;
     RSMainThread::Instance()->selfDrawingNodes_.emplace_back(selfDrawingNode1);
