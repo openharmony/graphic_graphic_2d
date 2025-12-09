@@ -20,7 +20,7 @@
 #include <unordered_set>
 
 #include "screen_manager/rs_screen_manager.h"
-#include "transaction/zidl/rs_render_service_stub.h"
+#include "render_server/transaction/zidl/rs_render_service_stub.h"
 #include "vsync_controller.h"
 #include "vsync_distributor.h"
 
