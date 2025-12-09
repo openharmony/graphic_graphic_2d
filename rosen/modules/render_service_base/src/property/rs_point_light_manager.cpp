@@ -28,6 +28,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
     constexpr int TWO = 2;
+    constexpr size_t CLEANUP_THRESHOLD = 500;
     std::unordered_map<NodeId, std::unique_ptr<RSPointLightManager>> g_managersLUT;
     std::mutex g_mutex;
 }

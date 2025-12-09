@@ -680,7 +680,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     SetHasChildExcludedFromNodeGroup(false);
     SetChildHasVisibleHDRContent(false);
     SetForceDisableNodeGroup(false);
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
+    RSPointLightManager::Instance(GetLogicalDisplayNodeId())->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
 void RSRenderNode::ResetPixelStretchSlot()
@@ -1458,7 +1458,7 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
         return true;
     }
-    if (RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(shared_from_this())) {
+    if (RSPointLightManager::Instance(GetLogicalDisplayNodeId())->GetChildHasVisibleIlluminated(shared_from_this())) {
         return true;
     }
     if (ChildHasVisibleFilter()) {

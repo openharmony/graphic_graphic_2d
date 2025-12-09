@@ -1670,9 +1670,7 @@ void RSSurfaceRenderNode::SetNotifyRTBufferAvailable(bool isNotifyRTBufferAvaila
 void RSSurfaceRenderNode::ConnectToNodeInRenderService(sptr<IRemoteObject> connectToRender)
 {
     ROSEN_LOGI("RSSurfaceRenderNode::ConnectToNodeInRenderService nodeId = %{public}" PRIu64, GetId());
-    auto renderPipelineClient =
-        std::static_pointer_cast<RSRenderPipelineClient>(RSIRenderClient::CreateRenderPiplineClient());
-
+    auto renderPipelineClient = std::make_shared<RSRenderPipelineClient>(connectToRender);
     if (renderPipelineClient != nullptr) {
         renderPipelineClient->RegisterBufferAvailableListener(
             GetId(), [weakThis = weak_from_this()]() {
