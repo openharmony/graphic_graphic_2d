@@ -123,7 +123,7 @@ void LppVideoHandler::JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLaye
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RS_TRACE_NAME_FMT("JudgeLppLayer vsyncId: %ld", vsyncId);
-    RS_LOGI("JudgeLppLayer vsyncId: %{public}ld", vsyncId);
+    RS_LOGI("JudgeLppLayer vsyncId: %{public}" PRId64, vsyncId);
     if (lppConsumerMap_.find(vsyncId) == lppConsumerMap_.end()) {
         return;
     }
