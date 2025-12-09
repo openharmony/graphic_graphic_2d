@@ -29,7 +29,7 @@ public:
     virtual void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) = 0;
     virtual void CleanLayerBufferBySurfaceId(uint64_t surfaceId) = 0;
     virtual void ClearFrameBuffers() = 0;
-    virtual void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds) = 0;
+    virtual void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"IRSRenderToComposerConnection");
 protected:

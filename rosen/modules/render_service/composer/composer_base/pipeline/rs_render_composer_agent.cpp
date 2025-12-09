@@ -86,7 +86,7 @@ void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     rsRenderComposer_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
-void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
 {
     if (rsRenderComposer_ == nullptr) {
         return;

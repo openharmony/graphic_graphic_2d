@@ -25,7 +25,7 @@ namespace Rosen {
 using RSLayerId = uint64_t;
 using RSLayerPropertyId = uint64_t;
 
-enum class RSLayerParcelType : uint16_t {
+enum RSLayerParcelType : uint16_t {
     RS_LAYER_DESTROY = 0x0001,
     RS_LAYER_UPDATE,
     RS_RCD_LAYER_UPDATE,

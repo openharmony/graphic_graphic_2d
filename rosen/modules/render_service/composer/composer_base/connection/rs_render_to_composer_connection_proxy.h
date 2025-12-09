@@ -28,7 +28,7 @@ public:
     void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
     void ClearFrameBuffers() override;
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
-    void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds) override;
+    void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) override;
     void SetScreenBacklight(uint32_t level) override;
 private:
     bool FillParcelWithTransactionData(std::unique_ptr<RSLayerTransactionData>& transactionData,

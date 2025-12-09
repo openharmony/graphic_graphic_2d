@@ -136,7 +136,7 @@ int RSRenderComposerClient::GetAccumulatedBufferCount()
     return std::max(acquiredBufferCount_.load() - 1, 0);
 }
 
-void RSRenderComposerClient::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+void RSRenderComposerClient::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
 {
     std::lock_guard<std::mutex> lock(clientMutex_);
     if (connection_ != nullptr) {

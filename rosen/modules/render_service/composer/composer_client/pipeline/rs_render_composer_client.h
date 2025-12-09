@@ -64,7 +64,7 @@ public:
     void DumpLayersInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
-    void ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds);
+    void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
 private:
     bool WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock);

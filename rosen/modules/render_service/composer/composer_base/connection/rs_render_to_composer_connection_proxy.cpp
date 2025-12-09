@@ -164,7 +164,7 @@ void RSRenderToComposerConnectionProxy::CleanLayerBufferBySurfaceId(uint64_t sur
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_CLEAN_LAYER_BUFFER_BY_SURFACE_ID, parcel, reply, option);
 }
 
-void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::set<uint32_t>& bufferIds)
+void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
 {
     MessageOption option;
     MessageParcel reply;
@@ -174,9 +174,9 @@ void RSRenderToComposerConnectionProxy::ClearRedrawGPUCompositionCache(const std
         RS_LOGE("ClearRedrawGPUCompositionCache WriteInterfaceToken failed");
         return;
     }
-    std::vector<uint32_t> bufferIdsVector(bufferIds.begin(), bufferIds.end());
-    if (!parcel.WriteUInt32Vector(bufferIdsVector)) {
-        RS_LOGE("ClearRedrawGPUCompositionCache WriteUInt32 failed");
+    std::vector<uint64_t> bufferIdsVector(bufferIds.begin(), bufferIds.end());
+    if (!parcel.WriteUInt64Vector(bufferIdsVector)) {
+        RS_LOGE("ClearRedrawGPUCompositionCache WriteUInt64 failed");
         return;
     }
     int32_t err = 0;
