@@ -145,7 +145,7 @@ public:
     void SetSurfaceName(std::string surfaceName) override;
     std::string GetSurfaceName() const override;
     void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount) override {}
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) const override
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) override
     {
         return nullptr;
     }
