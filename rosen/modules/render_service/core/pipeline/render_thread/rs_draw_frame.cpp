@@ -153,19 +153,6 @@ void RSDrawFrame::EndCheck()
     timer_ = nullptr;
 }
 
-int32_t RSDrawFrame::GetMinAccumulatedBufferCount() const
-{
-    // Report minimum buffer count across all screens
-    int32_t minAccumulatedBufferCount = 4;
-    RSRenderComposerManager::GetInstance().ForEachScreen(
-        [&minAccumulatedBufferCount](ScreenId screenId, std::shared_ptr<RSRenderComposer> composer) {
-        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(composer);
-        int32_t accumulatedBufferCount = renderComposerAgent->GetAccumulatedBufferCount();
-        minAccumulatedBufferCount = std::min(minAccumulatedBufferCount, accumulatedBufferCount);
-    });
-    return minAccumulatedBufferCount;
-}
-
 void RSDrawFrame::NotifyClearGpuCache()
 {
     if (RSFilterCacheManager::GetFilterInvalid()) {

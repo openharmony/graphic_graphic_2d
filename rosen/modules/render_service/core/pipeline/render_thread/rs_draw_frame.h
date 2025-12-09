@@ -57,7 +57,6 @@ private:
     bool CheckCanvasSkipSync(std::shared_ptr<RSRenderNode>);
     void StartCheck();
     void EndCheck();
-    int32_t GetMinAccumulatedBufferCount() const;
 
     RSUniRenderThread& unirenderInstance_;
 
