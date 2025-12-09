@@ -175,8 +175,11 @@ ani_status AniTextUtils::ReadOptionalArrayField(
 {
     ani_ref ref = nullptr;
     ani_status result = AniTextUtils::ReadOptionalField(env, obj, getPropertyMethod, ref);
-    if (result != ANI_OK || ref == nullptr) {
+    if (result != ANI_OK) {
         TEXT_LOGE("Failed to read optional field, ret: %{public}d", result);
+        return result;
+    } else if (ref == nullptr) {
+        TEXT_LOGD("Field is not present");
         return result;
     }
 

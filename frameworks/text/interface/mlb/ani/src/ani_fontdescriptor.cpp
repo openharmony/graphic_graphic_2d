@@ -156,7 +156,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         AniTextUtils::CreateAniStringObj(env, fontDesc->copyright),
         AniTextUtils::CreateAniStringObj(env, fontDesc->trademark),
         AniTextUtils::CreateAniStringObj(env, fontDesc->license),
-        AniTextUtils::CreateAniIntObj(env, fontDesc->index)
+        ani_int(fontDesc->index)
     );
 
     return ANI_OK;
