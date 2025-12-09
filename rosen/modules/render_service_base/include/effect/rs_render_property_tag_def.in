@@ -319,7 +319,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, CornerRadius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, Shape, std::shared_ptr<RSNGRenderShapeBase>);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, BaseMaterialType, float);
-DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColor, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, MaterialColor, Vector4f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, RefractEnabled, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, InnerShadowEnabled, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightEnabled, bool);
