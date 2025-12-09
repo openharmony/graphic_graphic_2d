@@ -41,11 +41,11 @@ public:
     void SetRenderComposerClientConnection(const sptr<IRSRenderToComposerConnection>& conn);
 
     void AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer);
-    void RemoveLayer(RSLayerId layerId);
-    void ClearAllLayers();
+    void RemoveRSLayer(RSLayerId layerId);
+    void ClearAllRSLayers();
     std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId) const;
 
-    void CommitLayer(CommitLayerInfo& commitLayerInfo);
+    void CommitRSLayer(CommitLayerInfo& commitLayerInfo);
     void ReleaseLayerBuffers(uint64_t screenId,
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);

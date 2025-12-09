@@ -55,7 +55,7 @@ void RSLayerContext::AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer)
     rsLayers_.emplace(rsLayer->GetRSLayerId(), rsLayer);
 }
 
-void RSLayerContext::RemoveLayer(RSLayerId layerId)
+void RSLayerContext::RemoveRSLayer(RSLayerId layerId)
 {
     std::unique_lock<std::mutex> lock(rsLayerMutex_);
     auto iter = rsLayers_.find(layerId);
@@ -66,7 +66,7 @@ void RSLayerContext::RemoveLayer(RSLayerId layerId)
     rsLayers_.erase(iter);
 }
 
-void RSLayerContext::ClearAllLayers()
+void RSLayerContext::ClearAllRSLayers()
 {
     std::unique_lock<std::mutex> lock(rsLayerMutex_);
     rsLayers_.clear();
@@ -108,7 +108,7 @@ void RSLayerContext::DumpCurrentFrameLayers()
     }
 }
 
-void RSLayerContext::CommitLayer(CommitLayerInfo& commitLayerInfo)
+void RSLayerContext::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsLayerTransactionHandler_ == nullptr) {
