@@ -24,7 +24,7 @@
 #include <dirent.h>
 #include <functional>
 #include "log.h"
-#include <platform/ohos/rs_irender_service.h>
+#include <platform/ohos/transaction/zidl/rs_irender_service.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>

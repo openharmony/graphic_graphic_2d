@@ -1014,7 +1014,7 @@ void RSSurfaceLayer::SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::Buffe
     bufferOwnerCount_ = bufferOwnerCount;
 }
 
-std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) const
+std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> RSSurfaceLayer::GetSeqNumFromBufferOwnerCounts(uint64_t seqNum)
 {
     std::lock_guard<std::mutex> lockGuard(ownerCountMutex_);
     auto iter = bufferOwnerCounts_.find(seqNum);

@@ -114,6 +114,7 @@ public:
     std::vector<ScreenId> GetAllScreenIds();
 
 #ifndef ROSEN_CROSS_PLATFORM
+    std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
     ScreenId CreateVirtualScreen(const std::string& name, uint32_t width, uint32_t height, sptr<Surface> surface,
         ScreenId associatedScreenId = 0, int32_t flags = 0, std::vector<NodeId> whiteList = {});
 
