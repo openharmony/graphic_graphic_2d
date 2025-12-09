@@ -1375,7 +1375,7 @@ void RSPaintFilterCanvas::SetColorPicked(ColorPlaceholder placeholder, Drawing::
 Drawing::ColorQuad RSPaintFilterCanvas::GetColorPicked(ColorPlaceholder placeholder) const
 {
     if (envStack_.empty() || envStack_.top().pickedColorMap_.count(placeholder) == 0) {
-        return Drawing::Color::COLOR_BLACK;
+        return Drawing::Color::COLOR_MAGENTA;
     }
     return envStack_.top().pickedColorMap_.at(placeholder);
 }

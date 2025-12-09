@@ -17,6 +17,7 @@
 
 #include <unordered_set>
 
+#include "platform/common/rs_log.h"
 #include "ui_effect/filter/include/filter_bezier_warp_para.h"
 #include "ui_effect/filter/include/filter_blur_para.h"
 #include "ui_effect/filter/include/filter_color_gradient_para.h"
@@ -24,19 +25,16 @@
 #include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_blur_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_para.h"
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
-#include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
-
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
-
-#include "platform/common/rs_log.h"
 
 #undef LOG_TAG
 #define LOG_TAG "RSNGFilterBase"
@@ -47,74 +45,23 @@ using FilterCreator = std::function<std::shared_ptr<RSNGFilterBase>()>;
 using FilterConvertor = std::function<std::shared_ptr<RSNGFilterBase>(std::shared_ptr<FilterPara>)>;
 
 static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
-    {RSNGEffectType::BLUR, [] {
-            return std::make_shared<RSNGBlurFilter>();
-        }
-    },
-    {RSNGEffectType::DISPLACEMENT_DISTORT, [] {
-            return std::make_shared<RSNGDispDistortFilter>();
-        }
-    },
-    {RSNGEffectType::SOUND_WAVE, [] {
-            return std::make_shared<RSNGSoundWaveFilter>();
-        }
-    },
-    {RSNGEffectType::DISPERSION, [] {
-            return std::make_shared<RSNGDispersionFilter>();
-        }
-    },
-    {RSNGEffectType::EDGE_LIGHT, [] {
-            return std::make_shared<RSNGEdgeLightFilter>();
-        }
-    },
-    {RSNGEffectType::COLOR_GRADIENT, [] {
-            return std::make_shared<RSNGColorGradientFilter>();
-        }
-    },
-    {RSNGEffectType::DIRECTION_LIGHT, [] {
-            return std::make_shared<RSNGDirectionLightFilter>();
-        }
-    },
-    {RSNGEffectType::MASK_TRANSITION, [] {
-            return std::make_shared<RSNGMaskTransitionFilter>();
-        }
-    },
-    {RSNGEffectType::VARIABLE_RADIUS_BLUR, [] {
-            return std::make_shared<RSNGVariableRadiusBlurFilter>();
-        }
-    },
-    {RSNGEffectType::BEZIER_WARP, [] {
-            return std::make_shared<RSNGBezierWarpFilter>();
-        }
-    },
-    {RSNGEffectType::CONTENT_LIGHT, [] {
-            return std::make_shared<RSNGContentLightFilter>();
-        }
-    },
-    {RSNGEffectType::GASIFY_SCALE_TWIST, [] {
-            return std::make_shared<RSNGGasifyScaleTwistFilter>();
-        }
-    },
-    {RSNGEffectType::GASIFY_BLUR, [] {
-            return std::make_shared<RSNGGasifyBlurFilter>();
-        }
-    },
-    {RSNGEffectType::GASIFY, [] {
-            return std::make_shared<RSNGGasifyFilter>();
-        }
-    },
-    {RSNGEffectType::FROSTED_GLASS, [] {
-            return std::make_shared<RSNGFrostedGlassFilter>();
-        }
-    },
-    {RSNGEffectType::GRID_WARP, [] {
-            return std::make_shared<RSNGGridWarpFilter>();
-        }
-    },
-    {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
-            return std::make_shared<RSNGFrostedGlassBlurFilter>();
-        }
-    },
+    { RSNGEffectType::BLUR, [] { return std::make_shared<RSNGBlurFilter>(); } },
+    { RSNGEffectType::DISPLACEMENT_DISTORT, [] { return std::make_shared<RSNGDispDistortFilter>(); } },
+    { RSNGEffectType::SOUND_WAVE, [] { return std::make_shared<RSNGSoundWaveFilter>(); } },
+    { RSNGEffectType::DISPERSION, [] { return std::make_shared<RSNGDispersionFilter>(); } },
+    { RSNGEffectType::EDGE_LIGHT, [] { return std::make_shared<RSNGEdgeLightFilter>(); } },
+    { RSNGEffectType::COLOR_GRADIENT, [] { return std::make_shared<RSNGColorGradientFilter>(); } },
+    { RSNGEffectType::DIRECTION_LIGHT, [] { return std::make_shared<RSNGDirectionLightFilter>(); } },
+    { RSNGEffectType::MASK_TRANSITION, [] { return std::make_shared<RSNGMaskTransitionFilter>(); } },
+    { RSNGEffectType::VARIABLE_RADIUS_BLUR, [] { return std::make_shared<RSNGVariableRadiusBlurFilter>(); } },
+    { RSNGEffectType::BEZIER_WARP, [] { return std::make_shared<RSNGBezierWarpFilter>(); } },
+    { RSNGEffectType::CONTENT_LIGHT, [] { return std::make_shared<RSNGContentLightFilter>(); } },
+    { RSNGEffectType::GASIFY_SCALE_TWIST, [] { return std::make_shared<RSNGGasifyScaleTwistFilter>(); } },
+    { RSNGEffectType::GASIFY_BLUR, [] { return std::make_shared<RSNGGasifyBlurFilter>(); } },
+    { RSNGEffectType::GASIFY, [] { return std::make_shared<RSNGGasifyFilter>(); } },
+    { RSNGEffectType::FROSTED_GLASS, [] { return std::make_shared<RSNGFrostedGlassFilter>(); } },
+    { RSNGEffectType::GRID_WARP, [] { return std::make_shared<RSNGGridWarpFilter>(); } },
+    { RSNGEffectType::FROSTED_GLASS_BLUR, [] { return std::make_shared<RSNGFrostedGlassBlurFilter>(); } },
 };
 
 namespace {
@@ -339,6 +286,22 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassEnvLightEnabledTag>(frostedGlassFilterPara->GetEnvLightEnabled());
     frostedGlassFilter->Setter<FrostedGlassHighLightEnabledTag>(frostedGlassFilterPara->GetHighLightEnabled());
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
+    if (auto lightMode = frostedGlassFilterPara->GetLightAdaptiveParams(); lightMode) {
+        frostedGlassFilter->Setter<FrostedGlassLightModeBlurParamsTag>(lightMode->blurParams);
+        frostedGlassFilter->Setter<FrostedGlassLightModeWeightsEmbossTag>(lightMode->weightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgRatesTag>(lightMode->bgRates);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgKBSTag>(lightMode->bgKBS);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgPosTag>(lightMode->bgPos);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgNegTag>(lightMode->bgNeg);
+    }
+    if (auto darkMode = frostedGlassFilterPara->GetDarkAdaptiveParams(); darkMode) {
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBlurParamsTag>(darkMode->blurParams);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeWeightsEmbossTag>(darkMode->weightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgRatesTag>(darkMode->bgRates);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgKBSTag>(darkMode->bgKBS);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgPosTag>(darkMode->bgPos);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgNegTag>(darkMode->bgNeg);
+    }
     return frostedGlassFilter;
 }
 
@@ -355,7 +318,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(frostedGlassBlurFilterPara->GetRefractOutPx());
     return frostedGlassBlurFilter;
 }
-}
+} // namespace
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
     { FilterPara::ParaType::DISPLACEMENT_DISTORT, ConvertDisplacementDistortFilterPara },

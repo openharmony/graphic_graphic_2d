@@ -2326,7 +2326,7 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
         &ModifierNG::RSForegroundShaderModifier::SetForegroundShader>(foregroundShader);
 }
 
-void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)
+void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter, int32_t level)
 {
     if (!materialFilter) {
         ROSEN_LOGW("RSNode::SetMaterialNGFilter filter is nullptr");
@@ -2336,6 +2336,10 @@ void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& material
             modifier->DetachProperty(ModifierNG::RSPropertyType::MATERIAL_NG_FILTER);
         }
         return;
+    }
+    if (materialFilter->GetType() == RSNGEffectType::FROSTED_GLASS && level > 1) {
+        constexpr uint64_t DEFAULT_INTERVAL = 100; // unit: ms
+        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, DEFAULT_INTERVAL);
     }
     SetPropertyNG<ModifierNG::RSMaterialFilterModifier,
         &ModifierNG::RSMaterialFilterModifier::SetMaterialNGFilter>(materialFilter);

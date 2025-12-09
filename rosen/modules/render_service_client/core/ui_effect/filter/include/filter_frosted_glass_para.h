@@ -22,6 +22,17 @@
 
 namespace OHOS {
 namespace Rosen {
+
+// subset of FrostedGlass parameters that adapt to background color
+struct AdaptiveFrostedGlassParams {
+    Vector2f blurParams = Vector2f(48.0f, 4.0f);
+    Vector2f weightsEmboss = Vector2f(1.0f, 1.0f); // (envLight, sd)
+    Vector2f bgRates = Vector2f(-0.00003f, 1.2f);
+    Vector3f bgKBS = Vector3f(0.010834f, 0.007349f, 1.2f);
+    Vector3f bgPos = Vector3f(0.3f, 0.5f, 1.0f);
+    Vector3f bgNeg = Vector3f(0.5f, 0.5f, 1.0f);
+};
+
 class FrostedGlassPara : public FilterPara {
 public:
     FrostedGlassPara()
@@ -380,6 +391,26 @@ public:
         return highLightEnabled_;
     }
 
+    void SetLightAdaptiveParams(AdaptiveFrostedGlassParams lightParams)
+    {
+        lightAdaptiveParams_ = std::make_shared<AdaptiveFrostedGlassParams>(std::move(lightParams));
+    }
+
+    void SetDarkAdaptiveParams(AdaptiveFrostedGlassParams darkParams)
+    {
+        darkAdaptiveParams_ = std::make_shared<AdaptiveFrostedGlassParams>(std::move(darkParams));
+    }
+
+    const std::shared_ptr<AdaptiveFrostedGlassParams>& GetLightAdaptiveParams() const
+    {
+        return lightAdaptiveParams_;
+    }
+
+    const std::shared_ptr<AdaptiveFrostedGlassParams>& GetDarkAdaptiveParams() const
+    {
+        return darkAdaptiveParams_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -421,6 +452,9 @@ private:
     bool envLightEnabled_ = true;
     bool highLightEnabled_ = true;
     float samplingScale_ = 1.0f;
+
+    std::shared_ptr<AdaptiveFrostedGlassParams> lightAdaptiveParams_;
+    std::shared_ptr<AdaptiveFrostedGlassParams> darkAdaptiveParams_;
 };
 } // namespace Rosen
 } // namespace OHOS

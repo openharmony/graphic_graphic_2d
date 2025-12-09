@@ -1205,8 +1205,9 @@ public:
      * @brief Sets the material filter.
      *
      * @param materialFilter Indicates the material filter to be applied.
+     * @param level Quality level of the filter, higher level means better quality.
      */
-    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter);
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter, int32_t level = 0);
 
     /**
      * @brief Sets the parameters for linear gradient blur.

@@ -1134,4 +1134,50 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter007, test
     auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
     EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 0.0f, 0.0f)));
 }
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest001
+ * @tc.desc: ApplyAdaptiveFrostedGlassParams null and type checks
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest001, testing::ext::TestSize.Level1)
+{
+    // null effect
+    Drawing::Canvas canvas;
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, nullptr);
+
+    // effect not frosted glass
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, renderFilter);
+}
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest002
+ * @tc.desc: ApplyAdaptiveFrostedGlassParams dark / light branch
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, testing::ext::TestSize.Level1)
+{
+    // create frosted glass filter
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(renderFilter, nullptr);
+    auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+
+    // prepare canvas and set picked color to black -> dark
+    Drawing::Canvas canvasDark;
+    RSPaintFilterCanvas paintFilterCanvasDark(&canvasDark);
+    paintFilterCanvasDark.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_BLACK);
+
+    // record previous values to compare that setters are applied (call should not crash)
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasDark, renderFilter);
+
+    // prepare canvas and set picked color to white -> light
+    Drawing::Canvas canvasLight;
+    RSPaintFilterCanvas paintFilterCanvasLight(&canvasLight);
+    paintFilterCanvasLight.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_WHITE);
+
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasLight, renderFilter);
+}
 } // namespace OHOS::Rosen

@@ -324,6 +324,20 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, EnvLightEnabled, bool);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, HighLightEnabled, bool);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, SamplingScale, float);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBlurParams, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeWeightsEmboss, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgRates, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgPos, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg, Vector3f);
+
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, LightModeBlurParams, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, LightModeWeightsEmboss, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, LightModeBgRates, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, LightModeBgKBS, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, LightModeBgPos, Vector3f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, LightModeBgNeg, Vector3f);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color0, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color1, Vector4f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, Color2, Vector4f);

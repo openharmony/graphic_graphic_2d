@@ -146,7 +146,19 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, InnerShadowEnabled),
     ADD_PROPERTY_TAG(FrostedGlass, EnvLightEnabled),
     ADD_PROPERTY_TAG(FrostedGlass, HighLightEnabled),
-    ADD_PROPERTY_TAG(FrostedGlass, SamplingScale)
+    ADD_PROPERTY_TAG(FrostedGlass, SamplingScale),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBlurParams),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeWeightsEmboss),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgRates),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgKBS),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgPos),
+    ADD_PROPERTY_TAG(FrostedGlass, DarkModeBgNeg),
+    ADD_PROPERTY_TAG(FrostedGlass, LightModeBlurParams),
+    ADD_PROPERTY_TAG(FrostedGlass, LightModeWeightsEmboss),
+    ADD_PROPERTY_TAG(FrostedGlass, LightModeBgRates),
+    ADD_PROPERTY_TAG(FrostedGlass, LightModeBgKBS),
+    ADD_PROPERTY_TAG(FrostedGlass, LightModeBgPos),
+    ADD_PROPERTY_TAG(FrostedGlass, LightModeBgNeg)
 );
 
 DECLARE_FILTER(GridWarp, GRID_WARP,
