@@ -1412,9 +1412,6 @@ void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
 
 void RSScreen::SetGlobalBlackList(const std::unordered_set<uint64_t>& globalBlackList)
 {
-    if (globalBlackList == property_.GetGlobalBlackList()) {
-        return;
-    }
     property_.SetGlobalBlackList(globalBlackList);
     if (onPropertyChange_) {
         onPropertyChange_(property_.Clone());
@@ -1441,11 +1438,6 @@ void RSScreen::RemoveGlobalBlackList(const std::vector<uint64_t>& globalBlackLis
     if (onPropertyChange_) {
         onPropertyChange_(property_.Clone());
     }
-}
-
-const std::unordered_set<uint64_t>& RSScreen::GetGlobalBlackList()
-{
-    return property_.GetGlobalBlackList();
 }
 
 void RSScreen::SetCastScreenEnableSkipWindow(bool enable)

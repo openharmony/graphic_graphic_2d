@@ -117,10 +117,10 @@ bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offset
     }
     if (displayNode) {
         screenInfo_.rotation = displayNode->GetRotation();
-        std::shared_ptr<RSScreenRenderNode> mirrorSource = displayNode->GetMirrorSource().lock();
-        CalculateScreenTransformMatrix(mirrorSource ? *mirrorSource : node);
-        if (mirrorSource) {
-            mirroredScreenInfo_ = mirrorSource->GetScreenProperty().GetScreenInfo();
+        auto mirrorSource = displayNode->GetMirrorSource().lock();
+        CalculateScreenTransformMatrix(mirrorSource ? *mirrorSource : displayNode);
+        if (auto mirroredScreenNode = node.GetMirrorSource().lock()) {
+            mirroredScreenInfo_ = mirroredScreenNode->GetScreenProperty().GetScreenInfo();
             CalculateMirrorAdaptiveMatrix();
         }
     } else {

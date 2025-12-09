@@ -159,7 +159,6 @@ public:
     void AddBlackList(const std::vector<uint64_t>& blackList);
     void RemoveBlackList(const std::vector<uint64_t>& blackList);
     void SetGlobalBlackList(const std::unordered_set<uint64_t>& globalBlackList);
-    const std::unordered_set<uint64_t>& GetGlobalBlackList();
     void AddGlobalBlackList(const std::vector<uint64_t>& globalBlackList);
     void RemoveGlobalBlackList(const std::vector<uint64_t>& globalBlackList);
     std::unordered_set<uint64_t> GetBlackList() const;

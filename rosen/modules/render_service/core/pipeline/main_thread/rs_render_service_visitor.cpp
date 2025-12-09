@@ -318,6 +318,7 @@ bool RSRenderServiceVisitor::CreateProcessor(RSScreenRenderNode& node)
         processorRenderEngine_ = mainThread->GetRenderEngine();
     }
 
+    const auto& screenProperty = node.GetScreenProperty();
     if (!processor_->Init(node, screenProperty.GetOffsetX(), screenProperty.GetOffsetY(), processorRenderEngine_)) {
         RS_LOGE("ProcessDisplayRenderNode: processor init failed!");
         return false;
