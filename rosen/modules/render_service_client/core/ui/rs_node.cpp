@@ -4138,6 +4138,7 @@ template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
 template bool RSNode::IsInstanceOf<RSEffectNode>() const;
 template bool RSNode::IsInstanceOf<RSWindowKeyFrameNode>() const;
+template bool RSNode::IsInstanceOf<RSUnionNode>() const;
 
 void RSNode::SetInstanceId(int32_t instanceId)
 {

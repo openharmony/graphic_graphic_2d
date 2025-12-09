@@ -87,12 +87,6 @@ void RSUnionRenderNode::ProcessSDFShape()
             SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
     }
     GetMutableRenderProperties().SetSDFShape(root);
-    if (GetRenderProperties().GetForegroundFilterCache()) {
-        SetDrawingCacheType(RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
-        stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
-        stagingRenderParams_->SetDrawingCacheIncludeProperty(true);
-        stagingRenderParams_->SetForegroundFilterCache(GetRenderProperties().GetForegroundFilterCache());
-    }
     UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
 }
 
@@ -117,6 +111,10 @@ bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relat
     }
     relativeMatrix = childGeoPtr->GetAbsMatrix();
     relativeMatrix.PostConcat(invertUnionAbsMatrix);
+    // GE need inverted matrix
+    Drawing::Matrix invertMat;
+    relativeMatrix.Invert(invertMat);
+    relativeMatrix = invertMat;
     return true;
 }
 
@@ -144,16 +142,28 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::CreateSDFOpShapeWithBase
     return opShape;
 }
 
-std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape(Drawing::Matrix& relativeMatrix,
+std::shared_ptr<RSNGRenderSDFTransformShape> RSUnionRenderNode::CreateChildToContainerSDFTransformShape(
     std::shared_ptr<RSRenderNode>& child)
 {
-    if (child->GetRenderProperties().GetSDFShape()) {
-        return child->GetRenderProperties().GetSDFShape();
-    }
-    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-    if (!geoPtr) {
-        RS_LOGE("RSUnionRenderNode::GetOrCreateChildSDFShape GetBoundsGeometry fail");
+    Drawing::Matrix relativeMatrix;
+    if (!GetChildRelativeMatrixToUnionNode(relativeMatrix, child)) {
         return nullptr;
+    }
+    Matrix3f matrix(relativeMatrix.Get(Drawing::Matrix::Index::SCALE_X),
+        relativeMatrix.Get(Drawing::Matrix::Index::SKEW_X), relativeMatrix.Get(Drawing::Matrix::Index::TRANS_X),
+        relativeMatrix.Get(Drawing::Matrix::Index::SKEW_Y), relativeMatrix.Get(Drawing::Matrix::Index::SCALE_Y),
+        relativeMatrix.Get(Drawing::Matrix::Index::TRANS_Y), relativeMatrix.Get(Drawing::Matrix::Index::PERSP_0),
+        relativeMatrix.Get(Drawing::Matrix::Index::PERSP_1), relativeMatrix.Get(Drawing::Matrix::Index::PERSP_2));
+    auto transformShape = std::static_pointer_cast<RSNGRenderSDFTransformShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE));
+    transformShape->Setter<SDFTransformShapeMatrixRenderTag>(matrix);
+    return transformShape;
+}
+
+std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child)
+{
+    if (auto shape = child->GetRenderProperties().GetSDFShape()) {
+        return shape;
     }
     RRect sdfRRect{};
     if (child->GetRenderProperties().GetClipToRRect()) {
@@ -165,11 +175,16 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape
     } else {
         sdfRRect.rect_ = child->GetRenderProperties().GetBoundsRect();
     }
-    sdfRRect.rect_ = geoPtr->MapRectWithoutRounding(sdfRRect.rect_, relativeMatrix);
     auto childShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
     childShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     return childShape;
+}
+
+void RSUnionRenderNode::ResetChildRelevantFlags()
+{
+    visibleUnionChildren_.clear();
+    RSRenderNode::ResetChildRelevantFlags();
 }
 
 } // namespace Rosen
