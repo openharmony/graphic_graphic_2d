@@ -53,6 +53,8 @@ public:
     }
 
     bool HasHdrHeteroNode();
+    void NotifyHardwareThreadCanExecuteTask();
+    void ClearPendingPostNodes();
 
     virtual ~RSHeteroHDRManager() = default;
 private:
@@ -90,6 +92,7 @@ private:
         std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& nodeDrawable,
         RSSurfaceRenderParams* surfaceParams, NodeId nodeId, uint64_t curFrameId);
     void ClearBufferCache();
+    void WaitHardwareThreadTaskExecute(ScreenId screenId);
 
     std::shared_ptr<Drawing::ShaderEffect> MakeHDRHeadroomShader(float hdrRatio,
         std::shared_ptr<Drawing::ShaderEffect>& imageShader);
@@ -109,6 +112,11 @@ private:
     {
         return RSHDRPatternManager::Instance().TryConsumeBuffer(std::move(consumingFunc));
     }
+    virtual bool MHCGetFrameIdUsed()
+    {
+        return RSHDRPatternManager::Instance().MHCGetFrameIdUsed();
+    }
+
 
     RSHeteroHDRBufferLayer rsHeteroHDRBufferLayer_{"HDRHeterogeneousLayer", INVALID_NODEID};
     std::unordered_map<NodeId, NodeId> ownedLeashWindowIdMap_;
@@ -135,6 +143,9 @@ private:
 
     HdrStatus curHandleStatus_ = HdrStatus::NO_HDR;
     bool isHdrOn_ = false; // whether hdr is turn on in current screen
+    bool needClear_ = false;
+    mutable std::mutex hardwareThreadTaskMutex_;
+    std::condition_variable hardwareThreadTaskCond_;
 };
 } // namespace Rosen
 } // namespace OHOS

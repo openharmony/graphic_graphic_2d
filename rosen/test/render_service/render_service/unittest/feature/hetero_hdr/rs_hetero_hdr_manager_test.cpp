@@ -270,6 +270,7 @@ public:
     MOCK_METHOD(bool, MHCRequestEGraph, (uint64_t frameId), (override));
     MOCK_METHOD(bool, MHCSetCurFrameId, (uint64_t frameId), (override));
     MOCK_METHOD(bool, TryConsumeBuffer, (std::function<void()>&& consumingFunc), (override));
+    MOCK_METHOD(bool, MHCGetFrameIdUsed, (), (override));
 };
 
 class SingletonMockRSHeteroHDRManager {
@@ -1580,15 +1581,19 @@ HWTEST_F(RSHeteroHDRManagerTest, ProcessPendingNodeDrawableTest, TestSize.Level1
 }
 
 /**
- * @tc.name: ClearBufferCacheTest
+ * @tc.name: ClearBufferCacheTest1
  * @tc.desc: Test ClearBufferCache
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest, TestSize.Level1)
+HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest1, TestSize.Level1)
 {
     MockRSHeteroHDRManager mockRSHeteroHDRManager;
+    mockRSHeteroHDRManager.needClear_ = false;
     mockRSHeteroHDRManager.ClearBufferCache();
+    mockRSHeteroHDRManager.needClear_ = true;
+    mockRSHeteroHDRManager.ClearBufferCache();
+    EXPECT_CALL(mockRSHeteroHDRManager, MHCGetFrameIdUsed()).WillRepeatedly(testing::Return(true));
     EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 1);
     mockRSHeteroHDRManager.ClearBufferCache();
     EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 2);
@@ -1602,6 +1607,30 @@ HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest, TestSize.Level1)
     EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 6);
     mockRSHeteroHDRManager.ClearBufferCache();
     EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 0);
+}
+
+/**
+ * @tc.name: ClearBufferCacheTest2
+ * @tc.desc: Test ClearBufferCache
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest2, TestSize.Level1)
+{
+    MockRSHeteroHDRManager mockRSHeteroHDRManager;
+
+    NodeId id = 1;
+    auto ret1 = RSHeteroHDRUtil::GetSurfaceDrawableByID(id);
+    EXPECT_EQ(ret1, nullptr);
+
+    auto adapterNode = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(adapterNode));
+    RSRenderNodeDrawableAdapter::weakPtr wNode = adapter;
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.emplace(id, wNode);
+
+    auto ret2 = RSHeteroHDRUtil::GetSurfaceDrawableByID(id);
+    EXPECT_EQ(ret2, nullptr);
+    RSRenderNodeDrawableAdapter::RenderNodeDrawableCache_.clear();
 }
 
 /**
