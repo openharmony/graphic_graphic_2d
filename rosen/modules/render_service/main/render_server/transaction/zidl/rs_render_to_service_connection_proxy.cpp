@@ -32,7 +32,7 @@ void RSRenderToServiceConnectionProxy::ReplyDumpResultToService(std::string& dum
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
         RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return false;
+        return;
     }
     int32_t dumpStringLength = static_cast<int32_t>(dumpString.length());
     const char* dumpData = dumpString.c_str();
@@ -63,7 +63,7 @@ sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRpHgmFrame
     option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIRenderToServiceConnection::GetDescriptor())) {
         RS_LOGE("%{public}s: WriteInterfaceToken failed", __func__);
-        return false;
+        return nullptr;
     }
     if (!data.WriteUint64(timestamp)) {
         RS_LOGI("dmulti_process RSRenderToServiceConnectionProxy::NotifyRenderServiceProcessHgmFrameRate writeuint64 failed");
