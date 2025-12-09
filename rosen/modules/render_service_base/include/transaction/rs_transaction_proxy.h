@@ -114,7 +114,7 @@ private:
     std::mutex mutexForRT_;
     std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_{std::make_unique<RSTransactionData>()};
 
-    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderPiplineClient();
+    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
     static std::once_flag flag_;

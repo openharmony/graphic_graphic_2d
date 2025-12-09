@@ -27,7 +27,6 @@
 #include "common/rs_macros.h"
 #include "common/rs_singleton.h"
 #include "transaction/rs_irender_client.h"
-#include "transaction/rs_render_pipeline_client.h"
 #include "transaction/rs_transaction_data.h"
 
 namespace OHOS {
@@ -117,7 +116,7 @@ private:
     std::mutex mutexForRT_;
     std::unique_ptr<RSTransactionData> implicitTransactionDataFromRT_ { std::make_unique<RSTransactionData>() };
 
-    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderPiplineClient();
+    std::shared_ptr<RSIRenderClient> renderServiceClient_ = RSIRenderClient::CreateRenderServiceClient();
     std::unique_ptr<RSIRenderClient> renderThreadClient_ = nullptr;
     uint64_t timestamp_ = 0;
     uint64_t token_ = 0;

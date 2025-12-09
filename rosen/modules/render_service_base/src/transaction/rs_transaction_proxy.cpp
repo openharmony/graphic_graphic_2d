@@ -78,12 +78,19 @@ void RSTransactionProxy::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>&
     }
 }
 
+void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient)
+{
+    if (renderServiceClient != nullptr) {
+        renderServiceClient_ = renderServiceClient;
+    }
+}
+
 void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
                                     FollowType followType, NodeId nodeId)
 {
 #ifndef SCREENLESS_DEVICE
-    if ((renderPiplineClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
-        RS_LOGE("RSTransactionProxy::add command fail, (renderPiplineClient_ and renderThreadClient_ is nullptr)"
+    if ((renderServiceClient_ == nullptr && renderThreadClient_ == nullptr) || command == nullptr) {
+        RS_LOGE("RSTransactionProxy::add command fail, (renderServiceClient_ and renderThreadClient_ is nullptr)"
             " or command is nullptr");
         return;
     }
@@ -93,7 +100,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
     RS_LOGI_IF(DEBUG_NODE,
         "RSTransactionProxy::add command nodeId:%{public}" PRIu64 " isRenderServiceCommand:%{public}d"
         " followType:%{public}hu", nodeId, isRenderServiceCommand, followType);
-    if (renderPiplineClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
+    if (renderServiceClient_ != nullptr && (isRenderServiceCommand || renderThreadClient_ == nullptr)) {
         #ifdef ROSEN_OHOS
         int appPid = ExtractPid(nodeId);
         if (isRenderServiceCommand && command->GetSubType() == RSCommandType::ANIMATION &&
@@ -119,7 +126,7 @@ void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool is
 
 void RSTransactionProxy::AddCommandFromRT(std::unique_ptr<RSCommand>& command, NodeId nodeId, FollowType followType)
 {
-    if (renderPiplineClient_ == nullptr || command == nullptr) {
+    if (renderServiceClient_ == nullptr || command == nullptr) {
         return;
     }
 
@@ -136,8 +143,8 @@ void RSTransactionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask
         return;
     }
 
-    if (renderPiplineClient_ && isRenderServiceTask) {
-        renderPiplineClient_->ExecuteSynchronousTask(task);
+    if (renderServiceClient_ && isRenderServiceTask) {
+        renderServiceClient_->ExecuteSynchronousTask(task);
         return;
     }
 
@@ -176,7 +183,7 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
         }
     }
 
-    if (renderPiplineClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
+    if (renderServiceClient_ == nullptr || implicitRemoteTransactionData_->IsEmpty()) {
         RS_TRACE_NAME("UI skip");
         uiSkipCount_++;
         return;
@@ -189,11 +196,11 @@ void RSTransactionProxy::FlushImplicitTransaction(uint64_t timestamp, const std:
     transactionData->dvsyncTimeUpdate_ = dvsyncTimeUpdate;
     transactionData->dvsyncTime_ = dvsyncTime;
     if (RSSystemProperties::GetHybridRenderEnabled() && commitTransactionCallback_ != nullptr) {
-        commitTransactionCallback_(renderPiplineClient_,
+        commitTransactionCallback_(renderServiceClient_,
             std::move(transactionData), transactionDataIndex_, nullptr);
         return;
     }
-    renderPiplineClient_->CommitTransaction(transactionData);
+    renderServiceClient_->CommitTransaction(transactionData);
     transactionDataIndex_ = transactionData->GetIndex();
 }
 
@@ -237,11 +244,11 @@ bool RSTransactionProxy::IsEmpty() const
 void RSTransactionProxy::FlushImplicitTransactionFromRT(uint64_t timestamp)
 {
     std::unique_lock<std::mutex> cmdLock(mutexForRT_);
-    if (renderPiplineClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
+    if (renderServiceClient_ != nullptr && !implicitTransactionDataFromRT_->IsEmpty()) {
         implicitTransactionDataFromRT_->timestamp_ = timestamp;
         thread_local pid_t tid = gettid();
         implicitTransactionDataFromRT_->tid_ = tid;
-        renderPiplineClient_->CommitTransaction(implicitTransactionDataFromRT_);
+        renderServiceClient_->CommitTransaction(implicitTransactionDataFromRT_);
         implicitTransactionDataFromRT_ = std::make_unique<RSTransactionData>();
     }
 }
@@ -306,11 +313,11 @@ void RSTransactionProxy::Commit(uint64_t timestamp)
     }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderPiplineClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
+        if (renderServiceClient_ != nullptr && !implicitRemoteTransactionDataStack_.top()->IsEmpty()) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
             thread_local pid_t tid = gettid();
             implicitRemoteTransactionDataStack_.top()->tid_ = tid;
-            renderPiplineClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
+            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
     }
@@ -334,12 +341,12 @@ void RSTransactionProxy::CommitSyncTransaction(uint64_t timestamp, const std::st
     }
 
     if (!implicitRemoteTransactionDataStack_.empty()) {
-        if (renderPiplineClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
+        if (renderServiceClient_ != nullptr && (!implicitRemoteTransactionDataStack_.top()->IsEmpty() ||
             implicitRemoteTransactionDataStack_.top()->IsNeedSync())) {
             implicitRemoteTransactionDataStack_.top()->timestamp_ = timestamp;
             implicitRemoteTransactionDataStack_.top()->tid_ = tid;
             implicitRemoteTransactionDataStack_.top()->SetSyncId(syncId_);
-            renderPiplineClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
+            renderServiceClient_->CommitTransaction(implicitRemoteTransactionDataStack_.top());
         }
         implicitRemoteTransactionDataStack_.pop();
     }
