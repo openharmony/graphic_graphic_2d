@@ -3809,6 +3809,9 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
+    if (curIlluminateType == IlluminatedType::INVALID) { // skip when resetFunc call
+        return;
+    }
     auto renderNode = backref_.lock();
     if (renderNode == nullptr) {
         return;
@@ -3816,10 +3819,11 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     auto preIlluminatedType = GetIlluminated()->GetPreIlluminatedType();
     bool preTypeIsNone = preIlluminatedType == IlluminatedType::NONE;
     bool curTypeIsNone = curIlluminateType == IlluminatedType::NONE;
+    auto logicalDisplayNodeId = renderNode->GetLogicalDisplayNodeId();
     if (preTypeIsNone && !curTypeIsNone) {
-        RSPointLightManager::Instance()->RegisterIlluminated(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->RegisterIlluminated(renderNode);
     } else if (!preTypeIsNone && curTypeIsNone) {
-        RSPointLightManager::Instance()->UnRegisterIlluminated(renderNode);
+        RSPointLightManager::Instance(logicalDisplayNodeId)->UnRegisterIlluminated(renderNode);
     }
 }
 

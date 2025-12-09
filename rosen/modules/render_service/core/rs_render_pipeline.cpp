@@ -42,7 +42,7 @@
 
 #include "ge_mesa_blur_shader_filter.h"
 #include "graphic_feature_param_manager.h"
-#include "dfx/rs_process_dump_manager.h"
+#include "main/render_process/dfx/rs_process_dump_manager.h"
 #include "main/render_process/dfx/rs_process_dumper.h"
 #include "parameter.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
