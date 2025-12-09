@@ -95,7 +95,7 @@ std::set<uint64_t> RSRenderToComposerConnectionStub::ParseClearRedrawCacheBuffer
 {
     std::vector<uint64_t> bufferIdsVector;
     std::set<uint64_t> bufferIds;
-    if (!parcel.ReadUInt32Vector(&bufferIdsVector)) {
+    if (!parcel.ReadUInt64Vector(&bufferIdsVector)) {
         RS_LOGE("RSRenderToComposerConnectionStub::ParseClearRedrawCacheBufferIds read buffer ids failed.");
         return bufferIds;
     }
