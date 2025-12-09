@@ -28,7 +28,7 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr uint32_t MAX_SCREEN_ID_COUNT = 64;
+constexpr uint32_t MAX_SCREENID_ID_COUNT = 64;
 }
 
 int RSRenderToServiceConnectionStub::OnRemoteRequest(
