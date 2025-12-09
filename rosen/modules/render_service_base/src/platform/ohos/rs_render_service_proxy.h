@@ -29,8 +29,7 @@ public:
     explicit RSRenderServiceProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSRenderServiceProxy() noexcept = default;
 
-    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(
-        const sptr<RSIConnectionToken>& token) override;
+    sptr<RSIClientToServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
 private:

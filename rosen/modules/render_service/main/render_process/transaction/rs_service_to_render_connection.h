@@ -101,7 +101,6 @@ public:
 
 private:
     sptr<RSRenderServiceAgent> renderServiceAgent_ = nullptr;
-    sptr<RSRenderProcessAgent> renderProcessAgent_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_ = nullptr;
 };
 
