@@ -73,6 +73,33 @@ uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection*, const char* f
     size_t length);
 
 /**
+ * @brief Defines an <b>OH_Drawing_RegisterFontByIndex</b>, which is used to register font from ttc file.
+ *
+ * @param fontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @param fontFamily Indicates the family name of the font which need to register.
+ * @param familySrc Indicates the path of the font file which need to register.
+ * @param index Indicates the index of the font data in the ttc file.
+ * @return error code.
+ * @since 23
+ */
+uint32_t OH_Drawing_RegisterFontByIndex(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, const char* familySrc, uint32_t index);
+
+/**
+ * @brief Defines an <b>OH_Drawing_RegisterFontBufferByIndex</b>, which is used to register font from ttc buffer.
+ *
+ * @param fontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @param fontFamily Indicates the family name of the font which need to register.
+ * @param fontBuffer Indicates the font data which need to register.
+ * @param length Indicates the font data length.
+ * @param index Indicates the index of the font data in the ttc file.
+ * @return error code.
+ * @since 23
+ */
+uint32_t OH_Drawing_RegisterFontBufferByIndex(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index);
+
+/**
  * @brief Unregister a customized font by the font family.
  * Unregistering a font that is currently in use by UI components may lead to text rendering anomalies,
  * including garbled characters or missing glyphs.

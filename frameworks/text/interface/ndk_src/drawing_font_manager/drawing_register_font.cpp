@@ -59,23 +59,6 @@ inline T1* ConvertToOriginalText(T2* ptr)
     return reinterpret_cast<T1*>(ptr);
 }
 
-static uint32_t LoadFromFontCollection(OH_Drawing_FontCollection* fontCollection,
-    const std::string& familyName, const uint8_t* data, size_t dataLength)
-{
-    if (fontCollection == nullptr) {
-        return ERROR_NULL_FONT_COLLECTION;
-    }
-    if ((data == nullptr) != (dataLength == 0)) {
-        return ERROR_BUFFER_SIZE_ZERO;
-    }
-    auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
-    auto face = fc->LoadFont(familyName, data, dataLength);
-    if (face == nullptr) {
-        return ERROR_FILE_CORRUPTION;
-    }
-    return 0;
-}
-
 uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& buffer, std::streamsize& size)
 {
 #ifdef BUILD_NON_SDK_VER
@@ -124,12 +107,31 @@ uint32_t LoadFontDataFromFile(const std::string& path, std::unique_ptr<char[]>& 
     return 0;
 }
 
-uint32_t OH_Drawing_RegisterFont(
-    OH_Drawing_FontCollection* fontCollection, const char* fontFamily, const char* familySrc)
+static uint32_t LoadFromFontCollectionByIndex(OH_Drawing_FontCollection* fontCollection,
+    const std::string& familyName, const uint8_t* data, size_t dataLength, uint32_t index)
+{
+    if (fontCollection == nullptr) {
+        return ERROR_NULL_FONT_COLLECTION;
+    }
+    if ((data == nullptr && dataLength != 0) ||
+        (data != nullptr && dataLength == 0)) {
+        return ERROR_BUFFER_SIZE_ZERO;
+    }
+
+    auto fc = ConvertToOriginalText<FontCollection>(fontCollection);
+    if (fc->LoadFont(familyName, data, dataLength, index) == nullptr) {
+        return ERROR_FILE_CORRUPTION;
+    }
+    return 0;
+}
+
+static uint32_t RegisterFontInternal(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, const char* familySrc, uint32_t index = 0)
 {
     if (fontCollection == nullptr || familySrc == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
     }
+
     const std::string path = familySrc;
     std::unique_ptr<char[]> buffer;
     std::streamsize size = 0;
@@ -139,11 +141,23 @@ uint32_t OH_Drawing_RegisterFont(
     }
     const std::string familyName = fontFamily;
     const uint8_t* data = reinterpret_cast<uint8_t*>(buffer.get());
-    return LoadFromFontCollection(fontCollection, familyName, data, size);
+    return LoadFromFontCollectionByIndex(fontCollection, familyName, data, size, index);
 }
 
-uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
-    uint8_t* fontBuffer, size_t length)
+uint32_t OH_Drawing_RegisterFont(
+    OH_Drawing_FontCollection* fontCollection, const char* fontFamily, const char* familySrc)
+{
+    return RegisterFontInternal(fontCollection, fontFamily, familySrc, 0);
+}
+
+uint32_t OH_Drawing_RegisterFontByIndex(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, const char* familySrc, uint32_t index)
+{
+    return RegisterFontInternal(fontCollection, fontFamily, familySrc, index);
+}
+
+static uint32_t RegisterFontBufferInternal(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index = 0)
 {
     if (fontCollection == nullptr) {
         return ERROR_NULL_FONT_COLLECTION;
@@ -151,13 +165,23 @@ uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection
     if (fontBuffer == nullptr) {
         return ERROR_NULL_FONT_BUFFER;
     }
-
     if (length == 0) {
         return ERROR_BUFFER_SIZE_ZERO;
     }
-
     const std::string familyName = fontFamily;
-    return LoadFromFontCollection(fontCollection, familyName, fontBuffer, length);
+    return LoadFromFontCollectionByIndex(fontCollection, familyName, fontBuffer, length, index);
+}
+
+uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection* fontCollection, const char* fontFamily,
+    uint8_t* fontBuffer, size_t length)
+{
+    return RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, 0);
+}
+
+uint32_t OH_Drawing_RegisterFontBufferByIndex(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index)
+{
+    return RegisterFontBufferInternal(fontCollection, fontFamily, fontBuffer, length, index);
 }
 
 uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily)

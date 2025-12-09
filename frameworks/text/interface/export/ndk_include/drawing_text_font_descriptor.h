@@ -276,6 +276,37 @@ const OH_Drawing_FontFullDescriptor* OH_Drawing_GetFontFullDescriptorByIndex(
 void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray);
 
 /**
+ * @brief Defines an <b>OH_Drawing_GetFontUnicodeArrayFromFile</b>, which is used to get unicode from font file.
+ *
+ * @param fontSrc Indicates the path of the font file.
+ * @param index Indicates the index of the font data in the ttc file.
+ * @param unicodeArray Output parameter to receive unicode, When no longer needed, use 'free()' to release.
+ * @param arrayLength Output parameter to receive the length of the unicode array.
+ * @return error code.
+ *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
+ *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the fontSrc is invalid or non-font file.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromFile(const char* fontSrc, uint32_t index,
+    int32_t** unicodeArray, int32_t* arrayLength);
+
+/**
+ * @brief Defines an <b>OH_Drawing_GetFontUnicodeArrayFromBuffer</b>, which is used to get unicode from font buffer.
+ *
+ * @param fontBuffer Indicates the font data.
+ * @param length Indicates the font data length.
+ * @param index Indicates the index of the font data in the ttc file.
+ * @param unicodeArray Output parameter to receive unicode, When no longer needed, use 'free()' to release.
+ * @param arrayLength Output parameter to receive the length of the unicode array.
+ * @return error code.
+ *         Returns <b>OH_DRAWING_SUCCESS</b> if the operation is successful.
+ *         Returns <b>OH_DRAWING_ERROR_INCORRECT_PARAMETER</b> if the fontBuffer is invalid or non-font buffer.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromBuffer(uint8_t* fontBuffer, size_t length, uint32_t index,
+    int32_t** unicodeArray, int32_t* arrayLength);
+
+/**
  * @brief Retrieves an integer attribute value from a font full descriptor.
  *
  * @param descriptor Pointer to the font full descriptor <b>OH_Drawing_FontFullDescriptor</b>.
@@ -322,6 +353,25 @@ OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeBool(const OH_Draw
  */
 OH_Drawing_ErrorCode OH_Drawing_GetFontFullDescriptorAttributeString(const OH_Drawing_FontFullDescriptor* descriptor,
     OH_Drawing_FontFullDescriptorAttributeId id, OH_Drawing_String* str);
+
+/**
+ * @brief Defines an <b>OH_Drawing_GetFontCountFromFile</b>, which is used to get font count from font file.
+ *
+ * @param fontSrc Indicates the path of the font file.
+ * @return font count.
+ * @since 23
+ */
+uint32_t OH_Drawing_GetFontCountFromFile(const char* fontSrc);
+
+/**
+  * @brief Defines an <b>OH_Drawing_GetFontCountFromBuffer</b>, which is used to get font count from font buffer.
+  *
+  * @param fontBuffer Indicates the font data.
+  * @param length Indicates the font data length.
+  * @return font count.
+  * @since 23
+  */
+uint32_t OH_Drawing_GetFontCountFromBuffer(uint8_t* fontBuffer, size_t length);
 #ifdef __cplusplus
 }
 #endif
