@@ -843,7 +843,7 @@ void RSMainThread::UpdateGpuContextCacheSize()
         GraphicFeatureParamManager::GetInstance().GetFeatureParam(FEATURE_CONFIGS[GPU_CACHE]));
     if (gpuCacheParam != nullptr && gpuCacheParam->GetGpuCacheConfigEnable()) {
         // set gpu cache size from param config
-        cacheLimitsResourceSize = gpuCacheParam->GetRSGpuCacheSize() * MEMUNIT_RATE * MEMUNIT_RATE;
+        cacheLimitsResourceSize = static_cast<size_t>(gpuCacheParam->GetRSGpuCacheSize()) * MEMUNIT_RATE * MEMUNIT_RATE;
         gpuContext->SetResourceCacheLimits(maxResources, cacheLimitsResourceSize);
         RS_LOGI("UpdateGpuContextCacheSize, gpu cache size of param config: %{public}zu Bytes",
             cacheLimitsResourceSize);
