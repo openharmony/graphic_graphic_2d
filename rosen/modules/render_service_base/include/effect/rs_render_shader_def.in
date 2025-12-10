@@ -121,6 +121,7 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightKBS),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightPos),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg),
+    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor),
     ADD_PROPERTY_TAG(FrostedGlassEffect, Shape)
 );
 
