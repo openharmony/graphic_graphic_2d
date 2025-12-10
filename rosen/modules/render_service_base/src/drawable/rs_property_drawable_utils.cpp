@@ -63,14 +63,17 @@ void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     // Read adaptive properties directly from corresponding per-mode property tags
     if (isDark) {
         glass->Setter<FrostedGlassBlurParamsRenderTag>(glass->Getter<FrostedGlassDarkModeBlurParamsRenderTag>()->Get());
-        glass->Setter<FrostedGlassWeightsEmbossRenderTag>(glass->Getter<FrostedGlassDarkModeWeightsEmbossRenderTag>()->Get());
+        glass->Setter<FrostedGlassWeightsEmbossRenderTag>(
+            glass->Getter<FrostedGlassDarkModeWeightsEmbossRenderTag>()->Get());
         glass->Setter<FrostedGlassBgRatesRenderTag>(glass->Getter<FrostedGlassDarkModeBgRatesRenderTag>()->Get());
         glass->Setter<FrostedGlassBgKBSRenderTag>(glass->Getter<FrostedGlassDarkModeBgKBSRenderTag>()->Get());
         glass->Setter<FrostedGlassBgPosRenderTag>(glass->Getter<FrostedGlassDarkModeBgPosRenderTag>()->Get());
         glass->Setter<FrostedGlassBgNegRenderTag>(glass->Getter<FrostedGlassDarkModeBgNegRenderTag>()->Get());
     } else {
-        glass->Setter<FrostedGlassBlurParamsRenderTag>(glass->Getter<FrostedGlassLightModeBlurParamsRenderTag>()->Get());
-        glass->Setter<FrostedGlassWeightsEmbossRenderTag>(glass->Getter<FrostedGlassLightModeWeightsEmbossRenderTag>()->Get());
+        glass->Setter<FrostedGlassBlurParamsRenderTag>(
+            glass->Getter<FrostedGlassLightModeBlurParamsRenderTag>()->Get());
+        glass->Setter<FrostedGlassWeightsEmbossRenderTag>(
+            glass->Getter<FrostedGlassLightModeWeightsEmbossRenderTag>()->Get());
         glass->Setter<FrostedGlassBgRatesRenderTag>(glass->Getter<FrostedGlassLightModeBgRatesRenderTag>()->Get());
         glass->Setter<FrostedGlassBgKBSRenderTag>(glass->Getter<FrostedGlassLightModeBgKBSRenderTag>()->Get());
         glass->Setter<FrostedGlassBgPosRenderTag>(glass->Getter<FrostedGlassLightModeBgPosRenderTag>()->Get());

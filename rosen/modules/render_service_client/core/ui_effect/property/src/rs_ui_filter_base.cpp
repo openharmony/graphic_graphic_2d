@@ -297,6 +297,26 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
     return contentLightFilter;
 }
 
+void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassFilter* frostedGlassFilter)
+{
+    if (auto lightMode = para->GetLightAdaptiveParams(); lightMode) {
+        frostedGlassFilter->Setter<FrostedGlassLightModeBlurParamsTag>(lightMode->blurParams);
+        frostedGlassFilter->Setter<FrostedGlassLightModeWeightsEmbossTag>(lightMode->weightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgRatesTag>(lightMode->bgRates);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgKBSTag>(lightMode->bgKBS);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgPosTag>(lightMode->bgPos);
+        frostedGlassFilter->Setter<FrostedGlassLightModeBgNegTag>(lightMode->bgNeg);
+    }
+    if (auto darkMode = para->GetDarkAdaptiveParams(); darkMode) {
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBlurParamsTag>(darkMode->blurParams);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeWeightsEmbossTag>(darkMode->weightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgRatesTag>(darkMode->bgRates);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgKBSTag>(darkMode->bgKBS);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgPosTag>(darkMode->bgPos);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgNegTag>(darkMode->bgNeg);
+    }
+}
+
 std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
@@ -339,22 +359,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassEnvLightEnabledTag>(frostedGlassFilterPara->GetEnvLightEnabled());
     frostedGlassFilter->Setter<FrostedGlassHighLightEnabledTag>(frostedGlassFilterPara->GetHighLightEnabled());
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
-    if (auto lightMode = frostedGlassFilterPara->GetLightAdaptiveParams(); lightMode) {
-        frostedGlassFilter->Setter<FrostedGlassLightModeBlurParamsTag>(lightMode->blurParams);
-        frostedGlassFilter->Setter<FrostedGlassLightModeWeightsEmbossTag>(lightMode->weightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassLightModeBgRatesTag>(lightMode->bgRates);
-        frostedGlassFilter->Setter<FrostedGlassLightModeBgKBSTag>(lightMode->bgKBS);
-        frostedGlassFilter->Setter<FrostedGlassLightModeBgPosTag>(lightMode->bgPos);
-        frostedGlassFilter->Setter<FrostedGlassLightModeBgNegTag>(lightMode->bgNeg);
-    }
-    if (auto darkMode = frostedGlassFilterPara->GetDarkAdaptiveParams(); darkMode) {
-        frostedGlassFilter->Setter<FrostedGlassDarkModeBlurParamsTag>(darkMode->blurParams);
-        frostedGlassFilter->Setter<FrostedGlassDarkModeWeightsEmbossTag>(darkMode->weightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassDarkModeBgRatesTag>(darkMode->bgRates);
-        frostedGlassFilter->Setter<FrostedGlassDarkModeBgKBSTag>(darkMode->bgKBS);
-        frostedGlassFilter->Setter<FrostedGlassDarkModeBgPosTag>(darkMode->bgPos);
-        frostedGlassFilter->Setter<FrostedGlassDarkModeBgNegTag>(darkMode->bgNeg);
-    }
+    ConvertOptionalAdaptivePara(frostedGlassFilterPara.get(), frostedGlassFilter.get());
     return frostedGlassFilter;
 }
 
