@@ -425,7 +425,7 @@ void RSHeteroHDRManager::UpdateHardwareHandleCondition()
         }
         auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
         bool isHardwareHandle = surfaceParams->GetHardwareEnabled();
-        isPrevHandleByHWMap_[nodeId] = isHardwareHandle || curFrameHeteroHandleCanBeUsed_;     
+        isPrevHandleByHWMap_[nodeId] = isHardwareHandle || curFrameHeteroHandleCanBeUsed_;
     }
     prevFrameId_ = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
 }
