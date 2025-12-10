@@ -35,7 +35,7 @@ public:
     void DoDump(std::unordered_set<std::u16string> &argSets) override;
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
     void SetFreeMultiWindowStatus(bool enable) override;
-    void NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList) override;
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;

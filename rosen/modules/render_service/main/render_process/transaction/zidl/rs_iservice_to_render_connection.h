@@ -59,7 +59,7 @@ public:
     virtual void DoDump(std::unordered_set<std::u16string> &argSets) = 0;
     virtual ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) = 0;
     virtual void SetFreeMultiWindowStatus(bool enable) = 0;
-    virtual void NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
+    virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
     virtual void HgmForceUpdateTask(bool flag, const std::string& fromWhom) = 0;
     virtual void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) = 0;
     virtual ErrCode CleanResources(pid_t pid) = 0;

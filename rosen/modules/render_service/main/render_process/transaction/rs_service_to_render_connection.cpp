@@ -121,13 +121,13 @@ void RSServiceToRenderConnection::DoDump(std::unordered_set<std::u16string> &arg
     renderPipelineAgent_->DoDump(argSets);
 }
 
-void RSServiceToRenderConnection::NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList)
+void RSServiceToRenderConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
         return;
     }
-    renderPipelineAgent_->NotifyPackageEvnet(listSize, packageList);
+    renderPipelineAgent_->NotifyPackageEvent(listSize, packageList);
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

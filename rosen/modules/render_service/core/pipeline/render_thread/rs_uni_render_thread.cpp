@@ -984,7 +984,7 @@ void RSUniRenderThread::SetDefaultClearMemoryFinished(bool isFinished)
     isDefaultCleanTaskFinished_ = isFinished;
 }
 
-bool RSUniRenderThread::IsDefaultClearMemroyFinished()
+bool RSUniRenderThread::IsDefaultClearMemoryFinished()
 {
     return isDefaultCleanTaskFinished_;
 }
