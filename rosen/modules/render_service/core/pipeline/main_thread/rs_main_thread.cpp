@@ -2360,13 +2360,15 @@ bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& no
         if (nodePtr == nullptr) {
             continue;
         }
-        bool intersectHwcDamage = false;
+        bool intersectHwcDamage = true;
         if (RSSystemProperties::GetAIBarOptEnabled()) {
             intersectHwcDamage = std::any_of(hwcNodes.begin(), hwcNodes.end(),
                 [&nodePtr](const auto& hwcNode) {
                     return hwcNode && hwcNode->IntersectHwcDamageWith(nodePtr->GetFilterRegion());
                 });
         }
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckReduceIntervalForAIBarNodesIfNeeded: intersectHwcDamage[%d]",
+            static_cast<int>(intersectHwcDamage));
 
         // try to reduce the cache interval, i.e., consume the cache
         if (!nodePtr->ForceReduceAIBarCacheInterval(intersectHwcDamage)) {

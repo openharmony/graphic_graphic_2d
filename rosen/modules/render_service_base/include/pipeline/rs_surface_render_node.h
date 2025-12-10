@@ -469,9 +469,9 @@ public:
     }
 
     /**
-     * @brief Querry whether the damage region of self drawing node (hwcNode) intersects with the given rect
+     * @brief Query whether the damage region of hardware enabled node (hwcNode) intersects with the given rect.
      *
-     * Return false when doesn't have its own buffer or the buffer has not been comsumed.
+     * @note Return false if it's not hardware enabled type or the buffer has not been comsumed.
      */
     bool IntersectHwcDamageWith(const RectI& rect) const;
 

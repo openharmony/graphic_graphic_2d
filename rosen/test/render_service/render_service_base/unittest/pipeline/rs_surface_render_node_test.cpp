@@ -2871,6 +2871,9 @@ HWTEST_F(RSSurfaceRenderNodeTest, IntersectHwcDamageWithTest, TestSize.Level1)
 {
     RectI rect { 0, 0, 50, 50 };
     auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
+
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto tempHandler = node->surfaceHandler_;
     node->surfaceHandler_ = nullptr;
     EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
@@ -2879,9 +2882,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, IntersectHwcDamageWithTest, TestSize.Level1)
     EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
 
     node->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
-
-    node->GetMutableRenderProperties().boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
     EXPECT_TRUE(node->IntersectHwcDamageWith(rect));
     EXPECT_FALSE(node->IntersectHwcDamageWith({1, 1, 50, 50}));
 }

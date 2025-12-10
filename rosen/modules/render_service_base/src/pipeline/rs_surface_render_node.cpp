@@ -2801,6 +2801,11 @@ void RSSurfaceRenderNode::UpdateHistoryUnsubmittedDirtyInfo()
 
 bool RSSurfaceRenderNode::IntersectHwcDamageWith(const RectI& rect) const
 {
+    if (!IsHardwareEnabledType()) {
+        ROSEN_LOGD("RSSurfaceRenderNode::IntersectHwcDamageWith: not hardware enabled type.");
+        return false;
+    }
+
     auto surfaceHandler = GetRSSurfaceHandler();
     if (!surfaceHandler || !surfaceHandler->IsCurrentFrameBufferConsumed()) {
         ROSEN_LOGD("RSSurfaceRenderNode::IntersectHwcDamageWith: no buffer or the buffer has not been consumed.");
@@ -2808,11 +2813,6 @@ bool RSSurfaceRenderNode::IntersectHwcDamageWith(const RectI& rect) const
     }
 
     auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-    if (UNLIKELY(!geoPtr)) {
-        ROSEN_LOGE("RSSurfaceRenderNode::IntersectHwcDamageWith: no bounds geometry.");
-        return false;
-    }
-
 #ifndef ROSEN_CROSS_PLATFORM
     auto region = surfaceHandler->GetDamageRegion();
     RectF realRect = RectF(region.x, region.y, region.w, region.h);
