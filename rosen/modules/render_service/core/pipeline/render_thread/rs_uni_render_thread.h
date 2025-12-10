@@ -23,8 +23,8 @@
 #include "common/rs_thread_handler.h"
 #include "common/rs_thread_looper.h"
 #include "event_handler.h"
-#include "pipeline/buffer_thread/rs_buffer_manager.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/buffer_thread/rs_buffer_manager.h"
 #include "pipeline/rs_context.h"
 #include "rs_base_render_engine.h"
 #ifdef RES_SCHED_ENABLE
@@ -100,7 +100,7 @@ public:
     void SetTimeToReclaim(bool isTimeToReclaim);
     bool IsTimeToReclaim();
     void SetDefaultClearMemoryFinished(bool isFinished);
-    bool IsDefaultClearMemroyFinished();
+    bool IsDefaultClearMemoryFinished();
     bool GetClearMemoryFinished() const;
     bool GetClearMemDeeply() const;
     void SetClearMoment(ClearMemoryMoment moment);

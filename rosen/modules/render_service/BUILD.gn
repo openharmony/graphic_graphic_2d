@@ -180,6 +180,7 @@ ohos_shared_library("librender_service") {
     "core/pipeline/buffer_thread/rs_buffer_manager.cpp",
     "core/transaction/zidl/rs_client_to_render_connection_stub.cpp",
     "main/render_server/transaction/zidl/rs_client_to_service_connection_stub.cpp",
+    "core/transaction/rs_render_pipeline_agent.cpp",
     "core/transaction/rs_connect_to_render_process.cpp",
     "core/transaction/zidl/rs_connect_to_render_process_stub.cpp",
     "main/render_server/transaction/zidl/rs_render_service_stub.cpp",
@@ -263,6 +264,7 @@ ohos_shared_library("librender_service") {
 
   #composer
   sources += [
+    "composer/composer_base/connection/rs_composer_to_render_connection.cpp",
     "composer/composer_base/connection/rs_render_to_composer_connection.cpp",
     "composer/composer_base/layer_backend/hdi_backend.cpp",
     "composer/composer_base/layer_backend/hdi_layer.cpp",
