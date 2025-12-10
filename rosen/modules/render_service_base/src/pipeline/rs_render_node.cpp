@@ -1851,6 +1851,12 @@ void RSRenderNode::UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect)
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     if (buffer != nullptr) {
         isSelfDrawingNode_ = true;
+        // if the buffer size changed, use the node size as dirty rect
+        if (surfaceNode->GetRSSurfaceHandler()->GetBufferSizeChanged()) {
+            selfDrawingNodeDirtyRect = selfDrawRect_;
+            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode id: %" PRIu64 ", buffer size changed.", GetId());
+            return;
+        }
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
