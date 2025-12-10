@@ -39,7 +39,7 @@ const std::string INSTALLED_FONT_CONFIG_FILE_BAK =
     "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json.bak";
 
 // "Noto Sans Mono CJK KR" exchange with "Noto Sans Mono CJK JP", make "Noto Sans Mono CJK HK" invalid index
-const std::string INSTALL_CONFIG = R"(
+const std::string INSTALL_CONFIG_THREE = R"(
 {
   "fontlist": [
     { "fontfullpath": "/system/fonts/NotoSansHebrew[wdth,wght].ttf", "fullname": [""] },
@@ -64,6 +64,8 @@ const std::string INSTALL_CONFIG = R"(
 }
 )";
 
+const std::string INSTALL_CONFIG_EMPTY = R"({"fontlist": [{ "fontfullpath": "", "fullname": [""] },]})";
+
 bool ExistStylishFontConfigFile()
 {
     return fs::exists(STYLISH_FONT_CONFIG_FILE) || fs::exists(STYLISH_FONT_CONFIG_PROD_FILE);
@@ -79,7 +81,7 @@ std::string ConvertUtf16ToUtf8(const uint8_t* utf16Data, uint32_t utf16Len)
 
 class NdkFontDescriptorTest : public testing::Test {};
 
-void CreateFile(const std::string& file)
+void CreateFile(const std::string& file, const std::string& content)
 {
     fs::path filePath(file);
     fs::path dirPath = filePath.parent_path();
@@ -87,15 +89,15 @@ void CreateFile(const std::string& file)
         fs::create_directories(dirPath);
     }
     std::ofstream ofs(file, std::ios::trunc);
-    ofs << INSTALL_CONFIG;
+    ofs << content;
 }
 
-void InitInstallConfig()
+void InitInstallConfig(const std::string& content)
 {
     if (fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
         fs::rename(INSTALLED_FONT_CONFIG_FILE, INSTALLED_FONT_CONFIG_FILE_BAK);
     }
-    CreateFile(INSTALLED_FONT_CONFIG_FILE);
+    CreateFile(INSTALLED_FONT_CONFIG_FILE, content);
 }
 
 void DestroyInstallConfig()
@@ -110,9 +112,9 @@ void DestroyInstallConfig()
 
 class InstallConfig {
 public:
-    InstallConfig()
+    InstallConfig(const std::string& content = INSTALL_CONFIG_THREE)
     {
-        InitInstallConfig();
+        InitInstallConfig(content);
     }
 
     ~InstallConfig()
@@ -888,20 +890,21 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest019, TestSize.Level0)
 
 /*
  * @tc.name: NdkFontDescriptorTest020
- * @tc.desc: test for registering a font with a local fontCollection.
+ * @tc.desc: test for get all font paths.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest020, TestSize.Level0)
 {
+    InstallConfig installConfig;
     size_t pathCount = 0;
     OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType::ALL, &pathCount);
     EXPECT_NE(fontPaths, nullptr);
     if (ExistStylishFontConfigFile()) {
-        // 141 = 1 stylish font + 139 generic fonts + 1 rare font
-        EXPECT_EQ(pathCount, 141);
+        // 144 = 1 stylish font + 139 generic fonts + 1 rare font + 3 installed fonts
+        EXPECT_EQ(pathCount, 144);
     } else {
-        // 139 = 139 generic fonts
-        EXPECT_EQ(pathCount, 139);
+        // 142 = 139 generic fonts + 3 installed fonts
+        EXPECT_EQ(pathCount, 142);
     }
     for (size_t i = 0; i < pathCount; i++) {
         OH_Drawing_String fontPath = fontPaths[i];
@@ -916,10 +919,25 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest020, TestSize.Level0)
 
 /*
  * @tc.name: NdkFontDescriptorTest021
- * @tc.desc: test for registering a font with a local fontCollection.
+ * @tc.desc: test for get installed font paths with empty installed font.
  * @tc.type: FUNC
  */
 HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest021, TestSize.Level0)
+{
+    InstallConfig installConfig(INSTALL_CONFIG_EMPTY);
+    size_t pathCount = SIZE_MAX;
+    OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType::INSTALLED, &pathCount);
+    EXPECT_NE(fontPaths, nullptr);
+    EXPECT_EQ(pathCount, 0);
+    free(fontPaths);
+}
+
+/*
+ * @tc.name: NdkFontDescriptorTest022
+ * @tc.desc: test for get all font paths and customized font paths with empty installed font.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest022, TestSize.Level0)
 {
     size_t pathCount = SIZE_MAX;
     OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType::ALL, nullptr);
