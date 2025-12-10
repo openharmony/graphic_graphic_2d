@@ -200,8 +200,8 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
 
-    ani_double length;
-    if (ANI_OK != env->Object_GetPropertyByName_Double(arrayObj, "length", &length)) {
+    ani_int length;
+    if (ANI_OK != env->Object_GetPropertyByName_Int(arrayObj, "length", &length)) {
         EFFECT_LOG_E("get stretchSizes length failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
@@ -209,7 +209,7 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
     Drawing::ColorMatrix colorMatrix;
     constexpr int matrixLen = Drawing::ColorMatrix::MATRIX_SIZE;
     float matrix[matrixLen] = { 0 };
-    for (int i = 0; i < int(length) && i < matrixLen; ++i) {
+    for (int i = 0; i < static_cast<int>(length) && i < matrixLen; ++i) {
         ani_double val;
         ani_ref ref;
         if (ANI_OK != env->Object_CallMethodByName_Ref(arrayObj, "$_get", "I:Lstd/core/Object;", &ref, (ani_int)i) ||
