@@ -72,6 +72,7 @@ class RSNGShapeBase;
 class Blender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
+enum class FilterQuality;
 
 namespace ModifierNG {
 class RSModifier;
@@ -1205,9 +1206,16 @@ public:
      * @brief Sets the material filter.
      *
      * @param materialFilter Indicates the material filter to be applied.
-     * @param level Quality level of the filter, higher level means better quality.
      */
-    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter, int32_t level = 0);
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter);
+
+    /**
+     * @brief Sets the material filter with a quality level.
+     *
+     * @param materialFilter Indicates the material filter to be applied.
+     * @param quality Quality level of the filter.
+     */
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter, FilterQuality quality);
 
     /**
      * @brief Sets the parameters for linear gradient blur.
