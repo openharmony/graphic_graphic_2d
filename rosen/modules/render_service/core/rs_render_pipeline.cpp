@@ -585,14 +585,10 @@ ErrCode RSRenderPipeline::CreatePixelMapFromSurface(sptr<Surface> surface, const
 
 void RSRenderPipeline::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    HandleHwcPackageEvent(listSize, packageList);
+    mainThread_.PostTask([this]() {
+        this->mainThread_.CheckPackageInConfigList(packageList);
+    });
     HandleDisplayPackageEvent(listSize, packageList);
-}
-
-void RSRenderPipeline::HandleHwcPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
-{
-    RS_LOGI("RSHwcContext RSRenderPipeline::HandleHwcPackageEvent start");
-    // hwcContext_->CheckPackageInConfigList(packageList);
 }
 
 void RSRenderPipeline::HandleDisplayPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)

@@ -92,7 +92,6 @@ public:
     bool UnRegisterTypeface(uint64_t globalUniqueId);
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
-    void HandleHwcPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HandleDisplayPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
