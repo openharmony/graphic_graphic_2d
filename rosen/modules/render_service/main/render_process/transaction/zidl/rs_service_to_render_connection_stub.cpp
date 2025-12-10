@@ -500,7 +500,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            NotifyPackageEvnet(listSize, packageList);
+            NotifyPackageEvent(listSize, packageList);
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY

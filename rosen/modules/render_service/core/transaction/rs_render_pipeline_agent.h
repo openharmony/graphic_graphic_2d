@@ -50,7 +50,7 @@ public:
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
         std::shared_ptr<Media::PixelMap> &pixelMap);  
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
-    void NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList);
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);

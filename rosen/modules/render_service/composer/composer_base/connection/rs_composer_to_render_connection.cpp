@@ -40,7 +40,7 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
         RSUniRenderThread::OnComposedBufferCallBack(seqNum, fence);
     });
     composerClient->ReleaseLayerBuffers(screenId, releaseLayerInfo.timestampVec, releaseLayerInfo.releaseBufferFenceVec);
-    uniRenderThread->NotifyScreenNodeBufferReleased();
+    uniRenderThread->NotifyScreenNodeBufferReleased(screenId);
     // 游戏大脑 打桩获取SwapBufferTime
     if (FrameReport::GetInstance().HasGameScene()) {
         RS_LOGD("[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}lld",

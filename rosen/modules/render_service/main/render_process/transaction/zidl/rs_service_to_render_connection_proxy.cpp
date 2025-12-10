@@ -847,7 +847,7 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     }
 }
 
-void RSServiceToRenderConnectionProxy::NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList)
+void RSServiceToRenderConnectionProxy::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
     MessageParcel data;
     MessageParcel reply;

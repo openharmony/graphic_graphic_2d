@@ -51,7 +51,7 @@ public:
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;
     ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps) override;
-    void NotifyPackageEvnet(uint32_t listSize, const std::vector<std::string>& packageList) override;
+    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
 

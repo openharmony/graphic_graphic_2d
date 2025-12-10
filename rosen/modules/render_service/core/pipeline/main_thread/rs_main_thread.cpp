@@ -5727,5 +5727,21 @@ void RSMainThread::JudgeLppLayer(uint64_t vsyncId, std::set<uint64_t> lppLayerId
 {
     lppVideoHandler_.JudgeLppLayer(vsyncId, lppLayerIds);
 }
+
+void RSMainThread::MarkNodeDirty(uint64_t nodeId)
+{
+    RSMainThread::Instance()->PostTask([nodeId]() {
+        auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+        auto node = nodeMap.GetRenderNode(nodeId);
+        if (node) {
+            RS_LOGD("MarkNodeDirty success: %{public}" PRIu64, nodeId);
+            RSMainThread::Instance()->SetDirtyFlag();
+            node->SetDirty(true);
+            if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
+                RSMainThead::Instance()->RequestNextVSync();
+            }
+        }
+    });
+}
 } // namespace Rosen
 } // namespace OHOS

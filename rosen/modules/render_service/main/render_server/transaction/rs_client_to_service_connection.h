@@ -40,6 +40,7 @@ class RSClientToServiceConnection : public RSClientToServiceConnectionStub {
 public:
     RSClientToServiceConnection(
         pid_t remotePid,
+        wptr<RSRenderService> renderService,
         sptr<RSRenderServiceAgent> renderServiceAgent,
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
         RSMainThread* mainThread,

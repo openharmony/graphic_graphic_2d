@@ -294,11 +294,11 @@ void RSRenderService::Run()
     }
 }
 
-sptr<RSIClientToServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     if (!mainThread_ || !token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
-        return nullptr;
+        return std::make_pair(nullptr, nullptr);
     }
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
@@ -308,8 +308,9 @@ sptr<RSIClientToServiceConnection> RSRenderService::CreateConnection(const sptr<
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
     sptr<RSIClientToServiceConnection> newConn(
-        new RSClientToServiceConnection(remotePid, renderServiceAgent, renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
-
+        new RSClientToServiceConnection(remotePid, this, renderServiceAgent, renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
+    sptr<RSIClientToRenderConnection> new RenderConn(
+        new RSClientToRenderConnection(remotePid, mainThread_, renderPipelineAgent, tokenObj));
     sptr<RSIClientToServiceConnection> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
@@ -320,7 +321,7 @@ sptr<RSIClientToServiceConnection> RSRenderService::CreateConnection(const sptr<
     connections_[tokenObj] = newConn;
     lock.unlock();
     mainThread_->AddTransactionDataPidInfo(remotePid);
-    return newConn;
+    return std::make_pair(newConn, newRenderConn);
 }
 
 bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
