@@ -406,6 +406,7 @@ public:
     static bool GetDefaultMemClearEnabled();
 
     static bool GetSceneBoardIsPcMode();
+    static bool GetReleaseImageOneByOneFlag();
 
 private:
     RSSystemProperties() = default;

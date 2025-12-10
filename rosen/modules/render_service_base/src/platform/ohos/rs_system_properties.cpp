@@ -965,7 +965,7 @@ bool RSSystemProperties::GetHeterogeneousHDREnabled()
         std::atoi((system::GetParameter("persist.rosen.heterogeneous.hdr.enabled", "1")).c_str()) == 1;
     return flag;
 }
- 
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");
@@ -1810,6 +1810,17 @@ bool RSSystemProperties::GetSceneBoardIsPcMode()
         return false;
     }
     return true;
+}
+
+bool RSSystemProperties::GetReleaseImageOneByOneFlag()
+{
+    if (!IsUseVulkan()) {
+        return false;
+    }
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.release.image.onebyone.flag", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 } // namespace Rosen
 } // namespace OHOS
