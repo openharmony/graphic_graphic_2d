@@ -116,6 +116,7 @@ const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 // all these pointers are valid, so will not check them.
 RSClientToServiceConnection::RSClientToServiceConnection(
     pid_t remotePid,
+    wptr<RSRenderService> renderService,
     sptr<RSRenderServiceAgent> renderServiceAgent,
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
     RSMainThread* mainThread,
@@ -123,6 +124,7 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     sptr<IRemoteObject> token,
     sptr<VSyncDistributor> distributor)
     : remotePid_(remotePid),
+      renderService_(renderService),
       renderServiceAgent_(renderServiceAgent),
       renderProcessManagerAgent_(renderProcessManagerAgent),
       mainThread_(mainThread),
@@ -137,6 +139,9 @@ RSClientToServiceConnection::RSClientToServiceConnection(
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToServiceConnection: Failed to set death recipient.");
+    }
+    if (renderService_ == nullptr) {
+        RS_LOGW("RSClientToServiceConnection: renderService_ is nullptr");
     }
     if (renderServiceAgent_ == nullptr) {
         RS_LOGE("RSClientToServiceConnection: renderServiceAgent_ is nullptr");
@@ -301,8 +306,13 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
         pidToBundleName_.clear();
     }
     if (toDelete) {
-        auto token = iface_cast<RSIConnectionToken>(GetToken());
-        renderServiceAgent_->RemoveToken(token);
+        auto renderService = renderService_.promote();
+        if (renderService == nullptr) {
+            RS_LOGW("CleanAll() RenderService is dead.");
+        } else {
+            auto token = iface_cast<RSIConnectionToken>(GetToken());
+            renderService->RemoveConnection(token);
+        }
     }
 
     RS_LOGD("CleanAll() end.");

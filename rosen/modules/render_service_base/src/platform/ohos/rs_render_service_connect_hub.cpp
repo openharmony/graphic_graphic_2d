@@ -156,7 +156,7 @@ bool RSRenderServiceConnectHub::Connect()
     if (token_ == nullptr) {
         token_ = new IRemoteStub<RSIConnectionToken>();
     }
-    auto conn = renderService->CreateConnection(token_);
+    auto [conn, renderConn] = renderService->CreateConnection(token_);
 
     if (conn == nullptr) {
         ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
@@ -165,6 +165,7 @@ bool RSRenderServiceConnectHub::Connect()
 
     renderService_ = renderService;
     conn_ = conn;
+    renderConn_ = renderConn;
 
     if (onConnectCallback_) {
         onConnectCallback_(renderConn_);

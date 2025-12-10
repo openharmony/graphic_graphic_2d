@@ -29,7 +29,7 @@ public:
     RSIRenderService() = default;
     virtual ~RSIRenderService() noexcept = default;
 
-    virtual sptr<RSIClientToServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) = 0;
+    virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(const sptr<RSIConnectionToken>& token) = 0;
     virtual bool RemoveConnection(const sptr<RSIConnectionToken>& token) = 0;
 };
 } // namespace Rosen

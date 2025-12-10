@@ -51,7 +51,7 @@ private:
     int Dump(int fd, const std::vector<std::u16string>& args) override;
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
 
-    sptr<RSIClientToServiceConnection> CreateConnection(const sptr<RSIConnectionToken>& token) override;
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
     void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
