@@ -50,13 +50,6 @@ void RSTransactionHandler::SetRenderThreadClient(std::unique_ptr<RSIRenderClient
     }
 }
 
-void RSTransactionHandler::SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient)
-{
-    if (renderServiceClient != nullptr) {
-        renderServiceClient_ = renderServiceClient;
-    }
-}
-
 void RSTransactionHandler::AddCommand(
     std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand, FollowType followType, NodeId nodeId)
 {

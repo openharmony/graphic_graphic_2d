@@ -20,7 +20,7 @@
 #include <iremote_proxy.h>
 #include <memory>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>
-#include <platform/ohos/rs_irender_service_connection_ipc_interface_code.h>
+#include <platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
 
 namespace OHOS {
@@ -30,6 +30,8 @@ public:
     explicit RSClientToServiceConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSClientToServiceConnectionProxy() noexcept = default;
 
+    ErrCode CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData) override;
+    ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override;
     ErrCode GetUniRenderEnabled(bool& enable) override;
 
     virtual ErrCode CreateVSyncConnection(sptr<IVSyncConnection>& vsyncConn,
@@ -66,7 +68,7 @@ public:
     
     ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
-    ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
+    ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
 
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,

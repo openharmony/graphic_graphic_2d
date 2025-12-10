@@ -129,7 +129,7 @@ public:
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
 
-    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent);
+    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
 
 private:
@@ -152,7 +152,6 @@ private:
     RSUniRenderThread* uniRenderThread_ = nullptr;
     RSBufferThread* uniBufferThread_ = nullptr;
 
-    std::shared_ptr<RSHwcContext> hwcContext_ = nullptr;
     std::shared_ptr<ImageEnhanceManager> imageEnhanceManager_ = nullptr;
 
     friend class RSServiceToRenderConnection;

@@ -48,7 +48,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
 
     // step2: Create renderPipeline and Following Connections
     renderService.renderPipeline_ = RSRenderPipeline::Create(renderService.handler_, receiver);
-    renderService.renderPipeline_->InitRSVsyncManagerAgent(renderService_.rsVsyncManagerAgent_);
+    renderService.renderPipeline_->InitRsVsyncManagerAgent(renderService_.rsVsyncManagerAgent_);
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderPipelineAgent> renderPipelineAgent =
         sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);

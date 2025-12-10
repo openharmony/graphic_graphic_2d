@@ -118,7 +118,7 @@ bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offset
     if (displayNode) {
         screenInfo_.rotation = displayNode->GetRotation();
         auto mirrorSource = displayNode->GetMirrorSource().lock();
-        CalculateScreenTransformMatrix(mirrorSource ? *mirrorSource : displayNode);
+        CalculateScreenTransformMatrix(mirrorSource ? *mirrorSource : *displayNode);
         if (auto mirroredScreenNode = node.GetMirrorSource().lock()) {
             mirroredScreenInfo_ = mirroredScreenNode->GetScreenProperty().GetScreenInfo();
             CalculateMirrorAdaptiveMatrix();

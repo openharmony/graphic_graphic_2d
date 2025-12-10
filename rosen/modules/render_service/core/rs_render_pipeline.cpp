@@ -216,7 +216,7 @@ void RSRenderPipeline::InitCCMConfig()
     // need called after GraphicFeatureParamManager::GetInstance().Init();
     FilterCCMInit();
 
-    hwcContext_ = std::make_shared<RSHwcContext>();
+    // hwcContext_ = std::make_shared<RSHwcContext>();
     imageEnhanceManager_ = std::make_shared<ImageEnhanceManager>();
 }
 
@@ -592,7 +592,7 @@ void RSRenderPipeline::NotifyPackageEvent(uint32_t listSize, const std::vector<s
 void RSRenderPipeline::HandleHwcPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
     RS_LOGI("RSHwcContext RSRenderPipeline::HandleHwcPackageEvent start");
-    hwcContext_->CheckPackageInConfigList(packageList);
+    // hwcContext_->CheckPackageInConfigList(packageList);
 }
 
 void RSRenderPipeline::HandleDisplayPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
@@ -1130,7 +1130,7 @@ void RSRenderPipeline::SetScreenFrameGravity(ScreenId id, Gravity gravity)
     mainThread_->SetScreenFrameGravity(id, gravity);
 }
 
-void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent)
+void RSRenderPipeline::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent)
 {
     if (!mainThread_) {
         RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);
@@ -1139,7 +1139,7 @@ void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent
     mainThread_->rsVsyncManagerAgent_ = rsVsyncManagerAgent;
 }
 
-void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn)
+void RSRenderPipeline::RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn)
 {
     if (!mainThread_) {
         RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);

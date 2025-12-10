@@ -34,8 +34,8 @@ public:
     {
         onConnectCallback_ = cb;
         // if already connected, call the callback immediately
-        if (instance_ && instance_->conn_ && onConnectCallback_) {
-            onConnectCallback_(instance_->conn_);
+        if (instance_ && instance_->renderConn_ && onConnectCallback_) {
+            onConnectCallback_(instance_->renderConn_); // todo need check
         }
     }
 

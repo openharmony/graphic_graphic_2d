@@ -109,7 +109,7 @@ public:
         NodeId id, const BufferClearCallback& callback);
 
     bool RegisterBufferAvailableListener(
-        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread);
+        NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread = false);
 
     std::shared_ptr<RSSurface> CreateRSSurface(const sptr<Surface> &surface);
 

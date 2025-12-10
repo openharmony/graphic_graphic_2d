@@ -252,7 +252,7 @@ public:
 
     bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode);
 
-    bool SetGlobalDarkColorMode(bool isDark);
+    // bool SetGlobalDarkColorMode(bool isDark);
 
     int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode);
 

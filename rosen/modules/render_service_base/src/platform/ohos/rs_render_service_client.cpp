@@ -50,6 +50,7 @@
 #include "render/rs_typeface_cache.h"
 #include "rs_render_service_connect_hub.h"
 #include "rs_surface_ohos.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "vsync_iconnection_token.h"
 
 namespace OHOS {
@@ -961,15 +962,15 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
     return clientToService->SetVirtualMirrorScreenScaleMode(id, scaleMode);
 }
 
-bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: clientToService is nullptr");
-        return false;
-    }
-    return clientToService->SetGlobalDarkColorMode(isDark) == ERR_OK;
-}
+// bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
+// {
+//     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
+//     if (clientToService == nullptr) {
+//         ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: clientToService is nullptr");
+//         return false;
+//     }
+//     return clientToService->SetGlobalDarkColorMode(isDark) == ERR_OK;
+// }
 
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {

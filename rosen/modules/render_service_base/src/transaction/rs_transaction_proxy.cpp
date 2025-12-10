@@ -78,13 +78,6 @@ void RSTransactionProxy::SetRenderThreadClient(std::unique_ptr<RSIRenderClient>&
     }
 }
 
-void RSTransactionProxy::SetRenderServiceClient(const std::shared_ptr<RSIRenderClient>& renderServiceClient)
-{
-    if (renderServiceClient != nullptr) {
-        renderServiceClient_ = renderServiceClient;
-    }
-}
-
 void RSTransactionProxy::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
                                     FollowType followType, NodeId nodeId)
 {

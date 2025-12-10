@@ -3392,7 +3392,7 @@ ErrCode RSClientToServiceConnectionProxy::SetAppWindowNum(uint32_t num)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
+ErrCode RSClientToServiceConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name,
     std::shared_ptr<Media::PixelMap> watermark, bool& success)
 {
     MessageParcel data;
@@ -3701,6 +3701,7 @@ ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankStart(AppInfo info)
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportRsSceneJankStart: Send Request err.");
         return -1; // ??? todo
     }
+    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
@@ -3719,6 +3720,7 @@ ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportRsSceneJankEnd: Send Request err.");
         return -1; // ??? todo
     }
+    return ERR_OK;
 }
 
 void RSClientToServiceConnectionProxy::ReportDataBaseRs(
@@ -4534,6 +4536,16 @@ void RSClientToServiceConnectionProxy::SetVirtualScreenUsingStatus(bool isVirtua
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetVirtualScreenUsingStatus: Send Request err.");
         return;
     }
+}
+
+ErrCode RSClientToServiceConnectionProxy::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    return ERR_OK; // todo
+}
+
+ErrCode RSClientToServiceConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    return ERR_OK; // todo
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)

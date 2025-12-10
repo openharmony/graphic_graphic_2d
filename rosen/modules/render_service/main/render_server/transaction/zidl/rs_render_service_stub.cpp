@@ -17,9 +17,7 @@
 
 #include <iremote_proxy.h>
 #include "message_parcel.h"
-
 #include "render_server/transaction/rs_client_to_service_connection.h"
-
 namespace OHOS {
 namespace Rosen {
 class RSConnectionTokenProxy : public IRemoteProxy<RSIConnectionToken> {
@@ -78,38 +76,38 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIRenderService::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
+        // case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION): {
+        //     auto interfaceToken = data.ReadInterfaceToken();
+        //     if (interfaceToken != RSIRenderService::GetDescriptor()) {
+        //         RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read interfaceToken failed!");
+        //         ret = ERR_INVALID_STATE;
+        //         break;
+        //     }
 
-            auto remoteObj = data.ReadRemoteObject();
-            if (remoteObj == nullptr) {
-                RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read remoteObj failed!");
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
+        //     auto remoteObj = data.ReadRemoteObject();
+        //     if (remoteObj == nullptr) {
+        //         RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read remoteObj failed!");
+        //         ret = ERR_NULL_OBJECT;
+        //         break;
+        //     }
 
-            if (!remoteObj->IsProxyObject()) {
-                RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
-                ret = ERR_UNKNOWN_OBJECT;
-                break;
-            }
+        //     if (!remoteObj->IsProxyObject()) {
+        //         RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
+        //         ret = ERR_UNKNOWN_OBJECT;
+        //         break;
+        //     }
 
-            auto token = iface_cast<RSIConnectionToken>(remoteObj);
-            auto [rsConn, renderConn] = GetConnection(token);
-            if (rsConn) {
-                auto connection = static_cast<RSClientToServiceConnection*>(rsConn.GetRefPtr());
-                connection->CleanAll(true);
-                reply.WriteBool(true);
-            } else {
-                reply.WriteBool(false);
-            }
-            break;
-        }
+        //     auto token = iface_cast<RSIConnectionToken>(remoteObj);
+        //     auto [rsConn, renderConn] = GetConnection(token);
+        //     if (rsConn) {
+        //         auto connection = static_cast<RSClientToServiceConnection*>(rsConn.GetRefPtr());
+        //         connection->CleanAll(true);
+        //         reply.WriteBool(true);
+        //     } else {
+        //         reply.WriteBool(false);
+        //     }
+        //     break;
+        // } // todo
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }
