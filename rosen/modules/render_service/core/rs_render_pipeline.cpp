@@ -1130,7 +1130,7 @@ void RSRenderPipeline::SetScreenFrameGravity(ScreenId id, Gravity gravity)
     mainThread_->SetScreenFrameGravity(id, gravity);
 }
 
-void RSRenderPipeline::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent)
+void RSRenderPipeline::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     if (!mainThread_) {
         RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);

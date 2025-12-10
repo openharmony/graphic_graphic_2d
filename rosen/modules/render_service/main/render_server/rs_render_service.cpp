@@ -309,7 +309,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
     sptr<RSIClientToServiceConnection> newConn(
         new RSClientToServiceConnection(remotePid, this, renderServiceAgent, renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
-    sptr<RSIClientToRenderConnection> new RenderConn(
+    sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, mainThread_, renderPipelineAgent, tokenObj));
     sptr<RSIClientToServiceConnection> tmp;
     std::unique_lock<std::mutex> lock(mutex_);

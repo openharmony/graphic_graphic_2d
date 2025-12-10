@@ -5738,7 +5738,7 @@ void RSMainThread::MarkNodeDirty(uint64_t nodeId)
             RSMainThread::Instance()->SetDirtyFlag();
             node->SetDirty(true);
             if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
-                RSMainThead::Instance()->RequestNextVSync();
+                RSMainThread::Instance()->RequestNextVSync();
             }
         }
     });
