@@ -266,18 +266,9 @@ ohos_shared_library("librender_service") {
   sources += [
     "composer/composer_base/connection/rs_composer_to_render_connection.cpp",
     "composer/composer_base/connection/rs_render_to_composer_connection.cpp",
-    "composer/composer_base/layer_backend/hdi_backend.cpp",
-    "composer/composer_base/layer_backend/hdi_layer.cpp",
-    "composer/composer_base/layer_backend/hdi_output.cpp",
-    "composer/composer_base/pipeline/rs_render_composer_agent.cpp",
-    "composer/composer_base/pipeline/rs_render_composer_context.cpp",
-    "composer/composer_base/pipeline/rs_render_composer_manager.cpp",
     "composer/composer_base/pipeline/rs_render_composer.cpp",
-    "composer/composer_base/transaction/rs_layer_transaction_data.cpp",
-    "composer/composer_base/transaction/rs_layer_transaction_handler.cpp",
-    "composer/composer_client/layer/rs_surface_layer.cpp",
-    "composer/composer_client/pipeline/rs_layer_context.cpp",
-    "composer/composer_client/pipeline/rs_render_composer_client.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_agent.cpp",
+    "composer/composer_base/pipeline/rs_render_composer_manager.cpp",
   ]
 
   #blurPredict

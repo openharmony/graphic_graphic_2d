@@ -191,7 +191,6 @@ void RSRenderComposerManager::FpsDump(std::string& dumpString, std::string& laye
     }
 }
 
-
 void RSRenderComposerManager::ClearFpsDump(std::string& dumpString, std::string& layerName)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::ClearFpsDump");
@@ -211,7 +210,6 @@ void RSRenderComposerManager::ClearFpsDump(std::string& dumpString, std::string&
     }
 }
 
-
 void RSRenderComposerManager::HitchsDump(std::string& dumpString, std::string& layerArg)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::HitchsDump");
@@ -230,7 +228,6 @@ void RSRenderComposerManager::HitchsDump(std::string& dumpString, std::string& l
         renderComposerAgent->HitchsDump(dumpString, layerArg);
     }
 }
-
 
 void RSRenderComposerManager::RefreshRateCounts(std::string& dumpString)
 {
