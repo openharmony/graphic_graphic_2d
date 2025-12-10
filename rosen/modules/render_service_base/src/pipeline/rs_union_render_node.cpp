@@ -142,7 +142,7 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::CreateSDFOpShapeWithBase
     return opShape;
 }
 
-std::shared_ptr<RSNGRenderSDFTransformShape> RSUnionRenderNode::CreateChildToContainerSDFTransformShape(
+std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::CreateChildToContainerSDFTransformShape(
     std::shared_ptr<RSRenderNode>& child, std::shared_ptr<RSNGRenderShapeBase>& childShape)
 {
     Drawing::Matrix relativeMatrix;
