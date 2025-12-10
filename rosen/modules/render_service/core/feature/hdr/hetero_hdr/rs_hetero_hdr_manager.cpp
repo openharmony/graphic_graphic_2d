@@ -417,7 +417,7 @@ void RSHeteroHDRManager::UpdateHardwareHandleCondition()
 {
     isPrevHandleByHWMap_.clear();
     for (uint32_t i = 0; i < pendingPostNodes_.size(); i++) {
-        NodeId nodeid = pendingPostNodes_[i]->GetId();
+        NodeId nodeId = pendingPostNodes_[i]->GetId();
         auto nodeDrawable = RSHeteroHDRUtil::GetSurfaceDrawableByID(curNodeId_);
         if (!nodeDrawable) {
             RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHardwareHandleCondition nodeDrawable is nullptr");
@@ -451,7 +451,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
         }
         ClearBufferCache();
     }
-    UpdateHardwareHandleCondition
+    UpdateHardwareHandleCondition();
     preFrameHeteroHandleCanBeUsed_ = curFrameHeteroHandleCanBeUsed_;
     pendingPostNodes_.clear();
     ownedLeashWindowIdMap_.clear();
