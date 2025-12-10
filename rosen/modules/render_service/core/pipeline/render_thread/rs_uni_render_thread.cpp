@@ -481,6 +481,12 @@ bool RSUniRenderThread::GetForceRefreshFlag() const
     return renderThreadParams ? renderThreadParams->GetForceRefreshFlag() : false;
 }
 
+bool RSUniRenderThread::GetHasGameScene() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetHasGameScene() : false;
+}
+
 uint32_t RSUniRenderThread::GetPendingScreenRefreshRate() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
@@ -497,6 +503,12 @@ uint64_t RSUniRenderThread::GetFastComposeTimeStampDiff() const
 {
     auto& renderThreadParams = GetRSRenderThreadParams();
     return renderThreadParams ? renderThreadParams->GetFastComposeTimeStampDiff() : 0;
+}
+
+uint32_t RSUniRenderThread::GetDefaultScreenRefreshRate() const
+{
+    auto& renderThreadParams = GetRSRenderThreadParams();
+    return renderThreadParams ? renderThreadParams->GetDynamicRefreshRate() : 0;
 }
 
 #ifdef RES_SCHED_ENABLE
