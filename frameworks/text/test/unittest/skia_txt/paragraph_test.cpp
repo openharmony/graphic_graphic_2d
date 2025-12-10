@@ -486,17 +486,17 @@ HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis001, TestSize.Level0)
 
 /*
  * @tc.name: ParagraphTestMiddleEllipsis002
- * @tc.desc: test for Middle Ellipsis 002,Burmese combin
+ * @tc.desc: test for Middle Ellipsis 002,Burmese combine
  * @tc.type: FUNC
  */
 HWTEST_F(ParagraphTest, ParagraphTestMiddleEllipsis002, TestSize.Level0)
 {
     size_t maxLines = 1;
     PrepareMiddleEllipsis(maxLines, u"...", u"ျမင့္ေသာ ႏွလုံးခုန္ႏႈန္း သတ္မွတ္ခ်က္");
-    paragraphMiddleEllipsis_->Layout(200);
+    paragraphMiddleEllipsis_->Layout(320);
     OHOS::Rosen::SPText::Range<size_t> range = paragraphMiddleEllipsis_->GetEllipsisTextRange();
-    EXPECT_EQ(range.start, 5);
-    EXPECT_EQ(range.end, 30);
+    EXPECT_EQ(range.start, 7);
+    EXPECT_EQ(range.end, 24);
 }
 
 /*
