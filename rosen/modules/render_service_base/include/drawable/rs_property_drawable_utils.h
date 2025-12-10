@@ -53,7 +53,8 @@ public:
     static RRect GetInnerRRectForDrawingBorder(
         const RSProperties& properties, const std::shared_ptr<RSBorder>& border, const bool& isOutline);
     /**
-     * @brief Check if the background is light or dark using extracted color, and update the adaptive frosted glass params.
+     * @brief Check if the background is light or dark using extracted color,
+     * and update the adaptive frosted glass params.
      */
     static void ApplyAdaptiveFrostedGlassParams(
         Drawing::Canvas* canvas, const std::shared_ptr<RSNGRenderFilterBase>& effect);
