@@ -72,6 +72,16 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
     return renderClient_;
 }
 
+void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
+{
+    // todo
+}
+
+void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
+{
+    // todo
+}
+
 bool RSRenderServiceClient::GetUniRenderEnabled()
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

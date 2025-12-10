@@ -309,6 +309,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
     sptr<RSIClientToServiceConnection> newConn(
         new RSClientToServiceConnection(remotePid, this, renderServiceAgent, renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
+    sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, mainThread_, renderPipelineAgent, tokenObj));
     sptr<RSIClientToServiceConnection> tmp;
