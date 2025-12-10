@@ -99,6 +99,8 @@ private:
  
     std::shared_ptr<Drawing::ShaderEffect> MakeAIHDRGainmapHeadroomShader(float hdrRatio,
         std::shared_ptr<Drawing::ShaderEffect>& imageShader);
+    
+    void UpdateHardwareHandleCondition();
 
     virtual bool MHCRequestEGraph(uint64_t frameId)
     {
@@ -123,6 +125,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, RectI> nodeSrcRectMap_;
     std::unordered_map<NodeId, bool> isCurrentFrameBufferConsumedMap_;
+    std::unordered_map<NodeId, bool> isPrevHandleByHWMap_;
     void* taskPtr_ = nullptr;
     std::atomic<uint32_t> taskId_ = 0;
     int32_t buildHdrTaskStatus_ = 0;
@@ -145,6 +148,7 @@ private:
     bool needClear_ = false;
     mutable std::mutex hardwareThreadTaskMutex_;
     std::condition_variable hardwareThreadTaskCond_;
+    uint64_t prevFrameId_;
 };
 } // namespace Rosen
 } // namespace OHOS

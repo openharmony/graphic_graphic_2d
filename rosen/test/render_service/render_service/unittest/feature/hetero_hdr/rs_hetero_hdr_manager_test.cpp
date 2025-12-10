@@ -1618,10 +1618,11 @@ HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest1, TestSize.Level1)
 HWTEST_F(RSHeteroHDRManagerTest, ClearBufferCacheTest2, TestSize.Level1)
 {
     MockRSHeteroHDRManager mockRSHeteroHDRManager;
+    EXPECT_CALL(mockRSHeteroHDRManager, MHCGetFrameIdUsed()).WillRepeatedly(testing::Return(false));
     ScreenId screenId = 1;
     mockRSHeteroHDRManager.WaitHardwareThreadTaskExecute(screenId);
     mockRSHeteroHDRManager.needClear_ = true;
-    EXPECT_CALL(mockRSHeteroHDRManager, MHCGetFrameIdUsed()).WillRepeatedly(testing::Return(false));
+    mockRSHeteroHDRManager.framesNoApplyCnt_ = 0;
     mockRSHeteroHDRManager.ClearBufferCache();
     EXPECT_EQ(mockRSHeteroHDRManager.framesNoApplyCnt_, 1);
     mockRSHeteroHDRManager.framesNoApplyCnt_ = 6;

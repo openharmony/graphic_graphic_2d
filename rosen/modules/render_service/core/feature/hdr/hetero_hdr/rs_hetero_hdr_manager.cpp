@@ -402,7 +402,32 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
 bool RSHeteroHDRManager::HasHdrHeteroNode()
 {
     uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
-    return (pendingPostNodes_.size() == 1 && curFrameId != 0);
+    bool ret = (pendingPostNodes_.size() == 1 && curFrameId != 0);
+    if (ret) {
+        auto iterHardware = isPrevHandleByHWMap_.find(pendingPostNodes_.front()->GetId());
+        bool prevHardware = iterHardware == isPrevHandleByHWMap_.end() ||
+            iterHardware->second || curFrameId != prevFrameId_+1;
+        ret = ret && prevHardware;
+        RS_LOGD("[hdrHetero]:RSHeteroHDRManager HasHdrHeteroNode prevHardware %{public}d", prevHardware);
+    }
+    return ret;
+}
+
+void RSHeteroHDRManager::UpdateHardwareHandleCondition()
+{
+    isPrevHandleByHWMap_.clear();
+    for (uint32_t i = 0; i < pendingPostNodes_.size(); i++) {
+        NodeId nodeid = pendingPostNodes_[i]->GetId();
+        auto nodeDrawable = RSHeteroHDRUtil::GetSurfaceDrawableByID(curNodeId_);
+        if (!nodeDrawable) {
+            RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHardwareHandleCondition nodeDrawable is nullptr");
+            return;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+        bool isHardwareHandle = surfaceParams->GetHardwareEnabled();
+        isPrevHandleByHWMap_[nodeId] = isHardwareHandle || curFrameHeteroHandleCanBeUsed_;     
+    }
+    prevFrameId_ = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
 }
 
 void RSHeteroHDRManager::PostHDRSubTasks()
@@ -426,6 +451,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
         }
         ClearBufferCache();
     }
+    UpdateHardwareHandleCondition
     preFrameHeteroHandleCanBeUsed_ = curFrameHeteroHandleCanBeUsed_;
     pendingPostNodes_.clear();
     ownedLeashWindowIdMap_.clear();
