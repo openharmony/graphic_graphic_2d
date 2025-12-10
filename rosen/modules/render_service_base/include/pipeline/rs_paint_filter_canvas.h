@@ -30,11 +30,11 @@
 #include "screen_manager/screen_types.h"
 #include "surface_type.h"
 #include "utils/region.h"
-#include "cache/ge_cache_provider.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSFilter;
+struct IGECacheProvider;
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
