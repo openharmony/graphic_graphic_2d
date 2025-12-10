@@ -824,13 +824,13 @@ void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks() noexcept
     // }
     // auto& context = mainThread_->GetContext();
     // context.SetBrightnessInfoChangeCallback(remotePid_, nullptr);
-    return 0; // ??? todo
 }
 
 int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
     // brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
     // return StatusCode::SUCCESS;
+    return 0; // ??? todo
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -1670,7 +1670,7 @@ int32_t RSClientToServiceConnection::RegisterTypeface(uint64_t id, uint32_t size
         return tf->GetFd();
     }
     needUpdate = 0;
-    tf = Drawing::Typeface::MakeFormAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
+    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
     if (tf != nullptr) {
         RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
         return tf->GetFd();
