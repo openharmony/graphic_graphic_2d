@@ -281,7 +281,7 @@ public:
         return edLightNeg_;
     }
 
-    void SetMaterialColor(Vector3f& materialColor)
+    void SetMaterialColor(Vector4f& materialColor)
     {
         materialColor_ = materialColor;
     }
