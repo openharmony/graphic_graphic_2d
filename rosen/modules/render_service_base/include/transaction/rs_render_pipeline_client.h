@@ -65,6 +65,7 @@
 #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
 #include "info_collection/rs_layer_compose_collection.h"
 #include "utils/scalar.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 
 namespace OHOS {
 namespace Rosen {

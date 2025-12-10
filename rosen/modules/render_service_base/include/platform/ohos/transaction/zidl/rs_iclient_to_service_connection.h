@@ -111,11 +111,8 @@ public:
     virtual ErrCode RemoveVirtualScreenBlackList(
         ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
 
-    virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+    virtual ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;
-    
-    virtual ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
-    std::shared_ptr<Media::PixelMap> watermark, bool& success) = 0;
 
     virtual uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
         const std::shared_ptr<Media::PixelMap> &watermark,
@@ -244,6 +241,8 @@ public:
 
     virtual bool SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode) = 0;
 
+    virtual bool SetGlobalDarkColorMode(bool isDark) = 0;
+
     virtual int32_t GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode) = 0;
 
     virtual int32_t GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability) = 0;
@@ -311,7 +310,7 @@ public:
 
     virtual void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) = 0;
 
-    virtual void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    virtual ErrCode NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
         const std::vector<std::pair<std::string, std::string>>& newConfig) = 0;
 
     virtual void NotifyRefreshRateEvent(const EventInfo& eventInfo) = 0;
@@ -338,11 +337,11 @@ public:
 
     virtual ErrCode ReportEventJankFrame(DataBaseRs info) = 0;
 
-    virtual ErrCode ReportGameStateData(GameStateData info) = 0;
+    virtual void ReportGameStateData(GameStateData info) = 0;
 
-    virtual void ReportRsSceneJankStart(AppInfo info) = 0;
+    virtual ErrCode ReportRsSceneJankStart(AppInfo info) = 0;
 
-    virtual void ReportRsSceneJankEnd(AppInfo info) = 0;
+    virtual ErrCode ReportRsSceneJankEnd(AppInfo info) = 0;
 
     virtual ErrCode SetCacheEnabledForRotation(bool isEnabled) = 0;
 
@@ -380,7 +379,7 @@ public:
         int32_t feature, const char* config, TpFeatureConfigType tpFeatureConfigType) = 0;
 #endif
 
-    virtual ErrCode NotifyScreenSwitched() = 0;
+    virtual ErrCode NotifyScreenSwitched(ScreenId id) = 0;
 
     virtual int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) = 0;
@@ -407,7 +406,7 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) = 0;
     virtual bool ProfilerIsSecureScreen() = 0;
 
-    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) = 0;
+    virtual ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) = 0;
 
     virtual ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) = 0;
 

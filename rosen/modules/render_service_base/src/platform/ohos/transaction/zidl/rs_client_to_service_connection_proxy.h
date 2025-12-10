@@ -257,7 +257,7 @@ public:
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
-    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    ErrCode NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
         const std::vector<std::pair<std::string, std::string>>& newConfig) override;
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
@@ -284,10 +284,10 @@ public:
 
     ErrCode ReportEventJankFrame(DataBaseRs info) override;
 
-    ErrCode ReportGameStateData(GameStateData info) override;
-    void ReportRsSceneJankStart(AppInfo info) override;
+    void ReportGameStateData(GameStateData info) override;
+    ErrCode ReportRsSceneJankStart(AppInfo info) override;
 
-    void ReportRsSceneJankEnd(AppInfo info) override;
+    ErrCode ReportRsSceneJankEnd(AppInfo info) override;
 
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
@@ -322,7 +322,7 @@ public:
         TpFeatureConfigType tpFeatureConfigType = TpFeatureConfigType::DEFAULT_TP_FEATURE) override;
 #endif
 
-    ErrCode NotifyScreenSwitched() override;
+    ErrCode NotifyScreenSwitched(ScreenId id) override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
@@ -349,7 +349,7 @@ public:
         uint32_t firstFileIndex, std::vector<HrpServiceFileInfo>& outFiles) override;
     bool ProfilerIsSecureScreen() override;
 
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
+    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 

@@ -565,7 +565,6 @@ private:
 
     bool IsResidentProcess(pid_t pid) const;
     uint32_t GetForceCommitReason() const;
-    void RegisterHwcEvent();
 
     void ClearScreenSpecialLayerRecord(ScreenId screenId);
     void UpdateScreenSpecialLayer(const RSScreenProperty& newProperty, const RSScreenProperty& oldProperty = {});
@@ -733,6 +732,7 @@ private:
     ScreenId screenNodeScreenId_ = 0;
     std::atomic<uint64_t> focusNodeId_ = 0;
     std::atomic<uint64_t> frameCount_ = 0;
+    std::atomic<bool> isRunning_ = false;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::shared_ptr<RSContext> context_;
     std::shared_ptr<VSyncReceiver> receiver_ = nullptr;

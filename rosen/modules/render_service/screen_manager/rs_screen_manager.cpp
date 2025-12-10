@@ -403,6 +403,7 @@ bool RSScreenManager::CheckFoldScreenIdBuiltIn(ScreenId id)
     if (id == BUILT_IN_MAIN_SCREEN_ID || id == BUILT_IN_EXTERNAL_SCREEN_ID) {
         return true;
     }
+    return false; // ??? todo
 }
 
 void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)

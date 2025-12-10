@@ -4922,18 +4922,6 @@ void RSMainThread::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& n
     RequestNextVSync();
 }
 
-void RSMainThread::ClearWatermark(pid_t pid)
-{
-    std::lock_guard<std::mutex> lock(watermarkMutex_);
-    registerSurfaceWaterMaskCount_.erase(pid);
-    if (surfaceNodeWatermarks_.size() > 0) {
-        RS_TRACE_NAME_FMT("RSMainThread::ClearWatermark %d", pid);
-        EraseIf(surfaceNodeWatermarks_, [pid](const auto& pair) {
-            return pair.first.first == pid;
-        });
-    }
-}
-
 void RSMainThread::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool flag)
 {
     std::lock_guard<std::mutex> lock(watermarkMutex_);
@@ -5688,21 +5676,6 @@ bool RSMainThread::HasDRMOrSurfaceLockLayer() const
 bool RSMainThread::IsReadyForSyncTask() const
 {
     return isRunning_.load();
-}
-
-void RSMainThread::RegisterHwcEvent()
-{
-    RSUniHwcPrevalidateUtil::GetInstance().Init();
-#ifdef RS_ENABLE_GPU
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager != nullptr) {
-        screenManager->RegisterHwcEvent([]() {
-            RSMainThread::Instance()->PostTask([]() {
-                RSUniHwcPrevalidateUtil::GetInstance().Init();
-            });
-        });
-    }
-#endif
 }
 
 bool RSMainThread::TransitionDataMutexLockIfNoCommands()

@@ -452,9 +452,9 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     RS_LOGD("HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
         "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d", isHdrOn, hasUniRenderHdrSurface,
         brightnessRatio, screenId, node.GetDisplayHdrStatus());
-    if ((!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsCloseHardwareHdr()) || node.GetForceCloseHdr()) {
-        isHdrOn = false;
-    }
+    // if ((!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsCloseHardwareHdr()) || node.GetForceCloseHdr()) {
+    //     isHdrOn = false;
+    // } // ??? todo
     node.SetHDRPresent(isHdrOn);
     hasDisplayHdrOn_ |= isHdrOn;
     const auto& screenProperty = node.GetScreenProperty();
@@ -2136,7 +2136,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     // } else {
     //     needRecalculateOcclusion_ = false;
     // }
-    screenWhiteList_ = screenManager_->GetScreenWhiteList();
+    // screenWhiteList_ = screenManager_->GetScreenWhiteList(); // ??? todo
     screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
 

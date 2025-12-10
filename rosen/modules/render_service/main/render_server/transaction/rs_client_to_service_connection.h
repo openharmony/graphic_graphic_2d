@@ -311,17 +311,17 @@ private:
 
     ErrCode ReportEventJankFrame(DataBaseRs info) override;
 
-    void ReportRsSceneJankStart(AppInfo info) override;
+    ErrCode ReportRsSceneJankStart(AppInfo info) override;
 
-    void ReportRsSceneJankEnd(AppInfo info) override;
+    ErrCode ReportRsSceneJankEnd(AppInfo info) override;
 
-    ErrCode ReportGameStateData(GameStateData info) override;
+    void ReportGameStateData(GameStateData info) override;
 
     ErrCode NotifyLightFactorStatus(int32_t lightFactorStatus) override;
 
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
 
-    void NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+    ErrCode NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
         const std::vector<std::pair<std::string, std::string>>& newConfig) override;
 
     void NotifyRefreshRateEvent(const EventInfo& eventInfo) override;
@@ -368,7 +368,7 @@ private:
     void SetVirtualScreenUsingStatus(bool isVirtualScreenUsingStatus) override;
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn) override;
 
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList) override;
+    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList) override;
 
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList) override;
 
@@ -380,7 +380,7 @@ private:
 
     void SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
 
-    ErrCode NotifyScreenSwitched() override;
+    ErrCode NotifyScreenSwitched(ScreenId id) override;
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;

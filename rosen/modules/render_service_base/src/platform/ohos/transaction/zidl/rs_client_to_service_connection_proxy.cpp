@@ -3685,39 +3685,39 @@ ErrCode RSClientToServiceConnectionProxy::ReportEventJankFrame(DataBaseRs info)
     return ERR_OK;
 }
 
-void RSClientToServiceConnectionProxy::ReportRsSceneJankStart(AppInfo info)
+ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankStart(AppInfo info)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportRsSceneJankStart: WriteInterfaceToken GetDescriptor err.");
-        return;
+        return -1; // ??? todo
     }
     WriteAppInfo(data, reply, option, info);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportRsSceneJankStart: Send Request err.");
-        return;
+        return -1; // ??? todo
     }
 }
 
-void RSClientToServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
+ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportRsSceneJankEnd: WriteInterfaceToken GetDescriptor err.");
-        return;
+        return -1; // ??? todo
     }
     WriteAppInfo(data, reply, option, info);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportRsSceneJankEnd: Send Request err.");
-        return;
+        return -1; // ??? todo
     }
 }
 
@@ -3847,23 +3847,26 @@ void RSClientToServiceConnectionProxy::ReportGameStateDataRs(
     option.SetFlags(MessageOption::TF_ASYNC);
 }
 
-ErrCode RSClientToServiceConnectionProxy::ReportGameStateData(GameStateData info)
+void RSClientToServiceConnectionProxy::ReportGameStateData(GameStateData info)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportGameStateData: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
+        // return ERR_INVALID_VALUE;
+        return; // ??? todo
     }
     ReportGameStateDataRs(data, reply, option, info);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportGameStateData: Send Request err.");
-        return ERR_INVALID_VALUE;
+        // return ERR_INVALID_VALUE;
+        return; // ??? todo
     }
-    return ERR_OK;
+    // return ERR_OK;
+    return; // ??? todo
 }
 
 ErrCode RSClientToServiceConnectionProxy::NotifyLightFactorStatus(int32_t lightFactorStatus)
@@ -4004,32 +4007,32 @@ void RSClientToServiceConnectionProxy::SetWindowExpectedRefreshRate(
     }
 }
 
-void RSClientToServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
+ErrCode RSClientToServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const std::string& pkgName, uint32_t listSize,
     const std::vector<std::pair<std::string, std::string>>& newConfig)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     if (listSize != newConfig.size()) {
         ROSEN_LOGE("input size doesn't match");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     if (!data.WriteString(pkgName) || !data.WriteUint32(listSize)) {
         ROSEN_LOGE(
             "RSClientToServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent Write pakName or listSize failed.");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     for (const auto& [key, value] : newConfig) {
         if (!data.WriteString(key) || !data.WriteString(value)) {
             ROSEN_LOGE(
                 "RSClientToServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent Write key or value failed.");
-            return;
+            return ERR_INVALID_VALUE;
         }
     }
     option.SetFlags(MessageOption::TF_ASYNC);
@@ -4038,8 +4041,9 @@ void RSClientToServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent(const 
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::NotifyAppStrategyConfigChangeEvent: Send Request err.");
-        return;
+        return ERR_INVALID_VALUE;
     }
+    return ERR_OK;
 }
 
 void RSClientToServiceConnectionProxy::NotifyRefreshRateEvent(const EventInfo& eventInfo)
@@ -4795,7 +4799,7 @@ int32_t RSClientToServiceConnectionProxy::SendRequest(uint32_t code, MessageParc
     return Remote()->SendRequest(code, data, reply, option);
 }
 
-ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched()
+ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -5061,7 +5065,7 @@ bool RSClientToServiceConnectionProxy::ProfilerIsSecureScreen()
     return retValue;
 }
 
-ErrCode RSClientToServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t> pidList)
+ErrCode RSClientToServiceConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
 {
     return ERR_INVALID_VALUE;
 }

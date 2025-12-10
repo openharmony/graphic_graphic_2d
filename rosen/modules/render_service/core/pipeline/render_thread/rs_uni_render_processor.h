@@ -37,7 +37,7 @@ public:
 
     bool Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offsetY,
               std::shared_ptr<RSBaseRenderEngine> renderEngine) override;
-    void CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
+    void CreateLayer(/* const ??? todo */ const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
         const std::shared_ptr<ProcessOfflineResult>& offlineResult = nullptr) override;
     void ProcessSurface(RSSurfaceRenderNode& node) override;
     void ProcessScreenSurface(RSScreenRenderNode& node) override;

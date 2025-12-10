@@ -70,10 +70,10 @@ bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
 
     // Initialize composerClient
-    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
-    if (composerClient_ == nullptr) {
-        return false;
-    }
+    // composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
+    // if (composerClient_ == nullptr) {
+    //     return false;
+    // }
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, composerClient_);
 }
 
@@ -89,10 +89,10 @@ bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDra
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
 
     // Initialize composerClient
-    composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
-    if (composerClient_ == nullptr) {
-        return false;
-    }
+    // composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
+    // if (composerClient_ == nullptr) {
+    //     return false;
+    // }
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, composerClient_);
 }
 
@@ -126,7 +126,7 @@ void RSUniRenderProcessor::PostProcess()
     RS_LOGD("RSUniRenderProcessor::PostProcess layers_:%{public}zu", layers_.size());
 }
 
-void RSUniRenderProcessor::CreateLayer(const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
+void RSUniRenderProcessor::CreateLayer(/*const ??? todo */ const RSSurfaceRenderNode& node, RSSurfaceRenderParams& params,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
     auto surfaceHandler = node.GetRSSurfaceHandler();

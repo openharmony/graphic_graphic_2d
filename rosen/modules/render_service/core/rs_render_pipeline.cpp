@@ -965,7 +965,7 @@ ErrCode RSRenderPipeline::CleanResources(pid_t pid)
             if (mainThread == nullptr) {
                 return;
             }
-            mainThread->ClearWatermark(pid);
+            mainThread->ClearSurfaceWatermark(pid);
         }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         mainThread_->ScheduleTask(

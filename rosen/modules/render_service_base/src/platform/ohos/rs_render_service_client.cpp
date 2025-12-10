@@ -283,7 +283,7 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
         return false;
     }
     bool success;
-    clientToService->SetWatermark(name, watermark, success);
+    clientToService->SetWatermark(0, name, watermark, success); // ??? todo
     return success;
 }
 
@@ -1836,7 +1836,7 @@ void RSRenderServiceClient::NotifyScreenSwitched()
         ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is nullptr", __func__);
         return;
     }
-    clientToService->NotifyScreenSwitched();
+    clientToService->NotifyScreenSwitched(0); // ??? todo
 }
 
 class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub

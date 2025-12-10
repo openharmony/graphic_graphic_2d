@@ -69,6 +69,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
@@ -362,10 +363,12 @@ void RSClientToServiceConnection::RSApplicationRenderThreadDeathRecipient::OnRem
 
 ErrCode RSClientToServiceConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
+    return ERR_OK; // ??? todo
 }
 
 ErrCode RSClientToServiceConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
+    return ERR_OK; // ??? todo
 }
 
 ErrCode RSClientToServiceConnection::GetUniRenderEnabled(bool& enable)
@@ -545,6 +548,7 @@ uint32_t RSClientToServiceConnection::SetSurfaceWatermark(pid_t pid, const std::
     // };
     // mainThread_->PostSyncTask(task);
     // return res;
+    return 0; // ??? todo
 }
     
 void RSClientToServiceConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
@@ -810,6 +814,7 @@ int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBri
     //     return context.SetBrightnessInfoChangeCallback(remotePid_, callback);
     // };
     // return mainThread_->ScheduleTask(task).get();
+    return 0; // ??? todo
 }
 
 void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks() noexcept
@@ -819,6 +824,7 @@ void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks() noexcept
     // }
     // auto& context = mainThread_->GetContext();
     // context.SetBrightnessInfoChangeCallback(remotePid_, nullptr);
+    return 0; // ??? todo
 }
 
 int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
@@ -836,12 +842,12 @@ void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcep
 }
 #endif
 
-void RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
+uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     if (screenManagerAgent_ == nullptr) {
-        return;
+        return StatusCode::SCREEN_MANAGER_NULL;
     }
-    screenManagerAgent_->SetScreenActiveMode(id, modeId);
+    return screenManagerAgent_->SetScreenActiveMode(id, modeId);
 }
 
 void RSClientToServiceConnection::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate)
@@ -1028,6 +1034,7 @@ int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_
     //     return StatusCode::SCREEN_MANAGER_NULL;
     // }
     // return screenManager_->SetRogScreenResolution(id, width, height);
+    return 0; // ??? todo
 }
 
 int32_t RSClientToServiceConnection::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
@@ -1036,6 +1043,7 @@ int32_t RSClientToServiceConnection::GetRogScreenResolution(ScreenId id, uint32_
     //     return StatusCode::SCREEN_MANAGER_NULL;
     // }
     // return screenManager_->GetRogScreenResolution(id, width, height);
+    return 0; // ??? todo
 }
 
 ErrCode RSClientToServiceConnection::MarkPowerOffNeedProcessOneFrame()
@@ -1066,6 +1074,7 @@ ErrCode RSClientToServiceConnection::ForceRefreshOneFrameWithNextVSync()
     // };
     // mainThread_->PostTask(task);
     // return ERR_OK;
+    return ERR_OK; // ??? todo
 }
 
 ErrCode RSClientToServiceConnection::RepaintEverything()
@@ -1610,17 +1619,6 @@ ErrCode RSClientToServiceConnection::GetScreenColorSpace(
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnection::GetScreenColorSpace(
-    ScreenId id, GraphicCM_ColorSpaceType& colorSpace, int32_t& resCode)
-{
-    if (!screenManagerAgent_) {
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-        return ERR_INVALID_VALUE;
-    }
-    resCode = screenManagerAgent_->GetScreenColorSpace(id, colorSpace);
-    return ERR_OK;
-}
-
 ErrCode RSClientToServiceConnection::SetScreenColorSpace(
     ScreenId id, GraphicCM_ColorSpaceType colorSpace, int32_t& resCode)
 {
@@ -1644,16 +1642,6 @@ int32_t RSClientToServiceConnection::GetScreenType(ScreenId id, RSScreenType& sc
 bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     std::shared_ptr<Drawing::Typeface>& typeface)
 {
-    RS_LOGI("reg typeface, pid[%{public}d], familyname:%{public}s, uniqueid:%{public}u",
-        RSTypefaceCache::GetTypefacePid(globalUniqueId), typeface->GetFamilyName().c_str(),
-        RSTypefaceCache::GetTypefaceId(globalUniqueId));
-    RSTypefaceCache::Instance().CacheDrawingTypeface(globalUniqueId, typeface);
-    return true;
-}
-
-bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
-    std::shared_ptr<Drawing::Typeface>& typeface)
-{
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
         return false;
@@ -1671,6 +1659,25 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
         result &= conn->RegisterTypeface(globalUniqueId, typeface);
     }
     return result;
+}
+
+int32_t RSClientToServiceConnection::RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index)
+{
+    auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(id);
+    if (tf != nullptr) {
+        ::close(fd);
+        needUpdate = 1;
+        return tf->GetFd();
+    }
+    needUpdate = 0;
+    tf = Drawing::Typeface::MakeFormAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
+    if (tf != nullptr) {
+        RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
+        return tf->GetFd();
+    }
+    ::close(fd);
+    RS_LOGE("RegisterTypeface: failed to register typeface");
+    return -1;
 }
     
 bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
@@ -1783,7 +1790,8 @@ void RSClientToServiceConnection::SetScreenOffset(ScreenId id, int32_t offsetX, 
     }
     screenManagerAgent_->SetScreenOffset(id, offsetX, offsetY);
 }
-int32_t RSClientToServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback)
+ErrCode RSClientToServiceConnection::RegisterOcclusionChangeCallback(sptr<RSIOcclusionChangeCallback> callback,
+    int32_t& repCode)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
@@ -2311,16 +2319,17 @@ ErrCode RSClientToServiceConnection::GetHdrOnDuration(int64_t& hdrOnDuration)
     return ERR_OK;
 }
 
-void RSClientToServiceConnection::SetVmaCacheStatus(bool flag)
+ErrCode RSClientToServiceConnection::SetVmaCacheStatus(bool flag)
 {
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return;
+        return ERR_INVALID_VALUE;
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetVmaCacheStatus(flag);
     }
+    return ERR_OK;
 }
 
 #ifdef TP_FEATURE_ENABLE
@@ -2363,16 +2372,17 @@ void RSClientToServiceConnection::SetVirtualScreenUsingStatus(bool isVirtualScre
     return;
 }
 
-void RSClientToServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
+ErrCode RSClientToServiceConnection::SetCurtainScreenUsingStatus(bool isCurtainScreenOn)
 {
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.empty()) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return;
+        return ERR_INVALID_VALUE;
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     }
+    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList)
@@ -2492,21 +2502,20 @@ void RSClientToServiceConnection::SetFreeMultiWindowStatus(bool enable)
     }
 }
 
-ErrCode RSClientToServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+void RSClientToServiceConnection::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
 {
     if (renderProcessManagerAgent_ == nullptr) {
         RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
-        return ERR_INVALID_VALUE;
+        return;
     }
     auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
     if (serviceToRenderConns.size() == 0) {
         RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
-        return ERR_INVALID_VALUE;
+        return;
     }
     for (auto conn : serviceToRenderConns) {
         conn->SetColorFollow(nodeIdStr, isColorFollow);
     }
-    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::NotifyScreenSwitched(ScreenId id)

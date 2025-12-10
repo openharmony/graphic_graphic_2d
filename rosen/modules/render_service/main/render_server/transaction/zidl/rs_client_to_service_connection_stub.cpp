@@ -303,42 +303,42 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     return parcelCopied;
 }
 
-bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWindowType windowType)
-{
-    constexpr int nodeTypeMin = static_cast<int>(RSSurfaceNodeType::DEFAULT);
-    constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::NODE_MAX);
+// bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWindowType windowType)
+// {
+//     constexpr int nodeTypeMin = static_cast<int>(RSSurfaceNodeType::DEFAULT);
+//     constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::NODE_MAX);
 
-    int typeNum = static_cast<int>(nodeType);
-    if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
-        RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
-        return false;
-    }
-    if (windowType != SurfaceWindowType::DEFAULT_WINDOW && !IS_SCB_WINDOW_TYPE(windowType)) {
-        RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
-        return false;
-    }
+//     int typeNum = static_cast<int>(nodeType);
+//     if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
+//         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
+//         return false;
+//     }
+//     if (windowType != SurfaceWindowType::DEFAULT_WINDOW && !IS_SCB_WINDOW_TYPE(windowType)) {
+//         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
+//         return false;
+//     }
 
-    bool isTokenTypeValid = true;
-    bool isNonSystemAppCalling = false;
-    RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
-    if (isNonSystemAppCalling) {
-        if (nodeType != RSSurfaceNodeType::DEFAULT &&
-            nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
-            nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
-            nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
-            RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
-                typeNum, pid);
-            return false;
-        }
-        if (windowType != SurfaceWindowType::DEFAULT_WINDOW) {
-            RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid SurfaceWindowType %{public}d, pid %d",
-                static_cast<int>(windowType), pid);
-            return false;
-        }
-    }
+//     bool isTokenTypeValid = true;
+//     bool isNonSystemAppCalling = false;
+//     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
+//     if (isNonSystemAppCalling) {
+//         if (nodeType != RSSurfaceNodeType::DEFAULT &&
+//             nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
+//             nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
+//             nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
+//             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
+//                 typeNum, pid);
+//             return false;
+//         }
+//         if (windowType != SurfaceWindowType::DEFAULT_WINDOW) {
+//             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid SurfaceWindowType %{public}d, pid %d",
+//                 static_cast<int>(windowType), pid);
+//             return false;
+//         }
+//     }
 
-    return true;
-}
+//     return true;
+// }
 
 bool IsValidCallingPid(pid_t pid, pid_t callingPid)
 {
@@ -3468,7 +3468,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
-            NotifyScreenSwitched();
+            NotifyScreenSwitched(0); // ??? todo
             break;
         }
         case static_cast<uint32_t>(
