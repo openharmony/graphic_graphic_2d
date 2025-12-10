@@ -1129,5 +1129,23 @@ void RSRenderPipeline::SetScreenFrameGravity(ScreenId id, Gravity gravity)
     }
     mainThread_->SetScreenFrameGravity(id, gravity);
 }
+
+void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent)
+{
+    if (!mainThread_) {
+        RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);
+        return;
+    }
+    mainThread_->rsVsyncManagerAgent_ = rsVsyncManagerAgent;
+}
+
+void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn)
+{
+    if (!mainThread_) {
+        RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);
+        return;
+    }
+    mainThread_->RegisterScreenSwitchFinishCallback(conn);
+}
 } // namespace Rosen
 } // namespace OHOS

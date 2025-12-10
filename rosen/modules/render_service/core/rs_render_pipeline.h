@@ -128,6 +128,10 @@ public:
     ErrCode GetHdrOnDuration(int64_t& hdrOnDuration);
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
+
+    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncMangerAgent);
+    void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
+
 private:
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
         const std::shared_ptr<VSyncReceiver>& receiver);
