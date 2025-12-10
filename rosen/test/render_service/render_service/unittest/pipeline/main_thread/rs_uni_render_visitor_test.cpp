@@ -2405,19 +2405,16 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareScreenRenderNode005, TestSize.Level
     auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, 0, rsContext->weak_from_this());
     rsScreenRenderNode->InitRenderParams();
 
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-
     auto screenManager = CreateOrGetScreenManager();
     auto screenId = CreateVirtualScreen(screenManager);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
-    ASSERT_NE(rsScreenRenderNode->stagingRenderParams_, nullptr);
-    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
-
     auto parent = std::make_shared<RSRenderNode>(1);
     parent->InitRenderParams();
     rsScreenRenderNode->parent_ = parent;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
 }
 
@@ -2853,6 +2850,29 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode008, TestSize.Le
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
     ASSERT_TRUE(!isQuickSkip);
+}
+
+/*
+ * @tc.name: CheckQuickSkipSurfaceRenderNode009
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckQuickSkipSurfaceRenderNode while has sub hardware enabled node
+ * @tc.type: FUNC
+ * @tc.require: issue20827
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode009, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    const_cast<SurfaceWindowType&>(surfaceNode->surfaceWindowType_) = SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    auto id = surfaceNode->GetId();
+    std::weak_ptr<RSSurfaceRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(id + 1);
+    surfaceNode->AddChildHardwareEnabledNode(childNode);
+    ASSERT_FALSE(surfaceNode->GetChildHardwareEnabledNodes().empty());
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
+    ASSERT_FALSE(isQuickSkip);
 }
 
 /*
