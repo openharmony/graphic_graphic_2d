@@ -99,7 +99,6 @@ HWTEST_F(HgmTaskHandleThreadTest, PostTask001, TestSize.Level0)
 
     instance.queue_ = nullptr;
     instance.PostTask(func, delayTime);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 /**
@@ -191,7 +190,6 @@ HWTEST_F(HgmTaskHandleThreadTest, PostEvent001, TestSize.Level0)
 
     instance.queue_ = nullptr;
     instance.PostEvent(eventId, func, delayTime);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
 
 /**
