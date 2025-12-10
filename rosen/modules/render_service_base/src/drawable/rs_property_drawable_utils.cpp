@@ -60,25 +60,28 @@ void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
     auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(effect);
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
     const bool isDark = (color == Drawing::Color::COLOR_BLACK);
-    // Read adaptive properties directly from corresponding per-mode property tags
-    if (isDark) {
-        glass->Setter<FrostedGlassBlurParamsRenderTag>(glass->Getter<FrostedGlassDarkModeBlurParamsRenderTag>()->Get());
-        glass->Setter<FrostedGlassWeightsEmbossRenderTag>(
-            glass->Getter<FrostedGlassDarkModeWeightsEmbossRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgRatesRenderTag>(glass->Getter<FrostedGlassDarkModeBgRatesRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgKBSRenderTag>(glass->Getter<FrostedGlassDarkModeBgKBSRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgPosRenderTag>(glass->Getter<FrostedGlassDarkModeBgPosRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgNegRenderTag>(glass->Getter<FrostedGlassDarkModeBgNegRenderTag>()->Get());
-    } else {
-        glass->Setter<FrostedGlassBlurParamsRenderTag>(
-            glass->Getter<FrostedGlassLightModeBlurParamsRenderTag>()->Get());
-        glass->Setter<FrostedGlassWeightsEmbossRenderTag>(
-            glass->Getter<FrostedGlassLightModeWeightsEmbossRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgRatesRenderTag>(glass->Getter<FrostedGlassLightModeBgRatesRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgKBSRenderTag>(glass->Getter<FrostedGlassLightModeBgKBSRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgPosRenderTag>(glass->Getter<FrostedGlassLightModeBgPosRenderTag>()->Get());
-        glass->Setter<FrostedGlassBgNegRenderTag>(glass->Getter<FrostedGlassLightModeBgNegRenderTag>()->Get());
-    }
+    // Read adaptive properties directly from corresponding per-mode property tags.
+    // Use a small helper to avoid repeating the dark/light setter/getter pairs.
+    auto setFromMode = [&glass](auto SetterTag, auto DarkGetterTag, auto LightGetterTag, bool isDarkMode) {
+        if (isDarkMode) {
+            glass->Setter<decltype(SetterTag)>(glass->Getter<decltype(DarkGetterTag)>()->Get());
+        } else {
+            glass->Setter<decltype(SetterTag)>(glass->Getter<decltype(LightGetterTag)>()->Get());
+        }
+    };
+
+    setFromMode(FrostedGlassBlurParamsRenderTag(), FrostedGlassDarkModeBlurParamsRenderTag(),
+        FrostedGlassLightModeBlurParamsRenderTag(), isDark);
+    setFromMode(FrostedGlassWeightsEmbossRenderTag(), FrostedGlassDarkModeWeightsEmbossRenderTag(),
+        FrostedGlassLightModeWeightsEmbossRenderTag(), isDark);
+    setFromMode(FrostedGlassBgRatesRenderTag(), FrostedGlassDarkModeBgRatesRenderTag(),
+        FrostedGlassLightModeBgRatesRenderTag(), isDark);
+    setFromMode(FrostedGlassBgKBSRenderTag(), FrostedGlassDarkModeBgKBSRenderTag(),
+        FrostedGlassLightModeBgKBSRenderTag(), isDark);
+    setFromMode(FrostedGlassBgPosRenderTag(), FrostedGlassDarkModeBgPosRenderTag(),
+        FrostedGlassLightModeBgPosRenderTag(), isDark);
+    setFromMode(FrostedGlassBgNegRenderTag(), FrostedGlassDarkModeBgNegRenderTag(),
+        FrostedGlassLightModeBgNegRenderTag(), isDark);
 }
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)

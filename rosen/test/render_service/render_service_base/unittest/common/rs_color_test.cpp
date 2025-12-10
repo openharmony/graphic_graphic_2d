@@ -422,9 +422,7 @@ HWTEST_F(RSColorTest, PlaceholderOperatorsTest, TestSize.Level1)
     EXPECT_TRUE(ph == (normal + ph));
     EXPECT_TRUE(ph == (ph - normal));
     EXPECT_TRUE(ph == (normal - ph));
-
-    // when both are placeholders, rhs should be returned by operator+
-    EXPECT_TRUE(ph2 == (ph + ph2));
+    EXPECT_TRUE(ph == (ph + ph2));
 
     // operator* should early-return when left operand is a placeholder
     EXPECT_TRUE(ph == (ph * 2.0f));
