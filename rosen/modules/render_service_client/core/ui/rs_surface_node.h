@@ -367,7 +367,6 @@ private:
     void SetSurfaceIdToRenderNode();
     void CreateRenderNodeForTextureExportSwitch() override;
     void SetIsTextureExportNode(bool isTextureExportNode);
-    std::pair<std::string, std::string> SplitSurfaceNodeName(std::string surfaceNodeName);
     void RegisterNodeMap() override;
     std::shared_ptr<RSSurface> surface_;
     std::string name_;

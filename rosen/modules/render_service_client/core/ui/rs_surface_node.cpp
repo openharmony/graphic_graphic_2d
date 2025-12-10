@@ -630,14 +630,6 @@ void RSSurfaceNode::SetFreeze(bool isFreeze)
     AddCommand(command, true);
 }
 
-std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::string surfaceNodeName)
-{
-    if (auto position = surfaceNodeName.find("#");  position != std::string::npos) {
-        return std::make_pair(surfaceNodeName.substr(0, position), surfaceNodeName.substr(position + 1));
-    }
-    return std::make_pair("", surfaceNodeName);
-}
-
 RSSurfaceNode::RSSurfaceNode(
     const RSSurfaceNodeConfig& config, bool isRenderServiceNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSNode(isRenderServiceNode, config.isTextureExportNode, rsUIContext, true), name_(config.SurfaceNodeName)
