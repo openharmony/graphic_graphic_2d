@@ -105,6 +105,13 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     if (canvas.GetUICapture() && captureParam.captureFinished_) {
         return;
     }
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture) {
+        captureParam.captureFinished_ = true;
+        return;
+    }
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
     RSRenderNodeDrawable::TotalProcessedNodeCountInc();
     Drawing::Rect bounds = GetRenderParams() ? GetRenderParams()->GetFrameRect() : Drawing::Rect(0, 0, 0, 0);
@@ -124,13 +131,7 @@ void RSRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 
     DrawContent(canvas, bounds);
 
-    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
-        captureParam.endNodeId_ == GetId() &&
-        captureParam.endNodeId_ != INVALID_NODEID);
-    if (stopDrawForRangeCapture) {
-        captureParam.captureFinished_ = true;
-    }
-    if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
+    if (!captureParam.isSoloNodeUiCapture_) {
         DrawChildren(canvas, bounds);
     }
 

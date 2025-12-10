@@ -165,11 +165,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DumpCanvasDrawing();
 
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
-        captureParam.endNodeId_ == GetId() &&
-        captureParam.endNodeId_ != INVALID_NODEID);
-
-    if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
+    if (!captureParam.isSoloNodeUiCapture_) {
         // 3. Draw children of this drawing node by the main canvas.
         DrawChildren(canvas, bounds);
     }
@@ -254,6 +250,14 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture || captureParam.captureFinished_) {
+        captureParam.captureFinished_ = true;
+        return;
+    }
     OnDraw(canvas);
 }
 

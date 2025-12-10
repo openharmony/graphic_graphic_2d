@@ -516,13 +516,19 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawWithoutChild, TestSize.Level1)
     canvas.SetUICapture(true);
     NodeId id = 1;
     RSUniRenderThread::GetCaptureParam().endNodeId_ = id;
+    CaptureParam param;
+    param.captureFinished_ = true;
     drawable->OnDraw(canvas);
     ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
 
-    CaptureParam param;
+    param.captureFinished_ = false;
     param.isSnapshot_ = true;
-    RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    param.endNodeId_ = INVALID_NODEID;
     RSUniRenderThread::SetCaptureParam(param);
+    drawable->OnDraw(canvas);
+    param.isSoloNodeUiCapture_ = true;
+    RSUniRenderThread::SetCaptureParam(param);
+    drawable->OnDraw(canvas);
     ASSERT_TRUE(RSUniRenderThread::IsInCaptureProcess());
 }
 
