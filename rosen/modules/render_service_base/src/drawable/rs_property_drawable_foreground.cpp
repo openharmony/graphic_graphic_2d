@@ -125,7 +125,100 @@ constexpr char NORMAL_LIGHT_SHADER_STRING[](R"(
         return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
     }
 )");
+static constexpr char FEATHERING_BORDER_LIGHT_SHADRE_STRING[](R"(
+    uniform vec2 iResolution;
+    uniform float contentBorderRadius;
+    uniform vec4 lightPos[12];
+    uniform vec4 viewPos[12];
+    uniform vec4 specularLightColor[12];
+    uniform float specularStrength[12];
+    uniform float borderWidth;
 
+    float sdRoundedBox(vec2 p, vec2 b, float r)
+    {
+        vec2 q = abs(p) - b + r;
+        return (min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r);
+    }
+
+    vec2 sdRoundedBoxGradient(vec2 p, vec2 b, float r)
+    {
+        vec2 signs = vec2(p.x >= 0.0 ? 1.0 : -1.0, p.y >= 0.0 ? 1.0 : -1.0);
+        vec2 q = abs(p) - b + r;
+        vec2 nor = (q.y > q.x) ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
+        nor = (q.x > 0.0 && q.y > 0.0) ? normalize(q) : nor;
+        return signs * nor;
+    }
+
+    mediump vec4 main(vec2 drawing_coord)
+    {
+        float shininess = 8.0;
+        mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        vec2 halfResolution = iResolution.xy * 0.5;
+
+        float gradRadius = min(max(contentBorderRadius, abs(borderWidth) * 3.0), iResolution.y * 0.5);
+        float drawRadius = min(max(contentBorderRadius, abs(borderWidth) * 1.1), iResolution.y * 0.5);
+        float realRoundedBoxSDF =
+            sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
+        float virtualRoundedBoxSDF = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, drawRadius);
+        vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, gradRadius);
+        for (int i = 0; i < 12; i++) {
+            if (abs(specularStrength[i]) > 0.01) {
+                vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
+                    halfResolution,
+                    contentBorderRadius); // lightGrad could be pre-computed
+                float angleEfficient = dot(grad, lightGrad);
+                if (angleEfficient > 0.0) {
+                    vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
+                    vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
+                    vec3 halfwayDir = normalize(lightDir + viewDir);                             // half vector
+                    // exponential relationship of angle
+                    float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
+                    spec *= specularStrength[i];
+                    spec *= smoothstep(-borderWidth, 0.0, virtualRoundedBoxSDF);
+                    spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
+                    vec4 specularColor = specularLightColor[i];
+                    fragColor += specularColor * (spec * angleEfficient);
+                }
+            }
+        }
+        return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
+    }
+)");
+static constexpr char PHONG_SHADER_STRING[](R"(
+    uniform vec4 lightPos[12];
+    uniform vec4 viewPos[12];
+    uniform vec4 specularLightColor[12];
+    uniform float specularStrength[12];
+
+    mediump vec4 main(vec2 drawing_coord) {
+        vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
+        float ambientStrength = 0.0;
+        vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
+        float diffuseStrength = 0.0;
+        float shininess = 8.0;
+        mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
+        // ambient
+        vec4 ambient = lightColor * ambientStrength;
+        vec3 norm = normalize(NormalMap.rgb);
+
+        for (int i = 0; i < 12; i++) {
+            if (abs(specularStrength[i]) > 0.01) {
+                vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
+                float diff = max(dot(norm, lightDir), 0.0);
+                vec4 diffuse = diff * lightColor;
+                vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
+                vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
+                float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
+                vec4 specular = lightColor * spec; // multiply color of incident light
+                vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
+                vec4 specularColor = specularLightColor[i];
+                fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
+            }
+        }
+        return fragColor;
+    }
+)");
 constexpr float SDR_LUMINANCE = 1.0f;
 } // namespace
 
@@ -743,9 +836,8 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     }
     auto begin = stagingLightSourcesAndPosVec_.begin();
     auto end = begin + std::min(static_cast<size_t>(MAX_LIGHT_SOURCES), stagingLightSourcesAndPosVec_.size());
-    bool needEDR =
+    stagingEnableEDREffect_ = stagingIlluminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT &&
         std::any_of(begin, end, [](const auto& pair) { return ROSEN_GNE(pair.first->GetLightIntensity(), 1.0f); });
-    stagingEnableEDREffect_ = needEDR && stagingIlluminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT;
     needSync_ = true;
     return true;
 }
@@ -769,7 +861,7 @@ void RSPointLightDrawable::OnSync()
     nodeId_ = stagingNodeId_;
     sdfShaderEffect_ = std::move(stagingSDFShaderEffect_);
     // half width and half height requires divide by 2.0f
-    Vector4f width = { borderWidth_ / 2.0f };
+    Vector4f width = { borderWidth_ / 2.0f, borderWidth_ / 2.0f, borderWidth_ / 2.0f, borderWidth_ / 2.0f };
     auto borderRRect = stagingRRect_.Inset(width);
     borderRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(borderRRect);
     contentRRect_ = RSPropertyDrawableUtils::RRect2DrawingRRect(stagingRRect_);
@@ -829,12 +921,12 @@ float RSPointLightDrawable::GetBrightnessMapping(float headroom, float input)
 }
 
 std::optional<float> RSPointLightDrawable::CalcBezierResultY(
-    const Vector2f& start, const Vector2f& end, const Vector2f& control, float x)
+    const Vector2f& start, const Vector2f& end, const Vector2f& control, float input)
 {
     // Solve quadratic beziier formula with root formula
     const float a = start[0] - 2 * control[0] + end[0];
     const float b = 2 * (control[0] - start[0]);
-    const float c = start[0] - x;
+    const float c = start[0] - input;
     constexpr float FOUR = 4.0f;
     constexpr float TWO = 2.0f;
     const float discriminant = b * b - FOUR * a * c;
@@ -843,7 +935,10 @@ std::optional<float> RSPointLightDrawable::CalcBezierResultY(
         return std::nullopt;
     }
     float t = 0.0f;
-    if (ROSEN_EQ(a, 0.0f) && ROSEN_NE(b, 0.0f)) {
+    if (ROSEN_EQ(a, 0.0f)) {
+        if (ROSEN_EQ(b, 0.0f)) {
+            return std::nullopt;
+        }
         t = -c / b;
     } else {
         const float sqrtD = std::sqrt(discriminant);
@@ -866,7 +961,7 @@ bool RSPointLightDrawable::NeedToneMapping(float supportHeadroom)
 
 std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::MakeFeatheringBoardLightShaderBuilder() const
 {
-    auto builder = GetFeatheringBoardLightShaderBuilder();
+    auto builder = GetFeatheringBorderLightShaderBuilder();
     if (!builder) {
         return nullptr;
     }
@@ -984,111 +1079,17 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     }
 }
 
-const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetPhongShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetPhongShaderBuilder()
 {
-    static constexpr char phongShaderString[](R"(
-        uniform vec4 lightPos[12];
-        uniform vec4 viewPos[12];
-        uniform vec4 specularLightColor[12];
-        uniform float specularStrength[12];
-
-        mediump vec4 main(vec2 drawing_coord) {
-            vec4 lightColor = vec4(1.0, 1.0, 1.0, 1.0);
-            float ambientStrength = 0.0;
-            vec4 diffuseColor = vec4(1.0, 1.0, 1.0, 1.0);
-            float diffuseStrength = 0.0;
-            float shininess = 8.0;
-            mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            vec4 NormalMap = vec4(0.0, 0.0, 1.0, 0.0);
-            // ambient
-            vec4 ambient = lightColor * ambientStrength;
-            vec3 norm = normalize(NormalMap.rgb);
-
-            for (int i = 0; i < 12; i++) {
-                if (abs(specularStrength[i]) > 0.01) {
-                    vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
-                    float diff = max(dot(norm, lightDir), 0.0);
-                    vec4 diffuse = diff * lightColor;
-                    vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
-                    vec3 halfwayDir = normalize(lightDir + viewDir); // half vector
-                    float spec = pow(max(dot(norm, halfwayDir), 0.0), shininess); // exponential relationship of angle
-                    vec4 specular = lightColor * spec; // multiply color of incident light
-                    vec4 o = ambient + diffuse * diffuseStrength * diffuseColor; // diffuse reflection
-                    vec4 specularColor = specularLightColor[i];
-                    fragColor = fragColor + o + specular * specularStrength[i] * specularColor;
-                }
-            }
-            return fragColor;
-        }
-    )");
-    return GetLightShaderBuilder<phongShaderString>();
+    return GetLightShaderBuilder<PHONG_SHADER_STRING>();
 }
 
-const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetFeatheringBoardLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetFeatheringBorderLightShaderBuilder()
 {
-    static constexpr char featheringBoardLightShaderString[](R"(
-        uniform vec2 iResolution;
-        uniform float contentBorderRadius;
-        uniform vec4 lightPos[12];
-        uniform vec4 viewPos[12];
-        uniform vec4 specularLightColor[12];
-        uniform float specularStrength[12];
-        uniform float borderWidth;
-
-        float sdRoundedBox(vec2 p, vec2 b, float r)
-        {
-            vec2 q = abs(p) - b + r;
-            return (min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r);
-        }
-
-        vec2 sdRoundedBoxGradient(vec2 p, vec2 b, float r)
-        {
-            vec2 signs = vec2(p.x >= 0.0 ? 1.0 : -1.0, p.y >= 0.0 ? 1.0 : -1.0);
-            vec2 q = abs(p) - b + r;
-            vec2 nor = (q.y > q.x) ? vec2(0.0, 1.0) : vec2(1.0, 0.0);
-            nor = (q.x > 0.0 && q.y > 0.0) ? normalize(q) : nor;
-            return signs * nor;
-        }
-
-        mediump vec4 main(vec2 drawing_coord)
-        {
-            float shininess = 8.0;
-            mediump vec4 fragColor = vec4(0.0, 0.0, 0.0, 0.0);
-            vec2 halfResolution = iResolution.xy * 0.5;
-
-            float gradRadius = min(max(contentBorderRadius, abs(borderWidth) * 3.0), iResolution.y * 0.5);
-            float drawRadius = min(max(contentBorderRadius, abs(borderWidth) * 1.1), iResolution.y * 0.5);
-            float realRoundedBoxSDF =
-                sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, contentBorderRadius);
-            float virtualRoundedBoxSDF = sdRoundedBox(drawing_coord.xy - halfResolution, halfResolution, drawRadius);
-            vec2 grad = sdRoundedBoxGradient(drawing_coord.xy - halfResolution, halfResolution, gradRadius);
-            for (int i = 0; i < 12; i++) {
-                if (abs(specularStrength[i]) > 0.01) {
-                    vec2 lightGrad = sdRoundedBoxGradient(lightPos[i].xy - halfResolution,
-                        halfResolution,
-                        contentBorderRadius); // lightGrad could be pre-computed
-                    float angleEfficient = dot(grad, lightGrad);
-                    if (angleEfficient > 0.0) {
-                        vec3 lightDir = normalize(vec3(lightPos[i].xy - drawing_coord, lightPos[i].z));
-                        vec3 viewDir = normalize(vec3(viewPos[i].xy - drawing_coord, viewPos[i].z)); // view vector
-                        vec3 halfwayDir = normalize(lightDir + viewDir);                             // half vector
-                        // exponential relationship of angle
-                        float spec = pow(max(halfwayDir.z, 0.0), shininess); // norm is (0.0, 0.0, 1.0)
-                        spec *= specularStrength[i];
-                        spec *= smoothstep(-borderWidth, 0.0, virtualRoundedBoxSDF);
-                        spec *= (smoothstep(1.0, 0.0, spec) * 0.2 + 0.8);
-                        vec4 specularColor = specularLightColor[i];
-                        fragColor += specularColor * (spec * angleEfficient);
-                    }
-                }
-            }
-            return vec4(fragColor.rgb, clamp(fragColor.a, 0.0, 1.0));
-        }
-    )");
-    return GetLightShaderBuilder<featheringBoardLightShaderString>();
+    return GetLightShaderBuilder<FEATHERING_BORDER_LIGHT_SHADRE_STRING>();
 }
 
-const std::shared_ptr<Drawing::RuntimeShaderBuilder>& RSPointLightDrawable::GetNormalLightShaderBuilder()
+std::shared_ptr<Drawing::RuntimeShaderBuilder> RSPointLightDrawable::GetNormalLightShaderBuilder()
 {
     return GetLightShaderBuilder<NORMAL_LIGHT_SHADER_STRING>();
 }

@@ -638,7 +638,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, GetShaderTest001, TestSize.Level1)
         std::make_shared<DrawableV2::RSPointLightDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
     EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetFeatheringBoardLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(), nullptr);
 }
 
 /**
@@ -653,7 +653,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, GetShaderTest002, TestSize.Level1)
         std::make_shared<DrawableV2::RSPointLightDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
     EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetFeatheringBoardLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(), nullptr);
     EXPECT_NE(pointLightDrawableTest->GetNormalLightShaderBuilder(), nullptr);
     static constexpr char shaderString[] = "";
     EXPECT_NE(pointLightDrawableTest->GetLightShaderBuilder<shaderString>(), nullptr);
@@ -702,6 +702,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CalcBezierResultYTest001, TestSize.Le
     std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSPointLightDrawable>();
     auto resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {0.5f, 0.5f}, 0.5f);
+    EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {0.5f, 0.5f}, 0.5f);
+    EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, 0.5f);
     EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
     resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}, 2.0f);
     EXPECT_EQ(0.0f, resultYOptional.value_or(0.0f));

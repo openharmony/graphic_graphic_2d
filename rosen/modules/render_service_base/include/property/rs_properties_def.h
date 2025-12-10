@@ -315,6 +315,9 @@ public:
 private:
     static float CalculateLightRadius(float lightPosZ)
     {
+        if (ROSEN_LE(lightPosZ, 0.0f)) {
+            return 0.0f;
+        }
         float num = 1.0f / 255;
         float count = 8;
         float cos = std::pow(num, 1.f / count);
