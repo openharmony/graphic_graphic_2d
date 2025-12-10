@@ -51,14 +51,14 @@ std::vector<std::array<float, DOUBLE_RIPPLE_MASK_PARAMS_COUNT>> doubleRippleMask
     {20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f},
 };
 
-constexpr int CIRCLE_FLOWLIGHT_PARAMS_COUNT = 11;
+constexpr int CIRCLE_FLOWLIGHT_PARAMS_COUNT = 12;
 std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_COUNT>> circleFlowlightParams = {
     {
         Vector4f{-1.0f, -1.0f, -1.0f, -1.0f}, Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},
         Vector4f{-1.0f, -1.0f, -1.0f, -1.0f}, Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
-        Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
+        Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
         4.0, 1.0,
     },
     {
@@ -234,17 +234,18 @@ void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowligh
 
 void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowlight, int index)
 {
-    flowlight->Setter<CircleFlowlightColor0Tag>(std::get<Vector4f>circleFlowlightParams[index][NUM_0]);
-    flowlight->Setter<CircleFlowlightColor1Tag>(std::get<Vector4f>circleFlowlightParams[index][NUM_1]);
-    flowlight->Setter<CircleFlowlightColor2Tag>(std::get<Vector4f>circleFlowlightParams[index][NUM_2]);
-    flowlight->Setter<CircleFlowlightColor3Tag>(std::get<Vector4f>circleFlowlightParams[index][NUM_3]);
-    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(std::get<Vector4f>circleFlowlightParams[index][NUM_4]);
-    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(std::get<Vector4f>circleFlowlightParams[index][NUM_5]);
-    flowlight->Setter<CircleFlowlightRotationSeedTag>(std::get<Vector4f>circleFlowlightParams[index][NUM_6]);
-    flowlight->Setter<CircleFlowlightGradientXTag>(std::get<Vector4f>circleFlowlightParams[index][NUM_7]);
-    flowlight->Setter<CircleFlowlightGradientYTag>(std::get<Vector4f>circleFlowlightParams[index][NUM_8]);
-    flowlight->Setter<CircleFlowlightGradientYTag>(std::get<float>circleFlowlightParams[index][NUM_9]);
-    flowlight->Setter<CircleFlowlightGradientYTag>(std::get<float>circleFlowlightParams[index][NUM_10]);
+    flowlight->Setter<CircleFlowlightColor0Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_0]));
+    flowlight->Setter<CircleFlowlightColor1Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_1]));
+    flowlight->Setter<CircleFlowlightColor2Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_2]));
+    flowlight->Setter<CircleFlowlightColor3Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_3]));
+    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_4]));
+    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_5]));
+    flowlight->Setter<CircleFlowlightRotationSeedTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_6]));
+    flowlight->Setter<CircleFlowlightGradientXTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_7]));
+    flowlight->Setter<CircleFlowlightGradientYTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_8]));
+    flowlight->Setter<CircleFlowlightStrengthTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_9]));
+    flowlight->Setter<CircleFlowlightDistortStrengthTag>(std::get<float>(circleFlowlightParams[index][NUM_10]));
+    flowlight->Setter<CircleFlowlightBlendGradientTag>(std::get<float>(circleFlowlightParams[index][NUM_11]));
     flowlight->Setter<CircleFlowlightProgressTag>(0.0f);
 }
 
