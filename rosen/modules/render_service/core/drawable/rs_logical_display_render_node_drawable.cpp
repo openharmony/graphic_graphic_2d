@@ -903,8 +903,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen mirror source is null");
         return;
     }
-    auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
-        &params, mirroredScreenParams);
+
     auto virtualProcesser = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     if (!virtualProcesser) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen virtualProcesser is null");
@@ -920,7 +919,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen screenParams is null");
         return;
     }
-
+    auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
+        &params, screenParams);
     uniParam->SetScreenInfo(screenParams->GetScreenInfo());
     // When mirrorSource is paused, mirrorScreen needs to redraw to avoid using an expired cacheImage
     bool mirroredScreenIsPause =

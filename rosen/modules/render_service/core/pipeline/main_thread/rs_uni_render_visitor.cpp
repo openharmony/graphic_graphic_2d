@@ -520,8 +520,8 @@ void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
     }
     for (const auto& screenId : virtualScreens) {
         node.UpdateBlackListStatus(screenId);
-        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
-            screenId, SpecialLayerType::HAS_BLACK_LIST, true);
+        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().AddIdsWithScreen(
+            screenId, SpecialLayerType::IS_BLACK_LIST, node.GetId());
     }
 }
 
