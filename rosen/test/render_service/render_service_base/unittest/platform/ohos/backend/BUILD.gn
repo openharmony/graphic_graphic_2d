@@ -37,6 +37,7 @@ ohos_unittest("RSRenderServiceBaseBackendTest") {
       "native_buffer_utils_test.cpp",
       "rs_surface_ohos_vulkan_test.cpp",
       "rs_vulkan_context_test.cpp",
+      "surface_buffer_utils_test.cpp",
     ]
   }
 

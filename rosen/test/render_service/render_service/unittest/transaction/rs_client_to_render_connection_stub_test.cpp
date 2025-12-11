@@ -24,6 +24,7 @@
 #include "sandbox_utils.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
+#include "platform/ohos/backend/surface_buffer_utils.h"
 #endif
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h"
@@ -135,8 +136,10 @@ public:
     void OnCanvasSurfaceBufferChanged(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override {}
     bool IsProxyObject() const override
     {
-        return true;
+        return isProxyObject_;
     }
+
+    bool isProxyObject_ = true;
 };
 #endif
 
@@ -860,20 +863,17 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSiz
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
 
-    // Scenario 1: Cannot read enableReadRemoteObject - should fail with ERR_INVALID_DATA
     MessageParcel data1;
     data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
 
-    // Scenario 2: enableReadRemoteObject = false, callback will be nullptr
     MessageParcel data2;
     data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data2.WriteBool(false);
     res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
     ASSERT_EQ(res, ERR_NONE);
 
-    // Scenario 3: enableReadRemoteObject = true with valid callback
     MessageParcel data3;
     data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data3.WriteBool(true);
@@ -881,6 +881,119 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSiz
     data3.WriteRemoteObject(callback->AsObject());
     res = toRenderConnectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_NONE);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data4.WriteBool(true);
+    sptr<RSCanvasSurfaceBufferCallbackStubMock> bufferCallback = new RSCanvasSurfaceBufferCallbackStubMock();
+    bufferCallback->isProxyObject_ = false;
+    callback = bufferCallback;
+    data4.WriteRemoteObject(callback->AsObject());
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data4, reply, option);
+    ASSERT_EQ(res, ERR_UNKNOWN_OBJECT);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data5.WriteBool(true);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data5, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBufferTest001
+ * @tc.desc: Test SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER with various scenarios
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest001, TestSize.Level1)
+{
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SUBMIT_CANVAS_PRE_ALLOCATED_BUFFER);
+
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = toRenderConnectionStub_->OnRemoteRequest(code, data1, reply, option);
+    ASSERT_NE(res, ERR_NONE);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteUint64(1);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data2, reply, option);
+    ASSERT_NE(res, ERR_NONE);
+
+    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("SubmitCanvasPreAllocatedBuffer001");
+    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
+    RSMainThread::Instance()->runner_->Run();
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteUint64(1); // Write nodeId
+    data3.WriteUint32(1); // Write resetSurfaceIndex
+    data3.WriteUint32(1); // Write sequence
+    data3.WriteBool(false); // Whether has buffer
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data3, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data4.WriteUint64(1); // Write nodeId
+    data4.WriteUint32(1); // Write resetSurfaceIndex
+    data4.WriteUint32(1); // Write sequence
+    data4.WriteBool(true); // Whether has buffer
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data4, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data5.WriteUint64(3); // Write nodeId
+    data5.WriteUint32(3); // Write resetSurfaceIndex
+    data5.WriteUint32(1); // Write sequence
+    data5.WriteBool(true); // Whether has buffer
+    sptr<SurfaceBuffer> buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(1, 100, 100);
+    buffer->WriteToMessageParcel(data5);
+    res = toRenderConnectionStub_->OnRemoteRequest(code, data5, reply, option);
+    ASSERT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBufferTest002
+ * @tc.desc: Test func SubmitCanvasPreAllocatedBuffer
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SubmitCanvasPreAllocatedBufferTest002, TestSize.Level1)
+{
+    auto newPid = getpid();
+    auto screenManagerPtr = RSScreenManager::GetInstance();
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToRenderConnection> toRenderConnection =
+        new RSClientToRenderConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    ASSERT_EQ(toRenderConnection != nullptr, true);
+    toRenderConnection->mainThread_ = nullptr;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    auto ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
+    ASSERT_NE(ret, 0);
+    toRenderConnection->mainThread_ = mainThread;
+    toRenderConnection->remotePid_ = 1;
+    ret = toRenderConnection->SubmitCanvasPreAllocatedBuffer(1, buffer, 1);
+    ASSERT_NE(ret, 0);
+
+    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("SubmitCanvasPreAllocatedBuffer002");
+    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
+    RSMainThread::Instance()->runner_->Run();
+    sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(toRenderConnectionStub_);
+    ASSERT_NE(connection, nullptr);
+    connection->remotePid_ = 0;
+    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 2);
+    ASSERT_EQ(ret, 0);
+    ret = connection->SubmitCanvasPreAllocatedBuffer(1, buffer, 2);
+    ASSERT_NE(ret, 0);
 }
 #endif
 } // namespace OHOS::Rosen

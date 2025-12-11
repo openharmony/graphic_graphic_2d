@@ -103,6 +103,8 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackProxyTest, OnCanvasSurfaceBufferChanged002
     ASSERT_NE(testBuffer, nullptr);
 
     proxy->OnCanvasSurfaceBufferChanged(testNodeId, testBuffer, 0);
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    proxy->OnCanvasSurfaceBufferChanged(testNodeId, buffer, 1);
 
     EXPECT_EQ(remoteMocker->receivedCode_, static_cast<uint32_t>(
         RSICanvasSurfaceBufferCallbackInterfaceCode::ON_CANVAS_SURFACE_BUFFER_CHANGED));

@@ -98,6 +98,11 @@ HWTEST_F(RSCanvasCallbackRouterTest, RegisterAndRouteTest, TestSize.Level1)
     // Verify it can no longer be routed
     routedNode = router.RouteToNode(testNodeIds_[0]);
     EXPECT_EQ(routedNode, nullptr);
+
+    std::shared_ptr<RSCanvasDrawingNode> nullNode = nullptr;
+    router.RegisterNode(10, nullNode);
+    routedNode = router.RouteToNode(10);
+    EXPECT_EQ(routedNode, nullptr);
 }
 
 /**

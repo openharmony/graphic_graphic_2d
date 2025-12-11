@@ -86,7 +86,6 @@ sptr<SurfaceBuffer> RSCanvasSurfaceBufferCallbackStubTest::CreateTestSurfaceBuff
  * @tc.name: OnRemoteRequest001
  * @tc.desc: Test InterfaceToken validation failure
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest001, TestSize.Level1)
 {
@@ -94,8 +93,7 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest001, TestSize.Lev
     MessageParcel reply;
     MessageOption option;
     auto stub = std::make_shared<RSCanvasSurfaceBufferCallbackStubMock>();
-    uint32_t code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::
-        ON_CANVAS_SURFACE_BUFFER_CHANGED);
+    auto code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::ON_CANVAS_SURFACE_BUFFER_CHANGED);
 
     // No InterfaceToken written
     int res = stub->OnRemoteRequest(code, data, reply, option);
@@ -107,7 +105,6 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest001, TestSize.Lev
  * @tc.name: OnRemoteRequest002
  * @tc.desc: Test hasBuffer=false, buffer is nullptr
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest002, TestSize.Level1)
 {
@@ -115,8 +112,7 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest002, TestSize.Lev
     MessageParcel reply;
     MessageOption option;
     auto stub = std::make_shared<RSCanvasSurfaceBufferCallbackStubMock>();
-    uint32_t code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::
-        ON_CANVAS_SURFACE_BUFFER_CHANGED);
+    auto code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::ON_CANVAS_SURFACE_BUFFER_CHANGED);
 
     NodeId testNodeId = 12345;
     uint32_t resetSurfaceIndex = 1;
@@ -136,7 +132,6 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest002, TestSize.Lev
  * @tc.name: OnRemoteRequest003
  * @tc.desc: Test hasBuffer=true with valid SurfaceBuffer
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest003, TestSize.Level1)
 {
@@ -144,8 +139,7 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest003, TestSize.Lev
     MessageParcel reply;
     MessageOption option;
     auto stub = std::make_shared<RSCanvasSurfaceBufferCallbackStubMock>();
-    uint32_t code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::
-        ON_CANVAS_SURFACE_BUFFER_CHANGED);
+    auto code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::ON_CANVAS_SURFACE_BUFFER_CHANGED);
 
     NodeId testNodeId = 67890;
     uint32_t resetSurfaceIndex = 1;
@@ -170,7 +164,6 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest003, TestSize.Lev
  * @tc.name: OnRemoteRequest004
  * @tc.desc: Test hasBuffer=true but ReadFromMessageParcel fails
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest004, TestSize.Level1)
 {
@@ -178,8 +171,7 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest004, TestSize.Lev
     MessageParcel reply;
     MessageOption option;
     auto stub = std::make_shared<RSCanvasSurfaceBufferCallbackStubMock>();
-    uint32_t code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::
-        ON_CANVAS_SURFACE_BUFFER_CHANGED);
+    auto code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::ON_CANVAS_SURFACE_BUFFER_CHANGED);
 
     NodeId testNodeId = 11111;
     uint32_t resetSurfaceIndex = 2;
@@ -198,7 +190,6 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest004, TestSize.Lev
  * @tc.name: OnRemoteRequest005
  * @tc.desc: Test invalid code
  * @tc.type: FUNC
- * @tc.require:
  */
 HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest005, TestSize.Level1)
 {
@@ -213,6 +204,40 @@ HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest005, TestSize.Lev
     int res = stub->OnRemoteRequest(invalidCode, data, reply, option);
     // Should call parent class IPCObjectStub::OnRemoteRequest
     EXPECT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+    EXPECT_FALSE(stub->callbackInvoked_);
+}
+
+/**
+ * @tc.name: OnRemoteRequest006
+ * @tc.desc: Test OnRemoteRequest
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasSurfaceBufferCallbackStubTest, OnRemoteRequest006, TestSize.Level1)
+{
+    MessageParcel reply;
+    MessageOption option;
+    auto stub = std::make_shared<RSCanvasSurfaceBufferCallbackStubMock>();
+    auto code = static_cast<uint32_t>(RSICanvasSurfaceBufferCallbackInterfaceCode::ON_CANVAS_SURFACE_BUFFER_CHANGED);
+
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSICanvasSurfaceBufferCallback::GetDescriptor());
+    auto ret = stub->OnRemoteRequest(code, data1, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+    EXPECT_FALSE(stub->callbackInvoked_);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSICanvasSurfaceBufferCallback::GetDescriptor());
+    data2.WriteUint64(1); // Write nodeId
+    ret = stub->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
+    EXPECT_FALSE(stub->callbackInvoked_);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSICanvasSurfaceBufferCallback::GetDescriptor());
+    data3.WriteUint64(1); // Write nodeId
+    data3.WriteUint32(1); // Write resetSurfaceIndex
+    ret = stub->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_DATA);
     EXPECT_FALSE(stub->callbackInvoked_);
 }
 } // namespace OHOS::Rosen

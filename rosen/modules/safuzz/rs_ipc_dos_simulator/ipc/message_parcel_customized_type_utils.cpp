@@ -24,6 +24,9 @@
 #include "customized/random_surface.h"
 #include "customized/random_typeface.h"
 #include "ipc/rs_render_service_connection_proxy_utils.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "platform/ohos/backend/surface_buffer_utils.h"
+#endif
 #include "random/random_data.h"
 #ifdef ROSEN_OHOS
 #include "transaction/rs_application_agent_impl.h"
@@ -78,6 +81,11 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(DrawingDrawCmdListSharedPtr),
     DECLARE_WRITE_RANDOM(RSSyncTaskSharedPtr),
     DECLARE_WRITE_RANDOM(SharedTypefaceFd),
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    DECLARE_WRITE_RANDOM(CanvasSurfaceBufferCallbackSptr),
+    DECLARE_WRITE_RANDOM(SurfaceBufferSptr),
+#endif
 };
 
 #define DECLARE_WRITE_RANDOM_TO_VECTOR(type) \
@@ -465,6 +473,37 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomSelfDrawingNodeRectChangeCallb
     }
     return true;
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+bool MessageParcelCustomizedTypeUtils::WriteRandomCanvasSurfaceBufferCallbackSptr(
+    MessageParcel& messageParcel, const TestCaseParams& testCaseParams)
+{
+    sptr<RSICanvasSurfaceBufferCallback> obj = new CustomCanvasSurfaceBufferCallback();
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE(
+            "MessageParcelCustomizedTypeUtils::WriteRandomCanvasSurfaceBufferCallbackSptr WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferSptr(
+    MessageParcel& messageParcel, const TestCaseParams& testCaseParams)
+{
+    uint16_t min = 1; // Min width or height is 1
+    uint16_t max = 10000; // Max width or height is 10000
+    uint16_t width = min + RandomDataBasicType::GetRandomUint16() % (max - min + 1);
+    uint16_t height = min + RandomDataBasicType::GetRandomUint16() % (max - min + 1);
+    pid_t pid = RandomDataBasicType::GetRandomPid();
+    auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid, width, height);
+    auto ret = buffer->WriteToMessageParcel(messageParcel);
+    if (ret != 0) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferSptr WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+#endif
 
 bool MessageParcelCustomizedTypeUtils::WriteRandomPixelMapSharedPtr(MessageParcel& messageParcel,
     const TestCaseParams& /* testCaseParams */)

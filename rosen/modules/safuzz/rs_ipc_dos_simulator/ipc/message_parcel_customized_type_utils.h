@@ -78,6 +78,11 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomSelfDrawingNodeRectChangeCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static bool WriteRandomCanvasSurfaceBufferCallbackSptr(
+        MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
+    static bool WriteRandomSurfaceBufferSptr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
+#endif
 
     static bool WriteRandomPixelMapSharedPtr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceSptr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);

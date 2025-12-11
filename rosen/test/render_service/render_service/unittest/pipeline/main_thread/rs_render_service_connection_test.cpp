@@ -559,6 +559,25 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
     EXPECT_TRUE(bundleName.empty());
 }
 
+/**
+ * @tc.name: CleanAllTest
+ * @tc.desc: test CleanAll
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CleanAllTest, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    RSMainThread* mainThread = new RSMainThread();
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
+    sptr<RSClientToServiceConnection> connection =
+        new RSClientToServiceConnection(0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_FALSE(connection->cleanDone_);
+    connection->CleanAll(false);
+    delete mainThread;
+    ASSERT_TRUE(connection->cleanDone_);
+}
+
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 /**
  * @tc.name: RegisterCanvasCallbackAndCleanTest
