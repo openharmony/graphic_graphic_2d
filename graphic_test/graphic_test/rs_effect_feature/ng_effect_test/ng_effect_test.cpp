@@ -59,7 +59,7 @@ std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_CO
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        4.0, 1.0
+        4.0f, 1.0f
     },
     {
         Vector4f{0.9921f, 0.5020f, 0.0196f, 1.0f}, Vector4f{0.0039f, 0.5255f, 1.000f, 1.0f},
@@ -67,7 +67,7 @@ std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_CO
         Vector4f{0.500f, 0.600f, 0.300f, 0.5f}, Vector4f{0.300f, 0.300f, 0.300f, 0.3f},
         Vector4f{0.200f, 0.400f, 0.600f, 0.8f}, Vector4f{0.300f, 0.700f, 0.300f, 0.7f},
         Vector4f{0.300f, 0.300f, 0.700f, 0.7f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        4.0, 1.0
+        4.0f, 1.0f
     },
     {
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{0.5f, 0.5f, 0.5f, 1.0f},
@@ -75,7 +75,7 @@ std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_CO
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        4.0, 1.0
+        4.0f, 1.0f
     },
     {
         Vector4f{0.8f, 0.2f, 0.6f, 1.0f}, Vector4f{0.2f, 0.8f, 0.4f, 1.0f},
@@ -83,7 +83,7 @@ std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_CO
         Vector4f{2.0f, 0.5f, 1.5f, 0.8f}, Vector4f{0.5f, 2.0f, 0.8f, 1.5f},
         Vector4f{1.5f, 0.8f, 0.5f, 2.0f}, Vector4f{0.8f, 1.5f, 2.0f, 0.5f},
         Vector4f{0.5f, 1.5f, 0.8f, 2.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        4.0, 1.0
+        4.0f, 1.0f
     },
     {
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
@@ -91,7 +91,7 @@ std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_CO
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        4.0, 1.0
+        4.0f, 1.0f
     },
     {
         Vector4f{2.0f, 2.0f, 2.0f, 2.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
@@ -99,7 +99,7 @@ std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_CO
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        4.0, 1.0
+        4.0f, 1.0f
     },
 };
 
