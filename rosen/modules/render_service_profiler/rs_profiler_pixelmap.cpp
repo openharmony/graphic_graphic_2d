@@ -284,7 +284,7 @@ bool PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
 
 bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
 {
-    if (memory.bufferSize <= PixelMap::MIN_IMAGEDATA_SIZE) {
+    if (memory.bufferSize <= static_cast<int32_t>(PixelMap::MIN_IMAGEDATA_SIZE)) {
         return false;
     }
 

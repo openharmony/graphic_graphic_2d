@@ -17,6 +17,7 @@
 #include "drawable/dfx/rs_skp_capture_dfx.h"
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "params/rs_render_thread_params.h"
+#include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "pipeline/rs_screen_render_node.h"
@@ -65,7 +66,7 @@ HWTEST_F(RSSkpCaptureDFXTest, captureTest001, TestSize.Level1)
     if (!rtThread.GetRSRenderThreadParams()) {
         rtThread.Sync(std::make_unique<RSRenderThreadParams>());
     }
-    rtThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    rtThread.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
 
     auto drawingCanvas = std::make_unique<Drawing::Canvas>(DEFAULT_CANVAS_SIZE, DEFAULT_CANVAS_SIZE);
     auto canvas = std::make_shared<RSPaintFilterCanvas>(drawingCanvas.get());
