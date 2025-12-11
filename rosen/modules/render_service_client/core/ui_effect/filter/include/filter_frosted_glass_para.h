@@ -340,6 +340,46 @@ public:
         return materialColor_;
     }
 
+    void SetRefractEnabled(bool refractEnabled)
+    {
+        refractEnabled_ = refractEnabled;
+    }
+
+    bool GetRefractEnabled() const
+    {
+        return refractEnabled_;
+    }
+
+    void SetInnerShadowEnabled(bool innerShadowEnabled)
+    {
+        innerShadowEnabled_ = innerShadowEnabled;
+    }
+
+    bool GetInnerShadowEnabled() const
+    {
+        return innerShadowEnabled_;
+    }
+
+    void SetEnvLightEnabled(bool envLightEnabled)
+    {
+        envLightEnabled_ = envLightEnabled;
+    }
+
+    bool GetEnvLightEnabled() const
+    {
+        return envLightEnabled_;
+    }
+
+    void SetHighLightEnabled(bool highLightEnabled)
+    {
+        highLightEnabled_ = highLightEnabled;
+    }
+
+    bool GetHighLightEnabled() const
+    {
+        return highLightEnabled_;
+    }
+
 private:
     Vector2f blurParams_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f); // (envLight, sd)
@@ -376,6 +416,10 @@ private:
     bool baseVibrancyEnabled_ = true;
     float baseMaterialType_ = 0.0f;
     Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+    bool refractEnabled_ = true;
+    bool innerShadowEnabled_ = true;
+    bool envLightEnabled_ = true;
+    bool highLightEnabled_ = true;
     float samplingScale_ = 1.0f;
 };
 } // namespace Rosen

@@ -23,7 +23,7 @@ namespace Rosen {
 void RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(const RSLogicalDisplayRenderNode& mirrorNode,
     RSLogicalDisplayRenderNode& sourceNode, bool enableVisibleRect)
 {
-    // Use screen AbsRect when VisibleRect is not enabled
+    // Use screen AbsDrawRect when VisibleRect is not enabled
     ScreenId screenId = mirrorNode.GetScreenId();
     RectI visibleRect = sourceNode.GetAbsDrawRect();
     auto screenManager = CreateOrGetScreenManager();
@@ -32,16 +32,22 @@ void RSSpecialLayerUtils::CheckSpecialLayerIntersectMirrorDisplay(const RSLogica
         visibleRect = {rect.x, rect.y, rect.w, rect.h};
     }
 
-    auto specialLayerType = VIRTUALSCREEN_HAS_SPECIAL | SpecialLayerType::HAS_BLACK_LIST;
+    const auto& specialLayerMgr = sourceNode.GetSpecialLayerMgr();
+    auto totalSpecialLayerType = specialLayerMgr.Get() | SpecialLayerType::HAS_BLACK_LIST;
+    // Only one bit representing the currently processed type
     uint32_t currentType = SpecialLayerType::HAS_SECURITY;
     // skip security process if virtual screen is security exemption
     currentType = mirrorNode.GetSecurityExemption() ? currentType << 1 : currentType;
     bool hasSlInVisibleRect = false;
-    while (specialLayerType != 0 && !hasSlInVisibleRect) {
-        const auto nodeIds = sourceNode.GetSpecialLayerMgr().GetIds(currentType);
-        hasSlInVisibleRect = CheckCurrentTypeIntersectVisibleRect(nodeIds, currentType, visibleRect);
+    // Terminate loop when currentType is outside the totalSpecialLayerType
+    while (currentType <= totalSpecialLayerType && !hasSlInVisibleRect) {
+        bool isCurrentTypeEnable = (currentType & totalSpecialLayerType) != 0;
+        if (isCurrentTypeEnable) {
+            const auto nodeIds = currentType & HAS_SCREEN_SPECIAL ?
+                specialLayerMgr.GetIdsWithScreen(screenId, currentType) : specialLayerMgr.GetIds(currentType);
+            hasSlInVisibleRect = CheckCurrentTypeIntersectVisibleRect(nodeIds, currentType, visibleRect);
+        }
         currentType <<= 1;
-        specialLayerType >>= 1;
     }
     
     sourceNode.GetMultableSpecialLayerMgr().SetHasSlInVisibleRect(screenId, hasSlInVisibleRect);
@@ -60,12 +66,13 @@ bool RSSpecialLayerUtils::CheckCurrentTypeIntersectVisibleRect(const std::unorde
         }
         const auto& absDrawRect = surfaceNode->GetAbsDrawRect();
         // skip screen intersection test for skip-layer-only capture window nodes
-        if (currentType == SpecialLayerType::SKIP &&
+        if (currentType == SpecialLayerType::HAS_SKIP &&
             surfaceNode->GetName().find(CAPTURE_WINDOW_NAME) != std::string::npos) {
             continue;
         }
-        if (absDrawRect.Intersect(visibleRect)) {
-            RS_TRACE_NAME_FMT("CheckSpecialLayerIntersectMirrorDisplay node:[%s]", surfaceNode->GetName().c_str());
+        if (absDrawRect.Intersect(visibleRect) || surfaceNode->IsFirstLevelCrossNode()) {
+            RS_TRACE_NAME_FMT("CheckSpecialLayerIntersectMirrorDisplay node:[%s], IsFirstLevelCrossNode:[%d]",
+                surfaceNode->GetName().c_str(), surfaceNode->IsFirstLevelCrossNode());
             hasSlInVisibleRect = true;
             break;
         }
@@ -81,7 +88,7 @@ DisplaySpecialLayerState RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
     const auto& screenProperty = screenParams->GetScreenProperty();
     bool hasGeneralSpecialLayer = !screenProperty.GetWhiteList().empty() ||
         !screenProperty.GetTypeBlackList().empty() || specialLayerManager.GetHasSlInVisibleRect(screenId);
-    RS_LOGD("%{pbulic}sWhiteList:%{public}d, TypeBlackList:%{public}d, "
+    RS_LOGD("%{public}sWhiteList:%{public}d, TypeBlackList:%{public}d, "
         "HasSlInVisibleRect:%{public}d", __func__, !screenProperty.GetWhiteList().empty(),
         !screenProperty.GetTypeBlackList().empty(), specialLayerManager.GetHasSlInVisibleRect(screenId));
     
@@ -96,7 +103,7 @@ DisplaySpecialLayerState RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(
     const auto& specialLayerManager = displayParams.GetSpecialLayerMgr();
     bool hasGeneralSpecialLayer = specialLayerManager.Find(VIRTUALSCREEN_HAS_SPECIAL) ||
         screenParams->GetHDRPresent() || uniRenderThread.IsColorFilterModeOn();
-    RS_LOGD("%{pbulic}s:%{public}" PRIu32 ", CurtainScreen:%{public}d, "
+    RS_LOGD("%{public}s:%{public}" PRIu32 ", CurtainScreen:%{public}d, "
         "HDRPresent:%{public}d, ColorFilter:%{public}d", __func__, specialLayerManager.Get(),
         uniRenderThread.IsCurtainScreenOn(), screenParams->GetHDRPresent(), uniRenderThread.IsColorFilterModeOn());
     

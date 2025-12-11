@@ -520,8 +520,8 @@ void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
     }
     for (const auto& screenId : virtualScreens) {
         node.UpdateBlackListStatus(screenId);
-        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
-            screenId, SpecialLayerType::HAS_BLACK_LIST, true);
+        curLogicalDisplayNode_->GetMultableSpecialLayerMgr().AddIdsWithScreen(
+            screenId, SpecialLayerType::IS_BLACK_LIST, node.GetId());
     }
 }
 
@@ -1111,7 +1111,7 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
             return false;
         }
     }
-    if (!node.IsAppWindow()) {
+    if (!node.IsAppWindow() || !node.GetChildHardwareEnabledNodes().empty()) {
         return false;
     }
     if (node.IsDirty() || node.IsForcePrepare() || node.HasSubSurfaceNodes()) {
@@ -1653,6 +1653,9 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
         return;
     }
 
+    // if full-screen transparent filter exists in in specific scenes, accumulated occlusion region needs to be reset.
+    CheckResetAccumulatedOcclusionRegion(node);
+
     // occlusion - 2. Calculate opaque/transparent region based on round corner, container window, etc.
     node.CheckAndUpdateOpaqueRegion(
         curScreenNode_->GetScreenRect(), curLogicalDisplayNode_->GetRotation(), node.IsContainerWindowTransparent());
@@ -1675,6 +1678,19 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     CollectOcclusionInfoForWMS(node);
     RSMainThread::Instance()->GetRSVsyncRateReduceManager().CollectSurfaceVsyncInfo(
         curScreenNode_->GetScreenInfo(), node);
+}
+
+void RSUniRenderVisitor::CheckResetAccumulatedOcclusionRegion(RSSurfaceRenderNode& node)
+{
+    auto mainThread = RSMainThread::Instance();
+    auto visibleFilterRect = RSUniFilterDirtyComputeUtil::GetVisibleFilterRect(node);
+    auto screenRect = curScreenNode_->GetScreenRect();
+    bool needReset = mainThread->GetIsAnimationOcclusion() && node.IsTransparent() && visibleFilterRect == screenRect;
+    if (needReset) {
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckResetAccumulatedOcclusionRegion: surface node[%s]"
+            "accumulated occlusion region needs to be reset", node.GetName().c_str());
+        accumulatedOcclusionRegion_.Reset();
+    }
 }
 
 bool RSUniRenderVisitor::IsParticipateInOcclusion(RSSurfaceRenderNode& node)

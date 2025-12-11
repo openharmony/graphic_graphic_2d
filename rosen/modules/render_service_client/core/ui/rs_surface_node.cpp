@@ -140,7 +140,8 @@ RSSurfaceNode::SharedPtr RSSurfaceNode::Create(const RSSurfaceNodeConfig& surfac
         // codes for arkui-x
 #if defined(USE_SURFACE_TEXTURE) && defined(ROSEN_IOS) && !defined(SCREENLESS_DEVICE)
         if ((type == RSSurfaceNodeType::SURFACE_TEXTURE_NODE) &&
-            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface")) {
+            (surfaceNodeConfig.SurfaceNodeName == "PlatformViewSurface") ||
+            (surfaceNodeConfig.SurfaceNodeName == "xcomponentSurface")) {
             RSSurfaceExtConfig config = {
                 .type = RSSurfaceExtType::SURFACE_PLATFORM_TEXTURE,
                 .additionalData = nullptr,
@@ -629,14 +630,6 @@ void RSSurfaceNode::SetFreeze(bool isFreeze)
     AddCommand(command, true);
 }
 
-std::pair<std::string, std::string> RSSurfaceNode::SplitSurfaceNodeName(std::string surfaceNodeName)
-{
-    if (auto position = surfaceNodeName.find("#");  position != std::string::npos) {
-        return std::make_pair(surfaceNodeName.substr(0, position), surfaceNodeName.substr(position + 1));
-    }
-    return std::make_pair("", surfaceNodeName);
-}
-
 RSSurfaceNode::RSSurfaceNode(
     const RSSurfaceNodeConfig& config, bool isRenderServiceNode, std::shared_ptr<RSUIContext> rsUIContext)
     : RSNode(isRenderServiceNode, config.isTextureExportNode, rsUIContext, true), name_(config.SurfaceNodeName)
@@ -771,9 +764,7 @@ void RSSurfaceNode::CreateSurfaceExt(const RSSurfaceExtConfig& config)
         return;
     }
 #ifdef ROSEN_IOS
-    if (texture->GetSurfaceExtConfig().additionalData == nullptr) {
-        texture->UpdateSurfaceExtConfig(config);
-    }
+    texture->UpdateSurfaceExtConfig(config);
 #endif
     ROSEN_LOGD("RSSurfaceNode::CreateSurfaceExt %{public}" PRIu64 " type %{public}u", GetId(), config.type);
     std::unique_ptr<RSCommand> command =

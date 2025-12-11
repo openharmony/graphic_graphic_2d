@@ -74,6 +74,7 @@ constexpr float GAMMA2_2 = 2.2f;
 constexpr int32_t ROTATION_OFFSCREEN_BUFFER_SIZE_RATIO = 2;
 constexpr float OFFSCREEN_CANVAS_SCALE = 0.5f;
 constexpr float BACK_MAIN_SCREEN_CANVAS_SCALE = 2.0f;
+constexpr int32_t MAX_VISIBLE_REGION_INFO = 150;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -185,14 +186,8 @@ void RSSurfaceRenderNodeDrawable::OnGeneralProcess(RSPaintFilterCanvas& canvas,
         // 3. Draw content of this node by the main canvas.
         DrawContent(canvas, bounds);
 
-        auto& captureParam = RSUniRenderThread::GetCaptureParam();
-        bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
-            captureParam.endNodeId_ == GetId() &&
-            captureParam.endNodeId_ != INVALID_NODEID);
-        if (!stopDrawForRangeCapture) {
-            // 4. Draw children of this node by the main canvas.
-            DrawChildren(canvas, bounds);
-        }
+        // 4. Draw children of this node by the main canvas.
+        DrawChildren(canvas, bounds);
     }
 
     // 5. Draw foreground of this node by the main canvas.
@@ -718,7 +713,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
         mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
-        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str());
+        surfaceParams->GetVisibleRegion().GetRegionInfo().substr(0, MAX_VISIBLE_REGION_INFO).c_str());
 
     const auto& bounds = surfaceParams->GetBounds();
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
@@ -932,6 +927,14 @@ void RSSurfaceRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
     if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
         RSRenderNodeDrawable::OnDraw(canvas);
+        return;
+    }
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture || captureParam.captureFinished_) {
+        captureParam.captureFinished_ = true;
         return;
     }
     if (!ShouldPaint()) {

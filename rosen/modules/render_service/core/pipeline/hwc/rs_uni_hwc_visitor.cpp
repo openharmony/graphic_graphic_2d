@@ -895,20 +895,13 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByFilterRect(std::shared_ptr<RSSurfaceR
         return;
     }
     if (!node) {
-        auto& curMainAndLeashSurfaces = uniRenderVisitor_.curScreenNode_->GetAllMainAndLeashSurfaces();
-        for (auto it = curMainAndLeashSurfaces.rbegin(); it != curMainAndLeashSurfaces.rend(); ++it) {
-            auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(*it);
-            if (surfaceNode == nullptr) {
+        auto screenNodeId = uniRenderVisitor_.curScreenNode_->GetId();
+        const auto& selfDrawingNodes = RSMainThread::Instance()->GetSelfDrawingNodes();
+        for (auto hwcNode : selfDrawingNodes) {
+            if (!hwcNode || hwcNode->GetScreenNodeId() != screenNodeId) {
                 continue;
             }
-            const auto& hwcNodes = surfaceNode->GetChildHardwareEnabledNodes();
-            for (auto& hwcNode : hwcNodes) {
-                auto hwcNodePtr = hwcNode.lock();
-                if (!hwcNodePtr) {
-                    continue;
-                }
-                CalcHwcNodeEnableByFilterRect(hwcNodePtr, filterNode, filterZOrder);
-            }
+            CalcHwcNodeEnableByFilterRect(hwcNode, filterNode, filterZOrder);
         }
     } else {
         const auto& hwcNodes = node->GetChildHardwareEnabledNodes();

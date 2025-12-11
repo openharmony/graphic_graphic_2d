@@ -16,6 +16,7 @@
 #include "drawable/rs_effect_render_node_drawable.h"
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -36,7 +37,8 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
-    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (captureParam.isSoloNodeUiCapture_) {
         RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " isSoloNodeUiCapture, skip", nodeId_);
         return;
     }
@@ -96,6 +98,12 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
+
+    if (canvas.GetUICapture() && captureParam.captureFinished_ && captureParam.effectData_ == nullptr &&
+        paintFilterCanvas->GetEffectData() != nullptr) {
+        captureParam.effectData_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
+            *paintFilterCanvas->GetEffectData());
+    }
 #endif
 }
 

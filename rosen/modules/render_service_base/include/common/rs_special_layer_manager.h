@@ -33,6 +33,7 @@ constexpr uint32_t VIRTUALSCREEN_IS_SPECIAL = 0X7;  //contain security、skip、
 constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、skip、protected layer
 constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
+constexpr uint32_t HAS_SCREEN_SPECIAL = 0X60000;   //contain blacklist、whitelist
 constexpr uint32_t MAX_IDS_SIZE = 1024;
 
 using SpecialLayerBitmask = uint32_t;
@@ -77,6 +78,7 @@ public:
     bool FindWithScreen(ScreenId screenId, uint32_t type) const;
     void AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id);
     void RemoveIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id);
+    std::unordered_set<NodeId> GetIdsWithScreen(ScreenId screenId, uint32_t type) const;
 
     void SetHasSlInVisibleRect(ScreenId screenId, bool hasSlInVisibleRect);
     bool GetHasSlInVisibleRect(ScreenId screenId) const;

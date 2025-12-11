@@ -128,6 +128,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
  */
 HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
 {
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
     NodeId nodeId = 0;
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
@@ -152,6 +157,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
     RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    RSUniRenderThread::GetCaptureParam().captureFinished_ = true;
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
     

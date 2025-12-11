@@ -25,6 +25,7 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 const char* ANI_CLASS_TYPEFACE_NAME = "@ohos.graphics.drawing.drawing.Typeface";
+const std::string G_SYSTEM_FONT_DIR = "/system/fonts";
 
 ani_status AniTypeface::AniInit(ani_env *env)
 {
@@ -109,12 +110,28 @@ ani_object AniTypeface::CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface
     return aniObj;
 }
 
+bool IsTypefaceRegistered(const std::string& filePath, const std::shared_ptr<Typeface>& typeface)
+{
+    if (filePath.substr(0, G_SYSTEM_FONT_DIR.length()) == G_SYSTEM_FONT_DIR) {
+        return true;
+    }
+    auto callback = Drawing::Typeface::GetTypefaceRegisterCallBack();
+    if (callback == nullptr) {
+        return true;
+    }
+    return callback(typeface);
+}
+
 ani_object AniTypeface::MakeFromFile(ani_env* env, ani_object obj, ani_string aniFilePath)
 {
     std::string filePath = CreateStdString(env, aniFilePath);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str());
     if (typeface == nullptr) {
         ROSEN_LOGE("AniTypeface::MakeFromFile create typeface failed!");
+        return CreateAniUndefined(env);
+    }
+    if (!IsTypefaceRegistered(filePath, typeface)) {
+        ROSEN_LOGE("AniTypeface::MakeFromFile MakeRegister Typeface failed!");
         return CreateAniUndefined(env);
     }
     return CreateAniTypeface(env, typeface);
@@ -132,6 +149,14 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     FontArguments fontArguments;
     AniTypefaceArguments::ConvertToFontArguments(aniTypefaceArguments->GetTypefaceArgumentsHelper(), fontArguments);
     std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(filePath.c_str(), fontArguments);
+    if (typeface == nullptr) {
+        ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments create typeface failed!");
+        return CreateAniUndefined(env);
+    }
+    if (!IsTypefaceRegistered(filePath, typeface)) {
+        ROSEN_LOGE("AniTypeface::MakeFromFileWithArguments MakeRegister Typeface failed!");
+        return CreateAniUndefined(env);
+    }
     return CreateAniTypeface(env, typeface);
 }
 

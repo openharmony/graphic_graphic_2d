@@ -431,16 +431,6 @@ bool DoSetIsTextureExportNode(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSplitSurfaceNodeName(const uint8_t* data, size_t size)
-{
-    // test
-    auto config = GetRSSurfaceNodeConfigFromData();
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
-    std::string surfaceNodeName = GetData<std::string>();
-    surfaceNode->SplitSurfaceNodeName(surfaceNodeName);
-    return true;
-}
-
 bool DoSetLeashPersistentId(const uint8_t* data, size_t size)
 {
     // test
