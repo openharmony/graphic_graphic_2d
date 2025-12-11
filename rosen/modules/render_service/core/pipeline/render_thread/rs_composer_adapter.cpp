@@ -107,7 +107,7 @@ bool RSComposerAdapter::Init(const RSScreenRenderNode& node, const ScreenInfo& s
 
 void RSComposerAdapter::CommitLayers(const std::vector<RSLayerPtr>& layers)
 {
-    if (output_ == nullptr || composerClient_ == nullptr) {
+    if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::CommitLayers: output or composerClient is nullptr");
         return;
     }
@@ -117,7 +117,6 @@ void RSComposerAdapter::CommitLayers(const std::vector<RSLayerPtr>& layers)
     // do composition.
     output_->SetRSLayers(layers);
     output_->Repaint();
-    composerClient_->ClearAllRSLayers();
 
     // get present timestamp from and set present timestamp to surface
     for (const auto& layer : layers) {

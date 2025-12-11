@@ -88,7 +88,6 @@ private:
 
     float mirrorAdaptiveCoefficient_ = 1.0f;
     FallbackCallback fallbackCb_;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -69,12 +69,6 @@ bool RSUniRenderComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offs
     offsetY_ = offsetY;
     screenInfo_ = screenInfo;
     composerClient_ = composerClient;
-
-    // // Initialize composerClient
-    // composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo.id);
-    if (composerClient_ == nullptr) {
-        return false;
-    }
     return true;
 }
 
