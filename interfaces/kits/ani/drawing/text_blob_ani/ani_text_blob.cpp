@@ -44,13 +44,13 @@ ani_status AniTextBlob::AniInit(ani_env *env)
     }
 
     std::array staticMethods = {
-        ani_native_function { "makeFromPosText", "C{std.core.String}iC{escompat.Array}"
+        ani_native_function { "makeFromPosText", "C{std.core.String}iC{std.core.Array}"
             "C{@ohos.graphics.drawing.drawing.Font}:C{@ohos.graphics.drawing.drawing.TextBlob}",
             reinterpret_cast<void*>(MakeFromPosText) },
         ani_native_function { "makeFromString", "C{std.core.String}C{@ohos.graphics.drawing.drawing.Font}"
             "E{@ohos.graphics.drawing.drawing.TextEncoding}:C{@ohos.graphics.drawing.drawing.TextBlob}",
             reinterpret_cast<void*>(MakeFromString) },
-        ani_native_function { "makeFromRunBuffer", "C{escompat.Array}C{@ohos.graphics.drawing.drawing.Font}"
+        ani_native_function { "makeFromRunBuffer", "C{std.core.Array}C{@ohos.graphics.drawing.drawing.Font}"
             "C{@ohos.graphics.common2D.common2D.Rect}:C{@ohos.graphics.drawing.drawing.TextBlob}",
             reinterpret_cast<void*>(MakeFromRunBuffer) },
     };
