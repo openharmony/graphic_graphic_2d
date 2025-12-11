@@ -109,6 +109,7 @@
 #include "ui/rs_ui_context.h"
 #include "ui/rs_ui_director.h"
 #include "ui/rs_ui_patten_vec.h"
+#include "ui/rs_union_node.h"
 
 #ifdef RS_ENABLE_VK
 #include "modifier_render_thread/rs_modifiers_draw.h"
@@ -4138,6 +4139,7 @@ template bool RSNode::IsInstanceOf<RSRootNode>() const;
 template bool RSNode::IsInstanceOf<RSCanvasDrawingNode>() const;
 template bool RSNode::IsInstanceOf<RSEffectNode>() const;
 template bool RSNode::IsInstanceOf<RSWindowKeyFrameNode>() const;
+template bool RSNode::IsInstanceOf<RSUnionNode>() const;
 
 void RSNode::SetInstanceId(int32_t instanceId)
 {

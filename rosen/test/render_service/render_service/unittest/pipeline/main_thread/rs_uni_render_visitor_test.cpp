@@ -6787,28 +6787,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode002, TestSize.Level1
 }
 
 /**
- * @tc.name: QuickPrepareChildren001
- * @tc.desc: Test QuickPrepareChildren ResetVisibleUnionChildren branch
- * @tc.type: FUNC
- * @tc.require: issueIB7GLO
- */
-HWTEST_F(RSUniRenderVisitorTest, QuickPrepareChildren001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    EXPECT_NE(rsUniRenderVisitor, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    auto dirtyManager = surfaceNode->GetDirtyManager();
-    EXPECT_NE(dirtyManager, nullptr);
-    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
-    node->InitRenderParams();
-    rsUniRenderVisitor->QuickPrepareChildren(*node);
-}
-
-/**
  * @tc.name: CollectUnionInfo001
  * @tc.desc: Test CollectUnionInfo
  * @tc.type: FUNC
@@ -6900,6 +6878,29 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo004, TestSize.Level2)
 
     node->renderProperties_.useUnion_ = false;
     node->shouldPaint_ = false;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo005
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo005, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = nullptr;
+
+    node->renderProperties_.useUnion_ = true;
+    node->shouldPaint_ = true;
     rsUniRenderVisitor->CollectUnionInfo(*node);
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }

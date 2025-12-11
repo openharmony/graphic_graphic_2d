@@ -902,6 +902,7 @@ public:
 
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
+    RRect GetRRectForSDF() const;
 
 private:
 struct CommonEffectParams {

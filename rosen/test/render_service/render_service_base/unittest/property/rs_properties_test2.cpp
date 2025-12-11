@@ -1365,5 +1365,44 @@ HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
     ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
 }
 
+/**
+ * @tc.name: GetRRectForSDFTest001
+ * @tc.desc: GetClipToRRect == true test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    ASSERT_TRUE(properties.GetClipToRRect());
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest002
+ * @tc.desc: GetCornerRadius().IsZero() == false test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.cornerRadius_ = Vector4f(5.f);
+    properties.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest003
+ * @tc.desc: else test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 10.f;
+    properties.boundsGeo_->height_ = 10.f;
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
 } // namespace Rosen
 } // namespace OHOS
