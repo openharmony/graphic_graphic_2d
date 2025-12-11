@@ -157,6 +157,7 @@ private:
     void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
+    void CheckResetAccumulatedOcclusionRegion(RSSurfaceRenderNode& node);
     bool IsParticipateInOcclusion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);

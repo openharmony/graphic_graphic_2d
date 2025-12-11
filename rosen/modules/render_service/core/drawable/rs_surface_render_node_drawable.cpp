@@ -74,6 +74,7 @@ constexpr float GAMMA2_2 = 2.2f;
 constexpr int32_t ROTATION_OFFSCREEN_BUFFER_SIZE_RATIO = 2;
 constexpr float OFFSCREEN_CANVAS_SCALE = 0.5f;
 constexpr float BACK_MAIN_SCREEN_CANVAS_SCALE = 2.0f;
+constexpr int32_t MAX_VISIBLE_REGION_INFO = 150;
 }
 namespace OHOS::Rosen::DrawableV2 {
 RSSurfaceRenderNodeDrawable::Registrar RSSurfaceRenderNodeDrawable::instance_;
@@ -712,7 +713,7 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         GetId(), surfaceParams->GetGlobalAlpha(), surfaceParams->GetPreSubHighPriorityType(),
         currentFrameDirty.left_, currentFrameDirty.top_, currentFrameDirty.width_, currentFrameDirty.height_,
         mergeHistoryDirty.left_, mergeHistoryDirty.top_, mergeHistoryDirty.width_, mergeHistoryDirty.height_,
-        surfaceParams->GetVisibleRegion().GetRegionInfo().c_str());
+        surfaceParams->GetVisibleRegion().GetRegionInfo().substr(0, MAX_VISIBLE_REGION_INFO).c_str());
 
     const auto& bounds = surfaceParams->GetBounds();
     RS_LOGD("RSSurfaceRenderNodeDrawable::OnDraw node:%{public}" PRIu64 ", name:%{public}s,"
