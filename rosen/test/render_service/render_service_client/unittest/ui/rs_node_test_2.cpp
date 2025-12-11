@@ -820,4 +820,78 @@ HWTEST_F(RSNodeTest2, SetMaterialNGFilter001, TestSize.Level1)
     ASSERT_EQ(modifier->properties_.find(ModifierNG::RSPropertyType::MATERIAL_NG_FILTER), modifier->properties_.end());
 }
 
+/**
+ * @tc.name: SetMaterialWithQualityLevel_ClearColorPicker
+ * @tc.desc: When materialFilter is nullptr, color picker params should be cleared
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_ClearColorPicker, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+
+    // First set color picker params to create the modifier and properties
+    rsNode->SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, 200);
+    auto modifierBefore = rsNode->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifierBefore, nullptr);
+
+    // Ensure properties exist
+    EXPECT_NE(modifierBefore->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER),
+              modifierBefore->properties_.end());
+    EXPECT_NE(modifierBefore->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY),
+              modifierBefore->properties_.end());
+    EXPECT_NE(modifierBefore->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL),
+              modifierBefore->properties_.end());
+
+    // Call SetMaterialWithQualityLevel with nullptr should clear color picker properties
+    rsNode->SetMaterialWithQualityLevel(nullptr, FilterQuality::DEFAULT);
+
+    auto modifierAfter = rsNode->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    // Modifier may still exist but properties should be detached
+    if (modifierAfter != nullptr) {
+        EXPECT_EQ(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER),
+                  modifierAfter->properties_.end());
+        EXPECT_EQ(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY),
+                  modifierAfter->properties_.end());
+        EXPECT_EQ(modifierAfter->properties_.find(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL),
+                  modifierAfter->properties_.end());
+    }
+}
+
+/**
+ * @tc.name: SetMaterialWithQualityLevel_AdaptiveFrostedGlass
+ * @tc.desc: Frosted glass material with ADAPTIVE quality should enable color picker with clamped interval
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetMaterialWithQualityLevel_AdaptiveFrostedGlass, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+
+    // Create a frosted glass NG filter
+    auto materialFilter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(materialFilter, nullptr);
+
+    // Call with ADAPTIVE quality should set color picker params
+    rsNode->SetMaterialWithQualityLevel(materialFilter, FilterQuality::ADAPTIVE);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::COLOR_PICKER);
+    ASSERT_NE(modifier, nullptr);
+
+    // Check properties exist and values (interval should be clamped by SetColorPickerParams MIN_INTERVAL = 180)
+    auto propPlaceholder = std::static_pointer_cast<RSProperty<int>>(
+        modifier->GetProperty(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER));
+    ASSERT_NE(propPlaceholder, nullptr);
+    EXPECT_EQ(propPlaceholder->Get(), static_cast<int>(ColorPlaceholder::SURFACE_CONTRAST));
+
+    auto propStrategy = std::static_pointer_cast<RSProperty<int>>(
+        modifier->GetProperty(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY));
+    ASSERT_NE(propStrategy, nullptr);
+    EXPECT_EQ(propStrategy->Get(), static_cast<int>(ColorPickStrategyType::CONTRAST));
+
+    auto propInterval = std::static_pointer_cast<RSProperty<int>>(
+        modifier->GetProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL));
+    ASSERT_NE(propInterval, nullptr);
+    // DEFAULT_INTERVAL in SetMaterialWithQualityLevel is 100, SetColorPickerParams clamps to MIN_INTERVAL=180
+    EXPECT_EQ(propInterval->Get(), 180);
+}
+
 } // namespace OHOS::Rosen
