@@ -42,7 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 
-constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
+constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 6;
 constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 
 bool RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
@@ -536,12 +536,26 @@ bool RSFilterCacheManager::ReduceCacheUpdateInterval()
     return true;
 }
 
+bool RSFilterCacheManager::ReduceCacheUpdateIntervalIfPendingPurge()
+{
+    if (cacheUpdateInterval_ <= 0) {
+        return false;
+    }
+
+    if (pendingPurge_) {
+        cacheUpdateInterval_--;
+    }
+    return true;
+}
+
 bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
 {
     if (filterType_ != RSFilter::AIBAR) {
         return false;
     }
-    if (intersectHwcDamage) {
+    // should mark stagingIsAIBarInteractWithHWC_ once intersectHwcDamage is true
+    // or pendingPurge_ is true (which means AIBar has been intersected with damage during chache consuming)
+    if (intersectHwcDamage || pendingPurge_) {
         stagingIsAIBarInteractWithHWC_ = true;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus \

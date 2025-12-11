@@ -2434,7 +2434,7 @@ bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 return false;
 }
 
-bool RSRenderNode::ForceReduceAIBarCacheInterval()
+bool RSRenderNode::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
 {
 #ifdef RS_ENABLE_GPU
     if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
@@ -2446,7 +2446,7 @@ bool RSRenderNode::ForceReduceAIBarCacheInterval()
     if (filterDrawable == nullptr) {
         return false;
     }
-    return filterDrawable->ForceReduceAIBarCacheInterval();
+    return filterDrawable->ForceReduceAIBarCacheInterval(intersectHwcDamage);
 #else
     return false;
 #endif

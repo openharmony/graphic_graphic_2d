@@ -1696,7 +1696,7 @@ bool RSSystemProperties::GetEarlyZEnable()
 
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
-    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 0) != 0;
+    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 1) != 0;
     return isAIBarOptEnabled;
 }
 

@@ -119,6 +119,7 @@ public:
     bool WouldDrawLargeAreaBlurPrecisely();
     // Returns true if the interval is successfully reduced, returns false otherwise.
     bool ReduceCacheUpdateInterval();
+    bool ReduceCacheUpdateIntervalIfPendingPurge();
 
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedSnapshot() const { return cachedSnapshot_; }
     std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> GetCachedFilteredSnapshot() const {
