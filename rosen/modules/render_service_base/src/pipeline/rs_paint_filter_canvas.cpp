@@ -17,6 +17,7 @@
 
 #include <algorithm>
 
+#include "cache/ge_image_cache_provider.h"
 #include "common/rs_rect.h"
 #include "draw/canvas.h"
 
@@ -1625,12 +1626,14 @@ RSPaintFilterCanvas::CanvasStatus RSPaintFilterCanvas::GetCanvasStatus() const
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(std::shared_ptr<Drawing::Image>&& image,
     const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+      geCacheProvider_(std::make_shared<GEImageCacheProvider>())
 {}
 
 RSPaintFilterCanvas::CachedEffectData::CachedEffectData(const std::shared_ptr<Drawing::Image>& image,
     const Drawing::RectI& rect)
-    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix())
+    : cachedImage_(image), cachedRect_(rect), cachedMatrix_(Drawing::Matrix()),
+      geCacheProvider_(std::make_shared<GEImageCacheProvider>())
 {}
 
 std::string RSPaintFilterCanvas::CachedEffectData::GetInfo() const

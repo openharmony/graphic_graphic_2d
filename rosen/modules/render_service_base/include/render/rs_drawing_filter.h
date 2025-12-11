@@ -128,7 +128,7 @@ private:
         Drawing::Rect dst;
         bool discardCanvas;
         float brushAlpha;
-        IGECacheProvider* geCacheProvider = nullptr;
+        IGECacheProvider* geCacheProvider;
     };
     void DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const DrawImageRectAttributes& attr);

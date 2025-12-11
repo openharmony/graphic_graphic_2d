@@ -23,7 +23,6 @@
 #include "hpae_base/rs_hpae_filter_cache_manager.h"
 #include "src/image/SkImage_Base.h"
 
-#include "cache/ge_image_cache_provider.h"
 #include "common/rs_optional_trace.h"
 #include "draw/canvas.h"
 #include "draw/surface.h"
@@ -276,7 +275,6 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
         GenerateFilteredSnapshot(canvas, filter, dst);
     }
 
-    cachedFilteredSnapshot_->geCacheProvider_ = std::make_shared<GEImageCacheProvider>();
     // Keep a reference to the cached image, since CompactCache may invalidate it.
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     return cachedFilteredSnapshot;
