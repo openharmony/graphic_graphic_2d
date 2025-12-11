@@ -195,17 +195,6 @@ void RSClientToServiceConnection::CleanRenderNodes() noexcept
     RSRenderNodeGC::Instance().ReleaseFromTree(AppExecFwk::EventQueue::Priority::HIGH);
 }
 
-void RSClientToServiceConnection::CleanFrameRateLinkers() noexcept
-{
-    // if (mainThread_ == nullptr) {
-    //     return;
-    // }
-    // auto& context = mainThread_->GetContext();
-    // auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-
-    // frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
-}
-
 void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
 {
     {
@@ -237,7 +226,6 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
             connection->CleanRenderNodes();
-            connection->CleanFrameRateLinkers();
             connection->CleanBrightnessInfoChangeCallbacks();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
             connection->CleanCanvasCallbacksAndPendingBuffer();
@@ -287,14 +275,11 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }).wait();
     }
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
-    HgmTaskHandleThread::Instance().ScheduleTask([pid = remotePid_] () {
-        RS_TRACE_NAME_FMT("CleanHgmEvent %d", pid);
-        HgmConfigCallbackManager::GetInstance()->UnRegisterHgmConfigChangeCallback(pid);
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            frameRateMgr->CleanVote(pid);
-        }
-    }).wait();
+
+    if (hgmContext_ != nullptr) {
+        hgmContext_->CleanAllWhenServiceConnectionDie(remotePid_);
+    }
+
     RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(remotePid_);
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -407,7 +392,7 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
                                                          const sptr<VSyncIConnectionToken>& token,
                                                          VSyncConnParam vsyncConnParam)
 {
-    if (mainThread_ == nullptr || appVSyncDistributor_ == nullptr) {
+    if (appVSyncDistributor_ == nullptr) {
         vsyncConn = nullptr;
         return ERR_INVALID_VALUE;
     }
