@@ -1379,8 +1379,8 @@ bool FilterNapi::BuildFrostedGlassPara(napi_env env, napi_value* argv,
 
 napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 {
-    static const size_t maxArgc = NUM_31;
-    static const size_t minArgc = NUM_30;
+    static const size_t maxArgc = NUM_35;
+    static const size_t minArgc = NUM_34;
     constexpr size_t requireArgc = maxArgc;
 
     napi_status status;
@@ -1407,9 +1407,21 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
         FILTER_LOG_E("FilterNapi::SetFrostedGlass materialColor parse fail"));
     para->SetMaterialColor(materialColor);
 
+    bool refractEnabled = GetSpecialBoolValue(env, argv[NUM_30], true);
+    para->SetRefractEnabled(refractEnabled);
+
+    bool innerShadowEnabled = GetSpecialBoolValue(env, argv[NUM_31], true);
+    para->SetInnerShadowEnabled(innerShadowEnabled);
+
+    bool envLightEnabled = GetSpecialBoolValue(env, argv[NUM_32], true);
+    para->SetEnvLightEnabled(envLightEnabled);
+
+    bool highLightEnabled = GetSpecialBoolValue(env, argv[NUM_33], true);
+    para->SetHighLightEnabled(highLightEnabled);
+
     if (realArgc >= maxArgc) {
         float samplingScale = 0.f;
-        samplingScale = GetSpecialValue(env, argv[NUM_30]);
+        samplingScale = GetSpecialValue(env, argv[NUM_34]);
         para->SetSamplingScale(samplingScale);
     }
 

@@ -144,6 +144,10 @@ DECLARE_FILTER(FrostedGlass, FROSTED_GLASS,
     ADD_PROPERTY_TAG(FrostedGlass, BaseVibrancyEnabled),
     ADD_PROPERTY_TAG(FrostedGlass, BaseMaterialType),
     ADD_PROPERTY_TAG(FrostedGlass, MaterialColor),
+    ADD_PROPERTY_TAG(FrostedGlass, RefractEnabled),
+    ADD_PROPERTY_TAG(FrostedGlass, InnerShadowEnabled),
+    ADD_PROPERTY_TAG(FrostedGlass, EnvLightEnabled),
+    ADD_PROPERTY_TAG(FrostedGlass, HighLightEnabled),
     ADD_PROPERTY_TAG(FrostedGlass, SamplingScale)
 );
 
