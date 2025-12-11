@@ -22,21 +22,22 @@
 
 namespace OHOS {
 namespace Rosen {
-
-static bool IS_INIT = false;
-static std::vector<std::function<std::shared_ptr<RSNGRenderMaskBase>()>> RANDOM_MASK_GENERATOR;
+namespace {
+bool g_isInit = false;
+std::vector<std::function<std::shared_ptr<RSNGRenderMaskBase>()>> g_randomMaskGenerator;
+}
 
 std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandomValue()
 {
-    if (!IS_INIT) {
-        RANDOM_MASK_GENERATOR.push_back(RandomRSNGMaskPtr::GetNullValue);
-        #define DECLARE_MASK(MaskName, MaskType, ...)     \
-            RANDOM_MASK_GENERATOR.push_back(RandomRSNGMaskPtr::GetRandom##MaskName);
+    if (!g_isInit) {
+        g_randomMaskGenerator.push_back(RandomRSNGMaskPtr::GetNullValue);
+#define DECLARE_MASK(MaskName, MaskType, ...)     \
+            g_randomMaskGenerator.push_back(RandomRSNGMaskPtr::GetRandom##MaskName)
 
-        #include "effect/rs_render_mask_def.in"
+#include "effect/rs_render_mask_def.in"
 
-        #undef DECLARE_MASK
-        IS_INIT = true;
+#undef DECLARE_MASK
+        g_isInit = true;
     }
 
     bool generateChain = RandomData::GetRandomBool();
@@ -54,8 +55,8 @@ std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetNullValue()
 
 std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandomSingleMask()
 {
-    int index = RandomEngine::GetRandomIndex(RANDOM_MASK_GENERATOR.size() - 1);
-    return RANDOM_MASK_GENERATOR[index]();
+    int index = RandomEngine::GetRandomIndex(g_randomMaskGenerator.size() - 1);
+    return g_randomMaskGenerator[index]();
 }
 
 std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandomMaskChain()
@@ -65,6 +66,10 @@ std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandomMaskChain()
     int maskChainSize = RandomEngine::GetRandomSmallVectorLength();
     for (int i = 0; i < maskChainSize; ++i) {
         auto mask = GetRandomSingleMask();
+        if (!mask) {
+            continue;
+        }
+
         if (!current) {
             head = mask; // init head
         } else {

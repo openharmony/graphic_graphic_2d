@@ -36,9 +36,6 @@ public:
     [[nodiscard]] static bool Unmarshalling(Parcel& parcel, std::shared_ptr<RSNGRenderMaskBase>& val);
 
     virtual std::shared_ptr<Drawing::GEVisualEffect> GenerateGEVisualEffect() { return nullptr; }
-
-private:
-    friend class RandomRSNGMaskPtr;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>

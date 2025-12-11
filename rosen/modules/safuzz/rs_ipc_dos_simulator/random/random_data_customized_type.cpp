@@ -449,6 +449,17 @@ RRect RandomDataCustomizedType::GetRandomRRect()
 std::vector<Vector2f> RandomDataCustomizedType::GetRandomVectorVector2f()
 {
     std::vector<Vector2f> out;
+    size_t outSize = static_cast<size_t>(RandomEngine::GetRandomVectorLength());
+    out.reserve(outSize);
+    for (size_t i = 0; i < outSize; ++i) {
+        out.push_back(GetRandomVector2f());
+    }
+    return out;
+}
+
+std::vector<Vector2f> RandomDataCustomizedType::GetRandomSmallVectorVector2f()
+{
+    std::vector<Vector2f> out;
     size_t outSize = static_cast<size_t>(RandomEngine::GetRandomSmallVectorLength());
     out.reserve(outSize);
     for (size_t i = 0; i < outSize; ++i) {

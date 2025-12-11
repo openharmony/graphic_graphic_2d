@@ -51,7 +51,6 @@ protected:
 private:
     friend class RSNGFilterBase;
     friend class RSNGRenderFilterHelper;
-    friend class RandomRSNGFilterPtr;
 };
 
 template<RSNGEffectType Type, typename... PropertyTags>

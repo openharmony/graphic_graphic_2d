@@ -20,21 +20,22 @@
 
 namespace OHOS {
 namespace Rosen {
-
-static bool IS_INIT = false;
-static std::vector<std::function<std::shared_ptr<RSNGRenderFilterBase>()>> RANDOM_FILTER_GENERATOR;
+namespace {
+bool g_isInit = false;
+std::vector<std::function<std::shared_ptr<RSNGRenderFilterBase>()>> g_randomFilterGenerator;
+}
 
 std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandomValue()
 {
-    if (!IS_INIT) {
-        RANDOM_FILTER_GENERATOR.push_back(RandomRSNGFilterPtr::GetNullValue);
-        #define DECLARE_FILTER(FilterName, FilterType, ...)     \
-            RANDOM_FILTER_GENERATOR.push_back(RandomRSNGFilterPtr::GetRandom##FilterName);
+    if (!g_isInit) {
+        g_randomFilterGenerator.push_back(RandomRSNGFilterPtr::GetNullValue);
+#define DECLARE_FILTER(FilterName, FilterType, ...)     \
+            g_randomFilterGenerator.push_back(RandomRSNGFilterPtr::GetRandom##FilterName)
 
-        #include "effect/rs_render_filter_def.in"
+#include "effect/rs_render_filter_def.in"
 
-        #undef DECLARE_FILTER
-        IS_INIT = true;
+#undef DECLARE_FILTER
+        g_isInit = true;
     }
 
     bool generateChain = RandomData::GetRandomBool();
@@ -52,8 +53,8 @@ std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetNullValue()
 
 std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandomSingleFilter()
 {
-    int index = RandomEngine::GetRandomIndex(RANDOM_FILTER_GENERATOR.size() - 1);
-    return RANDOM_FILTER_GENERATOR[index]();
+    int index = RandomEngine::GetRandomIndex(g_randomFilterGenerator.size() - 1);
+    return g_randomFilterGenerator[index]();
 }
 
 std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandomFilterChain()
@@ -63,6 +64,10 @@ std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandomFilterChain(
     int filterChainSize = RandomEngine::GetRandomSmallVectorLength();
     for (int i = 0; i < filterChainSize; ++i) {
         auto filter = GetRandomSingleFilter();
+        if (!filter) {
+            continue;
+        }
+
         if (!current) {
             head = filter; // init head
         } else {

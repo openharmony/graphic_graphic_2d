@@ -22,21 +22,22 @@
 
 namespace OHOS {
 namespace Rosen {
-
-static bool IS_INIT = false;
-static std::vector<std::function<std::shared_ptr<RSNGRenderShaderBase>()>> RANDOM_SHADER_GENERATOR;
+namespace {
+bool g_isInit = false;
+std::vector<std::function<std::shared_ptr<RSNGRenderShaderBase>()>> g_randomShaderGenerator;
+}
 
 std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandomValue()
 {
-    if (!IS_INIT) {
-        RANDOM_SHADER_GENERATOR.push_back(RandomRSNGShaderPtr::GetNullValue);
-        #define DECLARE_SHADER(ShaderName, ShaderType, ...)     \
-            RANDOM_SHADER_GENERATOR.push_back(RandomRSNGShaderPtr::GetRandom##ShaderName);
+    if (!g_isInit) {
+        g_randomShaderGenerator.push_back(RandomRSNGShaderPtr::GetNullValue);
+#define DECLARE_SHADER(ShaderName, ShaderType, ...)     \
+            g_randomShaderGenerator.push_back(RandomRSNGShaderPtr::GetRandom##ShaderName)
 
-        #include "effect/rs_render_shader_def.in"
+#include "effect/rs_render_shader_def.in"
 
-        #undef DECLARE_SHADER
-        IS_INIT = true;
+#undef DECLARE_SHADER
+        g_isInit = true;
     }
 
     bool generateChain = RandomData::GetRandomBool();
@@ -54,8 +55,8 @@ std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetNullValue()
 
 std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandomSingleShader()
 {
-    int index = RandomEngine::GetRandomIndex(RANDOM_SHADER_GENERATOR.size() - 1);
-    return RANDOM_SHADER_GENERATOR[index]();
+    int index = RandomEngine::GetRandomIndex(g_randomShaderGenerator.size() - 1);
+    return g_randomShaderGenerator[index]();
 }
 
 std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandomShaderChain()
@@ -65,6 +66,10 @@ std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandomShaderChain(
     int shaderChainSize = RandomEngine::GetRandomSmallVectorLength();
     for (int i = 0; i < shaderChainSize; ++i) {
         auto shader = GetRandomSingleShader();
+        if (!shader) {
+            continue;
+        }
+
         if (!current) {
             head = shader; // init head
         } else {

@@ -22,28 +22,29 @@
 
 namespace OHOS {
 namespace Rosen {
-
+namespace {
 constexpr uint32_t MAX_SHAPE_DEPTH = 5; // 5: MAX_SHAPE_DEPTH
-static uint32_t SHAPE_DEPTH = 0;
-static bool IS_INIT = false;
-static std::vector<std::function<std::shared_ptr<RSNGRenderShapeBase>()>> RANDOM_SHAPE_GENERATOR;
+uint32_t g_shapeDepth = 0;
+bool g_isInit = false;
+std::vector<std::function<std::shared_ptr<RSNGRenderShapeBase>()>> g_randomShapeGenerator;
+}
 
 void RandomRSNGShapePtr::ResetShapeDepth()
 {
-    SHAPE_DEPTH = 0;
+    g_shapeDepth = 0;
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomValue()
 {
-    if (!IS_INIT) {
-        RANDOM_SHAPE_GENERATOR.push_back(RandomRSNGShapePtr::GetNullValue);
-        #define DECLARE_SHAPE(ShapeName, ShapeType, ...)     \
-            RANDOM_SHAPE_GENERATOR.push_back(RandomRSNGShapePtr::GetRandom##ShapeName);
+    if (!g_isInit) {
+        g_randomShapeGenerator.push_back(RandomRSNGShapePtr::GetNullValue);
+#define DECLARE_SHAPE(ShapeName, ShapeType, ...)     \
+            g_randomShapeGenerator.push_back(RandomRSNGShapePtr::GetRandom##ShapeName)
 
-        #include "effect/rs_render_shape_def.in"
+#include "effect/rs_render_shape_def.in"
 
-        #undef DECLARE_SHAPE
-        IS_INIT = true;
+#undef DECLARE_SHAPE
+        g_isInit = true;
     }
 
     bool generateChain = RandomData::GetRandomBool();
@@ -61,12 +62,12 @@ std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetNullValue()
 
 std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomSingleShape()
 {
-    if (SHAPE_DEPTH > MAX_SHAPE_DEPTH) {
+    if (g_shapeDepth > MAX_SHAPE_DEPTH) {
         return nullptr;
     }
-    SHAPE_DEPTH++;
-    auto index = RandomEngine::GetRandomIndex(RANDOM_SHAPE_GENERATOR.size() - 1);
-    return RANDOM_SHAPE_GENERATOR[index]();
+    g_shapeDepth++;
+    auto index = RandomEngine::GetRandomIndex(g_randomShapeGenerator.size() - 1);
+    return g_randomShapeGenerator[index]();
 }
 
 std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomShapeChain()
@@ -76,6 +77,10 @@ std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomShapeChain()
     int shapeChainSize = RandomEngine::GetRandomSmallVectorLength();
     for (int i = 0; i < shapeChainSize; ++i) {
         auto shape = GetRandomSingleShape();
+        if (!shape) {
+            continue;
+        }
+
         if (!current) {
             head = shape; // init head
         } else {

@@ -281,6 +281,16 @@ public:
         return edLightNeg_;
     }
 
+    void SetMaterialColor(Vector4f& materialColor)
+    {
+        materialColor_ = materialColor;
+    }
+
+    const Vector4f GetMaterialColor() const
+    {
+        return materialColor_;
+    }
+
 private:
     float blurParam_ = 0.0f; // K times downsample
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
@@ -312,6 +322,7 @@ private:
     Vector3f edLightKBS_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightPos_ = Vector3f(0.0f, 0.0f, 0.0f);
     Vector3f edLightNeg_ = Vector3f(0.0f, 0.0f, 0.0f);
+    Vector4f materialColor_ = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
 };
 } // namespace Rosen
 } // namespace OHOS
