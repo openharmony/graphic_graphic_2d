@@ -134,7 +134,7 @@ public:
     void SetForceRsDVsync(const std::string& sceneId);
     void GetNodeInfo(std::unordered_map<int, std::pair<int, int>>& node_info,
         std::unordered_map<int, int>& nullnode_info, std::unordered_map<pid_t, size_t>& modifierSize);
-
+    void CheckPackageInConfigList(const std::vector<std::string>& packageList);
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
