@@ -109,7 +109,8 @@ public:
 
     int32_t GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid);
 
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid, const Rect &srcRect);
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceid,
+        const Rect &srcRect, bool transformEnabled = false);
 
     ScreenId GetDefaultScreenId();
     ScreenId GetActiveScreenId();

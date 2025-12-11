@@ -49,7 +49,7 @@ public:
         int32_t& repCode) override;
     
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
-        std::shared_ptr<Media::PixelMap> &pixelMap) override;
+        std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false) override;
 
     ErrCode GetDefaultScreenId(uint64_t& screenId) override;
     ErrCode GetActiveScreenId(uint64_t& screenId) override;

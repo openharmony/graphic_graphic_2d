@@ -224,7 +224,7 @@ int32_t RSRenderServiceClient::GetPixelMapByProcessId(std::vector<PixelMapInfo>&
 }
 
 std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
-    const Rect &srcRect)
+    const Rect &srcRect, bool transformEnabled)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {
@@ -235,7 +235,8 @@ std::shared_ptr<Media::PixelMap> RSRenderServiceClient::CreatePixelMapFromSurfac
         return nullptr;
     }
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-    return clientToService->CreatePixelMapFromSurface(surface, srcRect, pixelMap) == ERR_OK ? pixelMap : nullptr;
+    return clientToService->CreatePixelMapFromSurface(surface, srcRect, pixelMap,
+        transformEnabled) == ERR_OK ? pixelMap : nullptr;
 }
 
 ScreenId RSRenderServiceClient::GetDefaultScreenId()

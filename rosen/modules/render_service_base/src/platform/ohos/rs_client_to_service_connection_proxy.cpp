@@ -419,7 +419,7 @@ ErrCode RSClientToServiceConnectionProxy::GetPixelMapByProcessId(
 }
 
 ErrCode RSClientToServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -445,6 +445,10 @@ ErrCode RSClientToServiceConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
         !data.WriteInt32(srcRect.w) || !data.WriteInt32(srcRect.h)) {
         ROSEN_LOGE("CreatePixelMapFromSurface: WriteInt32 srcRect err.");
         return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteBool(transformEnabled)) {
+        ROSEN_LOGE("CreatePixelMapFromSurface: WriteBool err.");
+        return -1;
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE);

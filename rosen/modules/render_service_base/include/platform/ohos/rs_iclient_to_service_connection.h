@@ -88,7 +88,7 @@ public:
         int32_t& repCode) = 0;
 
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) = 0;
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false) = 0;
 
     virtual ErrCode GetDefaultScreenId(uint64_t& screenId) = 0;
 

@@ -910,9 +910,11 @@ public:
      * @brief Create a pixelmap obeject from surface id.
      * @param surfaceId Indicates the id of surface.
      * @param srcRect Indicates the area that requires a rectangle.
+     * @param transformEnabled Indicates the rotation toggle for the pixelmap interface.
      * @return return a pixelmap obeject.
      */
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+        const Rect &srcRect, bool transformEnabled = false);
 
     /**
      * @brief Register window occlusion change callback.

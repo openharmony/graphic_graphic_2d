@@ -1955,9 +1955,9 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
     uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
     auto utils = SurfaceUtils::GetInstance();
     utils->Add(surfaceId, cSurface);
-    auto pixcelMap = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
+    auto pixelMap = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect);
 #if defined(RS_ENABLE_UNI_RENDER)
-    ASSERT_NE(pixcelMap, nullptr);
+    ASSERT_NE(pixelMap, nullptr);
     EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
         {0, 0, 0, 0}), nullptr);
     EXPECT_EQ(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
@@ -1970,6 +1970,268 @@ HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId001, Function | SmallTest 
         {width - 50, height - 50, 50, 50}), nullptr);
     EXPECT_NE(rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId,
         {width / 2, height/ 2, width / 2, height/ 2}), nullptr);
+#endif
+}
+
+/*
+ * @tc.name: CreatePixelMapFromSurfaceId
+ * @tc.desc: Test CreatePixelMapFromSurfaceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId002, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> producer = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+
+    int releaseFence = -1;
+    int32_t width = 0x200;
+    int32_t height = 0x100;
+    sptr<SurfaceBuffer> buffer;
+    BufferRequestConfig requestConfig = {
+        .width = width,
+        .height = height,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = width,
+            .h = height,
+        }
+    };
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+    ret = pSurface->FlushBuffer(buffer, releaseFence, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    OHOS::Rect rect = {
+        .x = 0,
+        .y = 0,
+        .w = 0x200,
+        .h = 0x100,
+    };
+    uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
+    auto utils = SurfaceUtils::GetInstance();
+    utils->Add(surfaceId, cSurface);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    auto pixelMap1 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
+    auto pixelMap2 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
+    auto pixelMap3 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    auto pixelMap4 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_180);
+    auto pixelMap5 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_270);
+    auto pixelMap6 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto pixelMap7 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
+    auto pixelMap8 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_NE(pixelMap1, nullptr);
+    ASSERT_NE(pixelMap2, nullptr);
+    ASSERT_NE(pixelMap3, nullptr);
+    ASSERT_NE(pixelMap4, nullptr);
+    ASSERT_NE(pixelMap5, nullptr);
+    ASSERT_NE(pixelMap6, nullptr);
+    ASSERT_NE(pixelMap7, nullptr);
+    ASSERT_NE(pixelMap8, nullptr);
+    EXPECT_EQ(std::make_pair(pixelMap1->GetHeight(), pixelMap1->GetWidth()),
+    std::make_pair(pixelMap4->GetWidth(), pixelMap4->GetHeight()));
+    EXPECT_EQ(std::make_pair(pixelMap2->GetHeight(), pixelMap2->GetWidth()),
+    std::make_pair(pixelMap5->GetHeight(), pixelMap5->GetWidth()));
+    EXPECT_EQ(std::make_pair(pixelMap3->GetHeight(), pixelMap3->GetWidth()),
+    std::make_pair(pixelMap6->GetWidth(), pixelMap6->GetHeight()));
+    EXPECT_EQ(std::make_pair(pixelMap7->GetHeight(), pixelMap7->GetWidth()),
+    std::make_pair(pixelMap8->GetHeight(), pixelMap8->GetWidth()));
+#endif
+}
+
+/*
+ * @tc.name: CreatePixelMapFromSurfaceId
+ * @tc.desc: Test CreatePixelMapFromSurfaceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId003, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> producer = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+
+    int releaseFence = -1;
+    int32_t width = 0x200;
+    int32_t height = 0x100;
+    sptr<SurfaceBuffer> buffer;
+    BufferRequestConfig requestConfig = {
+        .width = width,
+        .height = height,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = width,
+            .h = height,
+        }
+    };
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+    ret = pSurface->FlushBuffer(buffer, releaseFence, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    OHOS::Rect rect = {
+        .x = 0,
+        .y = 0,
+        .w = 0x200,
+        .h = 0x100,
+    };
+    uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
+    auto utils = SurfaceUtils::GetInstance();
+    utils->Add(surfaceId, cSurface);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H);
+    auto pixelMap1 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V);
+    auto pixelMap2 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    auto pixelMap3 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+    auto pixelMap4 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H);
+    auto pixelMap5 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V);
+    auto pixelMap6 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT90);
+    auto pixelMap7 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT90);
+    auto pixelMap8 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_NE(pixelMap1, nullptr);
+    ASSERT_NE(pixelMap2, nullptr);
+    ASSERT_NE(pixelMap3, nullptr);
+    ASSERT_NE(pixelMap4, nullptr);
+    ASSERT_NE(pixelMap5, nullptr);
+    ASSERT_NE(pixelMap6, nullptr);
+    ASSERT_NE(pixelMap7, nullptr);
+    ASSERT_NE(pixelMap8, nullptr);
+    EXPECT_EQ(std::make_pair(pixelMap1->GetHeight(), pixelMap1->GetWidth()),
+    std::make_pair(pixelMap5->GetHeight(), pixelMap5->GetWidth()));
+    EXPECT_EQ(std::make_pair(pixelMap2->GetHeight(), pixelMap2->GetWidth()),
+    std::make_pair(pixelMap6->GetHeight(), pixelMap6->GetWidth()));
+    EXPECT_EQ(std::make_pair(pixelMap3->GetHeight(), pixelMap3->GetWidth()),
+    std::make_pair(pixelMap7->GetWidth(), pixelMap7->GetHeight()));
+    EXPECT_EQ(std::make_pair(pixelMap4->GetHeight(), pixelMap4->GetWidth()),
+    std::make_pair(pixelMap8->GetWidth(), pixelMap8->GetHeight()));
+#endif
+}
+
+/*
+ * @tc.name: CreatePixelMapFromSurfaceId
+ * @tc.desc: Test CreatePixelMapFromSurfaceId.
+ * @tc.type: FUNC
+ * @tc.require: issueI9ABGS
+ */
+HWTEST_F(RSInterfacesTest, CreatePixelMapFromSurfaceId004, Function | SmallTest | Level2)
+{
+    ASSERT_NE(rsInterfaces, nullptr);
+    auto cSurface = IConsumerSurface::Create();
+    ASSERT_NE(cSurface, nullptr);
+    sptr<IBufferConsumerListener> listener = new BufferConsumerTestListener();
+    cSurface->RegisterConsumerListener(listener);
+    sptr<IBufferProducer> producer = cSurface->GetProducer();
+    sptr<Surface> pSurface = Surface::CreateSurfaceAsProducer(producer);
+
+    int releaseFence = -1;
+    int32_t width = 0x200;
+    int32_t height = 0x100;
+    sptr<SurfaceBuffer> buffer;
+    BufferRequestConfig requestConfig = {
+        .width = width,
+        .height = height,
+        .strideAlignment = 0x8,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+        .timeout = 0,
+    };
+    BufferFlushConfig flushConfig = {
+        .damage = {
+            .w = width,
+            .h = height,
+        }
+    };
+    GSError ret = pSurface->RequestBuffer(buffer, releaseFence, requestConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+    ASSERT_NE(buffer, nullptr);
+    ret = pSurface->FlushBuffer(buffer, releaseFence, flushConfig);
+    ASSERT_EQ(ret, OHOS::GSERROR_OK);
+
+    OHOS::Rect rect = {
+        .x = 0,
+        .y = 0,
+        .w = 0x200,
+        .h = 0x100,
+    };
+    uint64_t surfaceId = static_cast<uint64_t>(cSurface->GetUniqueId());
+    auto utils = SurfaceUtils::GetInstance();
+    utils->Add(surfaceId, cSurface);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    auto pixelMap1 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
+    auto pixelMap2 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    auto pixelMap3 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
+    auto pixelMap4 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, true);
+
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT180);
+    auto pixelMap5 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT180);
+    auto pixelMap6 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_H_ROT270);
+    auto pixelMap7 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+    pSurface->SetTransform(GraphicTransformType::GRAPHIC_FLIP_V_ROT270);
+    auto pixelMap8 = rsInterfaces->CreatePixelMapFromSurfaceId(surfaceId, rect, false);
+
+#if defined(RS_ENABLE_UNI_RENDER)
+    ASSERT_NE(pixelMap1, nullptr);
+    ASSERT_NE(pixelMap2, nullptr);
+    ASSERT_NE(pixelMap3, nullptr);
+    ASSERT_NE(pixelMap4, nullptr);
+    ASSERT_NE(pixelMap5, nullptr);
+    ASSERT_NE(pixelMap6, nullptr);
+    ASSERT_NE(pixelMap7, nullptr);
+    ASSERT_NE(pixelMap8, nullptr);
+    EXPECT_EQ(std::make_pair(pixelMap1->GetHeight(), pixelMap1->GetWidth()),
+    std::make_pair(pixelMap5->GetHeight(), pixelMap5->GetWidth()));
+    EXPECT_EQ(std::make_pair(pixelMap2->GetHeight(), pixelMap2->GetWidth()),
+    std::make_pair(pixelMap6->GetHeight(), pixelMap6->GetWidth()));
+    EXPECT_EQ(std::make_pair(pixelMap3->GetHeight(), pixelMap3->GetWidth()),
+    std::make_pair(pixelMap7->GetWidth(), pixelMap7->GetHeight()));
+    EXPECT_EQ(std::make_pair(pixelMap4->GetHeight(), pixelMap4->GetWidth()),
+    std::make_pair(pixelMap8->GetWidth(), pixelMap8->GetHeight()));
 #endif
 }
 

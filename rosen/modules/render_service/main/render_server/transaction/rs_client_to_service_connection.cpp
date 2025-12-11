@@ -677,7 +677,7 @@ float RSClientToServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<S
 }
 
 ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
 {
     OHOS::Media::Rect rect = {
         .left = srcRect.x,

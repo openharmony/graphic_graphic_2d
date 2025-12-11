@@ -1933,7 +1933,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 .h = h
             };
             std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+            bool transformEnabled = false;
+            if (!data.ReadBool(transformEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap, transformEnabled);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
                     RS_LOGE("RSClientToServiceConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed");
