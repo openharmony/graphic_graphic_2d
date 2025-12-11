@@ -314,8 +314,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightRates, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightKBS, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightPos, Vector3f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, EdLightNeg, Vector3f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, BorderSize, Vector2f);
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlass, CornerRadius, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkScale, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeBlurParams, Vector2f);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlass, DarkModeWeightsEmboss, Vector2f);
