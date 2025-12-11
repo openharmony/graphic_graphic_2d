@@ -96,7 +96,8 @@ private:
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
     mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>, sptr<RSIClientToServiceConnection>> connections_;
+    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
+        connections_;
 
     std::shared_ptr<RSServiceDumper> rsDumper_;
 

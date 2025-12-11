@@ -312,14 +312,14 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, mainThread_, renderPipelineAgent, tokenObj));
-    sptr<RSIClientToServiceConnection> tmp;
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
     auto it = connections_.find(tokenObj);
     if (it != connections_.end()) {
         tmp = it->second;
     }
-    connections_[tokenObj] = newConn;
+    connections_[tokenObj] = { newConn, newRenderConn };
     lock.unlock();
     mainThread_->AddTransactionDataPidInfo(remotePid);
     return std::make_pair(newConn, newRenderConn);
