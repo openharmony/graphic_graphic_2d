@@ -4853,6 +4853,8 @@ void RSProperties::OnApplyModifiers()
         }
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
+        filterNeedUpdate_ |= ((pixelStretchNeedUpdate_ || GetPixelStretch().has_value() || 
+            GetPixelStretchPercent().has_value()));
         CalculatePixelStretch();
         filterNeedUpdate_ = true;
     }
