@@ -17,6 +17,7 @@
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node_utils.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
@@ -986,7 +987,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 RSMainThread::Instance()->GetMutableAIBarNodes()[screenId].insert(renderNode);
                 intersectedWithAIBar = true;
                 bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
-                    hwcNode.IntersectHwcDamageWith(filter->second) : true;
+                    RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
                     ROSEN_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
                     continue;

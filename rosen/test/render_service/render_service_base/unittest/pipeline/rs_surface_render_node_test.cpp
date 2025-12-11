@@ -2862,29 +2862,5 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetUIFirstVisibleFilterRectTest, TestSize.Leve
     ASSERT_FALSE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
 }
 
-/**
- * @tc.name: IntersectHwcDamageWithTest
- * @tc.desc: Test the method IntersectHwcDamageWith
- * @tc.type: FUNC
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IntersectHwcDamageWithTest, TestSize.Level1)
-{
-    RectI rect { 0, 0, 50, 50 };
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
-
-    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
-    auto tempHandler = node->surfaceHandler_;
-    node->surfaceHandler_ = nullptr;
-    EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
-
-    node->surfaceHandler_ = tempHandler;
-    EXPECT_FALSE(node->IntersectHwcDamageWith(rect));
-
-    node->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_TRUE(node->IntersectHwcDamageWith(rect));
-    EXPECT_FALSE(node->IntersectHwcDamageWith({1, 1, 50, 50}));
-}
-
 } // namespace Rosen
 } // namespace OHOS

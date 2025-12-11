@@ -91,6 +91,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
+#include "pipeline/rs_surface_render_node_utils.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
@@ -2362,9 +2363,10 @@ bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& no
         }
         bool intersectHwcDamage = true;
         if (RSSystemProperties::GetAIBarOptEnabled()) {
+            auto filterRect = nodePtr->GetFilterRegion();
             intersectHwcDamage = std::any_of(hwcNodes.begin(), hwcNodes.end(),
-                [&nodePtr](const auto& hwcNode) {
-                    return hwcNode && hwcNode->IntersectHwcDamageWith(nodePtr->GetFilterRegion());
+                [&filterRect](const auto& hwcNode) {
+                    return hwcNode && RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*hwcNode, filterRect);
                 });
         }
         RS_OPTIONAL_TRACE_NAME_FMT("CheckReduceIntervalForAIBarNodesIfNeeded: intersectHwcDamage[%d]",

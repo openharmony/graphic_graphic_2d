@@ -468,13 +468,6 @@ public:
         needCollectHwcNode_ = false;
     }
 
-    /**
-     * @brief Query whether the damage region of hardware enabled node (hwcNode) intersects with the given rect.
-     *
-     * @note Return false if it's not hardware enabled type or the buffer has not been comsumed.
-     */
-    bool IntersectHwcDamageWith(const RectI& rect) const;
-
     bool GetCalcRectInPrepare() const
     {
         return calcRectInPrepare_;

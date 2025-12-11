@@ -2799,34 +2799,6 @@ void RSSurfaceRenderNode::UpdateHistoryUnsubmittedDirtyInfo()
         historyUnSubmittedOccludedDirtyRegion_);
 }
 
-bool RSSurfaceRenderNode::IntersectHwcDamageWith(const RectI& rect) const
-{
-    if (!IsHardwareEnabledType()) {
-        ROSEN_LOGD("RSSurfaceRenderNode::IntersectHwcDamageWith: not hardware enabled type.");
-        return false;
-    }
-
-    auto surfaceHandler = GetRSSurfaceHandler();
-    if (!surfaceHandler || !surfaceHandler->IsCurrentFrameBufferConsumed()) {
-        ROSEN_LOGD("RSSurfaceRenderNode::IntersectHwcDamageWith: no buffer or the buffer has not been consumed.");
-        return false;
-    }
-
-    auto geoPtr = GetRenderProperties().GetBoundsGeometry();
-#ifndef ROSEN_CROSS_PLATFORM
-    auto region = surfaceHandler->GetDamageRegion();
-    RectF realRect = RectF(region.x, region.y, region.w, region.h);
-#else
-    auto region = geoPtr->GetAbsRect();
-    RectF realRect = RectF(region.left_, region.top_, region.width_, region.height_);
-#endif
-    auto dirtyRect = geoPtr->MapRect(realRect, GetBufferRelMatrix());
-    RS_OPTIONAL_TRACE_FMT("RSSurfaceRenderNode::IntersectHwcDamageWith: dirtyRect: [%d,%d,%d,%d] rect: [%d,%d,%d,%d]",
-        dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight(),
-        rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
-    return dirtyRect.Intersect(rect);
-}
-
 bool RSSurfaceRenderNode::IsUIFirstSelfDrawCheck()
 {
     if (IsAppWindow()) {
