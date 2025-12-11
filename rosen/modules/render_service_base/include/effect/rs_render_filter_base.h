@@ -76,11 +76,11 @@ public:
             const float darkScale = this->template Getter<FrostedGlassDarkScaleRenderTag>()->GetRef();
             std::apply(
                 [this, &geFilter, darkScale](const auto&... propTag) {
-                    (UpdateAdaptiveParam<RSNGRenderFilterTemplate<Type, PropertyTags...>,
+                    (RSAdaptiveFilterHelper::UpdateAdaptiveParam<RSNGRenderFilterTemplate<Type, PropertyTags...>,
                          std::decay_t<decltype(propTag)>>(this, geFilter, propTag, darkScale),
                         ...);
                 },
-                EffectTemplateBase::properties_);
+                    EffectTemplateBase::properties_);
         } else {
             std::apply(
                 [&geFilter](const auto&... propTag) {
@@ -88,7 +88,7 @@ public:
                          geFilter, propTag),
                         ...);
             },
-            EffectTemplateBase::properties_);
+                EffectTemplateBase::properties_);
         }
         RSNGRenderFilterBase::UpdateCacheData(RSNGRenderFilterBase::geFilter_, geFilter);
         RSNGRenderFilterBase::geFilter_ = std::move(geFilter);

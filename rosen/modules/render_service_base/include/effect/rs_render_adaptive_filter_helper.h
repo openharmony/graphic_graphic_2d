@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_BASE_EFFECT_RS_RENDER_FROSTED_GLASS_HELPER_H
-#define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_FROSTED_GLASS_HELPER_H
+#ifndef RENDER_SERVICE_BASE_EFFECT_RS_RENDER_ADAPTIVE_FILTER_HELPER_H
+#define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_ADAPTIVE_FILTER_HELPER_H
 
 #include <type_traits>
 
@@ -23,9 +23,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace RSAdaptiveFilterHelper {
 
 template<typename FilterType, typename PropTag>
-inline void UpdateAdaptiveParam(
+void UpdateAdaptiveParam(
     FilterType* filter, std::shared_ptr<Drawing::GEVisualEffect>& geFilter, const PropTag& tag, float darkScale)
 {
     using TagType = std::decay_t<PropTag>;
@@ -65,8 +66,8 @@ inline void UpdateAdaptiveParam(
         RSNGRenderEffectHelper::UpdateVisualEffectParam(geFilter, tag);
     }
 }
-
+} // namespace RSAdaptiveFilterHelper
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_BASE_EFFECT_RS_RENDER_FROSTED_GLASS_HELPER_H
+#endif // RENDER_SERVICE_BASE_EFFECT_RS_RENDER_ADAPTIVE_FILTER_HELPER_H
