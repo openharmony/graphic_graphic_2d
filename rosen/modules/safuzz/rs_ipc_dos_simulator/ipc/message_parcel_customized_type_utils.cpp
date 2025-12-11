@@ -490,14 +490,12 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomCanvasSurfaceBufferCallbackSpt
 bool MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferSptr(
     MessageParcel& messageParcel, const TestCaseParams& testCaseParams)
 {
-    int width = RandomDataBasicType::GetRandomInt();
-    int height = RandomDataBasicType::GetRandomInt();
+    uint16_t min = 1; // Min width or height is 1
+    uint16_t max = 10000; // Max width or height is 10000
+    uint16_t width = min + RandomDataBasicType::GetRandomInt() % (max - min + 1);
+    uint16_t height = min + RandomDataBasicType::GetRandomInt() % (max - min + 1);
     pid_t pid = RandomDataBasicType::GetRandomPid();
     auto buffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid, width, height);
-    if (buffer == nullptr) {
-        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferSptr buffer null");
-        return false;
-    }
     auto ret = buffer->WriteToMessageParcel(messageParcel);
     if (ret != 0) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomSurfaceBufferSptr WriteRemoteObject failed");

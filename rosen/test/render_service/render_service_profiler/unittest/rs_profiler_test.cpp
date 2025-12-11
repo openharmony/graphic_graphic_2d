@@ -579,8 +579,8 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
 HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Level1)
 {
     auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(100);
-    drawCmdList->SetHeight(100);
+    drawCmdList->SetWidth(100); // DrawCmdList width for test is 100
+    drawCmdList->SetHeight(100); // DrawCmdList height for test is 100
     auto modifier = std::make_shared<ModifierNG::TestCustomRenderModifier>();
     auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
     property->GetRef() = drawCmdList;
