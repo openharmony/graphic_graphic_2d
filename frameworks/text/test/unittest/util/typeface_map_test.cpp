@@ -35,16 +35,61 @@ HWTEST_F(TypefaceMapTest, TypefaceMapTest001, TestSize.Level0)
     auto typeface = Drawing::Typeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
     uint32_t uniqueId = typeface->GetUniqueID();
-    instance.InsertTypeface(uniqueId, typeface);
-    instance.InsertTypeface(uniqueId, nullptr);
+    instance.InsertTypeface(typeface->GetHash(), typeface);
     {
-        auto result = instance.GetTypeface(uniqueId);
+        auto result = instance.GetTypefaceByUniqueId(uniqueId);
         ASSERT_NE(result, nullptr);
         EXPECT_EQ(result.get(), typeface.get());
     }
     typeface.reset();
     EXPECT_EQ(instance.typefaceMap_.size(), 1);
-    EXPECT_EQ(instance.GetTypeface(uniqueId), nullptr);
+    EXPECT_EQ(instance.GetTypefaceByUniqueId(uniqueId), nullptr);
+    EXPECT_TRUE(instance.typefaceMap_.empty());
+}
+
+/**
+ * @tc.name: TypefaceMapTest002
+ * @tc.desc: test GetTypefaceByHash
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypefaceMapTest, TypefaceMapTest002, TestSize.Level0)
+{
+    TypefaceMap& instance = TypefaceMap::GetInstance();
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    uint32_t hash = typeface->GetHash();
+    instance.InsertTypeface(hash, typeface);
+    {
+        auto result = instance.GetTypefaceByHash(hash);
+        ASSERT_NE(result, nullptr);
+        EXPECT_EQ(result.get(), typeface.get());
+    }
+    typeface.reset();
+    EXPECT_EQ(instance.typefaceMap_.size(), 1);
+    EXPECT_EQ(instance.GetTypefaceByHash(hash), nullptr);
+    EXPECT_TRUE(instance.typefaceMap_.empty());
+}
+
+/**
+ * @tc.name: TypefaceMapTest003
+ * @tc.desc: test GetTypefaceByHashInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(TypefaceMapTest, TypefaceMapTest003, TestSize.Level0)
+{
+    TypefaceMap& instance = TypefaceMap::GetInstance();
+    auto typeface = Drawing::Typeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    uint32_t hash = typeface->GetHash();
+    instance.InsertTypeface(hash, typeface);
+    {
+        auto result = instance.GetTypefaceByHashInner(hash);
+        ASSERT_NE(result, nullptr);
+        EXPECT_EQ(result.get(), typeface.get());
+    }
+    typeface.reset();
+    EXPECT_EQ(instance.typefaceMap_.size(), 1);
+    EXPECT_EQ(instance.GetTypefaceByHashInner(hash), nullptr);
     EXPECT_TRUE(instance.typefaceMap_.empty());
 }
 

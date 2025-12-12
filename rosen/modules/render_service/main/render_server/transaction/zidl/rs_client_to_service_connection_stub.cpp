@@ -2328,27 +2328,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE): {
             int32_t result{0};
-            uint64_t id{0};
-            int32_t fd{-1};
-            uint32_t size{0};
-            uint32_t index{0};
             int32_t needUpdate{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(size) || !data.ReadUint32(index)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            fd = data.ReadFileDescriptor();
-            if (fd == -1) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
+            Drawing::SharedTypeface sharedTypeface;
+            bool unmarshallingRes = RSMarshallingHelper::Unmarshalling(data, sharedTypeface);
+            if (!unmarshallingRes) {
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             // safe check
-            if (IsValidCallingPid(ExtractPid(id), callingPid)) {
-                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, id);
-                result = RegisterTypeface(id, size, fd, needUpdate, index);
+            if (IsValidCallingPid(ExtractPid(sharedTypeface.id_), callingPid)) {
+                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, sharedTypeface.id_);
+                result = RegisterTypeface(sharedTypeface, needUpdate);
             } else {
+                ::close(sharedTypeface.fd_);
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);
             }

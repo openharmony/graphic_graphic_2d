@@ -56,6 +56,8 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
         const FontArguments& fontArguments);
+    static std::unique_ptr<MemoryStream> GenerateAshMemoryStream(std::unique_ptr<MemoryStream> memoryStream,
+        const void*& dataPtr, size_t& size, int32_t& fd);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
     static void RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb);

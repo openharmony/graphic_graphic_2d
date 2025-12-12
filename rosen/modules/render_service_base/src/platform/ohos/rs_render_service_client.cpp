@@ -1311,7 +1311,6 @@ bool RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>&
     return clientToService->RegisterTypeface(globalUniqueId, typeface);
 }
 
-
 int32_t RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& typeface, uint32_t index)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -1319,14 +1318,14 @@ int32_t RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typefac
         ROSEN_LOGE("RSRenderServiceClient::RegisterTypeface: clientToService is nullptr");
         return -1;
     }
-    uint64_t id = RSTypefaceCache::GenGlobalUniqueId(typeface->GetHash());
+    uint64_t id = RSTypefaceCache::GenGlobalUniqueId(typeface->GetUniqueID());
     ROSEN_LOGD("RSRenderServiceClient::RegisterTypeface: pid[%{public}d] register typface[%{public}u]",
         RSTypefaceCache::GetTypefacePid(id), RSTypefaceCache::GetTypefaceId(id));
     int32_t needUpdate = 0;
     uint32_t size = typeface->GetSize();
-    int32_t originFd = typeface->GetFd();
-    int32_t fd = clientToService->RegisterTypeface(id, size, originFd, needUpdate, index);
-    if (fd != originFd && fd >= 0) {
+    Drawing::SharedTypeface sharedTypeface(id, typeface);
+    int32_t fd = clientToService->RegisterTypeface(sharedTypeface, needUpdate);
+    if (fd != typeface->GetFd() && fd >= 0) {
         auto ashmem = std::make_unique<Ashmem>(fd, size);
         bool mapResult = ashmem->MapReadOnlyAshmem();
         const void* ptr = ashmem->ReadFromAshmem(size, 0);
