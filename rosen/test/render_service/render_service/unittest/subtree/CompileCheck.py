@@ -21,17 +21,17 @@ import subprocess
 compile_check_file_prefix = "../../../foundation/graphic/graphic_2d/rosen/modules/render_service/core/drawable/"
 compile_check_file = [
     ('rs_logical_display_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'RSParallelManager::Singleton().OnDrawLogicDisplayNodeDrawable'),
-    ('rs_surface_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'QuickGetDrawState(canvas'),
-    ('rs_canvas_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'QuickGetDrawState(canvas)'),
+    ('rs_surface_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'QuickGetDrawState(rscanvas'),
+    ('rs_canvas_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'QuickGetDrawState(*paintFilterCanvas)'),
     ('rs_effect_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', '->IsQuickDrawState()'),
     ('rs_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'RSParallelManager::Singleton().OnDrawNodeDrawable'),
 ]
 compile_check_groundtruth = [
-    ['rs_logical_display_render_node_drawable.cpp', 121, 247],
-    ['rs_surface_render_node_drawable.cpp', 560, 682],
-    ['rs_canvas_render_node_drawable.cpp', 74, 112],
-    ['rs_effect_render_node_drawable.cpp', 36, 71],
-    ['rs_render_node_drawable.cpp', 92, 107],
+    ['rs_logical_display_render_node_drawable.cpp', 123, 264],
+    ['rs_surface_render_node_drawable.cpp', 585, 708],
+    ['rs_canvas_render_node_drawable.cpp', 79, 121],
+    ['rs_effect_render_node_drawable.cpp', 36, 75],
+    ['rs_render_node_drawable.cpp', 102, 117],
 ]
 
 
@@ -71,18 +71,18 @@ def main():
         file_path = os.path.join(compile_check_file_prefix, check)
         line_numbers = find_lines_in_file(file_path, start_flag, end_flag)
         code_record = [check] + line_numbers
-        code_records = [code_record]
+        code_records += [code_record]
         print(code_record, end=',\n')
     # Code Check
     print("[Function Modified]")
     passed = True
     for code_record in code_records:
         if code_check(code_record) == False:
-            print(check, "OnDraw has been modified! \
+            print(code_record[0], "OnDraw has been modified! \
                             Please contact with Committer!")
             passed = False
-        if passed == False:
-            sys.exit(-1)
+    if passed == False:
+        sys.exit(-1)
 
 # Main
 if __name__ == "__main__":
