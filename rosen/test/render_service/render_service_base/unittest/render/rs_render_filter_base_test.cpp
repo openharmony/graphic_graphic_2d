@@ -427,4 +427,40 @@ HWTEST_F(RSRenderFilterBaseTest, CalculatePropTagHashImplRRect, TestSize.Level1)
     RRect value(rect, 0.5f, 0.5f);
     RSNGRenderEffectHelper::CalculatePropTagHashImpl(hash, value);
 }
+
+/**
+ * @tc.name: AdaptiveParamDark
+ * @tc.desc: Test adaptive parameter update when dark scale is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, AdaptiveParamDark, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderFrostedGlassFilter>();
+    // set base and dark-mode specific properties
+    filter->Setter<FrostedGlassBgPosRenderTag>(Vector3f(1.0f, 2.0f, 3.0f));
+    filter->Setter<FrostedGlassDarkModeBgPosRenderTag>(Vector3f(9.0f, 8.0f, 7.0f));
+    filter->Setter<FrostedGlassDarkScaleRenderTag>(1.0f); // dark mode
+
+    // should not crash and should produce a geFilter
+    filter->GenerateGEVisualEffect();
+    EXPECT_NE(filter->geFilter_, nullptr);
+}
+
+/**
+ * @tc.name: AdaptiveParamLight
+ * @tc.desc: Test adaptive parameter update when dark scale is disabled (light mode)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, AdaptiveParamLight, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderFrostedGlassFilter>();
+    // set base and dark-mode specific properties
+    filter->Setter<FrostedGlassBgPosRenderTag>(Vector3f(1.5f, 2.5f, 3.5f));
+    filter->Setter<FrostedGlassDarkModeBgPosRenderTag>(Vector3f(9.5f, 8.5f, 7.5f));
+    filter->Setter<FrostedGlassDarkScaleRenderTag>(0.0f); // light mode
+
+    // should not crash and should produce a geFilter
+    filter->GenerateGEVisualEffect();
+    EXPECT_NE(filter->geFilter_, nullptr);
+}
 } // namespace OHOS::Rosen

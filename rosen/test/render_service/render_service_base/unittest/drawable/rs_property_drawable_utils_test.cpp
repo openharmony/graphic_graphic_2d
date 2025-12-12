@@ -1134,4 +1134,81 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter007, test
     auto rrectFromShape = rrectShape->Getter<SDFRRectShapeRRectRenderTag>()->stagingValue_;
     EXPECT_TRUE(rrectFromShape.IsNearEqual(RRect(RectT<float>(0.0f, 0.0f, 100.0f, 100.0f), 0.0f, 0.0f)));
 }
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest001
+ * @tc.desc: ApplyAdaptiveFrostedGlassParams null and type checks
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest001, testing::ext::TestSize.Level1)
+{
+    // null effect
+    Drawing::Canvas canvas;
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, nullptr);
+
+    // effect not frosted glass
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(renderFilter, nullptr);
+    // capture any state we can inspect: the type must remain BLUR
+    EXPECT_EQ(renderFilter->GetType(), RSNGEffectType::BLUR);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, renderFilter);
+    // still should be BLUR after call
+    EXPECT_EQ(renderFilter->GetType(), RSNGEffectType::BLUR);
+}
+
+namespace {
+Vector2f DARK_BLUR(1.5f, 2.5f);
+Vector2f DARK_WEIGHTS(0.1f, 0.2f);
+Vector2f DARK_BG_RATES(0.3f, 0.4f);
+Vector3f DARK_BG_KBS(0.5f, 0.6f, 0.7f);
+Vector3f DARK_BG_POS(0.8f, 0.9f, 1.0f);
+Vector3f DARK_BG_NEG(1.1f, 1.2f, 1.3f);
+} // namespace
+
+/**
+ * @tc.name: ApplyAdaptiveFrostedGlassParamsTest002
+ * @tc.desc: ApplyAdaptiveFrostedGlassParams dark / light branch
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, testing::ext::TestSize.Level1)
+{
+    // create frosted glass filter
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    ASSERT_NE(renderFilter, nullptr);
+    auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+
+    // initialize main properties to different sentinel values
+    glass->Setter<FrostedGlassBlurParamsRenderTag>(Vector2f(0.0f, 0.0f));
+    glass->Setter<FrostedGlassWeightsEmbossRenderTag>(Vector2f(0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgRatesRenderTag>(Vector2f(0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgKBSRenderTag>(Vector3f(0.0f, 0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgPosRenderTag>(Vector3f(0.0f, 0.0f, 0.0f));
+    glass->Setter<FrostedGlassBgNegRenderTag>(Vector3f(0.0f, 0.0f, 0.0f));
+
+    // set per-mode tags
+    glass->Setter<FrostedGlassDarkModeBlurParamsRenderTag>(DARK_BLUR);
+    glass->Setter<FrostedGlassDarkModeWeightsEmbossRenderTag>(DARK_WEIGHTS);
+    glass->Setter<FrostedGlassDarkModeBgRatesRenderTag>(DARK_BG_RATES);
+    glass->Setter<FrostedGlassDarkModeBgKBSRenderTag>(DARK_BG_KBS);
+    glass->Setter<FrostedGlassDarkModeBgPosRenderTag>(DARK_BG_POS);
+    glass->Setter<FrostedGlassDarkModeBgNegRenderTag>(DARK_BG_NEG);
+
+    // prepare canvas and set picked color to black -> light
+    Drawing::Canvas canvasDark;
+    RSPaintFilterCanvas paintFilterCanvasDark(&canvasDark);
+    paintFilterCanvasDark.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_BLACK);
+
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasDark, renderFilter);
+    EXPECT_EQ(glass->Getter<FrostedGlassDarkScaleRenderTag>()->Get(), 0.0f);
+
+    // prepare canvas and set picked color to white -> dark
+    Drawing::Canvas canvasLight;
+    RSPaintFilterCanvas paintFilterCanvasLight(&canvasLight);
+    paintFilterCanvasLight.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_WHITE);
+    
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasLight, renderFilter);
+    EXPECT_EQ(glass->Getter<FrostedGlassDarkScaleRenderTag>()->Get(), 1.0f);
+}
 } // namespace OHOS::Rosen
