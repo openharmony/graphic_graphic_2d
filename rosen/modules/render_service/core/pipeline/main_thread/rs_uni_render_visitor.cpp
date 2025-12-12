@@ -1482,7 +1482,7 @@ void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by crossNode",
                 node.GetName().c_str(), node.GetId());
             hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
-                HwcDisabledReasons::DISABLED_BY_CROSSNODE, node.GetName());
+                HwcDisabledReasons::DISABLED_BY_CROSS_NODE, node.GetName());
         }
         node.SetNeedCacheSurface(needCacheSurface);
     }
@@ -2151,7 +2151,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
         hwcVisitor_->isHardwareForcedDisabled_ = true;
         RS_OPTIONAL_TRACE_FMT("hwc debug: id:%" PRIu64 " disabled by screenNode rotation", node.GetId());
         hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
-            HwcDisabledReasons::DISABLED_BY_SCREENNODE_ROTATION, " ");
+            HwcDisabledReasons::DISABLED_BY_SCREEN_NODE_ROTATION, " ");
     }
 
     // init hdr
@@ -2494,7 +2494,7 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " use hardCursor to display",
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
         hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(surfaceNode->GetId(),
-            HwcDisabledReasons::DISABLED_BY_POINTWINDOW, surfaceNode->GetName());
+            HwcDisabledReasons::DISABLED_BY_POINT_WINDOW, surfaceNode->GetName());
         bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorDisplay();
         RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, curScreenNode_->GetScreenInfo());
@@ -2526,7 +2526,7 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
                     topLayer->GetName().c_str(), topLayer->GetId(), IsHardwareComposerEnabled(),
                     topLayer->ShouldPaint(), curScreenNode_->GetHasUniRenderHdrSurface(), drmNodes_.empty());
                 hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(topLayer->GetId(),
-                    HwcDisabledReasons::DISABLED_BY_TOPLAYERS, topLayer->GetName());
+                    HwcDisabledReasons::DISABLED_BY_TOP_LAYERS, topLayer->GetName());
             }
             auto transform = RSUniHwcComputeUtil::GetLayerTransform(*topLayer, curScreenNode_->GetScreenInfo());
             topLayer->UpdateHwcNodeLayerInfo(transform);
