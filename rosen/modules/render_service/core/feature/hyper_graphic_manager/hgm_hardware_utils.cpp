@@ -117,7 +117,7 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
     for (auto [screenId, modeId] : *modeMap) {
         for (auto mode : screenManager->GetScreenSupportedModes(screenId)) {
             RS_OPTIONAL_TRACE_NAME_FMT(
-                "HgmContext check modes w:%" PRId32", h:%" PRId32", rate:%" PRIu32", id:%" PRId32,
+                "HgmContext check modes w:%" PRId32 ", h:%" PRId32 ", rate:%" PRIu32 ", id:%" PRId32,
                 mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
         }
 
