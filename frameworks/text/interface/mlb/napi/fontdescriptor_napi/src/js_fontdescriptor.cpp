@@ -34,6 +34,10 @@ std::unordered_map<int, int> g_weightMap = {
     {800, static_cast<int>(FontWeight::W800)},
     {900, static_cast<int>(FontWeight::W900)}
 };
+constexpr int MIN_FONT_WEIGHT = 100;
+constexpr int MAX_FONT_WEIGHT = 900;
+constexpr int WEIGHT_STEP = 100;
+constexpr int ROUNDING_HALD_STEP = 50;
 
 using FontDescriptorProperty = std::variant<
     std::reference_wrapper<int>,
@@ -196,7 +200,9 @@ bool JsFontDescriptor::SetProperty(napi_env env, napi_value object, const char* 
 
 bool JsFontDescriptor::ConvertFontDescWeight(napi_env env, napi_value obj, int weight)
 {
-    auto iter = g_weightMap.find(weight);
+    int clampWeight = std::max(MIN_FONT_WEIGHT, std::min(MAX_FONT_WEIGHT, weight));
+    int roundedWeight = (clampWeight + ROUNDING_HALD_STEP) / WEIGHT_STEP * WEIGHT_STEP;
+    auto iter = g_weightMap.find(roundedWeight);
     if (iter == g_weightMap.end()) {
         return false;
     }

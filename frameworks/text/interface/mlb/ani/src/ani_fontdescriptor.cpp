@@ -39,6 +39,11 @@ std::unordered_map<int, int> g_weightMap = {
     {800, static_cast<int>(FontWeight::W800)},
     {900, static_cast<int>(FontWeight::W900)}
 };
+constexpr int MIN_FONT_WEIGHT = 100;
+constexpr int MAX_FONT_WEIGHT = 900;
+constexpr int WEIGHT_STEP = 100;
+constexpr int ROUNDING_HALD_STEP = 50;
+
 const std::string FONT_PATH_IN_SIGN =
     "X{C{" + std::string(ANI_GLOBAL_RESOURCE) + "}C{" + std::string(ANI_STRING) + "}}";
 
@@ -128,7 +133,9 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         return ANI_ERROR;
     }
 
-    auto iter = g_weightMap.find(fontDesc->weight);
+    int clampWeight = std::max(MIN_FONT_WEIGHT, std::min(MAX_FONT_WEIGHT, fontDesc->weight));
+    int roundedWeight = (clampWeight + ROUNDING_HALD_STEP) / WEIGHT_STEP * WEIGHT_STEP;
+    auto iter = g_weightMap.find(roundedWeight);
     if (iter == g_weightMap.end()) {
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
