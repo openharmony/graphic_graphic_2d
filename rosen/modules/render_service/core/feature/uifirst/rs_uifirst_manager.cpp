@@ -1371,8 +1371,6 @@ void RSUifirstManager::AddPendingPostNode(NodeId id, std::shared_ptr<RSSurfaceRe
     node->SetHwcChildrenDisabledState();
     RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by uifirst",
         node->GetName().c_str(), node->GetId());
-    HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(node->GetId(),
-        HwcDisabledReasons::DISABLED_BY_UIFIRST, node->GetName());
     node->AddToPendingSyncList();
 
     if (currentFrameCacheType == MultiThreadCacheType::LEASH_WINDOW ||
@@ -1722,8 +1720,6 @@ void RSUifirstManager::ProcessFirstFrameCache(RSSurfaceRenderNode& node, MultiTh
             node.SetHwcChildrenDisabledState();
             RS_OPTIONAL_TRACE_NAME_FMT("name:%s id:%" PRIu64 " children disabled by uifirst first frame",
                 node.GetName().c_str(), node.GetId());
-            HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(node.GetId(),
-                HwcDisabledReasons::DISABLED_BY_UIFIRST, node.GetName());
             // delte caches when node is not on the tree.
             auto func = &RSUifirstManager::ProcessTreeStateChange;
             node.RegisterTreeStateChangeCallback(func);
