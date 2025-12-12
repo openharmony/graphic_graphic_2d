@@ -16,6 +16,7 @@
 #define RENDER_SERVICE_COMPOSER_BASE_CONNECTION_RS_RENDER_TO_COMPOSER_CONNECTION_PROXY_H
 
 #include <iremote_proxy.h>
+#include "graphic_common.h"
 #include "irs_render_to_composer_connection.h"
 #include "sandbox_utils.h"
 

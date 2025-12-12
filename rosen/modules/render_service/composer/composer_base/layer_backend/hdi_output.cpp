@@ -815,7 +815,6 @@ void HdiOutput::SetPendingMode(int64_t period, int64_t timestamp)
 
 void HdiOutput::Dump(std::string& result) const
 {
-    std::vector<LayerDumpInfo> dumpLayerInfos;
     std::unique_lock<std::mutex> lock(mutex_);
     if (fbSurface_ != nullptr) {
         result += "\n";

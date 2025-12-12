@@ -925,8 +925,8 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     RS_LOGD("Redraw computed target color gamut: %{public}d,"
         "pixel format: %{public}d, frame width: %{public}u, frame height: %{public}u",
-        colorGamut, pixelFormat, screenInfo.phyWidth, screenInfo.phyHeight);
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo,
+        colorGamut, pixelFormat, screenInfo_.phyWidth, screenInfo_.phyHeight);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_,
         isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
     // set color space to surface buffer metadata

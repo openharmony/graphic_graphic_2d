@@ -43,7 +43,7 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
     uniRenderThread->NotifyScreenNodeBufferReleased(screenId);
     // 游戏大脑 打桩获取SwapBufferTime
     if (FrameReport::GetInstance().HasGameScene()) {
-        RS_LOGD("[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}lld",
+        RS_LOGD("[game_accelerate_schedule] RSComposerToRenderConnection lastSwapBufferTime %{public}" PRId64,
             releaseLayerInfo.lastSwapBufferTime / 1000);
         FrameReport::GetInstance().SetLastSwapBufferTime(releaseLayerInfo.lastSwapBufferTime);
     }
