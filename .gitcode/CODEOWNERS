@@ -58,7 +58,7 @@ rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connect
 rosen/modules/render_service_base/src/platform/ohos/rs_client_to_service_connection_proxy.cpp @white-dragon-tiger
 rosen/modules/render_service_base/include/command/ @white-dragon-tiger
 etc/graphic.para.dac @white-dragon-tiger
-rosen/modules/safuzz/ @siyuan_zhou
+rosen/modules/safuzz/ @white-dragon-tiger
 
 [transaction]
 rosen/modules/render_service_client/core/transaction/rs_transaction.h @chuchengcheng
@@ -134,3 +134,8 @@ rosen/modules/render_service_base/include/screen_manager/ @pengquan1
 rosen/modules/render_service_base/src/screen_manager/ @pengquan1
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.h @pengquan1
 rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_processor.cpp @pengquan1
+
+[render_group]
+rosen/modules/render_service_base/src/feature/render_group @zhangzhichao0091
+rosen/modules/render_service_base/include/feature/render_group @zhangzhichao0091
+rosen/modules/render_service/core/feature/render_group @zhangzhichao0091
