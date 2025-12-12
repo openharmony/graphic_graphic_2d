@@ -3943,12 +3943,12 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
-    EXPECT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::BLACKLIST_IS_EMPTY);
 
     for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
     }
-    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::INVALID_ARGUMENTS);
 }
 
 /**
@@ -3967,12 +3967,12 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
     int32_t repCode;
-    EXPECT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
+    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), ERR_INVALID_VALUE);
 
     for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
     }
-    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
+    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), ERR_INVALID_VALUE);
 }
 
 /**

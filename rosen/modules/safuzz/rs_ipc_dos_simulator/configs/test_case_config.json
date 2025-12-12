@@ -1642,6 +1642,20 @@
     "messageOption": "TF_ASYNC"
   },
   {
+    "testCaseDesc": "ADD_VIRTUAL_SCREEN_WHITELIST_TEST_001",
+    "interfaceName": "ADD_VIRTUAL_SCREEN_WHITELIST",
+    "inputParams": "WriteUint64;WriteUInt64Vector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "REMOVE_VIRTUAL_SCREEN_WHITELIST_TEST_001",
+    "interfaceName": "REMOVE_VIRTUAL_SCREEN_WHITELIST",
+    "inputParams": "WriteUint64;WriteUInt64Vector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
     "testCaseDesc": "SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST_TEST_001",
     "interfaceName": "SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST",
     "inputParams": "WriteUint64;WriteUInt64Vector",

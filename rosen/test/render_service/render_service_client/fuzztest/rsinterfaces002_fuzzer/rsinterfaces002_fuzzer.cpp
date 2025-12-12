@@ -36,7 +36,9 @@ const uint8_t DO_SET_VIRTUAL_SCREEN_USING_STATUS = 10;
 const uint8_t DO_SET_VIRTUAL_SCREEN_REFRESH_RATE = 11;
 const uint8_t DO_SET_VIRTUAL_SCREEN_STATUS = 12;
 const uint8_t DO_SET_VIRTUAL_SCREEN_TYPE_BLACK_LIST = 13;
-const uint8_t TARGET_SIZE = 14;
+const uint8_t DO_ADD_VIRTUAL_SCREEN_WHITE_LIST = 14;
+const uint8_t DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST = 15;
+const uint8_t TARGET_SIZE = 16;
 
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
@@ -140,6 +142,30 @@ void DoSetVirtualScreenBlackList()
     }
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetVirtualScreenBlackList(id, blackListVector);
+}
+
+void DoAddVirtualScreenWhiteList()
+{
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        whiteList.push_back(GetData<NodeId>());
+    }
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.AddVirtualScreenWhiteList(id, whiteList);
+}
+
+void DoRemoveVirtualScreenWhiteList()
+{
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        whiteList.push_back(GetData<NodeId>());
+    }
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    rsInterfaces.RemoveVirtualScreenWhiteList(id, whiteList);
 }
 
 void DoAddVirtualScreenBlackList()
@@ -264,6 +290,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST:
             OHOS::Rosen::DoRemoveVirtualScreenBlackList();
+            break;
+        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoAddVirtualScreenWhiteList();
+            break;
+        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoRemoveVirtualScreenWhiteList();
             break;
         case OHOS::Rosen::DO_SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST:
             OHOS::Rosen::DoSetVirtualScreenSecurityExemptionList();
