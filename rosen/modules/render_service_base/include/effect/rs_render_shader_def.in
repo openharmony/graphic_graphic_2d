@@ -212,5 +212,8 @@ DECLARE_SHADER(CircleFlowlight, CIRCLE_FLOWLIGHT,
     ADD_PROPERTY_TAG(CircleFlowlight, GradientX),
     ADD_PROPERTY_TAG(CircleFlowlight, GradientY),
     ADD_PROPERTY_TAG(CircleFlowlight, Progress),
+    ADD_PROPERTY_TAG(CircleFlowlight, Strength),
+    ADD_PROPERTY_TAG(CircleFlowlight, DistortStrength),
+    ADD_PROPERTY_TAG(CircleFlowlight, BlendGradient),
     ADD_PROPERTY_TAG(CircleFlowlight, Mask)
 );
