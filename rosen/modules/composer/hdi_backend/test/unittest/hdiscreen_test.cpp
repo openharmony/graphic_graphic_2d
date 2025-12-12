@@ -64,9 +64,6 @@ void HdiScreenTest::SetUpTestCase()
 void HdiScreenTest::TearDownTestCase()
 {
     sleep(WAIT_SYSTEM_ABILITY_REPORT_DATA_SECONDS);
-
-    uint64_t propertyValue = 0;
-    ASSERT_EQ(hdiScreen_->SetDisplayProperty(propertyValue), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 namespace {
@@ -116,6 +113,8 @@ HWTEST_F(HdiScreenTest, CheckDeviceNull001, Function | MediumTest| Level3)
     uint64_t timestamp = 10000000;
     uint32_t type = 0;
     ASSERT_EQ(hdiScreen_->SetScreenConstraint(frameId, timestamp, type), GRAPHIC_DISPLAY_NULL_PTR);
+    uint64_t propertyValue = 0;
+    ASSERT_EQ(hdiScreen_->SetDisplayProperty(propertyValue), GRAPHIC_DISPLAY_NULL_PTR);
 }
 
 /*
@@ -152,6 +151,20 @@ HWTEST_F(HdiScreenTest, GetScreenCapability001, Function | MediumTest| Level3)
 {
     GraphicDisplayCapability displayCapability = {};
     ASSERT_EQ(HdiScreenTest::hdiScreen_->GetScreenCapability(displayCapability), 0);
+}
+
+/*
+* Function: SetDisplayProperty001
+* Type: Function
+* Rank: Important(3)
+* EnvConditions: N/A
+* CaseDescription: 1. call SetDisplayProperty
+*                  2. check ret
+*/
+HWTEST_F(HdiScreenTest, SetDisplayProperty001, Function | MediumTest| Level3)
+{
+    uint64_t propertyValue = 0;
+    ASSERT_EQ(hdiScreen_->SetDisplayProperty(propertyValue), 0);
 }
 
 /*
