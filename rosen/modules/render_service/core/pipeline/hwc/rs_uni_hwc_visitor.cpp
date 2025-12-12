@@ -635,7 +635,7 @@ void RSUniHwcVisitor::UpdateTransparentHwcNodeEnable(
                     lowerHwcNodeSPtr->GetName().c_str(), lowerHwcNodeSPtr->GetId());
                 transparentHwcNodeSPtr->SetHardwareForcedDisabledState(true);
                 Statistics().UpdateHwcDisabledReasonForDFX(transparentHwcNodeSPtr->GetId(),
-                    HwcDisabledReasons::DISABLED_BY_BACKGROUND_ALPHA, transparentHwcNodeSPtr->GetName());
+                    HwcDisabledReasons::DISABLED_BY_TRANSPARENT_NODE, transparentHwcNodeSPtr->GetName());
                 break;
             }
         }
@@ -1089,7 +1089,9 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
         return;
     }
     const auto& hwcNodes = uniRenderVisitor_.curSurfaceNode_->GetChildHardwareEnabledNodes();
-    if (hwcNodes.empty()) { return; }
+    if (hwcNodes.empty()) {
+        return;
+    }
     for (auto hwcNode : hwcNodes) {
         auto hwcNodePtr = hwcNode.lock();
         if (!hwcNodePtr || !hwcNodePtr->IsOnTheTree() || hwcNodePtr->GetCalcRectInPrepare()) {
@@ -1102,8 +1104,6 @@ void RSUniHwcVisitor::UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& root
                 parentNode ? parentNode->GetId() : 0,
                 hwcNodePtr->GetRSSurfaceHandler() && hwcNodePtr->GetRSSurfaceHandler()->GetBuffer());
             hwcNodePtr->SetHardwareForcedDisabledState(true);
-            Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
-                HwcDisabledReasons::DISABLED_BY_NO_BUFFER_IN_SKIPPEDBUFFER, hwcNodePtr->GetName());
             continue;
         }
         auto renderNode = hwcNodePtr->ReinterpretCastTo<RSRenderNode>();
@@ -1345,7 +1345,7 @@ void RSUniHwcVisitor::UpdateHwcNodeInfo(RSSurfaceRenderNode& node,
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by node intersect with previous filter",
             node.GetName().c_str(), node.GetId());
         Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
-            HwcDisabledReasons::DISABLED_BY_FLITER_RECT, node.GetName());
+            HwcDisabledReasons::DISABLED_BY_PREVIOUS_FLITER_RECT, node.GetName());
     }
     node.HwcSurfaceRecorder().SetIntersectWithPreviousFilter(false);
     node.SetInFixedRotation(uniRenderVisitor_.displayNodeRotationChanged_ ||
