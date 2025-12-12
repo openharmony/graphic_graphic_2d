@@ -25,6 +25,12 @@
 namespace OHOS {
 namespace Rosen {
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, int value)
+{
+    geFilter.SetParam(desc, value);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, float value)
 {
     geFilter.SetParam(desc, value);
@@ -77,6 +83,12 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 }
 
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+    const std::string& desc, const std::vector<Vector4f>& value)
+{
+    geFilter.SetParam(desc, value);
+}
+
+void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, std::shared_ptr<Media::PixelMap> value)
 {
     auto image = RSPixelMapUtil::ExtractDrawingImage(value);
@@ -117,6 +129,11 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
                             matrixData[Matrix3f::Index::PERSP_0], matrixData[Matrix3f::Index::PERSP_1],
                             matrixData[Matrix3f::Index::PERSP_2]);
     geFilter.SetParam(desc, drawingMatrix);
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, int value)
+{
+    hash = hashFunc_(&value, sizeof(value), hash);
 }
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, float value)
@@ -168,6 +185,13 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std:
 {
     for (const auto& vec : value) {
         hash = hashFunc_(vec.data_, Vector2f::DATA_SIZE, hash);
+    }
+}
+
+void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const std::vector<Vector4f>& value)
+{
+    for (const auto& vec : value) {
+        hash = hashFunc_(vec.data_, Vector4f::DATA_SIZE, hash);
     }
 }
 

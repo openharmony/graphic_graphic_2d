@@ -28,25 +28,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-std::vector<Drawing::Color> GetRandomDrawingColorVector()
-{
-    std::vector<Drawing::Color> vector;
-    int vectorLength = RandomEngine::GetRandomMiddleVectorLength();
-    for (int i = 0; i < vectorLength; ++i) {
-        vector.emplace_back(RandomData::GetRandomDrawingColor());
-    }
-    return vector;
-}
-
-std::vector<Drawing::Point> GetRandomDrawingPointVector()
-{
-    std::vector<Drawing::Point> vector;
-    int vectorLength = RandomEngine::GetRandomMiddleVectorLength();
-    for (int i = 0; i < vectorLength; ++i) {
-        vector.emplace_back(RandomData::GetRandomDrawingPoint());
-    }
-    return vector;
-}
 
 std::vector<std::pair<Drawing::Color, float>> GetRandomDrawingColorAndFloatPairVector()
 {
@@ -56,34 +37,6 @@ std::vector<std::pair<Drawing::Color, float>> GetRandomDrawingColorAndFloatPairV
         vector.emplace_back(std::make_pair(RandomData::GetRandomDrawingColor(), RandomData::GetRandomFloat()));
     }
     return vector;
-}
-
-DotMatrixShaderParams GetRandomDotMatrixShaderParams()
-{
-    static constexpr int DOT_MATRIX_EFFECT_TYPE_INDEX_MAX = 2;
-    DotMatrixShaderParams params;
-    params.effectType_ =
-        static_cast<DotMatrixEffectType>(RandomEngine::GetRandomIndex(DOT_MATRIX_EFFECT_TYPE_INDEX_MAX));
-    params.normalParams_.dotColor_ = RandomData::GetRandomDrawingColor();
-    params.normalParams_.dotRadius_ = RandomData::GetRandomFloat();
-    params.normalParams_.dotSpacing_ = RandomData::GetRandomFloat();
-    params.normalParams_.bgColor_ = RandomData::GetRandomDrawingColor();
-    switch (params.effectType_) {
-        case DotMatrixEffectType::RIPPLE: {
-            params.rippleEffectParams_.inverseEffect_ = RandomData::GetRandomBool();
-            params.rippleEffectParams_.pathWidth_ = RandomData::GetRandomFloat();
-            params.rippleEffectParams_.effectColors_ = GetRandomDrawingColorVector();
-            params.rippleEffectParams_.colorFractions_ = RandomData::GetRandomFloatVector();
-            params.rippleEffectParams_.startPoints_ = GetRandomDrawingPointVector();
-        }
-        case DotMatrixEffectType::ROTATE: {
-            params.rotateEffectParams_.effectColors_ = GetRandomDrawingColorVector();
-            params.rotateEffectParams_.pathDirection_ = static_cast<DotMatrixDirection>(
-                RandomEngine::GetRandomIndex(static_cast<int>(DotMatrixDirection::MAX)));
-        }
-        default: {}
-    }
-    return params;
 }
 
 GEXFlowLightSweepParams GetRandomGEXFlowLightSweepParams()
@@ -104,7 +57,6 @@ Drawing::ShaderEffect::ShaderEffectType GetRandomDrawingShaderEffectType()
 std::shared_ptr<RSShader> RandomRSShader::GetRandomRSShader()
 {
     static const std::vector<std::function<std::shared_ptr<RSShader>()>> rsShaderRandomGenerator = {
-        GetRandomRSDotMatrixShader,
         GetRandomRSFlowLightSweepShader,
         GetRandomRSDrawingShader,
     };
@@ -114,23 +66,6 @@ std::shared_ptr<RSShader> RandomRSShader::GetRandomRSShader()
         shader->SetDrawingShader(std::make_shared<Drawing::ShaderEffect>(GetRandomDrawingShaderEffectType()));
     }
     return shader;
-}
-
-std::shared_ptr<RSShader> RandomRSShader::GetRandomRSDotMatrixShader()
-{
-    auto params = GetRandomDotMatrixShaderParams();
-    Parcel parcel;
-    if (!params.Marshalling(parcel)) {
-        return nullptr;
-    }
-
-    std::shared_ptr<RSDotMatrixShader> rsShader = std::make_shared<RSDotMatrixShader>();
-    rsShader->type_ = RSShader::ShaderType::DOT_MATRIX;
-    bool needReset = false;
-    if (!rsShader->Unmarshalling(parcel, needReset)) {
-        return nullptr;
-    }
-    return rsShader;
 }
 
 std::shared_ptr<RSShader> RandomRSShader::GetRandomRSFlowLightSweepShader()

@@ -97,6 +97,19 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, HaloRadius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, LightWeight, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(ContourDiagonalFlowLight, HaloWeight, float);
 
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, PathDirection, int);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, EffectColors, std::vector<Vector4f>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, ColorFractions, Vector2f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, StartPoints, std::vector<Vector2f>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, PathWidth, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, InverseEffect, bool);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, DotColor, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, DotSpacing, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, DotRadius, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, BgColor, Vector4f);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DotMatrixShader, EffectType, int);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DotMatrixShader, Progress, float);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Center, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(WavyRippleLight, Thickness, float);

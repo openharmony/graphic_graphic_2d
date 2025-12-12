@@ -27,6 +27,21 @@ DECLARE_SHADER(ContourDiagonalFlowLight, CONTOUR_DIAGONAL_FLOW_LIGHT,
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, HaloWeight)
 );
 
+DECLARE_SHADER(DotMatrixShader, DOT_MATRIX_SHADER,
+    ADD_PROPERTY_TAG(DotMatrixShader, PathDirection),
+    ADD_PROPERTY_TAG(DotMatrixShader, EffectColors),
+    ADD_PROPERTY_TAG(DotMatrixShader, ColorFractions),
+    ADD_PROPERTY_TAG(DotMatrixShader, StartPoints),
+    ADD_PROPERTY_TAG(DotMatrixShader, PathWidth),
+    ADD_PROPERTY_TAG(DotMatrixShader, InverseEffect),
+    ADD_PROPERTY_TAG(DotMatrixShader, DotColor),
+    ADD_PROPERTY_TAG(DotMatrixShader, DotSpacing),
+    ADD_PROPERTY_TAG(DotMatrixShader, DotRadius),
+    ADD_PROPERTY_TAG(DotMatrixShader, BgColor),
+    ADD_PROPERTY_TAG(DotMatrixShader, EffectType),
+    ADD_PROPERTY_TAG(DotMatrixShader, Progress)
+);
+
 DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
     ADD_PROPERTY_TAG(WavyRippleLight, Center),
     ADD_PROPERTY_TAG(WavyRippleLight, Radius),
