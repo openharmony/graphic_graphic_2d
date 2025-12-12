@@ -352,7 +352,7 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
     filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst,
-        { false, true, cachedFilteredSnapshot_->geCacheProvider_.get() });
+        { false, true, cachedSnapshot_->geCacheProvider_.get() });
     filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
