@@ -541,7 +541,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             }
             continue;
         }
-        if (index != drawCmdIndex_.useEffectIndex_ || index != drawCmdIndex_.backgroundFilterIndex_ ||
+        if (index == drawCmdIndex_.useEffectIndex_ || index == drawCmdIndex_.backgroundFilterIndex_ ||
             index == drawCmdIndex_.backgroundNgShaderIndex_) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "ClipHoleForBlur filterRect:[%.2f, %.2f]", bounds.GetWidth(), bounds.GetHeight());
@@ -600,7 +600,7 @@ void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
     // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
     if (!params.GetShadowRect().IsEmpty()) {
         DrawBackground(canvas, params.GetBounds());
-    } else if (drawCmdIndex_.foregroundFilterBeginIndex_ != -1) {
+    } else if (drawCmdIndex_.materialFilterIndex_ != -1) {
         DrawRangeImpl(
             canvas, params.GetBounds(), drawCmdIndex_.materialFilterIndex_, drawCmdIndex_.backgroundEndIndex_);
     } else {

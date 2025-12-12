@@ -304,6 +304,10 @@ HWTEST(RSRenderNodeDrawableAdapterTest, HasFilterOrEffectTest, TestSize.Level1)
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     auto ret = adapter->HasFilterOrEffect();
     EXPECT_FALSE(ret);
+
+    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
+    ret = adapter->HasFilterOrEffect();
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -577,6 +581,86 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 5;
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.materialFilterIndex_ = 6;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    EXPECT_FALSE(adapter->drawCmdList_.empty());
+}
+
+/**
+ * @tc.name: GetFilterRelativeRectTest
+ * @tc.desc: Test GetFilterRelativeRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterRelativeRectTest, TestSize.Level1)
+{
+    NodeId id = 151;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(renderNode));
+
+    // case1: filterDrawables_ is empty
+    Drawing::Rect bounds(10.0f, 20.0f, 100.0f, 200.0f);
+    Drawing::Rect result = adapter->GetFilterRelativeRect(bounds);
+    EXPECT_EQ(result.GetLeft(), bounds.GetLeft());
+    EXPECT_EQ(result.GetTop(), bounds.GetTop());
+    EXPECT_EQ(result.GetWidth(), bounds.GetWidth());
+    EXPECT_EQ(result.GetHeight(), bounds.GetHeight());
+
+    // case2: filterDrawables_ has item
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->renderRelativeRectInfo_ = std::make_unique<RSFilterDrawable::FilterRectInfo>();
+    auto& filterRectInfo = filterDrawable->renderRelativeRectInfo_;
+    filterRectInfo->snapshotRect_ = RectF(0.0f, 0.0f, 100.0f, 100.0f);
+    filterRectInfo->drawRect_ = RectF(50.0f, 50.0f, 150.0f, 150.0f);
+    adapter->filterDrawables_[0] = filterDrawable;
+
+    auto renderRelativeRect = filterDrawable->GetRenderRelativeRect(EffectRectType::TOTAL, bounds);
+    EXPECT_EQ(renderRelativeRect.GetLeft(), 0.0f);
+    EXPECT_EQ(renderRelativeRect.GetTop(), 0.0f);
+    EXPECT_EQ(renderRelativeRect.GetWidth(), 150.0f);
+    EXPECT_EQ(renderRelativeRect.GetHeight(), 150.0f);
+
+    result = adapter->GetFilterRelativeRect(bounds);
+    EXPECT_EQ(result.GetLeft(), 0.0f);
+    EXPECT_EQ(result.GetTop(), 0.0f);
+    EXPECT_EQ(result.GetWidth(), 150.0f);
+    EXPECT_EQ(result.GetHeight(), 200.0f);
+}
+
+/**
+ * @tc.name: CheckShadowRectAndDrawBackgroundTest
+ * @tc.desc: Test CheckShadowRectAndDrawBackground
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, CheckShadowRectAndDrawBackgroundTest, TestSize.Level1)
+{
+    NodeId id = 152;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(renderNode));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderParams params(id);
+
+    Drawing::Rect shadowRect(0, 0, 50, 50);
+    params.SetShadowRect(shadowRect);
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+
+    params.SetShadowRect(Drawing::Rect());
+    Drawing::RecordingCanvas::DrawFunc drawFuncCallBack = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        printf("DrawBackgroundWithoutFilterAndEffectTest drawFuncCallBack\n");
+    };
+    adapter->drawCmdList_.emplace_back(drawFuncCallBack);
+    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
+    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
+    EXPECT_FALSE(adapter->drawCmdList_.empty());
+
+    adapter->drawCmdIndex_.materialFilterIndex_ = -1;
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 
