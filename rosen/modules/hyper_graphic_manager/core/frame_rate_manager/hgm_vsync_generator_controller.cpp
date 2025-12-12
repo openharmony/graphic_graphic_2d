@@ -98,7 +98,7 @@ int64_t HgmVSyncGeneratorController::ChangeGeneratorRate(const uint32_t controll
     VSyncGenerator::ListenerPhaseOffsetData listenerPhase;
 
     if (currentRate_ != controllerRate) {
-        HGM_LOGD("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate = %{public}d, appOffset = %{public}d",
+        HGM_LOGD("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate = %{public}u, appOffset = %{public}d",
             controllerRate, pulseNum_);
         RS_TRACE_NAME("HgmVSyncGeneratorController::ChangeGeneratorRate controllerRate: " +
             std::to_string(controllerRate) + ", appOffset: " + std::to_string(pulseNum_) +
