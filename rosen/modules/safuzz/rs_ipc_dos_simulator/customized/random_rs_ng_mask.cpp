@@ -32,7 +32,7 @@ std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandomValue()
     if (!g_isInit) {
         g_randomMaskGenerator.push_back(RandomRSNGMaskPtr::GetNullValue);
 #define DECLARE_MASK(MaskName, MaskType, ...)     \
-            g_randomMaskGenerator.push_back(RandomRSNGMaskPtr::GetRandom##MaskName)
+    g_randomMaskGenerator.push_back(RandomRSNGMaskPtr::GetRandom##MaskName)
 
 #include "effect/rs_render_mask_def.in"
 
@@ -81,21 +81,19 @@ std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandomMaskChain()
     return head;
 }
 
-#define SEPARATOR
 #define ADD_PROPERTY_TAG(Effect, Prop) \
     value->Setter<Effect##Prop##RenderTag>( \
-        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>());
+        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>())
 #define DECLARE_MASK(MaskName, MaskType, ...)                                       \
 std::shared_ptr<RSNGRenderMaskBase> RandomRSNGMaskPtr::GetRandom##MaskName()        \
 {                                                                                   \
     auto value = std::make_shared<RSNGRender##MaskName>();                          \
-    __VA_ARGS__                                                                     \
+    __VA_ARGS__;                                                                    \
     return value;                                                                   \
 }
 
 #include "effect/rs_render_mask_def.in"
 
-#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK
 

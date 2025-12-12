@@ -76,6 +76,15 @@ void RSHeteroHDRUtil::GenDrawHDRBufferParams(const DrawableV2::RSSurfaceRenderNo
     drawableParams.matrix = localParam.matrix;
 }
 
+std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> RSHeteroHDRUtil::GetSurfaceDrawableByID(NodeId nodeId)
+{
+    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+    if (drawable && drawable->GetNodeType() == RSRenderNodeType::SURFACE_NODE) {
+        return std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    }
+    return nullptr;
+}
+
 bool RSHeteroHDRUtil::ValidateSurface(RSSurfaceRenderParams* surfaceParams)
 {
     if (surfaceParams == nullptr) {

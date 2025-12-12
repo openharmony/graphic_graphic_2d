@@ -5198,5 +5198,20 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
     return nullptr;
 }
 
+RRect RSProperties::GetRRectForSDF() const
+{
+    RRect sdfRRect;
+    if (GetClipToRRect()) {
+        auto rrect = GetClipRRect();
+        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+    } else if (!GetCornerRadius().IsZero()) {
+        auto rrect = GetRRect();
+        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+    } else {
+        sdfRRect.rect_ = GetBoundsRect();
+    }
+    return sdfRRect;
+}
+
 } // namespace Rosen
 } // namespace OHOS

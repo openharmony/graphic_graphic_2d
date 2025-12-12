@@ -447,7 +447,7 @@ public:
     void UpdateTreeUifirstRootNodeId(NodeId id);
 
     // reset accumulated vals before traverses children
-    void ResetChildRelevantFlags();
+    virtual void ResetChildRelevantFlags();
     // accumulate all valid children's area
     void UpdateChildrenRect(const RectI& subRect);
     void UpdateCurCornerInfo(Vector4f& curCornerRadius, RectI& curCornerRect);
@@ -696,7 +696,7 @@ public:
     bool IsAIBarFilter() const;
     bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const;
     // Return true if the cache interval of aibar has been successfully reduced; otherwise, return false.
-    bool ForceReduceAIBarCacheInterval();
+    bool ForceReduceAIBarCacheInterval(bool intersectHwcDamage);
     void MarkForceClearFilterCacheWithInvisible();
     void MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
 

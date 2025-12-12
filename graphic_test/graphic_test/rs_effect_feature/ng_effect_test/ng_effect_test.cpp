@@ -51,49 +51,55 @@ std::vector<std::array<float, DOUBLE_RIPPLE_MASK_PARAMS_COUNT>> doubleRippleMask
     {20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f},
 };
 
-constexpr int CIRCLE_FLOWLIGHT_PARAMS_COUNT = 9;
-std::vector<std::array<Vector4f, CIRCLE_FLOWLIGHT_PARAMS_COUNT>> circleFlowlightParams = {
+constexpr int CIRCLE_FLOWLIGHT_PARAMS_COUNT = 12;
+std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_COUNT>> circleFlowlightParams = {
     {
         Vector4f{-1.0f, -1.0f, -1.0f, -1.0f}, Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},
         Vector4f{-1.0f, -1.0f, -1.0f, -1.0f}, Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
-        Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
+        Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.9921f, 0.5020f, 0.0196f, 1.0f}, Vector4f{0.0039f, 0.5255f, 1.000f, 1.0f},
         Vector4f{0.0569f, 0.3429f, 1.000f, 1.0f}, Vector4f{0.5510f, 0.3412f, 0.5098f, 1.0f},
         Vector4f{0.500f, 0.600f, 0.300f, 0.5f}, Vector4f{0.300f, 0.300f, 0.300f, 0.3f},
         Vector4f{0.200f, 0.400f, 0.600f, 0.8f}, Vector4f{0.300f, 0.700f, 0.300f, 0.7f},
-        Vector4f{0.300f, 0.300f, 0.700f, 0.7f},
+        Vector4f{0.300f, 0.300f, 0.700f, 0.7f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{0.5f, 0.5f, 0.5f, 1.0f},
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{0.5f, 0.5f, 0.5f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.8f, 0.2f, 0.6f, 1.0f}, Vector4f{0.2f, 0.8f, 0.4f, 1.0f},
         Vector4f{0.6f, 0.4f, 0.8f, 1.0f}, Vector4f{0.4f, 0.6f, 0.2f, 1.0f},
         Vector4f{2.0f, 0.5f, 1.5f, 0.8f}, Vector4f{0.5f, 2.0f, 0.8f, 1.5f},
         Vector4f{1.5f, 0.8f, 0.5f, 2.0f}, Vector4f{0.8f, 1.5f, 2.0f, 0.5f},
-        Vector4f{0.5f, 1.5f, 0.8f, 2.0f},
+        Vector4f{0.5f, 1.5f, 0.8f, 2.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
-        Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{2.0f, 2.0f, 2.0f, 2.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{2.0f, 2.0f, 2.0f, 2.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
-        Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
+        Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
 };
 
@@ -228,15 +234,18 @@ void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowligh
 
 void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowlight, int index)
 {
-    flowlight->Setter<CircleFlowlightColor0Tag>(circleFlowlightParams[index][NUM_0]);
-    flowlight->Setter<CircleFlowlightColor1Tag>(circleFlowlightParams[index][NUM_1]);
-    flowlight->Setter<CircleFlowlightColor2Tag>(circleFlowlightParams[index][NUM_2]);
-    flowlight->Setter<CircleFlowlightColor3Tag>(circleFlowlightParams[index][NUM_3]);
-    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(circleFlowlightParams[index][NUM_4]);
-    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(circleFlowlightParams[index][NUM_5]);
-    flowlight->Setter<CircleFlowlightRotationSeedTag>(circleFlowlightParams[index][NUM_6]);
-    flowlight->Setter<CircleFlowlightGradientXTag>(circleFlowlightParams[index][NUM_7]);
-    flowlight->Setter<CircleFlowlightGradientYTag>(circleFlowlightParams[index][NUM_8]);
+    flowlight->Setter<CircleFlowlightColor0Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_0]));
+    flowlight->Setter<CircleFlowlightColor1Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_1]));
+    flowlight->Setter<CircleFlowlightColor2Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_2]));
+    flowlight->Setter<CircleFlowlightColor3Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_3]));
+    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_4]));
+    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_5]));
+    flowlight->Setter<CircleFlowlightRotationSeedTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_6]));
+    flowlight->Setter<CircleFlowlightGradientXTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_7]));
+    flowlight->Setter<CircleFlowlightGradientYTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_8]));
+    flowlight->Setter<CircleFlowlightStrengthTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_9]));
+    flowlight->Setter<CircleFlowlightDistortStrengthTag>(std::get<float>(circleFlowlightParams[index][NUM_10]));
+    flowlight->Setter<CircleFlowlightBlendGradientTag>(std::get<float>(circleFlowlightParams[index][NUM_11]));
     flowlight->Setter<CircleFlowlightProgressTag>(0.0f);
 }
 

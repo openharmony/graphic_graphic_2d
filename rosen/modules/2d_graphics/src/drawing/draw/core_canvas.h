@@ -153,6 +153,13 @@ public:
     void RecordState(Canvas* canvas);
 
     /**
+     * @brief switch canvas formats
+     * @param canvas canvas to be switch
+     * @return Returns the result of canvas switch
+     */
+    bool InheritStateAndContentFrom(Canvas* canvas);
+
+    /**
      * @brief Gets the total matrix of Canvas to device.
      * @return Returns the total matrix of Canvas to device.
      */

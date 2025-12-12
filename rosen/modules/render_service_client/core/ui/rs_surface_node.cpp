@@ -893,6 +893,9 @@ void RSSurfaceNode::SetHDRPresent(bool hdrPresent, NodeId id)
 
 void RSSurfaceNode::SetSkipDraw(bool skip)
 {
+    if (isSkipDraw_ == skip) {
+        return;
+    }
     isSkipDraw_ = skip;
     std::unique_ptr<RSCommand> command =
         std::make_unique<RSSurfaceNodeSetSkipDraw>(GetId(), skip);

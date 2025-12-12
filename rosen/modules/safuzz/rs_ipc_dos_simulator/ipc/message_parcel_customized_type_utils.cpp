@@ -57,6 +57,7 @@ const std::unordered_map<std::string, std::function<bool(MessageParcel&, const T
     DECLARE_WRITE_RANDOM(HgmConfigChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(HgmRefreshRateModeChangeCallbackSptr),
     DECLARE_WRITE_RANDOM(HgmRefreshRateUpdateCallbackSptr),
+    DECLARE_WRITE_RANDOM(OnFitstFrameCommitCallbackSptr),
     DECLARE_WRITE_RANDOM(Uint64AndEventInfoPairVector),
     DECLARE_WRITE_RANDOM(StringAndEventInfoPairVector),
     DECLARE_WRITE_RANDOM(StringAndStringPairVector),
@@ -232,6 +233,22 @@ bool MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSp
     sptr<RSIHgmConfigChangeCallback> obj = new CustomHgmRefreshRateUpdateCallback(callback);
     if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
         SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomHgmRefreshRateUpdateCallbackSptr "
+            "WriteRemoteObject failed");
+        return false;
+    }
+    return true;
+}
+
+bool MessageParcelCustomizedTypeUtils::WriteRandomOnFitstFrameCommitCallbackSptr(MessageParcel& messageParcel,
+    const TestCaseParams& /* testCaseParams */)
+{
+    FirstFrameCommitCallback callback = [](uint64_t, int64_t) {
+        SAFUZZ_LOGW("MessageParcelCustomizedTypeUtils::WriteRandomScreenChangeCallbackSptr sleep 6s");
+        usleep(DELAY);
+    };
+    sptr<CustomFirstFrameCommitCallback> obj = new CustomFirstFrameCommitCallback(callback);
+    if (!messageParcel.WriteRemoteObject(obj->AsObject())) {
+        SAFUZZ_LOGE("MessageParcelCustomizedTypeUtils::WriteRandomOnFitstFrameCommitCallbackSptr "
             "WriteRemoteObject failed");
         return false;
     }

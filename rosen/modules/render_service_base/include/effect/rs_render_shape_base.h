@@ -66,14 +66,12 @@ protected:
     virtual void OnGenerateGEVisualEffect(std::shared_ptr<Drawing::GEVisualEffect>) {}
 };
 
-#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...) \
     using RSNGRender##ShapeName = RSNGRenderShapeTemplate<RSNGEffectType::ShapeType, __VA_ARGS__>
 
 #include "effect/rs_render_shape_def.in"
 
-#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHAPE
 

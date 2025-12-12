@@ -33,14 +33,13 @@ public:
 template<RSNGEffectType Type, typename... PropertyTags>
 using RSNGShapeTemplate = RSNGEffectTemplate<RSNGShapeBase, Type, PropertyTags...>;
 
-#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
+
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...) \
     using RSNG##ShapeName = RSNGShapeTemplate<RSNGEffectType::ShapeType, __VA_ARGS__>
 
 #include "effect/rs_render_shape_def.in"
 
-#undef SEPARATOR
 #undef DECLARE_SHAPE
 #undef ADD_PROPERTY_TAG
 

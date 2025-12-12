@@ -36,14 +36,13 @@ public:
 template<RSNGEffectType Type, typename... PropertyTags>
 using RSNGMaskTemplate = RSNGEffectTemplate<RSNGMaskBase, Type, PropertyTags...>;
 
-#define SEPARATOR ,
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##Tag
+
 #define DECLARE_MASK(MaskName, MaskType, ...) \
     using RSNG##MaskName = RSNGMaskTemplate<RSNGEffectType::MaskType, __VA_ARGS__>
 
 #include "effect/rs_render_mask_def.in"
 
-#undef SEPARATOR
 #undef DECLARE_MASK
 #undef ADD_PROPERTY_TAG
 

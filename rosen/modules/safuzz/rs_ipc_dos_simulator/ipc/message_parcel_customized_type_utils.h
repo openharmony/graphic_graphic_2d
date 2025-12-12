@@ -48,6 +48,8 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomHgmRefreshRateUpdateCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomOnFitstFrameCommitCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
     static bool WriteRandomUint64AndEventInfoPairVector(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
     static bool WriteRandomStringAndEventInfoPairVector(MessageParcel& messageParcel,

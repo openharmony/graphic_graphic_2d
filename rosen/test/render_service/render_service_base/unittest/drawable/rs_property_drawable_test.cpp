@@ -347,7 +347,8 @@ HWTEST_F(RSPropertyDrawableTest, ForceReduceAIBarCacheInterval, TestSize.Level1)
 
     filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval());
+    EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval(true));
+    EXPECT_FALSE(filterDrawable->ForceReduceAIBarCacheInterval(false));
 }
 
 /**

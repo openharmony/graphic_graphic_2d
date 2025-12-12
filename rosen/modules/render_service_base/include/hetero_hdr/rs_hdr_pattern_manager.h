@@ -92,12 +92,8 @@ public:
     bool TryConsumeBuffer(std::function<void()>&& consumingFunc)
     {
         std::unique_lock<std::mutex> lock(frameIdMutex_);
-        if (flushedBuffer_ && lastFrameConsumed_) {
-            return false;
-        }
-        if (flushedBuffer_) {
+        if (lastFrameIdUsed_ == false) {
             consumingFunc();
-            flushedBuffer_ = false;
             lastFrameConsumed_ = true;
         }
         return true;
@@ -130,6 +126,12 @@ public:
     bool MHCReleaseAll();
 
     bool MHCCheck(const std::string logTag);
+
+    bool MHCGetFrameIdUsed()
+    {
+        std::unique_lock<std::mutex> lock(frameIdMutex_);
+        return lastFrameIdUsed_ && curFrameIdUsed_;
+    }
 
     bool MHCSetCurFrameId(uint64_t frameId)
     {

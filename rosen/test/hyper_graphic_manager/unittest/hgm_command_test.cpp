@@ -376,6 +376,7 @@ HWTEST_F(HgmCommandTest, AddParamWatcher001, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmCommandTest, SysModeChangeProcess001, Function | SmallTest | Level0)
 {
+    int32_t delayTime = 100;
     auto& hgmCore = HgmCore::Instance();
     hgmCore.InitXmlConfig();
     ASSERT_NE(hgmCore.mPolicyConfigData_, nullptr);
@@ -384,6 +385,7 @@ HWTEST_F(HgmCommandTest, SysModeChangeProcess001, Function | SmallTest | Level0)
     HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", policyConfigData);
 
     HgmCore::SysModeChangeProcess("persist.sys.mode", "testmode", nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delayTime));
 }
 
 /**

@@ -39,6 +39,7 @@
 #include "common/rs_exception_check.h"
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
+#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/lpp/lpp_video_handler.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -373,6 +374,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
         unExecuteTaskNum_.load(), COMPOSER_THREAD_TASK_NUM, surfaceName.c_str());
     if (unExecuteTaskNum_ <= COMPOSER_THREAD_TASK_NUM) {
         NotifyComposerCanExecuteTask();
+        RSHeteroHDRManager::Instance().NotifyHardwareThreadCanExecuteTask();
     }
     RSMainThread::Instance()->SetTaskEndWithTime(SystemTime() - lastActualTime_);
     lastActualTime_ = param.actualTimestamp;

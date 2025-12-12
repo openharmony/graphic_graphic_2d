@@ -30,7 +30,7 @@ std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandomValue()
     if (!g_isInit) {
         g_randomFilterGenerator.push_back(RandomRSNGFilterPtr::GetNullValue);
 #define DECLARE_FILTER(FilterName, FilterType, ...)     \
-            g_randomFilterGenerator.push_back(RandomRSNGFilterPtr::GetRandom##FilterName)
+    g_randomFilterGenerator.push_back(RandomRSNGFilterPtr::GetRandom##FilterName)
 
 #include "effect/rs_render_filter_def.in"
 
@@ -79,21 +79,19 @@ std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandomFilterChain(
     return head;
 }
 
-#define SEPARATOR
 #define ADD_PROPERTY_TAG(Effect, Prop) \
     value->Setter<Effect##Prop##RenderTag>( \
-        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>());
+        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>())
 #define DECLARE_FILTER(FilterName, FilterType, ...)                                 \
 std::shared_ptr<RSNGRenderFilterBase> RandomRSNGFilterPtr::GetRandom##FilterName()  \
 {                                                                                   \
     auto value = std::make_shared<RSNGRender##FilterName##Filter>();                \
-    __VA_ARGS__                                                                     \
+    __VA_ARGS__;                                                                    \
     return value;                                                                   \
 }
 
 #include "effect/rs_render_filter_def.in"
 
-#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_FILTER
 

@@ -17,6 +17,7 @@
 #include "feature/hwc/rs_uni_hwc_compute_util.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_surface_render_node_utils.h"
 
 #include "common/rs_common_hook.h"
 #include "common/rs_optional_trace.h"
@@ -958,32 +959,6 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalFilter(std::shared_ptr<RSSurfac
     }
 }
 
-bool RSUniHwcVisitor::IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect)
-{
-    // Intersection judgment of layer boundaries has already been conducted
-    bool isIntersect = true;
-#ifndef ROSEN_CROSS_PLATFORM
-    if (RSSystemProperties::GetAIBarOptEnabled()) {
-        auto surfaceHandler = hwcNode.GetRSSurfaceHandler();
-        if (surfaceHandler && surfaceHandler->IsCurrentFrameBufferConsumed()) {
-            auto rect = surfaceHandler->GetDamageRegion();
-            const auto& matrix = hwcNode.GetBufferRelMatrix();
-            auto bufferDirtyRect = hwcNode.GetRenderProperties().GetBoundsGeometry()->MapRect(
-                RectF(rect.x, rect.y, rect.w, rect.h), matrix);
-            isIntersect = bufferDirtyRect.Intersect(filterRect);
-            RS_OPTIONAL_TRACE_FMT("RSUniHwcVisitor::IntersectHwcDamage "
-                "bufferDirtyRect: [%d,%d,%d,%d] filterRect: [%d,%d,%d,%d]",
-                bufferDirtyRect.GetLeft(), bufferDirtyRect.GetTop(),
-                bufferDirtyRect.GetWidth(), bufferDirtyRect.GetHeight(),
-                filterRect.GetLeft(), filterRect.GetTop(),
-                filterRect.GetWidth(), filterRect.GetHeight());
-        }
-    }
-#endif
-    RS_OPTIONAL_TRACE_FMT("RSUniHwcVisitor::IntersectHwcDamage isIntersect: %d", isIntersect);
-    return isIntersect;
-}
-
 void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
     const std::vector<std::pair<NodeId, RectI>>& cleanFilter, RSSurfaceRenderNode& hwcNode)
 {
@@ -1004,7 +979,8 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByGlobalCleanFilter(
                 auto screenId = uniRenderVisitor_.curScreenNode_->GetScreenId();
                 RSMainThread::Instance()->GetMutableAIBarNodes()[screenId].insert(renderNode);
                 intersectedWithAIBar = true;
-                bool intersectHwcDamage = IntersectHwcDamage(hwcNode, filter->second);
+                bool intersectHwcDamage = RSSystemProperties::GetAIBarOptEnabled() ?
+                    RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(hwcNode, filter->second) : true;
                 if (renderNode->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage)) {
                     ROSEN_LOGD("UpdateHwcNodeByFilter: skip intersection for using cache");
                     continue;

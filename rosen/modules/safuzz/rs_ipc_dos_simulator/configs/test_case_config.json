@@ -2300,6 +2300,13 @@
     "messageOption": "TF_SYNC"
   },
   {
+    "testCaseDesc": "ON_FIRST_FRAME_COMMIT_TEST_001",
+    "interfaceName": "ON_FIRST_FRAME_COMMIT",
+    "inputParams": "WriteBool;WriteOnFitstFrameCommitCallbackSptr",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
     "testCaseDesc": "SET_CURTAIN_SCREEN_USING_STATUS_TEST_001",
     "interfaceName": "SET_CURTAIN_SCREEN_USING_STATUS",
     "inputParams": "WriteBool",

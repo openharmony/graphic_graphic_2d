@@ -32,7 +32,7 @@ std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandomValue()
     if (!g_isInit) {
         g_randomShaderGenerator.push_back(RandomRSNGShaderPtr::GetNullValue);
 #define DECLARE_SHADER(ShaderName, ShaderType, ...)     \
-            g_randomShaderGenerator.push_back(RandomRSNGShaderPtr::GetRandom##ShaderName)
+    g_randomShaderGenerator.push_back(RandomRSNGShaderPtr::GetRandom##ShaderName)
 
 #include "effect/rs_render_shader_def.in"
 
@@ -81,21 +81,19 @@ std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandomShaderChain(
     return head;
 }
 
-#define SEPARATOR
 #define ADD_PROPERTY_TAG(Effect, Prop) \
     value->Setter<Effect##Prop##RenderTag>( \
-        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>());
+        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>())
 #define DECLARE_SHADER(ShaderName, ShaderType, ...)                                 \
 std::shared_ptr<RSNGRenderShaderBase> RandomRSNGShaderPtr::GetRandom##ShaderName()  \
 {                                                                                   \
     auto value = std::make_shared<RSNGRender##ShaderName>();                        \
-    __VA_ARGS__                                                                     \
+    __VA_ARGS__;                                                                    \
     return value;                                                                   \
 }
 
 #include "effect/rs_render_shader_def.in"
 
-#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHADER
 

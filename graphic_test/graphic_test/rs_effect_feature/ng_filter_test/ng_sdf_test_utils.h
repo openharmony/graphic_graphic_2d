@@ -51,8 +51,6 @@ const Vector2f defaultEdLightRates = Vector2f(0.0f, 0.0f);
 const Vector3f defaultEdLightKBS = Vector3f(0.6027f, 0.64f, 2.0f);
 const Vector3f defaultEdLightPos = Vector3f(1.0f, 1.5f, 2.0f);
 const Vector3f defaultEdLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
-const Vector2f defaultBorderSize = Vector2f(200.0f, 100.0f);
-const float DEFAULT_CORNER_RADIUS = 100.0f;
 
 // Param arrays
 const std::vector<RRect> rectXParams = {

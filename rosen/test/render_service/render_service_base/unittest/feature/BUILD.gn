@@ -232,6 +232,7 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
   ]
 
   deps = [

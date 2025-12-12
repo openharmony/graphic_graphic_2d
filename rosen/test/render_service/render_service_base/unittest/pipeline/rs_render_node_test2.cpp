@@ -1022,17 +1022,17 @@ HWTEST_F(RSRenderNodeTest2, ForceReduceAIBarCacheInterval, TestSize.Level1)
     RSRenderNode node(id, context);
 #ifdef RS_ENABLE_GPU
     RSProperties::filterCacheEnabled_ = false;
-    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 
     RSProperties::filterCacheEnabled_ = true;
-    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = drawable;
-    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 #else
-    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval());
+    EXPECT_FALSE(node.ForceReduceAIBarCacheInterval(true));
 #endif
 }
 

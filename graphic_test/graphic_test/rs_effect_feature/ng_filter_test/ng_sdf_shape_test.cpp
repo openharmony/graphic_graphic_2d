@@ -70,8 +70,6 @@ static void InitFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>& fros
     frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
     frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
     frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
-    frostedGlassFilter->Setter<FrostedGlassBorderSizeTag>(defaultBorderSize);
-    frostedGlassFilter->Setter<FrostedGlassCornerRadiusTag>(DEFAULT_CORNER_RADIUS);
 }
 
 GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_1)

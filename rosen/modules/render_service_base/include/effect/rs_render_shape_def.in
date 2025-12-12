@@ -15,13 +15,13 @@
 
 // SDF OP Shape
 DECLARE_SHAPE(SDFUnionOpShape, SDF_UNION_OP_SHAPE,
-    ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeX) SEPARATOR
+    ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeX),
     ADD_PROPERTY_TAG(SDFUnionOpShape, ShapeY)
 );
 
 DECLARE_SHAPE(SDFSmoothUnionOpShape, SDF_SMOOTH_UNION_OP_SHAPE,
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing) SEPARATOR
-    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX) SEPARATOR
+    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, Spacing),
+    ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeX),
     ADD_PROPERTY_TAG(SDFSmoothUnionOpShape, ShapeY)
 );
 
@@ -31,7 +31,7 @@ DECLARE_SHAPE(SDFRRectShape, SDF_RRECT_SHAPE,
 );
 
 DECLARE_SHAPE(SDFTransformShape, SDF_TRANSFORM_SHAPE,
-    ADD_PROPERTY_TAG(SDFTransformShape, Matrix) SEPARATOR
+    ADD_PROPERTY_TAG(SDFTransformShape, Matrix),
     ADD_PROPERTY_TAG(SDFTransformShape, Shape)
 );
 

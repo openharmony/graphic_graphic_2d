@@ -1711,21 +1711,9 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperti
         filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
         return;
     }
-    RRect sdfRRect{};
-    if (properties.GetClipToRRect()) {
-        auto rrect = properties.GetClipRRect();
-        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
-    } else if (!properties.GetCornerRadius().IsZero()) {
-        auto rrect = properties.GetRRect();
-        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
-    } else {
-        sdfRRect.rect_ = properties.GetBoundsRect();
-    }
+    auto sdfRRect = properties.GetRRectForSDF();
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
-    if (!sdfRRectShape) {
-        return;
-    }
     ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, rrect %{public}s, node %{public}" PRIu64,
         sdfRRect.rect_.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);

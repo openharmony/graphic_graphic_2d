@@ -30,6 +30,7 @@
 #include "ui/rs_canvas_callback_router.h"
 #include "ui/rs_canvas_drawing_node.h"
 #endif
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
@@ -283,6 +284,22 @@ class CustomScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallba
     private:
         ScreenSwitchingNotifyCallback cb_;
     };
+
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+    public:
+        explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback &callback) : cb_(callback) {}
+        ~CustomFirstFrameCommitCallback() override {};
+    
+        void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+        {
+            if (cb_ != nullptr) {
+                cb_(screenId, timestamp);
+            }
+        }
+    
+    private:
+        FirstFrameCommitCallback cb_;
+};
 
 class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:

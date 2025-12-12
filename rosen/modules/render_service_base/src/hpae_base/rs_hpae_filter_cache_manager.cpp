@@ -446,8 +446,8 @@ HpaeTask RSHpaeFilterCacheManager::GenerateHianimationTask(const HpaeBufferInfo 
     HaeBlurBasicAttr basicInfo;
     basicInfo.srcLayer = &srcLayer;
     basicInfo.dstLayer = &dstLayer;
-    basicInfo.perfLevel = 1; // 4 for the highest level, 1 means 335Mhz
-    basicInfo.expectRunTime = -1; // us, -1 means unlimited
+    basicInfo.perfLevel = 1; // 4 for the highest level, 1 for the lowest level
+    basicInfo.expectRunTime = 2000; // us, -1 means unlimited
     basicInfo.timeoutMs = 0;
     basicInfo.sigmaNum = radius;
     basicInfo.enablePremult = false;

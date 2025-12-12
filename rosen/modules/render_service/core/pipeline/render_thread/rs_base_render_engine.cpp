@@ -897,8 +897,12 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 void RSBaseRenderEngine::ClearCacheSet(const std::set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
-        for (auto id : unmappedCache) {
-            imageManager_->UnMapImageFromSurfaceBuffer(id);
+        if (RSSystemProperties::GetReleaseImageOneByOneFlag()) {
+            imageManager_->UnMapImageFromSurfaceBuffer(unmappedCache);
+        } else {
+            for (auto id : unmappedCache) {
+                imageManager_->UnMapImageFromSurfaceBuffer(id);
+            }
         }
     }
 }

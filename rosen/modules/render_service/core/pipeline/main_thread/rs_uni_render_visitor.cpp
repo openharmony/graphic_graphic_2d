@@ -1994,9 +1994,6 @@ void RSUniRenderVisitor::QuickPrepareChildren(RSRenderNode& node)
     ancestorNodeHasAnimation_ = ancestorNodeHasAnimation_ || node.GetCurFrameHasAnimation();
     node.ResetChildRelevantFlags();
     node.ResetChildUifirstSupportFlag();
-    if (node.IsInstanceOf<RSUnionRenderNode>()) {
-        RSBaseRenderNode::ReinterpretCast<RSUnionRenderNode>(node.shared_from_this())->ResetVisibleUnionChildren();
-    }
 #ifdef SUBTREE_PARALLEL_ENABLE
     node.ClearSubtreeParallelNodes();
     node.ResetRepaintBoundaryInfo();
@@ -3176,7 +3173,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
 {
-    if (node.GetRenderProperties().GetUseUnion() && node.ShouldPaint()) {
+    if (curUnionNode_ && node.GetRenderProperties().GetUseUnion() && node.ShouldPaint()) {
         curUnionNode_->UpdateVisibleUnionChildren(node);
     }
 }

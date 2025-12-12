@@ -39,7 +39,7 @@ std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomValue()
     if (!g_isInit) {
         g_randomShapeGenerator.push_back(RandomRSNGShapePtr::GetNullValue);
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...)     \
-            g_randomShapeGenerator.push_back(RandomRSNGShapePtr::GetRandom##ShapeName)
+    g_randomShapeGenerator.push_back(RandomRSNGShapePtr::GetRandom##ShapeName)
 
 #include "effect/rs_render_shape_def.in"
 
@@ -92,21 +92,19 @@ std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandomShapeChain()
     return head;
 }
 
-#define SEPARATOR
 #define ADD_PROPERTY_TAG(Effect, Prop) \
     value->Setter<Effect##Prop##RenderTag>( \
-        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>());
+        RandomRSRenderPropertyBase::GetRandomValue<typename Effect##Prop##RenderTag::ValueType>())
 #define DECLARE_SHAPE(ShapeName, ShapeType, ...)                                    \
 std::shared_ptr<RSNGRenderShapeBase> RandomRSNGShapePtr::GetRandom##ShapeName()     \
 {                                                                                   \
     auto value = std::make_shared<RSNGRender##ShapeName>();                         \
-    __VA_ARGS__                                                                     \
+    __VA_ARGS__;                                                                    \
     return value;                                                                   \
 }
 
 #include "effect/rs_render_shape_def.in"
 
-#undef SEPARATOR
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_SHAPE
 

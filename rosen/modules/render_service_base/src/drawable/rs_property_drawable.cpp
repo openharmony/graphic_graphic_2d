@@ -652,13 +652,17 @@ bool RSFilterDrawable::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
     return stagingCacheManager_->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 }
 
-bool RSFilterDrawable::ForceReduceAIBarCacheInterval()
+bool RSFilterDrawable::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
 {
     if (!IsAIBarFilter()) {
         return false;
     }
 
-    return stagingCacheManager_->ReduceCacheUpdateInterval();
+    if (intersectHwcDamage) {
+        return stagingCacheManager_->ReduceCacheUpdateInterval();
+    }
+
+    return stagingCacheManager_->ReduceCacheUpdateIntervalIfPendingPurge();
 }
 
 void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)
