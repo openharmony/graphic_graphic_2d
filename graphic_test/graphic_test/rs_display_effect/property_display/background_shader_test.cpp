@@ -110,7 +110,7 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Shader_Test)
     }
 }
 
-void SetNormalParams(Rosen::RSNGDotMatrixShader& shader,Drawing::Color dotColor,
+void SetNormalParams(Rosen::RSNGDotMatrixShader& shader, Drawing::Color dotColor,
     float dotSpacing, float dotRadius, Drawing::Color bgColor)
 {
     Vector4f DotColor = {dotColor.GetRedF(), dotColor.GetGreenF(), dotColor.GetBlueF(), dotColor.GetAlphaF()};
@@ -194,15 +194,15 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_R
     std::vector<std::vector<Drawing::Color>> effectColorList = {
         { Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_CYAN,
         Drawing::Color::COLOR_CYAN }, { Drawing::Color::COLOR_MAGENTA, Drawing::Color::COLOR_MAGENTA,
-        Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW },{ Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW }, { Drawing::Color::COLOR_CYAN,
         Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE },
         { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_RED, Drawing::Color::COLOR_YELLOW,
         Drawing::Color::COLOR_YELLOW }, { Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE,
-        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_CYAN },{ Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_CYAN }, { Drawing::Color::COLOR_CYAN,
         Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_MAGENTA, Drawing::Color::COLOR_MAGENTA },
         { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE,
         Drawing::Color::COLOR_WHITE }, { Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
-        Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_GRAY },{ Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_GRAY }, { Drawing::Color::COLOR_BLUE,
         Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_RED } };
     std::vector<float> progressList = { -18.6, 0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 2.0, 20.0 };
 
@@ -283,7 +283,6 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_R
 
     DotMatrixTestParam testParam;
     testParam.InitRippleEffectParam();
-
     for (int i = 0; i < columnCount * rowCount; i++) {
         auto dotMatShader = std::make_shared<Rosen::RSNGDotMatrixShader>();
         if (dotMatShader == nullptr) {
