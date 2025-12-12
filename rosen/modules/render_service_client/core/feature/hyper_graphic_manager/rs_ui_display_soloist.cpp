@@ -88,11 +88,11 @@ void RSDisplaySoloist::TriggerCallback()
 {
     std::lock_guard<std::mutex> lock(callbackMutex_);
     if (callback_.first) {
-        RS_TRACE_NAME_FMT("SubDisplaySoloistId: %u, RefreshRate: %d, FrameRateRange: {%d, %d, %d}, "
+        RS_TRACE_NAME_FMT("SubDisplaySoloistId: %d, RefreshRate: %d, FrameRateRange: {%d, %d, %d}, "
             "drawFPS: %d, rate: %d, count: %d", instanceId_, GetVSyncRate(),
             frameRateRange_.min_, frameRateRange_.max_, frameRateRange_.preferred_, drawFPS_,
             currRate_, currCnt_);
-        ROSEN_LOGD("SubDisplaySoloistId: %{public}u, RefreshRate: %{public}d, "
+        ROSEN_LOGD("SubDisplaySoloistId: %{public}d, RefreshRate: %{public}d, "
             "FrameRateRange: {%{public}d, %{public}d, %{public}d}, "
             "drawFPS: %{public}d, rate: %{public}d, count: %{public}d", instanceId_, GetVSyncRate(),
             frameRateRange_.min_, frameRateRange_.max_, frameRateRange_.preferred_, drawFPS_,
@@ -142,7 +142,7 @@ void RSDisplaySoloist::RequestNextVSync()
         }
         if (subVsyncHandler_) {
             subVsyncHandler_->RemoveTask(vsyncTimeoutTaskName_);
-            ROSEN_LOGD("%{public}s SubDisplaySoloistId: %{public}u PostTimeoutTask", __func__, instanceId_);
+            ROSEN_LOGD("%{public}s SubDisplaySoloistId: %{public}d PostTimeoutTask", __func__, instanceId_);
             subVsyncHandler_->PostTask(vsyncTimeoutCallback_, vsyncTimeoutTaskName_, TIME_OUT_MILLISECONDS);
         }
     }
@@ -156,7 +156,7 @@ void RSDisplaySoloist::RequestNextVSync()
 
 void RSDisplaySoloist::OnVsyncTimeOut()
 {
-    ROSEN_LOGD("%{public}s SubDisplaySoloistId: %{public}u Vsync time out", __func__, instanceId_);
+    ROSEN_LOGD("%{public}s SubDisplaySoloistId: %{public}d Vsync time out", __func__, instanceId_);
     std::lock_guard<std::mutex> lock(mtx_);
     hasRequestedVsync_ = false;
 }
@@ -508,7 +508,7 @@ void RSDisplaySoloistManager::Start(SoloistIdType id)
     idToSoloistMap_[id]->RequestNextVSync();
     lock.unlock();
     RequestNextVSync();
-    ROSEN_LOGD("%{public}s, SoloistId:%{public}u.", __func__, id);
+    ROSEN_LOGD("%{public}s, SoloistId:%{public}d.", __func__, id);
     return;
 }
 
@@ -523,7 +523,7 @@ void RSDisplaySoloistManager::Stop(SoloistIdType id)
     idToSoloistMap_[id]->RequestNextVSync();
     lock.unlock();
     RequestNextVSync();
-    ROSEN_LOGD("%{public}s, SoloistId:%{public}u.", __func__, id);
+    ROSEN_LOGD("%{public}s, SoloistId:%{public}d.", __func__, id);
     return;
 }
 
@@ -537,7 +537,7 @@ void RSDisplaySoloistManager::RemoveSoloist(SoloistIdType id)
         RequestNextVSync();
     }
     lock.unlock();
-    ROSEN_LOGD("%{public}s, SoloistId:%{public}u.", __func__, id);
+    ROSEN_LOGD("%{public}s, SoloistId:%{public}d.", __func__, id);
     return;
 }
 
@@ -549,7 +549,7 @@ void RSDisplaySoloistManager::InsertOnVsyncCallback(SoloistIdType id, DisplaySol
     }
     idToSoloistMap_[id]->SetCallback(cb, data);
     lock.unlock();
-    ROSEN_LOGD("%{public}s, SoloistId:%{public}u.", __func__, id);
+    ROSEN_LOGD("%{public}s, SoloistId:%{public}d.", __func__, id);
     return;
 }
 
@@ -561,7 +561,7 @@ void RSDisplaySoloistManager::InsertFrameRateRange(SoloistIdType id, FrameRateRa
     }
     idToSoloistMap_[id]->frameRateRange_ = frameRateRange;
     lock.unlock();
-    ROSEN_LOGD("%{public}s, SoloistId:%{public}u expected:%{public}d.", __func__, id, frameRateRange_.preferred_);
+    ROSEN_LOGD("%{public}s, SoloistId:%{public}d expected:%{public}d.", __func__, id, frameRateRange_.preferred_);
     return;
 }
 
@@ -572,7 +572,7 @@ void RSDisplaySoloistManager::InsertUseExclusiveThreadFlag(SoloistIdType id, boo
         idToSoloistMap_[id] = std::make_shared<RSDisplaySoloist>(id);
     }
     idToSoloistMap_[id]->useExclusiveThread_ = useExclusiveThread;
-    ROSEN_LOGD("%{public}s, SoloistId:%{public}u useExclusiveThread:%{public}d.", __func__, id, useExclusiveThread);
+    ROSEN_LOGD("%{public}s, SoloistId:%{public}d useExclusiveThread:%{public}d.", __func__, id, useExclusiveThread);
     return;
 }
 

@@ -303,21 +303,21 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         lastPendingRefreshRate_ = *pendingRefreshRate_;
         pendingRefreshRate_.reset();
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %u", lastPendingRefreshRate_);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
     } else {
         if (lastPendingConstraintRelativeTime_ != 0) {
             hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime_);
         }
         if (lastPendingRefreshRate_ != 0) {
             hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate_);
-            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %u", lastPendingRefreshRate_);
+            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
         }
     }
 
     if (hgmCore.GetLtpoEnabled() && IsLtpo() && rsRate > OLED_10_HZ &&
         isUiDvsyncOn && isLtpoScreenStrategyId_.load()) {
         hgmCore.SetPendingScreenRefreshRate(rsRate);
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %u ui-dvsync", rsRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
     }
     SetChangeGeneratorRateValid(true);
 }
@@ -400,7 +400,7 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
         auto allTypeDescription = finalRange.GetAllTypeDescription();
         HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%u],"
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d],"
             " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
@@ -477,7 +477,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     }
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
-    RS_TRACE_NAME_FMT("VoteRes: %s[%u, %u]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
+    RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     if (currRefreshRate_.load() != refreshRate) {
@@ -533,9 +533,9 @@ void HgmFrameRateManager::FrameRateReport()
         rates[UNI_APP_PID] = OLED_60_HZ;
         slideModeChange_ = false;
     }
-    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}u, APP(%{public}d) = %{public}u",
+    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
-    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) = %u, APP(%d) = %u",
+    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) = %d, APP(%d) = %d",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
@@ -782,7 +782,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     }
 
-    HGM_LOGI("%{public}s(%{public}d) [%{public}u %{public}u] %{public}d %{public}s", eventName.c_str(), pid,
+    HGM_LOGI("%{public}s(%{public}d) [%{public}d %{public}d] %{public}d %{public}s", eventName.c_str(), pid,
         eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
     if (eventName == "VOTER_SCENE") {
         HandleSceneEvent(pid, eventInfo);
@@ -956,8 +956,8 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
 void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
 {
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%{public}" PRIu64
-        " activeRect(%d, %d, %d, %d)", id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%d activeRect(%d, %d, %d, %d)",
+        id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto& hgmCore = HgmCore::Instance();
     auto screen = hgmCore.GetScreen(id);
@@ -1565,7 +1565,7 @@ void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
     HgmTaskHandleThread::Instance().PostTask(
         [this, leftRetryTimes]() {
             if (leftRetryTimes == 1 || system::GetBoolParameter("bootevent.boot.completed", false)) {
-                HGM_LOGI("FrameRateReportTask run and left retry:%{public}u", leftRetryTimes);
+                HGM_LOGI("FrameRateReportTask run and left retry:%{public}d", leftRetryTimes);
                 schedulePreferredFpsChange_ = true;
                 FrameRateReport();
                 return;

@@ -75,11 +75,11 @@ void HgmFrameVoter::CleanVote(pid_t pid)
 
 void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
 {
-    RS_TRACE_NAME_FMT("Deliver voter:%s(pid:%d extInfo:%s), status:%u, value:[%u-%u]",
+    RS_TRACE_NAME_FMT("Deliver voter:%s(pid:%d extInfo:%s), status:%u, value:[%d-%d]",
         voteInfo.voterName.c_str(), voteInfo.pid, voteInfo.extInfo.c_str(),
         eventStatus, voteInfo.min, voteInfo.max);
     if (voteInfo.min > voteInfo.max) {
-        HGM_LOGW("HgmFrameRateManager:invalid vote %{public}s(%{public}d %{public}s):[%{public}u, %{public}u]",
+        HGM_LOGW("HgmFrameRateManager:invalid vote %{public}s(%{public}d %{public}s):[%{public}d, %{public}d]",
             voteInfo.voterName.c_str(), voteInfo.pid, voteInfo.extInfo.c_str(), voteInfo.min, voteInfo.max);
         return;
     }
@@ -132,9 +132,9 @@ void HgmFrameVoter::DeliverVote(const VoteInfo& voteInfo, bool eventStatus)
 
 void HgmFrameVoter::ProcessVoteLog(const VoteInfo& curVoteInfo, bool isSkip)
 {
-    RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%u-%u]%s",
+    RS_TRACE_NAME_FMT("Process voter:%s(pid:%d), value:[%d-%d]%s",
         curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
-    HGM_LOGD("Process: %{public}s(%{public}d):[%{public}u, %{public}u]%{public}s",
+    HGM_LOGD("Process: %{public}s(%{public}d):[%{public}d, %{public}d]%{public}s",
         curVoteInfo.voterName.c_str(), curVoteInfo.pid, curVoteInfo.min, curVoteInfo.max, isSkip ? " skip" : "");
 }
 
@@ -268,7 +268,7 @@ std::pair<VoteInfo, VoteRange> HgmFrameVoter::ProcessVote(const std::string& cur
     if (voteRecord_["VOTER_PACKAGES"].second || voteRecord_["VOTER_LTPO"].second) {
         voteRecord_["VOTER_SCENE"].second = true;
     }
-    HGM_LOGD("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}u-%{public}u}",
+    HGM_LOGD("Process: Strategy:%{public}s Screen:%{public}d Mode:%{public}d -- VoteResult:{%{public}d-%{public}d}",
         curScreenStrategyId.c_str(), static_cast<int>(curScreenId), curRefreshRateMode, min, max);
     return {resultVoteInfo, voteRange};
 }

@@ -164,7 +164,7 @@ bool HgmSoftVSyncManager::CollectFrameRateChange(FrameRateRange finalRange,
         frameRateChanged = true;
     }
 
-    RS_TRACE_NAME_FMT("CollectFrameRateChange rsFrameRate: %u, finalRange = (%d, %d, %d)",
+    RS_TRACE_NAME_FMT("CollectFrameRateChange rsFrameRate: %d, finalRange = (%d, %d, %d)",
         rsFrameRate, finalRange.min_, finalRange.max_, finalRange.preferred_);
     RS_TRACE_INT("PreferredFrameRate", static_cast<int>(finalRange.preferred_));
 
@@ -214,7 +214,7 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
     if (appFrameRate != linker.second->GetFrameRate() || controllerRateChanged) {
         linker.second->SetFrameRate(appFrameRate);
         appChangeData_[linker.second->GetId()] = appFrameRate;
-        HGM_LOGD("HgmSoftVSyncManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}u",
+        HGM_LOGD("HgmSoftVSyncManager: appChangeData linkerId = %{public}" PRIu64 ", %{public}d",
             linker.second->GetId(), appFrameRate);
         frameRateChanged = true;
     }
@@ -222,8 +222,8 @@ void HgmSoftVSyncManager::CalcAppFrameRate(
         (expectedRange.max_ == OLED_144_HZ || expectedRange.max_ == OLED_NULL_HZ)) {
         return;
     }
-    RS_TRACE_NAME_FMT("HgmSoftVSyncManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %" PRIu64
-        ", appFrameRate = %u, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
+    RS_TRACE_NAME_FMT("HgmSoftVSyncManager::UniProcessData multiAppFrameRate: pid = %d, linkerId = %ld, "\
+        "appFrameRate = %d, appRange = (%d, %d, %d)", ExtractPid(linker.first), linker.second->GetId(),
         appFrameRate, expectedRange.min_, expectedRange.max_, expectedRange.preferred_);
 }
 
@@ -385,10 +385,10 @@ bool HgmSoftVSyncManager::CollectGameRateDiscountChange(uint64_t linkerId, Frame
     int32_t drawingFrameRate = static_cast<int32_t>(GetDrawingFrameRate(currRefreshRate, expectedRange));
     if (drawingFrameRate != expectedRange.preferred_) {
         RS_TRACE_NAME_FMT("CollectGameRateDiscountChange failed, linkerId=%" PRIu64
-            ", rateDiscount=%u, preferred=%d drawingFrameRate=%d currRefreshRate=%d",
+            ", rateDiscount=%d, preferred=%d drawingFrameRate=%d currRefreshRate=%d",
             linkerId, iter->second, expectedRange.preferred_, drawingFrameRate, static_cast<int32_t>(currRefreshRate));
         HGM_LOGD("CollectGameRateDiscountChange failed, linkerId=%{public}" PRIu64
-            ", rateDiscount=%{public}u, preferred=%{public}d drawingFrameRate=%{public}d currRefreshRate=%{public}d",
+            ", rateDiscount=%{public}d, preferred=%{public}d drawingFrameRate=%{public}d currRefreshRate=%{public}d",
             linkerId, iter->second, expectedRange.preferred_, drawingFrameRate, static_cast<int32_t>(currRefreshRate));
         expectedRange.preferred_ = tmpPreferred;
         expectedRange.min_ = tmpMin;
@@ -396,10 +396,10 @@ bool HgmSoftVSyncManager::CollectGameRateDiscountChange(uint64_t linkerId, Frame
         return false;
     }
     RS_TRACE_NAME_FMT("CollectGameRateDiscountChange linkerId=%" PRIu64
-        ", rateDiscount=%u, preferred=%d currRefreshRate=%d",
+        ", rateDiscount=%d, preferred=%d currRefreshRate=%d",
         linkerId, iter->second, expectedRange.preferred_, static_cast<int32_t>(currRefreshRate));
     HGM_LOGD("CollectGameRateDiscountChange succeed, linkerId=%{public}" PRIu64
-        ", rateDiscount=%{public}u, preferred=%{public}d currRefreshRate=%{public}d",
+        ", rateDiscount=%{public}d, preferred=%{public}d currRefreshRate=%{public}d",
         linkerId, iter->second, expectedRange.preferred_, static_cast<int32_t>(currRefreshRate));
     return true;
 }

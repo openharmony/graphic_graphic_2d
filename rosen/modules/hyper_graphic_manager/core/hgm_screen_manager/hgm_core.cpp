@@ -340,7 +340,7 @@ int32_t HgmCore::SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate
     HGM_LOGD("HgmCore setting screen " PUBU64 " to the rate of %{public}d", id, rate);
     auto screen = GetScreen(id);
     if (!screen) {
-        HGM_LOGW("HgmCore failed to get screen of : %{public}" PRIu64, id);
+        HGM_LOGW("HgmCore failed to get screen of : " PUBU64 "", id);
         return HGM_ERROR;
     }
 
@@ -424,12 +424,12 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
     const std::vector<GraphicDisplayModeInfo>& supportedModes)
 {
     // add a physical screen to hgm during hotplug event
-    HILOG_COMM_INFO("HgmCore adding screen : %{public}" PRIu64, id);
+    HILOG_COMM_INFO("HgmCore adding screen : " PUBI64 "", id);
     bool removeId = std::any_of(screenIds_.begin(), screenIds_.end(),
         [id](const ScreenId screen) { return screen == id; });
     if (removeId) {
         if (RemoveScreen(id) != EXEC_SUCCESS) {
-            HGM_LOGW("HgmCore failed to remove the existing screen, not adding : %{public}" PRIu64, id);
+            HGM_LOGW("HgmCore failed to remove the existing screen, not adding : " PUBI64 "", id);
             return HGM_BASE_REMOVE_FAILED;
         }
     }
@@ -472,7 +472,7 @@ int32_t HgmCore::RemoveScreen(ScreenId id)
 {
     std::lock_guard<std::mutex> lock(listMutex_);
     // delete a screen during a hotplug event
-    HGM_LOGD("HgmCore deleting the screen : %{public}" PRIu64, id);
+    HGM_LOGD("HgmCore deleting the screen : " PUBU64 "", id);
     for (auto screen = screenIds_.begin(); screen != screenIds_.end(); ++screen) {
         if (*screen == id) {
             screenIds_.erase(screen);
@@ -492,7 +492,7 @@ uint32_t HgmCore::GetScreenCurrentRefreshRate(ScreenId id) const
 {
     auto screen = GetScreen(id);
     if (!screen) {
-        HGM_LOGD("HgmCore failed to find screen %{public}" PRIu64, id);
+        HGM_LOGD("HgmCore failed to find screen " PUBU64 "", id);
         return static_cast<uint32_t>(EXEC_SUCCESS);
     }
 
@@ -539,7 +539,7 @@ std::vector<uint32_t> HgmCore::GetScreenSupportedRefreshRates(ScreenId id)
     HgmTaskHandleThread::Instance().DetectMultiThreadingCalls();
     auto screen = GetScreen(id);
     if (!screen) {
-        HGM_LOGW("HgmCore failed to find screen %{public}" PRIu64, id);
+        HGM_LOGW("HgmCore failed to find screen " PUBU64 "", id);
         return std::vector<uint32_t>(static_cast<uint32_t>(EXEC_SUCCESS));
     }
 

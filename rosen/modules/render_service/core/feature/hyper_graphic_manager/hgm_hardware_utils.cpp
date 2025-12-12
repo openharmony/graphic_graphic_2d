@@ -33,7 +33,7 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
     uint32_t refreshRate = refreshRateParam_.rate;
     static bool refreshRateSwitch = system::GetBoolParameter("persist.hgm.refreshrate.enabled", true);
     if (!refreshRateSwitch) {
-        RS_LOGD("refreshRateSwitch is off, currRefreshRate is %{public}u", refreshRate);
+        RS_LOGD("refreshRateSwitch is off, currRefreshRate is %{public}d", refreshRate);
         return;
     }
 
@@ -57,8 +57,8 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
         needRetrySetRate = retryIter->second.first;
     }
     if (shouldSetRefreshRate || needRetrySetRate) {
-        RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}u "
-            "needRetrySetRate %{public}d", static_cast<int>(screenId), refreshRate, needRetrySetRate);
+        RS_LOGD("CommitAndReleaseLayers screenId %{public}d refreshRate %{public}d \
+            needRetrySetRate %{public}d", static_cast<int>(screenId), refreshRate, needRetrySetRate);
         int32_t sceneId = (lastCurScreenId != curScreenId || needRetrySetRate) ? SWITCH_SCREEN_SCENE : 0;
         frameRateMgr->SetLastCurScreenId(curScreenId);
         int32_t status = hgmCore_.SetScreenRefreshRate(screenId, sceneId, refreshRate, shouldSetRefreshRate);
@@ -67,7 +67,7 @@ void HgmHardwareUtils::ExecuteSwitchRefreshRate(ScreenId screenId)
             retryIter->second.second = shouldSetRefreshRate ? 0 : retryIter->second.second;
         }
         if (status < EXEC_SUCCESS) {
-            RS_LOGD("HgmContext: failed to set refreshRate %{public}u, screenId %{public}" PRIu64,
+            RS_LOGD("HgmContext: failed to set refreshRate %{public}d, screenId %{public}" PRIu64 "",
                 refreshRate, screenId);
         }
     }
@@ -112,12 +112,12 @@ void HgmHardwareUtils::PerformSetActiveMode(const std::shared_ptr<HdiOutput>& ou
         return;
     }
 
-    RS_TRACE_NAME_FMT("HgmContext::PerformSetActiveMode setting active mode. rate: %u",
+    RS_TRACE_NAME_FMT("HgmContext::PerformSetActiveMode setting active mode. rate: %d",
         hgmCore_.GetScreenCurrentRefreshRate(hgmCore_.GetActiveScreenId()));
     for (auto [screenId, modeId] : *modeMap) {
         for (auto mode : screenManager->GetScreenSupportedModes(screenId)) {
             RS_OPTIONAL_TRACE_NAME_FMT(
-                "HgmContext check modes w:%" PRId32 ", h:%" PRId32 ", rate:%" PRIu32 ", id:%" PRId32,
+                "HgmContext check modes w:%" PRId32", h:%" PRId32", rate:%" PRId32", id:%" PRId32"",
                 mode.GetScreenWidth(), mode.GetScreenHeight(), mode.GetScreenRefreshRate(), mode.GetScreenModeId());
         }
 
