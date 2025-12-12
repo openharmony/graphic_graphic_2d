@@ -89,6 +89,7 @@ taihe_shared_library("uieffect_taihe_native") {
     defines = [ "ENABLE_IPC_SECURITY" ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
+      "access_token:libtokenid_sdk",
       "ipc:ipc_core",
     ]
   }
