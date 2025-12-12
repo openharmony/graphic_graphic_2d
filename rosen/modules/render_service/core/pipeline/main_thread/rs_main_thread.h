@@ -474,8 +474,7 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedRegion,
         Occlusion::Region& curRegion, Occlusion::Region& totalRegion);
     void CalcOcclusionImplementation(const std::shared_ptr<RSScreenRenderNode>& screenNode,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
-        std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
+        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec);
     void CalcOcclusion();
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();
