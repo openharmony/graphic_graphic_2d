@@ -586,7 +586,7 @@ Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::
 
     for (const auto& drawable : filterDrawables_) {
         if (drawable == nullptr) {
-            continue
+            continue;
         }
         dst.Join(RSPropertiesPainter::Rect2DrawingRect(drawable->GetRenderRelativeRect(EffectRectType::TOTAL, rsRect)));
     }
@@ -597,6 +597,10 @@ Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::
 void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    if (params.IsExcludedFromNodeGroup()) {
+        // excluded node do not draw its background here
+        return;
+    }
     // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
     if (!params.GetShadowRect().IsEmpty()) {
         DrawBackground(canvas, params.GetBounds());

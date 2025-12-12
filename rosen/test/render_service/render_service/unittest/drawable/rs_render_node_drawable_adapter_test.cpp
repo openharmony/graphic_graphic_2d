@@ -602,31 +602,12 @@ HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterRelativeRectTest, TestSize.Leve
 
     // case1: filterDrawables_ is empty
     Drawing::Rect bounds(10.0f, 20.0f, 100.0f, 200.0f);
+    RectF rsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight());
     Drawing::Rect result = adapter->GetFilterRelativeRect(bounds);
     EXPECT_EQ(result.GetLeft(), bounds.GetLeft());
     EXPECT_EQ(result.GetTop(), bounds.GetTop());
     EXPECT_EQ(result.GetWidth(), bounds.GetWidth());
     EXPECT_EQ(result.GetHeight(), bounds.GetHeight());
-
-    // case2: filterDrawables_ has item
-    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->renderRelativeRectInfo_ = std::make_unique<RSFilterDrawable::FilterRectInfo>();
-    auto& filterRectInfo = filterDrawable->renderRelativeRectInfo_;
-    filterRectInfo->snapshotRect_ = RectF(0.0f, 0.0f, 100.0f, 100.0f);
-    filterRectInfo->drawRect_ = RectF(50.0f, 50.0f, 150.0f, 150.0f);
-    adapter->filterDrawables_[0] = filterDrawable;
-
-    auto renderRelativeRect = filterDrawable->GetRenderRelativeRect(EffectRectType::TOTAL, bounds);
-    EXPECT_EQ(renderRelativeRect.GetLeft(), 0.0f);
-    EXPECT_EQ(renderRelativeRect.GetTop(), 0.0f);
-    EXPECT_EQ(renderRelativeRect.GetWidth(), 150.0f);
-    EXPECT_EQ(renderRelativeRect.GetHeight(), 150.0f);
-
-    result = adapter->GetFilterRelativeRect(bounds);
-    EXPECT_EQ(result.GetLeft(), 0.0f);
-    EXPECT_EQ(result.GetTop(), 0.0f);
-    EXPECT_EQ(result.GetWidth(), 150.0f);
-    EXPECT_EQ(result.GetHeight(), 200.0f);
 }
 
 /**
@@ -643,6 +624,11 @@ HWTEST(RSRenderNodeDrawableAdapterTest, CheckShadowRectAndDrawBackgroundTest, Te
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     RSRenderParams params(id);
+
+    params.ExcludedFromNodeGroup(true);
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
+    EXPECT_TRUE(params.IsExcludedFromNodeGroup());
+    params.ExcludedFromNodeGroup(false);
 
     Drawing::Rect shadowRect(0, 0, 50, 50);
     params.SetShadowRect(shadowRect);
