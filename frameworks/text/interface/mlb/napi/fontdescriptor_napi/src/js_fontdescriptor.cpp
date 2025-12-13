@@ -124,7 +124,7 @@ bool JsFontDescriptor::ParseFontDescWeight(napi_env env, napi_value obj, int& we
             return false;
         }
         std::pair<int32_t, int32_t> result;
-        if (OHOS::MLB::FindFontWeight(weightEnum, result)) {
+        if (OHOS::MLB::FindFontWeight(OHOS::MLB::FindFontWeight(weightEnum), result)) {
             weight = result.first;
             return true;
         }
@@ -185,7 +185,7 @@ bool JsFontDescriptor::SetProperty(napi_env env, napi_value object, const char* 
 bool JsFontDescriptor::ConvertFontDescWeight(napi_env env, napi_value obj, int weight)
 {
     std::pair<int32_t,int32_t> result;
-    if (!OHOS::MLB::FindFontWeight(weight, result)) {
+    if (!OHOS::MLB::FindFontWeight(OHOS::MLB::RegularWeight(weight), result)) {
         return false;
     }
     TEXT_CHECK_RETURN_VALUE(SetProperty(env, obj, "weight", CreateJsValue(env, result.second)), false);
@@ -215,7 +215,7 @@ napi_value JsFontDescriptor::CreateFontDescriptorArray(napi_env env, const std::
         TEXT_ERROR_CHECK(napi_create_object(env, &fontDescriptor) == napi_ok, return nullptr,
             "Failed to create object");
         TEXT_CHECK(CreateAndSetProperties(env, fontDescriptor, item), return nullptr);
-        TEXT_CHECK(ConvertFontDescWeight(env, fontDescriptor, OHOS::MLB::RegularWeight(item->weight)), return nullptr);
+        TEXT_CHECK(ConvertFontDescWeight(env, fontDescriptor, item->weight), return nullptr);
         TEXT_ERROR_CHECK(napi_set_element(env, descArray, index++, fontDescriptor) == napi_ok, return nullptr,
             "Failed to set element");
     }
@@ -230,7 +230,7 @@ napi_value JsFontDescriptor::CreateFontDescriptor(napi_env env, FontDescSharedPt
     TEXT_ERROR_CHECK(napi_create_object(env, &fontDescriptor) == napi_ok, return nullptr,
         "Failed to create fontDescriptor");
     TEXT_CHECK(CreateAndSetProperties(env, fontDescriptor, result), return nullptr);
-    TEXT_CHECK(ConvertFontDescWeight(env, fontDescriptor, OHOS::MLB::RegularWeight(result->weight)), return nullptr);
+    TEXT_CHECK(ConvertFontDescWeight(env, fontDescriptor, result->weight), return nullptr);
     return fontDescriptor;
 }
 

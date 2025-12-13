@@ -119,7 +119,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
     }
 
     std::pair<int, int> result;
-    if (!OHOS::MLB::FindFontWeight(fontDesc->weight, result)) {
+    if (!OHOS::MLB::FindFontWeight(OHOS::MLB::RegularWeight(fontDesc->weight), result)) {
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
     }
@@ -167,9 +167,6 @@ ani_object CreateFontDescriptorArray(ani_env* env, const std::vector<FontDescSha
     ani_size index = 0;
     for (const auto& item : fontDescripterList) {
         ani_object aniObj = nullptr;
-        if (item != nullptr) {
-            item->weight = OHOS::MLB::RegularWeight(item->weight);
-        }
         ani_status status = ParseFontDescriptorToAni(env, item, aniObj);
         if (status != ANI_OK) {
             TEXT_LOGE("Failed to parse FontDescriptor to ani,index %{public}zu,status %{public}d", index, status);
@@ -274,9 +271,6 @@ ani_object AniFontDescriptor::GetFontDescriptorByFullName(ani_env* env, ani_stri
     FontDescSharedPtr resultDesc = nullptr;
     FontDescriptorMgrInstance.GetFontDescSharedPtrByFullName(fullNameStr, systemFontType, resultDesc);
     ani_object descAniObj = nullptr;
-    if (resultDesc != nullptr) {
-        resultDesc->weight = OHOS::MLB::RegularWeight(resultDesc->weight);
-    }
     ret = ParseFontDescriptorToAni(env, resultDesc, descAniObj);
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to parse FontDescSharedPtr,ret %{public}d", ret);
