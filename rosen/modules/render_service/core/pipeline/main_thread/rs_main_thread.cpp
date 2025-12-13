@@ -4357,9 +4357,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         return false;
     }
     bool onlyGameNodeOnTree = frameRateMgr->IsGameNodeOnTree();
-    bool isNeedAdaptiveCompose = onlyGameNodeOnTree &&
-        context_->GetAnimatingNodeList().empty() &&
-        context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+    bool isNeedAdaptiveCompose = onlyGameNodeOnTree && hgmContext_.GetIsAdaptiveVsyncComposeReady();
     // in game adaptive sync mode and ignore animation scenario and mult-window scenario
     // selfdrawing node request next vsync as UrgentSelfdrawing
     return isNeedAdaptiveCompose;

@@ -48,6 +48,11 @@ public:
         return convertFrameRateFunc_;
     }
 
+    bool GetIsAdaptiveVsyncComposeReady()
+    {
+        return isAdaptiveVsyncComposeReady_;
+    }
+
 private:
     void InitHgmUpdateCallback();
 
@@ -65,6 +70,12 @@ private:
 
     RPFrameRatePolicy rpFrameRatePolicy_;
     std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)> convertFrameRateFunc_ = nullptr;
+
+    std::atomic<bool> isAdaptiveVsyncComposeReady_ = false;
+    void SetIsAdaptiveVsyncComposeReady(bool isAdaptiveVsyncComposeReady)
+    {
+        isAdaptiveVsyncComposeReady_ = isAdaptiveVsyncComposeReady;
+    }
 };
 } // namespace OHOS
 } // namespace Rosen

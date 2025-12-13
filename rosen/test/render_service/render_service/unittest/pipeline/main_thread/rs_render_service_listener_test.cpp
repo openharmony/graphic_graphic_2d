@@ -20,6 +20,7 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
+#include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -159,11 +160,19 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceListenerTest, SetBufferInfoAndRequest001, TestSize.Level1)
 {
+    uint16_t timestamp = 0;
     std::weak_ptr<RSSurfaceRenderNode> wp;
     std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp);
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
     NodeId id = 0;
     std::shared_ptr<RSSurfaceHandler> handler = std::make_shared<RSSurfaceHandler>(id);
+
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
+    RSMainThread::Instance()->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
+    RSMainThread::Instance()->context_->animatingNodeList_.clear();
+    RSMainThread::Instance()->ProcessHgmFrameRate(timestamp);
+
     rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), true);
     ASSERT_EQ(node->GetAncoFlags(), 0);
     rsListener->SetBufferInfoAndRequest(node, handler, handler->GetConsumer(), false);
