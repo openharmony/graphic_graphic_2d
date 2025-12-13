@@ -31,8 +31,8 @@
 namespace OHOS {
 namespace Rosen {
 
-static const std::string ANI_CLASS_COLOR_PICKER = "L@ohos/effectKit/effectKit/ColorPickerInternal;";
-static const std::string ANI_CLASS_COLOR = "L@ohos/effectKit/effectKit/ColorInternal;";
+static const std::string ANI_CLASS_COLOR_PICKER = "@ohos.effectKit.effectKit.ColorPickerInternal";
+static const std::string ANI_CLASS_COLOR = "@ohos.effectKit.effectKit.ColorInternal";
 constexpr int REGION_COORDINATE_NUM = 4;
 
 struct AniColorPickerAsyncContext {
@@ -258,7 +258,7 @@ ani_object AniColorPicker::CreateColorPickerNormal(ani_env *env, ani_object para
     }
 
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
-    const char *methodSig = "J:V";
+    const char *methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(colorPicker.release()));
 }
@@ -313,7 +313,7 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     }
 
     static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
-    const char* methodSig = "J:V";
+    const char* methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(env, className, methodSig,
         reinterpret_cast<ani_long>(colorPicker.release()));
 }
@@ -334,7 +334,7 @@ ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_pt
     }
     static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
     // ets constructor function, parameter type and return value type
-    const char* methodSig = "J:V";
+    const char* methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
 }
@@ -401,7 +401,7 @@ ani_status AniColorPicker::Init(ani_env *env)
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
     ani_class cls;
     if (env->FindClass(className, &cls) != ANI_OK) {
-        EFFECT_LOG_E("Not found L@ohos/effectKit/effectKit/ColorPickerInternal");
+        EFFECT_LOG_E("Not found @ohos.effectKit.effectKit.ColorPickerInternal");
         return ANI_NOT_FOUND;
     }
 
@@ -425,9 +425,9 @@ ani_status AniColorPicker::Init(ani_env *env)
         return ANI_ERROR;
     }
     std::array static_methods = {
-        ani_native_function { "kitTransferStaticNative", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function { "kitTransferStaticNative", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::KitTransferStaticColorPicker) },
-        ani_native_function { "kitTransferDynamicNative", "J:Lstd/interop/ESValue;",
+        ani_native_function { "kitTransferDynamicNative", "l:C{std.interop.ESValue}",
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::kitTransferDynamicColorPicker) }
     };
     ret = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());
