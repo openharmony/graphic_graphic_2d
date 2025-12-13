@@ -605,6 +605,38 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncT
 }
 
 /**
+ * @tc.name: RSBackgroundEffectDrawableCreateDrawFuncTest003
+ * @tc.desc: Test CreateDrawFunc
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncTest003, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
+    int width = 1270;
+    int height = 2560;
+    Drawing::ImageInfo imageInfo { width, height, Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
+    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRaster(imageInfo);
+    Drawing::Surface* surfacePtr = surface.get();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(surfacePtr);
+    auto rect = std::make_shared<Drawing::Rect>(0, 0, 100, 100);
+    auto bound = RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight());
+    auto boundsRect = drawable->GetAbsRenderEffectRect(*filterCanvas, EffectRectType::SNAPSHOT, bound);
+    ASSERT_NE(boundsRect, Drawing::RectI());
+    auto drawFunc = drawable->CreateDrawFunc();
+    drawFunc(filterCanvas.get(), rect.get());
+    drawable->filter_ = std::make_shared<RSDrawingFilter>();
+    drawFunc(filterCanvas.get(), rect.get());
+    drawable->renderRelativeRectInfo_ = std::make_unique<DrawableV2::RSFilterDrawable::FilterRectInfo>();
+    drawable->renderRelativeRectInfo_->snapshotRect_ = bound;
+    drawable->renderRelativeRectInfo_->drawRect_ = bound;
+    bound = RectF();
+    boundsRect = drawable->GetAbsRenderEffectRect(*filterCanvas, EffectRectType::SNAPSHOT, bound);
+    ASSERT_NE(boundsRect, Drawing::RectI());
+    drawFunc(filterCanvas.get(), nullptr);
+}
+
+/**
  * @tc.name: RSUseEffectDrawable001
  * @tc.desc: Test OnUpdate
  * @tc.type:FUNC
