@@ -756,7 +756,7 @@ void RSUniHwcVisitor::UpdateHardwareStateByBoundNEDstRectInApps(
                 RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by aboved BoundNEDstRect hwcNode",
                     hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
                 Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
-                    HwcDisabledReasons::DISABLED_BY_ABOVED_BOUND_NE_DST_RECT, hwcNodePtr->GetName());    
+                    HwcDisabledReasons::DISABLED_BY_ABOVED_BOUND_NE_DST_RECT, hwcNodePtr->GetName());
                 continue;
             }
         }
