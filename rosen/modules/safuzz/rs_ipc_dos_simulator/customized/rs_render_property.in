@@ -39,6 +39,8 @@ DECLARE_PROPERTY(std::shared_ptr<RSMagnifierParams>, RandomData, RSMagnifierPara
 DECLARE_PROPERTY(std::shared_ptr<MotionBlurParam>, RandomData, MotionBlurParamSharedPtr)
 DECLARE_PROPERTY(std::vector<std::shared_ptr<EmitterUpdater>>, RandomData, SmallEmitterUpdaterSharedPtrVector)
 DECLARE_PROPERTY(std::shared_ptr<ParticleNoiseFields>, RandomData, SmallParticleNoiseFieldsSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<ParticleRippleFields>, RandomData, SmallParticleRippleFieldsSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<ParticleVelocityFields>, RandomData, SmallParticleVelocityFieldsSharedPtr)
 DECLARE_PROPERTY(std::shared_ptr<RSMask>, RandomRSMask, RSMask)
 DECLARE_PROPERTY(RSFlyOutPara, RandomData, RSFlyOutPara)
 DECLARE_PROPERTY(std::shared_ptr<OHOS::Media::PixelMap>, RandomData, PixelMap)

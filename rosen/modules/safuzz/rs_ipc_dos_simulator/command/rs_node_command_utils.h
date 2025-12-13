@@ -51,6 +51,10 @@ public:
                                     PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleNoiseFields, Uint64, ParticleNoiseFieldsSharedPtr, Uint64,
                                     PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleRippleFields, Uint64, ParticleRippleFieldsSharedPtr, Uint64,
+                                    PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleVelocityFields, Uint64, ParticleVelocityFieldsSharedPtr,
+                                    Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShader, Uint64, RSShaderSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector2f, Uint64, Vector2f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector3f, Uint64, Vector3f, Uint64, PropertyUpdateType);
