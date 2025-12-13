@@ -18,15 +18,15 @@
 namespace OHOS::MLB {
 namespace {
     const std::unordered_map<int, int> g_weightMap = {
-        { 100, static_cast<int>(Rosen::FontWeight::W100) },
-        { 200, static_cast<int>(Rosen::FontWeight::W200) },
-        { 300, static_cast<int>(Rosen::FontWeight::W300) },
-        { 400, static_cast<int>(Rosen::FontWeight::W400) },
-        { 500, static_cast<int>(Rosen::FontWeight::W500) },
-        { 600, static_cast<int>(Rosen::FontWeight::W600) },
-        { 700, static_cast<int>(Rosen::FontWeight::W700) },
-        { 800, static_cast<int>(Rosen::FontWeight::W800) },
-        { 900, static_cast<int>(Rosen::FontWeight::W900) }
+        {100, static_cast<int>(Rosen::FontWeight::W100)},
+        {200, static_cast<int>(Rosen::FontWeight::W200)},
+        {300, static_cast<int>(Rosen::FontWeight::W300)},
+        {400, static_cast<int>(Rosen::FontWeight::W400)},
+        {500, static_cast<int>(Rosen::FontWeight::W500)},
+        {600, static_cast<int>(Rosen::FontWeight::W600)},
+        {700, static_cast<int>(Rosen::FontWeight::W700)},
+        {800, static_cast<int>(Rosen::FontWeight::W800)},
+        {900, static_cast<int>(Rosen::FontWeight::W900)}
     };
 }
 
