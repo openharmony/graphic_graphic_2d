@@ -123,8 +123,8 @@ bool JsFontDescriptor::ParseFontDescWeight(napi_env env, napi_value obj, int& we
         if (!ConvertFromJsValue(env, napiVal, weightEnum)) {
             return false;
         }
-        std::pair<int32_t,int32_t> result;
-        if(OHOS::MLB::FindFontWeight(weightEnum, result)) {
+        std::pair<int32_t, int32_t> result;
+        if (OHOS::MLB::FindFontWeight(weightEnum, result)) {
             weight = result.first;
             return true;
         }
@@ -185,7 +185,7 @@ bool JsFontDescriptor::SetProperty(napi_env env, napi_value object, const char* 
 bool JsFontDescriptor::ConvertFontDescWeight(napi_env env, napi_value obj, int weight)
 {
     std::pair<int32_t,int32_t> result;
-    if(!OHOS::MLB::FindFontWeight(weight, result)) {
+    if (!OHOS::MLB::FindFontWeight(weight, result)) {
         return false;
     }
     TEXT_CHECK_RETURN_VALUE(SetProperty(env, obj, "weight", CreateJsValue(env, result.second)), false);

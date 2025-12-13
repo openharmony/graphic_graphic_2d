@@ -17,6 +17,7 @@
 #define MLB_FONT_UTILS_H
 
 #include <unordered_map>
+
 #include "typography_types.h"
 
 namespace OHOS::MLB {
