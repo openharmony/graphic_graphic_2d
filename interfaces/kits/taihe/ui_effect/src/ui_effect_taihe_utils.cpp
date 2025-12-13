@@ -27,14 +27,13 @@
 #ifdef ENABLE_IPC_SECURITY
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
 #endif
 
 namespace ANI::UIEffect {
 bool IsSystemApp()
 {
 #ifdef ENABLE_IPC_SECURITY
-    static bool isSys = OHOS::Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(
+    static bool isSys = OHOS::Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(
         OHOS::IPCSkeleton::GetSelfTokenID());
     return isSys;
 #else
