@@ -3246,7 +3246,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             const auto& LayerComposeInfo = GetLayerComposeInfo();
             if (!reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber) ||
                 !reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber) ||
-                !reply.WriteInt32(LayerComposeInfo.redrawFrameNumber)) {
+                !reply.WriteInt32(LayerComposeInfo.redrawFrameNumber) ||
+                !reply.WriteInt32(LayerComposeInfo.drawImageNumber)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_LAYER_COMPOSE_INFO Write LayerComposeInfo failed!");
                 ret = ERR_INVALID_REPLY;
             }

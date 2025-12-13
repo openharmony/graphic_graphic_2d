@@ -590,6 +590,8 @@ void RSUniHwcComputeUtil::UpdateHwcEnableByProperty(const std::shared_ptr<RSSurf
             "childNode, isNodeRenderByDrawingCache[%d], isNodeRenderByChildNode[%d]",
             hwcNode->GetName().c_str(), hwcNode->GetId(), ctx.isNodeRenderByDrawingCache, ctx.isNodeRenderByChildNode);
         hwcNode->SetHardwareForcedDisabledState(true);
+        HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(hwcNode->GetId(),
+            HwcDisabledReasons::DISABLED_BY_DRAWING_CACHE, hwcNode->GetName());
     }
 }
 

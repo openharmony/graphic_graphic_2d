@@ -5025,12 +5025,13 @@ LayerComposeInfo RSClientToServiceConnectionProxy::GetLayerComposeInfo()
     int32_t uniformRenderFrameNumber{0};
     int32_t offlineComposeFrameNumber{0};
     int32_t redrawFrameNumber{0};
+    int32_t drawImageNumber{0};
     if (!reply.ReadInt32(uniformRenderFrameNumber) || !reply.ReadInt32(offlineComposeFrameNumber) ||
-        !reply.ReadInt32(redrawFrameNumber)) {
+        !reply.ReadInt32(redrawFrameNumber) || !reply.ReadInt32(drawImageNumber)) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::GetLayerComposeInfo Read parcel failed");
         return layerComposeInfo;
     }
-    return LayerComposeInfo(uniformRenderFrameNumber, offlineComposeFrameNumber, redrawFrameNumber);
+    return LayerComposeInfo(uniformRenderFrameNumber, offlineComposeFrameNumber, redrawFrameNumber, drawImageNumber);
 }
 
 HwcDisabledReasonInfos RSClientToServiceConnectionProxy::GetHwcDisabledReasonInfo()

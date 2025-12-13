@@ -48,6 +48,12 @@ void LayerComposeCollection::UpdateRedrawFrameNumberForDFX()
     ++layerComposeInfo_.redrawFrameNumber;
 }
 
+void LayerComposeCollection::UpdateDrawImageNumberForDFX()
+{
+    std::lock_guard<std::mutex> lock(layerMtx_);
+    ++layerComposeInfo_.drawImageNumber;
+}
+
 LayerComposeInfo LayerComposeCollection::GetLayerComposeInfo() const
 {
     std::lock_guard<std::mutex> lock(layerMtx_);

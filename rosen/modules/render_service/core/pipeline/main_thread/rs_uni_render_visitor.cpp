@@ -1481,6 +1481,8 @@ void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
             node.SetHwcChildrenDisabledState();
             RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by crossNode",
                 node.GetName().c_str(), node.GetId());
+            hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
+                HwcDisabledReasons::DISABLED_BY_CROSS_NODE, node.GetName());
         }
         node.SetNeedCacheSurface(needCacheSurface);
     }
@@ -2148,6 +2150,8 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     if (geoPtr->IsNeedClientCompose()) {
         hwcVisitor_->isHardwareForcedDisabled_ = true;
         RS_OPTIONAL_TRACE_FMT("hwc debug: id:%" PRIu64 " disabled by screenNode rotation", node.GetId());
+        hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(node.GetId(),
+            HwcDisabledReasons::DISABLED_BY_SCREEN_NODE_ROTATION, " ");
     }
 
     // init hdr
@@ -2308,6 +2312,8 @@ void RSUniRenderVisitor::ProcessAncoNode(const std::shared_ptr<RSSurfaceRenderNo
         RS_OPTIONAL_TRACE_NAME_FMT("ProcessAncoNode: name:%s id:%" PRIu64 " disabled by anco has gpu",
             hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
         hwcNodePtr->SetHardwareForcedDisabledState(true);
+        hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(hwcNodePtr->GetId(),
+            HwcDisabledReasons::DISABLED_BY_ANCO_HAS_GPU, hwcNodePtr->GetName());
     }
 }
 
@@ -2487,6 +2493,8 @@ void RSUniRenderVisitor::UpdatePointWindowDirtyStatus(std::shared_ptr<RSSurfaceR
         surfaceNode->SetHardwareForcedDisabledState(true);
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " use hardCursor to display",
             surfaceNode->GetName().c_str(), surfaceNode->GetId());
+        hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(surfaceNode->GetId(),
+            HwcDisabledReasons::DISABLED_BY_POINT_WINDOW, surfaceNode->GetName());
         bool isMirrorMode = RSPointerWindowManager::Instance().HasMirrorDisplay();
         RSPointerWindowManager::Instance().SetIsPointerEnableHwc(isHardCursor && !isMirrorMode);
         auto transform = RSUniHwcComputeUtil::GetLayerTransform(*surfaceNode, curScreenNode_->GetScreenInfo());
@@ -2517,6 +2525,8 @@ void RSUniRenderVisitor::UpdateTopLayersDirtyStatus(const std::vector<std::share
                     "IsHardwareComposerEnabled[%d],TopLayerShouldPaint[%d],HasUniRenderHdrSurface[%d],DrmNodeEmpty[%d]",
                     topLayer->GetName().c_str(), topLayer->GetId(), IsHardwareComposerEnabled(),
                     topLayer->ShouldPaint(), curScreenNode_->GetHasUniRenderHdrSurface(), drmNodes_.empty());
+                hwcVisitor_->Statistics().UpdateHwcDisabledReasonForDFX(topLayer->GetId(),
+                    HwcDisabledReasons::DISABLED_BY_TOP_LAYERS, topLayer->GetName());
             }
             auto transform = RSUniHwcComputeUtil::GetLayerTransform(*topLayer, curScreenNode_->GetScreenInfo());
             topLayer->UpdateHwcNodeLayerInfo(transform);

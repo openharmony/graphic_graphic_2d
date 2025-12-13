@@ -256,6 +256,8 @@ void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
         SetHwcChildrenDisabledState();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
             GetName().c_str(), GetId());
+        HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(GetId(),
+            HwcDisabledReasons::DISABLED_BY_IS_CLONE_NODE, GetName());
     }
     SetIsCloned(isClonedNode);
 }
