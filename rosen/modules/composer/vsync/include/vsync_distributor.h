@@ -31,10 +31,6 @@
 
 #include "vsync_system_ability_listener.h"
 
-#if defined(RS_ENABLE_DVSYNC)
-#include "dvsync.h"
-#endif
-
 namespace OHOS {
 namespace Rosen {
 class VSyncDistributor;
@@ -154,13 +150,8 @@ public:
     sptr<VSyncConnection> GetVSyncConnection(uint64_t id);
 
     // used by DVSync
-    bool IsDVsyncOn();
     void SetFrameIsRender(bool isRender);
-    void MarkRSAnimate();
-    void UnmarkRSAnimate();
-    bool HasPendingUIRNV();
     uint32_t GetRefreshRate();
-    void RecordVsyncModeChange(uint32_t refreshRate, int64_t period);
     bool IsUiDvsyncOn();
     VsyncError SetUiDvsyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection>& connection);
     VsyncError SetUiDvsyncConfig(int32_t bufferCount, bool compositeSceneEnable,
@@ -171,7 +162,6 @@ public:
     int64_t GetVsyncCount();
     uint64_t GetRealTimeOffsetOfDvsync(int64_t time);
     VsyncError SetNativeDVSyncSwitch(bool dvsyncSwitch, const sptr<VSyncConnection> &connection);
-    void SetHasNativeBuffer();
     void PrintConnectionsStatus();
     void FirstRequestVsync();
     void NotifyPackageEvent(const std::vector<std::string>& packageList);
@@ -199,7 +189,6 @@ private:
         int64_t vsyncPulseCount; // used for LTPO
         uint32_t refreshRate;
     };
-    void ThreadMain();
     void EnableVSync(bool isUrgent = false);
     void DisableVSync();
     void OnVSyncEvent(int64_t now, int64_t period,
@@ -208,7 +197,6 @@ private:
                             std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
     VsyncError QosGetPidByName(const std::string& name, uint32_t& pid);
     constexpr pid_t ExtractPid(uint64_t id);
-    void PostVSyncEvent(const std::vector<sptr<VSyncConnection>> &conns, int64_t timestamp, bool isDvsyncThread);
     void ChangeConnsRateLocked(uint32_t vsyncMaxRefreshRate);
     void CollectConnectionsLTPO(bool &waitForVSync, int64_t timestamp,
         std::vector<sptr<VSyncConnection>> &conns, int64_t vsyncCount, bool isDvsyncThread = false);
@@ -219,12 +207,8 @@ private:
 #ifdef COMPOSER_SCHED_ENABLE
     void SubScribeSystemAbility(const std::string& threadName);
 #endif
-    void WaitForVsyncOrRequest(std::unique_lock<std::mutex> &locker);
-    void WaitForVsyncOrTimeOut(std::unique_lock<std::mutex> &locker);
     void CollectConns(bool &waitForVSync, int64_t &timestamp,
         std::vector<sptr<VSyncConnection>> &conns, bool isDvsyncThread);
-    bool PostVSyncEventPreProcess(int64_t &timestamp, std::vector<sptr<VSyncConnection>> &conns);
-    void CheckNeedDisableDvsync(int64_t now, int64_t period);
     void OnVSyncTrigger(int64_t now, int64_t period,
         uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
 
@@ -247,16 +231,6 @@ private:
     uint32_t generatorRefreshRate_ = 0;
     std::unordered_map<int32_t, int32_t> connectionCounter_;
     uint32_t countTraceValue_ = 0;
-#if defined(RS_ENABLE_DVSYNC)
-    int32_t GetUIDVsyncPid();
-    void SendConnectionsToVSyncWindow(int64_t now, int64_t period, uint32_t refreshRate, VSyncMode vsyncMode,
-        std::unique_lock<std::mutex> &locker);
-    void OnDVSyncTrigger(int64_t now, int64_t period,
-        uint32_t refreshRate, VSyncMode vsyncMode, uint32_t vsyncMaxRefreshRate);
-    sptr<DVsync> dvsync_ = nullptr;
-    bool pendingRNVInVsync_ = false;  // for vsync switch to dvsync
-    std::atomic<int64_t> lastDVsyncTS_ = 0;  // for dvsync switch to vsync
-#endif
     bool isRs_ = false;
     std::atomic<bool> hasVsync_ = false;
     int64_t beforeWaitRnvTime_ = 0;

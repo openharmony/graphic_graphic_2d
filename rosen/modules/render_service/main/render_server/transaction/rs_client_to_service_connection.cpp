@@ -90,10 +90,6 @@
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
 
-#if defined(RS_ENABLE_DVSYNC)
-#include "dvsync.h"
-#endif
-
 #undef LOG_TAG
 #define LOG_TAG "RSClientToServiceConnection"
 

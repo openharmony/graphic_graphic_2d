@@ -239,6 +239,7 @@ void RSRenderService::VsyncComponentInit()
     });
     
     DVSyncFeatureParam dvsyncParam;
+    InitDVSyncParams(dvsyncParam);
     rsVSyncDistributor_ = new VSyncDistributor(rsVSyncController_, "rs", dvsyncParam);
     appVSyncDistributor_ = new VSyncDistributor(appVSyncController_, "app", dvsyncParam);
     vsyncGenerator_->SetRSDistributor(rsVSyncDistributor_);
