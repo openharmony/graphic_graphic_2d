@@ -184,12 +184,12 @@ HWTEST_F(RSEffectRenderNodeTest, CheckBlurFilterCacheNeedForceClearOrSaveTest, T
 }
 
 /**
- * @tc.name: UpdateFilterCacheWithSelfDirtyTest
+ * @tc.name: UpdateFilterCacheWithSelfDirtyTest001
  * @tc.desc: test results of UpdateFilterCacheWithSelfDirty
  * @tc.type:FUNC
  * @tc.require: issueI9VAI2
  */
-HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest, TestSize.Level1)
+HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSEffectRenderNode rsEffectRenderNode(nodeId);
@@ -203,6 +203,28 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest, TestSize.Le
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
     EXPECT_FALSE(filterDrawable->stagingCacheManager_->stagingFilterRegionChanged_ ||
         filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_);
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithSelfDirtyTest002
+ * @tc.desc: test results of UpdateFilterCacheWithSelfDirty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    rsEffectRenderNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        backgroundFilterDrawable;
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
+    backgroundFilterDrawable->stagingVisibleRectInfo_ =
+        std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
+    backgroundFilterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_TRUE(rsEffectRenderNode.backgroundFilterRegionChanged_);
 }
 
 /**
@@ -241,6 +263,7 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsWithForceClearFilterCache, 
     filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->MarkFilterForceClearCache();
     node.GetFilterRegionInfo().filterRegion_ = RectI(0, 0, 10, 10);
+    node.GetFilterRegionInfo().defaultFilterRegion_ = RectI(0, 0, 10, 10);
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, false);
     EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), RectI(0, 0, 10, 10));
 }

@@ -463,4 +463,22 @@ HWTEST_F(RSRenderFilterBaseTest, AdaptiveParamLight, TestSize.Level1)
     filter->GenerateGEVisualEffect();
     EXPECT_NE(filter->geFilter_, nullptr);
 }
+
+/**
+ * @tc.name: CalcRect001
+ * @tc.desc: Test the CalcRect method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CalcRect001, TestSize.Level1)
+{
+    RectF bound(0.f, 0.f, 10.f, 10.f);
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(nullptr, bound, EffectRectType::TOTAL), RectF());
+
+    std::shared_ptr<RSNGRenderFilterBase> filter1 = std::make_shared<RSNGRenderBlurFilter>();
+    auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
+    filter1->nextEffect_ = filter2;
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::SNAPSHOT), bound);
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::DRAW), bound);
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::TOTAL), RectF());
+}
 } // namespace OHOS::Rosen

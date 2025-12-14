@@ -1204,18 +1204,41 @@ HWTEST_F(RSRenderNodeTest2, GetFilterDrawable, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateFilterCacheWithBelowDirty
+ * @tc.name: UpdateFilterCacheWithBelowDirty001
  * @tc.desc: test
  * @tc.type: FUNC
  * @tc.require: issueI9V3BK
  */
-HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBelowDirty, TestSize.Level1)
+HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBelowDirty001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     node.UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()),
         RSDrawableSlot::COMPOSITING_FILTER);
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithBelowDirty002
+ * @tc.desc: test UpdateFilterCacheWithBelowDirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBelowDirty002, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        backgroundFilterDrawable;
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->MergeDirtyRect(RectI(0, 0, 10, 10));
+    backgroundFilterDrawable->lastStagingVisibleSnapshotRect_ = std::make_unique<RectI>(20, 20, 100, 100);
+    node.UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()),
+        RSDrawableSlot::BACKGROUND_FILTER);
+    EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
+    rsDirtyManager->MergeDirtyRect(RectI(20, 20, 100, 100));
+    node.UpdateFilterCacheWithBelowDirty(Occlusion::Rect(rsDirtyManager->GetCurrentFrameDirtyRegion()),
+        RSDrawableSlot::BACKGROUND_FILTER);
+    EXPECT_TRUE(node.backgroundFilterInteractWithDirty_);
 }
 
 /**
@@ -1253,11 +1276,46 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty002, TestSize.Level1)
     RectI outRegion(90, 90, 110, 110);
     RectI lastRegion(0, 0, 100, 100);
     node.GetFilterRegionInfo().filterRegion_ = inRegion;
+    node.GetFilterRegionInfo().defaultFilterRegion_ = inRegion;
     node.lastFilterRegion_ = lastRegion;
     node.UpdateFilterCacheWithSelfDirty();
     node.GetFilterRegionInfo().filterRegion_ = outRegion;
+    node.GetFilterRegionInfo().defaultFilterRegion_ = outRegion;
     node.UpdateFilterCacheWithSelfDirty();
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithSelfDirty003
+ * @tc.desc: test UpdateFilterCacheWithSelfDirty
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty003, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        filterDrawable;
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] =
+        filterDrawable;
+    
+    auto& properties = node.GetMutableRenderProperties();
+    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+
+    RectI snapshotRect(20, 20, 100, 100);
+    RectI lastSnapshotRect(20, 20, 30, 30);
+    filterDrawable->lastStagingVisibleSnapshotRect_ = std::make_unique<RectI>(20, 20, 100, 100);
+    filterDrawable->stagingVisibleRectInfo_ = std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
+    filterDrawable->stagingVisibleRectInfo_->snapshotRect_ = snapshotRect;
+
+    node.UpdateFilterCacheWithSelfDirty();
+    EXPECT_FALSE(filterDrawable->stagingCacheManager_->stagingFilterRegionChanged_);
+
+    filterDrawable->lastStagingVisibleSnapshotRect_ = std::make_unique<RectI>(20, 20, 30, 30);
+    node.UpdateFilterCacheWithSelfDirty();
+    EXPECT_TRUE(filterDrawable->stagingCacheManager_->stagingFilterRegionChanged_);
 }
 
 /**
@@ -1298,6 +1356,8 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect002, TestSize.Level
     RectI rect(50, 50, 100, 100);
     geoPtr->absRect_ = rect;
     node.GetFilterRegionInfo().filterRegion_ = node.GetFilterRect();
+    node.GetFilterRegionInfo().defaultFilterRegion_ = node.GetFilterRect();
+    node.lastFilterRegion_ = node.GetFilterRect();
     RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
@@ -1353,6 +1413,29 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect003, TestSize.Level
     const auto& pendingPurgeFilterRegion = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
     auto filterRegion = Occlusion::Region(node.GetFilterRect());
     EXPECT_FALSE(filterRegion.Sub(pendingPurgeFilterRegion).IsEmpty());
+}
+
+/**
+ * @tc.name: UpdatePendingPurgeFilterDirtyRect005
+ * @tc.desc: test pendingPurgeFilterRegion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect005, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    RSDrawableSlot slot = RSDrawableSlot::BACKGROUND_FILTER;
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+    node.lastFilterRegion_ = RectI(80, 80, 100, 100);
+
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 60, 60)));
+    node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, slot);
+
+    EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
 }
 
 /**
@@ -2547,6 +2630,30 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags08, TestSize.Level1)
 }
 
 /**
+ * @tc.name: MarkFilterCacheFlags009
+ * @tc.desc: test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags009, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;
+    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
+    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->pendingPurge_ = false;
+    filterDrawable->stagingVisibleRectInfo_ = std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
+    filterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
+    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, true);
+    EXPECT_FALSE(filterDrawable->stagingCacheManager_->stagingIsLargeArea_);
+    filterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 500, 500);
+    node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, true);
+    EXPECT_TRUE(filterDrawable->stagingCacheManager_->stagingIsLargeArea_);
+}
+
+/**
  * @tc.name: IsPixelStretchValid
  * @tc.desc: test
  * @tc.type: FUNC
@@ -3012,6 +3119,81 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterInForegroundFilterAndCheckNeedForceClearCa
     EXPECT_EQ(filterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
 #endif
     ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: CollectAndUpdateLocalEffectRect001
+ * @tc.desc: CollectAndUpdateLocalEffectRect test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, CollectAndUpdateLocalEffectRect001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtySlots_.insert(RSDrawableSlot::BACKGROUND_FILTER);
+    node->dirtySlots_.insert(RSDrawableSlot::COMPOSITING_FILTER);
+    node->dirtySlots_.insert(RSDrawableSlot::MATERIAL_FILTER);
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+
+    node->selfDrawRect_ = RectF();
+    node->CollectAndUpdateLocalEffectRect();
+    EXPECT_EQ(node->selfDrawRect_, RectF());
+}
+
+/**
+ * @tc.name: CalVisibleFilterRect001
+ * @tc.desc: CalVisibleFilterRect test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, CalVisibleFilterRect001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    auto geo = node->GetRenderProperties().boundsGeo_;
+    node->CalVisibleFilterRect(std::nullopt);
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        filterDrawable;
+
+    auto absRect = RectI(0, 0, 10, 10);
+    node->CalVisibleFilterRect(absRect, Drawing::Matrix(), std::nullopt);
+    EXPECT_EQ(node->GetFilterRegionInfo().defaultFilterRegion_, absRect);
+
+    node->GetMutableRenderProperties().boundsGeo_ = nullptr;
+    node->CalVisibleFilterRect(std::nullopt);
+}
+
+/**
+ * @tc.name: GetRSFilterDrawableWithSlot001
+ * @tc.desc: GetRSFilterDrawableWithSlot test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetRSFilterDrawableWithSlot001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    EXPECT_EQ(node->GetRSFilterWithSlot(RSDrawableSlot::SHADOW), nullptr);
+}
+
+/**
+ * @tc.name: GetFilterDrawableSnapshotRegion001
+ * @tc.desc: GetFilterDrawableSnapshotRegion test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, GetFilterDrawableSnapshotRegion001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    auto& properties = node->GetMutableRenderProperties();
+    properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    properties.GetEffect().filter_ = std::make_shared<RSFilter>();
+    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    node->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        filterDrawable;
+    node->UpdateFilterRectInfo();
+    EXPECT_EQ(node->GetFilterDrawableSnapshotRegion(), RectI());
 }
 } // namespace Rosen
 } // namespace OHOS

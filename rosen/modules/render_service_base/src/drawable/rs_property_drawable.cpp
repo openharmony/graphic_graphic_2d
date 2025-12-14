@@ -300,7 +300,7 @@ void RSFilterDrawable::OnSync()
     renderNodeName_ = stagingNodeName_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
     renderIsDarkColorMode_ = stagingIsDarkColorMode_;
-    
+
     lastStagingVisibleSnapshotRect_ = stagingVisibleRectInfo_ != nullptr ?
         std::make_unique<RectI>(stagingVisibleRectInfo_->snapshotRect_) : nullptr;
 
@@ -350,20 +350,13 @@ Drawing::RectI RSFilterDrawable::GetAbsRenderEffectRect(
     RectF rect = GetRenderRelativeRect(type, bound);
     auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
 
-    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    Drawing::Rect absRect;
     canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
-    auto surface = canvas.GetSurface();
-    if (!surface) {
-        return Drawing::RectI();
-    }
-
-    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
-        std::ceil(absRect.GetHeight()));
-    auto drawingClipBound = canvas.GetDeviceClipBounds();
-    RectI clipBound(drawingClipBound.GetLeft(), drawingClipBound.GetTop(), drawingClipBound.GetWidth(),
-        drawingClipBound.GetHeight());
-    effectRect = effectRect.IntersectRect(clipBound);
-    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+    Drawing::RectI absRectI = absRect.RoundOut();
+    Drawing::RectI clipBounds = canvas.GetDeviceClipBounds();
+    // if absRectI.Intersect(clipBounds) is true,
+    // it means that absRectI intersects with clipBounds, and absRectI has been set to their intersection.
+    return absRectI.Intersect(clipBounds) ? absRectI : Drawing::RectI();
 }
 
 Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
@@ -757,7 +750,7 @@ void RSFilterDrawable::UpdateFilterRectInfo(const RectF& bound, const std::share
     auto drawRect = filter->GetRect(bound, EffectRectType::DRAW);
     bool needGenerateRectInfo = !bound.IsEmpty() &&
         (!snapshotRect.IsNearEqual(bound) || !drawRect.IsNearEqual(bound));
-    if (needGenerateRectInfo) {
+    if (!needGenerateRectInfo) {
         return;
     }
 

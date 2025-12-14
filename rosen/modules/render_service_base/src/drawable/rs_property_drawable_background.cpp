@@ -1004,18 +1004,18 @@ Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::C
     RectF rect = GetRenderRelativeRect(type, bound);
     auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
 
-    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    Drawing::Rect absRect;
     canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
     auto surface = canvas.GetSurface();
     if (!surface) {
         return Drawing::RectI();
     }
 
-    RectI deviceRect(0, 0, surface->Width(), surface->Height());
-    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
-        std::ceil(absRect.GetHeight()));
-    effectRect = effectRect.IntersectRect(deviceRect);
-    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+    Drawing::RectI absRectI = absRect.RoundOut();
+    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    // if absRectI.Intersect(deviceRect) is true,
+    // it means that absRectI intersects with deviceRect, and absRectI has been set to their intersection.
+    return absRectI.Intersect(deviceRect) ? absRectI : Drawing::RectI();
 }
 
 void RSMaterialFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,
