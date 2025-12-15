@@ -32,16 +32,17 @@ void RSRenderComposerManager::SetComposerToRenderConnection(ScreenId screenId, s
         RS_LOGE("SetComposerToRenderConnection conn is nullptr, screenId:%{public}" PRIu64, screenId);
         return;
     }
-    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    std::shared_ptr<RSRenderComposer> renderComposer;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = rsRenderComposerAgentMap_.find(screenId);
-        if (iter == rsRenderComposerAgentMap_.end()) {
+        auto iter = rsRenderComposerMap_.find(screenId);
+        if (iter == rsRenderComposerMap_.end()) {
             RS_LOGE("SetComposerToRenderConnection not find screenId:%{public}" PRIu64, screenId);
             return;
         }
-        renderComposerAgent = iter->second;
+        renderComposer = iter->second;
     }
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     renderComposerAgent->SetComposerToRenderConnection(conn);
 }
 
@@ -59,25 +60,26 @@ void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>
     auto screenId = output->GetScreenId();
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenConnected screenId %u", screenId);
     RS_LOGI("OnScreenConnected screenId:%{public}u", screenId);
-    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    std::shared_ptr<RSRenderComposer> renderComposer;
     bool isReuseComposer = false;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = rsRenderComposerAgentMap_.find(screenId);
-        if (iter == rsRenderComposerAgentMap_.end()) {
-            std::shared_ptr<RSRenderComposer> renderComposer = std::make_shared<RSRenderComposer>(output, property);
+        auto iter = rsRenderComposerMap_.find(screenId);
+        if (iter == rsRenderComposerMap_.end()) {
+        renderComposer = std::make_shared<RSRenderComposer>(output, property);
             renderComposer->InitRsVsyncManagerAgent(rsVsyncManagerAgent_);
-            renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
+            auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
             sptr<RSRenderToComposerConnection> composerConnection =
                 sptr<RSRenderToComposerConnection>::MakeSptr("composer_conn", screenId, renderComposerAgent);
             rsComposerConnectionMap_.insert(std::pair(screenId, composerConnection));
-            rsRenderComposerAgentMap_.insert(std::pair(screenId, renderComposerAgent));
+            rsRenderComposerMap_.insert(std::pair(screenId, renderComposer));
         } else {
             isReuseComposer = true;
-            renderComposerAgent = iter->second;
+            renderComposer = iter->second;
         }
     }
     if (isReuseComposer) {
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
         renderComposerAgent->OnScreenConnected(output, property);
     }
 }
@@ -86,16 +88,17 @@ void RSRenderComposerManager::OnScreenDisconnected(ScreenId screenId)
 {
     RS_TRACE_NAME_FMT("RSRenderComposerManager::OnScreenDisconnected screenId %u", screenId);
     RS_LOGI("OnScreenDisconnected screenId:%{public}" PRIu64, screenId);
-    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    std::shared_ptr<RSRenderComposer> renderComposer;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = rsRenderComposerAgentMap_.find(screenId);
-        if (iter == rsRenderComposerAgentMap_.end()) {
+        auto iter = rsRenderComposerMap_.find(screenId);
+        if (iter == rsRenderComposerMap_.end()) {
             RS_LOGE("OnScreenDisconnected not find screenId:%{public}" PRIu64, screenId);
             return;
         }
-        renderComposerAgent = iter->second;
+        renderComposer = iter->second;
     }
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     renderComposerAgent->OnScreenDisconnected();
 }
 
@@ -135,16 +138,17 @@ void RSRenderComposerManager::PostDelayTask(const std::function<void()>& task, i
 void RSRenderComposerManager::SurfaceDump(std::string& dumpString)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::SurfaceDump");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
-    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->SurfaceDump(dumpString);
     }
 }
@@ -152,16 +156,17 @@ void RSRenderComposerManager::SurfaceDump(std::string& dumpString)
 void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::GetRefreshInfoToSP");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
-    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->GetRefreshInfoToSP(dumpString, nodeId);
         return;
     }
@@ -170,17 +175,18 @@ void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId
 void RSRenderComposerManager::FpsDump(std::string& dumpString, std::string& layerName)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::FpsDump");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
     dumpString += "\n-- The recently fps records info of screens:\n";
-    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->FpsDump(dumpString, layerName);
     }
 }
@@ -188,17 +194,18 @@ void RSRenderComposerManager::FpsDump(std::string& dumpString, std::string& laye
 void RSRenderComposerManager::ClearFpsDump(std::string& dumpString, std::string& layerName)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::ClearFpsDump");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
     dumpString += "\n-- Clear fps records info of screens:\n";
-    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->ClearFpsDump(dumpString, layerName);
     }
 }
@@ -206,17 +213,18 @@ void RSRenderComposerManager::ClearFpsDump(std::string& dumpString, std::string&
 void RSRenderComposerManager::HitchsDump(std::string& dumpString, std::string& layerArg)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::HitchsDump");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> renderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        renderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
     dumpString += "\n-- The recently window hitchs records info of screens:\n";
-    for (const auto& [id, renderComposerAgent] : renderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->HitchsDump(dumpString, layerArg);
     }
 }
@@ -224,16 +232,17 @@ void RSRenderComposerManager::HitchsDump(std::string& dumpString, std::string& l
 void RSRenderComposerManager::RefreshRateCounts(std::string& dumpString)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::RefreshRateCounts");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
-    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->RefreshRateCounts(dumpString);
     }
 }
@@ -241,16 +250,17 @@ void RSRenderComposerManager::RefreshRateCounts(std::string& dumpString)
 void RSRenderComposerManager::ClearRefreshRateCounts(std::string& dumpString)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::ClearRefreshRateCounts");
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        rsRenderComposerAgentMap = rsRenderComposerAgentMap_;
+        rsRenderComposerMap = rsRenderComposerMap_;
     }
-    for (const auto& [id, renderComposerAgent] : rsRenderComposerAgentMap) {
-        if (renderComposerAgent == nullptr) {
+    for (const auto& [id, rsRenderComposer] : rsRenderComposerMap) {
+        if (rsRenderComposer == nullptr) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 " not found.", __func__, id);
             continue;
         }
+        auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
         renderComposerAgent->ClearRefreshRateCounts(dumpString);
     }
 }
@@ -258,16 +268,17 @@ void RSRenderComposerManager::ClearRefreshRateCounts(std::string& dumpString)
 void RSRenderComposerManager::SetScreenPowerOnChanged(ScreenId screenId, bool flag)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::SetScreenPowerOnChanged screenId %" PRIu64, screenId);
-    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
+    std::shared_ptr<RSRenderComposer> composer;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = rsRenderComposerAgentMap_.find(screenId);
-        if (iter == rsRenderComposerAgentMap_.end()) {
+        auto iter = rsRenderComposerMap_.find(screenId);
+        if (iter == rsRenderComposerMap_.end()) {
             RS_LOGE("SetScreenPowerOnChanged not find screenId:%{public}" PRIu64, screenId);
             return;
         }
-        renderComposerAgent = iter->second;
+        composer = iter->second;
     }
+    auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(composer);
     return renderComposerAgent->SetScreenPowerOnChanged(flag);
 }
 } // namespace Rosen
