@@ -445,6 +445,11 @@ public:
     uint32_t GetVsyncRefreshRate();
     void DVSyncUpdate(uint64_t dvsyncTime, uint64_t vsyncTime);
 
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet>& GetMutableAIBarNodes()
+    {
+        return aibarNodes_;
+    }
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -776,6 +781,9 @@ private:
     bool doDirectComposition_ = true;
     bool lastAnimateNeedRequestNextVsync_ = false;
     RSDirectCompositionHelper directComposeHelper_;
+
+    // for aibar
+    std::unordered_map<ScreenId, RSRenderNode::WeakPtrSet> aibarNodes_;
 
     // for client node tree dump
     struct NodeTreeDumpTask {
