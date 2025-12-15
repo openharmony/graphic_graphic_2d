@@ -19,30 +19,30 @@
 #include <unistd.h>
 
 #include "common/rs_background_thread.h"
-#include "surface_buffer_impl.h"
+#include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
-#include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_test_util.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_system_properties.h"
+#include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
 #include "transaction/rs_render_interface.h"
-#include "ui/rs_surface_extractor.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_proxy_node.h"
-#include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/rs_test_util.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_render_node_gc.h"
-#include "platform/common/rs_system_properties.h"
-#include "feature/capture/rs_capture_pixelmap_manager.h"
-#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "ui/rs_surface_extractor.h"
 using namespace testing::ext;
 
 namespace OHOS {
@@ -606,7 +606,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, Capture001, Function | SmallTest | Level2)
     renderNode->renderProperties_.SetBoundsHeight(500.f);
     nodeMap.RegisterRenderNode(renderNode);
     Drawing::Rect specifiedRect(0.f, 0.f, 0.f, 0.f);
-    auto callback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto callback = sptr<MockSurfaceCaptureCallback>::MakeSptr();
     RSUiCaptureTaskParallel::Capture(nodeId, callback, captureConfig, specifiedRect);
     ASSERT_EQ(callback->isCallbackCalled_, true);
 }
@@ -622,7 +622,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, Capture002, Function | SmallTest | Level2)
     NodeId nodeId = -1;
     RSSurfaceCaptureConfig captureConfig;
     Drawing::Rect specifiedRect(0.f, 0.f, 0.f, 0.f);
-    auto callback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto callback = sptr<MockSurfaceCaptureCallback>::MakeSptr();
     RSUiCaptureTaskParallel::Capture(nodeId, callback, captureConfig, specifiedRect);
     ASSERT_EQ(callback->isCallbackCalled_, true);
 }
@@ -805,12 +805,12 @@ HWTEST_F(RSUiCaptureTaskParallelTest, DumpInfoTest, Function | SmallTest | Level
 }
 
 /*
- * @tc.name: IsCapture001
- * @tc.desc: Test RSUiCaptureTaskParallel::IsCapture
+ * @tc.name: IsHdrCapture001
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture001, Function | SmallTest | Level2)
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture001, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
     NodeId nodeId = 123;
@@ -833,12 +833,12 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture001, Function | SmallTest | Level
 }
 
 /*
- * @tc.name: IsCapture002
- * @tc.desc: Test RSUiCaptureTaskParallel::IsCapture
+ * @tc.name: IsHdrCapture002
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture002, Function | SmallTest | Level2)
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture002, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
     NodeId nodeId = 124;
@@ -857,12 +857,12 @@ HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture002, Function | SmallTest | Level
 }
 
 /*
- * @tc.name: IsCapture003
- * @tc.desc: Test RSUiCaptureTaskParallel::IsCapture
+ * @tc.name: IsHdrCapture003
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSUiCaptureTaskParallelTest, IsCapture003, Function | SmallTest | Level2)
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture003, Function | SmallTest | Level2)
 {
     auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
     NodeId nodeId = 125;
@@ -1006,10 +1006,13 @@ HWTEST_F(RSUiCaptureTaskParallelTest, RunForHdr001, Function | SmallTest | Level
     }
     Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
     renderNodeHandle->CreateResources(specifiedAreaRect);
-    auto mockCallback = sptr<MockSurfaceCaptureCallback>(new MockSurfaceCaptureCallback);
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>::MakeSptr();
     renderNodeHandle->Run(mockCallback, specifiedAreaRect);
+    ASSERT_EQ(mockCallback->isCallbackCalled_, true);
     renderNodeHandle->isHdrCapture_ = true;
+    mockCallback->isCallbackCalled_ = false;
     renderNodeHandle->Run(mockCallback, specifiedAreaRect);
+    ASSERT_EQ(mockCallback->isCallbackCalled_, true);
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
