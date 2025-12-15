@@ -81,7 +81,6 @@ public:
         pathWidthList = { -0.5, 0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 5.0 };
         inverseEffectList = { false, true, false, true, false, true, false, true, false };
     }
-
 };
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Shader_Test)
@@ -124,8 +123,8 @@ void SetNormalParams(Rosen::RSNGDotMatrixShader& shader, Drawing::Color dotColor
 }
 
 void IniDotMatrixData(std::vector<Drawing::Color>& dotColorList, std::vector<float>& dotRadiusList,
- std::vector<float>& dotSpacingList, std::vector<Drawing::Color>& bgColorList)
- {
+    std::vector<float>& dotSpacingList, std::vector<Drawing::Color>& bgColorList)
+{
     dotColorList = { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_RED,
         Drawing::Color::COLOR_RED, Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_GREEN,
         Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE,
@@ -136,7 +135,7 @@ void IniDotMatrixData(std::vector<Drawing::Color>& dotColorList, std::vector<flo
         Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
         Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
         Drawing::Color::COLOR_BLACK };
- }
+}
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_NoEffect_Test)
 {
