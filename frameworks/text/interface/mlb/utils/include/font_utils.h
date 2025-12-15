@@ -19,7 +19,8 @@
 #include <unordered_map>
 
 namespace OHOS::MLB {
-bool FindFontWeight(int weight, std::pair<int32_t, int32_t>& result);
+bool FindFontWeight(int weight, int& weightEnumResult);
+bool FindFontWeightEnum(int weightEnum, int& actualWeightResult);
 int RegularWeight(int weight);
 } // namespace OHOS::MLB
 #endif

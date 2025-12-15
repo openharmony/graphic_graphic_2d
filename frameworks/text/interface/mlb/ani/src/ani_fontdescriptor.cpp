@@ -118,7 +118,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         return ANI_ERROR;
     }
 
-    std::pair<int32_t, int32_t> result;
+    int result = -1;
     if (!OHOS::MLB::FindFontWeight(OHOS::MLB::RegularWeight(fontDesc->weight), result)) {
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
@@ -131,7 +131,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontFamily),
         AniTextUtils::CreateAniStringObj(env, fontDesc->fontSubfamily),
         AniTextUtils::CreateAniEnum(env, AniGlobalEnum::GetInstance().fontWeight,
-            aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(result.second))
+            aniGetEnumIndex(AniTextEnum::fontWeight, static_cast<uint32_t>(result))
             .value_or(static_cast<uint32_t>(FontWeight::W400))),
         ani_int(fontDesc->width),
         ani_int(fontDesc->italic),

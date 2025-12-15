@@ -31,13 +31,23 @@ namespace {
     };
 }
 
-bool FindFontWeight(int weight, std::pair<int32_t, int32_t>& result)
+bool FindFontWeight(int weight, int& weightEnumResult)
 {
     auto iter = g_weightMap.find(weight);
     if (iter != g_weightMap.end()) {
-        result.first = iter->first;
-        result.second = iter->second;
+        weightEnumResult = iter->second;
         return true;
+    }
+    return false;
+}
+
+bool FindFontWeightEnum(int weightEnum, int& actualWeightResult)
+{
+    for (auto& item : g_weightMap) {
+        if (item.second == weightEnum) {
+            actualWeightResult = item.first;
+            return true;
+        }
     }
     return false;
 }
