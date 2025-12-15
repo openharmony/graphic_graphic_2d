@@ -382,8 +382,6 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
             RS_LOGE("RSUiCaptureTaskParallel::Run: offScreenCardSurface is nullptr");
             return false;
         }
-        Drawing::Matrix matrix;
-        endMatrix_.Invert(matrix);
         RSPaintFilterCanvas offScreenCardCanvas(offScreenCardSurface.get());
         offScreenCardCanvas.SetDisableFilterCache(true);
         offScreenCardCanvas.SetUICapture(true);
@@ -392,6 +390,10 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         offScreenCardCanvas.ResetMatrix();
         if (effectData != nullptr) {
             RS_LOGI("RSUiCaptureTaskParallel::Run: effectData set matrix");
+            Drawing::Matrix endMatrixInvert;
+            endMatrix_.Invert(endMatrixInvert);
+            Drawing::Matrix matrix = startMatrix_;
+            matrix.PostConcat(endMatrixInvert);
             effectData->cachedMatrix_.PostConcat(matrix);
         }
         offScreenCardCanvas.SetEffectData(effectData);
