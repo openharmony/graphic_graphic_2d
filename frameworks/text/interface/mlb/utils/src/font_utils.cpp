@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#include "../include/font_utils.h"
+#include "font_utils.h"
+#include "typography_types.h"
 
 namespace OHOS::MLB {
 namespace {

@@ -44,7 +44,6 @@ ohos_shared_library("text_engine_ani") {
   shlib_type = "ani"
   branch_protector_ret = "pac_ret"
   sources = [
-    "../utils/src/font_utils.cpp",
     "./src/ani_cache_manager.cpp",
     "./src/ani_enum.cpp",
     "./src/ani_font_collection.cpp",

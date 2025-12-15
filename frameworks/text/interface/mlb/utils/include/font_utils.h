@@ -18,8 +18,6 @@
 
 #include <unordered_map>
 
-#include "typography_types.h"
-
 namespace OHOS::MLB {
 bool FindFontWeight(int weight, std::pair<int32_t, int32_t>& result);
 int RegularWeight(int weight);
