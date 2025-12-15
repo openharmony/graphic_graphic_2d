@@ -1494,6 +1494,153 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightNegT
     }
 }
 
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+
+        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
+        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+
+        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
+        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
+        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
+
+        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
+        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
+        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
+        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
+        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
+
+        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
+    
+        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(edLightParamsParams[i]);
+        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
+        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
+        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
+        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
+        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
+        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+ 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightAnglesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightAnglesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+
+        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
+        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+
+        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
+        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
+        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
+
+        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
+        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
+        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
+        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
+        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
+
+        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
+    
+        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
+        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(edLightAnglesParams[i]);
+        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
+        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
+        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
+        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
+        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+ 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightDirTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightDirParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+
+        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
+        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+
+        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
+        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
+        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
+
+        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
+        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
+        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
+        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
+        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
+
+        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
+    
+        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
+        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
+        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(edLightDirParams[i]);
+        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
+        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
+        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
+        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+ 
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+    }
+}
+
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightRatesTest)
 {
     int columnCount = 2;
