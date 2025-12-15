@@ -44,12 +44,12 @@ bool FindFontWeight(int weight, std::pair<int32_t, int32_t>& result)
 
 int RegularWeight(int weight)
 {
-    constexpr int MIN_FONT_WEIGHT = 100;
-    constexpr int MAX_FONT_WEIGHT = 900;
-    constexpr int WEIGHT_STEP = 100;
-    constexpr int ROUNDING_HALF_STEP = 50;
-    int clampWeight = std::max(MIN_FONT_WEIGHT, std::min(MAX_FONT_WEIGHT, weight));
-    int roundedWeight = (clampWeight + ROUNDING_HALF_STEP) / WEIGHT_STEP * WEIGHT_STEP;
-    return std::min(MAX_FONT_WEIGHT, roundedWeight);
+    constexpr int minFontWeight = 100;
+    constexpr int maxFontWeight = 900;
+    constexpr int weightStep = 100;
+    constexpr int roundingHalfStep = 50;
+    int clampWeight = std::max(minFontWeight, std::min(maxFontWeight, weight));
+    int roundedWeight = (clampWeight + roundingHalfStep) / weightStep * weightStep;
+    return std::min(maxFontWeight, roundedWeight);
 }
 } // namespace OHOS::MLB

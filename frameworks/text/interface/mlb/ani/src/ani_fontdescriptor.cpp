@@ -118,7 +118,7 @@ ani_status ParseFontDescriptorToAni(ani_env* env, const FontDescSharedPtr fontDe
         return ANI_ERROR;
     }
 
-    std::pair<int, int> result;
+    std::pair<int32_t, int32_t> result;
     if (!OHOS::MLB::FindFontWeight(OHOS::MLB::RegularWeight(fontDesc->weight), result)) {
         TEXT_LOGE("Failed to parse weight");
         return ANI_ERROR;
