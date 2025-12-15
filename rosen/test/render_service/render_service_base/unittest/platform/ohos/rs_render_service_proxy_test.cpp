@@ -82,12 +82,13 @@ HWTEST_F(RSProxyTest, CreateConnectionTest002, TestSize.Level1)
     auto remoteObj = data.ReadRemoteObject();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     ASSERT_NE(token, nullptr);
-    sptr<RSIRenderServiceConnection> conn = renderService->CreateConnection(token);
-    ASSERT_NE(conn, nullptr);
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> connPair =
+        renderService->CreateConnection(token);
+    ASSERT_NE(connPair.first, nullptr);
+    ASSERT_NE(connPair.second, nullptr);
     bool isConnectionRemoved = renderService->RemoveConnection(token);
     EXPECT_TRUE(isConnectionRemoved);
 }
-
 /**
  * @tc.name: RemoveConnectionTest001
  * @tc.desc: CreateConnectionTest
