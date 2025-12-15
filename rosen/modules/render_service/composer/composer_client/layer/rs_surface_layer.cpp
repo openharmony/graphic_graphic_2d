@@ -22,6 +22,31 @@
 
 namespace OHOS {
 namespace Rosen {
+std::shared_ptr<RSLayer> RSSurfaceLayer::CreateRSLayer(const std::shared_ptr<RSRenderComposerClient>& client,
+    RSLayerId rsLayerId)
+{
+    if (client == nullptr) {
+        RS_LOGE("RSSurfaceLayer::CreateRSLayer client is nullptr");
+        return nullptr;
+    }
+    auto context = client->GetRSLayerContext();
+    if (context == nullptr) {
+        RS_LOGE("RSSurfaceLayer::CreateRSLayer context is nullptr");
+        return nullptr;
+    }
+    std::shared_ptr<RSLayer> layer = context->GetRSLayer(rsLayerId);
+    if (layer != nullptr) {
+        RS_TRACE_NAME_FMT("RSSurfaceLayer::CreateRSLayer: use exist layer, id: %" PRIu64 ", name: %s",
+            rsLayerId, layer->GetSurfaceName().c_str());
+        RS_LOGD("RSSurfaceLayer::CreateRSLayer get cache layer by layer id: %{public}" PRIu64, rsLayerId);
+        layer->SetRSLayerId(rsLayerId);
+        return layer;
+    }
+    layer = std::make_shared<RSSurfaceLayer>(rsLayerId, context);
+    context->AddRSLayer(layer);
+    return layer;
+}
+
 std::shared_ptr<RSLayerContext> RSSurfaceLayer::GetRSLayerContext() const
 {
     return rsLayerContext_.lock();

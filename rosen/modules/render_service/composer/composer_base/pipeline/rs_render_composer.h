@@ -65,7 +65,7 @@ public:
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
 protected:
     void ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam);
-    void ComposerProcess(uint32_t currentRate, int64_t delayTime, std::shared_ptr<RSLayerTransactionData> transactionData);
+    void ComposerProcess(uint32_t currentRate, std::shared_ptr<RSLayerTransactionData> transactionData);
     void SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn);
     void PostTask(const std::function<void()>& task);
     void PostSyncTask(const std::function<void()>& task);
@@ -81,6 +81,7 @@ protected:
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     void SetScreenPowerOnChanged(bool flag);
+    int64_t GetDelayTime();
 
 private:
     void CreateAndInitComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);

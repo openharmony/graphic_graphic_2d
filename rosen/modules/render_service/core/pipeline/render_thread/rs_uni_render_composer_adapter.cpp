@@ -28,7 +28,7 @@
 #include "pipeline/render_thread/rs_divided_render_util.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "platform/common/rs_log.h"
-#include "rs_layer_factory.h"
+#include "rs_surface_layer.h"
 #include "rs_surface_rcd_layer.h"
 #include "rs_trace.h"
 #include "rs_uni_render_util.h"
@@ -1106,7 +1106,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
-    RSLayerPtr layer = RSLayerFactory::CreateRSLayer(composerClient_, surfaceHandler->GetNodeId());
+    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(composerClient_, surfaceHandler->GetNodeId());
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
@@ -1154,7 +1154,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
-    RSLayerPtr layer = RSLayerFactory::CreateRSLayer(composerClient_, surfaceHandler->GetNodeId());
+    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(composerClient_, surfaceHandler->GetNodeId());
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
@@ -1184,7 +1184,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
             info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     }
-    auto layer = RSLayerFactory::CreateRSLayer(composerClient_, node.GetId(), true);
+    auto layer = RSSurfaceRCDLayer::CreateRSLayer(composerClient_, node.GetId());
     if (layer != nullptr) {
         auto rcdLayer = std::static_pointer_cast<RSSurfaceRCDLayer>(layer);
         rcdLayer->SetPixelMap(node.GetPixelMap());

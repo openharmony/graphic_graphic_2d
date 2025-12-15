@@ -34,9 +34,13 @@ class RSSurfaceRCDLayer : public RSSurfaceLayer {
 public:
     RSSurfaceRCDLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSLayerContext> rsLayerContext = nullptr);
     virtual ~RSSurfaceRCDLayer() = default;
+    static std::shared_ptr<RSLayer> CreateRSLayer(const std::shared_ptr<RSRenderComposerClient>& client,
+        RSLayerId rsLayerId);
+
     virtual bool IsScreenRCDLayer() const override { return true; };
     void SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
+
 private:
     template<typename RSLayerCmdName, typename RSLayerPropertyName, typename T>
     void SetRSLayerCmd(RSLayerCmdType rsLayerCmdType, T value);

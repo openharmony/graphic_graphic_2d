@@ -41,7 +41,6 @@
 #include "params/rs_screen_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
-#include "rs_layer_factory.h"
 #include "rs_render_composer_manager.h"
 #include "rs_surface_layer.h"
 
@@ -308,7 +307,7 @@ RSLayerPtr RSUniRenderProcessor::GetLayerInfo(RSSurfaceRenderParams& params, spt
     sptr<SurfaceBuffer>& preBuffer, const sptr<IConsumerSurface>& consumer, const sptr<SyncFence>& acquireFence,
     const std::shared_ptr<ProcessOfflineResult>& offlineResult)
 {
-    RSLayerPtr layer = RSLayerFactory::CreateRSLayer(composerClient_, params.GetId());
+    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(composerClient_, params.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSUniRenderProcessor::GetLayerInfo failed to create layer");
         return nullptr;

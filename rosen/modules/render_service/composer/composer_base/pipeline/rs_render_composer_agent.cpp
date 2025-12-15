@@ -33,7 +33,16 @@ void RSRenderComposerAgent::SetComposerToRenderConnection(sptr<RSIComposerToRend
         RS_LOGE("rsRenderComposer is nullptr");
         return;
     }
-    rsRenderComposer_->SetComposerToRenderConnection(conn);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, conn]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetComposerToRenderConnection(conn);
+        }
+    );
 }
 
 void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData)
@@ -50,7 +59,16 @@ void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransac
     int64_t delayTime = 0;
 
     rsRenderComposer_->ComposerPrepare(currentRate, delayTime, transactionData->GetPipelineParam());
-    rsRenderComposer_->ComposerProcess(currentRate, delayTime, transactionData);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostDelayTask(
+        [weakThis, currentRate, transactionData]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->ComposerProcess(currentRate, transactionData);
+        }, delayTime
+    );
 }
 
 GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
@@ -58,7 +76,17 @@ GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)
     if (rsRenderComposer_ == nullptr) {
         return GSERROR_INVALID_ARGUMENTS;
     }
-    return rsRenderComposer_->ClearFrameBuffers(isNeedResetContext);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, isNeedResetContext]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->ClearFrameBuffers(isNeedResetContext);
+        }
+    );
+    return GSERROR_OK;
 }
 
 void RSRenderComposerAgent::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
@@ -67,7 +95,16 @@ void RSRenderComposerAgent::OnScreenConnected(const std::shared_ptr<HdiOutput>& 
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->OnScreenConnected(output, property);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, output, property]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->OnScreenConnected(output, property);
+        }
+    );
 }
 
 void RSRenderComposerAgent::OnScreenDisconnected()
@@ -75,7 +112,16 @@ void RSRenderComposerAgent::OnScreenDisconnected()
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->OnScreenDisconnected();
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->OnScreenDisconnected();
+        }
+    );
 }
 
 void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
@@ -83,7 +129,16 @@ void RSRenderComposerAgent::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->CleanLayerBufferBySurfaceId(surfaceId);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, surfaceId]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->CleanLayerBufferBySurfaceId(surfaceId);
+        }
+    );
 }
 
 void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
@@ -91,7 +146,16 @@ void RSRenderComposerAgent::ClearRedrawGPUCompositionCache(const std::set<uint64
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->ClearRedrawGPUCompositionCache(bufferIds);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostDelayTask(
+        [weakThis, bufferIds]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->ClearRedrawGPUCompositionCache(bufferIds);
+        }, rsRenderComposer_->GetDelayTime()
+    );
 }
 
 void RSRenderComposerAgent::SetScreenBacklight(uint32_t level)
@@ -99,7 +163,16 @@ void RSRenderComposerAgent::SetScreenBacklight(uint32_t level)
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->SetScreenBacklight(level);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, level]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetScreenBacklight(level);
+        }
+    );
 }
 
 void RSRenderComposerAgent::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp)
@@ -107,7 +180,16 @@ void RSRenderComposerAgent::OnScreenVBlankIdleCallback(ScreenId screenId, uint64
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->OnScreenVBlankIdleCallback(screenId, timestamp);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, screenId, timestamp]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->OnScreenVBlankIdleCallback(screenId, timestamp);
+        }
+    );
 }
 
 void RSRenderComposerAgent::SurfaceDump(std::string& dumpString)
@@ -115,7 +197,16 @@ void RSRenderComposerAgent::SurfaceDump(std::string& dumpString)
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->SurfaceDump(dumpString);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SurfaceDump(dumpString);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
@@ -123,7 +214,16 @@ void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& 
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->GetRefreshInfoToSP(dumpString, nodeId);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString, &nodeId]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->GetRefreshInfoToSP(dumpString, nodeId);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::FpsDump(std::string& dumpString, std::string& layerName)
@@ -131,7 +231,16 @@ void RSRenderComposerAgent::FpsDump(std::string& dumpString, std::string& layerN
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->FpsDump(dumpString, layerName);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString, &layerName]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->FpsDump(dumpString, layerName);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::ClearFpsDump(std::string& dumpString, std::string& layerName)
@@ -139,7 +248,16 @@ void RSRenderComposerAgent::ClearFpsDump(std::string& dumpString, std::string& l
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->ClearFpsDump(dumpString, layerName);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString, &layerName]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->ClearFpsDump(dumpString, layerName);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::HitchsDump(std::string& dumpString, std::string& layerArg)
@@ -147,7 +265,16 @@ void RSRenderComposerAgent::HitchsDump(std::string& dumpString, std::string& lay
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->HitchsDump(dumpString, layerArg);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString, &layerArg]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->HitchsDump(dumpString, layerArg);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::RefreshRateCounts(std::string& dumpString)
@@ -155,7 +282,16 @@ void RSRenderComposerAgent::RefreshRateCounts(std::string& dumpString)
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->RefreshRateCounts(dumpString);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->RefreshRateCounts(dumpString);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::ClearRefreshRateCounts(std::string& dumpString)
@@ -163,7 +299,16 @@ void RSRenderComposerAgent::ClearRefreshRateCounts(std::string& dumpString)
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->ClearRefreshRateCounts(dumpString);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->ScheduleTask(
+        [weakThis, &dumpString]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->ClearRefreshRateCounts(dumpString);
+        }
+    ).wait();
 }
 
 void RSRenderComposerAgent::SetScreenPowerOnChanged(bool flag)
@@ -171,7 +316,16 @@ void RSRenderComposerAgent::SetScreenPowerOnChanged(bool flag)
     if (rsRenderComposer_ == nullptr) {
         return;
     }
-    rsRenderComposer_->SetScreenPowerOnChanged(flag);
+    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
+    rsRenderComposer_->PostTask(
+        [weakThis, flag]() {
+            std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
+            if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
+                return;
+            }
+            renderComposerAgent->rsRenderComposer_->SetScreenPowerOnChanged(flag);
+        }
+    );
 }
 } // namespace Rosen
 } // namespace OHOS
