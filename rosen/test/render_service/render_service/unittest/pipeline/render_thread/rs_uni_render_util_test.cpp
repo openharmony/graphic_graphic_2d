@@ -921,6 +921,40 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam010, TestSize.Level2)
 }
 
 /*
+ * @tc.name: CreateBufferDrawParam012
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam012, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
+    ASSERT_NE(params.buffer, nullptr);
+}
+
+/*
+ * @tc.name: CreateBufferDrawParam013
+ * @tc.desc: test CreateBufferDrawParam with surfaceRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIAJOWI
+ */
+HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParam013, TestSize.Level2)
+{
+    bool forceCPU = false;
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto buffer = nullptr;
+    auto fence = surfaceNode->GetRSSurfaceHandler()->GetAcquireFence();
+    BufferDrawParam params = RSUniRenderUtil::CreateBufferDrawParam(buffer, fence, forceCPU);
+    ASSERT_EQ(params.buffer, nullptr);
+}
+
+/*
  * @tc.name: FlushDmaSurfaceBuffer001
  * @tc.desc: test FlushDmaSurfaceBuffer when pixelMap is nullptr
  * @tc.type: FUNC

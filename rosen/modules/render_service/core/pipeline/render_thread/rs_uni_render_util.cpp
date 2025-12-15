@@ -652,6 +652,29 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     return bufferDrawParam;
 }
 
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(sptr<SurfaceBuffer> buffer, sptr<SyncFence> acquireFence,
+    bool forceCPU)
+{
+    BufferDrawParam bufferDrawParam;
+    bufferDrawParam.useCPU = forceCPU;
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    bufferDrawParam.paint.SetFilter(filter);
+
+    if (!buffer) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam buffer is null.");
+        return bufferDrawParam;
+    }
+
+    bufferDrawParam.buffer = buffer;
+    bufferDrawParam.acquireFence = acquireFence;
+    bufferDrawParam.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(buffer): Parameters creation completed");
+    return bufferDrawParam;
+}
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool forceCPU, uint32_t threadIndex)
 {

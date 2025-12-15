@@ -81,8 +81,10 @@ public:
         bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool useRenderParams = false);
     static BufferDrawParam CreateBufferDrawParam(const RSScreenRenderNode& node, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceHandler& surfaceHandler, bool forceCPU);
-    static BufferDrawParam CreateBufferDrawParam(
-        const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool forceCPU, uint32_t threadIndex);
+    static BufferDrawParam CreateBufferDrawParam(const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable,
+        bool forceCPU, uint32_t threadIndex);
+    static BufferDrawParam CreateBufferDrawParam(sptr<SurfaceBuffer> buffer,
+        sptr<SyncFence> acquireFence, bool forceCPU);
     static BufferDrawParam CreateBufferDrawParamForRotationFixed(
         const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, RSSurfaceRenderParams& renderParams,
         uint32_t threadIndex);
