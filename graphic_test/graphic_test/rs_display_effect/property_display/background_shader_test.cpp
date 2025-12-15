@@ -246,7 +246,7 @@ void SetRippleEffect(Rosen::RSNGDotMatrixShader& shader,
     shader.Setter<Rosen::DotMatrixShaderStartPointsTag>(StartPoints);
     shader.Setter<Rosen::DotMatrixShaderPathWidthTag>(pathWidth);
     shader.Setter<Rosen::DotMatrixShaderInverseEffectTag>(inverseEffect);
-    shader.Setter<Rosen::DotMatrixShaderEffectTypeTag>(2);
+    shader.Setter<Rosen::DotMatrixShaderEffectTypeTag>(2.0f);
 }
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_RippleEffect_Test)
