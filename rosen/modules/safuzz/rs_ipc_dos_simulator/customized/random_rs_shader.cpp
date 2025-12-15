@@ -22,7 +22,6 @@
 #include "ext/gex_dot_matrix_shader_params.h"
 #include "random/random_data.h"
 #include "random/random_engine.h"
-#include "render/rs_dot_matrix_shader.h"
 #include "render/rs_flow_light_sweep_shader.h"
 
 namespace OHOS {
