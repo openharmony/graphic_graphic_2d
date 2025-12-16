@@ -124,7 +124,6 @@ ohos_shared_library("librender_composer") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction/rs_layer_transaction_handler.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_rcd_layer.cpp",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_layer_factory.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_layer_context.cpp",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
   ]

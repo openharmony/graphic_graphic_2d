@@ -40,11 +40,10 @@ public:
     void HitchsDump(std::string& dumpString, std::string& arg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
-    void SetScreenPowerOnChanged(ScreenId screenId, bool flag);
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
 
 private:
-    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposer>> rsRenderComposerMap_;
+    std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;
     std::unordered_map<ScreenId, sptr<RSRenderToComposerConnection>> rsComposerConnectionMap_;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
     std::mutex mutex_;

@@ -21,7 +21,7 @@
 #include "sync_fence.h"
 
 namespace OHOS::Rosen {
-class RSRenderComposerAgent {
+class RSRenderComposerAgent : public std::enable_shared_from_this<RSRenderComposerAgent> {
 public:
     explicit RSRenderComposerAgent(const std::shared_ptr<RSRenderComposer>& rsRenderComposer);
     ~RSRenderComposerAgent() = default;
@@ -30,7 +30,7 @@ public:
     void ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected();
-    GSError ClearFrameBuffers(bool isNeedResetContext = true);  // majingtao
+    GSError ClearFrameBuffers(bool isNeedResetContext = true);
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
@@ -42,7 +42,6 @@ public:
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
-    void SetScreenPowerOnChanged(bool flag);
 
 private:
     std::shared_ptr<RSRenderComposer> rsRenderComposer_;

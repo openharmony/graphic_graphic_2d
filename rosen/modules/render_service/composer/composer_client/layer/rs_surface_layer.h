@@ -22,6 +22,7 @@
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
 #include "rs_layer_cmd.h"
+#include "rs_render_composer_client.h"
 #include "rs_render_layer_cmd_property.h"
 #include "surface.h"
 #include "sync_fence.h"
@@ -36,6 +37,8 @@ class RSSurfaceLayer : public RSLayer {
 public:
     RSSurfaceLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSLayerContext> rsLayerContext = nullptr);
     virtual ~RSSurfaceLayer();
+    static std::shared_ptr<RSLayer> CreateRSLayer(const std::shared_ptr<RSRenderComposerClient>& client,
+        RSLayerId rsLayerId);
 
     RSLayerId GetRSLayerId() const override;
     void SetRSLayerId(RSLayerId rsLayerId) override;
@@ -161,8 +164,10 @@ public:
     void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override {};
     void Dump(std::string& result) const override;
     void DumpCurrentFrameLayer() const override;
+
 protected:
     bool AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
+
 private:
     template<typename RSLayerCmdName, typename RSLayerPropertyName, typename T>
     void SetRSLayerCmd(RSLayerCmdType rsLayerCmdType, T value);

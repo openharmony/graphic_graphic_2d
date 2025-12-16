@@ -67,7 +67,7 @@ void RSSurfaceLayerTest::TearDown() {}
 
 /**
  * @tc.name: CreateLayerTest
- * @tc.desc: Test RSLayerFactory::CreateRSLayer
+ * @tc.desc: Test RSSurfaceLayer::CreateRSLayer
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
