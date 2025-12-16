@@ -64,8 +64,6 @@ private:
     void RenderProcessManagerInit();
     bool SAMgrRegister();
 
-    void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-        const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
     void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
     void FpsDump(std::string& dumpString, std::string& arg);

@@ -24,19 +24,17 @@ namespace OHOS {
 namespace Rosen {
 class HgmClient {
 public:
-    static std::shared_ptr<HgmClient> Create(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
-
     HgmClient(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     ~HgmClient() = default;
 
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& info);
     void AddScreenId(ScreenId screenId);
+    void RemoveScreenId(ScreenId screenId);
 
 private:
-    mutable std::mutex hgmMutex_;
-    std::unordered_set<ScreenId> screenIds_;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
+    std::unordered_set<ScreenId> screenIds_;
 };
 
 } // namespace Rosen

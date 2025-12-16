@@ -470,7 +470,7 @@ void RSMainThread::TraverseCanvasDrawingNodes()
 }
 
 void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver)
+    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
 {
     RS_LOGI("RSMainThread init.");
     mainLoop_ = [&]() {
@@ -732,9 +732,11 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     MemoryManager::SetGpuMemoryLimit(GetRenderEngine()->GetRenderContext()->GetDrGPUContext());
 #endif
     RSSystemProperties::WatchSystemProperty(ENABLE_DEBUG_FMT_TRACE, OnFmtTraceSwitchCallback, nullptr);
-    hgmRPContext_ = std::make_shared<HgmRPContext>();
+
+    hgmClient_ = std::make_shared<HgmClient>(renderToServiceConnection);
     hwcContext_ = std::make_shared<RSHwcContext>(
         HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
+    hgmRPContext_ = std::make_shared<HgmRPContext>();
     hgmRPContext_->InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),
         context_->GetMutableUiFrameworkTypeTable());
 
@@ -751,37 +753,21 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
     });
 }
 
-void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenProperty, const std::shared_ptr<HgmClient>& hgmClient)
+void RSMainThread::OnScreenConnected(const sptr<RSScreenProperty>& screenProperty)
 {
     if (!screenProperty) {
         RS_LOGE("%{public}s, screen property is nullptr.", __func__);
+        return;
     }
-    RS_LOGI("%{public}s, screen id: %{public}" PRIu64, __func__, screenProperty->GetScreenId());
+    RS_LOGI("%{public}s: screen id: %{public}" PRIu64, __func__, screenProperty->GetScreenId());
     CreateScreenNode(screenProperty);
-    if (!screenProperty->IsVirtual()) {
-        AddHgmClient(screenProperty->GetScreenId(), hgmClient);
+    if (!screenProperty->IsVirtual() && hgmClient_) {
+        hgmClient_->AddScreenId(screenProperty->GetScreenId());
     }
-}
-
-void RSMainThread::AddHgmClient(ScreenId screenId, const std::shared_ptr<HgmClient>& hgmClient)
-{
-    RS_LOGI("dmulti_process %{public}s, hgmClient[%{public}d, %{public}llu",
-        __func__, hgmClient != nullptr, screenId);
-    std::lock_guard<std::mutex> lock(hgmMutex_);
-    if (!hgmClient_) {
-        RS_LOGI("dmulti_process %{public}s: hgmClient not exist", __func__);
-        hgmClient_ = hgmClient;
-    }
-    hgmClient_->AddScreenId(screenId); 
 }
 
 void RSMainThread::NotifyRpHgmFrameRate()
 {
-    if (hgmClient_ == nullptr) {
-        RS_LOGI("dmulti_process hgmClient_ is nullptr");
-        return;
-    }
-
     int changed = 0;
     if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
@@ -809,12 +795,16 @@ void RSMainThread::OnScreenDisconnected(ScreenId screenId)
 {
     RS_LOGI("%{public}s, screenId: %{public}" PRIu64, __func__, screenId);
     DestroyScreenNode(screenId);
+    if (hgmClient_) {
+        hgmClient_->RemoveScreenId(screenId);
+    }
 }
 
 void RSMainThread::OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty)
 {
     if (!rsScreenProperty) {
         RS_LOGE("%{public}s, rsScreenProperty is nullptr.", __func__);
+        return;
     }
     HandleScreenPropertyChange(rsScreenProperty);
     UpdateScreenProperty(rsScreenProperty);

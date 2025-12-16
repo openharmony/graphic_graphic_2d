@@ -48,10 +48,11 @@ class RSHwcContext;
 class RSRenderPipeline final : public RefBase {
 public:
     static std::shared_ptr<RSRenderPipeline> Create(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const std::shared_ptr<VSyncReceiver>& receiver);
+        const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
 
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient, const std::shared_ptr<HgmClient>& hgmClient);
+        const std::shared_ptr<RSRenderComposerClient>& composerClient);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     void OnScreenRefresh(ScreenId screenId);
@@ -133,7 +134,8 @@ public:
 
 private:
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const std::shared_ptr<VSyncReceiver>& receiver);
+        const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     void InitEnvironment();
     void InitUniRenderConfig();
     void InitCCMConfig();
@@ -141,7 +143,8 @@ private:
     void FilterCCMInit();
     void RegisterRcdMsg();
     void InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const std::shared_ptr<VSyncReceiver>& receiver);
+        const std::shared_ptr<VSyncReceiver>& receiver,
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     void InitUniRenderThread();
     void InitDumper();
 

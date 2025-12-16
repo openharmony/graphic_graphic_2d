@@ -81,8 +81,8 @@ void RSRenderServiceAgent::HandleTouchEvent(int32_t touchStatus, int32_t touchCn
 }
 
 void RSRenderServiceAgent::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-    const std::unordered_set<ScreenId>& screenIds,
-    const sptr<HgmProcessToServiceInfo>& processToServiceInfo, const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)
+    const std::unordered_set<ScreenId>& screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo,
+    const sptr<HgmServiceToProcessInfo>& serviceToProcessInfo)
 {
     if (GetHgmContext() == nullptr) {
         return;

@@ -22,10 +22,6 @@
 
 namespace OHOS {
 namespace Rosen {
-std::shared_ptr<HgmClient> HgmClient::Create(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
-{
-    return std::make_shared<HgmClient>(renderToServiceConnection);
-}
 
 HgmClient::HgmClient(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection) :
     renderToServiceConnection_(renderToServiceConnection) {}
@@ -33,17 +29,19 @@ HgmClient::HgmClient(const sptr<RSIRenderToServiceConnection>& renderToServiceCo
 sptr<HgmServiceToProcessInfo> HgmClient::NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
     const sptr<HgmProcessToServiceInfo>& info)
 {
-    if (renderToServiceConnection_ == nullptr) {
-        RS_LOGE("%{public}s: renderToServiceConnection_ is nullptr", __func__);
-        return nullptr;
-    }
     return renderToServiceConnection_->NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds_, info);
 }
 
 void HgmClient::AddScreenId(ScreenId screenId)
 {
-    RS_LOGI("HgmClient::AddScreenId");
+    RS_LOGI("dmulti_process %{public}s: screenId[%{public}lu]", __func__, screenId);
     screenIds_.insert(screenId);
+}
+
+void HgmClient::RemoveScreenId(ScreenId screenId)
+{
+    RS_LOGI("dmulti_process %{public}s: screenId[%{public}lu]", __func__, screenId);
+    screenIds_.erase(screenId);
 }
 } // namespace Rosen
 } // namespace OHOS

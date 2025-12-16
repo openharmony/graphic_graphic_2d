@@ -101,9 +101,9 @@ class RSMainThread {
 public:
     static RSMainThread* Instance();
 
-    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const std::shared_ptr<VSyncReceiver>& receiver);
-    void OnScreenConnected(const sptr<RSScreenProperty>& property, const std::shared_ptr<HgmClient>& hgmClient);
+    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
+    void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     bool IsNeedProcessBySingleFrameComposer(std::unique_ptr<RSTransactionData>& rsTransactionData);
@@ -629,20 +629,14 @@ private:
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,
         std::vector<std::unique_ptr<RSTransactionData>>& transactionVec);
-    // class RSScreenNodeListener : public RSIScreenNodeListener {
-    // public:
-    //     ~RSScreenNodeListener() override = default;
-
-    //     void OnScreenConnect(ScreenId id, const sptr<RSScreenProperty>& property) override;
-    //     void OnScreenDisconnect(ScreenId id) override;
-    //     void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
-    // };
 
     bool IfStatusBarDirtyOnly();
 
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+
+    void NotifyRpHgmFrameRate();
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -903,9 +897,6 @@ private:
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
-    void AddHgmClient(ScreenId screenId, const std::shared_ptr<HgmClient>& hgmClient);
-    void NotifyRpHgmFrameRate();
-    mutable std::mutex hgmMutex_;
     std::shared_ptr<HgmClient> hgmClient_ = nullptr;
     std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;
 };

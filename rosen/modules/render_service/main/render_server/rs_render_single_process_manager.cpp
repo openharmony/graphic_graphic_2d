@@ -47,37 +47,35 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
     receiver->Init();
 
     // step2: Create renderPipeline and Following Connections
-    renderService.renderPipeline_ = RSRenderPipeline::Create(renderService.handler_, receiver);
-    renderService.renderPipeline_->InitRsVsyncManagerAgent(renderService_.rsVsyncManagerAgent_);
-    sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent =
-        sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
-    serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderServiceAgent, renderPipelineAgent);
-    composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
-    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
+    auto renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    auto renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(renderService.screenManager_);
-    renderToServiceConnection_ = 
+    renderToServiceConnection_ =
         sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
+    renderService.renderPipeline_ = RSRenderPipeline::Create(renderService.handler_,
+        receiver, renderToServiceConnection_);
+    renderService.renderPipeline_->InitRsVsyncManagerAgent(renderService_.rsVsyncManagerAgent_);
     renderService.renderPipeline_->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
+    auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
+    serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderServiceAgent, renderPipelineAgent);
+    composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
     // step3:
     connectToRenderConnection_ = sptr<RSIConnectToRenderProcess>(
-        new RSConnectToRenderProcess(renderService_.mainThread_, renderPipelineAgent));
+        new RSConnectToRenderProcess(renderService.mainThread_, renderPipelineAgent));
 }
 
 sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId, const ScreenEventData& data, const sptr<RSScreenProperty>& property)
 {
-    RS_LOGE("ccc: RSSingleRenderProcessManager::OnScreenConnected");
     RSRenderProcessManager::OnScreenConnected(screenId, data, property);
 
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
     renderService_.rsRenderComposerManager_->SetComposerToRenderConnection(screenId, composerToRenderConnection_);
     std::shared_ptr<RSRenderComposerClient> composerClient = RSRenderComposerClient::Create(false, composerConn);
     composerClient->InitRsVsyncManagerAgent(renderService_.rsVsyncManagerAgent_);
-    std::shared_ptr<HgmClient> hgmClient = HgmClient::Create(renderToServiceConnection_);
     RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderToServiceConnection_);
-    renderService_.renderPipeline_->OnScreenConnected(property, composerClient, hgmClient);
+    renderService_.renderPipeline_->OnScreenConnected(property, composerClient);
     return connectToRenderConnection_->AsObject();
 }
 
@@ -103,7 +101,7 @@ void RSSingleRenderProcessManager::OnScreenRefresh(ScreenId id)
 void RSSingleRenderProcessManager::OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
     const sptr<RSScreenProperty>& property)
 {
-    renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr);
+    renderService_.renderPipeline_->OnScreenConnected(property, nullptr);
 }
 
 void RSSingleRenderProcessManager::OnVirtualScreenDisconnected(ScreenId id)

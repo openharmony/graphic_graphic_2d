@@ -79,15 +79,16 @@ constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 }
 
 std::shared_ptr<RSRenderPipeline> RSRenderPipeline::Create(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver)
+    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
 {
+    RS_LOGD("%{public}s: renderPipeline create", __func__);
     std::shared_ptr<RSRenderPipeline> render = std::make_shared<RSRenderPipeline>();
-    render->Init(handler, receiver);
+    render->Init(handler, receiver, renderToServiceConnection);
     return render;
 }
 
 void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver)
+    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
 {
     InitEnvironment();
 
@@ -101,7 +102,7 @@ void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& han
     // todo
     RegisterRcdMsg();
 
-    InitMainThread(handler, receiver);
+    InitMainThread(handler, receiver, renderToServiceConnection);
 
     // Gfx init
     InitDumper();
@@ -109,11 +110,11 @@ void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& han
     // todo
     // RS_PROFILER_INIT(this);
 
-    RS_LOGI("render pipeline int success.");
+    RS_LOGD("%{public}s: render pipeline int success.", __func__);
 }
 
 void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
-    const std::shared_ptr<RSRenderComposerClient>& composerClient, const std::shared_ptr<HgmClient>& hgmClient)
+    const std::shared_ptr<RSRenderComposerClient>& composerClient)
 {
     RS_LOGI("RSRenderPipeline %{public}s, screen id: %{public}" PRIu64, __func__,
         rsScreenProperty ? rsScreenProperty->GetScreenId() : INVALID_SCREEN_ID);
@@ -121,7 +122,7 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
         return;
     }
-    mainThread_->OnScreenConnected(rsScreenProperty, hgmClient);
+    mainThread_->OnScreenConnected(rsScreenProperty);
 
     if (rsScreenProperty->IsVirtual()) {
         RS_LOGI("dmulti_process RSRenderPipeline %{public}s, virtual screen connected.", __func__);
@@ -258,10 +259,10 @@ void RSRenderPipeline::RegisterRcdMsg()
 }
 
 void RSRenderPipeline::InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver)
+    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
 {
     mainThread_ = RSMainThread::Instance();
-    mainThread_->Init(handler, receiver);
+    mainThread_->Init(handler, receiver, renderToServiceConnection);
 }
 
 void RSRenderPipeline::InitUniRenderThread()

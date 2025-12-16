@@ -363,12 +363,6 @@ int RSRenderService::Dump(int fd, const std::vector<std::u16string>& args)
     return OHOS::NO_ERROR;
 }
 
-void RSRenderService::ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-    const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo)
-{
-    hgmContext_->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
-}
-
 void RSRenderService::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
 {
     rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
