@@ -101,7 +101,7 @@ class RSMainThread {
 public:
     static RSMainThread* Instance();
 
-    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver
+    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
