@@ -34,13 +34,13 @@ sptr<HgmServiceToProcessInfo> HgmClient::NotifyRpHgmFrameRate(uint64_t timestamp
 
 void HgmClient::AddScreenId(ScreenId screenId)
 {
-    RS_LOGI("dmulti_process %{public}s: screenId[%{public}lu]", __func__, screenId);
+    RS_LOGI("dmulti_process %{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
     screenIds_.insert(screenId);
 }
 
 void HgmClient::RemoveScreenId(ScreenId screenId)
 {
-    RS_LOGI("dmulti_process %{public}s: screenId[%{public}lu]", __func__, screenId);
+    RS_LOGI("dmulti_process %{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
     screenIds_.erase(screenId);
 }
 } // namespace Rosen
