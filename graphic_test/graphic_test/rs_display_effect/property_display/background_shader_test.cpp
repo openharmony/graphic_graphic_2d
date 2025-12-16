@@ -17,6 +17,7 @@
 #include "rs_graphic_test_img.h"
 
 #include "effect/shader_effect.h"
+#include "ge_shader_filter_params.h"
 #include "render/rs_flow_light_sweep_shader.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
 
