@@ -49,6 +49,7 @@ DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShaderBase>, RandomData, RSNGShaderPt
 DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShapeBase>, RandomRSNGShapePtr, Value)
 DECLARE_PROPERTY(RSShadowBlenderPara, RandomData, RSShadowBlenderPara)
 DECLARE_PROPERTY(std::vector<Vector2f>, RandomData, VectorVector2f)
+DECLARE_PROPERTY(std::vector<Vector4f>, RandomData, VectorVector4f)
 
 DECLARE_ANIMATABLE_PROPERTY(float, RandomData, Float)
 DECLARE_ANIMATABLE_PROPERTY(Quaternion, RandomData, Quaternion)
