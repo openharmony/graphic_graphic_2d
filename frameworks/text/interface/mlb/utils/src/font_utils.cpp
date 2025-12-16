@@ -14,6 +14,8 @@
  */
 
 #include "font_utils.h"
+
+#include <unordered_map>
 #include "typography_types.h"
 
 namespace OHOS::MLB {

@@ -95,11 +95,13 @@ ani_status FontDescriptorGetFontWeight(ani_env* env, ani_object obj, FontDescSha
         ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK && index < AniTextEnum::fontWeight.size()) {
-            int result = -1;
-            if (OHOS::MLB::FindFontWeightEnum(static_cast<int>(AniTextEnum::fontWeight[index]), result)) {
-                fontDesc.get()->weight = result;
+            int weightValue = -1;
+            if (OHOS::MLB::FindFontWeightEnum(static_cast<int>(AniTextEnum::fontWeight[index]), weightValue)) {
+                fontDesc.get()->weight = weightValue;
                 return ANI_OK;
             }
+        } else {
+            TEXT_LOGE("Failed to parse font weight or index is invalid %{public}zu, ret %{public}d", index, result);
         }
     }
     return result;
@@ -129,7 +131,7 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     READ_OPTIONAL_FIELD(
         env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetSymbolic, symbolic, Bool, fontDesc.get(), status);
 
-    FontDescriptorGetFontWeight(env, aniObj, fontDesc);
+    status = FontDescriptorGetFontWeight(env, aniObj, fontDesc);
     return status;
 }
 

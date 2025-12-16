@@ -16,7 +16,7 @@
 #ifndef MLB_FONT_UTILS_H
 #define MLB_FONT_UTILS_H
 
-#include <unordered_map>
+#include <cstdint>
 
 namespace OHOS::MLB {
 bool FindFontWeight(int weight, int& weightEnumResult);
