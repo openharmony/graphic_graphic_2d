@@ -16,6 +16,8 @@
 #include "text/font_filetype.h"
 
 #include <cstring>
+#include <cstddef>
+#include <fstream>
 
 #include "font_harfbuzz.h"
 #include "utils/log.h"
@@ -110,7 +112,28 @@ FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::string& pa
         return FontFileType::FontFileFormat::UNKNOWN;
     }
     HBBlob hbBlob;
-    hbBlob.reset(hb_blob_create_from_file(path.c_str()));
+    hbBlob.reset(hb_blob_create_from_file_or_fail(path.c_str()));
+    if (!hbBlob.get()) {
+        LOGD("Drawing_Text [GetFontFileType] font file may be too huge to be analyzed by Harfbuzz!");
+        std::ifstream fontFile(path, std::ios::in | std::ios::binary);
+        if (!fontFile.is_open()) {
+            LOGE("Drawing_Text [GetFontFileType] font file cannot be opened!");
+            fileCount = INVALID_FONT_FILE_NUM;
+            return FontFileType::FontFileFormat::UNKNOWN;
+        }
+        fontFile.seekg(0, std::ios::end);
+        size_t ttfLen = fontFile.tellg();
+        fontFile.seekg(0, std::ios::beg);
+        std::vector<uint8_t> fontData(ttfLen);
+        fontFile.read(reinterpret_cast<char*>(fontData.data()), ttfLen);
+        if (!fontFile.good()) {
+            LOGE("Drawing_Text [GetFontFileType] font file can't be read!");
+            fileCount = INVALID_FONT_FILE_NUM;
+            return FontFileType::FontFileFormat::UNKNOWN;
+        }
+        fontFile.close();
+        return FontFileType::GetFontFileType(fontData, fileCount);
+    }
     return DetectFormatWithFileCount(hbBlob, fileCount);
 }
 
@@ -123,11 +146,16 @@ FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::vector<uin
         return FontFileType::FontFileFormat::UNKNOWN;
     }
     HBBlob hbBlob;
-    hbBlob.reset(hb_blob_create(reinterpret_cast<const char*>(data.data()),
-                                dataLength,
-                                HB_MEMORY_MODE_READONLY,
-                                nullptr,
-                                nullptr));
+    hbBlob.reset(hb_blob_create_or_fail(reinterpret_cast<const char*>(data.data()),
+                                        dataLength,
+                                        HB_MEMORY_MODE_READONLY,
+                                        nullptr,
+                                        nullptr));
+    if (!hbBlob.get()) {
+        LOGE("Drawing_Text [GetFontFileType] font file type can't be desolved, Harfbuzz in error!");
+        fileCount = INVALID_FONT_FILE_NUM;
+        return FontFileType::FontFileFormat::UNKNOWN;
+    }
     return DetectFormatWithFileCount(hbBlob, fileCount);
 }
 } // Drawing
