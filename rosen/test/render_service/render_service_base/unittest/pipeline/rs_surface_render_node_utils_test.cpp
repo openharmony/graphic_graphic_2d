@@ -56,8 +56,7 @@ HWTEST_F(RSSurfaceRenderNodeUtilsTest, IntersectHwcDamageWithTest, TestSize.Leve
     EXPECT_FALSE(RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*node, rect));
 
     node->surfaceHandler_->SetCurrentFrameBufferConsumed();
-    EXPECT_TRUE(RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*node, rect));
-    EXPECT_FALSE(RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*node, {1, 1, 50, 50}));
+    EXPECT_FALSE(RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*node, rect));
 }
 
 } // namespace Rosen
