@@ -123,7 +123,7 @@ bool JsFontDescriptor::ParseFontDescWeight(napi_env env, napi_value obj, int& we
         if (!ConvertFromJsValue(env, napiVal, weightEnum)) {
             return false;
         }
-        int result = -1;
+        int result = 0;
         if (OHOS::MLB::FindFontWeightEnum(weightEnum, result)) {
             weight = result;
             return true;
