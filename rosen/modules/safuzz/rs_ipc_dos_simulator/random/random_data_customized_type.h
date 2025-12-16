@@ -85,6 +85,7 @@ public:
     static RRect GetRandomRRect();
     static std::vector<Vector2f> GetRandomVectorVector2f();
     static std::vector<Vector2f> GetRandomSmallVectorVector2f();
+    static std::vector<Vector4f> GetRandomSmallVectorVector4f();
     static std::vector<float> GetRandomSmallFloatVector();
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
