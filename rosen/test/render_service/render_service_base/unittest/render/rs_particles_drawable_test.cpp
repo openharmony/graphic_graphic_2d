@@ -74,7 +74,7 @@ std::shared_ptr<RSRenderParticle> RSParticlesDrawableTest::CreatePointParticle(b
     particle->SetPosition(Vector2f(50.0f, 50.0f));
     particle->SetOpacity(opacity);
     particle->SetScale(scale);
-    particle->SetColor(Color(255, 0, 0, 255));
+    particle->SetColor(Color(100, 0, 0, 100));
     // Set alive state: lifeTime_ = -1 means infinite lifetime (IsAlive returns true)
     particle->lifeTime_ = -1;
     particle->activeTime_ = 0;
@@ -94,7 +94,7 @@ std::shared_ptr<RSRenderParticle> RSParticlesDrawableTest::CreateImageParticle(b
     particle->SetScale(scale);
     particle->SetSpin(45.0f);
     particle->SetImageSize(Vector2f(100.0f, 100.0f));
-    particle->SetColor(Color(255, 0, 0, 255));
+    particle->SetColor(Color(100, 0, 0, 100));
     particle->imageIndex_ = 0;
 
     auto rsImage = std::make_shared<RSImage>();
