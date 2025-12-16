@@ -2302,7 +2302,7 @@
   {
     "testCaseDesc": "ON_FIRST_FRAME_COMMIT_TEST_001",
     "interfaceName": "ON_FIRST_FRAME_COMMIT",
-    "inputParams": "WriteBool;WriteOnFitstFrameCommitCallbackSptr",
+    "inputParams": "WriteBool;WriteOnFirstFrameCommitCallbackSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
   },
