@@ -350,7 +350,7 @@ int GetFftsSemaphore(const uint64_t& frameId, const MHC_PatternTaskName& taskNam
         return -1;
     }
 
-    HPAE_LOGD("mhc_so: taskName:%{public}d, waitevent:%{public}u, notifyevent:%{public}d,"
+    HPAE_LOGD("mhc_so: taskName:%{public}d, waitevent:%{public}u, notifyevent:%{public}u,"
          "frameId=%{public}" PRIu64 "\n", taskName, eventId[0], eventId[1], frameId);
 
     VkDevice vkDevice = RsVulkanContext::GetSingleton().GetDevice();
