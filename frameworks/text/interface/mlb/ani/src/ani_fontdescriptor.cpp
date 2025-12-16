@@ -95,11 +95,10 @@ ani_status FontDescriptorGetFontWeight(ani_env* env, ani_object obj, FontDescSha
         ani_size index = 0;
         result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
         if (result == ANI_OK && index < AniTextEnum::fontWeight.size()) {
-            for (auto& item : g_weightMap) {
-                if (item.second == static_cast<int>(AniTextEnum::fontWeight[index])) {
-                    fontDesc.get()->weight = item.first;
-                    return ANI_OK;
-                }
+            int result = -1;
+            if (OHOS::MLB::FindFontWeightEnum(static_cast<int>(AniTextEnum::fontWeight[index]), result)) {
+                fontDesc.get()->weight = result;
+                return ANI_OK;
             }
         }
     }
