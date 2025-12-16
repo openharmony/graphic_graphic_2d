@@ -91,6 +91,7 @@ enum class RSNGEffectType : int16_t {
     PIXEL_MAP_MASK,
     WAVE_GRADIENT_MASK,
     FRAME_GRADIENT_MASK,
+    DUPOLI_NOISE_MASK,
     IMAGE_MASK,
     USE_EFFECT_MASK,
     // shape type
@@ -117,7 +118,8 @@ enum class RSNGEffectType : int16_t {
     FROSTED_GLASS,
     CIRCLE_FLOWLIGHT,
     FROSTED_GLASS_EFFECT,
-    FROSTED_GLASS_BLUR
+    FROSTED_GLASS_BLUR,
+    DISTORT_CHROMA
 };
 
 using RSNGEffectTypeUnderlying = std::underlying_type<RSNGEffectType>::type;

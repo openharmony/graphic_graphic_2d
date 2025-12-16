@@ -66,3 +66,9 @@ DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
     ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
     ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
 );
+
+DECLARE_MASK(DupoliNoiseMask, DUPOLI_NOISE_MASK,
+    ADD_PROPERTY_TAG(DupoliNoiseMask, Progress),
+    ADD_PROPERTY_TAG(DupoliNoiseMask, Granularity),
+    ADD_PROPERTY_TAG(DupoliNoiseMask, VerticalMoveDistance)
+);

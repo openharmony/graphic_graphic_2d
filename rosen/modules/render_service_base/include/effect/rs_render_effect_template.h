@@ -113,6 +113,8 @@ public:
             case RSNGEffectType::GRID_WARP: return "GridWarp";
             case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
             case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
+            case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
+            case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
             default: return "UNKNOWN";
         }
     }

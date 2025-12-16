@@ -395,3 +395,20 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, MaterialColor, Vector4f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortChroma, TurbulentMask, MASK_PTR);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortChroma, Mask, MASK_PTR);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Granularity, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Frequency, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Sharpness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Brightness, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Dispersion, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, DistortFactor, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Saturation, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, ColorStrength, Vector3f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, VerticalMoveDistance, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(DupoliNoiseMask, Progress, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DupoliNoiseMask, Granularity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(DupoliNoiseMask, VerticalMoveDistance, float);
