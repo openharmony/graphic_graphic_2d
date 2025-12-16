@@ -268,9 +268,6 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
     RS_LOGD("CommitLayers rate:%{public}u, now:%{public}" PRIu64 ",vsyncId:%{public}" PRIu64 ", \
         size:%{public}zu, %{public}s", currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
-    // todo
-    // bool isScreenPoweringOff = RSSystemProperties::IsSmallFoldDevice() && screenInfo_.IsScreenPoweringOff();
-    // bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers);
 
     bool isScreenPoweringOff = RSSystemProperties::IsFoldDeviceOfOldDss() && screenInfo_.IsScreenPowerOff();
     bool shouldDropFrame = IsDropDirtyFrame(layers);
