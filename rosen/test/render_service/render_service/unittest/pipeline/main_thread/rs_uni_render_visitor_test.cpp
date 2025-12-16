@@ -7475,4 +7475,18 @@ HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest016, TestSize.Level2)
     RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
     EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
 }
+
+/**
+ * @tc.name: DisableOccludedHwcNodeInSkippedSubTreeTest001
+ * @tc.desc: Test DisableOccludedHwcNodeInSkippedSubTree with curSurfaceNode nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21170
+ */
+HWTEST_F(RSUniRenderVisitorTest, DisableOccludedHwcNodeInSkippedSubTreeTest001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSRenderNode node(0);
+    rsUniRenderVisitor->DisableOccludedHwcNodeInSkippedSubTree(node);
+}
 } // OHOS::Rosen
