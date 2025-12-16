@@ -500,28 +500,6 @@ HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM004, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetForceClientForDRM005
- * @tc.desc: Test RSUniRenderProcessorTest.GetForceClientForDRM
- * @tc.type:FUNC
- * @tc.require: issueIAIT5Z
- */
-HWTEST_F(RSUniRenderProcessorTest, GetForceClientForDRM005, TestSize.Level1)
-{
-    if (RSUniRenderJudgement::IsUniRender()) {
-        ASSERT_NE(renderProcessor, nullptr);
-        RSSurfaceRenderParams params(0);
-        params.GetMultableSpecialLayerMgr().Set(SpecialLayerType::PROTECTED, true);
-        params.animateState_ = false;
-        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
-        // set drm out of screen
-        params.isOutOfScreen_ = false;
-        ASSERT_FALSE(renderProcessor->GetForceClientForDRM(params));
-        params.isOutOfScreen_ = true;
-        ASSERT_TRUE(renderProcessor->GetForceClientForDRM(params));
-    }
-}
-
-/**
  * @tc.name: HandleTunnelLayerParameters001
  * @tc.desc: Test RSUniRenderProcessorTest.HandleTunnelLayerParameters
  * @tc.type:FUNC

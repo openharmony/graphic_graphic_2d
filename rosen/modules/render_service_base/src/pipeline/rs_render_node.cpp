@@ -673,6 +673,7 @@ void RSRenderNode::ResetChildRelevantFlags()
     childHasVisibleFilter_ = false;
     childHasVisibleEffect_ = false;
     childHasSharedTransition_ = false;
+    childHasProtectedNode_ = false;
     visibleFilterChild_.clear();
     visibleEffectChild_.clear();
     childrenRect_.Clear();
@@ -5019,13 +5020,17 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
+    if (ChildHasProtectedNode() && GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildHasProtectedNode id:%llu", GetId());
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
 #ifdef RS_ENABLE_GPU
     stagingRenderParams_->SetDrawingCacheType(GetDrawingCacheType());
 #endif
     if (GetDrawingCacheType() != RSDrawingCacheType::DISABLED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter id:%llu cacheType:%d childHasVisibleFilter:%d " \
             "childHasVisibleEffect:%d",
-            GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_);
+            GetId(), GetDrawingCacheType(), childHasVisibleFilter_, childHasVisibleEffect_, childHasProtectedNode_);
     }
     AddToPendingSyncList();
 }

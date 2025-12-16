@@ -3178,6 +3178,15 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     if (node.HasChildExcludedFromNodeGroup() || node.IsExcludedFromNodeGroup()) {
         nodeParent->SetHasChildExcludedFromNodeGroup(true);
     }
+    if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto& surfaceNode = static_cast<RSSurfaceRenderNode>(node);
+        if (surfaceNode.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
+            nodeParent->SetChildHasProtectedNode(true);
+        }
+    }
+    if (node.ChildHasProtectedNode()) {
+        nodeParent->SetChildHasProtectedNode(true);
+    }
 }
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)

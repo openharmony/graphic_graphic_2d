@@ -388,6 +388,14 @@ public:
     {
         return visibleEffectChild_;
     }
+    void SetChildHasProtectedNode(bool val)
+    {
+        childHasProtectedNode_ = val;
+    }
+    bool ChildHasProtectedNode()
+    {
+        return childHasProtectedNode_;
+    }
     /* 1. add childNode to visibleEffectChild_ when it has useEffect and non-empty oldDirtySurface
      * (refer to GetVisibleEffectRegion)
      * 2. add childNode's visibleEffectChild_ to visibleEffectChild_
@@ -1099,6 +1107,7 @@ protected:
     bool startingWindowFlag_ = false;
     bool isNodeSingleFrameComposer_ = false;
     bool childHasSharedTransition_ = false;
+    bool childHasProtectedNode_ = false;
     std::atomic<bool> isStaticCached_ = false;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     NodeDirty dirtyStatus_ = NodeDirty::CLEAN;
