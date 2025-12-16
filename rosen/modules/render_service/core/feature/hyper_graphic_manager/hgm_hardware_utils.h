@@ -43,6 +43,7 @@ public:
     void RefreshRateCounts(std::string& dumpString);
 
     void ClearRefreshRateCounts(std::string& dumpString);
+
 private:
     void ExecuteSwitchRefreshRate(ScreenId screenId);
 

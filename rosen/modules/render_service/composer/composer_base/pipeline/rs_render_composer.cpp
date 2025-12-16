@@ -729,7 +729,7 @@ void RSRenderComposer::OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t ti
     }
     RS_TRACE_NAME_FMT("RSRenderComposer::OnScreenVBlankIdleCallback screenId: %" PRIu64" now: %" PRIu64"",
         screenId, timestamp);
-    hgmHardwareUtils_->SetScreenVBlankIdle(screenId);
+    hgmHardwareUtils_->SetScreenVBlankIdle();
 }
 
 bool RSRenderComposer::IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLayer>>& layers)
