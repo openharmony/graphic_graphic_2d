@@ -86,11 +86,33 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
     return ANI_OK;
 }
 
+ani_status FontDescriptorGetFontWeight(ani_env* env, ani_object obj, FontDescSharedPtr& fontDesc)
+{
+    ani_ref ref = nullptr;
+    ani_status result = AniTextUtils::ReadOptionalField(
+        env, obj, AniGlobalMethod::GetInstance().fontDescriptorGetWeight, ref);
+    if (result == ANI_OK && ref != nullptr) {
+        ani_size index = 0;
+        result = env->EnumItem_GetIndex(reinterpret_cast<ani_enum_item>(ref), &index);
+        if (result == ANI_OK && index < AniTextEnum::fontWeight.size()) {
+            for (auto& item : g_weightMap) {
+                if (item.second == static_cast<int>(AniTextEnum::fontWeight[index])) {
+                    fontDesc.get()->weight = item.first;
+                    return ANI_OK;
+                }
+            }
+        }
+    }
+    return result;
+}
+
 ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDescSharedPtr& fontDesc)
 {
     fontDesc = std::make_shared<TextEngine::FontParser::FontDescriptor>();
 
     ani_status status = ANI_OK;
+    READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetPath, path,
+        String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetPostScriptName, postScriptName,
         String, fontDesc.get(), status);
     READ_OPTIONAL_FIELD(env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetFullName, fullName, String,
@@ -108,6 +130,7 @@ ani_status ParseFontDescriptorToNative(ani_env* env, ani_object& aniObj, FontDes
     READ_OPTIONAL_FIELD(
         env, aniObj, AniGlobalMethod::GetInstance().fontDescriptorGetSymbolic, symbolic, Bool, fontDesc.get(), status);
 
+    FontDescriptorGetFontWeight(env, aniObj, fontDesc);
     return status;
 }
 

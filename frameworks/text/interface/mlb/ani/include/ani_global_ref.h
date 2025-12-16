@@ -163,10 +163,12 @@ public:
     ani_method fontDescriptorCtor;
     ani_method canvasGetNative;
     ani_method lineMetricsCtor;
+    ani_method fontDescriptorGetPath;
     ani_method fontDescriptorGetPostScriptName;
     ani_method fontDescriptorGetFullName;
     ani_method fontDescriptorGetFontFamily;
     ani_method fontDescriptorGetFontSubfamily;
+    ani_method fontDescriptorGetWeight;
     ani_method fontDescriptorGetWidth;
     ani_method fontDescriptorGetItalic;
     ani_method fontDescriptorGetMonoSpace;
