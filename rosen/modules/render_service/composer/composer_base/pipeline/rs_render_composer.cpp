@@ -135,14 +135,6 @@ void RSRenderComposer::CreateAndInitComposer(const std::shared_ptr<HdiOutput>& o
         return this->Redraw(surface, layers);
     };
     hgmHardwareUtils_ = std::make_shared<HgmHardwareUtils>();
-    updateParamFromHgmCb_ = [this](uint32_t& currentRate, uint32_t pendingScreenRefreshRate,
-        uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime) {
-        hgmHardwareUtils_->UpdateRefreshRateParamToRenderComposer(currentRate, pendingScreenRefreshRate,
-            frameTimestamp, pendingConstraintRelativeTime);
-    };
-    switchRefreshRateCb_ = [this](ScreenId screenId, const std::shared_ptr<HdiOutput> hdiOutput) {
-        hgmHardwareUtils_->SwitchRefreshRate(screenId, hdiOutput);
-    };
 
     if (handler_) {
         ScheduleTask([this]() {
@@ -242,10 +234,8 @@ void PrintHiperfSurfaceLog(const std::string& counterContext, uint64_t counter)
 void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam)
 {
     pipelineParam_ = pipelineParam;
-    if (updateParamFromHgmCb_ != nullptr) {
-        updateParamFromHgmCb_(currentRate, pipelineParam.pendingScreenRefreshRate,
-            pipelineParam.frameTimestamp, pipelineParam.pendingConstraintRelativeTime);
-    }
+    hgmHardwareUtils_->TransactRefreshRateParam(currentRate, pipelineParam.pendingScreenRefreshRate,
+        pipelineParam.frameTimestamp, pipelineParam.pendingConstraintRelativeTime);
 #ifdef RES_SCHED_ENABLE
     ResschedEventListener::GetInstance()->ReportFrameToRSS();
 #endif
@@ -279,15 +269,13 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         size:%{public}zu, %{public}s", currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
     // todo
-    // bool isScreenPowerOff = false;
-    //    isScreenPowerOff = RSSystemProperties::IsFoldDeviceOfOldDss() &&
-    //        screenManager->IsScreenPowerOff(screenId_);
-    // if (!(shouldDropFrame || isScreenPowerOff)) {
+    // bool isScreenPoweringOff = RSSystemProperties::IsSmallFoldDevice() && screenInfo_.IsScreenPoweringOff();
+    // bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers);
 
-    bool isScreenPoweringOff = RSSystemProperties::IsSmallFoldDevice() && screenInfo_.IsScreenPowerOff();
-    bool shouldDropFrame = isScreenPoweringOff || IsDropDirtyFrame(layers);
-    if (!shouldDropFrame && switchRefreshRateCb_) {
-        switchRefreshRateCb_(screenId_, hdiOutput_);
+    bool isScreenPoweringOff = RSSystemProperties::IsFoldDeviceOfOldDss() && screenInfo_.IsScreenPowerOff();
+    bool shouldDropFrame = IsDropDirtyFrame(layers);
+    if (!(shouldDropFrame || isScreenPoweringOff)) {
+        hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_);
     }
 
     if (RSSystemProperties::IsSuperFoldDisplay() && screenId_ == 0) {

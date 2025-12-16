@@ -33,38 +33,29 @@ public:
     HgmHardwareUtils() = default;
     ~HgmHardwareUtils() noexcept = default;
 
-    void ExecuteSwitchRefreshRate(ScreenId screenId);
+    void SetScreenVBlankIdle() { vblankIdleCorrector_.SetScreenVBlankIdle(); }
 
-    void PerformSetActiveMode(ScreenId screenId, std::shared_ptr<HdiOutput> output);
-
-    void UpdateRefreshRateParam(uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp,
-        uint64_t pendingConstraintRelativeTime);
-
-    void SetScreenVBlankIdle(ScreenId screenId)
-    {
-        vblankIdleCorrector_.SetScreenVBlankIdle();
-    }
-
-    const RefreshRateParam& GetRefreshRateParam() const
-    {
-        return refreshRateParam_;
-    }
-
-    void UpdateRefreshRateParamToRenderComposer(uint32_t& currentRate,
+    void TransactRefreshRateParam(uint32_t& currentRate,
         uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp, uint64_t pendingConstraintRelativeTime);
 
-    void AddRefreshRateCount(ScreenId screenId);
-
-    void SwitchRefreshRate(ScreenId screenId, const std::shared_ptr<HdiOutput> hdiOutput);
+    void SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOutput);
 
     void RefreshRateCounts(std::string& dumpString);
 
     void ClearRefreshRateCounts(std::string& dumpString);
 private:
+    void ExecuteSwitchRefreshRate(ScreenId screenId);
+
     void UpdateRetrySetRateStatus(ScreenId id, int32_t modeId, uint32_t setRateRet);
 
+    void PerformSetActiveMode(const std::shared_ptr<HdiOutput>& output);
+
+    void UpdateRefreshRateParam(uint32_t pendingScreenRefreshRate, uint64_t frameTimestamp,
+        uint64_t pendingConstraintRelativeTime);
+
+    void AddRefreshRateCount(ScreenId screenId);
+
     HgmCore& hgmCore_ = HgmCore::Instance();
-    std::mutex switchRateMutex_;
     // key: ScreenId, value: <needRetrySetRate, retryCount>
     std::unordered_map<ScreenId, std::pair<bool, int32_t>> setRateRetryMap_;
     HgmRefreshRates hgmRefreshRates_ = HgmRefreshRates::SET_RATE_NULL;

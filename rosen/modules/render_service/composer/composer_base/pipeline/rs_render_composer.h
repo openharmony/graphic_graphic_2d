@@ -35,8 +35,6 @@
 namespace OHOS::Rosen {
 using ComposerFallbackCallback = std::function<void(const sptr<Surface>& surface,
     const std::vector<RSLayerPtr>& layers)>;
-using UpdateParamFromHGMCallback = std::function<void(uint32_t&, uint32_t, uint64_t, uint64_t)>;
-using SwitchRefreshRateCallback = std::function<void(ScreenId, const std::shared_ptr<HdiOutput>)>;
 
 namespace Composer {
 template<typename Task>
@@ -144,8 +142,6 @@ private:
     std::shared_ptr<RSRenderComposerContext> rsRenderComposerContext_;
     std::shared_ptr<RSBaseRenderEngine> uniRenderEngine_;
     std::shared_ptr<HgmHardwareUtils> hgmHardwareUtils_;
-    UpdateParamFromHGMCallback updateParamFromHgmCb_;
-    SwitchRefreshRateCallback switchRefreshRateCb_;
     LppLayerColletor lppLayerColletor_;
     ComposerFallbackCallback redrawCb_;
     std::mutex frameBufferSurfaceOhosMapMutex_;
