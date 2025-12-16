@@ -889,6 +889,11 @@ private:
     static void TestLoadSubTree(const ArgList& args);
     static void TestClearSubTree(const ArgList& args);
 
+    static void MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaRecording);
+    static void UnmarshalSelfDrawingBuffers();
+    static void RenderToReadableBuffer(std::shared_ptr<RSSurfaceRenderNode> node, sptr<SurfaceBuffer> toSurfaceBuffer);
+    static void SurfaceNodeUpdateBuffer(std::shared_ptr<RSRenderNode> node, sptr<SurfaceBuffer> buffer);
+
 private:
     using CommandRegistry = std::map<std::string, void (*)(const ArgList&)>;
     static const CommandRegistry COMMANDS;

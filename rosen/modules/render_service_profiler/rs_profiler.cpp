@@ -45,6 +45,14 @@
 #include "transaction/rs_client_to_render_connection.h"
 #include "render_server/transaction/rs_client_to_service_connection.h"
 #include "render/rs_typeface_cache.h"
+#include "surface_capture_param.h"
+#include "graphic_feature_param_manager.h"
+
+#include "memory/rs_tag_tracker.h"
+
+#include "native_window.h"
+
+#include "platform/ohos/backend/native_buffer_utils.h"
 
 namespace OHOS::Rosen {
 
@@ -117,6 +125,12 @@ struct AlignedMessageParcel {
     MessageParcel parcel;
 };
 #pragma pack(pop)
+
+class PixelMapStorage final {
+public:
+    static bool Push(uint64_t id, SurfaceBuffer& buffer);
+    static bool Pull(uint64_t id, SurfaceBuffer& buffer);
+};
 
 void RSProfiler::JobMarshallingKillPid(pid_t pid)
 {
@@ -981,6 +995,163 @@ bool RSProfiler::IsLoadSaveFirstScreenInProgress()
     return IsWriteEmulationMode() || IsReadEmulationMode();
 }
 
+void RSProfiler::MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaRecording)
+{
+    if (isBetaRecording) {
+        return;
+    }
+    auto& nodeMap = context_->GetMutableNodeMap();
+    nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        if (!surfaceNode) {
+            return;
+        }
+        if (!surfaceNode->IsSelfDrawingType()) {
+            return;
+        }
+        sptr<SurfaceBuffer> readableBuffer = SurfaceBuffer::Create();
+        if (!readableBuffer) {
+            HRPE("MarshalSelfDrawingBuffers: failed create surface buffer");
+            return;
+        }
+        if (!surfaceNode->GetRSSurfaceHandler()) {
+            HRPE("MarshalSelfDrawingBuffers: failed to find handler");
+            return;
+        }
+        auto fromSurfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
+        if (!fromSurfaceBuffer) {
+            HRPE("MarshalSelfDrawingBuffers: failed to find surface buffer");
+            return;
+        }
+        BufferRequestConfig requestConfig = {
+            .width = fromSurfaceBuffer->GetWidth(),
+            .height = fromSurfaceBuffer->GetHeight(),
+            .strideAlignment = 0x8,
+            .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+            .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
+            .timeout = 0,
+            .colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB,
+            .transform = GraphicTransformType::GRAPHIC_ROTATE_NONE,
+        };
+        GSError ret = readableBuffer->Alloc(requestConfig);
+        if (ret != GSERROR_OK) {
+            HRPE("MarshalSelfDrawingBuffers: SurfaceBuffer Alloc failed, %{public}s", GSErrorStr(ret).c_str());
+            return;
+        }
+        RenderToReadableBuffer(surfaceNode, readableBuffer);
+        uint64_t ffmPixelMapId = Utils::PatchSelfDrawingImageId(surfaceNode->GetId());
+        PixelMapStorage::Push(ffmPixelMapId, *readableBuffer);
+    });
+}
+
+void RSProfiler::UnmarshalSelfDrawingBuffers()
+{
+    auto& nodeMap = context_->GetMutableNodeMap();
+    nodeMap.TraverseSurfaceNodes([](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        if (!surfaceNode) {
+            return;
+        }
+        if (!Utils::IsNodeIdPatched(surfaceNode->GetId())) {
+            return;
+        }
+        sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+        if (!buffer) {
+            HRPE("UnmarshalSelfDrawingBuffers: failed create surface buffer");
+            return;
+        }
+        uint64_t ffmPixelMapId = Utils::PatchSelfDrawingImageId(surfaceNode->GetId());
+        if (PixelMapStorage::Pull(ffmPixelMapId, *buffer)) {
+            SurfaceNodeUpdateBuffer(surfaceNode, buffer);
+        }
+    });
+}
+
+void RSProfiler::SurfaceNodeUpdateBuffer(std::shared_ptr<RSRenderNode> node, sptr<SurfaceBuffer> buffer)
+{
+    auto surfaceNode = std::static_pointer_cast<RSSurfaceRenderNode>(node);
+    if (!surfaceNode) {
+        HRPE("SurfaceNodeUpdateBuffer: failed get surface node");
+        return;
+    }
+    auto handler = surfaceNode->GetRSSurfaceHandler();
+    if (!handler) {
+        HRPE("SurfaceNodeUpdateBuffer: handler not found");
+        return;
+    }
+
+    BufferFlushConfigWithDamages flushConfig = {
+        .damages = { {
+            .w = buffer->GetWidth(),
+            .h = buffer->GetHeight(),
+        } },
+    };
+    g_mainThread->PostSyncTask([&handler, &surfaceNode, &buffer, &flushConfig] {
+        handler->SetBuffer(buffer, SyncFence::InvalidFence(), flushConfig.damages[0], 0);
+        surfaceNode->UpdateBufferInfo(buffer, flushConfig.damages[0], handler->GetAcquireFence(), nullptr);
+
+        surfaceNode->SetNodeDirty(true);
+        surfaceNode->SetDirty();
+        surfaceNode->SetContentDirty();
+        g_mainThread->SetDirtyFlag();
+    });
+    AwakeRenderServiceThread();
+}
+
+void RSProfiler::RenderToReadableBuffer(std::shared_ptr<RSSurfaceRenderNode> node, sptr<SurfaceBuffer> toSurfaceBuffer)
+{
+    std::function<void()> selfCaptureTask = [node, toSurfaceBuffer]() mutable -> void {
+        // copypaste from RSSurfaceCaptureTaskParallel
+        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, true,
+            false, // mb true
+            true, false));
+        auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
+        if (renderEngine == nullptr) {
+            HRPE("RenderToReadableBuffer: renderEngine is nullptr");
+            return;
+        }
+        auto renderContext = renderEngine->GetRenderContext();
+        auto gpuContext = renderContext != nullptr ? renderContext->GetSharedDrGPUContext() : nullptr;
+        if (gpuContext == nullptr) {
+            HRPE("RenderToReadableBuffer: gpuContext_ is nullptr");
+            return;
+        }
+        std::string nodeName("RSSurfaceCaptureTaskParallel");
+        RSTagTracker tagTracker(gpuContext, node->GetId(), RSTagTracker::TAGTYPE::TAG_CAPTURE, nodeName);
+        auto nativeWindowBuffer = CreateNativeWindowBufferFromSurfaceBuffer(&toSurfaceBuffer);
+        NativeBufferUtils::NativeSurfaceInfo nativeSurface;
+        nativeSurface.graphicColorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+        nativeSurface.nativeWindowBuffer = nativeWindowBuffer;
+        int32_t width = toSurfaceBuffer->GetWidth();
+        int32_t height = toSurfaceBuffer->GetHeight();
+        bool ret = NativeBufferUtils::MakeFromNativeWindowBuffer(
+            gpuContext, nativeWindowBuffer, nativeSurface, width, height, false);
+        if (!ret || !nativeSurface.drawingSurface) {
+            HRPE("RenderToReadableBuffer: failed create surface");
+            return;
+        }
+        auto drawingSurface = nativeSurface.drawingSurface;
+        RSPaintFilterCanvas canvas(drawingSurface.get());
+        canvas.Scale(1, 1);
+        const Drawing::Rect& rect = { 0, 0, width, height };
+        if (rect.GetWidth() > 0 && rect.GetHeight() > 0) {
+            canvas.ClipRect({ 0, 0, rect.GetWidth(), rect.GetHeight() });
+            canvas.Translate(0 - rect.GetLeft(), 0 - rect.GetTop());
+        }
+        canvas.SetDisableFilterCache(true);
+        // Currently, capture do not support HDR display
+        canvas.SetOnMultipleScreen(true);
+        auto drawableNode = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
+            DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
+        drawableNode->OnCapture(canvas);
+        RSUniRenderUtil::OptimizedFlushAndSubmit(drawingSurface, gpuContext.get(),
+            GetFeatureParamValue("SurfaceCaptureConfig", &SurfaceCaptureParam::IsUseOptimizedFlushAndSubmitEnabled)
+                .value_or(false));
+        DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
+        RSUniRenderThread::ResetCaptureParam();
+        toSurfaceBuffer->FlushCache();
+    };
+    RSUniRenderThread::Instance().PostSyncTask(selfCaptureTask);
+}
+
 std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRecordStarted)
 {
     if (!context_) {
@@ -1011,6 +1182,7 @@ std::string RSProfiler::FirstFrameMarshalling(uint32_t fileVersion, bool betaRec
     if (!stream.good()) {
         HRPD("strstream error with marshalling nodes");
     }
+    MarshalSelfDrawingBuffers(stream, betaRecordStarted);
     EnableSharedMemory();
     SetSubMode(SubMode::NONE);
 
@@ -1056,7 +1228,7 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
     DisableSharedMemory();
     errReason = UnmarshalNodes(*context_, stream, fileVersion);
     EnableSharedMemory();
-
+    UnmarshalSelfDrawingBuffers();
     SetSubMode(SubMode::NONE);
 
     if (errReason.size()) {
@@ -1087,8 +1259,7 @@ std::string RSProfiler::FirstFrameUnmarshalling(const std::string& data, uint32_
         return "FirstFrameUnmarshalling failed, file is damaged";
     }
 
-    std::string abilityName;
-    abilityName.resize(size, ' ');
+    std::string abilityName(size, ' ');
     stream.read(reinterpret_cast<char*>(abilityName.data()), size);
 
     focusPid = Utils::GetMockPid(focusPid);

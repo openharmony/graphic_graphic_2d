@@ -85,6 +85,8 @@ public:
     static bool Push(uint64_t id, const ImageInfo& info, const PixelMemInfo& memory, size_t skipBytes);
 
     static bool Push(uint64_t id, PixelMap& map);
+    RSB_EXPORT static bool Push(uint64_t id, SurfaceBuffer& buffer); // used to save self-drawing node buffer
+    RSB_EXPORT static bool Pull(uint64_t id, SurfaceBuffer& buffer); // used to load self-drawing node buffer
 
 private:
     static bool Fits(size_t size);
