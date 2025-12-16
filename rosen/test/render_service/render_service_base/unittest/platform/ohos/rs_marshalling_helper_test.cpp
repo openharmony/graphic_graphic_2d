@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <fcntl.h>
 
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_render_curve_animation.h"
@@ -206,6 +207,63 @@ HWTEST_F(RSMarshallingHelperTest, UnmarshallingTest003, TestSize.Level1)
     Parcel parcel;
     std::shared_ptr<Drawing::Typeface> typeface;
     EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, typeface));
+}
+
+/**
+ * @tc.name: MarshallingSharedTypefaceTest001
+ * @tc.desc: Verify function Marshalling
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest001, TestSize.Level1)
+{
+    Parcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.fd_ = open("/system/fonts/HarmonyOS_Sans_SC.ttf", O_RDONLY);
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+    ::close(sharedTypeface.fd_);
+    sharedTypeface.fd_ = -1;
+}
+
+/**
+ * @tc.name: UnmarshallingSharedTypefaceTest001
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, UnmarshallingSharedTypefaceTest001, TestSize.Level1)
+{
+    Parcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    EXPECT_FALSE(RSMarshallingHelper::Unmarshalling(parcel, sharedTypeface));
+}
+
+/**
+ * @tc.name: MarshallingSharedTypefaceTest002
+ * @tc.desc: Verify function Unmarshalling
+ * @tc.type:FUNC
+ * @tc.require: issuesI9NIKQ
+ */
+HWTEST_F(RSMarshallingHelperTest, MarshallingSharedTypefaceTest002, TestSize.Level1)
+{
+    MessageParcel parcel;
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.fd_ = open("/system/fonts/HarmonyOS_Sans_SC.ttf", O_RDONLY);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 100.0}, {2003072104, 62.5} };
+    EXPECT_TRUE(RSMarshallingHelper::Marshalling(parcel, sharedTypeface));
+
+    Drawing::SharedTypeface newSharedTypeface;
+    EXPECT_TRUE(RSMarshallingHelper::Unmarshalling(parcel, newSharedTypeface));
+
+    EXPECT_EQ(sharedTypeface.hasFontArgs_, newSharedTypeface.hasFontArgs_);
+    EXPECT_EQ(sharedTypeface.coords_.size(), newSharedTypeface.coords_.size());
+    EXPECT_EQ(sharedTypeface.coords_[0].axis, newSharedTypeface.coords_[0].axis);
+    EXPECT_EQ(sharedTypeface.coords_[0].value, newSharedTypeface.coords_[0].value);
+    EXPECT_EQ(sharedTypeface.coords_[1].axis, newSharedTypeface.coords_[1].axis);
+    EXPECT_EQ(sharedTypeface.coords_[1].value, newSharedTypeface.coords_[1].value);
+    ::close(sharedTypeface.fd_);
+    sharedTypeface.fd_ = -1;
 }
 
 /**

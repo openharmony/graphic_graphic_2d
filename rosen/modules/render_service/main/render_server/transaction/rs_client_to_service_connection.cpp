@@ -2352,22 +2352,37 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     return true;
 }
 
-int32_t RSClientToServiceConnection::RegisterTypeface(
-    uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index)
+int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
-    auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(id);
+    if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
+        RS_LOGE("RegisterTypeface: invalid parameters");
+        return -1;
+    }
+    uint32_t realSize = AshmemGetSize(sharedTypeface.fd_);
+    if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
+        RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
+        ::close(sharedTypeface.fd_);
+        needUpdate = 0;
+        return -1;
+    }
+    auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     if (tf != nullptr) {
-        ::close(fd);
+        ::close(sharedTypeface.fd_);
+        sharedTypeface.fd_ = -1;
         needUpdate = 1;
+        RS_LOGI("RegisterTypeface: Find same typeface in cache, use existed typeface.");
         return tf->GetFd();
     }
+    RS_LOGI("RegisterTypeface: Failed to find typeface in cache, create a new typeface.");
     needUpdate = 0;
-    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
+    tf = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
     if (tf != nullptr) {
-        RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
+        RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+        sharedTypeface.fd_ = -1;
         return tf->GetFd();
     }
-    ::close(fd);
+    ::close(sharedTypeface.fd_);
+    sharedTypeface.fd_ = -1;
     RS_LOGE("RegisterTypeface: failed to register typeface");
     return -1;
 }

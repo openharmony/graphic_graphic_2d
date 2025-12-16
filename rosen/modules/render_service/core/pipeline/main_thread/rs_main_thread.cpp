@@ -543,9 +543,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
     Drawing::DrawOpItem::SetBaseCallback(holdDrawingImagefunc);
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
         [] (uint64_t id) -> std::shared_ptr<Drawing::Typeface> {
-            auto uniqueIdTypeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(id);
-            auto hashTypeface = RSTypefaceCache::Instance().GetDrawingTypefaceCacheByHash(id);
-            return uniqueIdTypeface == nullptr ? hashTypeface : uniqueIdTypeface;
+            return RSTypefaceCache::Instance().GetDrawingTypefaceCache(id);
         };
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
     {

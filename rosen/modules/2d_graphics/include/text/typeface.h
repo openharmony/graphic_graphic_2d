@@ -33,6 +33,7 @@ const uint8_t NO_REGISTER = 0;
 const uint8_t REGISTERING = 1;
 const uint8_t REGISTERED = 2;
 using TypefaceRegisterCallback = std::function<int32_t(std::shared_ptr<Typeface>)>;
+struct SharedTypeface;
 class DRAWING_API Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
@@ -46,7 +47,13 @@ public:
         const FontArguments& fontArguments);
     static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0, uint32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromAshmem(
+        int32_t fd, uint32_t size, uint32_t hash, const FontArguments& fontArguments);
+    static std::shared_ptr<Typeface> MakeFromAshmem(SharedTypeface& sharedTypeface);
+    static std::shared_ptr<Typeface> MakeFromAshmem(
         const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(
+        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, const FontArguments& fontArguments);
+    static std::shared_ptr<Typeface> MakeFromAshmem(std::unique_ptr<MemoryStream> memoryStream, uint32_t index = 0);
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(TypefaceRegisterCallback func);
@@ -180,6 +187,27 @@ private:
     uint32_t size_ = 0;
     uint32_t index_ = 0;
 };
+
+struct SharedTypeface {
+    uint64_t id_ = 0;
+    uint32_t size_ = 0;
+    int32_t fd_ = -1;
+    uint32_t hash_ = 0;
+    uint32_t index_ = 0;
+    bool hasFontArgs_ = false;
+    std::vector<FontArguments::VariationPosition::Coordinate> coords_;
+    SharedTypeface() {};
+    SharedTypeface(uint64_t id, std::shared_ptr<Typeface>& typeface) : id_(id), size_(typeface->GetSize()),
+        fd_(typeface->GetFd()), hash_(typeface->GetHash()), index_(typeface->GetIndex()) {
+            int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
+            if (coordsCount > 0) {
+                hasFontArgs_ = true;
+                coords_.resize(coordsCount);
+                typeface->GetVariationDesignPosition(coords_.data(), coordsCount);
+            }
+        }
+};
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

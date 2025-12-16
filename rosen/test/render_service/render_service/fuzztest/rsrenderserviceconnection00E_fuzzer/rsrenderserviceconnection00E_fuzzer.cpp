@@ -144,10 +144,12 @@ void DoRegisterTypeface()
     ashmem->MapReadAndWriteAshmem();
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint64(uniqueId1);
-    dataParcel.WriteUint32(size);
-    dataParcel.WriteUint32(GetData<uint32_t>());
-    dataParcel.WriteFileDescriptor(ashmem->GetAshmemFd());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = uniqueId1;
+    sharedTypeface.size_ = size;
+    sharedTypeface.index_ = GetData<uint32_t>();
+    sharedTypeface.fd_ = ashmem->GetAshmemFd();
+    RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
@@ -162,9 +164,11 @@ void DoRegisterSharedTypeface()
     id |= static_cast<uint64_t>(hash);
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    dataParcel.WriteUint64(id);
-    dataParcel.WriteUint32(GetData<uint32_t>());
-    dataParcel.WriteFileDescriptor(GetData<int32_t>());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = id;
+    sharedTypeface.size_ = GetData<uint32_t>();
+    sharedTypeface.fd_ = GetData<int32_t>();
+    RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 

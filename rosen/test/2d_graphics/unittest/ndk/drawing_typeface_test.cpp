@@ -220,7 +220,7 @@ HWTEST_F(NativeDrawingTypefaceTest, OH_Drawing_TypefaceCreateFromCurrent002, Tes
     OH_Drawing_Typeface *current = OH_Drawing_TypefaceCreateFromFile("/system/fonts/HarmonyOS_Sans_Digit.ttf", 0);
     ASSERT_TRUE(current != nullptr);
     OH_Drawing_Typeface *typeface = OH_Drawing_TypefaceCreateFromCurrent(current, fontArgs);
-    ASSERT_TRUE(typeface == nullptr);
+    ASSERT_TRUE(typeface != nullptr);
 
     OH_Drawing_FontArgumentsDestroy(fontArgs);
     OH_Drawing_TypefaceDestroy(current);
