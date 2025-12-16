@@ -139,3 +139,30 @@ rosen/modules/render_service/core/pipeline/render_thread/rs_uni_render_virtual_p
 rosen/modules/render_service_base/src/feature/render_group @zhangzhichao0091
 rosen/modules/render_service_base/include/feature/render_group @zhangzhichao0091
 rosen/modules/render_service/core/feature/render_group @zhangzhichao0091
+
+[hard_pointer]
+rosen/modules/render_service/core/pipeline/rs_pointer_window_manager.h @shi_guoquan
+rosen/modules/render_service/core/pipeline/rs_pointer_window_manager.cpp @shi_guoquan
+
+[prevalidate]
+rosen/modules/render_service/core/feature/hwc/rs_uni_hwc_prevalidate_util.h @shi_guoquan
+rosen/modules/render_service/core/feature/hwc/rs_uni_hwc_prevalidate_util.cpp @shi_guoquan
+
+[special_layer]
+rosen/modules/render_service_base/include/common/rs_special_layer_manager.h @hw-hk
+rosen/modules/render_service_base/src/common/rs_special_layer_manager.cpp @hw-hk
+rosen/modules/render_service/core/feature/special_layer/rs_special_layer_utils.h @hw-hk
+rosen/modules/render_service/core/feature/special_layer/rs_special_layer_utils.cpp @hw-hk
+
+[dirty_region]
+rosen/modules/render_service/core/feature/dirty @chenlushen
+rosen/modules/render_service_base/include/dirty_region @chenlushen
+rosen/modules/render_service_base/src/dirty_region @chenlushen
+rosen/modules/render_service_base/include/common/rs_occlusion_region.h @chenlushen
+rosen/modules/render_service_base/src/common/rs_occlusion_region.cpp @chenlushen
+rosen/modules/render_service_base/include/common/rs_occlusion_region_helper.h @chenlushen
+rosen/modules/render_service_base/src/common/rs_occlusion_region_helper.cpp @chenlushen
+rosen/modules/render_service_base/include/pipeline/rs_dirty_region_manager.h @chenlushen
+rosen/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp @chenlushen
+rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.h @chenlushen
+rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushen
