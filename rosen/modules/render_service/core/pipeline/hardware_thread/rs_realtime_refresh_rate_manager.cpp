@@ -32,11 +32,11 @@ RSRealtimeRefreshRateManager& RSRealtimeRefreshRateManager::Instance()
 
 RSRealtimeRefreshRateManager::RSRealtimeRefreshRateManager()
 {
-    showRefreshRateTask_ = [this] () {
+    showRefreshRateTask_ = [this] {
         bool isRealtimeRefreshRateChange = false;
         std::unique_lock<std::mutex> lock(realtimeRateMutex_);
         auto diff = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - startTime_);
-        for (auto [screenId, frameCount]: realtimeFrameCountMap_) {
+        for (auto [screenId, frameCount] : realtimeFrameCountMap_) {
             uint32_t fps = std::round(frameCount * static_cast<float>(NS_PER_S) / diff.count());
             fps = fps <= IDLE_FPS_THRESHOLD ? 1u : fps;
             auto iter = currRealtimeRefreshRateMap_.find(screenId);
@@ -67,7 +67,7 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
         type >= static_cast<int32_t>(RealtimeRefreshRateType::END)) {
         return;
     }
-    std::unique_lock<std::mutex> threadLock(realtimeRateMutex_);
+    std::unique_lock<std::mutex> lock(realtimeRateMutex_);
     RealtimeRefreshRateType enumType = static_cast<RealtimeRefreshRateType>(type);
     if (enumType == RealtimeRefreshRateType::SHOW) {
         if (showEnabled_ == enabled) {
@@ -102,7 +102,7 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
 
 void RSRealtimeRefreshRateManager::UpdateScreenRefreshRate(ScreenId screenId, uint32_t refreshRate)
 {
-    std::unique_lock<std::mutex> threadLock(realtimeRateMutex_);
+    std::unique_lock<std::mutex> lock(realtimeRateMutex_);
     if (!showEnabled_ && !collectEnabled_) {
         return;
     }
@@ -125,7 +125,7 @@ void RSRealtimeRefreshRateManager::UpdateScreenRefreshRate(ScreenId screenId, ui
 
 std::pair<uint32_t, uint32_t> RSRealtimeRefreshRateManager::GetRefreshRateByScreenId(ScreenId screenId)
 {
-    std::unique_lock<std::mutex> threadLock(realtimeRateMutex_);
+    std::unique_lock<std::mutex> lock(realtimeRateMutex_);
     if (!showEnabled_ && !collectEnabled_) {
         return { 0, 0 };
     }
