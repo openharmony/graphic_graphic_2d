@@ -130,7 +130,7 @@ bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
-    auto rsScreenRenderNodePtr = std::shared_ptr<RSScreenRenderNode>(&rsScreenRenderNode, [](RSScreenRenderNode*){});
+    auto rsScreenRenderNodePtr = std::shared_ptr<RSScreenRenderNode>(&rsScreenRenderNode, [](RSScreenRenderNode*) {});
     auto rsRenderNode = std::static_pointer_cast<const RSRenderNode>(rsScreenRenderNodePtr);
     rsScreenRenderNode.renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsRenderNode);
     rsScreenRenderNode.SetIsOnTheTree(true);
