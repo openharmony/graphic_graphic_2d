@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#include "feature/hyper_graphic_manager/hgm_context.h"
+#include "hgm_context.h"
 
 #include "common/rs_optional_trace.h"
+#include "feature/vrate/rp_vsync_rate_reduce_manager.h"
 #include "hfbc_param.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
@@ -108,41 +109,13 @@ void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
     HgmEnergyConsumptionPolicy::Instance().HandleEnergyCommonData(info->energyCommonData);
     frameRateLinkerMap_.UnregisterFrameRateLinker(info->frameRateLinkerDestroyIds);
     frameRateLinkerMap_.UpdateFrameRateLinker(info->frameRateLinkerUpdateInfoMap);
-    TransformNodeToLinkersRateMap(info);
+    RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(info->vRateMap, appVSyncDistributor_);
 
     rsCurrRange_ = info->rsCurrRange;
     for (const auto& [surfaceName, nodePid] : info->surfaceData) {
         frameRateManager_->UpdateSurfaceTime(surfaceName, nodePid, UIFWKType::FROM_SURFACE);
     }
     frameRateManager_->SetIsGameNodeOnTree(info->isGameNodeOnTree);
-}
-
-void HgmContext::TransformNodeToLinkersRateMap(const sptr<HgmProcessToServiceInfo>& info)
-{
-    if (info->vRateMap.empty()) {
-        return;
-    }
-    linkersRateMap_.clear();
-    for (const auto& [nodeId, rate] : info->vRateMap) {
-        std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetSurfaceNodeLinkerIds(nodeId);
-        if (rate != 0 && RSSystemParameters::GetVRateControlEnabled()) {
-            for (auto& linkerId : linkerIds) {
-                linkersRateMap_.emplace(linkerId, rate);
-                RS_OPTIONAL_TRACE_NAME_FMT("NotifyVRates linkerid = %" PRIu64 " nodeId=%" PRIu64
-                    " rate=%d", linkerId, nodeId, rate);
-                RS_LOGD("TransformNodeToLinkersRateMap linkerid = %{public}" PRIu64 " nodeId=%{public}"
-                    PRIu64 " rate=%{public}d", linkerId, nodeId, rate);
-            }
-        }
-        auto iter = lastVSyncRateMap_.find(nodeId);
-        if (iter != lastVSyncRateMap_.end() && iter->second == rate) {
-            continue;
-        }
-        if (RSSystemParameters::GetVRateControlEnabled()) {
-            needPostTask_.exchange(true);
-        }
-    }
-    lastVSyncRateMap_ = info->vRateMap;
 }
 
 void HgmContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo)
@@ -198,7 +171,7 @@ void HgmContext::ProcessHgmFrameRate(
         processToServiceInfo->uiFrameworkDirtyNodeNameMap, timestamp);
     bool setHgmTaskFlag = hgmCore_.SetHgmTaskFlag(false);
 
-    bool vrateStatusChange = SetVSyncRatesChangeStatus(false);
+    bool vrateStatusChange = RSVsyncRateReduceManager::SetVSyncRatesChangeStatus(false);
     bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
     if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
         hgmCore_.GetPendingScreenRefreshRate() == frameRateManager_->GetCurrRefreshRate()) {
@@ -207,7 +180,7 @@ void HgmContext::ProcessHgmFrameRate(
 
     HgmTaskHandleThread::Instance().PostTask([frameRateManager = frameRateManager_, timestamp,
         rsFrameRateLinker = rsFrameRateLinker_, appFrameRateLinkers = frameRateLinkerMap_.Get(),
-        linkersRateMap = linkersRateMap_] {
+        linkersRateMap = RSVsyncRateReduceManager::GetLinkersRateMap()] {
         RS_TRACE_NAME("ProcessHgmFrameRate");
         frameRateManager->UniProcessDataForLtpo(timestamp, rsFrameRateLinker, appFrameRateLinkers, linkersRateMap);
     });

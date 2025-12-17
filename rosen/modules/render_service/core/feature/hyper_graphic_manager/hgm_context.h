@@ -99,16 +99,10 @@ public:
 
     void RemoveScreenFromHgm(ScreenId screenId);
 
-    bool SetVSyncRatesChangeStatus(bool newState)
-    {
-        return needPostTask_.exchange(newState);
-    }
-
 private:
     void InitHgmUpdateCallback();
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
-    void TransformNodeToLinkersRateMap(const sptr<HgmProcessToServiceInfo>& info);
     std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_ = nullptr;
     std::shared_ptr<HgmFrameRateManager> frameRateManager_ = nullptr;
     HgmCore& hgmCore_;
@@ -132,9 +126,6 @@ private:
     mutable std::mutex hgmMutex_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
-    std::map<uint64_t, int> linkersRateMap_;
-    std::atomic<bool> needPostTask_{ false };
-    std::map<NodeId, int> lastVSyncRateMap_;
 };
 } // namespace OHOS
 } // namespace Rosen

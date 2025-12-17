@@ -41,10 +41,10 @@ struct SurfaceVRateInfo {
     int appWindowArea = 0;
 };
 
-class RSVsyncRateReduceManager {
+class RPVsyncRateReduceManager {
 public:
-    RSVsyncRateReduceManager() {};
-    ~RSVsyncRateReduceManager() = default;
+    RPVsyncRateReduceManager() {};
+    ~RPVsyncRateReduceManager() = default;
 
     void SetFocusedNodeId(NodeId focusedNodeId);
     void PushWindowNodeId(NodeId nodeId);
@@ -122,6 +122,17 @@ private:
     std::map<uint64_t, int> linkersRateMap_;
 };
 
+class RSVsyncRateReduceManager {
+public:
+    static void TransformNodeToLinkersRateMap(
+        const std::map<NodeId, int>& vRateMap, sptr<VSyncDistributor> appVSyncDistributor);
+    static bool SetVSyncRatesChangeStatus(bool newState);
+    static std::map<uint64_t, int> GetLinkersRateMap();
+private:
+        static inline std::map<uint64_t, int> linkersRateMap_;
+        static inline std::map<NodeId, int> lastVSyncRateMap_;
+        static inline std::atomic<bool> needPostTask_ { false };
+};
 } // namespace Rosen
 } // namespace OHOS
 
