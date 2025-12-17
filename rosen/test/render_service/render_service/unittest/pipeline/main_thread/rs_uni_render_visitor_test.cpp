@@ -4015,7 +4015,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo008, TestSize.Level2)
 
 /**
  * @tc.name: CollectEffectInfo009
- * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, SetChildHasProtectedNode
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, ChildHasProtectedNode
  * @tc.type: FUNC
  * @tc.require: issue21180
  */
@@ -4033,14 +4033,9 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo009, TestSize.Level2)
     parent->InitRenderParams();
     parent->AddChild(node);
 
-    node->ExcludedFromNodeGroup(false);
-    node->SetHasChildExcludedFromNodeGroup(true);
+    rsUniRenderVisitor->childHasProtectedNodeSet_.insert(nodeId);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_TRUE(parent->HasChildExcludedFromNodeGroup());
-
-    node->SetChildHasProtectedNode(true);
-    rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_TRUE(parent->HasChildExcludedFromNodeGroup());
+    EXPECT_TRUE(rsUniRenderVisitor->childHasProtectedNodeSet_.count(nodeId));
 }
 
 /*

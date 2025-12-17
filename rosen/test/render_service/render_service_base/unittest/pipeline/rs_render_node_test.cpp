@@ -2515,7 +2515,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest005, TestSize.
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->InitRenderParams();
- 
+
     std::shared_ptr<RSRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(childNode, nullptr);
     childNode->InitRenderParams();
@@ -2526,8 +2526,9 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest005, TestSize.
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
 
-    nodeTest->SetChildHasProtectedNode(true);
-    nodeTest->UpdateDrawingCacheInfoAfterChildren();
+    std::unordered_set<NodeId> childHasProtectedNodeSet;
+    childHasProtectedNodeSet.insert(nodeTest->GetId());
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(false, childHasProtectedNodeSet);
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::DISABLED_CACHE);
 }
 
@@ -2542,7 +2543,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest006, TestSize.
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->InitRenderParams();
- 
+
     std::shared_ptr<RSRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(childNode, nullptr);
     childNode->InitRenderParams();
@@ -2553,7 +2554,9 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest006, TestSize.
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
 
-    nodeTest->SetChildHasProtectedNode(true);
+    std::unordered_set<NodeId> childHasProtectedNodeSet;
+    childHasProtectedNodeSet.insert(nodeTest->GetId());
+    nodeTest->UpdateDrawingCacheInfoAfterChildren(false, childHasProtectedNodeSet);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FORCED_CACHE);
 }
@@ -2569,7 +2572,7 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest007, TestSize.
     std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
     EXPECT_NE(nodeTest, nullptr);
     nodeTest->InitRenderParams();
- 
+
     std::shared_ptr<RSRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(1);
     EXPECT_NE(childNode, nullptr);
     childNode->InitRenderParams();
@@ -2580,7 +2583,6 @@ HWTEST_F(RSRenderNodeTest, UpdateDrawingCacheInfoAfterChildrenTest007, TestSize.
     nodeTest->CheckDrawingCacheType();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
 
-    nodeTest->SetChildHasProtectedNode(false);
     nodeTest->UpdateDrawingCacheInfoAfterChildren();
     EXPECT_EQ(nodeTest->GetDrawingCacheType(), RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
 }

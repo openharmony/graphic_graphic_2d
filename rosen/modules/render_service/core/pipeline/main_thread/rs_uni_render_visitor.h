@@ -389,6 +389,7 @@ private:
     static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     // The info of whitelist contains screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
+    std::unordered_set<NodeId> childHasProtectedNodeSet_;
 
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region accumulatedOcclusionRegionBehindWindow_; // Accumulate transparent area
