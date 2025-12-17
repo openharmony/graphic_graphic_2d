@@ -469,7 +469,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, GenerateFilterDirtyRegionInfo_001, TestSize.
     FilterDirtyRegionInfo filterInfo =
         RSUniFilterDirtyComputeUtil::GenerateFilterDirtyRegionInfo(*effectNode, std::nullopt, true);
     ASSERT_TRUE(filterInfo.intersectRegion_.Sub(Occlusion::Region(Occlusion::Rect(DEFAULT_RECT2))).IsEmpty());
-    ASSERT_FALSE(filterInfo.filterDirty_.Area() == filterInfo.intersectRegion_.Area());
+    ASSERT_TRUE(filterInfo.filterDirty_.Area() == filterInfo.intersectRegion_.Area());
 }
 
 /**
