@@ -71,6 +71,7 @@ public:
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
     bool NotifySoftVsyncRateDiscountEvent(
         uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor);
+    void NotifyPageName(pid_t pid, const std::string &pkgName, const std::string &pageName, bool isEnter);
     void UpdateRenderProcessPid(ScreenId screenId, pid_t pid);
 
     FrameRateRange& GetRSCurrRangeRef()

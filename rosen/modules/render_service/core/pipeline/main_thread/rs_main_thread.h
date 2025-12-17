@@ -61,9 +61,6 @@
 #endif
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "hgm_core.h"
-#include "feature/hyper_graphic_manager/hgm_client.h"
-#include "feature/hyper_graphic_manager/hgm_info_parcel.h"
 
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
@@ -578,7 +575,6 @@ private:
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-    void ProcessHgmFrameRate(uint64_t timestamp);
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();

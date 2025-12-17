@@ -2576,12 +2576,11 @@ int32_t RSClientToServiceConnection::UnRegisterSelfDrawingNodeRectChangeCallback
 ErrCode RSClientToServiceConnection::NotifyPageName(const std::string &packageName,
     const std::string &pageName, bool isEnter)
 {
-    HgmTaskHandleThread::Instance().PostTask([pid = remotePid_, packageName, pageName, isEnter]() {
-        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-        if (frameRateMgr != nullptr) {
-            frameRateMgr->NotifyPageName(pid, packageName, pageName, isEnter);
-        }
-    });
+    if (hgmContext_ == nullptr) {
+        RS_LOGE("%{public}s hgmContext_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    hgmContext_->NotifyPageName(remotePid_, packageName, pageName, isEnter);
     return StatusCode::SUCCESS;
 }
 
