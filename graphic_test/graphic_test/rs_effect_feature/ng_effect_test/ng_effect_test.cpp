@@ -32,6 +32,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
      [] {
          return std::make_shared<RSNGDoubleRippleMask>();
      }},
+     {RSNGEffectType::NOISY_FRAME_GRADIENT_MASK,
+     [] {
+         return std::make_shared<RSNGNoisyFrameGradientMask>();
+     }},
 };
 
 std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)
@@ -156,6 +160,142 @@ std::vector<std::array<std::variant<Vector2f, float, Vector4f>, ROUNDED_RECT_FLO
     }
 };
 
+constexpr int COLOR_GRADIENMT_EFFECT_PARAMS_COUNT = 16;
+std::vector<std::array<std::variant<Vector2f, float, Vector4f>, COLOR_GRADIENMT_EFFECT_PARAMS_COUNT>>
+    colorGradientEffectParams = {
+    {
+        Vector4f{0.0f, 0.0f, -1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, 1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, 1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{1.0f, 0.0f, 0.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+        Vector2f{0.0f, 0.5f},
+        Vector2f{0.5f, 0.0f},
+        Vector2f{1.0f, 0.5f},
+        Vector2f{0.5f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+        Vector2f{0.0f, 0.5f},
+        Vector2f{0.5f, 0.0f},
+        Vector2f{1.0f, 0.5f},
+        Vector2f{0.5f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, -1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, 1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 1.0f, 5.4f, 1.0f, 4.0f, 6.0f, 20.0f
+    }
+};
+
+constexpr int NOISY_FRAME_GRADIENT_MASK_PARAMS_COUNT = 9;
+std::vector<std::array<std::variant<Vector2f, float, Vector4f>, NOISY_FRAME_GRADIENT_MASK_PARAMS_COUNT>>
+    noisyFrameGradientMaskParams = {
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.0f, -1.0f},
+        Vector2f{0.0f, -1.0f},
+        Vector2f{0.0f, -1.0f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        0.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        0.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        0.2f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.4f,
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.7f, 0.7f},
+        Vector2f{0.0f, 0.0f},
+        0.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        -1.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{-999.0f, -999.0f},
+        Vector2f{999.0f, 999.0f},
+        0.0f, 0.0f
+    }
+};
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,
@@ -178,6 +318,9 @@ constexpr uint32_t NUM_8 = 8;
 constexpr uint32_t NUM_9 = 9;
 constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_11 = 11;
+constexpr uint32_t NUM_12 = 12;
+constexpr uint32_t NUM_13 = 13;
+constexpr uint32_t NUM_14 = 14;
 }
 
 class NGEffectTest : public RSGraphicTest {
@@ -195,6 +338,9 @@ private:
 
 void SetDoubleRippleMaskParams(const std::shared_ptr<RSNGDoubleRippleMask>& mask, int index)
 {
+    if (!mask) {
+        return;
+    }
     mask->Setter<DoubleRippleMaskCenter1Tag>(
         Vector2f{ doubleRippleMaskParams[index][NUM_0], doubleRippleMaskParams[index][NUM_1] });
     mask->Setter<DoubleRippleMaskCenter2Tag>(
@@ -206,6 +352,9 @@ void SetDoubleRippleMaskParams(const std::shared_ptr<RSNGDoubleRippleMask>& mask
 
 void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowlight>& flowlight, int index)
 {
+    if (!flowlight) {
+        return;
+    }
     flowlight->Setter<RoundedRectFlowlightStartEndPositionTag>(
         std::get<Vector2f>(roundedRectFlowlightParams[index][NUM_0]));
     flowlight->Setter<RoundedRectFlowlightWaveLengthTag>(
@@ -234,6 +383,9 @@ void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowligh
 
 void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowlight, int index)
 {
+    if (!flowlight) {
+        return;
+    }
     flowlight->Setter<CircleFlowlightColor0Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_0]));
     flowlight->Setter<CircleFlowlightColor1Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_1]));
     flowlight->Setter<CircleFlowlightColor2Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_2]));
@@ -247,6 +399,69 @@ void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowli
     flowlight->Setter<CircleFlowlightDistortStrengthTag>(std::get<float>(circleFlowlightParams[index][NUM_10]));
     flowlight->Setter<CircleFlowlightBlendGradientTag>(std::get<float>(circleFlowlightParams[index][NUM_11]));
     flowlight->Setter<CircleFlowlightProgressTag>(0.0f);
+}
+
+void SetColorGradientEffectParams(const std::shared_ptr<RSNGColorGradientEffect>& colorGradient, int index)
+{
+    if (!colorGradient) {
+        return;
+    }
+    colorGradient->Setter<ColorGradientEffectColor0Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_0]));
+    colorGradient->Setter<ColorGradientEffectColor1Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_1]));
+    colorGradient->Setter<ColorGradientEffectColor2Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_2]));
+    colorGradient->Setter<ColorGradientEffectColor3Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_3]));
+    colorGradient->Setter<ColorGradientEffectPosition0Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_4]));
+    colorGradient->Setter<ColorGradientEffectPosition1Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_5]));
+    colorGradient->Setter<ColorGradientEffectPosition2Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_6]));
+    colorGradient->Setter<ColorGradientEffectPosition3Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_7]));
+    colorGradient->Setter<ColorGradientEffectStrength0Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_8]));
+    colorGradient->Setter<ColorGradientEffectStrength1Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_9]));
+    colorGradient->Setter<ColorGradientEffectStrength2Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_10]));
+    colorGradient->Setter<ColorGradientEffectStrength3Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_11]));
+    colorGradient->Setter<ColorGradientEffectColorNumberTag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_12]));
+    colorGradient->Setter<ColorGradientEffectBlendTag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_13]));
+    colorGradient->Setter<ColorGradientEffectBlendKITag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_14]));
+
+}
+
+void SetNoisyFrameGradientMaskParams(const std::shared_ptr<RSNGNoisyFrameGradientMask>& mask, int index)
+{
+    if (!mask) {
+        return;
+    }
+    mask->Setter<NoisyFrameGradientMaskGradientBezierControlPointsTag>(
+        std::get<Vector4f>(noisyFrameGradientMaskParams[index][NUM_0]));
+    mask->Setter<NoisyFrameGradientMaskCornerRadiusTag>(
+        std::get<float>(noisyFrameGradientMaskParams[index][NUM_1]));
+    mask->Setter<NoisyFrameGradientMaskInnerFrameWidthTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_2]));
+    mask->Setter<NoisyFrameGradientMaskMiddleFrameWidthTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_3]));
+    mask->Setter<NoisyFrameGradientMaskOutsideFrameWidthTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_4]));
+    mask->Setter<NoisyFrameGradientMaskGradientRRectWHTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_5]));
+    mask->Setter<NoisyFrameGradientMaskGradientRRectPosTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_6]));
+    mask->Setter<NoisyFrameGradientMaskGradientSlopeTag>(
+        std::get<float>(noisyFrameGradientMaskParams[index][NUM_7]));
+    mask->Setter<NoisyFrameGradientMaskGradientProgressTag>(
+        std::get<float>(noisyFrameGradientMaskParams[index][NUM_8]));
 }
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foreground_Test)
@@ -434,6 +649,62 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
         node->SetBackgroundNGShader(roundedRectFlowlight);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Background_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create double ripple mask
+        auto mask = CreateMask(RSNGEffectType::NOISY_FRAME_GRADIENT_MASK);
+        auto noisyFrameGradientMask = std::static_pointer_cast<RSNGNoisyFrameGradientMask>(mask);
+        SetNoisyFrameGradientMaskParams(noisyFrameGradientMask, i);
+
+        // Create rounded rect flowlight effect
+        auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        SetColorGradientEffectParams(colorGradient, i);
+        colorGradient->Setter<ColorGradientEffectMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(noisyFrameGradientMask));
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetBackgroundNGShader(colorGradient);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Foreground_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create double ripple mask
+        auto mask = CreateMask(RSNGEffectType::NOISY_FRAME_GRADIENT_MASK);
+        auto noisyFrameGradientMask = std::static_pointer_cast<RSNGNoisyFrameGradientMask>(mask);
+        SetNoisyFrameGradientMaskParams(noisyFrameGradientMask, i);
+
+        // Create rounded rect flowlight effect
+        auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        SetColorGradientEffectParams(colorGradient, i);
+        colorGradient->Setter<ColorGradientEffectMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(noisyFrameGradientMask));
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        foregroundTestNode->SetForegroundShader(roundedRectFlowlight);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
     }
 }
 

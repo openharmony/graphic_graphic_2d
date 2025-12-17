@@ -395,3 +395,13 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, MaterialColor, Vector4f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
+
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, GradientBezierControlPoints, Vector4f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, CornerRadius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, InnerFrameWidth, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, MiddleFrameWidth, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, OutsideFrameWidth, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, RRectWH, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, RRectPos, Vector2f);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, Slope, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(NoisyFrameGradientMask, Progress, float);
