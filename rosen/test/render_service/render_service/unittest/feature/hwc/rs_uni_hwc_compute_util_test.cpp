@@ -1613,7 +1613,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetPropertyFromModifier_001, Function | SmallT
     node.modifiersNG_.emplace_back(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifier);
     auto result = RSUniHwcComputeUtil::GetPropertyFromModifier<ForegroundColorStrategyType>(node,
         ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
-    ASSERT_NE(result, nullptr); 
+    ASSERT_NE(result, nullptr);
 }
 
 } // namespace OHOS::Rosen

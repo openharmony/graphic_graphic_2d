@@ -3512,9 +3512,9 @@ HWTEST_F(RSUniHwcVisitorTest, PrintHiperfCounterLog_001, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-   const char* const context = "counter1";
-   uint64_t count = 1;
-   rsUniRenderVisitor->hwcVisitor_->PrintHiperfCounterLog(context, count);
+    const char* const context = "counter1";
+    uint64_t count = 1;
+    rsUniRenderVisitor->hwcVisitor_->PrintHiperfCounterLog(context, count);
 }
 
 /**
@@ -3577,9 +3577,9 @@ HWTEST_F(RSUniHwcVisitorTest, Statistics_001, TestSize.Level2)
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-   auto& hwcDisabledReasonCollection1 = HwcDisabledReasonCollection::GetInstance();
-   auto& hwcDisabledReasonCollection2 = rsUniRenderVisitor->hwcVisitor_->Statistics();
-   EXPECT_EQ(&hwcDisabledReasonCollection1, &hwcDisabledReasonCollection2);
+    auto& hwcDisabledReasonCollection1 = HwcDisabledReasonCollection::GetInstance();
+    auto& hwcDisabledReasonCollection2 = rsUniRenderVisitor->hwcVisitor_->Statistics();
+    EXPECT_EQ(&hwcDisabledReasonCollection1, &hwcDisabledReasonCollection2);
 }
 
 /**
