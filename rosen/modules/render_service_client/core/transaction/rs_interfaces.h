@@ -1294,7 +1294,7 @@ public:
      * @param pageName the name of pageUrl.
      * @param isEnter is whether to enter the pageUrl.
      */
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+    void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
     /**
      * @brief Get high contrast text state.

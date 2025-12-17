@@ -384,7 +384,7 @@ public:
     
     virtual int32_t UnRegisterSelfDrawingNodeRectChangeCallback() = 0;
 
-    virtual ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) = 0;
+    virtual ErrCode NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter) = 0;
 
     virtual ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) = 0;

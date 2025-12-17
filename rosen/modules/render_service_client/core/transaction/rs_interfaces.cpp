@@ -1089,7 +1089,7 @@ int32_t RSInterfaces::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
-void RSInterfaces::NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter)
+void RSInterfaces::NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter)
 {
     auto pageNameList = RSFrameRatePolicy::GetInstance()->GetPageNameList();
     auto item = pageNameList.find(pageName);

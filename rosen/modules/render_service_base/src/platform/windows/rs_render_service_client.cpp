@@ -741,8 +741,8 @@ int32_t SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
-void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
-    const std::string &pageName, bool isEnter)
+void RSRenderServiceClient::NotifyPageName(const std::string& packageName,
+    const std::string& pageName, bool isEnter)
 {
 }
 

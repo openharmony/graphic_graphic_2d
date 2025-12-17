@@ -399,7 +399,7 @@ public:
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+    void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 

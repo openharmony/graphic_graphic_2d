@@ -4830,8 +4830,8 @@ ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::NotifyPageName(const std::string &packageName,
-    const std::string &pageName, bool isEnter)
+ErrCode RSClientToServiceConnectionProxy::NotifyPageName(const std::string& packageName,
+    const std::string& pageName, bool isEnter)
 {
     MessageParcel data;
     MessageParcel reply;
