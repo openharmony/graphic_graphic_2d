@@ -66,7 +66,8 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
         new RSConnectToRenderProcess(renderService.mainThread_, renderPipelineAgent));
 }
 
-sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId, const ScreenEventData& data, const sptr<RSScreenProperty>& property)
+sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId, const ScreenEventData& data,
+    const sptr<RSScreenProperty>& property)
 {
     RSRenderProcessManager::OnScreenConnected(screenId, data, property);
 

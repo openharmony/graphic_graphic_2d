@@ -46,7 +46,10 @@
 
 namespace OHOS {
 namespace Rosen {
+namespace {
 constexpr std::chrono::milliseconds HPAE_OFFLINE_TIMEOUT{100};
+}
+
 RSUniRenderProcessor::RSUniRenderProcessor(std::shared_ptr<RSRenderComposerClient> composerClient)
     : uniComposerAdapter_(std::make_unique<RSUniRenderComposerAdapter>()),
     composerClient_(std::move(composerClient))
@@ -68,11 +71,6 @@ bool RSUniRenderProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
 
-    // Initialize composerClient
-    // composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
-    // if (composerClient_ == nullptr) {
-    //     return false;
-    // }
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, composerClient_);
 }
 
@@ -87,11 +85,6 @@ bool RSUniRenderProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDra
     // just pass the buffer to composer straightly.
     screenInfo_.rotation = ScreenRotation::ROTATION_0;
 
-    // Initialize composerClient
-    // composerClient_ = RSRenderComposerManager::GetInstance().CreateRSRenderComposerClient(screenInfo_.id);
-    // if (composerClient_ == nullptr) {
-    //     return false;
-    // }
     return uniComposerAdapter_->Init(screenInfo_, offsetX_, offsetY_, composerClient_);
 }
 
@@ -518,10 +511,10 @@ void RSUniRenderProcessor::ProcessScreenSurface(RSScreenRenderNode& node)
         return;
     }
     if (node.GetFingerprint()) {
-        // layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
         RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
-        // layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }
     uniLayer_ = layer;
     layers_.emplace_back(layer);
@@ -550,10 +543,10 @@ void RSUniRenderProcessor::ProcessScreenSurfaceForRenderThread(
         return;
     }
     if (params->GetFingerprint()) {
-        // layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_HBM_SYNC);
         RS_LOGD("RSUniRenderProcessor::ProcessScreenSurface, set layer mask hbm sync");
     } else {
-        // layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
+        layer->SetLayerMaskInfo(LayerMask::LAYER_MASK_NORMAL);
     }
     layers_.emplace_back(layer);
     auto surfaceHandler = screenDrawable.GetRSSurfaceHandlerOnDraw();

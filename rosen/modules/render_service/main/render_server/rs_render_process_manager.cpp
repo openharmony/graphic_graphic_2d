@@ -63,7 +63,8 @@ void RSRenderProcessManager::OnScreenPropertyChanged(ScreenId id, const sptr<RSS
     RS_LOGD("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
     if (!property->IsVirtual()) {
         auto status = property->GetScreenPowerStatus();
-        renderService_.vsyncSampler_->ProcessVSyncScreenIdWhilePowerStatusChanged(id, status, renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
+        renderService_.vsyncSampler_->ProcessVSyncScreenIdWhilePowerStatusChanged(id, status,
+            renderService_.handler_, renderService_.screenManager_->GetIsFoldScreenFlag());
     }
 }
 

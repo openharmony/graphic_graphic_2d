@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
-#define RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
+#ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_H
+#define RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_H
 
 #include <event_handler.h>
 #include <map>
@@ -103,7 +103,7 @@ private:
     friend class RSProfiler;
 #endif
 };
-} // Rosen
-} // OHOS
+} // namespace Rosen
+} // namespace OHOS
 
-#endif // RENDER_SERVICE_PIPELINE_RS_RENDER_SERVICE_H
+#endif // RENDER_SERVICE_MAIN_RENDER_SERVER_RS_RENDER_SERVICE_H
