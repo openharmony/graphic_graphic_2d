@@ -60,6 +60,7 @@ class RSUseEffectRenderModifier;
 struct DrawCmdIndex {
     int8_t transitionIndex_            = -1;
     int8_t envForeGroundColorIndex_    = -1;
+    int8_t materialFilterIndex_        = -1;
     int8_t shadowIndex_                = -1;
     int8_t renderGroupBeginIndex_      = -1;
     int8_t foregroundFilterBeginIndex_ = -1;
@@ -325,6 +326,7 @@ protected:
     void CollectInfoForNodeWithoutFilter(Drawing::Canvas& canvas);
     void CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas);
     void UpdateFilterInfoForNodeGroup(RSPaintFilterCanvas* curCanvas);
+    Drawing::Rect GetFilterRelativeRect(const Drawing::Rect& rect) const;
 
     // Note, the start is included, the end is excluded, so the range is [start, end)
     void DrawRangeImpl(Drawing::Canvas& canvas, const Drawing::Rect& rect, int8_t start, int8_t end) const;
