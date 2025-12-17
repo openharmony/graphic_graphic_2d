@@ -1559,10 +1559,10 @@ HWTEST_F(RSUniHwcComputeUtilTest, TraverseParentNodeAndReduce_001, Function | Sm
     NodeId id = 0;
     auto canvasNode = std::make_shared<RSCanvasRenderNode>(++id);
     canvasNode->InitRenderParams();
-    canvasNode->renderProperties_.alpha = 0.1;
+    canvasNode->renderProperties_.alpha_ = 0.1;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
     surfaceNode->InitRenderParams();
-    surfaceNode->renderProperties_.alpha = 0.2;
+    surfaceNode->renderProperties_.alpha_ = 0.2;
     auto rsContext = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext);
     canvasNode->AddChild(surfaceNode);
