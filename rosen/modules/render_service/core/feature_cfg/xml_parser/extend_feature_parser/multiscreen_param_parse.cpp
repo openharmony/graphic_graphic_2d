@@ -66,6 +66,8 @@ int32_t MultiScreenParamParse::ParseMultiScreenInternal(xmlNode& node)
             MultiScreenParam::SetMirrorDisplayCloseP3(isEnabled);
         } else if (name == "IsSkipFrameByActiveRefreshRate") {
             MultiScreenParam::SetSkipFrameByActiveRefreshRate(isEnabled);
+        } else if (name == "IsForceRenderForMirror") {
+            MultiScreenParam::SetForceRenderForMirror(isEnabled);
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "MipmapMode" && IsNumber(val)) {

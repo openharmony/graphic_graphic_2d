@@ -34,7 +34,7 @@ constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、ski
 constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t HAS_SCREEN_SPECIAL = 0X60000;   //contain blacklist、whitelist
-constexpr uint32_t MAX_IDS_SIZE = 1024;
+constexpr size_t MAX_SPECIAL_LAYER_NUM = 1024;
 
 using SpecialLayerBitmask = uint32_t;
 

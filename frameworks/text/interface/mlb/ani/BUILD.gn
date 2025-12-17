@@ -82,6 +82,7 @@ ohos_shared_library("text_engine_ani") {
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$rosen_text_root:rosen_text",
     "$rosen_text_root/interface/mlb/napi:text_napi_impl",
+    "$rosen_text_root/interface/mlb/utils:mlb_utils",
   ]
 
   external_deps = [

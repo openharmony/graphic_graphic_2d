@@ -38,6 +38,7 @@ public:
     static napi_value GetFontDescriptorsFromPath(napi_env env, napi_callback_info info);
     static napi_value GetFontUnicodeSet(napi_env env, napi_callback_info info);
     static napi_value GetFontCount(napi_env env, napi_callback_info info);
+    static napi_value GetFontPathsByType(napi_env env, napi_callback_info info);
 
 private:
     template <typename T>

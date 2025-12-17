@@ -271,6 +271,24 @@ HWTEST_F(SkiaStaticFactoryTest, GetDrawingPointsForTextBlob001, TestSize.Level1)
     ASSERT_TRUE(textBlob.get() != nullptr);
     SkiaStaticFactory::GetDrawingPointsForTextBlob(textBlob.get(), point);
 }
+
+/**
+ * @tc.name: GenerateAshMemoryStreamTest001
+ * @tc.desc: Test GenerateAshMemoryStream
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+
+HWTEST_F(SkiaStaticFactoryTest, GenerateAshMemoryStreamTest001, TestSize.Level1)
+{
+    MemoryStream memoryStream;
+    size_t size = 0;
+    const void* data = nullptr;
+    int32_t fd;
+    std::unique_ptr<MemoryStream> stream =
+        SkiaStaticFactory::GenerateAshMemoryStream(std::make_unique<MemoryStream>(memoryStream), data, size, fd);
+    ASSERT_TRUE(stream == nullptr);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

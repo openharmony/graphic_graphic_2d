@@ -509,6 +509,53 @@ HWTEST_F(SkiaTypefaceTest, GetFontIndex001, TestSize.Level1)
     EXPECT_EQ(emptyTypeface.GetTypeface(), nullptr);
     EXPECT_EQ(emptyTypeface.GetFontIndex(), 0);
 }
+
+/**
+ * @tc.name: GetVariationDesignPositionTest001
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest001, TestSize.Level1)
+{
+    auto typeface = SkiaTypeface::MakeDefault();
+    std::vector<FontArguments::VariationPosition::Coordinate> coordinates;
+    int coordinateCount = 0;
+    int result = typeface->GetVariationDesignPosition(coordinates.data(), coordinateCount);
+
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(coordinates.size(), 0);
+}
+
+/**
+ * @tc.name: GetVariationDesignPositionTest002
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest002, TestSize.Level1)
+{
+    auto skTypeface = SkiaTypeface::MakeDefault();
+    FontArguments args;
+    FontArguments::VariationPosition variationPos;
+    std::vector<FontArguments::VariationPosition::Coordinate> coordinates = { {2003265652, 100.0}, {2003072104, 62.5} };
+    variationPos.coordinates = coordinates.data();
+    variationPos.coordinateCount = coordinates.size();
+    args.SetCollectionIndex(10);
+    args.SetVariationDesignPosition(variationPos);
+
+
+    auto typeface = skTypeface->MakeClone(args);
+
+    std::vector<FontArguments::VariationPosition::Coordinate> newCoords;
+    int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
+    typeface->GetVariationDesignPosition(newCoords.data(), coordsCount);
+
+    EXPECT_EQ(coordsCount, 2);
+    EXPECT_EQ(newCoords.size(), coordsCount);
+    EXPECT_EQ(newCoords[0].axis, 2003265652);
+    EXPECT_EQ(newCoords[0].value, 100.0);
+    EXPECT_EQ(newCoords[1].axis, 2003072104);
+    EXPECT_EQ(newCoords[1].value, 62.5);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

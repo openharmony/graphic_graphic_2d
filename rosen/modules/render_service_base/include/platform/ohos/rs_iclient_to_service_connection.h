@@ -88,7 +88,7 @@ public:
         int32_t& repCode) = 0;
 
     virtual ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) = 0;
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false) = 0;
 
     virtual ErrCode GetDefaultScreenId(uint64_t& screenId) = 0;
 
@@ -105,15 +105,19 @@ public:
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) = 0;
 
-    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    // blacklist
+    virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) = 0;
+    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) = 0;
+    virtual ErrCode RemoveVirtualScreenBlackList(
+        ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) = 0;
+    
+    // whitelist
+    virtual ErrCode AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode) = 0;
+    virtual ErrCode RemoveVirtualScreenWhiteList(
+        ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode) = 0;
 
     virtual ErrCode SetVirtualScreenTypeBlackList(
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) = 0;
-
-    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
-    
-    virtual ErrCode RemoveVirtualScreenBlackList(
-        ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;
@@ -287,7 +291,7 @@ public:
     virtual ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) = 0;
     virtual bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) = 0;
-    virtual int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) = 0;
+    virtual int32_t RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate) = 0;
     virtual bool UnRegisterTypeface(uint64_t globalUniqueId) = 0;
 
     virtual ErrCode SetScreenSkipFrameInterval(uint64_t id, uint32_t skipFrameInterval, int32_t& resCode) = 0;

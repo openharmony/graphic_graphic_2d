@@ -20,7 +20,12 @@
 
 #include "include/core/SkStream.h"
 
+#ifdef ENABLE_OHOS_ENHANCE
+#include "ashmem.h"
+#endif
 #include "impl_interface/memory_stream_impl.h"
+#include "utils/log.h"
+#include "utils/memory_stream.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -40,6 +45,38 @@ public:
     }
 
     std::unique_ptr<SkMemoryStream> GetSkMemoryStream();
+
+    static std::unique_ptr<MemoryStream> GenerateAshMemoryStream(
+        std::unique_ptr<MemoryStream> memoryStream, const void*& dataPtr, size_t& size, int32_t& fd)
+    {
+#ifdef ENABLE_OHOS_ENHANCE
+        if (!memoryStream || !memoryStream->GetImpl<SkiaMemoryStream>()) {
+            LOGE("memoryStream nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+            return nullptr;
+        }
+        auto skMemoryStream = memoryStream->GetImpl<SkiaMemoryStream>()->GetSkMemoryStream();
+        if (!skMemoryStream) {
+            LOGE("skMemoryStream nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);
+            return nullptr;
+        }
+        size = skMemoryStream->getLength();
+        const void* data = skMemoryStream->getMemoryBase();
+        fd = OHOS::AshmemCreate("[custom font]", size);
+        auto ashmem = std::make_unique<Ashmem>(fd, size);
+        bool mapResult = ashmem->MapReadAndWriteAshmem();
+        bool writeResult = ashmem->WriteToAshmem(data, size, 0);
+        const void* ptr = ashmem->ReadFromAshmem(size, 0);
+        dataPtr = ptr;
+        if (!mapResult || !writeResult || ptr == nullptr) {
+            return nullptr;
+        }
+        auto stream = std::make_unique<MemoryStream>(ptr, size,
+            [](const void* ptr, void* context) {delete reinterpret_cast<Ashmem*>(context);}, ashmem.release());
+        return stream;
+#else
+        return nullptr;
+#endif
+    }
 
 private:
     std::unique_ptr<SkMemoryStream> skMemoryStream_;

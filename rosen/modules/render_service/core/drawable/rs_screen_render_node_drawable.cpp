@@ -565,7 +565,9 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // if screen power off, skip on draw, needs to draw one more frame.
-    isRenderSkipIfScreenOff_ = RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId());
+    // for regional projection, since buffer-copying is used, frame still need to be updated for mirror.
+    isRenderSkipIfScreenOff_ = RSUniRenderUtil::CheckRenderSkipIfScreenOff(true, params->GetScreenId()) &&
+        !(params->HasMirrorScreen() && MultiScreenParam::IsForceRenderForMirror());
     if (isRenderSkipIfScreenOff_) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;

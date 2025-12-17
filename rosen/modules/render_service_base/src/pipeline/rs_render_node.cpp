@@ -3310,6 +3310,8 @@ void RSRenderNode::UpdateDisplayList()
 
     // Update index of ENV_FOREGROUND_COLOR
     stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
+    // Update index of MATERIAL_FILTER
+    stagingDrawCmdIndex_.materialFilterIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_FILTER);
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
 
@@ -5209,6 +5211,10 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     auto parent = parent_.lock();
     if (parent != nullptr) {
         parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
+    }
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::MATRIX_DIRTY);
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     }
     released_ = false;
 #endif

@@ -19,6 +19,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include "rs_graphic_errors.h"
 #include "rs_graphic_test_utils.h"
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_packet.h"
@@ -29,7 +30,7 @@ namespace Rosen {
 #ifdef RS_PROFILER_ENABLED
 constexpr int64_t INIT_WAIT_TIME = 50;
 constexpr int64_t SOCKET_REFRESH_TIME = 20;
-constexpr int SOCKET_CONNECT_MAX_NUM = 10000;
+constexpr int SOCKET_CONNECT_MAX_NUM = 100;
 constexpr int REPLAY_TIME_INDEX = 2;
 static const std::vector<std::string> expectedMessages = {
     "PlaybackPauseAt OK",
@@ -56,6 +57,7 @@ void RSGraphicTestProfilerThread::Stop()
     if (runnig_) {
         runnig_ = false;
         cv_.notify_all();
+        socketResultCV_.notify_all();
     }
     if (socket_ != -1) {
         close(socket_);
@@ -100,11 +102,13 @@ void RSGraphicTestProfilerThread::MainLoop()
         tryNum++;
         if (tryNum > SOCKET_CONNECT_MAX_NUM) {
             std::cout << "profiler socket connect failed" << std::endl;
-            close(socket_);
-            socket_ = -1;
+            CleanupSocket();
+            SetResultAndNotify(AGT_SOCKET_FAIL);
             return;
         }
     }
+    SetResultAndNotify(AGT_SUCCESS);
+
     std::cout << "profiler socket connect success" << std::endl;
     runnig_ = true;
     while (runnig_) {
@@ -246,6 +250,37 @@ bool RSGraphicTestProfilerThread::RecieveHeader(void* data, size_t& size)
         return false;
     }
     return true;
+}
+
+bool RSGraphicTestProfilerThread::HasSocketResult() const
+{
+    return hasSocketResult_.load();
+}
+
+uint32_t RSGraphicTestProfilerThread::WaitForSocketResultWithTimeout(uint32_t timeout_ms)
+{
+    std::unique_lock<std::mutex> lock(socketResultMutex_);
+    if (socketResultCV_.wait_for(lock, std::chrono::milliseconds(timeout_ms),
+        [this] {return hasSocketResult_.load(); })) {
+        return socketResult_;
+    }
+    return AGT_SOCKET_FAIL;
+}
+
+void RSGraphicTestProfilerThread::SetResultAndNotify(uint32_t result)
+{
+    std::lock_guard<std::mutex> lock(socketResultMutex_);
+    socketResult_ = result;
+    hasSocketResult_.store(true);
+    socketResultCV_.notify_all();
+}
+
+void RSGraphicTestProfilerThread::CleanupSocket()
+{
+    if (socket_ != -1) {
+        close(socket_);
+        socket_ = -1;
+    }
 }
 #endif
 } // namespace Rosen

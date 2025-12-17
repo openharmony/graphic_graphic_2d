@@ -118,5 +118,10 @@ HWTEST_F(MultiScreenParamParseTest, ParseMultiScreenInternalTest, TestSize.Level
     xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("true"));
     res = paramParse.ParseMultiScreenInternal(node);
     EXPECT_EQ(res, PARSE_EXEC_SUCCESS);
+
+    xmlSetProp(&node, (const xmlChar*)("name"), (const xmlChar*)("IsForceRenderForMirror"));
+    xmlSetProp(&node, (const xmlChar*)("value"), (const xmlChar*)("true"));
+    res = paramParse.ParseMultiScreenInternal(node);
+    EXPECT_EQ(res, PARSE_EXEC_SUCCESS);
 }
 }

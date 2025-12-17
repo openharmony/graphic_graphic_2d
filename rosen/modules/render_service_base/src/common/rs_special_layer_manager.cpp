@@ -51,7 +51,7 @@ void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
     if (id == INVALID_LEASH_PERSISTENTID) {
         return;
     }
-    if (whiteListRootIds_.size() >= MAX_IDS_SIZE) {
+    if (whiteListRootIds_.size() >= MAX_SPECIAL_LAYER_NUM) {
         RS_LOGE("RSSpecialLayerManager::SetWhiteListRootId whiteListRootIds_ exceeds size limit.");
         return;
     }
@@ -112,7 +112,7 @@ void RSSpecialLayerManager::AddIds(uint32_t type, NodeId id)
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
         bool isSpecial = (isType & 1) != 0;
-        if (isSpecial && specialLayerIds_[currentType].size() < MAX_IDS_SIZE) {
+        if (isSpecial && specialLayerIds_[currentType].size() < MAX_SPECIAL_LAYER_NUM) {
             specialLayerIds_[currentType].insert(id);
             AddType(specialLayerType_, currentType << SPECIAL_TYPE_NUM);
         }
@@ -163,7 +163,7 @@ void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, N
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
         bool isSpecial = (isType & 1) != 0;
-        if (isSpecial) {
+        if (isSpecial && screenSpecialLayerIds_[screenId][currentType].size() < MAX_SPECIAL_LAYER_NUM) {
             screenSpecialLayerIds_[screenId][currentType].insert(id);
             AddType(screenSpecialLayer_[screenId], currentType << SPECIAL_TYPE_NUM);
         }

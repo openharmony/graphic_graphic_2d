@@ -855,6 +855,7 @@ namespace text {
   }
 
   native function getSystemFontFullNamesByTypeSync(fontType: SystemFontType): Array<string>;
+  native function getFontPathsByType(fontType: SystemFontType): Array<string>;
 
   export async function getSystemFontFullNamesByType(fontType: SystemFontType): Promise<Array<string>> {
     return taskpool.execute((): Array<string> => {

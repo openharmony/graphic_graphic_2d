@@ -520,6 +520,80 @@ bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing:
     return true;
 }
 
+bool RSMarshallingHelper::Marshalling(Parcel& parcel, Drawing::SharedTypeface& val)
+{
+    bool success = true;
+    success &= Marshalling(parcel, val.id_);
+    success &= Marshalling(parcel, val.size_);
+    success &= Marshalling(parcel, val.index_);
+    success &= Marshalling(parcel, val.hash_);
+    success &= static_cast<MessageParcel*>(&parcel)->WriteFileDescriptor(val.fd_);
+    success &= Marshalling(parcel, val.hasFontArgs_);
+
+    if (!val.hasFontArgs_) {
+        return success;
+    }
+
+    std::vector<Drawing::FontArguments::VariationPosition::Coordinate>& coords = val.coords_;
+
+    uint32_t coordsCount = coords.size();
+
+    success &= Marshalling(parcel, coordsCount);
+    for (uint32_t i = 0; i < coordsCount; ++i) {
+        success &= Marshalling(parcel, coords[i].axis);
+        success &= Marshalling(parcel, coords[i].value);
+    }
+    return success;
+}
+
+bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, Drawing::SharedTypeface& val)
+{
+    bool success = true;
+    uint64_t id = 0;
+    uint32_t size = 0;
+    uint32_t index = 0;
+    uint32_t hash = 0;
+    int fd = -1;
+    bool hasFontArgs = false;
+
+    success &= Unmarshalling(parcel, id);
+    if (success) { val.id_ = id; }
+    success &= Unmarshalling(parcel, size);
+    if (success) { val.size_ = size; }
+    success &= Unmarshalling(parcel, index);
+    if (success) { val.index_ = index; }
+    success &= Unmarshalling(parcel, hash);
+    if (success) { val.hash_ = hash; }
+
+    val.fd_ = static_cast<MessageParcel*>(&parcel)->ReadFileDescriptor();
+    if (val.fd_ < 0) {
+        success = false;
+    }
+    success &= Unmarshalling(parcel, hasFontArgs);
+    if (success) { val.hasFontArgs_ = hasFontArgs; }
+
+    if (!val.hasFontArgs_) {
+        return success;
+    }
+    auto& coords = val.coords_;
+
+    uint32_t coordsCount = 0;
+    success &= Unmarshalling(parcel, coordsCount);
+    if (success) { coords.resize(coordsCount); }
+
+    for (uint32_t i = 0; i < coordsCount; ++i) {
+        uint32_t axis = 0;
+        float value = 0.0f;
+        success &= Unmarshalling(parcel, axis);
+        success &= Unmarshalling(parcel, value);
+        if (success) {
+            coords[i].axis = axis;
+            coords[i].value = value;
+        }
+    }
+    return success;
+}
+
 bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val)
 {
     bool flag;

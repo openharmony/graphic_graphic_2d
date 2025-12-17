@@ -429,9 +429,7 @@ void RecordingCanvas::DrawTextBlob(const TextBlob* blob, const scalar x, const s
     auto textBlobHandle = CmdListHelper::AddTextBlobToCmdList(*cmdList_, blob, &ctx);
     uint64_t globalUniqueId = 0;
     if (ctx.GetTypeface() != nullptr) {
-        uint32_t typefaceId =
-            ctx.GetTypeface()->GetFd() == -1 ? ctx.GetTypeface()->GetUniqueID() : ctx.GetTypeface()->GetHash();
-        globalUniqueId = (shiftedPid | typefaceId);
+        globalUniqueId = (shiftedPid | ctx.GetTypeface()->GetUniqueID());
     }
     AddDrawOpImmediate<DrawTextBlobOpItem::ConstructorHandle>(textBlobHandle,
         globalUniqueId, blob->GetTextContrast(), x, y);

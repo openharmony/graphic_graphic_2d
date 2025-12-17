@@ -212,7 +212,7 @@ void FontConfigJson::EmplaceFontJson(const FontJson& fontJson)
         auto exist = indexMap->find(fontJson.family);
         if (exist == indexMap->end()) {
             (*indexMap)[fontJson.family] = fontPtr->genericSet.size();
-            fontPtr->genericSet.emplace_back(FontGenericInfo { fontJson.family });
+            fontPtr->genericSet.emplace_back(FontGenericInfo { fontJson.family, fontJson.path });
             fontPtr->genericSet.back().aliasSet.emplace_back(AliasInfo { fontJson.alias, fontJson.weight });
             return;
         }
@@ -224,7 +224,8 @@ void FontConfigJson::EmplaceFontJson(const FontJson& fontJson)
         }
         return;
     }
-    fontPtr->fallbackGroupSet[0].fallbackInfoSet.emplace_back(FallbackInfo { fontJson.family, fontJson.lang });
+    fontPtr->fallbackGroupSet[0].fallbackInfoSet.emplace_back(
+        FallbackInfo { fontJson.family, fontJson.lang, fontJson.path });
 }
 
 int FontConfigJson::ParseDir(const cJSON* root)
@@ -258,6 +259,8 @@ void FontConfigJson::AnalyseFont(const cJSON* root)
             fontJson.weight = item->valueint;
         } else if (strcmp(item->string, "lang") == 0  && cJSON_IsString(item)) {
             fontJson.lang = item->valuestring;
+        } else if (strcmp(item->string, "file") == 0 && cJSON_IsString(item)) {
+            fontJson.path = item->valuestring;
         }
         item = item->next;
     }

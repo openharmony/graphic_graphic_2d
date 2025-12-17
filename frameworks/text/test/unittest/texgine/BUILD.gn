@@ -17,16 +17,14 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 group("unittest") {
   testonly = true
-  deps = [
-    ":texgine_unittest_part3",
-    ":texgine_unittest_part7",
-  ]
+  deps = [ ":texgine_test" ]
 }
 
-config("texgine_test_config") {
-  include_dirs = [
-    "$rosen_text_root/service/texgine/src",
-    "$rosen_text_root/service/texgine/src/opentype_parser",
+ohos_unittest("texgine_test") {
+  module_out_path = text_ut_out_path
+  sources = [
+    "font_descriptor_cache_test.cpp",
+    "font_parser_test.cpp",
   ]
 
   cflags = [
@@ -34,42 +32,18 @@ config("texgine_test_config") {
     "-Dprotected=public",
   ]
 
-  defines = [ "ENABLE_OHOS_ENHANCE" ]
-}
+  include_dirs = [
+    "$rosen_text_root/service/texgine/src",
+    "$rosen_text_root/service/texgine/src/opentype_parser",
+  ]
 
-group("common_deps") {
-  testonly = true
-  public_deps = [
+  deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
-    "$graphic_2d_root/utils/test_header:test_header",
     "$rosen_text_root:rosen_text",
   ]
-}
 
-ohos_unittest("texgine_unittest_part3") {
-  module_out_path = text_ut_out_path
-  sources = [ "font_parser_test.cpp" ]
-
-  public_configs = [ ":texgine_test_config" ]
-  public_deps = [ ":common_deps" ]
-
+  defines = [ "ENABLE_OHOS_ENHANCE" ]
   external_deps = [ "i18n:intl_util" ]
-
-  use_exceptions = true
-
-  part_name = "graphic_2d"
-  subsystem_name = "graphic"
-}
-
-ohos_unittest("texgine_unittest_part7") {
-  module_out_path = text_ut_out_path
-
-  sources = [ "font_descriptor_cache_test.cpp" ]
-
-  public_configs = [ ":texgine_test_config" ]
-  public_deps = [ ":common_deps" ]
-
-  use_exceptions = true
 
   part_name = "graphic_2d"
   subsystem_name = "graphic"

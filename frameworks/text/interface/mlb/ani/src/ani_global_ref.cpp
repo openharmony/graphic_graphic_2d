@@ -48,6 +48,8 @@ constexpr const std::string_view FONT_DESCRIPTOR_SIGN = "C{" ANI_STRING "}" "C{"
     "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}" "C{" ANI_STRING "}"
     "C{" ANI_STRING "}" "C{" ANI_STRING "}" "i:";
 constexpr CacheKey FONT_DESCRIPTOR_KEY{ANI_CLASS_FONT_DESCRIPTOR, "<ctor>", FONT_DESCRIPTOR_SIGN};
+constexpr CacheKey FONT_DESCRIPTOR_GET_PATH_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>path", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY{
     ANI_INTERFACE_FONT_DESCRIPTOR, "<get>postScriptName", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey FONT_DESCRIPTOR_FULL_NAME_KEY{
@@ -56,6 +58,8 @@ constexpr CacheKey FONT_DESCRIPTOR_FONT_FAMILY_KEY{
     ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontFamily", ANI_WRAP_RETURN_C(ANI_STRING)};
 constexpr CacheKey FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY{
     ANI_INTERFACE_FONT_DESCRIPTOR, "<get>fontSubfamily", ANI_WRAP_RETURN_C(ANI_STRING)};
+constexpr CacheKey FONT_DESCRIPTOR_GET_WEIGHT_KEY{
+    ANI_INTERFACE_FONT_DESCRIPTOR, "<get>weight", ANI_WRAP_RETURN_E(ANI_ENUM_FONT_WEIGHT)};
 constexpr CacheKey FONT_DESCRIPTOR_WIDTH_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>width", ANI_WRAP_RETURN_C(ANI_INT)};
 constexpr CacheKey FONT_DESCRIPTOR_ITALIC_KEY{ANI_INTERFACE_FONT_DESCRIPTOR, "<get>italic", ANI_WRAP_RETURN_C(ANI_INT)};
 constexpr CacheKey FONT_DESCRIPTOR_MONO_SPACE_KEY{
@@ -364,6 +368,8 @@ void AniGlobalMethod::InitCommonMethod(ani_env* env)
 void AniGlobalMethod::InitFontDescriptorMethod(ani_env* env)
 {
     fontDescriptorCtor = AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_KEY);
+    fontDescriptorGetPath =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_GET_PATH_KEY);
     fontDescriptorGetPostScriptName =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_POST_SCRIPT_NAME_KEY);
     fontDescriptorGetFullName =
@@ -372,6 +378,8 @@ void AniGlobalMethod::InitFontDescriptorMethod(ani_env* env)
         AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_FONT_FAMILY_KEY);
     fontDescriptorGetFontSubfamily =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_FONT_SUBFAMILY_KEY);
+    fontDescriptorGetWeight =
+        AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_GET_WEIGHT_KEY);
     fontDescriptorGetWidth =
         AniClassFindMethod(env, AniGlobalClass::GetInstance().fontDescriptor, FONT_DESCRIPTOR_WIDTH_KEY);
     fontDescriptorGetItalic =

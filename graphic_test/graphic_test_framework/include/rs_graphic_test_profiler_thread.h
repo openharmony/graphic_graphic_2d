@@ -16,14 +16,14 @@
 #ifndef RS_GRAPHIC_TEST_PROFILER_THREAD_H
 #define RS_GRAPHIC_TEST_PROFILER_THREAD_H
 
-#include <iostream>
-#include <thread>
-#include <mutex>
-#include <queue>
 #include <condition_variable>
 #include <cstring>
+#include <iostream>
+#include <mutex>
+#include <queue>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <thread>
 #include <unistd.h>
 
 namespace OHOS {
@@ -37,6 +37,8 @@ public:
     void Stop();
     void SendCommand(const std::string command, int outTime);
     std::pair<double, double> ReceiveTimeInfo() const;
+    bool HasSocketResult() const;
+    uint32_t WaitForSocketResultWithTimeout(uint32_t timeoutMs);
 private:
     void MainLoop();
     void SendMessage();
@@ -44,6 +46,9 @@ private:
     bool RecieveHeader(void* data, size_t& size);
     bool IsReceiveWaitMessage(const std::string& message);
     void ProcessLogMessage(const std::vector<char>& data);
+    void SetResultAndNotify(uint32_t result);
+    void CleanupSocket();
+
 private:
     int32_t socket_ = -1;
     std::thread thread_;
@@ -55,6 +60,11 @@ private:
     std::condition_variable cv_;
     std::pair<double, double> timeRange_{0.0, 0.0};
     mutable std::mutex timeRange_mutex_;
+
+    std::atomic<bool> hasSocketResult_ = false;
+    uint32_t socketResult_ = 0;
+    mutable std::mutex socketResultMutex_;
+    std::condition_variable socketResultCV_;
 #else
     void Start() {}
     void Stop() {}

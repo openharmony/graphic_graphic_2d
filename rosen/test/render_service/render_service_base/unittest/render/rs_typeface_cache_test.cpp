@@ -459,5 +459,62 @@ HWTEST_F(RSTypefaceCacheTest, RemoveHashQueueTest, TestSize.Level1) {
     RemoveHashQueue(testMap, 9999); // 9999 is no exist uniqueId
     EXPECT_EQ(testMap.size(), mapSizeBefore);
 }
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest001
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest001, TestSize.Level1) {
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    EXPECT_NE(typeface, nullptr);
+    pid_t pid1 = 123;
+    uint64_t uniqueId = (((uint64_t)pid1) << 32) | (uint64_t)(typeface->GetUniqueID());
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
+
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), typeface);
+
+    
+    Drawing::SharedTypeface sharedTypeface(uniqueId, typeface);
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_EQ(result, typeface);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest002
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest002, TestSize.Level1) {
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    EXPECT_NE(typeface, nullptr);
+    pid_t pid1 = 123;
+    uint64_t uniqueId = (((uint64_t)pid1) << 32) | (uint64_t)(typeface->GetUniqueID());
+
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    Drawing::SharedTypeface sharedTypeface(uniqueId, typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 100.0}, {2003072104, 62.5} };
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_NE(result, typeface);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest003
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest003, TestSize.Level1) {
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = 3;
+    sharedTypeface.hash_ = 789;
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_EQ(result, nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

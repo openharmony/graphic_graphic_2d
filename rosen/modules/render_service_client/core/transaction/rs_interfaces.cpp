@@ -89,9 +89,9 @@ ScreenId RSInterfaces::CreateVirtualScreen(
         name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
-int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
+    return renderServiceClient_->SetVirtualScreenBlackList(id, blackList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector)
@@ -99,14 +99,24 @@ int32_t RSInterfaces::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<Nod
     return renderServiceClient_->SetVirtualScreenTypeBlackList(id, typeBlackListVector);
 }
 
-int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    return renderServiceClient_->AddVirtualScreenBlackList(id, blackListVector);
+    return renderServiceClient_->AddVirtualScreenBlackList(id, blackList);
 }
 
-int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackListVector);
+    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackList);
+}
+
+int32_t RSInterfaces::AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    return renderServiceClient_->AddVirtualScreenWhiteList(id, whiteList);
+}
+
+int32_t RSInterfaces::RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    return renderServiceClient_->RemoveVirtualScreenWhiteList(id, whiteList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
@@ -659,9 +669,10 @@ std::shared_ptr<VSyncReceiver> RSInterfaces::CreateVSyncReceiver(
     return renderServiceClient_->CreateVSyncReceiver(name, looper, id, windowNodeId, fromXcomponent);
 }
 
-std::shared_ptr<Media::PixelMap> RSInterfaces::CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect)
+std::shared_ptr<Media::PixelMap> RSInterfaces::CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+    const Rect &srcRect, bool transformEnabled)
 {
-    return renderServiceClient_->CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+    return renderServiceClient_->CreatePixelMapFromSurfaceId(surfaceId, srcRect, transformEnabled);
 }
 
 int32_t RSInterfaces::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)

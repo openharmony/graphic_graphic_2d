@@ -14,18 +14,104 @@
  */
 
 #include <fstream>
+#include <filesystem>
 #include <gtest/gtest.h>
 
 #include "font_descriptor_cache.h"
+#include "font_descriptor_mgr.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+const std::string STYLISH_FONT_CONFIG_FILE = "/system/fonts/visibility_list.json";
+const std::string STYLISH_FONT_CONFIG_PROD_FILE = "/sys_prod/fonts/visibility_list.json";
+const std::string INSTALLED_FONT_CONFIG_FILE = "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json";
+const std::string INSTALLED_FONT_CONFIG_FILE_BAK =
+    "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json.bak";
+
+// "Noto Sans Mono CJK KR" exchange with "Noto Sans Mono CJK JP", make "Noto Sans Mono CJK HK" invalid index
+const std::string INSTALL_CONFIG = R"(
+{
+  "fontlist": [
+    { "fontfullpath": "/system/fonts/NotoSansHebrew[wdth,wght].ttf", "fullname": [""] },
+    {
+      "fontfullpath": "/system/fonts/NotoSansCJK-Regular.ttc",
+      "fullname": [
+        "Noto Sans CJK JP",
+        "Noto Sans CJK KR",
+        "Noto Sans CJK SC",
+        "Noto Sans CJK TC",
+        "Noto Sans CJK HK",
+        "Noto Sans Mono CJK KR",
+        "Noto Sans Mono CJK JP",
+        "Noto Sans Mono CJK SC",
+        "Noto Sans Mono CJK TC",
+        "Unknown",
+        "Noto Sans Mono CJK HK"
+      ]
+    },
+    { "fontfullpath": "/system/fonts/NotoSans[wdth,wght].ttf", "fullname": ["Noto Sans Regular"] }
+  ]
+}
+)";
+
 constexpr uint32_t WEIGHT_500 = 500;
+constexpr uint32_t SYSTEM_FONT_PATH_NUM = 139;
+constexpr uint32_t STYLISH_FONT_PATH_NUM = 1;
+constexpr uint32_t INSTALLED_FONT_PATH_NUM = 3;
 
 class FontDescriptorTest : public testing::Test {};
+
+namespace fs = std::filesystem;
+
+bool ExistStylishFontConfigFile()
+{
+    return fs::exists(STYLISH_FONT_CONFIG_FILE) || fs::exists(STYLISH_FONT_CONFIG_PROD_FILE);
+}
+
+void CreateFile(const std::string& file)
+{
+    fs::path filePath(file);
+    fs::path dirPath = filePath.parent_path();
+    if (!fs::exists(dirPath)) {
+        fs::create_directories(dirPath);
+    }
+    std::ofstream ofs(file, std::ios::trunc);
+    ofs << INSTALL_CONFIG;
+}
+
+void InitInstallConfig()
+{
+    if (fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
+        fs::rename(INSTALLED_FONT_CONFIG_FILE, INSTALLED_FONT_CONFIG_FILE_BAK);
+    }
+    CreateFile(INSTALLED_FONT_CONFIG_FILE);
+}
+
+void DestroyInstallConfig()
+{
+    if (fs::exists(INSTALLED_FONT_CONFIG_FILE_BAK)) {
+        fs::copy_file(INSTALLED_FONT_CONFIG_FILE_BAK, INSTALLED_FONT_CONFIG_FILE, fs::copy_options::overwrite_existing);
+        fs::remove(INSTALLED_FONT_CONFIG_FILE_BAK);
+    } else {
+        fs::remove(INSTALLED_FONT_CONFIG_FILE);
+    }
+}
+
+class InstallConfig {
+public:
+    InstallConfig()
+    {
+        InitInstallConfig();
+    }
+
+    ~InstallConfig()
+    {
+        DestroyInstallConfig();
+    }
+};
 
 /**
  * @tc.name: ClearFontFileCacheTest
@@ -374,6 +460,63 @@ HWTEST_F(FontDescriptorTest, FilterBoldCacheTest, TestSize.Level0)
     finishRet.insert(desc);
     res = fontDescriptorCache->FilterBoldCache(weight, finishRet);
     EXPECT_EQ(res, false);
+}
+
+/**
+ * @tc.name: GetFontPathsByTypeNormalTest
+ * @tc.desc: test the GetFontPathsByType function
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontDescriptorTest, GetFontPathsByTypeNormalTest, TestSize.Level0)
+{
+    InstallConfig installConfig;
+    std::unordered_set<std::string> paths;
+    auto expectFunc = [&paths](TextEngine::FontParser::SystemFontType fontType, size_t num) {
+        FontDescriptorMgrInstance.GetFontPathsByType(static_cast<int32_t>(fontType), paths);
+        EXPECT_EQ(paths.size(), num);
+        for (auto& path : paths) {
+            EXPECT_TRUE(fs::exists(path));
+        }
+        paths.clear();
+    };
+    if (ExistStylishFontConfigFile()) {
+        expectFunc(TextEngine::FontParser::SystemFontType::ALL, SYSTEM_FONT_PATH_NUM + STYLISH_FONT_PATH_NUM + 1);
+        expectFunc(TextEngine::FontParser::SystemFontType::STYLISH, STYLISH_FONT_PATH_NUM);
+    } else {
+        expectFunc(TextEngine::FontParser::SystemFontType::ALL, SYSTEM_FONT_PATH_NUM);
+        expectFunc(TextEngine::FontParser::SystemFontType::STYLISH, 0);
+    }
+    expectFunc(TextEngine::FontParser::SystemFontType::INSTALLED, INSTALLED_FONT_PATH_NUM);
+    expectFunc(TextEngine::FontParser::SystemFontType::CUSTOMIZED, 0);
+}
+
+/**
+ * @tc.name: GetFontPathsByTypeInvalidTest
+ * @tc.desc: test the GetFontPathsByType function with invalid type
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontDescriptorTest, GetFontPathsByTypeInvalidTest, TestSize.Level0)
+{
+    std::string initPath = "init";
+    std::unordered_set<std::string> paths = { initPath };
+    TextEngine::FontParser::SystemFontType fontType = TextEngine::FontParser::SystemFontType::ALL;
+    FontDescriptorMgrInstance.GetFontPathsByType(static_cast<int32_t>(fontType) + UINT16_MAX, paths);
+    EXPECT_TRUE(paths.empty());
+
+    paths.insert(initPath);
+    fontType = TextEngine::FontParser::SystemFontType::STYLISH;
+    FontDescriptorMgrInstance.GetFontPathsByType(static_cast<int32_t>(fontType) + UINT16_MAX, paths);
+    EXPECT_TRUE(paths.empty());
+
+    paths.insert(initPath);
+    fontType = TextEngine::FontParser::SystemFontType::INSTALLED;
+    FontDescriptorMgrInstance.GetFontPathsByType(static_cast<int32_t>(fontType) + UINT16_MAX, paths);
+    EXPECT_TRUE(paths.empty());
+
+    paths.insert(initPath);
+    fontType = TextEngine::FontParser::SystemFontType::CUSTOMIZED;
+    FontDescriptorMgrInstance.GetFontPathsByType(static_cast<int32_t>(fontType) + UINT16_MAX, paths);
+    EXPECT_TRUE(paths.empty());
 }
 } // namespace Rosen
 } // namespace OHOS

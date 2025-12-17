@@ -18,7 +18,7 @@
 #include <ani.h>
 #include <cstdint>
 
-#include "utils/error_code.h"
+#include "utils/include/error_code.h"
 namespace OHOS::Text::ANI {
 #define ANI_WRAP_RETURN_C(name) (":C{" name "}")
 #define ANI_WRAP_RETURN_E(name) (":E{" name "}")

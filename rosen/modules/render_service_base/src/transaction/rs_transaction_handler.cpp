@@ -108,6 +108,8 @@ void RSTransactionHandler::MoveCommandByNodeId(std::shared_ptr<RSTransactionHand
     }
 
     std::unique_lock<std::mutex> cmdLock(mutex_);
+    // Add a lock to the destination handler to prevent multiple threads from reading and writing commands.
+    std::unique_lock<std::mutex> dstHandlerCmdLock(transactionHandler->mutex_);
     if (renderServiceClient_ != nullptr) {
         MoveRemoteCommandByNodeId(transactionHandler, nodeId);
     }

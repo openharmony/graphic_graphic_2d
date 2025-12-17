@@ -47,6 +47,7 @@ class Data;
 class Image;
 class Bitmap;
 class Typeface;
+struct SharedTypeface;
 }
 namespace ModifierNG {
 class RSRenderModifier;
@@ -188,6 +189,8 @@ public:
         uint32_t* opItemCount = nullptr, uint32_t* recordCmdCount = nullptr, int32_t recordCmdDepth = 0);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Typeface>& val);
+    static RSB_EXPORT bool Marshalling(Parcel& parcel, Drawing::SharedTypeface& val);
+    static RSB_EXPORT bool Unmarshalling(Parcel& parcel, Drawing::SharedTypeface& val);
     static RSB_EXPORT bool Marshalling(Parcel& parcel, const std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val);
     static RSB_EXPORT bool Unmarshalling(Parcel& parcel, std::shared_ptr<Drawing::Image>& val, void*& imagepixelAddr);

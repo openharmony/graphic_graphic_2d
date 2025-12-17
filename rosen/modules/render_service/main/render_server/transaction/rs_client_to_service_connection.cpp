@@ -677,7 +677,7 @@ float RSClientToServiceConnection::GetRotationInfoFromSurfaceBuffer(const sptr<S
 }
 
 ErrCode RSClientToServiceConnection::CreatePixelMapFromSurface(sptr<Surface> surface,
-    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap)
+    const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled)
 {
     OHOS::Media::Rect rect = {
         .left = srcRect.x,
@@ -814,7 +814,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
-    if (whiteList.size() > MAX_WHITE_LIST_NUM) {
+    if (whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
         RS_LOGW("%{public}s: white list is over max size!", __func__);
         return INVALID_SCREEN_ID;
     }
@@ -833,20 +833,22 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     return newVirtualScreenId;
 }
 
-int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    if (blackListVector.size() > MAX_BLACK_LIST_NUM) {
+    if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
         RS_LOGW("%{public}s: black list is over max size!", __func__);
         return StatusCode::INVALID_ARGUMENTS;
     }
-    if (blackListVector.empty()) {
-        RS_LOGW("SetVirtualScreenBlackList blackList is empty.");
+    if (blackList.empty()) {
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
+        return StatusCode::BLACKLIST_IS_EMPTY;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!screenManager_) {
+    if (screenManager_ == nullptr) {
+        RS_LOGW("%{public}s: screenManager is nullptr.", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    return screenManager_->SetVirtualScreenBlackList(id, blackListVector);
+    return screenManager_->SetVirtualScreenBlackList(id, blackList);
 }
 
 ErrCode RSClientToServiceConnection::SetVirtualScreenTypeBlackList(
@@ -865,41 +867,84 @@ ErrCode RSClientToServiceConnection::SetVirtualScreenTypeBlackList(
 }
 
 ErrCode RSClientToServiceConnection::AddVirtualScreenBlackList(
-    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
+    ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode)
 {
-    if (blackListVector.size() > MAX_BLACK_LIST_NUM) {
+    if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {
         RS_LOGW("%{public}s: black list is over max size!", __func__);
         repCode = StatusCode::INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
-    if (blackListVector.empty()) {
-        RS_LOGW("AddVirtualScreenBlackList blackList is empty.");
+    if (blackList.empty()) {
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
         repCode = StatusCode::BLACKLIST_IS_EMPTY;
         return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!screenManager_) {
+    if (screenManager_ == nullptr) {
+        RS_LOGW("%{public}s: screenManager is nullptr.", __func__);
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    repCode = screenManager_->AddVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->AddVirtualScreenBlackList(id, blackList);
     return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnection::RemoveVirtualScreenBlackList(
-    ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode)
+    ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode)
 {
-    if (blackListVector.empty()) {
-        RS_LOGW("RemoveVirtualScreenBlackList blackList is empty.");
+    if (blackList.empty()) {
+        RS_LOGW("%{public}s: blackList is empty.", __func__);
         repCode = StatusCode::BLACKLIST_IS_EMPTY;
         return ERR_INVALID_VALUE;
     }
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!screenManager_) {
+    if (screenManager_ == nullptr) {
+        RS_LOGW("%{public}s: screenManager is nullptr.", __func__);
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    repCode = screenManager_->RemoveVirtualScreenBlackList(id, blackListVector);
+    repCode = screenManager_->RemoveVirtualScreenBlackList(id, blackList);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::AddVirtualScreenWhiteList(
+    ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode)
+{
+    if (whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("%{public}s: whitelist is over max size!", __func__);
+        repCode = StatusCode::INVALID_ARGUMENTS;
+        return ERR_INVALID_VALUE;
+    }
+    if (whiteList.empty()) {
+        RS_LOGW("%{public}s: whitelist is empty.", __func__);
+        repCode = StatusCode::WHITELIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenManager_ == nullptr) {
+        RS_LOGW("%{public}s: screenManager is nullptr.", __func__);
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
+    }
+    repCode = screenManager_->AddVirtualScreenWhiteList(id, whiteList);
+    return ERR_OK;
+}
+
+ErrCode RSClientToServiceConnection::RemoveVirtualScreenWhiteList(
+    ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode)
+{
+    if (whiteList.empty()) {
+        RS_LOGW("%{public}s: whitelist is empty.", __func__);
+        repCode = StatusCode::WHITELIST_IS_EMPTY;
+        return ERR_INVALID_VALUE;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (screenManager_ == nullptr) {
+        RS_LOGW("%{public}s: screenManager is nullptr.", __func__);
+        repCode = StatusCode::SCREEN_NOT_FOUND;
+        return ERR_INVALID_VALUE;
+    }
+    repCode = screenManager_->RemoveVirtualScreenWhiteList(id, whiteList);
     return ERR_OK;
 }
 
@@ -2352,22 +2397,37 @@ bool RSClientToServiceConnection::RegisterTypeface(uint64_t globalUniqueId,
     return true;
 }
 
-int32_t RSClientToServiceConnection::RegisterTypeface(
-    uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index)
+int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate)
 {
-    auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(id);
+    if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
+        RS_LOGE("RegisterTypeface: invalid parameters");
+        return -1;
+    }
+    uint32_t realSize = AshmemGetSize(sharedTypeface.fd_);
+    if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
+        RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
+        ::close(sharedTypeface.fd_);
+        needUpdate = 0;
+        return -1;
+    }
+    auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
     if (tf != nullptr) {
-        ::close(fd);
+        ::close(sharedTypeface.fd_);
+        sharedTypeface.fd_ = -1;
         needUpdate = 1;
+        RS_LOGI("RegisterTypeface: Find same typeface in cache, use existed typeface.");
         return tf->GetFd();
     }
+    RS_LOGI("RegisterTypeface: Failed to find typeface in cache, create a new typeface.");
     needUpdate = 0;
-    tf = Drawing::Typeface::MakeFromAshmem(fd, size, RSTypefaceCache::GetTypefaceId(id), index);
+    tf = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
     if (tf != nullptr) {
-        RSTypefaceCache::Instance().CacheDrawingTypeface(id, tf);
+        RSTypefaceCache::Instance().CacheDrawingTypeface(sharedTypeface.id_, tf);
+        sharedTypeface.fd_ = -1;
         return tf->GetFd();
     }
-    ::close(fd);
+    ::close(sharedTypeface.fd_);
+    sharedTypeface.fd_ = -1;
     RS_LOGE("RegisterTypeface: failed to register typeface");
     return -1;
 }

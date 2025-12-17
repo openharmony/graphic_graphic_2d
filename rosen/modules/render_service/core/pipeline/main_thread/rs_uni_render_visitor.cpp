@@ -302,20 +302,6 @@ void RSUniRenderVisitor::UpdateColorSpaceAfterHwcCalc(RSScreenRenderNode& node)
     }
 }
 
-bool IsScreenSupportedWideColorGamut(ScreenId id, const sptr<RSScreenManager>& screenManager)
-{
-    std::vector<ScreenColorGamut> supportedColorGamut;
-    if (screenManager->GetScreenSupportedColorGamuts(id, supportedColorGamut) != SUCCESS) {
-        return false;
-    }
-    for (auto item : supportedColorGamut) {
-        if (item == ScreenColorGamut::COLOR_GAMUT_DCI_P3 || item == ScreenColorGamut::COLOR_GAMUT_DISPLAY_P3) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
 {
     RSScreenType screenType = BUILT_IN_TYPE_SCREEN;

@@ -2995,4 +2995,29 @@ HWTEST_F(RSClientToServiceConnectionStubTest, NotifyTouchEventTest001, TestSize.
     data2.WriteInt32(sourceType);
     connectionStub_->OnRemoteRequest(code, data2, reply, option);
 }
+
+/**
+ * @tc.name: RegisterSharedTypefaceTest001
+ * @tc.desc: Test RegisterSharedTypeface
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RegisterSharedTypefaceTest001, TestSize.Level1)
+{
+    sptr<RSClientToServiceConnectionStub> connectionStub =
+        new RSClientToServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
+    uint32_t interfaceCode = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.fd_ = open("/system/fonts/HarmonyOS_Sans_SC.ttf", O_RDONLY);
+    EXPECT_EQ(RSMarshallingHelper::Marshalling(data, sharedTypeface), true);
+
+    auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+    ASSERT_EQ(res, ERR_OK);
+}
 } // namespace OHOS::Rosen

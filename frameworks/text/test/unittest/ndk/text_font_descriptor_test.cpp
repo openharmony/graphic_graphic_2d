@@ -22,6 +22,7 @@
 #include "drawing_text_font_descriptor.h"
 #include "font_descriptor_mgr.h"
 #include "gtest/gtest.h"
+#include "string_ex.h"
 #include "unicode/unistr.h"
 
 using namespace testing;
@@ -38,7 +39,7 @@ const std::string INSTALLED_FONT_CONFIG_FILE_BAK =
     "/data/service/el1/public/for-all-app/fonts/install_fontconfig.json.bak";
 
 // "Noto Sans Mono CJK KR" exchange with "Noto Sans Mono CJK JP", make "Noto Sans Mono CJK HK" invalid index
-const std::string INSTALL_CONFIG = R"(
+const std::string INSTALL_CONFIG_THREE = R"(
 {
   "fontlist": [
     { "fontfullpath": "/system/fonts/NotoSansHebrew[wdth,wght].ttf", "fullname": [""] },
@@ -63,6 +64,8 @@ const std::string INSTALL_CONFIG = R"(
 }
 )";
 
+const std::string INSTALL_CONFIG_EMPTY = R"({"fontlist": [{ "fontfullpath": "", "fullname": [""] }]})";
+
 bool ExistStylishFontConfigFile()
 {
     return fs::exists(STYLISH_FONT_CONFIG_FILE) || fs::exists(STYLISH_FONT_CONFIG_PROD_FILE);
@@ -78,7 +81,7 @@ std::string ConvertUtf16ToUtf8(const uint8_t* utf16Data, uint32_t utf16Len)
 
 class NdkFontDescriptorTest : public testing::Test {};
 
-void CreateFile(const std::string& file)
+void CreateFile(const std::string& file, const std::string& content)
 {
     fs::path filePath(file);
     fs::path dirPath = filePath.parent_path();
@@ -86,15 +89,15 @@ void CreateFile(const std::string& file)
         fs::create_directories(dirPath);
     }
     std::ofstream ofs(file, std::ios::trunc);
-    ofs << INSTALL_CONFIG;
+    ofs << content;
 }
 
-void InitInstallConfig()
+void InitInstallConfig(const std::string& content)
 {
     if (fs::exists(INSTALLED_FONT_CONFIG_FILE)) {
         fs::rename(INSTALLED_FONT_CONFIG_FILE, INSTALLED_FONT_CONFIG_FILE_BAK);
     }
-    CreateFile(INSTALLED_FONT_CONFIG_FILE);
+    CreateFile(INSTALLED_FONT_CONFIG_FILE, content);
 }
 
 void DestroyInstallConfig()
@@ -109,9 +112,9 @@ void DestroyInstallConfig()
 
 class InstallConfig {
 public:
-    InstallConfig()
+    explicit InstallConfig(const std::string& content = INSTALL_CONFIG_THREE)
     {
-        InitInstallConfig();
+        InitInstallConfig(content);
     }
 
     ~InstallConfig()
@@ -883,5 +886,82 @@ HWTEST_F(NdkFontDescriptorTest, NdkFontDescriptorTest019, TestSize.Level0)
     EXPECT_EQ(num1, 0);
     FontDescriptorMgrInstance.ClearFontFileCache();
     OH_Drawing_DestroyFontCollection(fc);
+}
+
+/*
+ * @tc.name: NdkGetFontPathsByType001
+ * @tc.desc: test for get all font paths.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType001, TestSize.Level0)
+{
+    InstallConfig installConfig;
+    auto expectFunc = [](OH_Drawing_SystemFontType type, size_t num) {
+        size_t pathCount = 0;
+        OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(type, &pathCount);
+        EXPECT_EQ(pathCount, num);
+        size_t i = 0;
+        for (i = 0; fontPaths != nullptr && fontPaths[i].strData != nullptr; i+=1) {
+            OH_Drawing_String fontPath = fontPaths[i];
+            std::u16string path(reinterpret_cast<char16_t*>(fontPath.strData), fontPath.strLen / sizeof(char16_t));
+            std::string u8Path = OHOS::Str16ToStr8(path);
+            EXPECT_TRUE(fs::exists(u8Path));
+            free(fontPath.strData);
+        }
+        EXPECT_EQ(i, num);
+        free(fontPaths);
+    };
+    if (ExistStylishFontConfigFile()) {
+        // 141 = 1 stylish font + 139 generic fonts + 1 rare font + 3 installed fonts but duplicate with generic fonts
+        expectFunc(OH_Drawing_SystemFontType::ALL, 141);
+        // 140 = 139 generic fonts + 1 rare font
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 140);
+        // 1 = 1 stylish font
+        expectFunc(OH_Drawing_SystemFontType::STYLISH, 1);
+    } else {
+        // 139 = 139 generic fonts + 3 installed fonts but duplicate with generic fonts
+        expectFunc(OH_Drawing_SystemFontType::ALL, 139);
+        // 139 = 139 generic font
+        expectFunc(OH_Drawing_SystemFontType::GENERIC, 139);
+        expectFunc(OH_Drawing_SystemFontType::STYLISH, 0);
+    }
+    // 3 = 3 installed fonts
+    expectFunc(OH_Drawing_SystemFontType::INSTALLED, 3);
+    expectFunc(OH_Drawing_SystemFontType::CUSTOMIZED, 0);
+}
+
+/*
+ * @tc.name: NdkGetFontPathsByType002
+ * @tc.desc: test for get installed font paths with empty installed font.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType002, TestSize.Level0)
+{
+    InstallConfig installConfig(INSTALL_CONFIG_EMPTY);
+    size_t pathCount = SIZE_MAX;
+    OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType::INSTALLED, &pathCount);
+    EXPECT_EQ(fontPaths, nullptr);
+    EXPECT_EQ(pathCount, 0);
+    free(fontPaths);
+}
+
+/*
+ * @tc.name: NdkGetFontPathsByType003
+ * @tc.desc: test for GetFontPathsByType use invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontDescriptorTest, NdkGetFontPathsByType003, TestSize.Level0)
+{
+    size_t pathCount = SIZE_MAX;
+    OH_Drawing_String* fontPaths = OH_Drawing_GetFontPathsByType(
+        static_cast<OH_Drawing_SystemFontType>(static_cast<uint32_t>(OH_Drawing_SystemFontType::CUSTOMIZED) << 1),
+        &pathCount);
+    EXPECT_EQ(fontPaths, nullptr);
+    EXPECT_EQ(pathCount, 0);
+    fontPaths = OH_Drawing_GetFontPathsByType(static_cast<OH_Drawing_SystemFontType>(UINT16_MAX), &pathCount);
+    EXPECT_EQ(fontPaths, nullptr);
+    EXPECT_EQ(pathCount, 0);
+    fontPaths = OH_Drawing_GetFontPathsByType(static_cast<OH_Drawing_SystemFontType>(UINT16_MAX), nullptr);
+    EXPECT_EQ(fontPaths, nullptr);
 }
 } // namespace OHOS

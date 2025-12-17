@@ -200,16 +200,23 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const;
 
+    // blacklist
     int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
-    int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
-    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
-    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const;
-    std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const;
-    std::unordered_set<uint64_t> GetAllBlackList() const;
-    std::unordered_set<uint64_t> GetAllWhiteList();
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
+    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
     std::unordered_set<uint64_t> GetBlackListVirtualScreenByNode(uint64_t nodeId);
+    std::unordered_set<uint64_t> GetVirtualScreenBlackList(ScreenId id) const;
+    std::unordered_set<uint64_t> GetAllBlackList() const;
+
+    // type blacklist
+    int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
+    std::unordered_set<uint8_t> GetVirtualScreenTypeBlackList(ScreenId id) const;
+
+    // whitelist
+    int32_t AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
+    int32_t RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
+    std::unordered_set<uint64_t> GetAllWhiteList();
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList);
@@ -249,9 +256,6 @@ private:
 
     static void OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void *data);
     void OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns);
-
-    void PrintScreenBlackList(
-        std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;
 
     // physical screen
     bool CheckFoldScreenIdBuiltIn(ScreenId id);

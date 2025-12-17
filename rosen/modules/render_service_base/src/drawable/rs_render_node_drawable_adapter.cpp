@@ -541,7 +541,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             }
             continue;
         }
-        if (index != drawCmdIndex_.useEffectIndex_ || index != drawCmdIndex_.backgroundFilterIndex_ ||
+        if (index == drawCmdIndex_.useEffectIndex_ || index == drawCmdIndex_.backgroundFilterIndex_ ||
             index == drawCmdIndex_.backgroundNgShaderIndex_) {
             RS_OPTIONAL_TRACE_NAME_FMT(
                 "ClipHoleForBlur filterRect:[%.2f, %.2f]", bounds.GetWidth(), bounds.GetHeight());
@@ -549,6 +549,15 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             curCanvas->ClipRect(bounds, Drawing::ClipOp::INTERSECT, false);
             curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
             UpdateFilterInfoForNodeGroup(curCanvas);
+        } else if (index == drawCmdIndex_.materialFilterIndex_) {
+            auto filterRect = GetFilterRelativeRect(bounds);
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "ClipHoleForMaterialFilter filterRect:[%.2f, %.2f]", filterRect.GetWidth(), filterRect.GetHeight());
+            Drawing::AutoCanvasRestore arc(*curCanvas, true);
+            curCanvas->ClipRect(filterRect, Drawing::ClipOp::INTERSECT, false);
+            curCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+            UpdateFilterInfoForNodeGroup(curCanvas);
+            return;
         } else {
             drawCmdList_[index](&canvas, &bounds);
         }
@@ -570,12 +579,34 @@ void RSRenderNodeDrawableAdapter::UpdateFilterInfoForNodeGroup(RSPaintFilterCanv
     }
 }
 
+Drawing::Rect RSRenderNodeDrawableAdapter::GetFilterRelativeRect(const Drawing::Rect& rect) const
+{
+    Drawing::Rect dst = rect;
+    RectF rsRect { dst.GetLeft(), dst.GetTop(), dst.GetWidth(), dst.GetHeight() };
+
+    for (const auto& drawable : filterDrawables_) {
+        if (drawable == nullptr) {
+            continue;
+        }
+        dst.Join(RSPropertiesPainter::Rect2DrawingRect(drawable->GetRenderRelativeRect(EffectRectType::TOTAL, rsRect)));
+    }
+
+    return dst;
+}
+
 void RSRenderNodeDrawableAdapter::CheckShadowRectAndDrawBackground(
     Drawing::Canvas& canvas, const RSRenderParams& params)
 {
+    if (params.IsExcludedFromNodeGroup()) {
+        // excluded node do not draw its background here
+        return;
+    }
     // The shadow without shadowRect has drawn in Nodegroup's cache, so we can't draw it again
     if (!params.GetShadowRect().IsEmpty()) {
         DrawBackground(canvas, params.GetBounds());
+    } else if (drawCmdIndex_.materialFilterIndex_ != -1) {
+        DrawRangeImpl(
+            canvas, params.GetBounds(), drawCmdIndex_.materialFilterIndex_, drawCmdIndex_.backgroundEndIndex_);
     } else {
         DrawRangeImpl(
             canvas, params.GetBounds(), drawCmdIndex_.foregroundFilterBeginIndex_, drawCmdIndex_.backgroundEndIndex_);
@@ -621,8 +652,11 @@ void RSRenderNodeDrawableAdapter::DrawAfterCacheWithProperty(Drawing::Canvas& ca
 
 bool RSRenderNodeDrawableAdapter::HasFilterOrEffect() const
 {
-    return drawCmdIndex_.shadowIndex_ != -1 || drawCmdIndex_.backgroundFilterIndex_ != -1 ||
-           drawCmdIndex_.useEffectIndex_ != -1 || drawCmdIndex_.backgroundNgShaderIndex_ != -1;
+    return drawCmdIndex_.materialFilterIndex_ != -1 ||
+           drawCmdIndex_.shadowIndex_ != -1 ||
+           drawCmdIndex_.backgroundFilterIndex_ != -1 ||
+           drawCmdIndex_.useEffectIndex_ != -1 ||
+           drawCmdIndex_.backgroundNgShaderIndex_ != -1;
 }
 
 void RSRenderNodeDrawableAdapter::ClearResource()
