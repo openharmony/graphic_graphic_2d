@@ -5212,6 +5212,10 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     if (parent != nullptr) {
         parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
     }
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::MATRIX_DIRTY);
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+    }
     released_ = false;
 #endif
 }
