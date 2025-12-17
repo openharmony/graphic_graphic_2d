@@ -1610,7 +1610,7 @@ HWTEST_F(RSUniHwcComputeUtilTest, GetPropertyFromModifier_001, Function | SmallT
         std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
     modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
     RSRootRenderNode::ModifierNGContainer modifiers { modifier };
-    node.modifiersNG_.emplace_back(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifier);
+    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifier);
     auto result = RSUniHwcComputeUtil::GetPropertyFromModifier<ForegroundColorStrategyType>(node,
         ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
     ASSERT_NE(result, nullptr);

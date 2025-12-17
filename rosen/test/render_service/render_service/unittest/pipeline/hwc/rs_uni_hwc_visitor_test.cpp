@@ -3494,11 +3494,11 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateForegroundColorValid_001, TestSize.Level2)
     property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
     std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
         std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
-    modifier->properties_[ModifierNG::RSPropertyType::ENV_FORGROUND_COLOR_STRATEGY] = property;
+    modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
     RSRootRenderNode::ModifierNGContainer modifiers {modifier};
-    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FORGROUND_COLOR, modifiers);
-    rsUniHwcVisitor->hwcVisitor_->UpdateForegroundColorValid(node);
-    EXPECT_TRUE(node.GetHwcRecorder().IsForegroundColorStrategyValid());
+    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifiers);
+    rsUniRenderVisitor->hwcVisitor_->UpdateForegroundColorValid(node);
+    EXPECT_TRUE(node.GetHwcRecorder().IsForegroundColorValid());
 }
 
 /**
@@ -3595,9 +3595,9 @@ HWTEST_F(RSUniHwcVisitorTest, IncreaseSolidLayerHwcEnableCount_001, TestSize.Lev
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
 
-    rsUniHwcVisitor->hwcVisitor_->solidLayerHwcEnableCount_ = 0;
-    rsUniHwcVisitor->hwcVisitor_->IncreaseSolidLayerHwcEnableCount();
-    EXPECT_EQ(rsUniHwcVisitor->hwcVisitor_->solidLayerHwcEnableCount_, 1);
+    rsUniRenderVisitor->hwcVisitor_->solidLayerHwcEnableCount_ = 0;
+    rsUniRenderVisitor->hwcVisitor_->IncreaseSolidLayerHwcEnableCount();
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->solidLayerHwcEnableCount_, 1);
 }
 
 /**
