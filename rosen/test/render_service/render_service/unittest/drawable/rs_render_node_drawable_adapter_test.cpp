@@ -771,5 +771,29 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
     adapter->drawCmdList_.clear();
     adapter->DrawQuickImpl(canvas, rect);
 }
+
+/**
+ * @tc.name: OnTreeStateChangedTest
+ * @tc.desc: test results of OnTreeStateChangedTest
+ * @tc.type: FUNC
+ * @tc.require: issueIALKED
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, OnTreeStateChangedTest, TestSize.Level1)
+{
+    auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    canvasDrawingNode->isNeverOnTree_ = false;
+    canvasDrawingNode->OnTreeStateChanged();
+    EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);
+    canvasDrawingNode->isOnTheTree_ = true;
+    canvasDrawingNode->OnTreeStateChanged();
+    EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);
+
+    auto childDrawable = std::make_shared<RSChildrenDrawableBrotherAdapter>();
+    auto childNode = std::make_shared<RSRenderNode>(10);
+    auto childAdapter = std::make_shared<RSRenderNodeDrawable>(std::move(childNode));
+    childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
+    canvasDrawingNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
+    canvasDrawingNode->OnTreeStateChanged();
+}
 #endif
 }
