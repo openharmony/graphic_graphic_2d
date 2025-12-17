@@ -25,6 +25,7 @@
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"

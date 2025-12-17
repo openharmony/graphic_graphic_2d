@@ -19,6 +19,7 @@
 #include "params/rs_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_root_render_node.h"
