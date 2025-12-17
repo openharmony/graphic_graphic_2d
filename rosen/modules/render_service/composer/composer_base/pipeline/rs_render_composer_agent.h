@@ -27,7 +27,7 @@ public:
     ~RSRenderComposerAgent() = default;
 
     void SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn);
-    void ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData);
+    bool ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected();
     GSError ClearFrameBuffers(bool isNeedResetContext = true);

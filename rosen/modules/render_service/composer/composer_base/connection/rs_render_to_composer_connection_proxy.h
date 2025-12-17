@@ -26,7 +26,7 @@ public:
     explicit RSRenderToComposerConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSRenderToComposerConnectionProxy() = default;
 
-    void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
+    bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
     void ClearFrameBuffers() override;
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) override;

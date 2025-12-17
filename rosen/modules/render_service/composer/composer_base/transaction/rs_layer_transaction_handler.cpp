@@ -47,18 +47,22 @@ void RSLayerTransactionHandler::CheckScreenInfoIsChanged(ScreenInfo& screenInfo)
     }
 }
 
-void RSLayerTransactionHandler::CommitRSLayerTransaction(CommitLayerInfo& commitLayerInfo, uint64_t timestamp, const std::string& abilityName)
+bool RSLayerTransactionHandler::CommitRSLayerTransaction(CommitLayerInfo& commitLayerInfo, uint64_t timestamp, const std::string& abilityName)
 {
     timestamp_ = std::max(timestamp_, timestamp);
     if (rsComposerConnection_ == nullptr || rsLayerTransactionData_->IsEmpty()) {
         RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction param is nullptr");
-        return;
+        return false;
     }
     rsLayerTransactionData_->timestamp_ = timestamp;
     CheckScreenInfoIsChanged(commitLayerInfo.screenInfo);
     rsLayerTransactionData_->SetPipelineParam(commitLayerInfo.pipelineParam);
-    rsComposerConnection_->CommitLayers(rsLayerTransactionData_);
+    if (!rsComposerConnection_->CommitLayers(rsLayerTransactionData_)) {
+        RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction CommitLayers failed");
+        return false;
+    }
     rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
+    return true;
 }
 
 bool RSLayerTransactionHandler::IsEmpty() const

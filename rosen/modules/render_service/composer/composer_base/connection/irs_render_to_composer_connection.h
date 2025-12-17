@@ -26,7 +26,7 @@
 namespace OHOS::Rosen {
 class RSB_EXPORT IRSRenderToComposerConnection : public IRemoteBroker {
 public:
-    virtual void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) = 0;
+    virtual bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) = 0;
     virtual void CleanLayerBufferBySurfaceId(uint64_t surfaceId) = 0;
     virtual void ClearFrameBuffers() = 0;
     virtual void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) = 0;
