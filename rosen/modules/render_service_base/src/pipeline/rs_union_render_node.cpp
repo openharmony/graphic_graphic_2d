@@ -72,7 +72,8 @@ void RSUnionRenderNode::ProcessSDFShape()
         visibleUnionChildren_.size(), GetRenderProperties().GetUnionSpacing());
     std::shared_ptr<RSNGRenderShapeBase> root;
     if (visibleUnionChildren_.empty()) {
-        if (GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
+        if (GetRenderProperties().GetSDFShape() &&
+            GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
             return;
         }
         root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
