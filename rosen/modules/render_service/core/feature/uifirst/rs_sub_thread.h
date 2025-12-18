@@ -54,6 +54,7 @@ public:
     void ResetGrContext();
     void ThreadSafetyReleaseTexture();
     void DumpMem(DfxString& log, bool isLite = false);
+    void DumpGpuMem(DfxString& log);
     float GetAppGpuMemoryInMB();
     unsigned int GetDoingCacheProcessNum()
     {

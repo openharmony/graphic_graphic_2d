@@ -5492,6 +5492,42 @@ HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
 }
 
 /**
+ * @tc.name: DumpGpuMem001
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpGpuMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "gpu";
+    mainThread->DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem002
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpGpuMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "";
+    mainThread->DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
  * @tc.name: CountMem
  * @tc.desc: test CountMem
  * @tc.type: FUNC

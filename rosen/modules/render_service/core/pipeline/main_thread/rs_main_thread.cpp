@@ -4145,6 +4145,28 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
+void RSMainThread::DumpGpuMem(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::string& type)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    DfxString log;
+    auto status = type.empty() || type == MEM_GPU_TYPE;
+    if (status) {
+        RSUniRenderThread::Instance().DumpGpuMem(log);
+    }
+    if (status && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        auto subThreadManager = RSSubThreadManager::Instance();
+        if (subThreadManager) {
+            subThreadManager->DumpGpuMem(log);
+        }
+    }
+    MemoryManager::DumpGpuNodeMemory(log);
+    dumpString.append(log.GetString());
+#else
+    dumpString.append("No GPU in this device");
+#endif
+}
+
 void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)

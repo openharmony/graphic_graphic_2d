@@ -855,6 +855,28 @@ void RSUniRenderThread::DumpMem(DfxString& log, bool isLite)
     });
 }
 
+void RSUniRenderThread::DumpGpuMem(DfxString& log)
+{
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        NodeId nodeId = node->GetId();
+        std::string name = node->GetName() + " " + std::to_string(ExtractPid(nodeId)) + " " + std::to_string(nodeId);
+        nodeTags.push_back({nodeId, name});
+    });
+    PostSyncTask([&log, &nodeTags, this]() {
+        if (!uniRenderEngine_) {
+            return;
+        }
+        auto renderContext = uniRenderEngine_->GetRenderContext();
+        if (!renderContext) {
+            return;
+        }
+        auto gpuContext = renderContext->GetDrGPUContext();
+        MemoryManager::DumpAllGpuInfoNew(log, gpuContext, nodeTags);
+    });
+}
+
 void RSUniRenderThread::ClearMemoryCache(ClearMemoryMoment moment, bool deeply, pid_t pid)
 {
     if (!RSSystemProperties::GetReleaseResourceEnabled()) {

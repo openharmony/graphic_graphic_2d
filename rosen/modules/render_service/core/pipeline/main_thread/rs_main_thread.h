@@ -207,6 +207,7 @@ public:
     void ForceRefreshForUni(bool needDelay = false);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
         pid_t pid = 0, bool isLite = false);
+    void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
