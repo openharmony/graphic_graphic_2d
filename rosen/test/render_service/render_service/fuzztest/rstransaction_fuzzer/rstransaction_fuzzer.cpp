@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
 
 namespace OHOS {
 namespace Rosen {

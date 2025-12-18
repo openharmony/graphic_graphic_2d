@@ -25,7 +25,7 @@
 
 #include "feature/capture/rs_ui_capture.h"
 #include "file_ex.h"
-#include "platform/ohos/rs_client_to_render_connection_proxy.h"
+#include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"

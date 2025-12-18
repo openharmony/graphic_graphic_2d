@@ -38,7 +38,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
-#include "rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "screen_manager/rs_screen.h"

@@ -25,6 +25,7 @@ ohos_fuzztest("RSScreenManagerFuzzTest") {
   include_dirs = [
     "../../../../../rosen/modules/platform/ipc_core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+    "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/test/include",
