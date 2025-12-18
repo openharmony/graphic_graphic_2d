@@ -59,7 +59,7 @@ static constexpr size_t OFFSET_TABLE_COUNT = 4;              // Table count fiel
 static constexpr size_t OFFSET_TTC_FONT_COUNT = 8;           // Font count in TTC header offset (8 bytes)
 static constexpr size_t OFFSET_TTC_FIRST_FONT_OFFSET = 12;   // First font offset in TTC header (12 bytes)
 // Limit constants for validation
-static constexpr int MAX_TABLE_COUNT = 100;                  // Maximum reasonable number of tables in a font
+static constexpr uint16_t MAX_TABLE_COUNT = 100;             // Maximum reasonable number of tables in a font
 static constexpr size_t MAX_READ_SIZE = 0x1000000;
 static constexpr size_t MAX_SAFE_OFFSET = 0x7FFFFFFF;
 // Assistant constants
@@ -172,10 +172,10 @@ FontFileType::FontFileFormat DetectOutlineType(const std::string& fileName)
     bool hasCffTable = false;
     size_t tableDirOffset = HEADER_MIN_SIZE;
     size_t maxPossibleTables = (bufferSize - HEADER_MIN_SIZE) / TABLE_DIR_ENTRY_SIZE;
-    if (numTables > static_cast<int>(maxPossibleTables)) {
-        numTables = static_cast<int>(maxPossibleTables);
+    if (static_cast<size_t>(numTables) > maxPossibleTables) {
+        numTables = static_cast<uint16_t>(maxPossibleTables);
     }
-    for (int i = 0; i < numTables; i++) {
+    for (uint16_t i = 0; i < numTables; i++) {
         if (tableDirOffset + TABLE_DIR_ENTRY_SIZE > bufferSize) {
             break;
         }
