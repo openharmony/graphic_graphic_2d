@@ -356,8 +356,8 @@ protected:
     static std::unordered_map<NodeId, Drawing::Matrix> unobscuredUECMatrixMap_;
     std::shared_ptr<std::unordered_set<NodeId>> UECChildrenIds_ = std::make_shared<std::unordered_set<NodeId>>();
     std::unique_ptr<RSRenderParams> uifirstRenderParams_;
-    std::vector<Drawing::RecordingCanvas::DrawFunc> uifirstDrawCmdList_;
-    std::vector<Drawing::RecordingCanvas::DrawFunc> drawCmdList_;
+    RSDrawable::DrawList uifirstDrawCmdList_;
+    RSDrawable::DrawList drawCmdList_;
     std::vector<FilterNodeInfo> filterInfoVec_;
     std::unordered_map<NodeId, Drawing::Matrix> withoutFilterMatrixMap_;
     size_t filterNodeSize_ = 0;

@@ -2890,7 +2890,7 @@ void RSRenderNode::DrawPropertyDrawable(RSDrawableSlot slot, RSPaintFilterCanvas
         // non-recording canvas, draw directly
         Drawing::Rect rect = { 0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight() };
         drawablePtr->OnSync();
-        drawablePtr->CreateDrawFunc()(&canvas, &rect);
+        drawablePtr->OnDraw(&canvas, &rect);
         return;
     }
 
@@ -2917,7 +2917,7 @@ void RSRenderNode::DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlo
             auto ptr = findMapValueRef(drawVec, i);
             if (ptr) {
                 ptr->OnSync();
-                ptr->CreateDrawFunc()(&canvas, &rect);
+                ptr->OnDraw(&canvas, &rect);
             }
         };
         return;
@@ -3308,7 +3308,7 @@ void RSRenderNode::UpdateDisplayList()
         auto endIndex = static_cast<int8_t>(end);
         for (; index <= endIndex; ++index) {
             if (const auto& drawable = findMapValueRef(GetDrawableVec(__func__), index)) {
-                stagingDrawCmdList_.emplace_back(drawable->CreateDrawFunc());
+                stagingDrawCmdList_.emplace_back(drawable);
             }
         }
         // If the end drawable exist, return its index, otherwise return -1

@@ -47,7 +47,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -63,7 +63,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -79,7 +79,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -95,7 +95,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -125,7 +125,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -141,7 +141,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -173,7 +173,7 @@ public:
     void PostUpdate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
     bool GetEnableEDR() const override
     {
@@ -196,7 +196,7 @@ public:
     void OnSync() override;
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
     bool GetEnableEDR() const override
     {
         return stagingEnableEDREffect_;
@@ -310,7 +310,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
     void SetPixelStretch(const std::optional<Vector4f>& pixelStretch);
     const std::optional<Vector4f>& GetPixelStretch() const;
 

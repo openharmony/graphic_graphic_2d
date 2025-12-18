@@ -134,44 +134,41 @@ void RSShadowDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSShadowDrawable::CreateDrawFunc() const
+void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSShadowDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (ptr->geContainer_) {
-            if (canvas && rect) {
-                auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-                geRender->DrawShaderEffect(*canvas, *ptr->geContainer_, *rect);
-            }
-            return;
+    if (geContainer_) {
+        if (canvas && rect) {
+            auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+            geRender->DrawShaderEffect(*canvas, *geContainer_, *rect);
         }
+        return;
+    }
 
-        // skip shadow if cache is enabled
-        if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
-            ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
-            return;
-        }
+    // skip shadow if cache is enabled
+    if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
+        ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
+        return;
+    }
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSSHADOWDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSSHADOWDRAWABLE);
 #endif
-        Drawing::Path path = ptr->path_;
-        Color shadowColor = ptr->color_;
-        if (ptr->colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
-            shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path,
-                ptr->color_, ptr->colorStrategy_);
-        }
-        if (ROSEN_GNE(ptr->elevation_, 0.f)) {
-            RSPropertyDrawableUtils::DrawShadow(canvas, path, ptr->offsetX_, ptr->offsetY_,
-                ptr->elevation_, ptr->isFilled_, shadowColor);
-            return;
-        }
-        if (ROSEN_GNE(ptr->radius_, 0.f)) {
-            RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, ptr->offsetX_, ptr->offsetY_,
-                ptr->radius_, ptr->isFilled_, shadowColor);
-            return;
-        }
-    };
+    Drawing::Path path = path_;
+    Color shadowColor = color_;
+    if (colorStrategy_ != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
+        shadowColor = RSPropertyDrawableUtils::GetColorForShadowSyn(canvas, path,
+            color_, colorStrategy_);
+    }
+    if (ROSEN_GNE(elevation_, 0.f)) {
+        RSPropertyDrawableUtils::DrawShadow(canvas, path, offsetX_, offsetY_,
+            elevation_, isFilled_, shadowColor);
+        return;
+    }
+    if (ROSEN_GNE(radius_, 0.f)) {
+        RSPropertyDrawableUtils::DrawShadowMaskFilter(canvas, path, offsetX_, offsetY_,
+            radius_, isFilled_, shadowColor);
+        return;
+    }
 }
 
 RSDrawable::Ptr RSMaskDrawable::OnGenerate(const RSRenderNode& node)
@@ -358,25 +355,22 @@ void RSBackgroundNGShaderDrawable::OnSync()
     cornerRadius_ = stagingCornerRadius_;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSBackgroundNGShaderDrawable::CreateDrawFunc() const
+void RSBackgroundNGShaderDrawable::OnDraw(Drawing::Canvas *canvas, const Drawing::Rect *rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSBackgroundNGShaderDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
-            return;
-        }
-        auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
-        if (effectData != nullptr) {
-            ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
-                effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
-            ptr->visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
-        } else {
-            ptr->visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
-        }
-        ptr->visualEffectContainer_->UpdateCornerRadius(ptr->cornerRadius_);
-        geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
-    };
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
+        return;
+    }
+    auto effectData = RSNGRenderShaderHelper::GetCachedBlurImage(canvas);
+    if (effectData != nullptr) {
+        visualEffectContainer_->UpdateCachedBlurImage(canvas, effectData->cachedImage_,
+            effectData->cachedRect_.GetLeft(), effectData->cachedRect_.GetTop());
+        visualEffectContainer_->UpdateTotalMatrix(effectData->cachedMatrix_);
+    } else {
+        visualEffectContainer_->UpdateCachedBlurImage(canvas, nullptr, 0, 0);
+    }
+    visualEffectContainer_->UpdateCornerRadius(cornerRadius_);
+    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
 }
 
 RSBackgroundImageDrawable::~RSBackgroundImageDrawable()
@@ -561,38 +555,36 @@ void RSBackgroundImageDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSBackgroundImageDrawable::CreateDrawFunc() const
+void RSBackgroundImageDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
     auto ptr = std::const_pointer_cast<RSBackgroundImageDrawable>(
         std::static_pointer_cast<const RSBackgroundImageDrawable>(shared_from_this()));
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        Drawing::Brush brush;
-        canvas->AttachBrush(brush);
-        auto bgImage = ptr->bgImage_;
-        if (!bgImage) {
+    Drawing::Brush brush;
+    canvas->AttachBrush(brush);
+    auto bgImage = ptr->bgImage_;
+    if (!bgImage) {
+        return;
+    }
+    RSTagTracker tagTracker(canvas->GetGPUContext(),
+        RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDIMAGEDRAWABLE);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (bgImage->GetPixelMap() && !bgImage->GetPixelMap()->IsAstc() &&
+        bgImage->GetPixelMap()->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
+        if (!bgImage->GetPixelMap()->GetFd()) {
             return;
         }
-        RSTagTracker tagTracker(canvas->GetGPUContext(),
-            RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDIMAGEDRAWABLE);
-#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-        if (bgImage->GetPixelMap() && !bgImage->GetPixelMap()->IsAstc() &&
-            bgImage->GetPixelMap()->GetAllocatorType() == Media::AllocatorType::DMA_ALLOC) {
-            if (!bgImage->GetPixelMap()->GetFd()) {
-                return;
-            }
-            auto dmaImage =
-                ptr->MakeFromTextureForVK(*canvas, reinterpret_cast<SurfaceBuffer*>(bgImage->GetPixelMap()->GetFd()));
-            bgImage->SetDmaImage(dmaImage);
-        }
+        auto dmaImage =
+            ptr->MakeFromTextureForVK(*canvas, reinterpret_cast<SurfaceBuffer*>(bgImage->GetPixelMap()->GetFd()));
+        bgImage->SetDmaImage(dmaImage);
+    }
 #endif
 #if defined(ROSEN_OHOS) && (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL))
-        if (bgImage->GetPixelMap() && bgImage->GetPixelMap()->IsAstc()) {
-            ptr->SetCompressedDataForASTC();
-        }
+    if (bgImage->GetPixelMap() && bgImage->GetPixelMap()->IsAstc()) {
+        ptr->SetCompressedDataForASTC();
+    }
 #endif
-        bgImage->CanvasDrawImage(*canvas, ptr->boundsRect_, Drawing::SamplingOptions(), true);
-        canvas->DetachBrush();
-    };
+    bgImage->CanvasDrawImage(*canvas, ptr->boundsRect_, Drawing::SamplingOptions(), true);
+    canvas->DetachBrush();
 }
 
 RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
@@ -711,42 +703,39 @@ void RSBackgroundEffectDrawable::OnSync()
     RSFilterDrawable::OnSync();
 }
 
-Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() const
+void RSBackgroundEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSBackgroundEffectDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        Drawing::AutoCanvasRestore acr(*canvas, true);
-        if (rect) {
-            paintFilterCanvas->ClipRect(*rect);
-        }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    Drawing::AutoCanvasRestore acr(*canvas, true);
+    if (rect) {
+        paintFilterCanvas->ClipRect(*rect);
+    }
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas->GetGPUContext(),
-            RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDEFFECTDRAWABLE);
+    RSTagTracker tagTracker(canvas->GetGPUContext(),
+        RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDEFFECTDRAWABLE);
 #endif
-        RectF bound = rect != nullptr ?
-            RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF();
-        Drawing::RectI boundsRect = ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
-        if (boundsRect.IsEmpty()) {
-            RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect boundsRect is empty");
-            return;
+    RectF bound = rect != nullptr ?
+        RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF();
+    Drawing::RectI boundsRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
+    if (boundsRect.IsEmpty()) {
+        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect boundsRect is empty");
+        return;
+    }
+    if (rect) {
+        Drawing::Rect snapshotRect = renderRelativeRectInfo_ != nullptr ?
+            GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound) : *rect;
+        Drawing::Rect drawRect = renderRelativeRectInfo_ != nullptr ?
+            GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound) : *rect;
+        RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
+        auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+        if (filter) {
+            filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
+                snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
         }
-        if (rect) {
-            Drawing::Rect snapshotRect = ptr->renderRelativeRectInfo_ != nullptr ?
-                ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound) : *rect;
-            Drawing::Rect drawRect = ptr->renderRelativeRectInfo_ != nullptr ?
-                ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound) : *rect;
-            RectF snapshotRelativeRect = ptr->GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
-            auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-            if (filter) {
-                filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
-                    snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
-            }
-        }
-        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
-        RSPropertyDrawableUtils::DrawBackgroundEffect(
-            paintFilterCanvas, ptr->filter_, ptr->cacheManager_, boundsRect);
-    };
+    }
+    RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", renderNodeId_);
+    RSPropertyDrawableUtils::DrawBackgroundEffect(
+        paintFilterCanvas, filter_, cacheManager_, boundsRect);
 }
 
 Drawing::RectI RSBackgroundEffectDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
@@ -816,65 +805,62 @@ void RSUseEffectDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSUseEffectDrawable::CreateDrawFunc() const
+void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSUseEffectDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (!(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
-            return;
-        }
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        if (paintFilterCanvas == nullptr) {
-            return;
-        }
+    if (!(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_)) {
+        return;
+    }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (paintFilterCanvas == nullptr) {
+        return;
+    }
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
-            RSTagTracker::SOURCETYPE::SOURCE_RSUSEEFFECTDRAWABLE);
+    RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
+        RSTagTracker::SOURCETYPE::SOURCE_RSUSEEFFECTDRAWABLE);
 #endif
-        if (ptr->useEffectType_ == UseEffectType::BEHIND_WINDOW &&
-            (paintFilterCanvas->GetIsWindowFreezeCapture() || paintFilterCanvas->GetIsDrawingCache())) {
-            RS_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%d, "
-                "DrawingCache:%d, CacheData_valid:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
-                paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetCacheBehindWindowData() != nullptr,
-                paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
-            if (paintFilterCanvas->GetIsDrawingCache() && !paintFilterCanvas->GetCacheBehindWindowData()) {
-                return;
-            }
-            paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+    if (useEffectType_ == UseEffectType::BEHIND_WINDOW &&
+        (paintFilterCanvas->GetIsWindowFreezeCapture() || paintFilterCanvas->GetIsDrawingCache())) {
+        RS_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%d, "
+            "DrawingCache:%d, CacheData_valid:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
+            paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetCacheBehindWindowData() != nullptr,
+            paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());
+        if (paintFilterCanvas->GetIsDrawingCache() && !paintFilterCanvas->GetCacheBehindWindowData()) {
             return;
         }
-        const auto& effectData = paintFilterCanvas->GetEffectData();
-        if (ptr->useEffectType_ != UseEffectType::BEHIND_WINDOW &&
-            (effectData == nullptr || effectData->cachedImage_ == nullptr)) {
-            ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
-            if (paintFilterCanvas->GetIsParallelCanvas()) {
-                ROSEN_LOGE("RSPropertyDrawableUtils::DrawUseEffect is parallel canvas, disable fallback");
-                return;
-            }
-            auto drawable = ptr->effectRenderNodeDrawableWeakRef_.lock();
-            if (!drawable) {
-                return;
-            }
-            RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Fallback");
-            RSAutoCanvasRestore arc(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kEnv);
-            bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
-            paintFilterCanvas->SetDisableFilterCache(true);
-            int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
-            drawable->DrawImpl(*paintFilterCanvas, *rect, index);
-            paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
-            if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-                RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
-                return;
-            }
-            RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, ptr->useEffectType_);
+        paintFilterCanvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        return;
+    }
+    const auto& effectData = paintFilterCanvas->GetEffectData();
+    if (useEffectType_ != UseEffectType::BEHIND_WINDOW &&
+        (effectData == nullptr || effectData->cachedImage_ == nullptr)) {
+        ROSEN_LOGD("RSPropertyDrawableUtils::DrawUseEffect effectData null, try to generate.");
+        if (paintFilterCanvas->GetIsParallelCanvas()) {
+            ROSEN_LOGE("RSPropertyDrawableUtils::DrawUseEffect is parallel canvas, disable fallback");
             return;
         }
+        auto drawable = effectRenderNodeDrawableWeakRef_.lock();
+        if (!drawable) {
+            return;
+        }
+        RS_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect Fallback");
+        RSAutoCanvasRestore arc(paintFilterCanvas, RSPaintFilterCanvas::SaveType::kEnv);
+        bool disableFilterCache = paintFilterCanvas->GetDisableFilterCache();
+        paintFilterCanvas->SetDisableFilterCache(true);
+        int8_t index = drawable->drawCmdIndex_.backgroundFilterIndex_;
+        drawable->DrawImpl(*paintFilterCanvas, *rect, index);
+        paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
         if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
             RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
             return;
         }
-        RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, ptr->useEffectType_);
-    };
+        RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, useEffectType_);
+        return;
+    }
+    if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
+        RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
+        return;
+    }
+    RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, useEffectType_);
 }
 
 RSDrawable::Ptr RSDynamicLightUpDrawable::OnGenerate(const RSRenderNode& node)
@@ -912,28 +898,25 @@ void RSDynamicLightUpDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSDynamicLightUpDrawable::CreateDrawFunc() const
+void RSDynamicLightUpDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSDynamicLightUpDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas->GetUICapture()) {
-            return;
-        }
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (canvas->GetUICapture()) {
+        return;
+    }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
-            RSTagTracker::SOURCETYPE::SOURCE_RSDYNAMICLIGHTUPDRAWABLE);
+    RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
+        RSTagTracker::SOURCETYPE::SOURCE_RSDYNAMICLIGHTUPDRAWABLE);
 #endif
-        auto alpha = paintFilterCanvas->GetAlpha();
-        auto blender = RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(
-            ptr->dynamicLightUpRate_, ptr->dynamicLightUpDeg_, alpha);
-        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
-            "RSDynamicLightUpDrawable::DrawDynamicLightUp, rate: %f, degree: %f, bounds: %s", ptr->dynamicLightUpRate_,
-            ptr->dynamicLightUpDeg_, rect->ToString().c_str());
-        Drawing::Brush brush;
-        brush.SetBlender(blender);
-        paintFilterCanvas->DrawBackground(brush);
-    };
+    auto alpha = paintFilterCanvas->GetAlpha();
+    auto blender = RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(
+        dynamicLightUpRate_, dynamicLightUpDeg_, alpha);
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO,
+        "RSDynamicLightUpDrawable::DrawDynamicLightUp, rate: %f, degree: %f, bounds: %s", dynamicLightUpRate_,
+        dynamicLightUpDeg_, rect->ToString().c_str());
+    Drawing::Brush brush;
+    brush.SetBlender(blender);
+    paintFilterCanvas->DrawBackground(brush);
 }
 
 std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBlender(

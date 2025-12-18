@@ -98,10 +98,7 @@ public:
     {
         return true;
     }
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override
-    {
-        return nullptr;
-    }
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override {}
     void OnSync() override
     {
         return;
