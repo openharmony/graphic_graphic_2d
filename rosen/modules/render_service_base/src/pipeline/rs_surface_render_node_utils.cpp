@@ -18,19 +18,22 @@
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
 
+#undef LOG_TAG
+#define LOG_TAG "RSSurfaceRenderNodeUtils"
+
 namespace OHOS {
 namespace Rosen {
 
 bool RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(const RSSurfaceRenderNode& hwcNode, const RectI& rect)
 {
     if (!hwcNode.IsHardwareEnabledType()) {
-        ROSEN_LOGD("RSSurfaceRenderNode::IntersectHwcDamageWith: not hardware enabled type.");
+        ROSEN_LOGD("IntersectHwcDamageWith: not hardware enabled type.");
         return false;
     }
 
     auto surfaceHandler = hwcNode.GetRSSurfaceHandler();
     if (!surfaceHandler || !surfaceHandler->IsCurrentFrameBufferConsumed()) {
-        ROSEN_LOGD("RSSurfaceRenderNode::IntersectHwcDamageWith: no buffer or the buffer has not been consumed.");
+        ROSEN_LOGD("IntersectHwcDamageWith: no buffer or the buffer has not been consumed.");
         return false;
     }
 
@@ -43,7 +46,8 @@ bool RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(const RSSurfaceRenderNode&
     RectF realRect = RectF(region.left_, region.top_, region.width_, region.height_);
 #endif
     auto dirtyRect = geoPtr->MapRect(realRect, hwcNode.GetBufferRelMatrix());
-    RS_OPTIONAL_TRACE_FMT("RSSurfaceRenderNode::IntersectHwcDamageWith: dirtyRect: [%d,%d,%d,%d] rect: [%d,%d,%d,%d]",
+    RS_OPTIONAL_TRACE_FMT("RSSurfaceRenderNodeUtils::IntersectHwcDamageWith: node:[name: %s, id: %" PRIu64 "], "
+        "dirtyRect: [%d,%d,%d,%d] rect: [%d,%d,%d,%d]", hwcNode.GetName().c_str(), hwcNode.GetId(),
         dirtyRect.GetLeft(), dirtyRect.GetTop(), dirtyRect.GetWidth(), dirtyRect.GetHeight(),
         rect.GetLeft(), rect.GetTop(), rect.GetWidth(), rect.GetHeight());
     return dirtyRect.Intersect(rect);

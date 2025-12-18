@@ -3956,8 +3956,7 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if ((childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) &&
-         !childNode.GetOldDirtyInSurface().IsEmpty()) {
+    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();

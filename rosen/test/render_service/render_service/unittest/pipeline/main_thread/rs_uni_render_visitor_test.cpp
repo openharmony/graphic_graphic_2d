@@ -3829,7 +3829,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
     parent->AddChild(node);
     node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_FALSE(parent->ChildHasVisibleEffect());
+    EXPECT_TRUE(parent->ChildHasVisibleEffect());
 }
 
 /**
@@ -3841,30 +3841,32 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
 HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo004, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
     constexpr NodeId nodeId = 1;
     constexpr NodeId parentNodeId = 2;
     constexpr NodeId childNodeId = 3;
+    constexpr NodeId nodeId2 = 4;
     auto node = std::make_shared<RSRenderNode>(nodeId);
-    ASSERT_NE(node, nullptr);
+    auto node2 = std::make_shared<RSRenderNode>(nodeId2);
     auto parent = std::make_shared<RSRenderNode>(parentNodeId);
-    ASSERT_NE(parent, nullptr);
     auto child = std::make_shared<RSRenderNode>(childNodeId);
-    ASSERT_NE(child, nullptr);
     node->InitRenderParams();
+    node2->InitRenderParams();
     parent->InitRenderParams();
     child->InitRenderParams();
     node->AddChild(child);
+    parent->AddChild(node2);
     parent->AddChild(node);
     child->GetMutableRenderProperties().GetEffect().useEffect_ = true;
     child->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    node2->childHasVisibleEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*child);
     rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node2);
     EXPECT_TRUE(node->ChildHasVisibleEffect());
     EXPECT_EQ(node->GetVisibleEffectChild().count(childNodeId), 1);
     EXPECT_TRUE(parent->ChildHasVisibleEffect());
-    EXPECT_EQ(parent->GetVisibleEffectChild().count(nodeId), 0);
+    EXPECT_EQ(parent->GetVisibleEffectChild().count(nodeId), 1);
     EXPECT_EQ(parent->GetVisibleEffectChild().count(childNodeId), 1);
 }
 
@@ -6028,6 +6030,47 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
     RSDirtyRegionManager dirtyManager;
     rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+}
+
+/*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache004
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache
+ * @tc.type: FUNC
+ * @tc.require: issues21186
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = node;
+    node->InitRenderParams();
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
+    canvasNode->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(2);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    canvasNode->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(2);
+
+    EXPECT_FALSE(effectNode->ChildHasVisibleEffectWithoutEmptyRect());
 }
 
 /*

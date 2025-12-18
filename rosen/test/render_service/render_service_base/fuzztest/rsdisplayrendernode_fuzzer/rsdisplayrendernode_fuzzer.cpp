@@ -92,6 +92,59 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsScreenRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     return true;
 }
+bool DoOnSync(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<uint64_t>();
+    ScreenId screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
+    rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    rsScreenRenderNode.GetScreenId();
+    rsScreenRenderNode.GetFingerprint();
+    rsScreenRenderNode.GetType();
+    rsScreenRenderNode.GetCompositeType();
+    rsScreenRenderNode.IsForceSoftComposite();
+    rsScreenRenderNode.ResetMirrorSource();
+    rsScreenRenderNode.GetMirrorSource();
+    rsScreenRenderNode.IsParallelDisplayNode();
+    rsScreenRenderNode.GetDirtyManager();
+    rsScreenRenderNode.ClearCurrentSurfacePos();
+    rsScreenRenderNode.GetSurfaceChangedRects();
+    rsScreenRenderNode.GetCurAllSurfaces();
+    rsScreenRenderNode.UpdateRenderParams();
+    rsScreenRenderNode.UpdatePartialRenderParams();
+    return true;
+}
+bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    NodeId id = GetData<uint64_t>();
+    ScreenId screenId = GetData<uint64_t>();
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
+    rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
+    auto rsScreenRenderNodePtr = std::shared_ptr<RSScreenRenderNode>(&rsScreenRenderNode, [](RSScreenRenderNode*) {});
+    rsScreenRenderNode.renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenRenderNodePtr);
+    rsScreenRenderNode.SetIsOnTheTree(true);
+    rsScreenRenderNode.SetFingerprint(true);
+    rsScreenRenderNode.SetForceSoftComposite(true);
+    rsScreenRenderNode.SetIsParallelDisplayNode(true);
+    rsScreenRenderNode.GetCurAllSurfaces(true);
+    rsScreenRenderNode.GetLastFrameSurfacePos(id);
+    rsScreenRenderNode.GetCurrentFrameSurfacePos(id);
+    rsScreenRenderNode.GetInitMatrix();
+    rsScreenRenderNode.GetOffScreenCacheImgForCapture();
+    rsScreenRenderNode.GetDirtySurfaceNodeMap();
+    rsScreenRenderNode.OnSync();
+    return true;
+}
 
 bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
 {
@@ -205,6 +258,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 
     /* Run your code on data */
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
+    OHOS::Rosen::DoOnSync(data, size);
+    OHOS::Rosen::DoGetCurAllSurfaces(data, size);
     OHOS::Rosen::DoUpdateScreenRenderParams(data, size);
     OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data, size);
     OHOS::Rosen::DoIsZoomStateChange(data, size);

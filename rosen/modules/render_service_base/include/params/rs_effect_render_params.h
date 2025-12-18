@@ -28,8 +28,8 @@ public:
     void SetCacheValid(bool valid);
     bool GetCacheValid() const;
 
-    void SetHasEffectChildren(bool hasEffectChildren);
-    bool GetHasEffectChildren() const;
+    void SetHasEffectChildrenWithoutEmptyRect(bool hasEffectChildrenWithoutEmptyRect);
+    bool GetHasEffectChildrenWithoutEmptyRect() const;
 
     void SetEffectIntersectWithDRM(bool intersect);
     bool GetEffectIntersectWithDRM() const;
@@ -38,7 +38,7 @@ public:
 
 private:
     bool cacheValid_ = false;
-    bool hasEffectChildren_ = false;
+    bool hasEffectChildrenWithoutEmptyRect_ = false;
     bool isIntersectWithDRM_ = false;
     bool isDarkColorMode_ = false;
 };

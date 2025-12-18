@@ -208,7 +208,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUI
     drawable->drawCmdList_.emplace_back(drawFunc);
 
     RSEffectRenderParams params(nodeId);
-    params.SetHasEffectChildren(false);
+    params.SetHasEffectChildrenWithoutEmptyRect(false);
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
     EXPECT_NE(paintFilterCanvas.GetEffectData(), nullptr);
 }

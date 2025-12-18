@@ -1113,7 +1113,7 @@ protected:
     bool IsSelfDrawingNode() const;
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
-    bool lastFrameHasVisibleEffect_ = false;
+    bool lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
     bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     mutable bool isChildrenSorted_ = true;

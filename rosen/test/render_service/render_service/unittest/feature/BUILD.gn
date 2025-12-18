@@ -1009,6 +1009,7 @@ ohos_unittest("RSUniHwcComputeUtilTest") {
   sources = [
     "$graphic_2d_root/rosen/modules/render_service_base/src/feature/hdr/rs_colorspace_util.cpp",
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/core/feature/hwc/rs_uni_hwc_compute_util.cpp",
     "hwc/rs_uni_hwc_compute_util_test.cpp",
   ]
   deps = [

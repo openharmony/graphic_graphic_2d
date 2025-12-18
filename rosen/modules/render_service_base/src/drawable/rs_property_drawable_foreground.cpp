@@ -1102,8 +1102,8 @@ static constexpr char SDF_CONTENT_LIGHT_SHADER_STRING[](R"(
     mediump vec4 main(vec2 coord)
     {
         vec4 lightColor = Light.eval(coord);
-        vec4 sdfColor = sdf.eval(coord);
-        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor.a)) * mix(1.0, -sdfColor.a, step(-1.0, sdfColor.a));
+        float sdfColor = sdf.eval(coord).a;
+        return lightColor * mix(1.0, 0.0, step(0.0, sdfColor)) * mix(1.0, -sdfColor, step(-1.0, sdfColor));
     }
 )");
 
@@ -1115,8 +1115,10 @@ static constexpr char SDF_BORDER_LIGHT_SHADER_STRING[](R"(
     mediump vec4 main(vec2 coord)
     {
         vec4 lightColor = Light.eval(coord);
-        vec4 sdfColor = sdf.eval(coord);
-        return lightColor * clamp((borderWidth * 0.5 - abs(sdfColor.a + borderWidth * 0.5)), 0.0, 1.0);
+        float sdfColor = sdf.eval(coord).a;
+        float halfBorderWidth = borderWidth * 0.5;
+        sdfColor += min(halfBorderWidth, step(halfBorderWidth, -sdfColor));
+        return lightColor * clamp((halfBorderWidth - abs(sdfColor + halfBorderWidth)), 0.0, 1.0);
     }
 )");
 }
