@@ -231,7 +231,7 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface003, TestSize.Level1)
 {
     RSInterfaces& instance = RSInterfaces::GetInstance();
     std::vector<char> content;
-    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    LoadBufferFromFile("/system/fonts/NotoSansCJK-Regular.ttc", content);
     auto typeface =
         Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
     ASSERT_NE(typeface, nullptr);
