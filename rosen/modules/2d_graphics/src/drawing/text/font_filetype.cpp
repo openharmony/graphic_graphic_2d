@@ -169,6 +169,7 @@ FontFileType::FontFileFormat DetectOutlineType(const std::string& fileName)
         return FontFileType::FontFileFormat::UNKNOWN;
     }
     bool hasGlyfTable = false;
+    bool hasCffTable = false;
     size_t tableDirOffset = HEADER_MIN_SIZE;
     size_t maxPossibleTables = (bufferSize - HEADER_MIN_SIZE) / TABLE_DIR_ENTRY_SIZE;
     if (numTables > static_cast<int>(maxPossibleTables)) {
