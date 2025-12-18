@@ -131,8 +131,7 @@ bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
     RSScreenRenderNode rsScreenRenderNode(id, screenId, context);
     rsScreenRenderNode.stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(id);
     auto rsScreenRenderNodePtr = std::shared_ptr<RSScreenRenderNode>(&rsScreenRenderNode, [](RSScreenRenderNode*) {});
-    auto rsRenderNode = std::static_pointer_cast<const RSRenderNode>(rsScreenRenderNodePtr);
-    rsScreenRenderNode.renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsRenderNode);
+    rsScreenRenderNode.renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenRenderNodePtr);
     rsScreenRenderNode.SetIsOnTheTree(true);
     rsScreenRenderNode.SetFingerprint(true);
     rsScreenRenderNode.SetForceSoftComposite(true);
