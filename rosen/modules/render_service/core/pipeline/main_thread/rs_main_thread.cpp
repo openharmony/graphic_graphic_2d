@@ -1553,7 +1553,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             auto parentNode = surfaceNode->GetParent().lock();
             auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
-                parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen()),);
+                parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
