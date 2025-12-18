@@ -989,8 +989,10 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
-        drawingFilter, node.GetId());
+    if (!RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(), drawingFilter,
+        node.GetId())) {
+        return false;
+    }
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;

@@ -70,21 +70,25 @@ void RSUnionRenderNode::ProcessSDFShape()
 {
     RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, visibleUnionChildren_[%lu], UnionSpacing[%f]",
         visibleUnionChildren_.size(), GetRenderProperties().GetUnionSpacing());
-    if (visibleUnionChildren_.empty()) {
-        return;
-    }
-    std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
     std::shared_ptr<RSNGRenderShapeBase> root;
-    if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f)) {
-        root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
-            SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
-        GenerateSDFLeaf<RSNGRenderSDFSmoothUnionOpShape, SDFSmoothUnionOpShapeShapeXRenderTag,
-            SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
+    if (visibleUnionChildren_.empty()) {
+        if (GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
+            return;
+        }
+        root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
     } else {
-        root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
-            SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
-        GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
-            SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+        std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
+        if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f)) {
+            root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
+                SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFSmoothUnionOpShape, SDFSmoothUnionOpShapeShapeXRenderTag,
+                SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
+        } else {
+            root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
+                SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
+                SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+        }
     }
     GetMutableRenderProperties().SetSDFShape(root);
     UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
@@ -104,12 +108,10 @@ bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relat
         RS_LOGE("RSUnionRenderNode::GetChildRelativeMatrixToUnionNode unionAbsMatrix Invert fail");
         return false;
     }
-    auto childGeoPtr = child->GetRenderProperties().GetBoundsGeometry();
-    if (!childGeoPtr) {
-        RS_LOGE("RSUnionRenderNode::GetChildRelativeMatrixToUnionNode childGeoPtr GetBoundsGeometry fail");
+    if (!child->GetAbsMatrixReverse(*this, relativeMatrix)) {
+        RS_LOGE("RSUnionRenderNode::GetChildRelativeMatrixToUnionNode get child absMatrix fail");
         return false;
     }
-    relativeMatrix = childGeoPtr->GetAbsMatrix();
     relativeMatrix.PostConcat(invertUnionAbsMatrix);
     // GE need inverted matrix
     Drawing::Matrix invertMat;
