@@ -442,10 +442,8 @@ bool RSSurfaceCallbackManagerFuzzerTest(const uint8_t* data, size_t size)
     uint64_t uid = GetData<uint64_t>();
     RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(
         pid, uid, new (std::nothrow) RSDefaultSurfaceBufferCallback ({
-            .OnFinish = [](const FinishCallbackRet& ret) {
-            },
-            .OnAfterAcquireBuffer = [](const AfterAcquireBufferRet& ret) {
-            },
+            .OnFinish = [](const FinishCallbackRet& ret) {},
+            .OnAfterAcquireBuffer = [](const AfterAcquireBufferRet& ret) {},
         }));
     RSSurfaceBufferCallbackManager::Instance().RunSurfaceBufferCallback();
 
