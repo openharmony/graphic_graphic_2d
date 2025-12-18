@@ -1123,22 +1123,20 @@ void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerS
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        // RSHardwareThread::Instance().ScheduleTask([=]() {
-        //     screenManagerAgent_->SetScreenPowerStatus(id, status);
-        // }).wait();
-        // if (renderProcessManagerAgent_ == nullptr) {
-        //     RS_LOGE("%{public}s renderProcessManagerAgent_ is null", __func__);
-        // } else {
-        //     auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(id);
-        //     if (!serviceToRenderConn) {
-        //         RS_LOGE("%{public}s serviceToRenderConn is nullptr", __func__);
-        //     } else {
-        //         serviceToRenderConns->SetDiscardJankFrames(true);
-        //     }
-        // }
-        // HgmTaskHandleThread::Instance().PostTask([id, status]() {
-        //     HgmCore::Instance().NotifyScreenPowerStatus(id, status);
-        // });
+        screenManagerAgent_->SetScreenPowerStatus(id, status);
+        if (!renderProcessManagerAgent_) {
+            RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr.", __func__);
+        } else {
+            auto serviceToRenderConn = renderProcessManagerAgent_->GetServiceToRenderConn(id);
+            if (!serviceToRenderConn) {
+                RS_LOGE("%{public}s serviceToRenderConn is nullptr.", __func__);
+            } else {
+                serviceToRenderConn->SetDiscardJankFrames(true);
+            }
+        }
+        HgmTaskHandleThread::Instance().PostTask([id, status]() {
+            HgmCore::Instance().NotifyScreenPowerStatus(id, status);
+        });
 #endif
     } else {
         renderServiceAgent_->ScheduleTask(
