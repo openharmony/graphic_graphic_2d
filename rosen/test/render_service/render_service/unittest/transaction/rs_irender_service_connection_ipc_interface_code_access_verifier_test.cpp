@@ -240,7 +240,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExfusio
     ASSERT_EQ(verifier->IsStylusServiceCalling(callingCode), false);
     MockAccessTokenKit::MockAccessTokenKitRet(0);
     MockAccessTokenKit::MockTokenType(true);
-    MockAccesstokenKit::MockProcessName(EXFUSION_SERVICE_PROCESS_NAME);
+    MockAccessTokenKit::MockProcessName(EXFUSION_SERVICE_PROCESS_NAME);
     SSERT_EQ(verifier->IsStylusServiceCalling(callingCode), false);
     setuid(EXFUSION_UID);
     SSERT_EQ(verifier->IsStylusServiceCalling(callingCode), true);
@@ -248,7 +248,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExfusio
     ASSERT_EQ(verifier->IsStylusServiceCalling(callingCode), false);
     MockAccessTokenKit::MockAccessTokenKitRet(0);
     MockAccessTokenKit::MockTokenType(true);
-    MockAccesstokenKit::MockProcessName(EXFUSION_SERVICE_PROCESS_NAME);
+    MockAccessTokenKit::MockProcessName(EXFUSION_SERVICE_PROCESS_NAME);
     SSERT_EQ(verifier->IsStylusServiceCalling(callingCode), false);
     setuid(EXFUSION_UID);
     SSERT_EQ(verifier->IsStylusServiceCalling(callingCode), true);
