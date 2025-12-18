@@ -24,6 +24,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_render_pipeline_client.h"
 #include "ui/rs_canvas_node.h"
+#include "utils/typeface_map.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -196,8 +197,9 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface001, TestSize.Level1)
     RSTypefaceCache& typefaceCache = RSTypefaceCache::Instance();
     typefaceCache.typefaceHashCode_.emplace(globalUniqueId, 0);
     instance.RegisterTypeface(typeface);
+    EXPECT_NE(TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
     typeface = nullptr;
-    instance.RegisterTypeface(typeface);
+    EXPECT_EQ(instance.RegisterTypeface(typeface), -1);
     typefaceCache.typefaceHashCode_.clear();
 }
 
@@ -215,7 +217,8 @@ HWTEST_F(RSInterfacesTest, RegisterTypeface002, TestSize.Level1)
         Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
     ASSERT_NE(typeface, nullptr);
     int32_t result = instance.RegisterTypeface(typeface);
-    EXPECT_NE(result, -1);
+    EXPECT_EQ(result, typeface->GetFd());
+    EXPECT_NE(TypefaceMap::GetTypefaceByUniqueId(typeface->GetUniqueID()), nullptr);
     EXPECT_TRUE(instance.UnRegisterTypeface(typeface->GetHash()));
 }
 

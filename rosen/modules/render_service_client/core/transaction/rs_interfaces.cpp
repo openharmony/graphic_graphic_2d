@@ -455,6 +455,9 @@ int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
         }
         if (result != INVALID_FD) {
             TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+        } else {
+            RS_LOGE("RSInterfaces: Failed to register typeface, name: %{public}s hash: %{public}u",
+                tf->GetFamilyName().c_str(), tf->GetHash());
         }
         return result;
     }
