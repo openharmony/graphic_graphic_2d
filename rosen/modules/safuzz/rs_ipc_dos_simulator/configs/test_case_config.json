@@ -2760,5 +2760,33 @@
     "inputParams": "WriteUint64;WriteUint32;WriteUint32;WriteBool;WriteSurfaceBufferSptr",
     "writeInterfaceToken": true,
     "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "SET_LAYER_TOP_FOR_HARDWARE_COMPOSER_TEST_001",
+    "interfaceName": "SET_LAYER_TOP_FOR_HARDWARE_COMPOSER",
+    "inputParams": "WriteUint64;WriteBool;WriteUint32",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "CLEAR_SURFACE_WATERMARK_TEST_001",
+    "interfaceName": "CLEAR_SURFACE_WATERMARK",
+    "inputParams": "WriteInt32;WriteString",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "CLEAR_SURFACE_WATERMARK_FOR_NODES_TEST_001",
+    "interfaceName": "CLEAR_SURFACE_WATERMARK_FOR_NODES",
+    "inputParams": "WriteInt32;WriteString;WriteUint64Vector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "SET_SURFACE_WATERMARK_TEST_001",
+    "interfaceName": "SET_SURFACE_WATERMARK",
+    "inputParams": "WriteInt32;WriteString;WriteBool;WritePixelMapSharedPtr;WriteUint64Vector;WriteUint8",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC"
   }
 ]
