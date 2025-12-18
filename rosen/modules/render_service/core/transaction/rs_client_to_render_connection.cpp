@@ -208,101 +208,30 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
-    bool shouldDrop = RSUnmarshalThread::Instance().ReportTransactionDataStatistics(
-        callingPid, transactionData.get(), isNonSystemAppCalling);
-    if (shouldDrop) {
-        RS_LOGW("CommitTransaction data droped");
-        return ERR_INVALID_VALUE;
-    }
-    if (transactionData && transactionData->GetDVSyncUpdate()) {
-        mainThread_->DVSyncUpdate(transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
-    }
-    bool isProcessBySingleFrame = mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
-    if (isProcessBySingleFrame) {
-        mainThread_->ProcessDataBySingleFrameComposer(transactionData);
-    } else {
-        mainThread_->RecvRSTransactionData(transactionData);
-    }
-    return ERR_OK;
+    return renderPipelineAgent_->CommitTransaction(
+        callingPid, isTokenTypeValid, isNonSystemAppCalling, transactionData);
 }
 
 ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    if (task == nullptr || mainThread_ == nullptr) {
-        RS_LOGW("ExecuteSynchronousTask, task or main thread is null!");
-        return ERR_INVALID_VALUE;
-    }
-    // After a synchronous task times out, it will no longer be executed.
-    auto isTimeout = std::make_shared<bool>(0);
-    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
-    std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    mainThread_->ScheduleTask([task, mainThread = mainThread_, isTimeoutWeak] {
-        if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
-            return;
-        }
-        task->Process(mainThread->GetContext());
-    }).wait_for(span);
-    isTimeout.reset();
-    return ERR_OK;
+    return renderPipelineAgent_->ExecuteSynchronousTask(task);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
     bool& success)
 {
-    if (!mainThread_) {
-        success = false;
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto node = DisplayNodeCommandHelper::CreateWithConfigInRS(mainThread_->GetContext(), nodeId, displayNodeConfig);
-    if (node == nullptr) {
-        RS_LOGE("RSClientToRenderConnection::CreateDisplayNode fail");
-        success = false;
-        return ERR_INVALID_VALUE;
-    }
-    std::function<void()> registerNode = [this, nodeId, node, &displayNodeConfig]() {
-        if (mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = mainThread_->GetContext();
-        auto& nodeMap = context.GetMutableNodeMap();
-        nodeMap.RegisterRenderNode(node);
-        nodeMap.TraverseScreenNodes([&node, id = node->GetScreenId()](auto& screenNode) {
-            if (!screenNode || screenNode->GetScreenId() != id) {
-                return;
-            }
-            screenNode->AddChild(node);
-        });
-
-        DisplayNodeCommandHelper::SetDisplayMode(context, nodeId, displayNodeConfig);
-    };
-    mainThread_->PostSyncTask(registerNode);
-    success = true;
-    return ERR_OK;
+    return renderPipelineAgent_->CreateNode(displayNodeConfig, nodeId, success);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
 {
-    if (!mainThread_) {
-        success = false;
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    std::shared_ptr<RSSurfaceRenderNode> node =
-        SurfaceNodeCommandHelper::CreateWithConfigInRS(config, mainThread_->GetContext());
-    if (node == nullptr) {
-        RS_LOGE("RSClientToRenderConnection::CreateNode fail");
-        success = false;
-        return ERR_INVALID_VALUE;
-    }
-    std::function<void()> registerNode = [node, weakThis = wptr<RSClientToRenderConnection>(this)]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        connection->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
-    };
-    mainThread_->PostTask(registerNode);
-    success = true;
-    return ERR_OK;
+    return renderPipelineAgent_->CreateNode(config, success);
 }
 
 ErrCode RSClientToRenderConnection::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
@@ -316,19 +245,10 @@ ErrCode RSClientToRenderConnection::CreateNodeAndSurface(const RSSurfaceRenderNo
 
 ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
 {
-    if (!mainThread_) {
-        RS_LOGE("RegisterApplicationAgent mainThread_ is nullptr");
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto captureTask = [weakThis = wptr<RSClientToRenderConnection>(this), pid, app]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            RS_LOGE("RegisterApplicationAgent connection or mainThread_ is nullptr");
-            return;
-        }
-        connection->mainThread_->RegisterApplicationAgent(pid, app);
-    };
-    mainThread_->PostTask(captureTask);
+    renderPipelineAgent_->RegisterApplicationAgent(pid, app);
 
     app->AsObject()->AddDeathRecipient(applicationDeathRecipient_);
     return ERR_OK;
@@ -337,46 +257,21 @@ ErrCode RSClientToRenderConnection::RegisterApplicationAgent(uint32_t pid, sptr<
 ErrCode RSClientToRenderConnection::RegisterBufferClearListener(
     NodeId id, sptr<RSIBufferClearCallback> callback)
 {
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto registerBufferClearListener =
-        [id, callback, weakThis = wptr<RSClientToRenderConnection>(this)]() -> bool {
-            sptr<RSClientToRenderConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
-                return false;
-            }
-            if (auto node = connection->mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-                node->RegisterBufferClearListener(callback);
-                return true;
-            }
-            return false;
-    };
-    mainThread_->PostTask(registerBufferClearListener);
-    return ERR_OK;
+    return renderPipelineAgent_->RegisterBufferClearListener(id, callback);
 }
 
 ErrCode RSClientToRenderConnection::RegisterBufferAvailableListener(
     NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread)
 {
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto registerBufferAvailableListener =
-        [id, callback, isFromRenderThread, weakThis = wptr<RSClientToRenderConnection>(this)]() -> bool {
-            sptr<RSClientToRenderConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
-                return false;
-            }
-            if (auto node = connection->mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
-                node->RegisterBufferAvailableListener(callback, isFromRenderThread);
-                return true;
-            }
-            return false;
-    };
-    mainThread_->PostTask(registerBufferAvailableListener);
-    return ERR_OK;
+    return renderPipelineAgent_->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
 }
+
 ErrCode RSClientToRenderConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success)
 {
     if (!renderPipelineAgent_) {
@@ -389,19 +284,10 @@ ErrCode RSClientToRenderConnection::GetBitmap(NodeId id, Drawing::Bitmap& bitmap
 ErrCode RSClientToRenderConnection::SetGlobalDarkColorMode(bool isDark)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), isDark]() {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            RS_LOGE("SetGlobalDarkColorMode fail");
-            return;
-        }
-        connection->mainThread_->SetGlobalDarkColorMode(isDark);
-    };
-    mainThread_->PostTask(task);
-    return ERR_OK;
+    return renderPipelineAgent_->SetGlobalDarkColorMode(isDark);
 }
 
 ErrCode RSClientToRenderConnection::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
@@ -418,14 +304,12 @@ ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
     SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         success = false;
         return ERR_INVALID_VALUE;
     }
 #ifdef RS_ENABLE_GPU
-    RSUifirstManager::Instance().OnProcessAnimateScene(systemAnimatedScenes);
-    success = mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
-    return ERR_OK;
+    return renderPipelineAgent_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation, success);
 #else
     success = false;
     return ERR_INVALID_VALUE;
@@ -435,45 +319,19 @@ ErrCode RSClientToRenderConnection::SetSystemAnimatedScenes(
 ErrCode RSClientToRenderConnection::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), id, isEnabled, selfDrawingType,
-        dynamicHardwareEnable]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = connection->mainThread_->GetContext();
-        auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
-        if (node) {
-            node->SetHardwareEnabled(isEnabled, selfDrawingType, dynamicHardwareEnable);
-        }
-    };
-    mainThread_->PostTask(task);
-    return ERR_OK;
+    return renderPipelineAgent_->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
 }
 
 ErrCode RSClientToRenderConnection::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode)
 {
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         resCode = static_cast<int32_t>(RSInterfaceErrorCode::UNKNOWN_ERROR);
         return ERR_INVALID_VALUE;
     }
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), id, needHidePrivacyContent]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = connection->mainThread_->GetContext();
-        auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
-        if (node) {
-            node->SetHidePrivacyContent(needHidePrivacyContent);
-        }
-    };
-    mainThread_->PostTask(task);
-    resCode = static_cast<uint32_t>(RSInterfaceErrorCode::NO_ERROR);
-    return ERR_OK;
+    return renderPipelineAgent_->SetHidePrivacyContent(id, needHidePrivacyContent, resCode);
 }
 
 bool RSClientToRenderConnection::GetHighContrastTextState()
@@ -484,504 +342,144 @@ bool RSClientToRenderConnection::GetHighContrastTextState()
 
 ErrCode RSClientToRenderConnection::SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode)
 {
-    if (mainThread_ == nullptr) {
+    if (!renderPipelineAgent_) {
         repCode = INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
-    mainThread_->ScheduleTask(
-        [info, mainThread = mainThread_]() {
-            // don't use 'this' to get mainThread poninter
-            mainThread->SetFocusAppInfo(info);
-        }
-    );
-    repCode = SUCCESS;
-    return ERR_OK;
-}
-
-namespace {
-void TakeSurfaceCaptureForUiParallel(
-    NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
-    const Drawing::Rect& specifiedAreaRect)
-{
-#ifdef RS_ENABLE_GPU
-    RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
-        captureConfig.isSync ? "true" : "false");
-    std::function<void()> captureTask = [id, callback, captureConfig, specifiedAreaRect]() {
-        RSUiCaptureTaskParallel::Capture(id, callback, captureConfig, specifiedAreaRect);
-    };
-    auto& context = RSMainThread::Instance()->GetContext();
-    if (captureConfig.isSync) {
-        context.GetUiCaptureHelper().InsertUiCaptureCmdsExecutedFlag(id, false);
-        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
-        return;
-    }
-
-    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-    if (!node) {
-        RS_LOGE("TakeSurfaceCaptureForUiParallel node is nullptr");
-        callback->OnSurfaceCapture(id, captureConfig, nullptr);
-        return;
-    }
-
-    if (node->IsOnTheTree() && !node->IsDirty() && !node->IsSubTreeDirty()) {
-        RSMainThread::Instance()->PostTask(captureTask);
-    } else {
-        RSMainThread::Instance()->AddUiCaptureTask(id, captureTask);
-    }
-#endif
-}
-
-void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
-    const RSSurfaceCaptureConfig& captureConfig)
-{
-#ifdef RS_ENABLE_GPU
-    std::function<void()> offscreenRenderTask = [id, callback, captureConfig]() -> void {
-        RS_LOGD("RSClientToRenderConnection::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
-            " nodeId:[%{public}" PRIu64 "]", id);
-        ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSClientToRenderConnection::TakeSurfaceCaptureForUIWithUni");
-        std::shared_ptr<RSUniUICapture> rsUniUICapture = std::make_shared<RSUniUICapture>(id, captureConfig);
-        std::shared_ptr<Media::PixelMap> pixelmap = rsUniUICapture->TakeLocalCapture();
-        callback->OnSurfaceCapture(id, captureConfig, pixelmap.get());
-        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-    };
-    if (!captureConfig.isSync) {
-        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
-    } else {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode<RSRenderNode>(id);
-        if (node == nullptr || !node->GetCommandExecuted()) {
-            RSOffscreenRenderThread::Instance().InSertCaptureTask(id, offscreenRenderTask);
-            return;
-        }
-        RSOffscreenRenderThread::Instance().PostTask(offscreenRenderTask);
-        node->SetCommandExecuted(false);
-    }
-#endif
-}
+    return renderPipelineAgent_->SetFocusAppInfo(info, repCode);
 }
 
 void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
     const Drawing::Rect& specifiedAreaRect, RSSurfaceCapturePermissions permissions)
 {
-    if (!mainThread_) {
-        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
-        return;
-    }
-
-    std::function<void()> captureTask = [id, callback, captureConfig, blurParam, specifiedAreaRect,
-        screenCapturePermission = permissions.screenCapturePermission,
-        isSystemCalling = permissions.isSystemCalling,
-        selfCapture = permissions.selfCapture]() -> void {
-        RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCapture captureTask nodeId:[%" PRIu64 "]", id);
-        RS_LOGD("TakeSurfaceCapture captureTask begin nodeId:[%{public}" PRIu64 "]", id);
-        if (captureConfig.captureType == SurfaceCaptureType::UICAPTURE) {
-            // When the isSync flag in captureConfig is true, UI capture processes commands before capture.
-            // When the isSync flag in captureConfig is false, UI capture will check null node independently.
-            // Therefore, a null node is valid for UI capture.
-            auto uiCaptureHasPermission = selfCapture || isSystemCalling;
-            if (!uiCaptureHasPermission) {
-                RS_LOGE("TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
-                        "], isSystemCalling: %{public}u, selfCapture: %{public}u",
-                    id, isSystemCalling, selfCapture);
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-                return;
-            }
-            if (RSUniRenderJudgement::IsUniRender()) {
-                TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, specifiedAreaRect);
-            } else {
-                TakeSurfaceCaptureForUIWithUni(id, callback, captureConfig);
-            }
-            return;
-        }
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node == nullptr) {
-            RS_LOGE("TakeSurfaceCapture failed, node is nullptr");
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            return;
-        }
-        auto displayCaptureHasPermission = screenCapturePermission && isSystemCalling;
-        auto surfaceCaptureHasPermission = blurParam.isNeedBlur ? isSystemCalling : (selfCapture || isSystemCalling);
-        if ((node->GetType() == RSRenderNodeType::LOGICAL_DISPLAY_NODE && !displayCaptureHasPermission) ||
-            (node->GetType() == RSRenderNodeType::SURFACE_NODE && !surfaceCaptureHasPermission)) {
-            RS_LOGE("TakeSurfaceCapture failed, node type: %{public}u, "
-                "screenCapturePermission: %{public}u, isSystemCalling: %{public}u, selfCapture: %{public}u",
-                node->GetType(), screenCapturePermission, isSystemCalling, selfCapture);
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            return;
-        }
-        if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_DISABLED) {
-            RS_LOGD("RSClientToRenderConnection::TakeSurfaceCapture captureTaskInner nodeId:[%{public}" PRIu64 "]", id);
-            ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "RSClientToRenderConnection::TakeSurfaceCapture");
-            RSSurfaceCaptureTask task(id, captureConfig);
-            if (!task.Run(callback)) {
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            }
-            ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
-        } else {
-#ifdef RS_ENABLE_GPU
-            RSSurfaceCaptureParam captureParam;
-            captureParam.id = id;
-            captureParam.config = captureConfig;
-            captureParam.isSystemCalling = isSystemCalling;
-            captureParam.blurParam = blurParam;
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
-#endif
-        }
-    };
-    mainThread_->PostTask(captureTask);
+    renderPipelineAgent_->TakeSurfaceCapture(id, callback, captureConfig, blurParam, specifiedAreaRect, permissions);
 }
 
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSClientToRenderConnection::TakeSurfaceCaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig, RSSurfaceCapturePermissions permissions)
 {
-    RS_LOGI("TakeSurfaceCaptureSoloNode nodeId:[%{public}" PRIu64 "]", id);
-    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
-    std::function<void()> captureTask = [id, captureConfig, &pixelMapIdPairVector,
-        isSystemCalling = permissions.isSystemCalling,
-        selfCapture = permissions.selfCapture]() {
-        RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeSurfaceCaptureSoloNode captureTask"
-            " nodeId:[%" PRIu64 "]", id);
-        RS_LOGI("TakeSurfaceCaptureSoloNode captureTask begin "
-            "nodeId:[%{public}" PRIu64 "]", id);
-        auto uiCaptureHasPermission = selfCapture || isSystemCalling;
-        if (!uiCaptureHasPermission) {
-            RS_LOGE("TakeSurfaceCaptureSoloNode "
-                "uicapturesolo failed, nodeId:[%{public}" PRIu64
-                "], isSystemCalling: %{public}u, selfCapture: %{public}u", id, isSystemCalling, selfCapture);
-            return;
-        }
-        pixelMapIdPairVector = RSUiCaptureSoloTaskParallel::CaptureSoloNode(id, captureConfig);
-    };
-    RSMainThread::Instance()->PostSyncTask(captureTask);
-    return pixelMapIdPairVector;
+    return renderPipelineAgent_->TakeSurfaceCaptureSoloNode(id, captureConfig, permissions);
 }
 
 void RSClientToRenderConnection::TakeSelfSurfaceCapture(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    if (!mainThread_) {
-        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
-        return;
-    }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SELF_SURFACE_CAPTURE");
-    std::function<void()> selfCaptureTask = [id, callback, captureConfig, isSystemCalling]() -> void {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node == nullptr) {
-            RS_LOGE("TakeSelfSurfaceCapture failed, node is nullptr");
-            if (callback) {
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            }
-            return;
-        }
-        RSSurfaceCaptureParam captureParam;
-        captureParam.id = id;
-        captureParam.config = captureConfig;
-        captureParam.isSystemCalling = isSystemCalling;
-        captureParam.isSelfCapture = true;
-        RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
-    };
-    mainThread_->PostTask(selfCaptureTask);
+    renderPipelineAgent_->TakeSelfSurfaceCapture(id, callback, captureConfig, isSystemCalling);
 }
 
 ErrCode RSClientToRenderConnection::TakeSurfaceCaptureWithAllWindows(NodeId id,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     bool checkDrmAndSurfaceLock, RSSurfaceCapturePermissions permissions)
 {
-    bool hasPermission = permissions.screenCapturePermission && permissions.isSystemCalling;
-    if (!mainThread_ || !hasPermission) {
-        if (callback) {
-            callback->OnSurfaceCapture(id, captureConfig, nullptr);
-        }
-        RS_LOGE("%{public}s mainThread_ is nullptr or permission denied", __func__);
-        return ERR_PERMISSION_DENIED;
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
     }
-    RS_TRACE_NAME_FMT("TaskSurfaceCaptureWithAllWindows checkDrmAndSurfaceLock: %d", checkDrmAndSurfaceLock);
-    std::function<void()> takeSurfaceCaptureTask =
-        [id, checkDrmAndSurfaceLock, callback, captureConfig, hasPermission]() -> void {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
-            RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
-        if (!displayNode) {
-            if (callback) {
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            }
-            RS_LOGE("%{public}s failed, displayNode is nullptr", __func__);
-            return;
-        }
-        if (checkDrmAndSurfaceLock && RSMainThread::Instance()->HasDRMOrSurfaceLockLayer()) {
-            if (callback) {
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            }
-            RS_LOGE("%{public}s DRM or surfacelock layer exists", __func__);
-            return;
-        }
-        RSSurfaceCaptureParam captureParam;
-        captureParam.id = id;
-        captureParam.config = captureConfig;
-        captureParam.isSystemCalling = hasPermission;
-        captureParam.needCaptureSpecialLayer = hasPermission;
-        RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-        RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
-    };
-    mainThread_->PostTask(takeSurfaceCaptureTask);
-    return ERR_OK;
+    return renderPipelineAgent_->TakeSurfaceCaptureWithAllWindows(
+        id, callback, captureConfig, checkDrmAndSurfaceLock, permissions);
 }
 
 ErrCode RSClientToRenderConnection::FreezeScreen(NodeId id, bool isFreeze)
 {
-    if (!mainThread_) {
-        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
-        return ERR_INVALID_OPERATION;
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
     }
-    RS_TRACE_NAME_FMT("FreezeScreen isFreeze: %d", isFreeze);
-    std::function<void()> setScreenFreezeTask = [id, isFreeze]() -> void {
-        auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
-            RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id));
-        auto screenNode = displayNode == nullptr ? nullptr :
-            std::static_pointer_cast<RSScreenRenderNode>(displayNode->GetParent().lock());
-        if (!screenNode) {
-            RS_LOGE("%{public}s failed, screenNode is nullptr", __func__);
-            return;
-        }
-        screenNode->SetForceFreeze(isFreeze);
-
-        // cancel previous task, and unfreeze screen after 3 seconds in case unfreeze fail
-        std::string taskName(UNFREEZE_SCREEN_TASK_NAME + std::to_string(id));
-        RSMainThread::Instance()->RemoveTask(taskName);
-        if (!isFreeze) {
-            return;
-        }
-        auto unfreezeScreenTask = [screenId = screenNode->GetId()]() -> void {
-            RS_LOGW("unfreeze screen[%{public}" PRIu64 "] by timer", screenId);
-            RS_TRACE_NAME_FMT("UnfreezeScreen[%lld]", screenId);
-            auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(
-                RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(screenId));
-            if (screenNode) {
-                screenNode->SetForceFreeze(false);
-            }
-        };
-        RSMainThread::Instance()->PostTask(unfreezeScreenTask, taskName, MAX_FREEZE_SCREEN_TIME,
-            AppExecFwk::EventQueue::Priority::IMMEDIATE);
-    };
-    mainThread_->PostTask(setScreenFreezeTask);
-    return ERR_OK;
+    return renderPipelineAgent_->FreezeScreen(id, isFreeze);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)
 {
-    if (!mainThread_) {
-        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
         RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::SET_WINDOW_FREEZE_IMMEDIATELY");
-    std::function<void()> setWindowFreezeTask =
-        [id, isFreeze, callback, captureConfig, blurParam, isSystemCalling]() -> void {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(id);
-        if (node == nullptr) {
-            RS_LOGE("SetWindowFreezeImmediately failed, node is nullptr");
-            if (callback) {
-                callback->OnSurfaceCapture(id, captureConfig, nullptr);
-            }
-            return;
-        }
-        node->SetStaticCached(isFreeze);
-        if (isFreeze) {
-            RSSurfaceCaptureParam captureParam;
-            captureParam.id = id;
-            captureParam.config = captureConfig;
-            captureParam.isSystemCalling = isSystemCalling;
-            captureParam.isFreeze = isFreeze;
-            captureParam.blurParam = blurParam;
-            RSSurfaceCaptureTaskParallel::CheckModifiers(id, captureConfig.useCurWindow);
-            RSSurfaceCaptureTaskParallel::Capture(callback, captureParam);
-        } else {
-            RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(id);
-        }
-    };
-    mainThread_->PostTask(setWindowFreezeTask);
-    return ERR_OK;
+    return renderPipelineAgent_->SetWindowFreezeImmediately(
+        id, isFreeze, callback, captureConfig, blurParam, isSystemCalling);
 }
 
 void RSClientToRenderConnection::TakeUICaptureInRange(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
-    std::function<void()> captureTask = [id, callback, captureConfig]() -> void {
-        RS_TRACE_NAME_FMT("RSClientToRenderConnection::TakeUICaptureInRange captureTask nodeId:[%" PRIu64 "]", id);
-        RS_LOGD("RSClientToRenderConnection::TakeUICaptureInRange captureTask nodeId:[%{public}" PRIu64 "]", id);
-        TakeSurfaceCaptureForUiParallel(id, callback, captureConfig, {});
-    };
-    RSMainThread::Instance()->PostTask(captureTask);
+    renderPipelineAgent_->TakeUICaptureInRange(id, callback, captureConfig);
 }
 
 ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
     float positionZ, float positionW)
 {
-    if (mainThread_ == nullptr) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    // adapt video scene pointer
-    if (!RSPointerWindowManager::Instance().GetIsPointerEnableHwc()) {
-        // when has virtual screen or pointer is enable hwc, we can't skip
-        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(false);
-        RSMainThread::Instance()->RequestNextVSync();
-    } else {
-        RSPointerWindowManager::Instance().SetIsPointerCanSkipFrame(true);
-    }
-
-    RSPointerWindowManager::Instance().SetHwcNodeBounds(rsNodeId, positionX, positionY,
-        positionZ, positionW);
-    return ERR_OK;
+    return renderPipelineAgent_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
 }
 
 ErrCode RSClientToRenderConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
 {
-    if (mainThread_ == nullptr) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    HdrStatus hdrStatusRet = HdrStatus::NO_HDR;
-    StatusCode resCodeRet = StatusCode::SCREEN_NOT_FOUND;
-    auto isTimeout = std::make_shared<bool>(0);
-    std::weak_ptr<bool> isTimeoutWeak = isTimeout;
-    auto task = [id, mainThread = mainThread_, &resCodeRet, &hdrStatusRet, isTimeoutWeak]() {
-        if (isTimeoutWeak.expired()) {
-            RS_LOGE("GetScreenHDRStatus time out, ScreenId: [%{public}" PRIu64 "]", id);
-            return;
-        }
-        std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
-        auto& nodeMap = mainThread->GetContext().GetNodeMap();
-        nodeMap.TraverseScreenNodes([id, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
-            if (node && node->GetScreenId() == id) {
-                screenNode = node;
-            }
-        });
-        if (screenNode == nullptr) {
-            resCodeRet = StatusCode::SCREEN_NOT_FOUND;
-            return;
-        }
-        hdrStatusRet = screenNode->GetLastDisplayHDRStatus();
-        resCodeRet = StatusCode::SUCCESS;
-    };
-    auto span = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100)); // timeout 100 ms
-    if (mainThread_->ScheduleTask(task).wait_for(span) == std::future_status::timeout) {
-        isTimeout.reset();
-    }
-    if (isTimeoutWeak.expired() && resCodeRet != StatusCode::SUCCESS) {
-        return ERR_TIMED_OUT;
-    }
-    if (resCodeRet == StatusCode::SUCCESS) {
-        hdrStatus = hdrStatusRet;
-    }
-    resCode = resCodeRet;
-    return ERR_OK;
+    return renderPipelineAgent_->GetScreenHDRStatus(id, hdrStatus, resCode);
 }
 
 ErrCode RSClientToRenderConnection::DropFrameByPid(const std::vector<int32_t> pidList)
 {
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    mainThread_->ScheduleTask(
-        [weakThis = wptr<RSClientToRenderConnection>(this), pidList]() {
-            // don't use 'this' directly
-            sptr<RSClientToRenderConnection> connection = weakThis.promote();
-            if (connection == nullptr || connection->mainThread_ == nullptr) {
-                return;
-            }
-            connection->mainThread_->AddPidNeedDropFrame(pidList);
-        }
-    );
-    return ERR_OK;
+    return renderPipelineAgent_->DropFrameByPid(pidList);
 }
 
 ErrCode RSClientToRenderConnection::SetAncoForceDoDirect(bool direct, bool& res)
 {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (mainThread_ == nullptr) {
+    if (!renderPipelineAgent_) {
         res = false;
         return ERR_INVALID_VALUE;
     }
-    mainThread_->SetAncoForceDoDirect(direct);
-    res = true;
-    return ERR_OK;
+    return renderPipelineAgent_->SetAncoForceDoDirect(direct, res);
 }
 
 ErrCode RSClientToRenderConnection::RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
     sptr<RSISurfaceBufferCallback> callback)
 {
-    RSSurfaceBufferCallbackManager::Instance().RegisterSurfaceBufferCallback(pid, uid, callback);
-    return ERR_OK;
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->RegisterSurfaceBufferCallback(pid, uid, callback);
 }
 
 ErrCode RSClientToRenderConnection::UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid)
 {
-    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid, uid);
-    return ERR_OK;
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->UnregisterSurfaceBufferCallback(pid, uid);
 }
 
 ErrCode RSClientToRenderConnection::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder)
 {
-    if (mainThread_ == nullptr) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), nodeId, isTop, zOrder]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = connection->mainThread_->GetContext();
-        auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
-        if (surfaceNode == nullptr) {
-            return;
-        }
-        surfaceNode->SetLayerTop(isTop, false);
-        surfaceNode->SetTopLayerZOrder(zOrder);
-        // It can be displayed immediately after layer-top changed.
-        connection->mainThread_->SetDirtyFlag();
-        connection->mainThread_->RequestNextVSync();
-    };
-    mainThread_->PostTask(task);
-    return ERR_OK;
+    return renderPipelineAgent_->SetLayerTopForHWC(nodeId, isTop, zOrder);
 }
 
 void RSClientToRenderConnection::RegisterTransactionDataCallback(uint64_t token,
     uint64_t timeStamp, sptr<RSITransactionDataCallback> callback)
 {
-    RSTransactionDataCallbackManager::Instance().RegisterTransactionDataCallback(token, timeStamp, callback);
+    renderPipelineAgent_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
 ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value)
 {
-    if (!mainThread_) {
+    if (!renderPipelineAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), nodeId, value]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& nodeMap = connection->mainThread_->GetContext().GetNodeMap();
-        if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
-            auto displayNodeId = node->GetLogicalDisplayNodeId();
-            if (auto displayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId)) {
-                RS_LOGD("SetWindowContainer nodeId: %{public}" PRIu64 ", value: %{public}d",
-                    nodeId, value);
-                displayNode->SetWindowContainer(value ? node : nullptr);
-            } else {
-                RS_LOGE("SetWindowContainer displayNode is nullptr, nodeId: %{public}"
-                    PRIu64, displayNodeId);
-            }
-        } else {
-            RS_LOGE("SetWindowContainer node is nullptr, nodeId: %{public}" PRIu64,
-                nodeId);
-        }
-    };
-    mainThread_->PostTask(task);
-    return ERR_OK;
+    return renderPipelineAgent_->SetWindowContainer(nodeId, value);
 }
 
 void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
@@ -1003,37 +501,22 @@ void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t grav
 
 void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
 {
-    if (!mainThread_) {
-        return;
-    }
-    auto task = [id]() -> void {
-        RSUifirstManager::Instance().AddMarkedClearCacheNode(id);
-    };
-    mainThread_->PostTask(task);
+    renderPipelineAgent_->ClearUifirstCache(id);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSClientToRenderConnection::RegisterCanvasCallback(sptr<RSICanvasSurfaceBufferCallback> callback)
 {
-    RSCanvasDmaBufferCache::GetInstance().RegisterCanvasCallback(remotePid_, callback);
+    renderPipelineAgent_->RegisterCanvasCallback(remotePid_, callback);
 }
 
 int32_t RSClientToRenderConnection::SubmitCanvasPreAllocatedBuffer(
     NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex)
 {
-    if (mainThread_ == nullptr) {
-        return INVALID_ARGUMENTS;
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
     }
-    if (ExtractPid(nodeId) != remotePid_) {
-        RS_LOGE("SubmitCanvasPreAllocatedBuffer: Illegal pid, nodeId=%{public}" PRIu64 ", pid=%{public}d",
-            nodeId, remotePid_);
-        return INVALID_ARGUMENTS;
-    }
-    auto task = [nodeId, buffer, resetSurfaceIndex]() {
-        bool success = RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
-        return success ? SUCCESS : INVALID_ARGUMENTS;
-    };
-    return mainThread_->ScheduleTask(task).get();
+    return renderPipelineAgent_->SubmitCanvasPreAllocatedBuffer(remotePid_, nodeId, buffer, resetSurfaceIndex);
 }
 #endif
 } // namespace Rosen
