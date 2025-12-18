@@ -159,7 +159,7 @@ FontFileType::FontFileFormat DetectOutlineType(const std::string& fileName)
         return FontFileType::FontFileFormat::UNKNOWN;
     }
     size_t tableDirSize = static_cast<size_t>(numTables) * TABLE_DIR_ENTRY_SIZE;
-    if ((tableDirSize + HEADER_MIN_SIZE - SIZE_MAX) > 0) {
+    if ((tableDirSize + HEADER_MIN_SIZE) > SIZE_MAX) {
         return FontFileType::FontFileFormat::UNKNOWN;
     }
     size_t neededBufferSize = HEADER_MIN_SIZE + tableDirSize;
