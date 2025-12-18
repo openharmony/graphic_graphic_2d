@@ -13,33 +13,54 @@
  * limitations under the License.
  */
 
- #ifndef RS_RENDER_PIPELINE_H
- #define RS_RENDER_PIPELINE_H
+#ifndef RS_RENDER_PIPELINE_H
+#define RS_RENDER_PIPELINE_H
 
- #include <event_handler.h>
- #include <map>
- #include <unordered_set>
- #include "common/rs_common_def.h"
- #include "common/rs_thread_handler.h"
- #include "dirty_region/rs_optimize_canvas_dirty_collector.h"
- #include "ipc_callbacks/rs_iocclusion_change_callback.h"
- #include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
- #include "info_collection/rs_gpu_dirty_region_collection.h"
- #include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
- #include "info_collection/rs_hdr_collection.h"
- #include "info_collection/rs_layer_compose_collection.h"
- #include "irs_render_to_composer_connection.h"
- #include "memory/rs_memory_manager.h"
- #include "pipeline/image_enhance/image_enhance_manager.h"
- #include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
- #include "rs_render_composer_client.h"
- #include "vsync_receiver.h"
- #include "screen_manager/screen_types.h"
- #include "feature/hyper_graphic_manager/hgm_client.h"
- #include "memory/rs_memory_manager.h"
+#include <event_handler.h>
+#include <map>
+#include <unordered_set>
+#include "common/rs_common_def.h"
+#include "common/rs_thread_handler.h"
+#include "dirty_region/rs_optimize_canvas_dirty_collector.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_isurface_occlusion_change_callback.h"
+#include "info_collection/rs_gpu_dirty_region_collection.h"
+#include "info_collection/rs_hardware_compose_disabled_reason_collection.h"
+#include "info_collection/rs_hdr_collection.h"
+#include "info_collection/rs_layer_compose_collection.h"
+#include "irs_render_to_composer_connection.h"
+#include "memory/rs_memory_manager.h"
+#include "pipeline/image_enhance/image_enhance_manager.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h"
+#include "rs_render_composer_client.h"
+#include "vsync_receiver.h"
+#include "screen_manager/screen_types.h"
+#include "feature/hyper_graphic_manager/hgm_client.h"
+#include "memory/rs_memory_manager.h"
 
 namespace OHOS {
 namespace Rosen {
+namespace ST {
+template<typename Task>
+class ScheduledTask : public RefBase {
+public:
+    static auto Create(Task&& task)
+    {
+        sptr<ScheduledTask<Task>> t(new ScheduledTask(std::move(task)));
+        return std::make_pair(t, t->task_.get_future());
+    }
+
+    void Run() { task_(); }
+
+private:
+    explicit ScheduledTask(Task&& task) : task_(std::move(task)) {}
+    ~ScheduledTask() override = default;
+
+    using Return = std::invoke_result_t<Task>;
+    std::packaged_task<Return()> task_;
+};
+} // namespace ST
+
 class RSMainThread;
 class RSUniRenderThread;
 class RSBufferThread;
@@ -51,84 +72,30 @@ public:
         const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
 
+    void PostMainThreadTask(RSTaskMessage::RSTask task);
+
+    void PostUniRenderThreadTask(RSTaskMessage::RSTask task);
+
+    void PostMainThreadSyncTask(RSTaskMessage::RSTask task);
+
+    void PostUniRenderThreadSyncTask(RSTaskMessage::RSTask task);
+
+    void PostMainThreadTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+        AppExecFwk::EventQueue::Priority priority);
+
+    template<typename Task, typename Return = std::invoke_result_t<Task>>
+    std::future<Return> ScheduleMainThreadTask(Task&& task)
+    {
+        auto [scheduledTask, taskFuture] = ST::ScheduledTask<Task>::Create(std::move(task));
+        PostMainThreadTask([t(std::move(scheduledTask))]() { t->Run(); });
+        return std::move(taskFuture);
+    }
+
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const std::shared_ptr<RSRenderComposerClient>& composerClient);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     void OnScreenRefresh(ScreenId screenId);
-    void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
-
-#ifdef RS_ENABLE_OVERLAY_DISPLAY
-    ErrCode SetOverlayDisplayMode(int32_t mode);
-#endif
-    bool GetHighContrastTextState();
-    ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
-    ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
-    ErrCode SetDiscardJankFrames(bool discardJankFrames);
-    ErrCode ReportJankStats();
-    ErrCode ReportEventResponse(DataBaseRs info);
-    ErrCode ReportEventComplete(DataBaseRs info);
-    ErrCode ReportEventJankFrame(DataBaseRs info);
-    ErrCode ReportRsSceneJankStart(AppInfo info);
-    ErrCode ReportRsSceneJankEnd(AppInfo info);
-    ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
-        const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime);
-    ErrCode AvcodecVideoStop(const std::vector<uint64_t>& uniqueIdList,
-        const std::vector<std::string>& surfaceNameList, uint32_t fps);
-    ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
-        bool unobscured = false);
-    void DoDump(std::unordered_set<std::u16string> &argSets);
-    ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
-        std::shared_ptr<Media::PixelMap> &pixelMap);
-    void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
-
-    void RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
-    void RegisterSurfaceOcclusionChangeCallback(
-        NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints);
-    void UnRegisterSurfaceOcclusionChangeCallback(NodeId id);
-    ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
-    int32_t GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB);
-    ErrCode RepaintEverything() const;
-    bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface);
-    bool UnRegisterTypeface(uint64_t globalUniqueId);
-
-    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
-    void HandleDisplayPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
-    void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
-    ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
-    ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
-    ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics);
-    ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode);
-    float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
-    ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success);
-    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
-    void GetSurfaceRootNodeId(NodeId& windowNodeId);
-    ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
-    void SetBehindWindowFilterEnabled(bool enabled);
-    void SetVmaCacheStatus(bool flag);
-    bool GetBehindWindowFilterEnabled();
-    ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow);
-    void SetFreeMultiWindowStatus(bool enable);
-    int32_t RegisterSelfDrawingNodeRectChangeCallback(
-        pid_t remotePid, const RectConstraint& constraint, sptr<RSISelfDrawingNodeRectChangeCallback> callback);
-    int32_t UnRegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid);
-
-    uint32_t GetRealtimeRefreshRate(ScreenId screenId);
-    int32_t RegisterUIExtensionCallback(pid_t pid, uint64_t userId, sptr<RSIUIExtensionCallback> callback,
-        bool unobscured = false);
-    void SetShowRefreshRateEnabled(bool enabled, int32_t type);
-    ErrCode GetShowRefreshRateEnabled(bool& enable);
-    ErrCode SetGpuCrcDirtyEnabledPidList(const std::vector<int32_t>& pidList);
-
-    std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo();
-    GlobalDirtyRegionInfo GetGlobalDirtyRegionInfo();
-    LayerComposeInfo GetLayerComposeInfo();
-    HwcDisabledReasonInfos GetHwcDisabledReasonInfo();
-    ErrCode CleanResources(pid_t pid);
-    ErrCode GetHdrOnDuration(int64_t& hdrOnDuration);
-    ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
-    void SetScreenFrameGravity(ScreenId id, Gravity gravity);
-
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
 
