@@ -3920,7 +3920,7 @@ HWTEST_F(RSUniRenderVisitorTest, IsSubTreeOccluded002, TestSize.Level2)
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     ASSERT_NE(rsUniRenderVisitor, nullptr);
     rsUniRenderVisitor->isOcclusionEnabled_ = true;
-
+    node->isSubTreeDirty_ = true;
     ASSERT_EQ(rsUniRenderVisitor->IsSubTreeOccluded(*node), true);
     ASSERT_EQ(node->dirtyStatus_, RSRenderNode::NodeDirty::CLEAN);
 }
