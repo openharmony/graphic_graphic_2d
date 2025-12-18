@@ -66,7 +66,6 @@ static constexpr size_t MAX_SAFE_OFFSET = 0x7FFFFFFF;
 static constexpr size_t BYTE0_SHIFT = 24;  // First byte shift for big-endian conversion
 static constexpr size_t BYTE1_SHIFT = 16;  // Second byte shift for big-endian conversion
 static constexpr size_t BYTE2_SHIFT = 8;   // Third byte shift for big-endian conversion
-static constexpr size_t BYTE3_SHIFT = 0;   // Fourth byte shift for big-endian conversion
 static constexpr uint8_t SHIFT_4_U32 = 4;
 
 // Read a big-endian 32-bit unsigned integer from byte array
