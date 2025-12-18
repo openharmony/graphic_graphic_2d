@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
+#include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
@@ -30,7 +31,6 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_render_node_map.h"
-#include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_draw_cmd.h"
 #include "pipeline/rs_surface_handler.h"
