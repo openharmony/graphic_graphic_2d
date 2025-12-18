@@ -28,5 +28,6 @@ public:
 
 };
     
- } // namespace OHOS::Rosen
+} // namespace OHOS::Rosen
+#endif  // RENDER_SERVICE_MOCK_ACCESSTOKEN_KIT_H
  
