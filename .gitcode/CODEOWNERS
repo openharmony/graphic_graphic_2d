@@ -128,6 +128,24 @@ rosen/modules/render_service/core/feature/hwc/ @wh_qwe
 rosen/modules/render_service_base/include/hwc/ @wh_qwe
 rosen/modules/render_service_base/src/hwc/ @wh_qwe
 
+[LTPO]
+interfaces/inner_api/hyper_graphic_manager/ @kelinyang
+interfaces/kits/napi/graphic/hyper_graphic_manager/ @kelinyang
+rosen/modules/hyper_graphic_manager/ @kelinyang
+rosen/modules/render_service/core/feature/hyper_graphic_manager/ @kelinyang
+rosen/modules/render_service/core/pipeline/hardware_thread/ @kelinyang
+rosen/modules/render_service_base/include/feature/hyper_graphic_manager/ @kelinyang
+rosen/modules/render_service_base/include/ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback_ipc_interface_code.h @kelinyang
+rosen/modules/render_service_base/include/ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h @kelinyang
+rosen/modules/render_service_base/include/ipc_callbacks/rs_ihgm_config_change_callback_ipc_interface_code.h @kelinyang
+rosen/modules/render_service_base/include/ipc_callbacks/rs_ihgm_config_change_callback.h @kelinyang
+rosen/modules/render_service_base/include/transaction/rp_hgm_config_data.h @kelinyang
+rosen/modules/render_service_base/include/transaction/rs_hgm_config_data.h @kelinyang
+rosen/modules/render_service_base/src/feature/hyper_graphic_manager/ @kelinyang
+rosen/modules/render_service_base/src/transaction/rp_hgm_config_data.cpp @kelinyang
+rosen/modules/render_service_base/src/transaction/rs_hgm_config_data.cpp @kelinyang
+rosen/modules/render_service_client/core/feature/hyper_graphic_manager/ @kelinyang
+
 [screen manager]
 rosen/modules/render_service/core/screen_manager/ @pengquan1
 rosen/modules/render_service_base/include/screen_manager/ @pengquan1
