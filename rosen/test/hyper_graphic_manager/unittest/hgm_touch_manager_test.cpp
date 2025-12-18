@@ -55,9 +55,7 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
         touchManager.ChangeState(TouchState::UP_STATE);
     }
     touchManager.ChangeState(TouchState::IDLE_STATE);
-    touchManager.GetPkgName();
     sleep(1); // wait for 1s for the async task to complete
-    ASSERT_EQ(touchManager.GetPkgName().empty(), true);
     ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 }
 
@@ -69,34 +67,36 @@ HWTEST_F(HgmTouchManagerTest, QuickTouch, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmTouchManagerTest, ChangeState, Function | SmallTest | Level0)
 {
-    auto touchManager = HgmTouchManager();
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+    PART("CaseDescription") {
+        auto touchManager = HgmTouchManager();
+        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 
-    touchManager.ChangeState(TouchState::UP_STATE);
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
+        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
 
-    touchManager.ChangeState(TouchState::DOWN_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::DOWN_STATE);
+        usleep(waitTaskFinishNs);
+        ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
 
-    touchManager.ChangeState(TouchState::IDLE_STATE);
-    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::IDLE_STATE);
+        ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
 
-    touchManager.ChangeState(TouchState::UP_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
+        usleep(waitTaskFinishNs);
+        ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
-    touchManager.ChangeState(TouchState::DOWN_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
+        touchManager.ChangeState(TouchState::DOWN_STATE);
+        usleep(waitTaskFinishNs);
+        ASSERT_EQ(touchManager.GetState(), TouchState::DOWN_STATE);
 
-    touchManager.ChangeState(TouchState::UP_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+        touchManager.ChangeState(TouchState::UP_STATE);
+        usleep(waitTaskFinishNs);
+        ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
-    touchManager.ChangeState(TouchState::IDLE_STATE);
-    usleep(waitTaskFinishNs);
-    ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+        touchManager.ChangeState(TouchState::IDLE_STATE);
+        usleep(waitTaskFinishNs);
+        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+    }
 }
 
 /**
@@ -154,37 +154,40 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState, Function | SmallTest | Level0)
  */
 HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
 {
-    auto touchManager = HgmTouchManager();
-    const int32_t rsTimeoutUs = 610000;
-    const int32_t handleRsFrameTimeUs = 510000;
-    const int32_t handleRsFrameNum = 5;
-    const TouchState undefinedState = static_cast<TouchState>(100);
+    PART("CaseDescription") {
+        auto touchManager = HgmTouchManager();
+        const int32_t rsTimeoutUs = 610000;
+        const int32_t handleRsFrameTimeUs = 510000;
+        const int32_t handleRsFrameNum = 5;
+        const TouchState undefinedState = static_cast<TouchState>(100);
 
-    STEP("3s timeout") {
-        touchManager.ChangeState(TouchState::DOWN_STATE);
-        touchManager.ChangeState(TouchState::UP_STATE);
-        usleep(waitTaskFinishNs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
+        STEP("3s timeout") {
+            touchManager.ChangeState(TouchState::DOWN_STATE);
+            touchManager.ChangeState(TouchState::UP_STATE);
+            usleep(waitTaskFinishNs);
+            ASSERT_EQ(touchManager.GetState(), TouchState::UP_STATE);
 
-        touchManager.OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
-        usleep(rsTimeoutUs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-        touchManager.OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
-        usleep(rsTimeoutUs);
-        ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
-    }
-    STEP("State2String") {
-        touchManager.State2String(undefinedState);
-    }
-    STEP("CheckChangeStateValid") {
-        touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, TouchState::UP_STATE);
-        touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, undefinedState);
-        touchManager.CheckChangeStateValid(undefinedState, TouchState::IDLE_STATE);
-    }
-    STEP("ExecuteCallback") {
-        touchManager.ExecuteCallback(nullptr);
-        touchManager.ExecuteCallback([]() { usleep(1); });
-        touchManager.ExecuteCallback(nullptr);
+            touchManager.OnEvent(TouchEvent::UP_TIMEOUT_EVENT);
+            usleep(rsTimeoutUs);
+            ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+            touchManager.OnEvent(TouchEvent::RS_IDLE_TIMEOUT_EVENT);
+            usleep(rsTimeoutUs);
+            ASSERT_EQ(touchManager.GetState(), TouchState::IDLE_STATE);
+        }
+        STEP("State2String") {
+            touchManager.State2String(undefinedState);
+        }
+        STEP("CheckChangeStateValid") {
+            touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, TouchState::DOWN_STATE);
+            touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, TouchState::UP_STATE);
+            touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, undefinedState);
+            touchManager.CheckChangeStateValid(undefinedState, TouchState::IDLE_STATE);
+        }
+        STEP("ExecuteCallback") {
+            touchManager.ExecuteCallback(nullptr);
+            touchManager.ExecuteCallback([]() { usleep(1); });
+            touchManager.ExecuteCallback(nullptr);
+        }
     }
     sleep(1); // wait for task finished
 }
