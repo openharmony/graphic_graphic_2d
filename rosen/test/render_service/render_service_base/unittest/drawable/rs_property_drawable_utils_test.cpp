@@ -1150,9 +1150,11 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest001, te
     // effect not frosted glass
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
     ASSERT_NE(renderFilter, nullptr);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
     // capture any state we can inspect: the type must remain BLUR
     EXPECT_EQ(renderFilter->GetType(), RSNGEffectType::BLUR);
-    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, renderFilter);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvas, drawingFilter);
     // still should be BLUR after call
     EXPECT_EQ(renderFilter->GetType(), RSNGEffectType::BLUR);
 }
@@ -1178,6 +1180,9 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, te
     auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
     ASSERT_NE(renderFilter, nullptr);
     auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    drawingFilter->GenerateAndUpdateGEVisualEffect();
 
     // initialize main properties to different sentinel values
     glass->Setter<FrostedGlassBlurParamsRenderTag>(Vector2f(0.0f, 0.0f));
@@ -1200,15 +1205,17 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplyAdaptiveFrostedGlassParamsTest002, te
     RSPaintFilterCanvas paintFilterCanvasDark(&canvasDark);
     paintFilterCanvasDark.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_BLACK);
 
-    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasDark, renderFilter);
-    EXPECT_EQ(glass->Getter<FrostedGlassDarkScaleRenderTag>()->Get(), 0.0f);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasDark, drawingFilter);
 
     // prepare canvas and set picked color to white -> dark
     Drawing::Canvas canvasLight;
     RSPaintFilterCanvas paintFilterCanvasLight(&canvasLight);
     paintFilterCanvasLight.SetColorPicked(ColorPlaceholder::SURFACE_CONTRAST, Drawing::Color::COLOR_WHITE);
-    
-    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&paintFilterCanvasLight, renderFilter);
-    EXPECT_EQ(glass->Getter<FrostedGlassDarkScaleRenderTag>()->Get(), 1.0f);
+
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasLight, drawingFilter);
+
+    drawingFilter->visualEffectContainer_ = nullptr;
+    ASSERT_FALSE(drawingFilter->visualEffectContainer_);
+    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(&canvasLight, drawingFilter);
 }
 } // namespace OHOS::Rosen

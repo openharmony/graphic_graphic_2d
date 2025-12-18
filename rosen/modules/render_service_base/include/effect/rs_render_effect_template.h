@@ -48,16 +48,6 @@ public:
         }
         UpdateVisualEffectParamImpl(*geFilter, Tag::NAME, propTag.value_->Get());
     }
-    template<typename Tag, typename V>
-    static void UpdateAdaptiveParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const Tag& propTag, const V& darkValue, float darkScale)
-    {
-        if (!geFilter) {
-            return;
-        }
-        const auto& value = (darkScale == 1.0f) ? darkValue : propTag.value_->Get(); // change to interpolation later
-        UpdateVisualEffectParamImpl(*geFilter, Tag::NAME, value);
-    }
 
     template<typename Tag>
     static void CalculatePropTagHash(uint32_t& hash, const Tag& propTag)

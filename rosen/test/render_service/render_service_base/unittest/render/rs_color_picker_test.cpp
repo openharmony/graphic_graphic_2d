@@ -254,4 +254,150 @@ HWTEST_F(RSColorPickerTest, HSVtoRGBTest, TestSize.Level1)
     hsv.h = 300;
     EXPECT_EQ(picker->HSVtoRGB(hsv), 0);
 }
+
+/**
+ * @tc.name: PickColorTest_AverageStrategy
+ * @tc.desc: Verify function PickColor with AVERAGE strategy
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, PickColorTest_AverageStrategy, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    uint32_t errorCode = picker->PickColor(color, ColorPickStrategyType::AVERAGE);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    errorCode = picker2->PickColor(color, ColorPickStrategyType::AVERAGE);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_SUCCESS);
+}
+
+/**
+ * @tc.name: PickColorTest_DominantStrategy
+ * @tc.desc: Verify function PickColor with DOMINANT strategy
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, PickColorTest_DominantStrategy, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    uint32_t errorCode = picker->PickColor(color, ColorPickStrategyType::DOMINANT);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    errorCode = picker2->PickColor(color, ColorPickStrategyType::DOMINANT);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_SUCCESS);
+}
+
+/**
+ * @tc.name: PickColorTest_ContrastStrategy
+ * @tc.desc: Verify function PickColor with CONTRAST strategy
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, PickColorTest_ContrastStrategy, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    uint32_t errorCode = picker->PickColor(color, ColorPickStrategyType::CONTRAST, false);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    errorCode = picker2->PickColor(color, ColorPickStrategyType::CONTRAST, false);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_SUCCESS);
+}
+
+/**
+ * @tc.name: PickColorTest_DefaultStrategy
+ * @tc.desc: Verify function PickColor with invalid/default strategy
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, PickColorTest_DefaultStrategy, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    // Use an invalid strategy value to trigger default case
+    uint32_t errorCode = picker2->PickColor(color, static_cast<ColorPickStrategyType>(999));
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_ERROR);
+}
+
+/**
+ * @tc.name: GetContrastColorTest
+ * @tc.desc: Verify function GetContrastColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetContrastColorTest, TestSize.Level1)
+{
+    Drawing::ColorQuad color;
+    uint32_t errorCode = picker->GetContrastColor(color, false);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE);
+
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    errorCode = picker2->GetContrastColor(color, false);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_SUCCESS);
+}
+
+/**
+ * @tc.name: GetContrastColorPrevBlackTest
+ * @tc.desc: Verify GetContrastColor with prevDark=true uses low threshold
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, GetContrastColorPrevBlackTest, TestSize.Level1)
+{
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    Drawing::ColorQuad color;
+    uint32_t errorCode = picker2->GetContrastColor(color, true);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_SUCCESS);
+}
+
+/**
+ * @tc.name: PickColorContrastPrevBlackTest
+ * @tc.desc: Verify PickColor CONTRAST branch with prevDark=true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerTest, PickColorContrastPrevBlackTest, TestSize.Level1)
+{
+    Drawing::ImageInfo imageInfo(
+        1, 1, Drawing::ColorType::COLORTYPE_UNKNOWN, Drawing::AlphaType::ALPHATYPE_UNKNOWN, nullptr);
+    int addr = 1;
+    size_t rowBytes = 1;
+    pixmap = std::make_shared<Drawing::Pixmap>(imageInfo, &addr, rowBytes);
+    auto picker2 = std::make_shared<RSColorPicker>(pixmap);
+    picker2->GetNFeatureColors(1);
+    Drawing::ColorQuad color;
+    uint32_t errorCode = picker2->PickColor(color, ColorPickStrategyType::CONTRAST, true);
+    EXPECT_EQ(errorCode, RS_COLOR_PICKER_SUCCESS);
+}
 } // namespace OHOS::Rosen

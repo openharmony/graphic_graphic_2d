@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_BASE_EFFECT_RS_RENDER_FILTER_BASE_H
 
 #include "draw/canvas.h"
-#include "effect/rs_render_adaptive_filter_helper.h"
 #include "effect/rs_render_effect_template.h"
 #include "effect/rs_render_property_tag.h"
 
@@ -72,24 +71,12 @@ public:
             EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
-        if constexpr (Type == RSNGEffectType::FROSTED_GLASS) {
-            const float darkScale = this->template Getter<FrostedGlassDarkScaleRenderTag>()->GetRef();
-            std::apply(
-                [this, &geFilter, darkScale](const auto&... propTag) {
-                    (RSAdaptiveFilterHelper::UpdateAdaptiveParam<RSNGRenderFilterTemplate<Type, PropertyTags...>,
-                         std::decay_t<decltype(propTag)>>(this, geFilter, propTag, darkScale),
-                        ...);
-                },
-                    EffectTemplateBase::properties_);
-        } else {
-            std::apply(
-                [&geFilter](const auto&... propTag) {
-                    (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(
-                         geFilter, propTag),
-                        ...);
+        std::apply(
+            [&geFilter](const auto&... propTag) {
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(geFilter, propTag),
+                    ...);
             },
-                EffectTemplateBase::properties_);
-        }
+            this->EffectTemplateBase::properties_);
         RSNGRenderFilterBase::UpdateCacheData(RSNGRenderFilterBase::geFilter_, geFilter);
         RSNGRenderFilterBase::geFilter_ = std::move(geFilter);
 

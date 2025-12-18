@@ -43,6 +43,7 @@
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "property/rs_color_picker_def.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_attraction_effect_filter.h"
@@ -1267,35 +1268,36 @@ void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVeloc
 
 void RSProperties::SetColorPickerPlaceholder(int placeholder)
 {
-    colorPickerPlaceholder_ = std::clamp<int>(placeholder, 0, static_cast<int>(ColorPlaceholder::MAX));
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->placeholder =
+        std::clamp(static_cast<ColorPlaceholder>(placeholder), ColorPlaceholder::NONE, ColorPlaceholder::MAX);
     SetDirty();
-}
-
-ColorPlaceholder RSProperties::GetColorPickerPlaceholder() const
-{
-    return static_cast<ColorPlaceholder>(colorPickerPlaceholder_);
 }
 
 void RSProperties::SetColorPickerStrategy(int strategy)
 {
-    colorPickerStrategy_ = std::clamp<int>(strategy, 0, static_cast<int>(ColorPickStrategyType::MAX));
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->strategy = std::clamp(
+        static_cast<ColorPickStrategyType>(strategy), ColorPickStrategyType::NONE, ColorPickStrategyType::MAX);
     SetDirty();
-}
-
-ColorPickStrategyType RSProperties::GetColorPickerStrategy() const
-{
-    return static_cast<ColorPickStrategyType>(colorPickerStrategy_);
 }
 
 void RSProperties::SetColorPickerInterval(int interval)
 {
-    colorPickerInterval_ = static_cast<uint64_t>(interval);
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->interval = interval;
     SetDirty();
 }
 
-uint64_t RSProperties::GetColorPickerInterval() const
+std::shared_ptr<ColorPickerParam> RSProperties::GetColorPicker() const
 {
-    return colorPickerInterval_;
+    return colorPicker_;
 }
 
 void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
