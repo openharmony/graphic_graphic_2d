@@ -329,16 +329,17 @@ FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::string& pa
     }
     auto outType = FontFileType::FontFileFormat::UNKNOWN;
     // Detect font type
-    outType = DetectFontTypeComplete(fileName);
+    outType = DetectFontTypeComplete(path);
     // If collection font, get detailed font count
     if (outType == FontFileType::FontFileFormat::TTC ||
         outType == FontFileType::FontFileFormat::OTC) {
-        IsCollectionFont(fileName, fileCount);
+        IsCollectionFont(path, fileCount);
     } else if (outType != FontFileType::FontFileFormat::UNKNOWN) {
         fileCount = 1;
     } else {
         fileCount = 0;
     }
+    return outType;
 }
 
 FontFileType::FontFileFormat FontFileType::GetFontFileType(const std::vector<uint8_t>& data, int& fileCount)
