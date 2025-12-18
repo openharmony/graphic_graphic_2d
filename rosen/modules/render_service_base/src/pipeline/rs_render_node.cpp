@@ -5105,7 +5105,8 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     }
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
+    const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
@@ -5125,6 +5126,11 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
+    if (childHasProtectedNodeSet.count(GetId()) &&
+        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter disable nodeGroup by ChildHasProtectedNode id:%llu", GetId());
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
 #ifdef RS_ENABLE_GPU

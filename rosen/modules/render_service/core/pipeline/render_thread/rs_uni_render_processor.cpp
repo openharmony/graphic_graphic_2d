@@ -265,9 +265,6 @@ bool RSUniRenderProcessor::GetForceClientForDRM(RSSurfaceRenderParams& params)
     if (!params.GetCornerRadiusInfoForDRM().empty()) {
         return true;
     }
-    if (params.GetIsOutOfScreen() == true) {
-        return true;
-    }
     bool forceClientForDRM = false;
     auto ancestorDisplayDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params.GetAncestorScreenDrawable().lock());

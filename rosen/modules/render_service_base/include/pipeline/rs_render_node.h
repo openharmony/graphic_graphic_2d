@@ -776,7 +776,8 @@ public:
     virtual void UpdateRenderParams();
     void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
-    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false);
+    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false,
+        const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;

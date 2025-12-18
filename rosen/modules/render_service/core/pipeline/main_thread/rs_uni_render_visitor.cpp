@@ -922,6 +922,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     curCornerRadius_ = curCornerRadius;
     curCornerRect_ = curCornerRect;
     globalShouldPaint_ = preGlobalShouldPaint;
+    childHasProtectedNodeSet_.clear();
     node.UpdateOffscreenRenderParams(node.IsRotationChanged());
     node.RenderTraceDebug();
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
@@ -3165,6 +3166,15 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     }
     node.UpdateNodeColorSpace();
     nodeParent->SetNodeColorSpace(node.GetNodeColorSpace());
+    if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
+        if (surfaceNode.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
+            childHasProtectedNodeSet_.insert(nodeParent->GetId());
+        }
+    }
+    if (childHasProtectedNodeSet_.count(node.GetId())) {
+        childHasProtectedNodeSet_.insert(nodeParent->GetId());
+    }
 }
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
@@ -3242,7 +3252,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
                 isInBlackList = true;
             }
         }
-        node.UpdateDrawingCacheInfoAfterChildren(isInBlackList);
+        node.UpdateDrawingCacheInfoAfterChildren(isInBlackList, childHasProtectedNodeSet_);
     }
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
