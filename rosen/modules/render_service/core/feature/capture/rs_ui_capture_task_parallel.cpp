@@ -544,7 +544,7 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpa
         RS_LOGE("RSUiCaptureTaskParallel::IsHdrUiCapture %{public}d not support", dynamicRangeMode);
         return false;
     }
-    if (isAutoAdjust == false && dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD) {
+    if (!isAutoAdjust && dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD) {
         return false;
     }
     if (colorSpace != ColorManager::BT2020 && colorSpace != ColorManager::BT2020_HLG &&
