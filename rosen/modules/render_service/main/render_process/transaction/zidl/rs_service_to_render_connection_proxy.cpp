@@ -682,6 +682,9 @@ ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return ERR_INVALID_VALUE;
+    }
     if (!data.WriteUint64(pid)) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId: WriteUint64 pid err.");
         repCode = INVALID_ARGUMENTS;
@@ -832,6 +835,9 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return ERR_INVALID_VALUE;
+    }
     std::vector<std::u16string> args(argSets.begin(), argSets.end());
     if (!data.WriteString16Vector(args)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::DoDump: WriteString16Vector failed");

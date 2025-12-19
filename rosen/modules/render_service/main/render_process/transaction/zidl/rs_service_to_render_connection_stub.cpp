@@ -14,12 +14,11 @@
  */
 
 #include "rs_service_to_render_connection_stub.h"
+
 #include "buffer_utils.h"
 #include "rs_iservice_to_render_connection_ipc_interface_code.h"
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
-
 #include "rs_profiler.h"
-
 #include "common/rs_xcollie.h"
 #include "platform/common/rs_log.h"
 
@@ -44,6 +43,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     int ret = ERR_NONE;
+    if (auto interfaceToken = data.ReadInterfaceToken();
+        interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
+        RS_LOGE("%{public}s: Read interfaceToken failed!", __func__);
+        return ERR_INVALID_STATE;
+    }
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
@@ -57,12 +61,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
     }
     switch (code) {
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             pid_t pid;
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSServiceToRenderStub::REGISTER_OCCLUSION_CHANGE_CALLBACK Read pid failed!");
@@ -89,12 +87,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIServiceToRenderConnectionInterfaceCode::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             NodeId id{0};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSServiceToRenderStub::REGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK Read id failed!");
@@ -153,12 +145,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_DISCARD_JANK_FRAME): {
             bool discardJankFrames{false};
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_DISCARD_JANK_FRAME Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             if (!data.ReadBool(discardJankFrames)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_DISCARD_JANK_FRAME read flag failed!");
                 ret = ERR_INVALID_DATA;
@@ -252,12 +238,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::GET_MEMORY_GRAPHICS Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             std::vector<MemoryGraphic> memoryGraphics;
             if (GetMemoryGraphics(memoryGraphics) != ERR_OK ||
                 !reply.WriteUint64(static_cast<uint64_t>(memoryGraphics.size()))) {
@@ -275,12 +255,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP) : {
             std::string nodeIdStr;
             bool isTop{false};
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_LAYER_TOP Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             if (!data.ReadString(nodeIdStr) ||
                 !data.ReadBool(isTop)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_LAYER_TOP Read parcel failed!");
@@ -291,12 +265,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CLEAN_RESOURCE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::CLEAN_RESOURCE Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             pid_t pid;
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSClientToRenderConnectionStub::CLEAN_RESOURCE read pid failed!");
@@ -308,12 +276,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::GET_TOTAL_APP_MEM_SIZE Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
             if (GetTotalAppMemSize(cpuMemSize, gpuMemSize) != ERR_OK || !reply.WriteFloat(cpuMemSize)
@@ -346,12 +308,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
             bool flag{false};
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_VMA_CACHE_STATUS Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             if (!data.ReadBool(flag)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_VMA_CACHE_STATUS read flag failed!");
                 ret = ERR_INVALID_DATA;
@@ -361,12 +317,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_WATERMARK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_WATERMARK Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             if (!RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
                 RS_LOGI("RSServiceToRenderStub::SET_WATERMARK Current disenable water mark");
                 break;
@@ -394,12 +344,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SHOW_WATERMARK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SHOW_WATERMARK Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             std::shared_ptr<Media::PixelMap> watermarkImg =
                 std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
             bool isShow{false};
@@ -417,12 +361,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE) : {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::GET_SURFACE_ROOT_NODE Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             NodeId windowNodeId{UINT64_MAX};
             if (!data.ReadUint64(windowNodeId)) {
                 RS_LOGE("RSServiceToRenderStub::GET_SURFACE_ROOT_NODE Read windowId failed!");
@@ -439,12 +377,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FORCE_REFRESH) : {
             std::string nodeIdStr;
             bool isForceRefresh{false};
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_FORCE_REFRESH Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             if (!data.ReadString(nodeIdStr) ||
                 !data.ReadBool(isForceRefresh)) {
                 RS_LOGE("RSServiceToRenderStub::SET_FORCE_REFRESH Read parcel failed!");
@@ -469,11 +401,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT) : {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint32_t listSize{0};
             if (!data.ReadUint32(listSize)) {
                 RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_PACKAGE_EVENT Read listSize failed!");
@@ -506,12 +433,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE) : {
             RS_LOGI("RSServiceToRenderConnectionStub::OnRemoteRequest SET_OVERLAY_DISPLAY_MODE");
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderConnectionStub::SET_OVERLAY_DISPLAY_MODE Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             int32_t mode{0};
             if (!data.ReadInt32(mode)) {
                 ret = ERR_INVALID_DATA;
@@ -524,12 +445,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
 #endif
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_GAMESTATE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::REPORT_EVENT_GAMESTATE Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             GameStateData info;
             if (!data.ReadInt32(info.pid) || !data.ReadInt32(info.uid) ||
                 !data.ReadInt32(info.state) || !data.ReadInt32(info.renderTid) ||
@@ -541,12 +456,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_BEHIND_WINDOW_FILTER_ENABLED Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             bool enabled {false};
             if(!data.ReadBool(enabled)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BEHIND_WINDOW_FILTER_ENABLED Read enabled failed");
@@ -561,12 +470,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::GET_BEHIND_WINDOW_FILTER_ENABLED Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             bool enabled;
             if (GetBehindWindowFilterEnabled(enabled) != ERR_OK || !reply.WriteBool(enabled)) {
                 RS_LOGE("RSServiceToRenderStub::GET_BEHIND_WINDOW_FILTER_ENABLED Write enabled failed");
@@ -575,12 +478,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHIC): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::GET_MEMORY_GRAPHIC Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             int32_t pid{0};
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSServiceToRenderStub::GET_MEMORY_GRAPHIC Read pid failed!");
@@ -601,12 +498,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_TYPEFACE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::REGISTER_TYPEFACE Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             bool xcollieFlag = false;
             bool result = false;
             std::shared_ptr<Drawing::Typeface> typeface = nullptr;
@@ -639,12 +530,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_TYPEFACE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::REGISTER_TYPEFACE Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint64_t uniqueId{0};
             if (!data.ReadUint64(uniqueId)) {
                 RS_LOGE("RSServiceToRenderStub::UNREGISTER_TYPEFACE read uniqueId failed!");
@@ -658,12 +543,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK): {
             uint64_t userId{0};
             pid_t pid;
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::REGISTER_UIEXTENSION_CALLBACK Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSServiceToRenderStub::REGISTER_UIEXTENSION_CALLBACK Read "
                         "pid failed!");
@@ -701,12 +580,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::CREATE_PIXEL_MAP_FROM_SURFACE Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
                 if (!reply.WriteInt32(0)) {
@@ -767,12 +640,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB): {
             int32_t pid{0};
             float gpuMemInMB{0.0};
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::GET_PID_GPU_MEMORY_IN_MB Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSServiceToRenderStub::GET_PID_GPU_MEMORY_IN_MB : read data err!");
                 ret = ERR_INVALID_DATA;
@@ -793,12 +660,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HGM_FORCE_UPDATE_TASK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             bool flag{false};
             if (!data.ReadBool(flag)) {
                 ret = ERR_INVALID_DATA;
@@ -814,25 +675,12 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPAINT_EVERYTHING): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::REPAINT_EVERYTHING Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-
             auto replyMessage = RepaintEverything();
             RS_LOGI("REPAINT_EVERYTHING replyMsg: %{public}d", replyMessage);
             reply.WriteInt32(replyMessage);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_COLOR_FOLLOW): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::SET_COLOR_FOLLOW Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             std::string nodeIdStr;
             bool isColorFollow { false };
             if (!data.ReadString(nodeIdStr) || !data.ReadBool(isColorFollow)) {
@@ -855,13 +703,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIServiceToRenderConnectionInterfaceCode::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                        "interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             pid_t remotePid;
             if (!data.ReadInt32(remotePid)) {
                 ROSEN_LOGE("RSIServiceToRenderConnectionStub::REGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
@@ -919,13 +760,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(
             RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSIServiceToRenderConnectionStub::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
-                        "interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             pid_t remotePid;
             if (!data.ReadInt32(remotePid)) {
                 ROSEN_LOGE("RSIServiceToRenderConnectionStub::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK Read "
@@ -940,12 +774,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSServiceToRenderStub::GET_REALTIME_REFRESH_RATE Read id failed!");
@@ -960,12 +788,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             bool enabled{false};
             int32_t type{0};
             if (!data.ReadBool(enabled) || !data.ReadInt32(type)) {
@@ -977,12 +799,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             bool enable = false;
             if (GetShowRefreshRateEnabled(enable) != ERR_OK || !reply.WriteBool(enable)) {
                 RS_LOGE("RSServiceToRenderStub::GET_SHOW_REFRESH_RATE_ENABLED Write enabled failed!");
@@ -991,12 +807,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("HANDLE_HWC_EVENT Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint32_t deviceId{0};
             if (!data.ReadUint32(deviceId)) {
                 RS_LOGE("HandleHwcEvent: read deviceId err.");
@@ -1019,12 +829,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("SET_GPU_CRC_DIRTY_ENABLED_PIDLIST Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             std::vector<int32_t> pidList;
             if (!data.ReadInt32Vector(&pidList)) {
                 RS_LOGE("SetGpuCrcDirtyEnabledPidList: read pidList err.");
@@ -1119,12 +923,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_SCREEN_REFRESH): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::NOTIFY_SCREEN_REFRESH Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSServiceToRenderStub::NOTIFY_SCREEN_REFRESH Read id failed!");
