@@ -63,7 +63,7 @@ public:
     }
     void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes);
     void Init();
-    void ResetFrameValues(uint32_t refreshRate);
+    void ResetFrameValues(uint32_t rsRefreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
