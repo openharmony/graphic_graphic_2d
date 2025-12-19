@@ -139,7 +139,7 @@ ohos_unittest("RSServiceToRenderConnectionTest") {
     module_out_path = module_output_path
 
 
-    sources = [ "zidl/rs_service_to_render_connection_test.cpp" ]
+    sources = [ "rs_service_to_render_connection_test.cpp" ]
 
     cflags = [
         "-Dprivate=public",
