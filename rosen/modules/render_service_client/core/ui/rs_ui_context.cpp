@@ -187,7 +187,7 @@ int32_t RSUIContext::GetUiPiplineNum() const
  
 void RSUIContext::DetachFromUI()
 {
-    if (uiPiplineNum_.load() == 0) {
+    if (uiPiplineNum_.load() <= 0) {
         ROSEN_LOGD("RSUIContext::DetachFromUI failed");
         return;
     }
