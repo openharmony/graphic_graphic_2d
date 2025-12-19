@@ -43,9 +43,10 @@ void MockAccessTokenKit::MockTokenType(bool isNative)
 } // namespace OHOS::Rosen
 
 namespace OHOS::Security::AccessToken {
-int AccessTokenKit::GetNativeTokenInfo(uint32_t tokenId, NativeTokenInfo& nativeTokenInfo& nativeTokenInfoRes)
+int AccessTokenKit::GetNativeTokenInfo(uint32_t tokenId, NativeTokenInfo&  nativeTokenInfoRes)
 {
     nativeTokenInfoRes.processName = Rosen::g_processName;
+    return Rosen::g_accessTokenKitRet;
 }
 
 ATokenTypeEnum AccessTokenKit::GetTokenTypeFlag(AccessTokenID tokenId)
