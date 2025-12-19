@@ -221,7 +221,7 @@ private:
     std::function<void()> requestVsyncCallback_;
     std::mutex implicitAnimatorMutex_;
     bool detachedFromUI_ = false;
-    int32_t uiPiplineNum_ = UI_PiPLINE_NUM_UNDEFINED;
+    std::atomic<int32_t> uiPiplineNum_ = UI_PiPLINE_NUM_UNDEFINED;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;
