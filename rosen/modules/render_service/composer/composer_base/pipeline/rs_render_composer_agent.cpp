@@ -45,15 +45,15 @@ void RSRenderComposerAgent::SetComposerToRenderConnection(sptr<RSIComposerToRend
     );
 }
 
-void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData)
+bool RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData)
 {
     if (rsRenderComposer_ == nullptr) {
         RS_LOGE("rsRenderComposer is nullptr");
-        return;
+        return false;
     }
     if (transactionData == nullptr) {
         RS_LOGE("transactionData is nullptr");
-        return;
+        return false;
     }
     uint32_t currentRate = 0;
     int64_t delayTime = 0;
@@ -69,6 +69,7 @@ void RSRenderComposerAgent::ComposerProcess(const std::shared_ptr<RSLayerTransac
             renderComposerAgent->rsRenderComposer_->ComposerProcess(currentRate, transactionData);
         }, delayTime
     );
+    return true;
 }
 
 GSError RSRenderComposerAgent::ClearFrameBuffers(bool isNeedResetContext)

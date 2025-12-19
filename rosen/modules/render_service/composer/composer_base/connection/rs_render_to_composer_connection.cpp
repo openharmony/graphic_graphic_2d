@@ -24,14 +24,14 @@ RSRenderToComposerConnection::RSRenderToComposerConnection(const std::string& na
     : screenId_(screenId), rsRenderComposerAgent_(rsRenderComposerAgent)
 {}
 
-void RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
+bool RSRenderToComposerConnection::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
 {
     RS_TRACE_NAME_FMT("RSRenderToComposerConnection::CommitLayers screenId:%" PRIu64, screenId_);
     if (transactionData.get() == nullptr) {
         RS_LOGE("RSRenderToComposerConnection::CommitLayers param nullptr");
-        return;
+        return false;
     }
-    rsRenderComposerAgent_->ComposerProcess(std::move(transactionData));
+    return rsRenderComposerAgent_->ComposerProcess(std::move(transactionData));
 }
 
 void RSRenderToComposerConnection::ClearFrameBuffers()

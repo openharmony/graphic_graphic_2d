@@ -32,11 +32,11 @@ static constexpr size_t ASHMEM_SIZE_THRESHOLD = 100 * 1024; // cannot > 100K in 
 RSRenderToComposerConnectionProxy::RSRenderToComposerConnectionProxy(const sptr<IRemoteObject>& impl) :
     IRemoteProxy<IRSRenderToComposerConnection>(impl) {}
 
-void RSRenderToComposerConnectionProxy::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
+bool RSRenderToComposerConnectionProxy::CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData)
 {
     if (transactionData == nullptr) {
         RS_LOGE("RSRenderToComposerConnectionProxy::CommitLayers transactionData nullptr");
-        return;
+        return false;
     }
     transactionData->SetSendingPid(pid_);
 
@@ -54,10 +54,10 @@ void RSRenderToComposerConnectionProxy::CommitLayers(std::unique_ptr<RSLayerTran
     };
     while (transactionData->GetMarshallingIndex() < transactionData->GetCommandCount()) {
         if (!fillFunc()) {
-            return;
+            return false;
         }
     }
-    SendLayers(parcelVector);
+    return SendLayers(parcelVector) == COMPOSITOR_ERROR_OK;
 }
 
 bool RSRenderToComposerConnectionProxy::FillParcelWithTransactionData(
@@ -98,7 +98,7 @@ bool RSRenderToComposerConnectionProxy::FillParcelWithTransactionData(
 RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::shared_ptr<MessageParcel>>& parcels)
 {
     MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     for (const auto& parcel : parcels) {
         MessageParcel reply;
         int32_t retryCount = 0;
@@ -113,6 +113,11 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
                 return COMPOSITOR_ERROR_BINDER_ERROR;
             }
         } while (err != NO_ERROR);
+        int32_t serverRet = reply.ReadInt32();
+        if (serverRet != COMPOSITOR_ERROR_OK) {
+            RS_LOGE("SendLayers server returned error:%{public}d", serverRet);
+            return static_cast<RSComposerError>(serverRet);
+        }
     }
     RS_LOGI("SendLayers success.");
     return COMPOSITOR_ERROR_OK;

@@ -45,7 +45,7 @@ public:
     void ClearAllRSLayers();
     std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId) const;
 
-    void CommitRSLayer(CommitLayerInfo& commitLayerInfo);
+    bool CommitRSLayer(CommitLayerInfo& commitLayerInfo);
     void ReleaseLayerBuffers(uint64_t screenId,
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);

@@ -25,7 +25,7 @@ public:
         std::shared_ptr<RSRenderComposerAgent> rsRenderComposerAgent);
     ~RSRenderToComposerConnection() noexcept override = default;
 
-    void CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
+    bool CommitLayers(std::unique_ptr<RSLayerTransactionData>& transactionData) override;
     void ClearFrameBuffers() override;
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);

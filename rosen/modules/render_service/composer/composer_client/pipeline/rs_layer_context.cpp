@@ -108,15 +108,15 @@ void RSLayerContext::DumpCurrentFrameLayers()
     }
 }
 
-void RSLayerContext::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
+bool RSLayerContext::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsLayerTransactionHandler_ == nullptr) {
         RS_LOGE("RSLayerContext::CommitLayers rsLayerTransactionHandler is nullptr");
-        return;
+        return false;
     }
     RS_LOGD("RSLayerContext::CommitRSLayer rsLayers_ size: %{public}zu", rsLayers_.size());
-    rsLayerTransactionHandler_->CommitRSLayerTransaction(commitLayerInfo);
+    return rsLayerTransactionHandler_->CommitRSLayerTransaction(commitLayerInfo);
 }
 
 
