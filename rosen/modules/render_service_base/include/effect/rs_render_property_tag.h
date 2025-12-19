@@ -94,6 +94,7 @@ enum class RSNGEffectType : int16_t {
     DUPOLI_NOISE_MASK,
     IMAGE_MASK,
     USE_EFFECT_MASK,
+    NOISY_FRAME_GRADIENT_MASK,
     // shape type
     SDF_UNION_OP_SHAPE,
     SDF_SMOOTH_UNION_OP_SHAPE,

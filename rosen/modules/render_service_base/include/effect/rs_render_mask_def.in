@@ -72,3 +72,15 @@ DECLARE_MASK(DupoliNoiseMask, DUPOLI_NOISE_MASK,
     ADD_PROPERTY_TAG(DupoliNoiseMask, Granularity),
     ADD_PROPERTY_TAG(DupoliNoiseMask, VerticalMoveDistance)
 );
+
+DECLARE_MASK(NoisyFrameGradientMask, NOISY_FRAME_GRADIENT_MASK,
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, GradientBezierControlPoints),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, CornerRadius),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, InnerFrameWidth),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, MiddleFrameWidth),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, OutsideFrameWidth),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, RRectWH),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, RRectPos),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, Slope),
+    ADD_PROPERTY_TAG(NoisyFrameGradientMask, Progress)
+);

@@ -107,6 +107,7 @@ public:
             case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
             case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
             case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
+            case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
             default: return "UNKNOWN";
         }
     }
