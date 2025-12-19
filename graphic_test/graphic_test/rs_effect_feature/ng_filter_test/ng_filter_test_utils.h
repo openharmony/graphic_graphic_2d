@@ -171,7 +171,8 @@ const std::vector<Vector3f> bgPosParams = {
     Vector3f{10.0f, 0.5f, 0.5f},
     Vector3f{0.5f, 10.0f, 0.1f},
     Vector3f{0.5f, 0.5f, 10.0f},
-    Vector3f{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()}
+    Vector3f{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+        std::numeric_limits<float>::infinity()}
 };
 
 // 13. bgNeg: [-20,20]
@@ -181,7 +182,8 @@ const std::vector<Vector3f> bgNegParams = {
     Vector3f{3.0f, 0.0f, 1.0f},
     Vector3f{3.5f, 2.0f, 0.0f},
     Vector3f{0.0f, 0.0f, 0.0f},
-    Vector3f{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()}
+    Vector3f{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+        std::numeric_limits<float>::infinity()}
 };
 
 // 14. sdPos: [-20,20]
@@ -241,7 +243,8 @@ const std::vector<Vector3f> edLightNegParams = {
     Vector3f{3.0f, 0.0f, 1.0f},
     Vector3f{3.5f, 2.0f, 0.0f},
     Vector3f{0.0f, 0.0f, 0.0f},
-    Vector3f{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity()}
+    Vector3f{std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity(),
+        std::numeric_limits<float>::infinity()}
 };
 
 // 20. sdParams: [−500,500], [0,250], [0,250]
