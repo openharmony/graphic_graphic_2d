@@ -23,6 +23,7 @@
 #include "parameters.h"
 #include "rs_frame_report.h"
 #include "rs_frame_blur_predict.h"
+#include "rs_render_process_manager_agent.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "system/rs_system_parameters.h"
 
@@ -34,18 +35,32 @@ const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
 }
 
 HgmContext::HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+    const sptr<RSRenderProcessManager>& rsRenderProcessManager,
     const std::shared_ptr<HgmFrameRateManager>& frameRateMgr,
-    std::function<void(bool, ScreenId)> requestRSNextVsyncFunc,
     const sptr<VSyncDistributor>& appVSyncDistributor,
-    const sptr<VSyncDistributor>& rsVSyncDistributor)
+    const sptr<VSyncDistributor>& rsVSyncDistributor,
+    const sptr<VSyncController>& rsVSyncController,
+    const sptr<VSyncController>& appVSyncController,
+    const sptr<VSyncGenerator>& vsyncGenerator)
     : renderServiceHandler_(handler),
+      rsRenderProcessManager_(rsRenderProcessManager),
       frameRateManager_(frameRateMgr),
       hgmCore_(HgmCore::Instance()),
-      requestRSNextVsyncFunc_(std::move(requestRSNextVsyncFunc)),
       appVSyncDistributor_(appVSyncDistributor),
       rsVSyncDistributor_(rsVSyncDistributor)
 {
+    requestRSNextVsyncFunc_ = [this](bool forceUpdate, ScreenId activeScreenId) {
+        if (rsRenderProcessManager_ == nullptr) {
+            RS_LOGE("%{public}s: renderProcessManager_ is nullptr", __func__);
+            return;
+        }
+        if (auto serviceToRenderConn = rsRenderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
+            serviceToRenderConn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+        }
+    };
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] { hgmCore_.SetHgmTaskFlag(true); });
+    InitHgmTaskHandleThread(rsVSyncController, appVSyncController, vsyncGenerator);
+    InitHfbcConfig();
 }
 
 void HgmContext::InitHgmTaskHandleThread(

@@ -19,99 +19,66 @@
 #include <set>
 #include <unordered_map>
 #include "animation/rs_frame_rate_range.h"
-#include "rp_frame_rate_policy.h"
 #include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 #include "feature/hyper_graphic_manager/hgm_info_parcel.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
+#include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
+#include "rp_frame_rate_policy.h"
 
 namespace OHOS {
 namespace Rosen {
+class RSContext;
+class RSIRenderToServiceConnection;
+class RSRenderNodeMap;
+struct PipelineParam;
+
 class HgmRPContext {
 public:
-    HgmRPContext();
+    HgmRPContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+        std::unordered_map<std::string, std::string>& sourceTuningConfig,
+        std::unordered_map<std::string, std::string>& solidLayerConfig,
+        std::vector<std::string>& appBufferList);
     ~HgmRPContext() noexcept = default;
 
-    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
-        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
+    void NotifyRpHgmFrameRate(uint64_t vsyncId,
+        std::shared_ptr<RSContext> rsContext, std::map<NodeId, int> vrateMap, PipelineParam& pipelineParam);
+    void AddScreenId(ScreenId screenId);
+    void RemoveScreenId(ScreenId screenId);
+    void HandleGameNode(const RSRenderNodeMap& nodeMap);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
         uint32_t *pendingScreenRefreshRate, uint64_t *pendingConstraintRelativeTime);
 
-    FrameRateRange& GetRSCurrRangeRef()
-    {
-        return rsCurrRange_;
-    }
+    bool AdaptiveStatus() { return isAdaptive_; }
 
-    const FrameRateRange& GetRSCurrRange()
-    {
-        return rsCurrRange_;
-    }
+    bool GetLtpoEnabled() { return ltpoEnabled_; }
 
-    void UpdateSurfaceData(const std::string& surfaceName, pid_t pid)
-    {
-        surfaceData_.emplace_back(std::tuple<std::string, pid_t>({surfaceName, pid}));
-    }
+    bool IsDelayMode() { return isDelayMode_; }
 
-    void ClearSurfaceData()
-    {
-        surfaceData_.clear();
-    }
+    int32_t GetPipelineOffsetPulseNum() { return pipelineOffsetPulseNum_; }
 
-    std::vector<std::tuple<std::string, pid_t>>& GetMutableSurfaceData()
-    {
-        return surfaceData_;
-    }
-
-    const std::string& GetGameNodeName()
-    {
-        return gameNodeName_;
-    }
-
-    bool AdaptiveStatus()
-    {
-        return isAdaptive_;
-    }
-
-    bool GetLtpoEnabled()
-    {
-        return ltpoEnabled_;
-    }
-
-    bool IsDelayMode()
-    {
-        return isDelayMode_;
-    }
-
-    int32_t GetPipelineOffsetPulseNum()
-    {
-        return pipelineOffsetPulseNum_;
-    }
-
-    void SetIsGameNodeOnTree(bool isGameNodeOnTree)
-    {
-        isGameNodeOnTree_ = isGameNodeOnTree;
-    }
-
-    bool IsGameNodeOnTree()
-    {
-        return isGameNodeOnTree_;
-    }
-
-    const std::vector<std::string>& GetAppBufferList() const
-    {
-        return appBufferList_;
-    }
-
-    std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy()
-    {
-        return hgmRPEnergy_;
-    }
+    std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() { return hgmRPEnergy_; }
 
     const std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>& GetConvertFrameRateFunc() const
     {
         return convertFrameRateFunc_;
     }
 
+    bool IsGameNodeOnTree() { return isGameNodeOnTree_; }
+
+    FrameRateRange& GetRSCurrRangeRef() { return rsCurrRange_; }
+    
+    void UpdateSurfaceData(const std::string& surfaceName, pid_t pid)
+    {
+        surfaceData_.emplace_back(std::tuple<std::string, pid_t>({surfaceName, pid}));
+    }
+
 private:
+    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
+
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
+    std::unordered_set<ScreenId> screenIds_;
+
     RPFrameRatePolicy rpFrameRatePolicy_;
     std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
     bool isAdaptive_ = false;
@@ -124,7 +91,6 @@ private:
     bool isGameNodeOnTree_ = false;
     FrameRateRange rsCurrRange_;
     std::vector<std::tuple<std::string, pid_t>> surfaceData_;
-    std::vector<std::string> appBufferList_;
     std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)> convertFrameRateFunc_ = nullptr;
 };
 } // namespace OHOS

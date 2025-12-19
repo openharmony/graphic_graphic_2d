@@ -27,14 +27,18 @@ namespace OHOS {
 namespace Rosen {
 class HgmCore;
 class HgmFrameRateManager;
+class RSRenderProcessManager;
 
 class HgmContext {
 public:
     HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        const sptr<RSRenderProcessManager>& rsRenderProcessManager,
         const std::shared_ptr<HgmFrameRateManager>& frameRateMgr,
-        std::function<void(bool, ScreenId)> callbackFunc,
         const sptr<VSyncDistributor>& appVSyncDistributor,
-        const sptr<VSyncDistributor>& rsVSyncDistributor);
+        const sptr<VSyncDistributor>& rsVSyncDistributor,
+        const sptr<VSyncController>& rsVSyncController,
+        const sptr<VSyncController>& appVSyncController,
+        const sptr<VSyncGenerator>& vsyncGenerator);
     ~HgmContext() noexcept = default;
 
     void InitHgmTaskHandleThread(
@@ -105,6 +109,7 @@ private:
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
     std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_ = nullptr;
+    sptr<RSRenderProcessManager> rsRenderProcessManager_ = nullptr;
     std::shared_ptr<HgmFrameRateManager> frameRateManager_ = nullptr;
     HgmCore& hgmCore_;
     FrameRateRange rsCurrRange_;
@@ -123,6 +128,7 @@ private:
 
     bool isAdaptive_ = false;
     std::string gameNodeName_ = "";
+
     std::function<void(bool, ScreenId)> requestRSNextVsyncFunc_;
     mutable std::mutex hgmMutex_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;

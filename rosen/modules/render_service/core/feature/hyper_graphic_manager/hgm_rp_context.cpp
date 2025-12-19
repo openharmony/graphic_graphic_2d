@@ -15,7 +15,14 @@
 
 #include "feature/hyper_graphic_manager/hgm_rp_context.h"
 
+#include "hgm_frame_rate_manager.h"
+#include "params/rs_render_params.h"
+#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_surface_render_node.h"
 #include "rp_hgm_xml_parser.h"
+#include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -23,12 +30,17 @@ namespace {
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 }
 
-HgmRPContext::HgmRPContext()
+HgmRPContext::HgmRPContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+    std::unordered_map<std::string, std::string>& sourceTuningConfig,
+    std::unordered_map<std::string, std::string>& solidLayerConfig,
+    std::vector<std::string>& appBufferList)
+    : renderToServiceConnection_(renderToServiceConnection)
 {
     hgmRPEnergy_ = std::make_shared<HgmRPEnergy>();
     convertFrameRateFunc_ = [this](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return rpFrameRatePolicy_.GetExpectedFrameRate(unit, velocity, area, length);
     };
+    InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList);
 }
 
 int32_t HgmRPContext::InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
@@ -44,6 +56,75 @@ int32_t HgmRPContext::InitHgmConfig(std::unordered_map<std::string, std::string>
     appBufferList = parser->GetAppBufferList();
 
     return EXEC_SUCCESS;
+}
+
+void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
+    std::shared_ptr<RSContext> rsContext, std::map<NodeId, int> vrateMap, PipelineParam& pipelineParam)
+{
+    int changed = 0;
+    if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
+        RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
+    }
+
+    sptr<HgmProcessToServiceInfo> info = sptr<HgmProcessToServiceInfo>::MakeSptr();
+    info->isGameNodeOnTree = isGameNodeOnTree_;
+    info->rsCurrRange = rsCurrRange_;
+    rsCurrRange_.Reset();
+    info->surfaceData = std::move(surfaceData_);
+    surfaceData_.clear();
+    info->frameRateLinkerDestroyIds = std::move(rsContext->GetMutableFrameRateLinkerDestroyIds());
+    info->frameRateLinkerUpdateInfoMap = std::move(rsContext->GetMutableFrameRateLinkerUpdateInfoMap());
+    rsContext->ClearFrameRateLinker();
+    info->uiFrameworkDirtyNodeNameMap = rsContext->GetUIFrameworkDirtyNodeNameMap();
+    info->energyCommonData = hgmRPEnergy_->GetEnergyCommonData();
+    info->vRateMap = std::move(vrateMap);
+    auto serviceToProcessInfo =
+        renderToServiceConnection_->NotifyRpHgmFrameRate(pipelineParam.frameTimestamp, vsyncId, screenIds_, info);
+    SetServiceToProcessInfo(serviceToProcessInfo,
+        &pipelineParam.pendingScreenRefreshRate, &pipelineParam.pendingConstraintRelativeTime);
+    hgmRPEnergy_->ClearEnergyCommonData();
+}
+
+void HgmRPContext::AddScreenId(ScreenId screenId)
+{
+    RS_LOGI("dmulti_process %{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
+    screenIds_.insert(screenId);
+}
+
+void HgmRPContext::RemoveScreenId(ScreenId screenId)
+{
+    RS_LOGI("dmulti_process %{public}s: screenId[%{public}" PRIu64 "]", __func__, screenId);
+    screenIds_.erase(screenId);
+}
+
+void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
+{
+    if(isAdaptive_ != SupportASStatus::SUPPORT_AS) {
+        isGameNodeOnTree_ = false;
+        return;
+    }
+    bool isGameSelfNodeOnTree = false;
+    bool isOtherSelfNodeOnTree = false;
+    nodeMap.TraverseSurfaceNodes(
+        [gameNodeName = gameNodeName_, &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree, &nodeMap]
+        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+            if (surfaceNode == nullptr) {
+                return;
+            }
+            if (surfaceNode->IsOnTheTree() &&
+                surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+                auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                    nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
+                if (gameNodeName == surfaceNode->GetName()) {
+                    isGameSelfNodeOnTree = true;
+                } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
+                    isOtherSelfNodeOnTree = true;
+                }
+            }
+        });
+    RS_TRACE_NAME_FMT("HgmRPContext::HandleGameNode, game node on tree: %d, other node no tree: %d",
+        isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
+    isGameNodeOnTree_ = isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;
 }
 
 void HgmRPContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo,
