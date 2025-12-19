@@ -42,38 +42,38 @@ static void InitFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>& fros
         auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
     }
 
-    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(FrostedGlassDefaultBlurParams);
-    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(FrostedGlassDefaultWeightsEmboss);
-    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(FrostedGlassDefaultWeightsEdl);
+    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(frostedGlassDefaultBlurParams);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(frostedGlassDefaultWeightsEmboss);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(frostedGlassDefaultWeightsEdl);
 
-    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(FrostedGlassDefaultBgRates);
-    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(FrostedGlassDefaultBgKBS);
-    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(FrostedGlassDefaultBgPos);
-    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(FrostedGlassDefaultBgNeg);
-    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(FrostedGlassDefaultRefractParams);
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(frostedGlassDefaultBgRates);
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(frostedGlassDefaultBgKBS);
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(frostedGlassDefaultBgPos);
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(frostedGlassDefaultBgNeg);
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(frostedGlassDefaultRefractParams);
 
-    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(FrostedGlassDefaultSdParams);
-    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(FrostedGlassDefaultSdRates);
-    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(FrostedGlassDefaultSdKBS);
-    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(FrostedGlassDefaultSdPos);
-    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(FrostedGlassDefaultSdNeg);
+    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(frostedGlassDefaultSdParams);
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(frostedGlassDefaultSdRates);
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(frostedGlassDefaultSdKBS);
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(frostedGlassDefaultSdPos);
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(frostedGlassDefaultSdNeg);
 
-    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(FrostedGlassDefaultEnvLightParams);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(FrostedGlassDefaultEnvLightRates);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(FrostedGlassDefaultEnvLightKBS);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(FrostedGlassDefaultEnvLightPos);
-    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(FrostedGlassDefaultEnvLightNeg);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(frostedGlassDefaultEnvLightParams);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(frostedGlassDefaultEnvLightRates);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(frostedGlassDefaultEnvLightKBS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(frostedGlassDefaultEnvLightPos);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(frostedGlassDefaultEnvLightNeg);
 
-    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(FrostedGlassDefaultEdLightParams);
-    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(FrostedGlassDefaultEdLightAngles);
-    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(FrostedGlassDefaultEdLightDir);
-    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(FrostedGlassDefaultEdLightRates);
-    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(FrostedGlassDefaultEdLightKBS);
-    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(FrostedGlassDefaultEdLightPos);
-    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(FrostedGlassDefaultEdLightNeg);
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(frostedGlassDefaultEdLightParams);
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(frostedGlassDefaultEdLightAngles);
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(frostedGlassDefaultEdLightDir);
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(frostedGlassDefaultEdLightRates);
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(frostedGlassDefaultEdLightKBS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(frostedGlassDefaultEdLightPos);
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(frostedGlassDefaultEdLightNeg);
 
-    frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(FrostedGlassDefaultBaseVibrancyEnabled);
-    frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(FrostedGlassDefaultSamplingScale);
+    frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(frostedGlassDefaultBaseVibrancyEnabled);
+    frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassDefaultSamplingScale);
 }
 
 static std::shared_ptr<OHOS::Rosen::RSCanvasNode> CreateSdfChildNode(
