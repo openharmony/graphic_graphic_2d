@@ -193,9 +193,6 @@ public:
         return bool(taskRunner_);
     }
 
-    void DetachFromUI();
-    bool HasDetachedFromUI() const;
-
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
 
 private:
