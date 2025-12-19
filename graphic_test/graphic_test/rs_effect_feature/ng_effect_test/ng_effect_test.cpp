@@ -824,6 +824,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_1)
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
         node->SetBackgroundNGShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
