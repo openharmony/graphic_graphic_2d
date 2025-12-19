@@ -143,8 +143,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     info.preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
     auto preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
     if (surfaceHandler->IsCurrentFrameBufferConsumed() && preBufferOwnerCount) {
-        RS_TRACE_NAME_FMT("RSBufferManager BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf seqNum %u", uint32_t(preBufferOwnerCount->seqNum_));
-        RS_LOGI("RSBufferManager BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf seqNum %{public}u", uint32_t(preBufferOwnerCount->seqNum_));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf "
+            "seqNum %u", uint32_t(preBufferOwnerCount->seqNum_));
         preBufferOwnerCount->DecRef();
     }
     RS_TRACE_NAME_FMT("pre:[%lu] cur[%lu]", info.preBuffer == nullptr ? -1 : info.preBuffer ->GetSeqNum(), info.buffer == nullptr ? -1 : info.buffer ->GetSeqNum());
@@ -215,7 +215,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     info.brightnessRatio = NO_RATIO;
     info.bufferOwnerCount = node.GetBufferOwnerCount();
     if (info.bufferOwnerCount) {
-        RS_LOGI("RSBufferManager BuildComposeInfo RSRcdSurfaceRenderNode AddRef seqNum %{public}u", uint32_t(info.bufferOwnerCount->seqNum_));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNode AddRef "
+            "seqNum %u", uint32_t(info.bufferOwnerCount->seqNum_));
         info.bufferOwnerCount->AddRef();
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
@@ -287,8 +288,6 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetSurfaceName(surface->GetName());
     layer->SetSurfaceUniqueId(surface->GetUniqueId());
     layer->SetIsNeedComposition(true);
-    RS_LOGI("RSBufferManager SetComposeInfoToLayer seqNum %{public}u", uint32_t(info.bufferOwnerCount->seqNum_));
-    RS_TRACE_NAME_FMT("RSBufferManager SetComposeInfoToLayer seqNum %u", uint32_t(info.bufferOwnerCount->seqNum_));
     layer->SetBufferOwnerCount(info.bufferOwnerCount);
 }
 

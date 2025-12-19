@@ -115,7 +115,7 @@ void RSUniRenderProcessor::PostProcess()
             }
         }
     } else {
-        RS_TRACE_NAME_FMT("PostProcess() uniLayer_ is nullptr;");
+        RS_LOGE("PostProcess() uniLayer_ is nullptr;");
     }
 
     uniComposerAdapter_->CommitLayers();
