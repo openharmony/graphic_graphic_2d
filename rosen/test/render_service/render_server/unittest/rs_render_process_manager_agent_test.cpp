@@ -58,7 +58,7 @@ void RSRenderProcessManagerAgentTest::TearDown() {}
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderSingleProcessManagerTest, HandleHwcPackageEventTest, TestSize.Level1)
+HWTEST_F(RSRenderProcessManagerAgentTest, HandleHwcPackageEventTest, TestSize.Level1)
 {
     uint32_t listSize = 1;
     std::vector<std::string> packageList = {"a", "b"};
@@ -72,7 +72,7 @@ HWTEST_F(RSRenderSingleProcessManagerTest, HandleHwcPackageEventTest, TestSize.L
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderSingleProcessManagerTest, RegisterTypefaceTest, TestSize.Level1)
+HWTEST_F(RSRenderProcessManagerAgentTest, RegisterTypefaceTest, TestSize.Level1)
 {
     uint64_t globalUniqueId = 1;
     std::shared_ptr<Drawing::Typeface> typeface = nullptr;
@@ -88,7 +88,7 @@ HWTEST_F(RSRenderSingleProcessManagerTest, RegisterTypefaceTest, TestSize.Level1
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderSingleProcessManagerTest, GetServiceToRenderConnTest, TestSize.Level1)
+HWTEST_F(RSRenderProcessManagerAgentTest, GetServiceToRenderConnTest, TestSize.Level1)
 {
     ScreenId screenId = 1;
     rsManager_->GetServiceToRenderConn(screenId);
