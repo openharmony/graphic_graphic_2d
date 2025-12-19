@@ -60,6 +60,7 @@ HgmContext::HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
     };
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] { hgmCore_.SetHgmTaskFlag(true); });
     InitHgmTaskHandleThread(rsVSyncController, appVSyncController, vsyncGenerator);
+    InitHgmUpdateCallback();
     InitHfbcConfig();
 }
 
@@ -83,8 +84,6 @@ void HgmContext::InitHgmTaskHandleThread(
         frameRateManager->SetForceUpdateCallback(task);
         frameRateManager->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
     });
-
-    InitHgmUpdateCallback();
 }
 
 void HgmContext::InitHgmUpdateCallback()

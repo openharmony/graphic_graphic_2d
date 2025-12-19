@@ -35,7 +35,6 @@
 #include "rs_render_composer_client.h"
 #include "vsync_receiver.h"
 #include "screen_manager/screen_types.h"
-#include "feature/hyper_graphic_manager/hgm_client.h"
 #include "memory/rs_memory_manager.h"
 
 namespace OHOS {
@@ -61,6 +60,7 @@ private:
 };
 } // namespace ST
 
+class RSIRenderToServiceConnection;
 class RSMainThread;
 class RSUniRenderThread;
 class RSBufferThread;

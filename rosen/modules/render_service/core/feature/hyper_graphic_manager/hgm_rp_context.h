@@ -48,13 +48,13 @@ public:
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
         uint32_t *pendingScreenRefreshRate, uint64_t *pendingConstraintRelativeTime);
 
-    bool AdaptiveStatus() { return isAdaptive_; }
+    bool AdaptiveStatus() const { return isAdaptive_; }
 
-    bool GetLtpoEnabled() { return ltpoEnabled_; }
+    bool GetLtpoEnabled() const { return ltpoEnabled_; }
 
-    bool IsDelayMode() { return isDelayMode_; }
+    bool IsDelayMode() const { return isDelayMode_; }
 
-    int32_t GetPipelineOffsetPulseNum() { return pipelineOffsetPulseNum_; }
+    int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
     std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() { return hgmRPEnergy_; }
 
@@ -63,7 +63,7 @@ public:
         return convertFrameRateFunc_;
     }
 
-    bool IsGameNodeOnTree() { return isGameNodeOnTree_; }
+    bool IsGameNodeOnTree() const { return isGameNodeOnTree_; }
 
     FrameRateRange& GetRSCurrRangeRef() { return rsCurrRange_; }
     
@@ -76,7 +76,7 @@ private:
     int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
         std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
 
-    sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
     std::unordered_set<ScreenId> screenIds_;
 
     RPFrameRatePolicy rpFrameRatePolicy_;
