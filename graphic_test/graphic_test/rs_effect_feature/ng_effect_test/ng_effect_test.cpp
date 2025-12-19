@@ -823,7 +823,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_1)
         auto node = Rosen::RSCanvasNode::Create();
         node->SetBounds({ x, y, sizeX, sizeY });
         node->SetFrame({ x, y, sizeX, sizeY });
-        node->SetBackgroundNGShader(colorGradient);
+        node->SetBackgroundNGShader(aiBarRectHalo);
         GetRootNode()->AddChild(node);
         RegisterNode(node);
     }
