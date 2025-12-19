@@ -16,7 +16,7 @@
 #include "rs_frame_rate_vote.h"
 
 #include <algorithm>
-
+//
 #include "hgm_core.h"
 #include "platform/common/rs_log.h"
 #include "rs_video_frame_rate_vote.h"
