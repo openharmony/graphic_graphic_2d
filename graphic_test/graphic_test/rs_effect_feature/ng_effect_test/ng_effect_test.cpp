@@ -454,13 +454,13 @@ void SetNoisyFrameGradientMaskParams(const std::shared_ptr<RSNGNoisyFrameGradien
         std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_3]));
     mask->Setter<NoisyFrameGradientMaskOutsideFrameWidthTag>(
         std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_4]));
-    mask->Setter<NoisyFrameGradientMaskGradientRRectWHTag>(
+    mask->Setter<NoisyFrameGradientMaskRRectWHTag>(
         std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_5]));
-    mask->Setter<NoisyFrameGradientMaskGradientRRectPosTag>(
+    mask->Setter<NoisyFrameGradientMaskRRectPosTag>(
         std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_6]));
-    mask->Setter<NoisyFrameGradientMaskGradientSlopeTag>(
+    mask->Setter<NoisyFrameGradientMaskSlopeTag>(
         std::get<float>(noisyFrameGradientMaskParams[index][NUM_7]));
-    mask->Setter<NoisyFrameGradientMaskGradientProgressTag>(
+    mask->Setter<NoisyFrameGradientMaskProgressTag>(
         std::get<float>(noisyFrameGradientMaskParams[index][NUM_8]));
 }
 
