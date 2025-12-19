@@ -180,14 +180,27 @@ void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskI
     transaction->FlushImplicitTransaction();
 }
 
+int32_t RSUIContext::GetUiPiplineNum() const
+{
+    return uiPiplineNum_;
+}
+ 
 void RSUIContext::DetachFromUI()
 {
-    detachedFromUI_ = true;
+    if (uiPiplineNum_ == 0) {
+        ROSEN_LOGD("RSUIContext::DetachFromUI failed");
+        return;
+    }
+    uiPiplineNum_--;
 }
-
-bool RSUIContext::HasDetachedFromUI() const
+ 
+void RSUIContext::AttachFromUI()
 {
-    return detachedFromUI_;
+    if (uiPiplineNum_ == UI_PiPLINE_NUM_UNDEFINED) {
+        uiPiplineNum_ = 1;
+        return;
+    }
+    uiPiplineNum_++;
 }
 
 void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId)

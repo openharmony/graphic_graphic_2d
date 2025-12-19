@@ -179,6 +179,10 @@ public:
      */
     void PostDelayTask(const std::function<void()>& task, uint32_t delay);
 
+    int32_t GetUiPiplineNum() const;
+    void AttachFromUI();
+    void DetachFromUI();
+
     /**
      * @brief Checks if the task runner is set.
      *
@@ -220,6 +224,7 @@ private:
     std::function<void()> requestVsyncCallback_;
     std::mutex implicitAnimatorMutex_;
     bool detachedFromUI_ = false;
+    int32_t uiPiplineNum_ = UI_PiPLINE_NUM_UNDEFINED;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;
