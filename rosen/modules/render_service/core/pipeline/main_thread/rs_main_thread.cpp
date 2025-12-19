@@ -406,23 +406,6 @@ public:
 };
 #endif
 
-// used for ScaleImageAsync
-void RSMainThread::MarkScaledImageDirty(uint64_t nodeId)
-{
-    RSMainThread::Instance()->PostTask([nodeId]() {
-        auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-        auto node = nodeMap.GetRenderNode(nodeId);
-        if (node) {
-            RS_LOGD("MarkScaledImageDirty success: %{public}" PRIu64, nodeId);
-            RSMainThread::Instance()->SetDirtyFlag();
-            node->SetDirty(true);
-            if (!RSMainThread::Instance()->IsRequestedNextVSync()) {
-                RSMainThread::Instance()->RequestNextVSync();
-            }
-        }
-    });
-}
-
 RSMainThread* RSMainThread::Instance()
 {
     static RSMainThread instance;
@@ -497,7 +480,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #ifdef RS_ENABLE_GPU
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
 #endif
-        pipelineParam_.frameTimestamp = timestamp_;
         NotifyRpHgmFrameRate();
         RS_PROFILER_ON_RENDER_BEGIN();
         // cpu boost feature start
@@ -603,7 +585,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 #endif
     RsFrameReport::GetInstance().Init();
     RSImageDetailEnhancerThread::Instance().RegisterCallback(
-        std::bind(&RSMainThread::MarkScaledImageDirty, this, std::placeholders::_1));
+        std::bind(&RSMainThread::MarkNodeDirty, this, std::placeholders::_1));
     RSColorPickerThread::Instance().RegisterNodeDirtyCallback(std::bind(&RSMainThread::MarkNodeDirty, this,
         std::placeholders::_1));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
@@ -2701,6 +2683,7 @@ void RSMainThread::Render()
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif
+        pipelineParam_.frameTimestamp = timestamp_;
         // If use DoDirectComposition, we do not sync renderThreadParams,
         pipelineParam_.isForceRefresh = isForceRefresh_;
         isForceRefresh_ = false;
@@ -5235,36 +5218,33 @@ void RSMainThread::UpdateLuminanceAndColorTemp()
         return;
     }
     bool isNeedRefreshAll{false};
-    // if (auto screenManager = CreateOrGetScreenManager()) {
-        auto& rsLuminance = RSLuminanceControl::Get();
-        auto& rsColorTemperature = RSColorTemperature::Get();
-        for (const auto& child : *rootNode->GetSortedChildren()) {
-            auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(child);
-            if (screenNode == nullptr) {
-                continue;
-            }
-            auto screenId = screenNode->GetScreenId();
-            if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
-                uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
-                auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
-                if (client != nullptr) {
-                    client->SetScreenBacklight(newLevel);
-                }
-                rsLuminance.SetNowHdrLuminance(screenId, newLevel);
-            }
-            if (rsLuminance.IsDimmingOn(screenId)) {
-                rsLuminance.DimmingIncrease(screenId);
-                isNeedRefreshAll = true;
-                SetLuminanceChangingStatus(screenId, true);
-            }
-            if (rsColorTemperature.IsDimmingOn(screenId)) {
-                std::vector<float> matrix = rsColorTemperature.GetNewLinearCct(screenId);
-                // screenManager->SetScreenLinearMatrix(screenId, matrix);
-                rsColorTemperature.DimmingIncrease(screenId);
-                isNeedRefreshAll = true;
-            }
+    auto& rsLuminance = RSLuminanceControl::Get();
+    auto& rsColorTemperature = RSColorTemperature::Get();
+    for (const auto& child : *rootNode->GetSortedChildren()) {
+        auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(child);
+        if (screenNode == nullptr) {
+            continue;
         }
-    // }
+        auto screenId = screenNode->GetScreenId();
+        if (rsLuminance.IsNeedUpdateLuminance(screenId)) {
+            uint32_t newLevel = rsLuminance.GetNewHdrLuminance(screenId);
+            auto client = RSUniRenderThread::Instance().GetRSRenderComposerClient(screenId);
+            if (client != nullptr) {
+                client->SetScreenBacklight(newLevel);
+            }
+            rsLuminance.SetNowHdrLuminance(screenId, newLevel);
+        }
+        if (rsLuminance.IsDimmingOn(screenId)) {
+            rsLuminance.DimmingIncrease(screenId);
+            isNeedRefreshAll = true;
+            SetLuminanceChangingStatus(screenId, true);
+        }
+        if (rsColorTemperature.IsDimmingOn(screenId)) {
+            std::vector<float> matrix = rsColorTemperature.GetNewLinearCct(screenId);
+            rsColorTemperature.DimmingIncrease(screenId);
+            isNeedRefreshAll = true;
+        }
+    }
     if (isNeedRefreshAll) {
         SetForceUpdateUniRenderFlag(true);
         SetDirtyFlag();
@@ -5564,21 +5544,6 @@ void RSMainThread::DestroyScreenNode(ScreenId screenId)
     };
     mainThread->PostTask(task);
 }
-
-// void RSMainThread::RSScreenNodeListener::OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property)
-// {
-//     auto mainThread = RSMainThread::Instance();
-//     auto task = [context = mainThread->context_, id, property]() {
-//         auto& nodeMap = context->GetMutableNodeMap();
-//         nodeMap.TraverseScreenNodes(
-//             [id, property](const std::shared_ptr<RSScreenRenderNode>& node) {
-//             if (node && node->GetScreenId() == id) {
-//                 node->SetScreenProperty(*property);
-//             }
-//         });
-//     };
-//     mainThread->PostTask(task);
-// }
 
 void RSMainThread::ClearScreenSpecialLayerRecord(ScreenId screenId)
 {
