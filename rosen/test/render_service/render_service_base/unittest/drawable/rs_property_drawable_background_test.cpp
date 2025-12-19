@@ -20,6 +20,7 @@
 #include "surface_buffer_impl.h"
 
 #include "drawable/rs_property_drawable_background.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_context.h"
@@ -964,6 +965,28 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate002, Test
     node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
     auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     ASSERT_TRUE(drawable->OnUpdate(node));
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnUpdate003
+ * @tc.desc: Test OnUpdate
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    auto emptyShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+    node.GetMutableRenderProperties().SetSDFShape(emptyShape);
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    EXPECT_EQ(filter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_, nullptr);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+    node.GetMutableRenderProperties().GetEffect().materialFilter_ = drawingFilter;
+
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    ASSERT_FALSE(drawable->OnUpdate(node));
 }
 
 /**

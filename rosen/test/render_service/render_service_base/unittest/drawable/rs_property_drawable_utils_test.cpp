@@ -1136,6 +1136,27 @@ HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter007, test
 }
 
 /**
+ * @tc.name: ApplySDFShapeToFrostedGlassFilter008
+ * @tc.desc: have empty sdfShape test
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableUtilsTest, ApplySDFShapeToFrostedGlassFilter008, testing::ext::TestSize.Level1)
+{
+    RSProperties properties;
+    auto emptyShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+    properties.SetSDFShape(emptyShape);
+    NodeId id = 1;
+    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
+    EXPECT_EQ(filter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_, nullptr);
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->SetNGRenderFilter(renderFilter);
+
+    auto ret = RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(properties, drawingFilter, id);
+    ASSERT_FALSE(ret);
+}
+
+/**
  * @tc.name: ApplyAdaptiveFrostedGlassParamsTest001
  * @tc.desc: ApplyAdaptiveFrostedGlassParams null and type checks
  * @tc.type: FUNC

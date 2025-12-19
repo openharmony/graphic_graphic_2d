@@ -100,6 +100,7 @@ enum class RSNGEffectType : int16_t {
     SDF_RRECT_SHAPE,
     SDF_TRANSFORM_SHAPE,
     SDF_PIXELMAP_SHAPE,
+    SDF_EMPTY_SHAPE,
     // shader type
     CONTOUR_DIAGONAL_FLOW_LIGHT,
     WAVY_RIPPLE_LIGHT,
