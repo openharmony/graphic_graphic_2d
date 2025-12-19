@@ -836,7 +836,7 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     MessageParcel reply;
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        return ERR_INVALID_VALUE;
+        return;
     }
     std::vector<std::u16string> args(argSets.begin(), argSets.end());
     if (!data.WriteString16Vector(args)) {
