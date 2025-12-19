@@ -175,6 +175,21 @@ DECLARE_SHADER(AIBarGlow, AIBAR_GLOW,
     ADD_PROPERTY_TAG(AIBarGlow, Progress)
 );
 
+DECLARE_SHADER(AIBarRectHalo, AIBAR_RECT_HALO,
+    ADD_PROPERTY_TAG(AIBarRectHalo, LTWH),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color0),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color1),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color2),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color3),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position0),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position1),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position2),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position3),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Strength),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Brightness),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Progress)
+);
+
 DECLARE_SHADER(RoundedRectFlowlight, ROUNDED_RECT_FLOWLIGHT,
     ADD_PROPERTY_TAG(RoundedRectFlowlight, StartEndPosition),
     ADD_PROPERTY_TAG(RoundedRectFlowlight, WaveLength),

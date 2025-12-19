@@ -64,6 +64,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderAIBarGlow>();
         }
     },
+    {RSNGEffectType::AIBAR_RECT_HALO, [] {
+            return std::make_shared<RSNGRenderAIBarRectHalo>();
+        }
+    },
     {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, [] {
             return std::make_shared<RSNGRenderRoundedRectFlowlight>();
         }

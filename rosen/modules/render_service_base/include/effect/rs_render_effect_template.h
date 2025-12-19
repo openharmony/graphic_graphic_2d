@@ -83,6 +83,7 @@ public:
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             case RSNGEffectType::AIBAR_GLOW: return "AIBarGlow";
+            case RSNGEffectType::AIBAR_RECT_HALO: return "AIBarRectHalo";
             case RSNGEffectType::ROUNDED_RECT_FLOWLIGHT: return "RoundedRectFlowlight";
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
