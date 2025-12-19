@@ -60,10 +60,10 @@ config("vsync_public_config") {
     "$graphic_2d_root/rosen/include/common",
     "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/utils/sandbox",
+    "$graphic_2d_root/utils/socketpair/export",
+    "$graphic_2d_root/utils/log",
   ]
-  if (graphic_2d_feature_enable_dvsync) {
-    include_dirs += [ "$graphic_2d_ext_root/dvsync/dvsync_2/include" ]
-  }
+
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {
     include_dirs += [ "$graphic_2d_root/rosen/modules/ressched/include" ]
@@ -87,6 +87,7 @@ ohos_shared_library("libvsync") {
     "src/vsync_receiver.cpp",
     "src/vsync_sampler.cpp",
     "src/vsync_system_ability_listener.cpp",
+    "src/dvsync_lib_manager.cpp"
   ]
 
   include_dirs = [
@@ -129,13 +130,6 @@ ohos_shared_library("libvsync") {
     "c_utils:utils",
     "samgr:samgr_proxy",
   ]
-
-  if (graphic_2d_feature_enable_dvsync) {
-    external_deps += [ "graphic_2d_ext:libdvsync" ]
-    include_dirs += [ "$graphic_2d_ext_root/dvsync/dvsync_2/include" ]
-    sources +=
-        [ "$graphic_2d_ext_root/dvsync/dvsync_2/src/dvsync_controller.cpp" ]
-  }
 
   if (defined(global_parts_info) &&
       defined(global_parts_info.resourceschedule_resource_schedule_service)) {

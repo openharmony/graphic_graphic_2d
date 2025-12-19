@@ -1625,9 +1625,6 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             }
             auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
             if (surfaceHandler->GetAvailableBufferCount() > 0) {
-                if (rsVsyncManagerAgent_ != nullptr) {
-                    rsVsyncManagerAgent_->SetHasNativeBuffer();
-                }
                 auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
                 auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
                 const auto& consumer = surfaceHandler->GetConsumer();

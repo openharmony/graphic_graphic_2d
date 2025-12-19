@@ -386,7 +386,6 @@ HWTEST_F(VSyncDistributorTest, SetHighPriorityVSyncRate002, Function | MediumTes
  */
 HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->IsDVsyncOn(), false);
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(true);
 }
 
@@ -399,7 +398,6 @@ HWTEST_F(VSyncDistributorTest, SetFrameIsRender001, Function | MediumTest| Level
  */
 HWTEST_F(VSyncDistributorTest, SetFrameIsRender002, Function | MediumTest| Level3)
 {
-    ASSERT_EQ(VSyncDistributorTest::vsyncDistributor->IsDVsyncOn(), false);
     VSyncDistributorTest::vsyncDistributor->SetFrameIsRender(false);
 }
 
@@ -415,49 +413,6 @@ HWTEST_F(VSyncDistributorTest, GetRealTimeOffsetOfDvsync001, Function | MediumTe
     int64_t time = 1000;
     uint64_t offset = VSyncDistributorTest::vsyncDistributor->GetRealTimeOffsetOfDvsync(time);
     ASSERT_EQ(offset, 0);
-}
-
-/*
-* Function: MarkRSAnimate001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call MarkRSAnimate
- */
-HWTEST_F(VSyncDistributorTest, MarkRSAnimate001, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(true, conn);
-    ASSERT_EQ(res, VSYNC_ERROR_OK);
-    VSyncDistributorTest::vsyncDistributor->MarkRSAnimate();
-}
-
-/*
-* Function: UnmarkRSAnimate001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call UnmarkRSAnimate
- */
-HWTEST_F(VSyncDistributorTest, UnmarkRSAnimate001, Function | MediumTest| Level3)
-{
-    sptr<VSyncConnection> conn = new VSyncConnection(vsyncDistributor, "VSyncDistributorTest");
-    auto res = VSyncDistributorTest::vsyncDistributor->SetUiDvsyncSwitch(false, conn);
-    ASSERT_EQ(res, VSYNC_ERROR_OK);
-    VSyncDistributorTest::vsyncDistributor->UnmarkRSAnimate();
-}
-
-/*
-* Function: HasPendingUIRNV001
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. call HasPendingUIRNV
- */
-HWTEST_F(VSyncDistributorTest, HasPendingUIRNV001, Function | MediumTest| Level3)
-{
-    auto res = VSyncDistributorTest::vsyncDistributor->HasPendingUIRNV();
-    EXPECT_FALSE(res);
 }
 
 /*
