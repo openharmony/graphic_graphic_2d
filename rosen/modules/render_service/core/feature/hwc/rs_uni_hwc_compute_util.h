@@ -27,9 +27,6 @@ public:
     static Drawing::Rect CalcSrcRectByBufferRotation(const SurfaceBuffer& buffer,
         const GraphicTransformType consumerTransformType, Drawing::Rect newSrcRect);
     static void DealWithNodeGravity(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
-    static void DealWithNewSrcRect(Drawing::Rect& newSrcRect, Drawing::Rect newDstRect,
-        Drawing::Matrix inverseTotalMatrix, Drawing::Matrix inverseGravityMatrix,
-        const GraphicTransformType consumerTransformType);
     static void DealWithNodeGravityOldVersion(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);
     static void DealWithScalingMode(RSSurfaceRenderNode& node, const Drawing::Matrix& totalMatrix);
     static void LayerCrop(RSSurfaceRenderNode& node, const ScreenInfo& screenInfo);

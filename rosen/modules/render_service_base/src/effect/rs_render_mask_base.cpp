@@ -60,6 +60,10 @@ static std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGRenderUseEffectMask>();
         }
     },
+    {RSNGEffectType::DUPOLI_NOISE_MASK, [] {
+            return std::make_shared<RSNGRenderDupoliNoiseMask>();
+        }
+    },
     {RSNGEffectType::NOISY_FRAME_GRADIENT_MASK, [] {
             return std::make_shared<RSNGRenderNoisyFrameGradientMask>();
         }

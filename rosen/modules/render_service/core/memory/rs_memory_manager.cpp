@@ -81,6 +81,7 @@ namespace OHOS::Rosen {
 namespace {
 const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
+const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
@@ -533,6 +534,24 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
         log.AppendFormat("Pid: %d, totalGpuMemSize: %fMB, detail: \n%s", pid, pidMem, temp.c_str());
     }
 #endif
+}
+
+void MemoryManager::DumpGpuNodeMemory(DfxString& log)
+{
+    std::string gpuMemInfo;
+    std::ifstream gpuMemInfoFile;
+    gpuMemInfoFile.open(GPUMEM_NODEINFO_PATH);
+    if (gpuMemInfoFile.is_open()) {
+        std::stringstream gpuMemInfoStream;
+        gpuMemInfoStream << gpuMemInfoFile.rdbuf();
+        gpuMemInfo = gpuMemInfoStream.str();
+        gpuMemInfoFile.close();
+    } else {
+        RS_LOGE("MemoryManager::DumpGpuNodeMemory can not open gpumem info");
+    }
+    log.AppendFormat("\n---------------\nGPU Memory:\n");
+    log.AppendFormat("%s", gpuMemInfo.c_str());
+    log.AppendFormat("\n---------------\n");
 }
 
 static int32_t MemoryTrackerGetGLByPid(int32_t pid)

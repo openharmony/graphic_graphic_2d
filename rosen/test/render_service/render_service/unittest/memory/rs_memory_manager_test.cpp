@@ -1049,4 +1049,17 @@ HWTEST_F(RSMemoryManagerTest, DumpGpuCacheWithPidInfoTest00, testing::ext::TestS
     MemoryManager::DumpGpuCacheWithPidInfo(log2, gpuContext, nullptr, name, totalInfo);
     ASSERT_TRUE(log2.GetString().find("GPU Caches") != std::string::npos);
 }
+
+/**
+ * @tc.name: DumGpuNodeMemoryTest001
+ * @tc.desc: DumGpuNodeMemory
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, DumGpuNodeMemoryTest001, testing::ext::TestSize.Level1)
+{
+    DfxString log;
+    MemoryManager::DumpGpuNodeMemory(log);
+    ASSERT_TRUE(log.GetString().find("GPU") != std::string::npos);
+}
 } // namespace OHOS::Rosen

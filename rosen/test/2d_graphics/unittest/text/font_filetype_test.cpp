@@ -254,6 +254,21 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathValidWithInputOTC, TestSize.Leve
     EXPECT_EQ(filetype, FontFileType::FontFileFormat::OTC);
     EXPECT_EQ(fileCount, 10);
 }
+
+/**
+ * @tc.name: GetFontFileTypeByPathValidWithWrongFile
+ * @tc.desc: Test GetFontFileTypeByPath
+ * @tc.type: FUNC
+ * @tc.require: SR20250918053090
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByPathValidWithWrongFile, TestSize.Level1)
+{
+    std::string pathDefault = "/system/fonts/hm_symbol_config.json";
+    int fileCount = 0;
+    auto filetype = FontFileType::GetFontFileType(pathDefault, fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
+    EXPECT_EQ(fileCount, 0);
+}
 // ----------------------------------------------------------------------------------
 // Test for FontFileFormat GetFontFileType(const std::vector<uint8_t>& data, int& fileCount)
 // ----------------------------------------------------------------------------------
@@ -442,6 +457,30 @@ HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInputOTC, TestSize.Leve
     auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
     EXPECT_EQ(filetype, FontFileType::FontFileFormat::OTC);
     EXPECT_EQ(fileCount, 10);
+}
+
+/**
+ * @tc.name: GetFontFileTypeByDataValidWithInputWrongFile
+ * @tc.desc: Test GetFontFileTypeByData
+ * @tc.type: FUNC
+ * @tc.require: SR20250918053090
+ */
+HWTEST_F(FontFileTypeTest, GetFontFileTypeByDataValidWithInputWrongFile, TestSize.Level1)
+{
+    std::string pathDefault = "/system/fonts/hm_symbol_config.json";
+    int fileCount = 0;
+    std::ifstream ttfFile(pathDefault, std::ios::in | std::ios::binary);
+    ASSERT_TRUE(ttfFile.is_open());
+    ttfFile.seekg(0, std::ios::end);
+    size_t ttfLen = ttfFile.tellg();
+    ttfFile.seekg(0, std::ios::beg);
+    std::vector<uint8_t> fontData(ttfLen);
+    ttfFile.read(reinterpret_cast<char*>(fontData.data()), ttfLen);
+    ASSERT_TRUE(ttfFile.good());
+    ttfFile.close();
+    auto filetype = FontFileType::GetFontFileType(fontData, fileCount);
+    EXPECT_EQ(filetype, FontFileType::FontFileFormat::UNKNOWN);
+    EXPECT_EQ(fileCount, 0);
 }
 } // namespace Drawing
 } // namespace Rosen

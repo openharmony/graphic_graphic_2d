@@ -25,6 +25,7 @@
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "monitor/self_drawing_node_monitor.h"
+#include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "pipeline/hwc/rs_uni_hwc_visitor.h"
 #include "pipeline/render_thread/rs_uni_render_engine.h"
@@ -3470,5 +3471,175 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRectByGlobalPosition_001, TestSize.Level2
     surfaceNode.SetHwcGlobalPositionEnabled(true);
     rsUniRenderVisitor->hwcVisitor_->UpdateDstRectByGlobalPosition(surfaceNode);
     EXPECT_EQ(surfaceNode.GetDstRect().left_, 0);
+}
+
+/**
+ * @tc.name: UpdateForegroundColorValid_001
+ * @tc.desc: Test UpdateForegroundColorValid Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateForegroundColorValid_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    NodeId id = 0;
+    RSCanvasRenderNode node(id);
+    rsUniRenderVisitor->hwcVisitor_->UpdateForegroundColorValid(node);
+    EXPECT_FALSE(node.GetHwcRecorder().IsForegroundColorValid());
+
+    auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
+    property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
+    modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
+    RSRootRenderNode::ModifierNGContainer modifiers {modifier};
+    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifiers);
+    rsUniRenderVisitor->hwcVisitor_->UpdateForegroundColorValid(node);
+    EXPECT_TRUE(node.GetHwcRecorder().IsForegroundColorValid());
+}
+
+/**
+ * @tc.name: PrintHiperfCounterLog_001
+ * @tc.desc: Test PrintHiperfCounterLog Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, PrintHiperfCounterLog_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    const char* const context = "counter1";
+    uint64_t count = 1;
+    rsUniRenderVisitor->hwcVisitor_->PrintHiperfCounterLog(context, count);
+}
+
+/**
+ * @tc.name: PrintHiperfLog_001
+ * @tc.desc: Test PrintHiperfLog Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, PrintHiperfLog_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetNodeName("testNode");
+    rsSurfaceRenderNode->srcRect_ = {0, 0, 100, 100};
+    rsSurfaceRenderNode->dstRect_ = {0, 0, 100, 100};
+    const char* const disabledContext = "filter rect";
+    rsUniRenderVisitor->hwcVisitor_->PrintHiperfLog(rsSurfaceRenderNode, disabledContext);
+}
+
+/**
+ * @tc.name: PrintHiperfLog_002
+ * @tc.desc: Test PrintHiperfLog Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, PrintHiperfLog_002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetNodeName("testNode");
+    rsSurfaceRenderNode->srcRect_ = {0, 0, 100, 100};
+    rsSurfaceRenderNode->dstRect_ = {0, 0, 100, 100};
+    const char* const disabledContext = "filter rect";
+    rsUniRenderVisitor->hwcVisitor_->PrintHiperfLog(rsSurfaceRenderNode.get(), disabledContext);
+}
+
+/**
+ * @tc.name: Statistics_001
+ * @tc.desc: Test Statistics Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, Statistics_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    auto& hwcDisabledReasonCollection1 = HwcDisabledReasonCollection::GetInstance();
+    auto& hwcDisabledReasonCollection2 = rsUniRenderVisitor->hwcVisitor_->Statistics();
+    EXPECT_EQ(&hwcDisabledReasonCollection1, &hwcDisabledReasonCollection2);
+}
+
+/**
+ * @tc.name: IncreaseSolidLayerHwcEnableCount_001
+ * @tc.desc: Test IncreaseSolidLayerHwcEnableCount Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, IncreaseSolidLayerHwcEnableCount_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    rsUniRenderVisitor->hwcVisitor_->solidLayerHwcEnableCount_ = 0;
+    rsUniRenderVisitor->hwcVisitor_->IncreaseSolidLayerHwcEnableCount();
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->solidLayerHwcEnableCount_, 1);
+}
+
+/**
+ * @tc.name: GetSolidLayerHwcEnableCount_001
+ * @tc.desc: Test GetSolidLayerHwcEnableCount Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, GetSolidLayerHwcEnableCount_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+
+    rsUniRenderVisitor->hwcVisitor_->solidLayerHwcEnableCount_ = 1;
+    EXPECT_EQ(rsUniRenderVisitor->hwcVisitor_->GetSolidLayerHwcEnableCount(), 1);
+}
+
+/**
+ * @tc.name: IsTargetSolidLayer_001
+ * @tc.desc: Test IsTargetSolidLayer Function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, IsTargetSolidLayer_001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->hwcVisitor_, nullptr);
+  
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "IsTargetSolidLayer_001";
+    config.bundleName = "key1";
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    std::unordered_map<std::string, std::string> solidLayerConfigFromHgm;
+    std::unordered_map<std::string, std::string> hwcSolidLayerConfigFromHgm;
+    solidLayerConfigFromHgm["key1"] = "value1";
+    hwcSolidLayerConfigFromHgm["key1"] = "value1";
+    RsCommonHook::Instance().SetSolidColorLayerConfigFromHgm(solidLayerConfigFromHgm);
+    RsCommonHook::Instance().SetHwcSolidColorLayerConfigFromHgm(hwcSolidLayerConfigFromHgm);
+    EXPECT_TRUE(rsUniRenderVisitor->hwcVisitor_->IsTargetSolidLayer(*rsSurfaceRenderNode));
 }
 } // namespace OHOS::Rosen

@@ -410,7 +410,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         }
         if (canvas && ptr && ptr->filter_) {
             auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-            RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter->GetNGRenderFilter());
+            RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
 
             RectF bound = (rect != nullptr ?
                 RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());

@@ -684,6 +684,8 @@ void RSProfiler::MarshalNodes(const RSContext& context, std::stringstream& data,
             } else {
                 MarshalNode(*node, data, fileVersion);
             }
+            GetCustomMetrics().AddInt(
+                node->IsOnTheTree() ? RSPROFILER_METRIC_ONTREE_NODE_COUNT : RSPROFILER_METRIC_OFFTREE_NODE_COUNT, 1);
             std::shared_ptr<RSRenderNode> parent = node->GetParent().lock();
             if (!parent && (node != rootRenderNode)) {
                 nodes.emplace_back(node);
@@ -1861,7 +1863,7 @@ void RSProfiler::MetricRenderNodeChange(bool isOnTree)
         GetCustomMetrics().SubInt(RSPROFILER_METRIC_ONTREE_NODE_COUNT, 1);
     }
 }
- 
+
 void RSProfiler::MetricRenderNodeInit(RSContext* context)
 {
     if (!context) {
@@ -1869,23 +1871,7 @@ void RSProfiler::MetricRenderNodeInit(RSContext* context)
     }
     GetCustomMetrics().SetZero(RSPROFILER_METRIC_ONTREE_NODE_COUNT);
     GetCustomMetrics().SetZero(RSPROFILER_METRIC_OFFTREE_NODE_COUNT);
-    auto globalRootNodeId = context->GetGlobalRootRenderNode()->GetId();
-    auto& nodeMap = context->GetMutableNodeMap();
-    nodeMap.TraversalNodes([globalRootNodeId](const std::shared_ptr<RSBaseRenderNode>& node) {
-        if (node == nullptr) {
-            return;
-        }
-        auto parentPtr = node->GetParent().lock();
-        for (; parentPtr && parentPtr->GetId() != globalRootNodeId; parentPtr = parentPtr->GetParent().lock())
-            ;
-        if (parentPtr != nullptr) {
-            GetCustomMetrics().AddInt(RSPROFILER_METRIC_ONTREE_NODE_COUNT, 1);
-        } else {
-            GetCustomMetrics().AddInt(RSPROFILER_METRIC_OFFTREE_NODE_COUNT, 1);
-        }
-    });
 }
- 
 void RSProfiler::RSLogOutput(RSProfilerLogType type, const char* format, va_list argptr)
 {
     if (!IsEnabled() || !(IsWriteMode() || IsReadEmulationMode())) {

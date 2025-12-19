@@ -21,7 +21,7 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
-#include "feature/colorpicker/rs_color_picker_manager.h"
+#include "feature/color_picker/rs_color_picker_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -171,11 +171,9 @@ RSDrawable::Ptr RSColorPickerDrawable::OnGenerate(const RSRenderNode& node)
 bool RSColorPickerDrawable::OnUpdate(const RSRenderNode& node)
 {
     stagingNodeId_ = node.GetId();
-    stagingPlaceholder_ = node.GetRenderProperties().GetColorPickerPlaceholder();
-    stagingStrategy_ = node.GetRenderProperties().GetColorPickerStrategy();
-    stagingInterval_ = node.GetRenderProperties().GetColorPickerInterval();
+    stagingColorPicker_ = node.GetRenderProperties().GetColorPicker();
     needSync_ = true;
-    return stagingPlaceholder_ != ColorPlaceholder::NONE;
+    return stagingColorPicker_ != nullptr;
 }
 
 void RSColorPickerDrawable::OnSync()
@@ -184,9 +182,7 @@ void RSColorPickerDrawable::OnSync()
         return;
     }
     nodeId_ = stagingNodeId_;
-    placeholder_ = stagingPlaceholder_;
-    strategy_ = stagingStrategy_;
-    interval_ = stagingInterval_;
+    colorPicker_ = stagingColorPicker_ ? *stagingColorPicker_ : ColorPickerParam();
     needSync_ = false;
 }
 
@@ -197,9 +193,9 @@ Drawing::RecordingCanvas::DrawFunc RSColorPickerDrawable::CreateDrawFunc() const
         if (colorPickerManager_) {
             auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
             if (paintFilterCanvas != nullptr) {
-                auto color = colorPickerManager_->GetColorPicked(*paintFilterCanvas, rect, nodeId_, strategy_,
-                    interval_);
-                paintFilterCanvas->SetColorPicked(placeholder_, color);
+                auto color = colorPickerManager_->GetColorPicked(
+                    *paintFilterCanvas, rect, nodeId_, colorPicker_.strategy, colorPicker_.interval);
+                paintFilterCanvas->SetColorPicked(colorPicker_.placeholder, color);
             }
         }
     };
@@ -395,7 +391,7 @@ bool RSBeginBlenderDrawable::OnUpdate(const RSRenderNode& node)
     } else if (blendMode && blendMode != static_cast<int>(RSColorBlendMode::NONE)) {
         if (Rosen::RSSystemProperties::GetDebugTraceLevel() >= TRACE_LEVEL_TWO) {
             stagingPropertyDescription_ = "BlendMode, blendMode: " + std::to_string(blendMode) +
-                " blendApplyType: " + std::to_string(stagingBlendApplyType_);
+                                          " blendApplyType: " + std::to_string(stagingBlendApplyType_);
         }
         // map blendMode to Drawing::BlendMode and convert to Blender
         stagingBlender_ = Drawing::Blender::CreateWithBlendMode(static_cast<Drawing::BlendMode>(blendMode - 1));

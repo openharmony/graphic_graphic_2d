@@ -1042,15 +1042,6 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
     UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::PROTECTED, isProtectedLayer);
 }
 
-void RSSurfaceRenderNode::SetIsOutOfScreen(bool isOutOfScreen)
-{
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetIsOutOfScreen(isOutOfScreen);
-        AddToPendingSyncList();
-    }
-}
-
 bool RSSurfaceRenderNode::GetHasPrivacyContentLayer() const
 {
     return privacyContentLayerIds_.size() != 0;

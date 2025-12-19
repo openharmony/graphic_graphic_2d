@@ -19,6 +19,8 @@
 #include "common/rs_optional_trace.h"
 #include "memory/rs_memory_track.h"
 #include "params/rs_effect_render_params.h"
+#include "pipeline/rs_context.h"
+#include "pipeline/rs_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_properties_painter.h"
@@ -102,7 +104,7 @@ void RSEffectRenderNode::ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas
 
 RectI RSEffectRenderNode::GetFilterRect() const
 {
-    if (!ChildHasVisibleEffect()) {
+    if (!ChildHasVisibleEffectWithoutEmptyRect()) {
         return {};
     }
     return RSRenderNode::GetFilterRect();
@@ -193,7 +195,7 @@ bool RSEffectRenderNode::IsForceClearFilterCache(std::shared_ptr<DrawableV2::RSF
 void RSEffectRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
     RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync)
 {
-    lastFrameHasVisibleEffect_ = ChildHasVisibleEffect();
+    lastFrameHasVisibleEffectWithoutEmptyRect_ = ChildHasVisibleEffectWithoutEmptyRect();
     if (IsForceClearOrUseFilterCache(filterDrawable)) {
         // expand dirty region with filterRegion when effect render node needs to force clear filter cache
         if (IsForceClearFilterCache(filterDrawable)) {
@@ -285,7 +287,7 @@ void RSEffectRenderNode::MarkFilterHasEffectChildren()
     if (effectParams == nullptr) {
         return;
     }
-    effectParams->SetHasEffectChildren(ChildHasVisibleEffect());
+    effectParams->SetHasEffectChildrenWithoutEmptyRect(ChildHasVisibleEffectWithoutEmptyRect());
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     if (!RSProperties::filterCacheEnabled_) {
         UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::BACKGROUND_FILTER);
@@ -311,21 +313,22 @@ void RSEffectRenderNode::OnFilterCacheStateChanged()
 
 bool RSEffectRenderNode::EffectNodeShouldPaint() const
 {
-    return ChildHasVisibleEffect();
+    return ChildHasVisibleEffectWithoutEmptyRect();
 }
 
 bool RSEffectRenderNode::FirstFrameHasEffectChildren() const
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSEffectRenderNode[%llu]::FirstFrameHasEffectChildren lastHasVisibleEffect:%d,"
-        "hasVisibleEffect:%d", GetId(), lastFrameHasVisibleEffect_, ChildHasVisibleEffect());
+        "hasVisibleEffect:%d", GetId(), lastFrameHasVisibleEffectWithoutEmptyRect_,
+        ChildHasVisibleEffectWithoutEmptyRect());
     return GetRenderProperties().GetBackgroundFilter() != nullptr &&
-        !lastFrameHasVisibleEffect_ && ChildHasVisibleEffect();
+        !lastFrameHasVisibleEffectWithoutEmptyRect_ && ChildHasVisibleEffectWithoutEmptyRect();
 }
 
 bool RSEffectRenderNode::FirstFrameHasNoEffectChildren() const
 {
     return GetRenderProperties().GetBackgroundFilter() != nullptr &&
-        !ChildHasVisibleEffect() && lastFrameHasVisibleEffect_;
+        !ChildHasVisibleEffectWithoutEmptyRect() && lastFrameHasVisibleEffectWithoutEmptyRect_;
 }
 
 void RSEffectRenderNode::MarkClearFilterCacheIfEffectChildrenChanged()
@@ -376,6 +379,34 @@ void RSEffectRenderNode::MarkFilterDebugEnabled()
     }
     filterDrawable->MarkDebugEnabled();
 #endif
+}
+
+void RSEffectRenderNode::UpdateChildHasVisibleEffectWithoutEmptyRect()
+{
+    if (!ChildHasVisibleEffect()) {
+        hasEffectChildrenWithoutEmptyRect_ = false;
+        return;
+    }
+
+    auto context = GetContext().lock();
+    if (!context) {
+        RS_LOGE("UpdateChildHasVisibleEffectWithoutEmptyRect node: %{public}" PRIu64 " context is nullptr", GetId());
+        hasEffectChildrenWithoutEmptyRect_ = false;
+        return;
+    }
+
+    auto& visibleEffectChild = GetVisibleEffectChild();
+    hasEffectChildrenWithoutEmptyRect_ =
+        std::any_of(visibleEffectChild.begin(), visibleEffectChild.end(), [&context](NodeId id) {
+            auto& subNode = context->GetNodeMap().GetRenderNode<RSRenderNode>(id);
+            return subNode != nullptr && !subNode->GetOldDirtyInSurface().IsEmpty();
+        });
+}
+
+void RSEffectRenderNode::ResetChildRelevantFlags()
+{
+    hasEffectChildrenWithoutEmptyRect_ = false;
+    RSRenderNode::ResetChildRelevantFlags();
 }
 } // namespace Rosen
 } // namespace OHOS

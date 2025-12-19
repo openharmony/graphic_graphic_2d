@@ -26,6 +26,7 @@
 #include "drawable/rs_render_node_drawable.h"
 #include <parameters.h>
 #include <thread>
+#include "feature/uifirst/rs_sub_thread.h"
 #include "ipc_callbacks/rs_surface_buffer_callback.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_draw_cmd.h"
@@ -1041,5 +1042,39 @@ HWTEST_F(RSUniRenderThreadTest, NotifyScreenNodeBufferReleasedTest, TestSize.Lev
     screenId = 1;
     instance.screenCond_[screenId] = nullptr;
     instance.NotifyScreenNodeBufferReleased(screenId);
+}
+
+/**
+ * @tc.name: DumpGpuMemTest001
+ * @tc.desc: Test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, DumpGpuMemTest001, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    DfxString log;
+    instance.DumpGpuMem(log);
+    std::string dumpStr = log.GetString();
+    ASSERT_TRUE(dumpStr.find("GPU") == std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMemTest002
+ * @tc.desc: Test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderThreadTest, DumpGpuMemTest002, TestSize.Level1)
+{
+    auto& instance = RSUniRenderThread::Instance();
+    auto renderContext = RenderContext::Create();
+    instance.uniRenderEngine_->renderContext_ = renderContext;
+    DfxString log;
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    ASSERT_NE(renderNode, nullptr);
+    instance.DumpGpuMem(log);
+    std::string dumpStr = log.GetString();
+    ASSERT_TRUE(dumpStr.find("GPU") == std::string::npos);
 }
 }

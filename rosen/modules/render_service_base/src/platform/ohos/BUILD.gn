@@ -74,10 +74,6 @@ ohos_source_set("rosen_ohos_sources") {
     sources += [ "rs_accessibility.cpp" ]
   }
 
-  if (graphic_2d_feature_mhc_enable) {
-    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
-  }
-
   sources += [
     "backend/rs_surface_frame_ohos_raster.cpp",
     "backend/rs_surface_ohos_raster.cpp",
@@ -140,6 +136,10 @@ ohos_source_set("rosen_ohos_sources") {
     defines += [ "RS_PROFILER_BETA_ENABLED" ]
   }
   include_dirs += [ "$graphic_2d_root/rosen/modules/render_service_profiler" ]
+
+  if (graphic_2d_feature_mhc_enable) {
+    include_dirs += graphic_2d_mhc_configs.librender_service_mhc_include
+  }
 
   public_deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",

@@ -73,12 +73,8 @@ public:
 private:
     NodeId stagingNodeId_ = INVALID_NODEID;
     NodeId nodeId_ = INVALID_NODEID;
-    ColorPlaceholder stagingPlaceholder_ = ColorPlaceholder::NONE;
-    ColorPlaceholder placeholder_ = ColorPlaceholder::NONE;
-    ColorPickStrategyType stagingStrategy_ = ColorPickStrategyType::NONE;
-    ColorPickStrategyType strategy_ = ColorPickStrategyType::NONE;
-    uint64_t stagingInterval_ = 0;
-    uint64_t interval_ = 0;
+    std::shared_ptr<ColorPickerParam> stagingColorPicker_;
+    ColorPickerParam colorPicker_;
 
     bool needSync_ = false;
     std::shared_ptr<RSColorPickerManager> colorPickerManager_;

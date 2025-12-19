@@ -158,15 +158,23 @@ public:
     bool SetVirtualScreenStatus(VirtualScreenStatus screenStatus);
     VirtualScreenStatus GetVirtualScreenStatus() const;
 
+    // blacklist
     void SetCastScreenEnableSkipWindow(bool enable);
     bool GetCastScreenEnableSkipWindow();
-    void SetBlackList(const std::unordered_set<uint64_t>& blackList);
+    void SetBlackList(const std::unordered_set<NodeId>& blackList);
+    const std::unordered_set<NodeId>& GetBlackList() const;
+    void AddBlackList(const std::vector<NodeId>& blackList);
+    void RemoveBlackList(const std::vector<NodeId>& blackList);
+
+    // type blacklist
     void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
-    void AddBlackList(const std::vector<uint64_t>& blackList);
-    void RemoveBlackList(const std::vector<uint64_t>& blackList);
-    std::unordered_set<uint64_t> GetBlackList() const;
     std::unordered_set<uint8_t> GetTypeBlackList() const;
-    std::unordered_set<uint64_t> GetWhiteList() const;
+
+    // whitelist
+    void SetWhiteList(const std::unordered_set<NodeId>& whiteList);
+    const std::unordered_set<NodeId>& GetWhiteList() const;
+    void AddWhiteList(const std::vector<NodeId>& whiteList);
+    void RemoveWhiteList(const std::vector<NodeId>& whiteList);
 
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
     const std::vector<uint64_t> GetSecurityExemptionList() const;

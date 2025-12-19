@@ -1689,7 +1689,9 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
 
 bool RSRenderNode::IsClipBound() const
 {
-    return GetRenderProperties().GetClipToBounds() || GetRenderProperties().GetClipToFrame();
+    auto& renderProperties = GetRenderProperties();
+    return renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
+        renderProperties.GetClipToRRect() || renderProperties.GetClipBounds() != nullptr;
 }
 
 bool RSRenderNode::SetAccumulatedClipFlag(bool clipChange)
@@ -3956,8 +3958,7 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if ((childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) &&
-         !childNode.GetOldDirtyInSurface().IsEmpty()) {
+    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();
@@ -5104,7 +5105,8 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     }
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
+    const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
@@ -5124,6 +5126,11 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
+    if (childHasProtectedNodeSet.count(GetId()) &&
+        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter disable nodeGroup by ChildHasProtectedNode id:%llu", GetId());
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
 #ifdef RS_ENABLE_GPU
@@ -5211,6 +5218,10 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     auto parent = parent_.lock();
     if (parent != nullptr) {
         parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
+    }
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::MATRIX_DIRTY);
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     }
     released_ = false;
 #endif

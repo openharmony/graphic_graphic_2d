@@ -2359,8 +2359,7 @@ void RSNode::SetMaterialWithQualityLevel(const std::shared_ptr<RSNGFilterBase> &
         return;
     }
     if (materialFilter->GetType() == RSNGEffectType::FROSTED_GLASS && quality == FilterQuality::ADAPTIVE) {
-        constexpr uint64_t DEFAULT_INTERVAL = 100; // unit: ms
-        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, DEFAULT_INTERVAL);
+        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, 0);
     }
 }
 

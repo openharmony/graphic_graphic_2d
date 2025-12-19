@@ -922,6 +922,7 @@ void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRe
     curCornerRadius_ = curCornerRadius;
     curCornerRect_ = curCornerRect;
     globalShouldPaint_ = preGlobalShouldPaint;
+    childHasProtectedNodeSet_.clear();
     node.UpdateOffscreenRenderParams(node.IsRotationChanged());
     node.RenderTraceDebug();
     RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
@@ -1796,7 +1797,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node)
     bool isSubTreeNeedPrepare = node.IsSubTreeNeedPrepare(filterInGlobal_) || ForcePrepareSubTree();
     isSubTreeNeedPrepare ? QuickPrepareChildren(node) :
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_);
-
+    node.UpdateChildHasVisibleEffectWithoutEmptyRect();
     PostPrepare(node, !isSubTreeNeedPrepare);
     prepareClipRect_ = prepareClipRect;
     hasAccumulatedClip_ = hasAccumulatedClip;
@@ -3145,7 +3146,7 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         nodeParent->UpdateVisibleFilterChild(node);
     }
     if ((node.GetRenderProperties().GetUseEffect() || node.GetRenderProperties().HasHarmonium() ||
-         node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
+        node.ChildHasVisibleEffect()) && node.ShouldPaint()) {
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
@@ -3165,12 +3166,38 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     }
     node.UpdateNodeColorSpace();
     nodeParent->SetNodeColorSpace(node.GetNodeColorSpace());
+    if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
+        auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
+        if (surfaceNode.GetSpecialLayerMgr().Find(SpecialLayerType::HAS_PROTECTED)) {
+            childHasProtectedNodeSet_.insert(nodeParent->GetId());
+        }
+    }
+    if (childHasProtectedNodeSet_.count(node.GetId())) {
+        childHasProtectedNodeSet_.insert(nodeParent->GetId());
+    }
 }
 
 void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
 {
     if (curUnionNode_ && node.GetRenderProperties().GetUseUnion() && node.ShouldPaint()) {
         curUnionNode_->UpdateVisibleUnionChildren(node);
+    }
+}
+
+void RSUniRenderVisitor::DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const
+{
+    if (curSurfaceNode_ == nullptr || curSurfaceNode_->GetId() != node.GetId()) {
+        return;
+    }
+    const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
+    for (auto& hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+            continue;
+        }
+        hwcNodePtr->SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
+            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
     }
 }
 
@@ -3191,17 +3218,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
             CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
             UpdateSubSurfaceNodeRectInSkippedSubTree(node);
-        } else if (curSurfaceNode_->GetId() == node.GetId()) {
-            const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
-            for (auto& hwcNode : hwcNodes) {
-                auto hwcNodePtr = hwcNode.lock();
-                if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
-                    continue;
-                }
-                hwcNodePtr->SetHardwareForcedDisabledState(true);
-                RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
-                    hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-            }
+        } else {
+            CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
+            DisableOccludedHwcNodeInSkippedSubTree(node);
         }
     }
     if (node.NeedUpdateDrawableBehindWindow()) {
@@ -3242,7 +3261,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
                 isInBlackList = true;
             }
         }
-        node.UpdateDrawingCacheInfoAfterChildren(isInBlackList);
+        node.UpdateDrawingCacheInfoAfterChildren(isInBlackList, childHasProtectedNodeSet_);
     }
     if (auto nodeParent = node.GetParent().lock()) {
         nodeParent->UpdateChildUifirstSupportFlag(node.GetUifirstSupportFlag());
@@ -3363,6 +3382,15 @@ void RSUniRenderVisitor::CheckFilterNodeInSkippedSubTreeNeedClearCache(
         filterNode->UpdateFilterRegionInSkippedSubTree(dirtyManager, rootNode, filterRect, prepareClipRect_);
         hwcVisitor_->UpdateHwcNodeEnableByFilterRect(curSurfaceNode_, *filterNode);
         CollectFilterInfoAndUpdateDirty(*filterNode, dirtyManager, filterRect, filterRect);
+    }
+
+    for (auto& child : rootNode.GetVisibleFilterChild()) {
+        auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+        auto effectNode = RSRenderNode::ReinterpretCast<RSEffectRenderNode>(filterNode);
+        if (effectNode == nullptr) {
+            continue;
+        }
+        effectNode->UpdateChildHasVisibleEffectWithoutEmptyRect();
     }
 }
 

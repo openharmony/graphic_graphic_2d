@@ -76,6 +76,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGFrostedGlassEffect>();
         }
     },
+    {RSNGEffectType::DISTORT_CHROMA, [] {
+            return std::make_shared<RSNGDistortChroma>();
+        }
+    },
 };
 
 namespace {

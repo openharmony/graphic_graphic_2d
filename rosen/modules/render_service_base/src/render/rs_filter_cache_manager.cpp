@@ -554,7 +554,7 @@ bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamag
         return false;
     }
     // should mark stagingIsAIBarInteractWithHWC_ once intersectHwcDamage is true
-    // or pendingPurge_ is true (which means AIBar has been intersected with damage during chache consuming)
+    // or pendingPurge_ is true (which means AIBar has been intersected with damage during cache consuming)
     if (intersectHwcDamage || pendingPurge_) {
         stagingIsAIBarInteractWithHWC_ = true;
     }

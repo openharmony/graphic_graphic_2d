@@ -728,6 +728,11 @@ enum class ComponentEnableSwitch : uint8_t {
     CANVAS,
     MAX_VALUE,
 };
+typedef enum : uint32_t {
+    SA_WATER_MARK_DEFAULT_SIZE = 0, // 512KB
+    SA_WATER_MARK_MIDDLE_SIZE = 1, // 6M
+    SA_WATER_MARK_BOTTOM = 2,
+} SaSurfaceWatermarkMaxSize;
 
 typedef enum : uint32_t {
     WATER_MARK_SUCCESS = 0,

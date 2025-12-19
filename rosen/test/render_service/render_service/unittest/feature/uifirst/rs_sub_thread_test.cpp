@@ -41,7 +41,10 @@ void RsSubThreadTest::SetUpTestCase()
 #endif
     RSTestUtil::InitRenderNodeGC();
 }
-void RsSubThreadTest::TearDownTestCase() {}
+void RsSubThreadTest::TearDownTestCase()
+{
+    sleep(25); // wait 25s ensure asnyc task is excuted.
+}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
 
@@ -154,6 +157,23 @@ HWTEST_F(RsSubThreadTest, DumpMemTest002, TestSize.Level1)
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
     curThread->DumpMem(log, true);
+    EXPECT_TRUE(curThread->grContext_);
+}
+
+/**
+ * @tc.name: DumpGpuMemTest001
+ * @tc.desc: Verify function DumpGpuMem
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, DumpGpuMemTest001, TestSize.Level1)
+{
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    DfxString log;
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
+    curThread->DumpGpuMem(log);
     EXPECT_TRUE(curThread->grContext_);
 }
 

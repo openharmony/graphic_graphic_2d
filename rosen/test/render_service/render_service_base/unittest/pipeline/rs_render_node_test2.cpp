@@ -2989,14 +2989,21 @@ HWTEST_F(RSRenderNodeTest2, InitRenderDrawableAndDrawableVec002, TestSize.Level1
 
     node->released_ = true;
     EXPECT_TRUE(node->parent_.expired());
+    EXPECT_EQ(node->stagingRenderParams_, nullptr);
     node->InitRenderDrawableAndDrawableVec();
     EXPECT_EQ(static_cast<int>(node->dirtyStatus_), 1);
     EXPECT_FALSE(node->released_);
 
     node->released_ = true;
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    EXPECT_NE(stagingRenderParams, nullptr);
+    node->stagingRenderParams_ = std::move(stagingRenderParams);
     node->SetParent(parent);
     EXPECT_FALSE(node->parent_.expired());
+    EXPECT_NE(node->stagingRenderParams_, nullptr);
     node->InitRenderDrawableAndDrawableVec();
+    EXPECT_TRUE(node->stagingRenderParams_->dirtyType_.test(RSRenderParamsDirtyType::MATRIX_DIRTY));
+    EXPECT_TRUE(node->stagingRenderParams_->dirtyType_.test(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY));
     EXPECT_EQ(static_cast<int>(node->dirtyStatus_), 1);
     EXPECT_TRUE(node->parent_.lock()->dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::CHILDREN)));
     EXPECT_FALSE(node->released_);

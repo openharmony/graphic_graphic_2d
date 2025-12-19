@@ -61,6 +61,10 @@ thread_local std::unordered_map<RSNGEffectType, MaskCreator> creatorLUT = {
             return std::make_shared<RSNGUseEffectMask>();
         }
     },
+    {RSNGEffectType::DUPOLI_NOISE_MASK, [] {
+            return std::make_shared<RSNGDupoliNoiseMask>();
+        }
+    },
     {RSNGEffectType::NOISY_FRAME_GRADIENT_MASK, [] {
             return std::make_shared<RSNGNoisyFrameGradientMask>();
         }

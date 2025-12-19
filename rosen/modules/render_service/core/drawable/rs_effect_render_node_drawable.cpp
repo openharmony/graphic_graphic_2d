@@ -116,7 +116,7 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         return false;
     } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 ||
         !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
-        (!effectParams->GetHasEffectChildren() && !canvas.GetUICapture())) {
+        (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !canvas.GetUICapture())) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

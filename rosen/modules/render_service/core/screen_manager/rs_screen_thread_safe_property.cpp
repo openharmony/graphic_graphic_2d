@@ -261,29 +261,43 @@ void RSScreenThreadSafeProperty::SetVisibleRectSupportRotation(bool supportRotat
     property_->isSupportRotation_ = supportRotation;
 }
 
-void RSScreenThreadSafeProperty::SetWhiteList(const std::unordered_set<uint64_t>& whiteList)
+void RSScreenThreadSafeProperty::SetWhiteList(const std::unordered_set<NodeId>& whiteList)
 {
     UniqueLock lock(propertyMutex_);
     property_->whiteList_ = whiteList;
 }
 
-void RSScreenThreadSafeProperty::SetBlackList(const std::unordered_set<uint64_t>& blackList)
+void RSScreenThreadSafeProperty::AddWhiteList(const std::vector<NodeId>& whiteList)
+{
+    UniqueLock lock(propertyMutex_);
+    property_->whiteList_.insert(whiteList.cbegin(), whiteList.cend());
+}
+
+void RSScreenThreadSafeProperty::RemoveWhiteList(const std::vector<NodeId>& whiteList)
+{
+    UniqueLock lock(propertyMutex_);
+    for (const auto nodeId : whiteList) {
+        property_->whiteList_.erase(nodeId);
+    }
+}
+
+void RSScreenThreadSafeProperty::SetBlackList(const std::unordered_set<NodeId>& blackList)
 {
     UniqueLock lock(propertyMutex_);
     property_->blackList_ = blackList;
 }
 
-void RSScreenThreadSafeProperty::AddBlackList(const std::vector<uint64_t>& blackList)
+void RSScreenThreadSafeProperty::AddBlackList(const std::vector<NodeId>& blackList)
 {
     UniqueLock lock(propertyMutex_);
     property_->blackList_.insert(blackList.cbegin(), blackList.cend());
 }
 
-void RSScreenThreadSafeProperty::RemoveBlackList(const std::vector<uint64_t>& blackList)
+void RSScreenThreadSafeProperty::RemoveBlackList(const std::vector<NodeId>& blackList)
 {
     UniqueLock lock(propertyMutex_);
-    for (const auto& list : blackList) {
-        property_->blackList_.erase(list);
+    for (const auto nodeId : blackList) {
+        property_->blackList_.erase(nodeId);
     }
 }
 
@@ -558,13 +572,13 @@ bool RSScreenThreadSafeProperty::GetVisibleRectSupportRotation() const
     return property_->isSupportRotation_;
 }
 
-std::unordered_set<uint64_t> RSScreenThreadSafeProperty::GetWhiteList() const
+std::unordered_set<NodeId> RSScreenThreadSafeProperty::GetWhiteList() const
 {
     SharedLock lock(propertyMutex_);
     return property_->whiteList_;
 }
 
-std::unordered_set<uint64_t> RSScreenThreadSafeProperty::GetBlackList() const
+std::unordered_set<NodeId> RSScreenThreadSafeProperty::GetBlackList() const
 {
     SharedLock lock(propertyMutex_);
     return property_->blackList_;

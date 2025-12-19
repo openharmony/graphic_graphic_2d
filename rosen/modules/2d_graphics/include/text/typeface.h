@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <cstdint>
+#include <vector>
 
 #include "impl_interface/typeface_impl.h"
 #include "text/font_arguments.h"

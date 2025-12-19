@@ -1269,7 +1269,9 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
     auto mirrorWidth = screenParam->GetBounds().GetWidth();
     auto mirrorHeight = screenParam->GetBounds().GetHeight();
 
-    auto rotation = mirroredParams->GetScreenRotation();
+    auto mirrorSourceRotation = params->GetMirrorSourceRotation();
+    auto rotation = mirrorSourceRotation != ScreenRotation::INVALID_SCREEN_ROTATION ?
+        mirrorSourceRotation : mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();
     RS_TRACE_NAME_FMT("ScaleAndRotateMirrorForWiredScreen[%" PRIu64 "](%f, %f), [%" PRIu64 "](%f, %f), rotation: %d",
         mirroredParams->GetScreenId(), mainWidth, mainHeight, params->GetScreenId(),

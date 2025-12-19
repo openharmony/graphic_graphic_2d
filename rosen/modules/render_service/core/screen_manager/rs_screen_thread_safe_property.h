@@ -58,10 +58,12 @@ public:
     void SetEnableVisibleRect(bool enableVisibleRect);
     void SetMainScreenVisibleRect(const Rect& mainScreenRect);
     void SetVisibleRectSupportRotation(bool supportRotation);
-    void SetWhiteList(const std::unordered_set<uint64_t>& whiteList);
-    void SetBlackList(const std::unordered_set<uint64_t>& blackList);
-    void AddBlackList(const std::vector<uint64_t>& blackList);
-    void RemoveBlackList(const std::vector<uint64_t>& blackList);
+    void SetWhiteList(const std::unordered_set<NodeId>& whiteList);
+    void AddWhiteList(const std::vector<NodeId>& whiteList);
+    void RemoveWhiteList(const std::vector<NodeId>& whiteList);
+    void SetBlackList(const std::unordered_set<NodeId>& blackList);
+    void AddBlackList(const std::vector<NodeId>& blackList);
+    void RemoveBlackList(const std::vector<NodeId>& blackList);
     void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
     void SetSecurityExemptionList(const std::vector<uint64_t>& securityExemptionList);
     void SetSecurityMask(std::shared_ptr<Media::PixelMap> securityMask);
@@ -109,8 +111,8 @@ public:
     bool GetEnableVisibleRect() const;
     Rect GetMainScreenVisibleRect() const;
     bool GetVisibleRectSupportRotation() const;
-    std::unordered_set<uint64_t> GetWhiteList() const;
-    std::unordered_set<uint64_t> GetBlackList() const;
+    std::unordered_set<NodeId> GetWhiteList() const;
+    std::unordered_set<NodeId> GetBlackList() const;
     std::unordered_set<uint8_t> GetTypeBlackList() const;
     std::vector<uint64_t> GetSecurityExemptionList() const;
     std::shared_ptr<Media::PixelMap> GetSecurityMask() const;

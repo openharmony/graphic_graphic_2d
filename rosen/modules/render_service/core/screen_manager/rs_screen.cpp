@@ -1457,12 +1457,36 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     return StatusCode::SUCCESS;
 }
 
-std::unordered_set<uint64_t> RSScreen::GetWhiteList() const
+const std::unordered_set<NodeId>& RSScreen::GetWhiteList() const
 {
     return property_.GetWhiteList();
 }
 
-void RSScreen::SetBlackList(const std::unordered_set<uint64_t>& blackList)
+void RSScreen::SetWhiteList(const std::unordered_set<NodeId>& whiteList)
+{
+    property_.SetWhiteList(whiteList);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+void RSScreen::AddWhiteList(const std::vector<NodeId>& whiteList)
+{
+    property_.AddWhiteList(whiteList);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+void RSScreen::RemoveWhiteList(const std::vector<NodeId>& whiteList)
+{
+    property_.RemoveWhiteList(whiteList);
+    if (onPropertyChange_) {
+        onPropertyChange_(property_.Clone());
+    }
+}
+
+void RSScreen::SetBlackList(const std::unordered_set<NodeId>& blackList)
 {
     property_.SetBlackList(blackList);
     if (onPropertyChange_) {
@@ -1478,7 +1502,7 @@ void RSScreen::SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList
     }
 }
 
-void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
+void RSScreen::AddBlackList(const std::vector<NodeId>& blackList)
 {
     if (blackList.empty()) {
         return;
@@ -1489,7 +1513,7 @@ void RSScreen::AddBlackList(const std::vector<uint64_t>& blackList)
     }
 }
 
-void RSScreen::RemoveBlackList(const std::vector<uint64_t>& blackList)
+void RSScreen::RemoveBlackList(const std::vector<NodeId>& blackList)
 {
     if (blackList.empty()) {
         return;
@@ -1513,7 +1537,7 @@ bool RSScreen::GetCastScreenEnableSkipWindow()
     return property_.GetCastScreenEnableSkipWindow();
 }
 
-std::unordered_set<uint64_t> RSScreen::GetBlackList() const
+const std::unordered_set<NodeId>& RSScreen::GetBlackList() const
 {
     return property_.GetBlackList();
 }

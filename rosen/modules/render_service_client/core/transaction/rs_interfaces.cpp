@@ -36,6 +36,7 @@ namespace Rosen {
 #ifdef ROSEN_OHOS
 namespace {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
+constexpr uint32_t WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT = 6 * 1024 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 constexpr int32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
 constexpr int32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
@@ -89,9 +90,9 @@ ScreenId RSInterfaces::CreateVirtualScreen(
         name, width, height, surface, associatedScreenId, flags, whiteList);
 }
 
-int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSInterfaces::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    return renderServiceClient_->SetVirtualScreenBlackList(id, blackListVector);
+    return renderServiceClient_->SetVirtualScreenBlackList(id, blackList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<NodeType>& typeBlackListVector)
@@ -99,14 +100,24 @@ int32_t RSInterfaces::SetVirtualScreenTypeBlackList(ScreenId id, std::vector<Nod
     return renderServiceClient_->SetVirtualScreenTypeBlackList(id, typeBlackListVector);
 }
 
-int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSInterfaces::AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    return renderServiceClient_->AddVirtualScreenBlackList(id, blackListVector);
+    return renderServiceClient_->AddVirtualScreenBlackList(id, blackList);
 }
 
-int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector)
+int32_t RSInterfaces::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
-    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackListVector);
+    return renderServiceClient_->RemoveVirtualScreenBlackList(id, blackList);
+}
+
+int32_t RSInterfaces::AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    return renderServiceClient_->AddVirtualScreenWhiteList(id, whiteList);
+}
+
+int32_t RSInterfaces::RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    return renderServiceClient_->RemoveVirtualScreenWhiteList(id, whiteList);
 }
 
 int32_t RSInterfaces::SetVirtualScreenSecurityExemptionList(
@@ -152,7 +163,8 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
-bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+    SaSurfaceWatermarkMaxSize maxSizeEnum)
 {
 #ifdef ROSEN_OHOS
     if (renderServiceClient_ == nullptr) {
@@ -162,7 +174,9 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
         return false;
     }
-    if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > WATERMARK_PIXELMAP_SIZE_LIMIT)) {
+    uint32_t limitMaxSize = (maxSizeEnum == SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE) ?
+        WATERMARK_PIXELMAP_SIZE_LIMIT : WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT;
+    if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > limitMaxSize)) {
         ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}u] is error",
             watermark->IsAstc(), watermark->GetCapacity());
         return false;

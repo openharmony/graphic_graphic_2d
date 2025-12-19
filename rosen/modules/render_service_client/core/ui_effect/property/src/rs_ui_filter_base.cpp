@@ -351,7 +351,6 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPa
     frostedGlassFilter->Setter<FrostedGlassEnvLightEnabledTag>(frostedGlassFilterPara->GetEnvLightEnabled());
     frostedGlassFilter->Setter<FrostedGlassHighLightEnabledTag>(frostedGlassFilterPara->GetHighLightEnabled());
     frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
-    frostedGlassFilter->Setter<FrostedGlassDarkScaleTag>(frostedGlassFilterPara->GetDarkScale());
     ConvertOptionalAdaptivePara(frostedGlassFilterPara.get(), frostedGlassFilter.get());
     return frostedGlassFilter;
 }

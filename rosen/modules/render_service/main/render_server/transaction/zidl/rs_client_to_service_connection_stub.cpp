@@ -69,6 +69,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
@@ -656,13 +658,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
-            std::vector<NodeId> blackListVector;
-            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackListVector)) {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackList)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = SetVirtualScreenBlackList(id, blackListVector);
+            int32_t status = SetVirtualScreenBlackList(id, blackList);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST Write status failed!");
                 ret = ERR_INVALID_REPLY;
@@ -689,14 +691,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
-            std::vector<NodeId> blackListVector;
-            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackListVector)) {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackList)) {
                 RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             int32_t repCode;
-            AddVirtualScreenBlackList(id, blackListVector, repCode);
+            AddVirtualScreenBlackList(id, blackList, repCode);
             if (!reply.WriteInt32(repCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
@@ -706,16 +708,50 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
-            std::vector<NodeId> blackListVector;
-            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackListVector)) {
-                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
+            std::vector<NodeId> blackList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackList)) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             int32_t repCode;
-            RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+            RemoveVirtualScreenBlackList(id, blackList, repCode);
             if (!reply.WriteInt32(repCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_BLACKLIST Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeId> whiteList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&whiteList)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_WHITELIST read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t repCode;
+            AddVirtualScreenWhiteList(id, whiteList, repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_WHITELIST Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeId> whiteList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&whiteList)) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_WHITELIST read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t repCode;
+            RemoveVirtualScreenWhiteList(id, whiteList, repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_WHITELIST Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;

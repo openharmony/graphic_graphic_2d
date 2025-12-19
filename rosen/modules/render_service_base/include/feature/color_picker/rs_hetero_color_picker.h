@@ -16,16 +16,13 @@
 #ifndef RS_HETERO_COLOR_PICKER_H
 #define RS_HETERO_COLOR_PICKER_H
 
-#include "image/image.h"
+#include "feature/color_picker/rs_color_picker_manager.h"
+#include "rs_trace.h"
+
 #include "draw/canvas.h"
 #include "draw/color.h"
-#include "rs_trace.h"
+#include "image/image.h"
 #include "platform/common/rs_log.h"
-#include "feature/colorpicker/rs_color_picker_manager.h"
-
-#ifdef RS_ENABLE_VK
-#include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -35,8 +32,12 @@ public:
     RSHeteroColorPicker() = default;
     ~RSHeteroColorPicker() = default;
 
-    bool GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor,
-        Drawing::Surface* surface, std::shared_ptr<Drawing::Image>& image);
+    bool GetColor(const std::function<void(Drawing::ColorQuad&)>& updateColor, Drawing::Surface* surface,
+        std::shared_ptr<Drawing::Image>& image);
+
+private:
+    bool ValidateInputs(const std::function<void(Drawing::ColorQuad&)>& updateColor,
+        Drawing::Surface* surface, const std::shared_ptr<Drawing::Image>& image);
 };
 
 } // namespace Rosen

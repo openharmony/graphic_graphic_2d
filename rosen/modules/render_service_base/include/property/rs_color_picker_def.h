@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,12 +28,21 @@ enum class ColorPlaceholder : uint8_t {
     MAX = FOREGROUND
 };
 
-enum class ColorPickStrategyType : int16_t {
-    NONE,
-    DOMINANT,
-    AVERAGE,
-    CONTRAST,
-    MAX = CONTRAST
+enum class ColorPickStrategyType : int16_t { NONE, DOMINANT, AVERAGE, CONTRAST, MAX = CONTRAST };
+
+struct ColorPickerParam {
+    ColorPlaceholder placeholder = ColorPlaceholder::NONE;
+    ColorPickStrategyType strategy = ColorPickStrategyType::NONE;
+    uint64_t interval = 0;
+
+    ColorPickerParam() = default;
+    ColorPickerParam(ColorPlaceholder ph, ColorPickStrategyType st, uint64_t itv)
+        : placeholder(ph), strategy(st), interval(itv) {}
+
+    bool operator==(const ColorPickerParam& other) const
+    {
+        return placeholder == other.placeholder && strategy == other.strategy && interval == other.interval;
+    }
 };
 } // namespace Rosen
 } // namespace OHOS

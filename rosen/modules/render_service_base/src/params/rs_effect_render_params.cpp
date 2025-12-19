@@ -27,7 +27,7 @@ void RSEffectRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
         return;
     }
     targetEffectRenderParam->cacheValid_ = cacheValid_;
-    targetEffectRenderParam->hasEffectChildren_ = hasEffectChildren_;
+    targetEffectRenderParam->hasEffectChildrenWithoutEmptyRect_ = hasEffectChildrenWithoutEmptyRect_;
     targetEffectRenderParam->isDarkColorMode_ = isDarkColorMode_;
     targetEffectRenderParam->isIntersectWithDRM_ = isIntersectWithDRM_;
 
@@ -47,18 +47,18 @@ bool RSEffectRenderParams::GetCacheValid() const
     return cacheValid_;
 }
 
-void RSEffectRenderParams::SetHasEffectChildren(bool hasEffectChildren)
+void RSEffectRenderParams::SetHasEffectChildrenWithoutEmptyRect(bool hasEffectChildrenWithoutEmptyRect)
 {
-    if (hasEffectChildren_ == hasEffectChildren) {
+    if (hasEffectChildrenWithoutEmptyRect_ == hasEffectChildrenWithoutEmptyRect) {
         return;
     }
-    hasEffectChildren_ = hasEffectChildren;
+    hasEffectChildrenWithoutEmptyRect_ = hasEffectChildrenWithoutEmptyRect;
     needSync_ = true;
 }
 
-bool RSEffectRenderParams::GetHasEffectChildren() const
+bool RSEffectRenderParams::GetHasEffectChildrenWithoutEmptyRect() const
 {
-    return hasEffectChildren_;
+    return hasEffectChildrenWithoutEmptyRect_;
 }
 
 void RSEffectRenderParams::SetEffectIntersectWithDRM(bool intersect)

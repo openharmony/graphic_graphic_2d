@@ -105,15 +105,19 @@ public:
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) = 0;
 
-    virtual int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) = 0;
+    // blacklist
+    virtual int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) = 0;
+    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) = 0;
+    virtual ErrCode RemoveVirtualScreenBlackList(
+        ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) = 0;
+    
+    // whitelist
+    virtual ErrCode AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode) = 0;
+    virtual ErrCode RemoveVirtualScreenWhiteList(
+        ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode) = 0;
 
     virtual ErrCode SetVirtualScreenTypeBlackList(
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) = 0;
-
-    virtual ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
-    
-    virtual ErrCode RemoveVirtualScreenBlackList(
-        ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) = 0;
 
     virtual ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
         bool& success) = 0;

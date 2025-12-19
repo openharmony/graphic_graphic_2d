@@ -123,5 +123,16 @@ DisplaySpecialLayerState RSSpecialLayerUtils::GetSpecialLayerStateInSubTree(
     return displayParams.HasCaptureWindow() ? DisplaySpecialLayerState::CAPTURE_WINDOW :
         DisplaySpecialLayerState::NO_SPECIAL_LAYER;
 }
+
+void RSSpecialLayerUtils::DumpScreenSpecialLayer(const std::string& funcName,
+    SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds)
+{
+    std::ostringstream out;
+    for (const auto nodeId : nodeIds) {
+        out << nodeId << " ";
+    }
+    RS_LOGI("%{public}s : specialLayerType[%{public}" PRIu32 "] screenId[%{public}" PRIu64 "] set[%{public}s]",
+        funcName.c_str(), type, screenId, out.str().c_str());
+}
 } // namespace Rosen
 } // namespace OHOS

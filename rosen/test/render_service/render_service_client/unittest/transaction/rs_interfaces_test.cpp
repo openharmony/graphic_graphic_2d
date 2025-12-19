@@ -572,6 +572,57 @@ HWTEST_F(RSInterfacesTest, SetWatermark002, TestSize.Level1)
     EXPECT_FALSE(res);
 }
 
+
+/**
+ * @tc.name: SetWatermark003
+ * @tc.desc: test results of SetWatermark
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWatermark003, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    pixelmap->SetAstc(true);
+    bool res = instance.SetWatermark("test", pixelmap);
+    EXPECT_FALSE(res);
+    pixelmap->SetAstc(false);
+    res = instance.SetWatermark("test", pixelmap);
+    EXPECT_FALSE(res);
+}
+
+/**
+ * @tc.name: SetWatermark004
+ * @tc.desc: test results of SetWatermark
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSInterfacesTest, SetWatermark004, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    int width = 7 * 1024;
+    int height = 1024;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    instance.renderServiceClient_ = std::make_unique<RSRenderServiceClient>();
+    pixelmap->SetAstc(true);
+    bool res = instance.SetWatermark("test", pixelmap);
+    EXPECT_FALSE(res);
+
+    pixelmap->SetAstc(false);
+    res = instance.SetWatermark("test", pixelmap);
+    EXPECT_FALSE(res);
+    instance.SetWatermark("test", nullptr);
+}
+
 /**
  * @tc.name: RegisterSurfaceBufferCallback001
  * @tc.desc: test results of RegisterSurfaceBufferCallback

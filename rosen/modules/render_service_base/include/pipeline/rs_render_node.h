@@ -467,6 +467,7 @@ public:
     std::tuple<bool, bool, bool> Animate(
         int64_t timestamp, int64_t& minLeftDelayTime, int64_t period = 0, bool isDisplaySyncEnabled = false);
 
+    // check if all clip properties are enabled
     bool IsClipBound() const;
     // clipRect has value in UniRender when calling PrepareCanvasRenderNode, else it is nullopt
     const RectF& GetSelfDrawRect() const
@@ -775,7 +776,8 @@ public:
     virtual void UpdateRenderParams();
     void SetCrossNodeOffScreenStatus(CrossNodeOffScreenRenderDebugType isCrossNodeOffscreenOn);
     void UpdateDrawingCacheInfoBeforeChildren(bool isScreenRotation);
-    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false);
+    void UpdateDrawingCacheInfoAfterChildren(bool isInBlackList = false,
+        const std::unordered_set<NodeId>& childHasProtectedNodeSet = {});
 
     virtual RectI GetFilterRect() const;
     RectI GetAbsRect() const;
@@ -1113,7 +1115,7 @@ protected:
     bool IsSelfDrawingNode() const;
     bool needClearSurface_ = false;
     bool isBootAnimation_ = false;
-    bool lastFrameHasVisibleEffect_ = false;
+    bool lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
     bool waitSync_ = false;
     mutable bool isFullChildrenListValid_ = true;
     mutable bool isChildrenSorted_ = true;
