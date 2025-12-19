@@ -20,6 +20,7 @@
 #include "surface_buffer_impl.h"
 
 #include "drawable/rs_property_drawable_background.h"
+#include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "pipeline/rs_context.h"
