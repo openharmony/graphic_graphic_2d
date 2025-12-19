@@ -88,7 +88,7 @@ RSTransactionDataCallbackManager::RSTransactionDataCallbackManager()
 {
     isDebugEnabled_ = RSSystemProperties::GetTransactionDataTraceEnabled();
     RSSystemProperties::WatchSystemProperty(        
-        GRAPHIC_TEST_MODE_TRACE_NAME, RSITransactionDataCallback);
+        GRAPHIC_TEST_MODE_TRACE_NAME, TransactionChangedCallback, nullptr);
 }
 
 void RSTransactionDataCallbackManager::TransactionChangedCallback(const char* key, const char* value, void* context)
