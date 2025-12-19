@@ -26,6 +26,7 @@ namespace OHOS::Rosen {
 namespace {
 using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
 using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
+const std:string FGImagePath = "/data/local/tmp/fg_test.jpg";
 
 static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
     {RSNGEffectType::DOUBLE_RIPPLE_MASK,
@@ -466,8 +467,8 @@ void SetNoisyFrameGradientMaskParams(const std::shared_ptr<RSNGNoisyFrameGradien
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -484,7 +485,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foregroun
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode = SetUpNodeBgImage(FGImagePath, { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(circleFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -493,8 +494,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foregroun
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -522,8 +523,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Backgroun
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_First_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -545,7 +546,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
         circleFlowlight->Append(roundedRectFlowlight);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode = SetUpNodeBgImage(FGImagePath, { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(circleFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -554,8 +555,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Second_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -577,7 +578,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
         roundedRectFlowlight->Append(circleFlowlight);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode = SetUpNodeBgImage(FGImagePath, { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(roundedRectFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -586,8 +587,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_First_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -620,8 +621,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Second_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -652,10 +653,11 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
     }
 }
 
+// Test Noisy Frame Gradient
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -683,8 +685,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Backgro
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -701,7 +703,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Foregro
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto foregroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto foregroundTestNode = SetUpNodeBgImage(FGImagePath, { x, y, sizeX, sizeY });
         foregroundTestNode->SetForegroundShader(colorGradient);
         GetRootNode()->AddChild(foregroundTestNode);
         RegisterNode(foregroundTestNode);
