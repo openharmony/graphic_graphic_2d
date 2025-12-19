@@ -125,6 +125,7 @@ HWTEST_F(HgmCommandTest, Init001, Function | SmallTest | Level0)
     // recovery
     hgmCore.mPolicyConfigData_ = configData;
     hgmCore.mPolicyConfigVisitor_ = configVisitor;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 /**
