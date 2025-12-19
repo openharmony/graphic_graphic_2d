@@ -96,7 +96,6 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
 );
 
 DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
-    ADD_PROPERTY_TAG(FrostedGlassEffect, BlurParam),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgRates),

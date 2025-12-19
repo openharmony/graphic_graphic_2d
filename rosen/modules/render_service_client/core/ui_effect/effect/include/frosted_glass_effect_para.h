@@ -31,16 +31,6 @@ public:
     }
     ~FrostedGlassEffectPara() override = default;
 
-    void SetBlurParam(float blurParam)
-    {
-        blurParam_ = blurParam;
-    }
-
-    float GetBlurParam() const
-    {
-        return blurParam_;
-    }
-
     void SetWeightsEmboss(Vector2f& weightsEmboss)
     {
         weightsEmboss_ = weightsEmboss;
@@ -292,7 +282,6 @@ public:
     }
 
 private:
-    float blurParam_ = 0.0f; // K times downsample
     Vector2f weightsEmboss_ = Vector2f(0.0f, 0.0f);
     Vector2f weightsEdl_ = Vector2f(0.0f, 0.0f);
     // Background darken parameters

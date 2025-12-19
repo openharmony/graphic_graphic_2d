@@ -183,7 +183,6 @@ std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<Vi
     }
     auto frostedGlassEffect = std::static_pointer_cast<RSNGFrostedGlassEffect>(effect);
     auto frostedGlassEffectPara = std::static_pointer_cast<FrostedGlassEffectPara>(effectPara);
-    frostedGlassEffect->Setter<FrostedGlassEffectBlurParamTag>(frostedGlassEffectPara->GetBlurParam());
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(frostedGlassEffectPara->GetWeightsEmboss());
     frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(frostedGlassEffectPara->GetWeightsEdl());
     frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(frostedGlassEffectPara->GetBgRates());
