@@ -377,7 +377,8 @@ void RSUniRenderVisitor::HandleColorGamuts(RSScreenRenderNode& node)
         node.SetColorSpace(GRAPHIC_COLOR_GAMUT_SRGB);
         return;
     }
-    const auto& modes = screenProperty.GetScreenSupportedColorGamuts();
+    std::vector<ScreenColorGamut> modes = screenProperty.GetScreenSupportedColorGamuts();
+    RSLuminanceControl::Get().HandleGamutSpecialRender(modes);
     node.SelectBestGamut(modes);
 
     if (RSMainThread::Instance()->HasWiredMirrorDisplay() && !MultiScreenParam::IsMirrorDisplayCloseP3()) {
@@ -447,14 +448,14 @@ void RSUniRenderVisitor::HandlePixelFormat(RSScreenRenderNode& node)
     float displayHeadroom =
         RSLuminanceControl::Get().GetDisplayNits(screenId) / RSLuminanceControl::Get().GetSdrDisplayNits(screenId);
     RSEffectLuminanceManager::GetInstance().SetDisplayHeadroom(node.GetScreenNodeId(), displayHeadroom);
-    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d, brightnessRatio:%f, screenId:%" PRIu64 ", status:%d", isHdrOn,
-        hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus());
+    RS_TRACE_NAME_FMT("HDR:%d, in Unirender:%d, brightnessRatio:%f, screenId:%" PRIu64 ", status:%d, forceCloseHDR:%d",
+        isHdrOn, hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus(), forceCloseHDR);
     RS_LOGD("HandlePixelFormat HDRService isHdrOn:%{public}d hasUniRenderHdrSurface:%{public}d "
-        "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d", isHdrOn, hasUniRenderHdrSurface,
-        brightnessRatio, screenId, node.GetDisplayHdrStatus());
-    // if ((!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsCloseHardwareHdr()) || node.GetForceCloseHdr()) {
-    //     isHdrOn = false;
-    // } // ??? todo
+        "brightnessRatio:%{public}f screenId:%{public}" PRIu64 " status:%{public}d, forceCloseHDR:%{public}d",
+        isHdrOn, hasUniRenderHdrSurface, brightnessRatio, screenId, node.GetDisplayHdrStatus(), forceCloseHDR);
+    if (!hasUniRenderHdrSurface && !RSLuminanceControl::Get().IsHardwareHdrDisabled()) {
+        isHdrOn = false;
+    }
     node.SetHDRPresent(isHdrOn);
     hasDisplayHdrOn_ |= isHdrOn;
     const auto& screenProperty = node.GetScreenProperty();
