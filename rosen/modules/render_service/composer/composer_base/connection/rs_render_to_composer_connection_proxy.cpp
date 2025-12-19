@@ -98,7 +98,7 @@ bool RSRenderToComposerConnectionProxy::FillParcelWithTransactionData(
 RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::shared_ptr<MessageParcel>>& parcels)
 {
     MessageOption option;
-    option.SetFlags(MessageOption::TF_ASYNC);
+    option.SetFlags(MessageOption::TF_SYNC);
     for (const auto& parcel : parcels) {
         MessageParcel reply;
         int32_t retryCount = 0;
@@ -113,6 +113,11 @@ RSComposerError RSRenderToComposerConnectionProxy::SendLayers(std::vector<std::s
                 return COMPOSITOR_ERROR_BINDER_ERROR;
             }
         } while (err != NO_ERROR);
+        int32_t serverRet = reply.ReadInt32();
+        if (serverRet != COMPOSITOR_ERROR_OK) {
+            RS_LOGE("SendLayers server returned error:%{public}d", serverRet);
+            return static_cast<RSComposerError>(serverRet);
+        }
     }
     RS_LOGI("SendLayers success.");
     return COMPOSITOR_ERROR_OK;

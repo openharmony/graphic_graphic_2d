@@ -38,6 +38,7 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             if (!transactionData || !CommitLayers(transactionData)) {
                 ret = COMPOSITOR_ERROR_BINDER_ERROR;
             }
+            reply.WriteInt32(ret);
             break;
         }
         case IRENDER_TO_COMPOSER_CONNECTION_CLEAR_FRAME_BUFFERS: {
