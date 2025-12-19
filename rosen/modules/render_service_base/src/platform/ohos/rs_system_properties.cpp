@@ -1822,5 +1822,11 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
+{
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
+}
 } // namespace Rosen
 } // namespace OHOS
