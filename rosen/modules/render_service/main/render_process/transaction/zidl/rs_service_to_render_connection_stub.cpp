@@ -359,7 +359,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             ShowWatermark(watermarkImg, isShow);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SURFACE_ROOT_NODE): {
             NodeId windowNodeId{UINT64_MAX};
             if (!data.ReadUint64(windowNodeId)) {
                 RS_LOGE("RSServiceToRenderStub::GET_SURFACE_ROOT_NODE Read windowId failed!");
@@ -400,11 +400,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             uint32_t listSize{0};
             if (!data.ReadUint32(listSize)) {
                 RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_PACKAGE_EVENT Read listSize failed!");
