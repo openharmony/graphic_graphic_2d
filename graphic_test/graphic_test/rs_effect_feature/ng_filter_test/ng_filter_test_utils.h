@@ -25,33 +25,33 @@ std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type);
 std::shared_ptr<RSNGFilterBase> CreateFilter(RSNGEffectType type);
 
 // Default values
-const Vector2f frostedGlassDefaultBlurParams = Vector2f(20.0f, 3.0f);
-const Vector2f frostedGlassDefaultWeightsEmboss = Vector2f(1.0f, 0.5f); // (envLight, sd)
-const Vector2f frostedGlassDefaultWeightsEdl = Vector2f(1.0f, 1.0f); // (envLight, sd)
-const Vector2f frostedGlassDefaultBgRates = Vector2f(-1.8792225f, 2.7626955f);
-const Vector3f frostedGlassDefaultBgKBS = Vector3f(0.0073494f, 0.0998859f, 1.2f);
-const Vector3f frostedGlassDefaultBgPos = Vector3f(0.3f, 0.5f, 0.5f);
-const Vector3f frostedGlassDefaultBgNeg = Vector3f(0.5f, 1.0f, 1.0f);
-const Vector3f frostedGlassDefaultRefractParams = Vector3f(1.0f, 0.3f, 0.3f);
-const Vector3f frostedGlassDefaultSdParams = Vector3f(-50.0f, 6.0f, 6.62f);
-const Vector2f frostedGlassDefaultSdRates = Vector2f(0.0f, 0.0f);
-const Vector3f frostedGlassDefaultSdKBS = Vector3f(0.9f, 0.0f, 1.0f);
-const Vector3f frostedGlassDefaultSdPos = Vector3f(1.0f, 1.7f, 1.5f);
-const Vector3f frostedGlassDefaultSdNeg = Vector3f(3.0f, 2.0f, 1.0f);
-const Vector3f frostedGlassDefaultEnvLightParams = Vector3f(50.0f, 20.0f, 5.0f);
-const Vector2f frostedGlassDefaultEnvLightRates = Vector2f(0.0f, 0.0f);
-const Vector3f frostedGlassDefaultEnvLightKBS = Vector3f(0.8f, 0.27451f, 2.0f);
-const Vector3f frostedGlassDefaultEnvLightPos = Vector3f(1.0f, 1.7f, 1.5f);
-const Vector3f frostedGlassDefaultEnvLightNeg = Vector3f(3.0f, 2.0f, 1.0f);
-const Vector2f frostedGlassDefaultEdLightParams = Vector2f(2.0f, 2.0f);
-const Vector2f frostedGlassDefaultEdLightAngles = Vector2f(40.0f, 20.0f);
-const Vector2f frostedGlassDefaultEdLightDir = Vector2f(2.5f, 2.5f);
-const Vector2f frostedGlassDefaultEdLightRates = Vector2f(0.0f, 0.0f);
-const Vector3f frostedGlassDefaultEdLightKBS = Vector3f(0.6027f, 0.627451f, 2.0f);
-const Vector3f frostedGlassDefaultEdLightPos = Vector3f(1.0f, 1.7f, 1.5f);
-const Vector3f frostedGlassDefaultEdLightNeg = Vector3f(3.2f, 2.0f, 1.0f);
-const bool frostedGlassDefaultBaseVibrancyEnabled = true;
-const float frostedGlassDefaultSamplingScale = 1.0f;
+const Vector2f DEFAULT_BLUR_PARAMS = Vector2f(20.0f, 3.0f);
+const Vector2f DEFAULT_WEIGHTS_EMBOSS = Vector2f(1.0f, 0.5f); // (envLight, sd)
+const Vector2f DEFAULT_WEIGHTS_EDL = Vector2f(1.0f, 1.0f); // (envLight, sd)
+const Vector2f DEFAULT_BG_RATES = Vector2f(-1.8792225f, 2.7626955f);
+const Vector3f DEFAULT_BG_KBS = Vector3f(0.0073494f, 0.0998859f, 1.2f);
+const Vector3f DEFAULT_BG_POS = Vector3f(0.3f, 0.5f, 0.5f);
+const Vector3f DEFAULT_BG_NEG = Vector3f(0.5f, 1.0f, 1.0f);
+const Vector3f DEFAULT_REFRACT_PARAMS = Vector3f(1.0f, 0.3f, 0.3f);
+const Vector3f DEFAULT_SD_PARAMS = Vector3f(-50.0f, 6.0f, 6.62f);
+const Vector2f DEFAULT_SD_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_SD_KBS = Vector3f(0.9f, 0.0f, 1.0f);
+const Vector3f DEFAULT_SD_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_SD_NEG = Vector3f(3.0f, 2.0f, 1.0f);
+const Vector3f DEFAULT_ENV_LIGHT_PARAMS = Vector3f(50.0f, 20.0f, 5.0f);
+const Vector2f DEFAULT_ENV_LIGHT_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_ENV_LIGHT_KBS = Vector3f(0.8f, 0.27451f, 2.0f);
+const Vector3f DEFAULT_ENV_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_ENV_LIGHT_NEG = Vector3f(3.0f, 2.0f, 1.0f);
+const Vector2f DEFAULT_ED_LIGHT_PARAMS = Vector2f(2.0f, 2.0f);
+const Vector2f DEFAULT_ED_LIGHT_ANGLES = Vector2f(40.0f, 20.0f);
+const Vector2f DEFAULT_ED_LIGHT_DIR = Vector2f(2.5f, 2.5f);
+const Vector2f DEFAULT_ED_LIGHT_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_ED_LIGHT_KBS = Vector3f(0.6027f, 0.627451f, 2.0f);
+const Vector3f DEFAULT_ED_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_ED_LIGHT_NEG = Vector3f(3.2f, 2.0f, 1.0f);
+const bool DEFAULT_BASE_VIBRANCY_ENABLED = true;
+const float DEFAULT_SAMPLING_SCALE = 1.0f;
  
 // FrostedGlass Params
 // 1. blurParams: [1e-6, 200], [1, 20]
