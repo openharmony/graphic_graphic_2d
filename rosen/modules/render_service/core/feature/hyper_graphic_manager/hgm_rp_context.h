@@ -40,7 +40,7 @@ public:
     int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
         std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
     void NotifyRpHgmFrameRate(uint64_t vsyncId,
-        std::shared_ptr<RSContext> rsContext, std::map<NodeId, int> vrateMap, PipelineParam& pipelineParam);
+        const std::shared_ptr<RSContext>& rsContext, std::map<NodeId, int> vRateMap, PipelineParam& pipelineParam);
     void AddScreenId(ScreenId screenId);
     void RemoveScreenId(ScreenId screenId);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
@@ -74,7 +74,7 @@ private:
     void HandleGameNode(const RSRenderNodeMap& nodeMap);
 
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
-    std::unordered_set<ScreenId> screenIds_;
+    std::unordered_set<ScreenId> screenIds_; // Accessed ONLY on main thread
 
     RPFrameRatePolicy rpFrameRatePolicy_;
     std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
