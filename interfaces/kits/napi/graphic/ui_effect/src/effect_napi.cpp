@@ -1009,6 +1009,11 @@ bool EffectNapi::FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared
         UIEFFECT_LOG_E("FillFrostedGlassEdl: edLightNeg parse fail"));
     para->SetEdLightNeg(edLightNeg);
 
+    Vector4f materialColor;
+    UIEFFECT_NAPI_CHECK_RET_D(ParseJsRGBAColor(env, argv[NUM_25], materialColor), false,
+        UIEFFECT_LOG_E("FillFrostedGlassEdl: materialColor parse fail"));
+    para->SetMaterialColor(materialColor);
+
     return true;
 }
 
@@ -1043,7 +1048,7 @@ napi_value EffectNapi::CreateFrostedGlassEffect(napi_env env, napi_callback_info
             "EffectNapi CreateFrostedGlassEffect failed, is not system app");
         return nullptr;
     }
-    constexpr size_t requireArgc = NUM_25;
+    constexpr size_t requireArgc = NUM_26;
 
     napi_status status;
     napi_value thisVar = nullptr;

@@ -512,9 +512,12 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest002, TestSize.Level1
     ASSERT_NE(typeface, nullptr);
     int32_t needUpdate;
     pid_t pid = getpid();
-    uint64_t id = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = (static_cast<uint64_t>(pid) << 32) | static_cast<uint64_t>(typeface->GetHash());
+    sharedTypeface.size_ = typeface->GetSize();
+    sharedTypeface.fd_ = typeface->GetFd();
     EXPECT_NE(
-        rsRenderServiceConnection->RegisterTypeface(id, typeface->GetSize(), typeface->GetFd(), needUpdate, 0), -1);
+        rsRenderServiceConnection->RegisterTypeface(sharedTypeface, needUpdate), -1);
     EXPECT_TRUE(rsRenderServiceConnection->UnRegisterTypeface(typeface->GetHash()));
 }
 
@@ -557,6 +560,25 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
     constexpr pid_t testPid = -1;
     const std::string bundleName = rsRenderServiceConnection->GetBundleName(testPid);
     EXPECT_TRUE(bundleName.empty());
+}
+
+/**
+ * @tc.name: CleanAllTest
+ * @tc.desc: test CleanAll
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CleanAllTest, TestSize.Level1)
+{
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    RSMainThread* mainThread = new RSMainThread();
+    mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
+    mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
+    sptr<RSClientToServiceConnection> connection =
+        new RSClientToServiceConnection(0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_FALSE(connection->cleanDone_);
+    connection->CleanAll(false);
+    delete mainThread;
+    ASSERT_TRUE(connection->cleanDone_);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
@@ -617,6 +639,181 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
     // No assertion needed - just verify it doesn't crash
 }
 #endif
+
+/**
+ * @tc.name: CreateVirtualScreen001
+ * @tc.desc: test CreateVirtualScreen while whitelist's size invalid
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, CreateVirtualScreen001, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+    
+    std::string name = "virtualScreen01";
+    uint32_t width = 100;
+    uint32_t height = 100;
+    std::vector<NodeId> whiteList(MAX_SPECIAL_LAYER_NUM + 1);
+    ScreenId screenId = rsRenderServiceConnection->CreateVirtualScreen(
+        name, width, height, nullptr, INVALID_SCREEN_ID, -1, whiteList);
+    ASSERT_EQ(screenId, INVALID_SCREEN_ID);
+
+    // retry with empty whitelist
+    screenId = rsRenderServiceConnection->CreateVirtualScreen(
+        name, width, height, nullptr, INVALID_SCREEN_ID, -1, {});
+    ASSERT_NE(screenId, INVALID_SCREEN_ID);
+    // restore
+    rsRenderServiceConnection->RemoveVirtualScreen(screenId);
+}
+
+/**
+ * @tc.name: ModifyVirtualScreenWhiteList001
+ * @tc.desc: modify virtual screen whitelist while whitelist's size invalid
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenWhiteList001, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    std::vector<NodeId> whiteList(MAX_SPECIAL_LAYER_NUM + 1);
+    int32_t repCode;
+
+    // whitelist exceeding size limit
+    ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenWhiteList(screenId, whiteList, repCode), ERR_OK);
+    // whitelist is empty
+    ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenWhiteList(screenId, {}, repCode), ERR_OK);
+    ASSERT_NE(rsRenderServiceConnection->RemoveVirtualScreenWhiteList(screenId, {}, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyVirtualScreenWhiteList002
+ * @tc.desc: modify virtual screen whitelist while screenManger is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenWhiteList002, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, nullptr, token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    NodeId nodeId = 0;
+    int32_t repCode;
+    ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenWhiteList(screenId, {nodeId}, repCode), ERR_OK);
+    ASSERT_NE(rsRenderServiceConnection->RemoveVirtualScreenWhiteList(screenId, {nodeId}, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyVirtualScreenWhiteList003
+ * @tc.desc: modify virtual screen whitelist success
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenWhiteList003, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    NodeId nodeId = 0;
+    int32_t repCode;
+    ASSERT_EQ(rsRenderServiceConnection->AddVirtualScreenWhiteList(screenId, {nodeId}, repCode), ERR_OK);
+    ASSERT_EQ(rsRenderServiceConnection->RemoveVirtualScreenWhiteList(screenId, {nodeId}, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyVirtualScreenBlackList001
+ * @tc.desc: modify virtual screen blacklist while blacklist's size invalid
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenBlackList001, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    std::vector<NodeId> blacklist(MAX_SPECIAL_LAYER_NUM + 1);
+    int32_t repCode;
+
+    // blacklist exceeding size limit
+    ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, blacklist), SUCCESS);
+    ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, blacklist, repCode), ERR_OK);
+    // blacklist is empty
+    ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {}), SUCCESS);
+    ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, {}, repCode), ERR_OK);
+    ASSERT_NE(rsRenderServiceConnection->RemoveVirtualScreenBlackList(screenId, {}, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyVirtualScreenBlackList002
+ * @tc.desc: modify virtual screen blacklist while screenManger is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreeBlackList002, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, nullptr, token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    NodeId nodeId = 0;
+    int32_t repCode;
+    ASSERT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {nodeId}), SUCCESS);
+    ASSERT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, {nodeId}, repCode), ERR_OK);
+    ASSERT_NE(rsRenderServiceConnection->RemoveVirtualScreenBlackList(screenId, {nodeId}, repCode), ERR_OK);
+}
+
+/**
+ * @tc.name: ModifyVirtualScreenBlackList003
+ * @tc.desc: modify virtual screen blacklist success
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSRenderServiceConnectionTest, ModifyVirtualScreenBlackList003, TestSize.Level2)
+{
+    // create connection
+    auto mainThread = RSMainThread::Instance();
+    sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+    sptr<RSClientToServiceConnection> rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
+    ASSERT_NE(rsRenderServiceConnection, nullptr);
+
+    ScreenId screenId = INVALID_SCREEN_ID;
+    NodeId nodeId = 0;
+    int32_t repCode;
+    ASSERT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(screenId, {nodeId}), SUCCESS);
+    ASSERT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(screenId, {nodeId}, repCode), ERR_OK);
+    ASSERT_EQ(rsRenderServiceConnection->RemoveVirtualScreenBlackList(screenId, {nodeId}, repCode), ERR_OK);
+}
 
 /**
  * @tc.name: SetVirtualScreenTypeBlackList001

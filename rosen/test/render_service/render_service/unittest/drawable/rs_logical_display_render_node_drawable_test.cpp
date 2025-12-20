@@ -706,6 +706,40 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest009, TestSize.Leve
 }
 
 /**
+ * @tc.name: OnCaptureTest010
+ * @tc.desc: Test OnCapture when using virtual screen
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, OnCaptureTest010, TestSize.Level1)
+{
+    ASSERT_NE(displayDrawable_, nullptr);
+    ASSERT_NE(displayDrawable_->GetRenderParams(), nullptr);
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 400;
+    uint32_t height = 400;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+    screenManager->defaultScreenId_ = screenId;
+    params->SetScreenId(screenId);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+    params->shouldPaint_ = true;
+    params->contentEmpty_ = false;
+
+    displayDrawable_->OnCapture(*drawingFilterCanvas_);
+    EXPECT_TRUE(displayDrawable_->ShouldPaint());
+    EXPECT_NE(displayDrawable_->GetRenderParams(), nullptr);
+}
+
+/**
  * @tc.name: DrawExpandDisplayTest001
  * @tc.desc: Test DrawExpandDisplay
  * @tc.type: FUNC
@@ -3826,6 +3860,47 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest001
 
     RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::DALTONIZATION_TRITANOMALY_MODE;
     displayDrawable_->DrawHardwareEnabledNodes(canvas, *params);
+    ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
+}
+
+/**
+ * @tc.name: DrawHardwareEnabledNodesTest002
+ * @tc.desc: Test OnCapture when using virtual screen
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawHardwareEnabledNodesTest002, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 400;
+    uint32_t height = 400;
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    auto screenId = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, screenId);
+    screenManager->defaultScreenId_ = screenId;
+    params->SetScreenId(screenId);
+    ASSERT_NE(displayDrawable_->curCanvas_, nullptr);
+
+    sptr<Surface> producerSurface_ = screenManager->GetProducerSurface(screenId);
+    ASSERT_NE(producerSurface_, nullptr);
+    params->shouldPaint_ = true;
+    params->contentEmpty_ = false;
+    sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    ASSERT_NE(buffer, nullptr);
+    ASSERT_NE(acquireFence, nullptr);
+    RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
+    RSUniRenderThread::Instance().uniRenderEngine_->colorFilterMode_ = ColorFilterMode::INVERT_COLOR_DISABLE_MODE;
+    displayDrawable_->DrawHardwareEnabledNodes(canvas, *params, buffer, acquireFence);
     ASSERT_TRUE(RSUniRenderThread::Instance().GetRenderEngine());
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }

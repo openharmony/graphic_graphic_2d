@@ -128,6 +128,12 @@ void SkiaCanvas::RecordState(Canvas* canvas)
     LOGD("skia does not support RecordState.");
 }
 
+bool SkiaCanvas::InheritStateAndContentFrom(Canvas* canvas)
+{
+    LOGD("skia does not support InheritStateAndContentFrom.");
+    return false;
+}
+
 void SkiaCanvas::SetParallelRender(bool parallelEnable)
 {
     LOGD("skia does not support subtree parallel render.");

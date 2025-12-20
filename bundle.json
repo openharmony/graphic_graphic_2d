@@ -70,8 +70,6 @@
       ],
       "deps": {
         "components": [
-          "ability_base",
-          "common_event_service",
           "window_manager",
           "resource_management",
           "napi",
@@ -166,7 +164,6 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-            "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
             "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
             "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
@@ -443,14 +440,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
-            "header": {
-            "header_files": [],
-            "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect/include"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
             "header": {
               "header_files": [
@@ -458,24 +447,6 @@
                 "cj_color_mgr_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_impl",
-            "header": {
-              "header_files": [
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_ffi",
-            "header": {
-              "header_files": [
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
             }
           },
           {

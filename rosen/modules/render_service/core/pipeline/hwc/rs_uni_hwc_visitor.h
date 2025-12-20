@@ -111,7 +111,6 @@ private:
         Drawing::Matrix& accumulatedMatrix);
     void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
-    bool IntersectHwcDamage(RSSurfaceRenderNode& hwcNode, const RectI& filterRect);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;

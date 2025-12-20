@@ -113,6 +113,7 @@ public:
         const std::string locale = SIMPLIFIED_CHINESE);
 
     std::vector<std::shared_ptr<FontDescriptor>> GetSystemFonts(const std::string locale = ENGLISH);
+    const std::vector<std::string>& GetFontSet() const;
     static std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromPath(
         const std::string& path, const std::string& locale = ENGLISH);
     static std::vector<std::shared_ptr<FontDescriptor>> ParserFontDescriptorsFromStream(
@@ -125,7 +126,7 @@ public:
         const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces, const std::string& locale = ENGLISH);
     static std::vector<uint32_t> GetFontTypefaceUnicode(const std::string& path, int32_t index);
     static std::vector<uint32_t> GetFontTypefaceUnicode(const void* data, size_t length, int32_t index);
-    static std::vector<std::string> GetFontFullName(const std::string& path);
+    static std::vector<std::string> GetFontFullName(int fd);
     static int32_t GetFontCount(const std::string& path);
     static int32_t GetFontCount(const std::vector<uint8_t>& data);
 
@@ -167,6 +168,10 @@ private:
 #ifdef BUILD_NON_SDK_VER
     static std::string ConvertToString(const std::string& src, const std::string& srcType,
         const std::string& targetType);
+#endif
+
+#ifdef ENABLE_OHOS_ENHANCE
+    static std::vector<uint8_t> GetFontDataFromFd(int fd);
 #endif
 
     const char* data_;

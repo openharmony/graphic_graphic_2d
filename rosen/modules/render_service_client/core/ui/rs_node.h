@@ -72,6 +72,7 @@ class RSNGShapeBase;
 class Blender;
 enum class CancelAnimationStatus;
 enum class AnimationCallbackEvent : uint16_t;
+enum class FilterQuality;
 
 namespace ModifierNG {
 class RSModifier;
@@ -1209,6 +1210,14 @@ public:
     void SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter);
 
     /**
+     * @brief Sets the material filter with a quality level.
+     *
+     * @param materialFilter Indicates the material filter to be applied.
+     * @param quality Quality level of the filter.
+     */
+    void SetMaterialWithQualityLevel(const std::shared_ptr<RSNGFilterBase>& materialFilter, FilterQuality quality);
+
+    /**
      * @brief Sets the parameters for linear gradient blur.
      *
      * @param para Indicates the parameters for linear gradient blur.
@@ -1861,10 +1870,6 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
-    virtual void CreateRenderNode() const
-    {
-    }
-
     void DumpModifiers(std::string& out) const;
 
     mutable bool lazyLoad_ = false;
@@ -1954,16 +1959,22 @@ protected:
      */
     virtual void SetIsOnTheTree(bool flag);
 
-    bool IsCreateNodeCommand(const RSCommand& command) const
-    {
-        return createNodeCommandTypes_.find(std::make_pair(command.GetType(), command.GetSubType())) !=
-            createNodeCommandTypes_.end();
-    }
-
     bool IsLazyLoadCommand(const RSCommand& command) const
     {
-        return lazyLoadCommandTypes_.find(std::make_pair(command.GetType(), command.GetSubType())) !=
-            lazyLoadCommandTypes_.end();
+        return std::find(lazyLoadCommandTypes_.begin(), lazyLoadCommandTypes_.end(),
+            std::make_pair(command.GetType(), command.GetSubType())) != lazyLoadCommandTypes_.end();
+    }
+
+    bool IsChildOperationCommand(const RSCommand& command) const
+    {
+        return std::find(childOpCommandTypes_.begin(), childOpCommandTypes_.end(),
+            std::make_pair(command.GetType(), command.GetSubType())) != childOpCommandTypes_.end();
+    }
+
+    void AddLazyLoadCommand(std::unique_ptr<RSCommand>&& command, bool isRenderServiceCommand = false,
+        FollowType followType = FollowType::NONE, NodeId nodeId = 0)
+    {
+        lazyLoadCommands_.emplace_back(std::move(command), isRenderServiceCommand, followType, nodeId);
     }
 
     /**
@@ -2021,8 +2032,8 @@ private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
 
-    static const std::set<std::pair<uint16_t, uint16_t>> createNodeCommandTypes_; // <CommandType, CommandSubType>
-    static const std::set<std::pair<uint16_t, uint16_t>> lazyLoadCommandTypes_; // <CommandType, CommandSubType>
+    static const std::array<std::pair<uint16_t, uint16_t>, 2> lazyLoadCommandTypes_; // <CommandType, CommandSubType>
+    static const std::array<std::pair<uint16_t, uint16_t>, 4> childOpCommandTypes_; // <CommandType, CommandSubType>
     NodeId id_;
     WeakPtr parent_;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
@@ -2132,7 +2143,7 @@ private:
     bool isUifirstNode_ = true;
     bool isForceFlag_ = false;
     bool isUifirstEnable_ = false;
-    bool isSkipCheckInMultiInstance_ = false;
+    bool isSkipCheckInMultiInstance_ = true;
     RSUIFirstSwitch uiFirstSwitch_ = RSUIFirstSwitch::NONE;
     std::shared_ptr<RSUIContext> rsUIContext_;
 

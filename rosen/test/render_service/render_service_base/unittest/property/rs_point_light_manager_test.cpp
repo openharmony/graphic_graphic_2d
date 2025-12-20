@@ -518,7 +518,7 @@ HWTEST_F(RSPointLightManagerTest, ChildHasVisibleIlluminatedTest001, TestSize.Le
     ASSERT_NE(node, nullptr);
     EXPECT_FALSE(instance->GetChildHasVisibleIlluminated(nullptr));
     instance->SetChildHasVisibleIlluminated(nullptr, true);
-    EXPECT_TRUE(instance->childHasVisbleIlluminatedNodeMap_.empty());
+    EXPECT_TRUE(instance->childHasVisibleIlluminatedNodeMap_.empty());
     node->InitRenderParams();
     instance->SetChildHasVisibleIlluminated(node, true);
     EXPECT_TRUE(instance->GetChildHasVisibleIlluminated(node));
@@ -563,6 +563,32 @@ HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated001, TestSize.L
     pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
     EXPECT_EQ(pos.x_, 0);
     EXPECT_EQ(pos.y_, 0);
+}
+/**
+ * @tc.name: CalculateLightPosForIlluminated002
+ * @tc.desc: test results of CalculateLightPosForIlluminated
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CalculateLightPosForIlluminated002, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
+    lightSourcePtr->SetAbsLightPosition({ 20, 20, 20, 20 });
+    std::shared_ptr<RSObjAbsGeometry> illuminatedGeoPtr = std::make_shared<RSObjAbsGeometry>();
+    lightSourcePtr->SetLightPosition({ 0, 0, 0, 0 });
+    auto radius = lightSourcePtr->GetLightRadius();
+    EXPECT_EQ(radius, 0.0f);
+    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
+    auto pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_EQ(pos.w_, 1.0f);
+
+    lightSourcePtr->SetLightPosition({ 0, 0, 100, 0 });
+    radius = lightSourcePtr->GetLightRadius();
+    EXPECT_NE(radius, 0.0f);
+    instance->SetScreenRotation(ScreenRotation::ROTATION_0);
+    pos = instance->CalculateLightPosForIlluminated(*lightSourcePtr, illuminatedGeoPtr->GetAbsRect());
+    EXPECT_NE(pos.w_, 1.0f);
 }
 } // namespace Rosen
 } // namespace OHOS

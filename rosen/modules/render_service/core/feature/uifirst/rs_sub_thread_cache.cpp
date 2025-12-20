@@ -240,11 +240,8 @@ bool RsSubThreadCache::DrawCacheSurface(DrawableV2::RSSurfaceRenderNodeDrawable*
     const auto& gravityMatrix = surfaceDrawable->GetGravityMatrix(cacheImage->GetWidth(), cacheImage->GetHeight());
     float scaleX = boundSize.x_ / static_cast<float>(cacheImage->GetWidth());
     float scaleY = boundSize.y_ / static_cast<float>(cacheImage->GetHeight());
-    if (ROSEN_EQ(scaleY, scaleX, SCALE_DIFF)) {
-        canvas.Scale(scaleX, scaleY);
-    } else {
-        canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
-    }
+    // Use user's gravity
+    canvas.Scale(gravityMatrix.Get(Drawing::Matrix::SCALE_X), gravityMatrix.Get(Drawing::Matrix::SCALE_Y));
     RS_OPTIONAL_TRACE_NAME_FMT("DrawCacheSurface bound[%f %f] cache[%d %d] scale[%f %f]", boundSize.x_, boundSize.y_,
         cacheImage->GetWidth(), cacheImage->GetHeight(), scaleX, scaleY);
     if (RSSystemProperties::GetRecordingEnabled()) {

@@ -67,12 +67,28 @@ void OHDrawingTextFontFullDescriptorTest(const uint8_t* data, size_t size)
     OH_Drawing_DestroyFontFullDescriptors(pathArray);
 }
 
+void OHDrawingTextFontPathTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+
+    auto random = fdp.ConsumeIntegral<int32_t>();
+    size_t num = 0;
+    auto pathArray = OH_Drawing_GetFontPathsByType(static_cast<OH_Drawing_SystemFontType>(random), &num);
+
+    for (size_t i = 0; i < num; i++) {
+        OH_Drawing_String path = pathArray[i];
+        free(path.strData);
+    }
+    free(pathArray);
+}
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::OHDrawingTextFontDescriptorTest(data, size);
     OHOS::Rosen::Drawing::OHDrawingTextFontFullDescriptorTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingTextFontPathTest(data, size);
     return 0;
 }
 } // namespace OHOS::Rosen::Drawing

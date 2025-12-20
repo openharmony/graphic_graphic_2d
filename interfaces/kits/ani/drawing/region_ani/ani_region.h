@@ -41,6 +41,10 @@ public:
     static ani_boolean Op(ani_env* env, ani_object obj, ani_object aniRegionObj, ani_enum_item aniRegionOp);
     static ani_boolean SetPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_enum_item aniClipRegion);
     static ani_boolean IsPointContained(ani_env* env, ani_object obj, ani_int dx, ani_int dy);
+    static ani_boolean IsRect(ani_env* env, ani_object obj);
+    static ani_boolean QuickContains(ani_env* env, ani_object obj, ani_int left, ani_int top, ani_int right,
+        ani_int bottom);
+    static void Offset(ani_env* env, ani_object obj, ani_int dx, ani_int dy);
 
     std::shared_ptr<Region> GetRegion();
 

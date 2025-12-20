@@ -653,7 +653,6 @@ public:
     void SetSkipLayer(bool isSkipLayer);
     void SetSnapshotSkipLayer(bool isSnapshotSkipLayer);
     void SetProtectedLayer(bool isProtectedLayer);
-    void SetIsOutOfScreen(bool isOutOfScreen);
     void UpdateBlackListStatus(ScreenId screenId);
     void UpdateVirtualScreenWhiteListInfo(
         const std::unordered_map<ScreenId, std::unordered_set<uint64_t>>& allWhiteListInfo);
@@ -897,10 +896,6 @@ public:
         return abilityBgAlpha_;
     }
 
-    void setQosCal(bool qosPidCal)
-    {
-        qosPidCal_ = qosPidCal;
-    }
 
     bool IsSurfaceInStartingWindowStage() const;
 
@@ -909,7 +904,6 @@ public:
     void SetVisibleRegionRecursive(
         const Occlusion::Region& region,
         VisibleData& visibleVec,
-        std::map<NodeId, RSVisibleLevel>& pidVisMap,
         bool needSetVisibleRegion = true,
         RSVisibleLevel visibleLevel = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL,
         bool isSystemAnimatedScenes = false);

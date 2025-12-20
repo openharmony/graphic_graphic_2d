@@ -182,6 +182,9 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
     Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+private:
+    Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+        EffectRectType type, const RectF& bound) const override;
 };
 
 class RSUseEffectDrawable : public RSDrawable {

@@ -25,6 +25,7 @@
 #include "common/rs_common_def.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/rs_render_service.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
@@ -33,6 +34,53 @@ using namespace testing;
 using namespace testing::ext;
  
 namespace OHOS::Rosen {
+namespace ModifierNG {
+class TestCustomRenderModifier : public RSRenderModifier {
+public:
+    TestCustomRenderModifier() = default;
+    ~TestCustomRenderModifier() override = default;
+
+    RSModifierType GetType() const override
+    {
+        return RSModifierType::CONTENT_STYLE;
+    }
+
+    bool IsCustom() const override
+    {
+        return true;
+    }
+
+    Drawing::DrawCmdListPtr GetPropertyDrawCmdList() const override
+    {
+        return Getter<Drawing::DrawCmdListPtr>(RSPropertyType::CONTENT_STYLE, nullptr);
+    }
+
+protected:
+    void OnSetDirty() override {}
+};
+} // namespace ModifierNG
+
+class RSB_EXPORT TestRSCanvasDrawingRenderNode : public RSCanvasDrawingRenderNode {
+public:
+    TestRSCanvasDrawingRenderNode(NodeId id, const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+        : RSCanvasDrawingRenderNode(id, context, isTextureExportNode)
+    {}
+    ~TestRSCanvasDrawingRenderNode() override = default;
+
+    void ApplyModifiers() override {}
+    void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
+    void Prepare(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
+    void Process(const std::shared_ptr<RSNodeVisitor>& visitor) override {}
+    void ProcessTransitionBeforeChildren(RSPaintFilterCanvas& canvas) override {}
+    void ProcessAnimatePropertyBeforeChildren(RSPaintFilterCanvas& canvas, bool includeProperty) override {}
+    void ProcessRenderBeforeChildren(RSPaintFilterCanvas& canvas) override {}
+    void ProcessTransitionAfterChildren(RSPaintFilterCanvas& canvas) override {}
+    void ProcessAnimatePropertyAfterChildren(RSPaintFilterCanvas& canvas) override {}
+    void ProcessRenderAfterChildren(RSPaintFilterCanvas& canvas) override {}
+    void OnTreeStateChanged() override {}
+    void UpdateNodeColorSpace() override {}
+};
+
 class RSProfilerTest : public testing::Test {
 public:
     static void SetUpTestCase() {};
@@ -522,4 +570,33 @@ HWTEST_F(RSProfilerTest, LogEventVSync, testing::ext::TestSize.Level1)
     RSProfiler::SetMode(Mode::NONE);
 }
 
+/*
+ * @tc.name: UnmarshalNodeModifiersTest
+ * @tc.desc: Test UnmarshalNodeModifiers
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSProfilerTest, UnmarshalNodeModifiersTest, testing::ext::TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    drawCmdList->SetWidth(100); // DrawCmdList width for test is 100
+    drawCmdList->SetHeight(100); // DrawCmdList height for test is 100
+    auto modifier = std::make_shared<ModifierNG::TestCustomRenderModifier>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    modifier->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
+    std::shared_ptr<RSContext> context = nullptr;
+    TestRSCanvasDrawingRenderNode node(1, context, false);
+    node.AddModifier(modifier);
+    node.stagingRenderParams_ = std::make_unique<RSRenderParams>(node.GetId());
+    std::stringstream data;
+    auto instanceRootNodeId = node.instanceRootNodeId_;
+    auto firstLevelNodeId = node.firstLevelNodeId_;
+    int32_t modifierCount = 0;
+    data.write(reinterpret_cast<const char*>(&instanceRootNodeId), sizeof(instanceRootNodeId));
+    data.write(reinterpret_cast<const char*>(&firstLevelNodeId), sizeof(firstLevelNodeId));
+    data.write(reinterpret_cast<const char*>(&modifierCount), sizeof(modifierCount));
+    auto ret = RSProfiler::UnmarshalNodeModifiers(node, data, 0, node.GetType());
+    EXPECT_EQ(ret, "");
+}
 } // namespace OHOS::Rosen

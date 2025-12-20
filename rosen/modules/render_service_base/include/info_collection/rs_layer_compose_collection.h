@@ -27,12 +27,12 @@ struct LayerComposeInfo {
     int32_t uniformRenderFrameNumber = 0;
     int32_t offlineComposeFrameNumber = 0;
     int32_t redrawFrameNumber = 0;
-    LayerComposeInfo()
-        : uniformRenderFrameNumber(), offlineComposeFrameNumber(), redrawFrameNumber() {}
+    int32_t drawImageNumber = 0;
+    LayerComposeInfo() = default;
     LayerComposeInfo(int32_t uniformRenderFrameNumber_, int32_t offlineComposeFrameNumber_,
-        int32_t redrawFrameNumber_)
+        int32_t redrawFrameNumber_, int32_t drawImageNumber_)
         : uniformRenderFrameNumber(uniformRenderFrameNumber_), offlineComposeFrameNumber(offlineComposeFrameNumber_),
-          redrawFrameNumber(redrawFrameNumber_) {}
+          redrawFrameNumber(redrawFrameNumber_), drawImageNumber(drawImageNumber_) {}
 };
 
 class RSB_EXPORT LayerComposeCollection {
@@ -41,6 +41,7 @@ public:
 
     void UpdateUniformOrOfflineComposeFrameNumberForDFX(size_t layerSize);
     void UpdateRedrawFrameNumberForDFX();
+    void UpdateDrawImageNumberForDFX();
     LayerComposeInfo GetLayerComposeInfo() const;
     void ResetLayerComposeInfo();
 

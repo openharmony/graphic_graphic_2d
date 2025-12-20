@@ -43,6 +43,7 @@ enum class RSDumpID : uint8_t {
     EVENT_PARAM_LIST,
     MEM_INFO,
     MEM_INFO_LITE,
+    GPU_MEM_INFO,
     SURFACENODE_INFO,
     FPS_CLEAR,
     FPS_COUNT,
@@ -78,7 +79,7 @@ struct RSDumpCmd {
 // Map commands to their corresponding Dump points and help information
 const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"h", { { RSDumpID::HELP_INFO }, "help text for the tool" } },
-    { u"screen", { { RSDumpID::SCREEN_INFO }, "dump all screen infomation in the system" } },
+    { u"screen", { { RSDumpID::SCREEN_INFO }, "dump all screen information in the system" } },
     { u"surface", { { RSDumpID::SURFACE_INFO }, "dump all surface information" } },
     { u"fps", { { RSDumpID::FPS_INFO }, "[windowname] fps, dump the fps info of window" } },
     { u"nodeNotOnTree", { { RSDumpID::RS_NOT_ON_TREE_INFO }, "dump nodeNotOnTree info" } },
@@ -88,6 +89,7 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"EventParamList", { { RSDumpID::EVENT_PARAM_LIST }, "dump EventParamList info" } },
     { u"dumpMem", { { RSDumpID::MEM_INFO }, "dump Cache" } },
     { u"dumpMemLite", { { RSDumpID::MEM_INFO_LITE }, "dump Cache lite" } },
+    { u"dumpGpuMem", { { RSDumpID::GPU_MEM_INFO }, "dump Gpu info" } },
     { u"surfacenode", { { RSDumpID::SURFACENODE_INFO }, "surfacenode [id]" } },
     { u"fpsClear", { { RSDumpID::FPS_CLEAR }, "[surface name]/composer fpsClear, clear the fps info" } },
     { u"fpsCount", { { RSDumpID::FPS_COUNT }, "dump the refresh rate counts info" } },

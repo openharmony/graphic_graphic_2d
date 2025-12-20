@@ -130,7 +130,7 @@ private:
     bool IsSameLayerMetaDataSet();
     inline void CheckRet(int32_t ret, const char* func);
     int32_t SetLayerMaskInfo();
-    bool CheckAndUpdateLayerBufferCahce(uint32_t sequence, uint32_t& index,
+    bool CheckAndUpdateLayerBufferCache(uint32_t sequence, uint32_t& index,
                                         std::vector<uint32_t>& deletingList);
 
     int32_t SetPerFrameParameters();

@@ -16,6 +16,7 @@
 #include "drawable/rs_effect_render_node_drawable.h"
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
 #ifdef SUBTREE_PARALLEL_ENABLE
 #include "rs_parallel_manager.h"
@@ -36,7 +37,8 @@ RSRenderNodeDrawable::Ptr RSEffectRenderNodeDrawable::OnGenerate(std::shared_ptr
 void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
 #ifdef RS_ENABLE_GPU
-    if (RSUniRenderThread::GetCaptureParam().isSoloNodeUiCapture_) {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    if (captureParam.isSoloNodeUiCapture_) {
         RS_LOGD("RSEffectRenderNodeDrawable::OnDraw node %{public}" PRIu64 " isSoloNodeUiCapture, skip", nodeId_);
         return;
     }
@@ -96,6 +98,12 @@ void RSEffectRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     RSRenderNodeDrawableAdapter::DrawImpl(canvas, bounds, drawCmdIndex_.childrenIndex_);
+
+    if (canvas.GetUICapture() && captureParam.captureFinished_ && captureParam.effectData_ == nullptr &&
+        paintFilterCanvas->GetEffectData() != nullptr) {
+        captureParam.effectData_ = std::make_shared<RSPaintFilterCanvas::CachedEffectData>(
+            *paintFilterCanvas->GetEffectData());
+    }
 #endif
 }
 
@@ -108,7 +116,7 @@ bool RSEffectRenderNodeDrawable::GenerateEffectDataOnDemand(RSEffectRenderParams
         return false;
     } else if (drawCmdIndex_.backgroundFilterIndex_ == -1 ||
         !(RSSystemProperties::GetEffectMergeEnabled() && RSFilterCacheManager::isCCMEffectMergeEnable_) ||
-        (!effectParams->GetHasEffectChildren() && !canvas.GetUICapture())) {
+        (!effectParams->GetHasEffectChildrenWithoutEmptyRect() && !canvas.GetUICapture())) {
         // case 1: no blur or no need to blur, do nothing
     } else if (drawCmdIndex_.backgroundImageIndex_ == -1 || effectParams->GetCacheValid()) {
         // case 2: dynamic blur, blur the underlay content

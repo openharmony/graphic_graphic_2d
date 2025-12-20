@@ -38,8 +38,9 @@ public:
     void TriggerTransactionDataCallback(uint64_t token, uint64_t timeStamp);
 
     static RSTransactionDataCallbackManager& Instance();
+    static bool GetTransactionDataTestEnabled();
 private:
-    RSTransactionDataCallbackManager() = default;
+    RSTransactionDataCallbackManager();
     ~RSTransactionDataCallbackManager() noexcept = default;
 
     RSTransactionDataCallbackManager(const RSTransactionDataCallbackManager&) = delete;
@@ -53,6 +54,8 @@ private:
 
     std::map<std::pair<uint64_t, uint64_t>, sptr<RSITransactionDataCallback>> transactionDataCallbacks_;
     std::mutex transactionDataCbMutex_;
+    static void TransactionChangedCallback(const char* key, const char* value, void* context);
+    static bool isDebugEnabled_;
 };
 } // namespace Rosen
 } // namespace OHOS

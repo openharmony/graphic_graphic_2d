@@ -51,7 +51,7 @@ void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
     if (id == INVALID_LEASH_PERSISTENTID) {
         return;
     }
-    if (whiteListRootIds_.size() >= MAX_IDS_SIZE) {
+    if (whiteListRootIds_.size() >= MAX_SPECIAL_LAYER_NUM) {
         RS_LOGE("RSSpecialLayerManager::SetWhiteListRootId whiteListRootIds_ exceeds size limit.");
         return;
     }
@@ -112,7 +112,7 @@ void RSSpecialLayerManager::AddIds(uint32_t type, NodeId id)
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
         bool isSpecial = (isType & 1) != 0;
-        if (isSpecial && specialLayerIds_[currentType].size() < MAX_IDS_SIZE) {
+        if (isSpecial && specialLayerIds_[currentType].size() < MAX_SPECIAL_LAYER_NUM) {
             specialLayerIds_[currentType].insert(id);
             AddType(specialLayerType_, currentType << SPECIAL_TYPE_NUM);
         }
@@ -163,7 +163,7 @@ void RSSpecialLayerManager::AddIdsWithScreen(ScreenId screenId, uint32_t type, N
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
         bool isSpecial = (isType & 1) != 0;
-        if (isSpecial) {
+        if (isSpecial && screenSpecialLayerIds_[screenId][currentType].size() < MAX_SPECIAL_LAYER_NUM) {
             screenSpecialLayerIds_[screenId][currentType].insert(id);
             AddType(screenSpecialLayer_[screenId], currentType << SPECIAL_TYPE_NUM);
         }
@@ -193,6 +193,31 @@ void RSSpecialLayerManager::RemoveIdsWithScreen(ScreenId screenId, uint32_t type
     }
 }
 
+std::unordered_set<NodeId> RSSpecialLayerManager::GetIdsWithScreen(ScreenId screenId, uint32_t type) const
+{
+    std::unordered_set<NodeId> currentTypeIds;
+    auto screenIter = screenSpecialLayerIds_.find(screenId);
+    if (screenIter == screenSpecialLayerIds_.end()) {
+        return currentTypeIds;
+    }
+    type >>= SPECIAL_TYPE_NUM;
+    uint32_t currentType = SpecialLayerType::IS_BLACK_LIST;
+    while (type != 0) {
+        bool isSpecial = (type & 1) != 0;
+        if (isSpecial) {
+            const auto& speciallayerIds = screenIter->second;
+            auto typeIter = speciallayerIds.find(currentType);
+            if (typeIter != speciallayerIds.end()) {
+                const auto& ids = typeIter->second;
+                currentTypeIds.insert(ids.begin(), ids.end());
+            }
+        }
+        type >>= 1;
+        currentType <<= 1;
+    }
+    return currentTypeIds;
+}
+
 void RSSpecialLayerManager::ClearScreenSpecialLayer()
 {
     screenSpecialLayer_.clear();
@@ -209,6 +234,7 @@ void RSSpecialLayerManager::MergeChildren(const RSSpecialLayerManager& childSlm)
 void RSSpecialLayerManager::Clear()
 {
     specialLayerIds_.clear();
+    screenSpecialLayerIds_.clear();
     hasSlInVisibleRect_.clear();
 }
 
@@ -232,9 +258,12 @@ std::unordered_set<NodeId> RSSpecialLayerManager::GetIds(uint32_t type) const
     type >>= SPECIAL_TYPE_NUM;
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (type != 0) {
-        auto iter = specialLayerIds_.find(currentType);
-        if (iter != specialLayerIds_.end()) {
-            currentTypeIds.insert(iter->second.begin(), iter->second.end());
+        bool isSpecial = (type & 1) != 0;
+        if (isSpecial) {
+            auto iter = specialLayerIds_.find(currentType);
+            if (iter != specialLayerIds_.end()) {
+                currentTypeIds.insert(iter->second.begin(), iter->second.end());
+            }
         }
         type >>= 1;
         currentType <<= 1;

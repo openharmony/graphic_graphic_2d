@@ -17,44 +17,25 @@
 #define OHOS_TEXT_ANI_CACHE_MANAGER_H
 
 #include <ani.h>
-#include <memory>
-#include <shared_mutex>
 #include <string>
-#include <unordered_map>
-
-#include "utils/text_log.h"
+#include <string_view>
 
 namespace OHOS::Text::ANI {
-class AniCacheManager {
-public:
-    static AniCacheManager& Instance()
-    {
-        static AniCacheManager instance;
-        return instance;
-    }
-
-    void InsertClass(ani_env* env, const std::string& key, ani_class cls);
-    bool FindClass(const std::string& key, ani_class& cls);
-    void InsertMethod(const std::string& key, ani_method method);
-    bool FindMethod(const std::string& key, ani_method& method);
-    void InsertEnum(ani_env* env, const std::string& key, ani_enum enumType);
-    bool FindEnum(const std::string& key, ani_enum& enumType);
-    void Clear(ani_env* env);
-
-private:
-    AniCacheManager() = default;
-    ~AniCacheManager() = default;
-    AniCacheManager(AniCacheManager&&) = delete;
-    AniCacheManager& operator=(AniCacheManager&&) = delete;
-    AniCacheManager(const AniCacheManager&) = delete;
-    AniCacheManager& operator=(const AniCacheManager&) = delete;
-
-    std::unordered_map<std::string, ani_ref> clsCache_;
-    std::unordered_map<std::string, ani_method> methodCache_;
-    std::unordered_map<std::string, ani_ref> enumCache_;
-    mutable std::shared_mutex clsMutex_;
-    mutable std::shared_mutex methodMutex_;
-    mutable std::shared_mutex enumMutex_;
+struct CacheKey {
+    std::string_view d;
+    std::string_view n;
+    std::string_view s;
+    bool operator==(const CacheKey& other) const { return d == other.d && n == other.n && s == other.s; }
 };
+
+ani_namespace AniFindNamespace(ani_env* env, const char* descriptor);
+
+ani_class AniFindClass(ani_env* env, const char* descriptor);
+
+ani_enum AniFindEnum(ani_env* env, const char* descriptor);
+
+ani_method AniClassFindMethod(ani_env* env, const ani_class cls, const CacheKey& key);
+
+ani_function AniNamespaceFindFunction(ani_env* env, const ani_namespace ns, const CacheKey& key);
 } // namespace OHOS::Text::ANI
 #endif // OHOS_TEXT_ANI_CACHE_MANAGER_H

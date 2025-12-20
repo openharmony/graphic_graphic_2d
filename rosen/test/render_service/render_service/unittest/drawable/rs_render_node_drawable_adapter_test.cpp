@@ -304,6 +304,10 @@ HWTEST(RSRenderNodeDrawableAdapterTest, HasFilterOrEffectTest, TestSize.Level1)
     auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(node));
     auto ret = adapter->HasFilterOrEffect();
     EXPECT_FALSE(ret);
+
+    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
+    ret = adapter->HasFilterOrEffect();
+    EXPECT_TRUE(ret);
 }
 
 /**
@@ -577,6 +581,72 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawBackgroundWithoutFilterAndEffectTest
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
     adapter->drawCmdIndex_.backgroundNgShaderIndex_ = 5;
     adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    adapter->drawCmdIndex_.materialFilterIndex_ = 6;
+    adapter->DrawBackgroundWithoutFilterAndEffect(canvas, params);
+    EXPECT_FALSE(adapter->drawCmdList_.empty());
+}
+
+/**
+ * @tc.name: GetFilterRelativeRectTest
+ * @tc.desc: Test GetFilterRelativeRect
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, GetFilterRelativeRectTest, TestSize.Level1)
+{
+    NodeId id = 151;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(renderNode));
+
+    // case1: filterDrawables_ is empty
+    Drawing::Rect bounds(10.0f, 20.0f, 100.0f, 200.0f);
+    RectF rsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetWidth(), bounds.GetHeight());
+    Drawing::Rect result = adapter->GetFilterRelativeRect(bounds);
+    EXPECT_EQ(result.GetLeft(), bounds.GetLeft());
+    EXPECT_EQ(result.GetTop(), bounds.GetTop());
+    EXPECT_EQ(result.GetWidth(), bounds.GetWidth());
+    EXPECT_EQ(result.GetHeight(), bounds.GetHeight());
+}
+
+/**
+ * @tc.name: CheckShadowRectAndDrawBackgroundTest
+ * @tc.desc: Test CheckShadowRectAndDrawBackground
+ * @tc.type: FUNC
+ * @tc.require: issueI9UTMA
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, CheckShadowRectAndDrawBackgroundTest, TestSize.Level1)
+{
+    NodeId id = 152;
+    auto renderNode = std::make_shared<RSRenderNode>(id);
+    auto adapter = std::make_shared<RSRenderNodeDrawable>(std::move(renderNode));
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    RSRenderParams params(id);
+
+    params.ExcludedFromNodeGroup(true);
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
+    EXPECT_TRUE(params.IsExcludedFromNodeGroup());
+    params.ExcludedFromNodeGroup(false);
+
+    Drawing::Rect shadowRect(0, 0, 50, 50);
+    params.SetShadowRect(shadowRect);
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
+    EXPECT_TRUE(adapter->drawCmdList_.empty());
+
+    params.SetShadowRect(Drawing::Rect());
+    Drawing::RecordingCanvas::DrawFunc drawFuncCallBack = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
+        printf("DrawBackgroundWithoutFilterAndEffectTest drawFuncCallBack\n");
+    };
+    adapter->drawCmdList_.emplace_back(drawFuncCallBack);
+    adapter->drawCmdIndex_.materialFilterIndex_ = 0;
+    adapter->drawCmdIndex_.backgroundEndIndex_ = 1;
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
+    EXPECT_FALSE(adapter->drawCmdList_.empty());
+
+    adapter->drawCmdIndex_.materialFilterIndex_ = -1;
+    adapter->CheckShadowRectAndDrawBackground(canvas, params);
     EXPECT_FALSE(adapter->drawCmdList_.empty());
 }
 
@@ -770,6 +840,30 @@ HWTEST(RSRenderNodeDrawableAdapterTest, DrawQuickImplTest, TestSize.Level1)
 
     adapter->drawCmdList_.clear();
     adapter->DrawQuickImpl(canvas, rect);
+}
+
+/**
+ * @tc.name: OnTreeStateChangedTest
+ * @tc.desc: test results of OnTreeStateChangedTest
+ * @tc.type: FUNC
+ * @tc.require: issueIALKED
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, OnTreeStateChangedTest, TestSize.Level1)
+{
+    auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
+    canvasDrawingNode->isNeverOnTree_ = false;
+    canvasDrawingNode->OnTreeStateChanged();
+    EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);
+    canvasDrawingNode->isOnTheTree_ = true;
+    canvasDrawingNode->OnTreeStateChanged();
+    EXPECT_FALSE(canvasDrawingNode->isNeverOnTree_);
+
+    auto childDrawable = std::make_shared<RSChildrenDrawableBrotherAdapter>();
+    auto childNode = std::make_shared<RSRenderNode>(10);
+    auto childAdapter = std::make_shared<RSRenderNodeDrawable>(std::move(childNode));
+    childDrawable->childrenDrawableVec_.emplace_back(childAdapter);
+    canvasDrawingNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::CHILDREN)] = childDrawable;
+    canvasDrawingNode->OnTreeStateChanged();
 }
 #endif
 }

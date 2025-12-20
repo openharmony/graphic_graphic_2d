@@ -42,6 +42,7 @@ public:
     void CancelReleaseTextureTask();
     void ForceReleaseResource();
     void DumpMem(DfxString& log, bool isLite = false);
+    void DumpGpuMem(DfxString& log);
     float GetAppGpuMemoryInMB();
     void ReleaseSurface(uint32_t threadIndex) const;
     void AddToReleaseQueue(std::shared_ptr<Drawing::Surface>&& surface, uint32_t threadIndex);

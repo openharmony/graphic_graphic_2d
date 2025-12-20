@@ -106,5 +106,19 @@ HWTEST_F(MultiScreenParamTest, SetMipmapMode, Function | SmallTest | Level1)
     MultiScreenParam::SetMipmapMode(Drawing::MipmapMode::NEAREST);
     ASSERT_EQ(MultiScreenParam::GetMipmapMode(), Drawing::MipmapMode::NEAREST);
 }
+
+/**
+ * @tc.name: ForceRenderForMirror
+ * @tc.desc: Verify the SetForceRenderForMirror function
+ * @tc.type: FUNC
+ * @tc.require: #27057
+ */
+HWTEST_F(MultiScreenParamTest, SetForceRenderForMirror, Function | SmallTest | Level1)
+{
+    MultiScreenParam::SetForceRenderForMirror(true);
+    EXPECT_TRUE(MultiScreenParam::IsForceRenderForMirror());
+    MultiScreenParam::SetForceRenderForMirror(false);
+    EXPECT_FALSE(MultiScreenParam::IsForceRenderForMirror());
+}
 } // namespace Rosen
 } // namespace OHOS

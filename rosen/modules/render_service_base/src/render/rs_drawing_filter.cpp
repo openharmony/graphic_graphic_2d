@@ -715,5 +715,12 @@ RectF RSDrawingFilter::CalcRect(const RectF& bound, EffectRectType type) const
     result = result.JoinRect(RSNGRenderFilterHelper::CalcRect(renderFilter_, bound, type));
     return result;
 }
+
+void RSDrawingFilter::SetDarkScale(float darkScale)
+{
+    if (visualEffectContainer_) {
+        visualEffectContainer_->UpdateDarkScale(darkScale);
+    }
+}
 } // namespace Rosen
 } // namespace OHOS

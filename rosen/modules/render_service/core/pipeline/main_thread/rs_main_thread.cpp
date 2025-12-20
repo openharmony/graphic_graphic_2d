@@ -54,7 +54,7 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "feature/colorpicker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/lpp/lpp_video_handler.h"
@@ -91,6 +91,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
+#include "pipeline/rs_surface_render_node_utils.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/rs_unmarshal_task_manager.h"
@@ -411,6 +412,7 @@ void RSMainThread::MarkNodeDirty(uint64_t nodeId)
         if (node) {
             RS_LOGD("MarkNodeDirty success: %{public}" PRIu64 ".", nodeId);
             RSMainThread::Instance()->SetDirtyFlag();
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
             node->SetDirty(true);
         }
     });
@@ -542,9 +544,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventRunner>& runner,
     Drawing::DrawOpItem::SetBaseCallback(holdDrawingImagefunc);
     static std::function<std::shared_ptr<Drawing::Typeface> (uint64_t)> customTypefaceQueryfunc =
         [] (uint64_t id) -> std::shared_ptr<Drawing::Typeface> {
-            auto uniqueIdTypeface = RSTypefaceCache::Instance().GetDrawingTypefaceCache(id);
-            auto hashTypeface = RSTypefaceCache::Instance().GetDrawingTypefaceCacheByHash(id);
-            return uniqueIdTypeface == nullptr ? hashTypeface : uniqueIdTypeface;
+            return RSTypefaceCache::Instance().GetDrawingTypefaceCache(id);
         };
     Drawing::DrawOpItem::SetTypefaceQueryCallBack(customTypefaceQueryfunc);
     {
@@ -1511,6 +1511,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
         dividedRenderbufferTimestamps_.clear();
     }
     RSDrmUtil::ClearDrmNodes();
+    RSHeteroHDRManager::Instance().ClearPendingPostNodes();
     const auto& nodeMap = GetContext().GetNodeMap();
     isHdrSwitchChanged_ = RSLuminanceControl::Get().IsHdrPictureOn() != prevHdrSwitchStatus_;
     isColorTemperatureOn_ = RSColorTemperature::Get().IsColorTemperatureOn();
@@ -2325,7 +2326,8 @@ bool RSMainThread::IfStatusBarDirtyOnly()
 }
 
 namespace {
-bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& nodeSet)
+bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& nodeSet,
+    const std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hwcNodes)
 {
     if (RSSystemProperties::GetAIBarDirectCompositeFullEnabled()) {
         return false;
@@ -2337,8 +2339,19 @@ bool CheckReduceIntervalForAIBarNodesIfNeeded(const RSRenderNode::WeakPtrSet& no
         if (nodePtr == nullptr) {
             continue;
         }
+        bool intersectHwcDamage = true;
+        if (RSSystemProperties::GetAIBarOptEnabled()) {
+            auto filterRect = nodePtr->GetFilterRegion();
+            intersectHwcDamage = std::any_of(hwcNodes.begin(), hwcNodes.end(),
+                [&filterRect](const auto& hwcNode) {
+                    return hwcNode && RSSurfaceRenderNodeUtils::IntersectHwcDamageWith(*hwcNode, filterRect);
+                });
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("CheckReduceIntervalForAIBarNodesIfNeeded: intersectHwcDamage[%d]",
+            static_cast<int>(intersectHwcDamage));
+
         // try to reduce the cache interval, i.e., consume the cache
-        if (!nodePtr->ForceReduceAIBarCacheInterval()) {
+        if (!nodePtr->ForceReduceAIBarCacheInterval(intersectHwcDamage)) {
             // consume cache failed, we need to update cache, which means DoDirectComposition should be disabled
             aibarNeedUpdate = true;
             break;
@@ -2389,8 +2402,8 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
 
     auto screenId = screenNode->GetScreenId();
     // check just before CreateProcessor, otherwise the cache interval will be reduced twice
-    if (auto nodeSetIter = aibarNodes_.find(screenId);
-        nodeSetIter != aibarNodes_.end() && CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second)) {
+    if (auto nodeSetIter = aibarNodes_.find(screenId); nodeSetIter != aibarNodes_.end() &&
+        CheckReduceIntervalForAIBarNodesIfNeeded(nodeSetIter->second, hardwareEnabledNodes_)) {
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by aibar need update cache");
         return false;
     }
@@ -2768,24 +2781,19 @@ RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<
 }
 
 void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRenderNode>& screenNode,
-    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
-    std::map<NodeId, RSVisibleLevel>& dstVisMapForVsyncRate)
+    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec)
 {
     Occlusion::Region accumulatedRegion;
     VisibleData curVisVec;
     OcclusionRectISet occlusionSurfaces;
-    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
 
-    vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport() &&
-                           RSSystemParameters::GetVSyncControlEnabled();
-    auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec, &visMapForVsyncRate,
+    auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec,
         &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
         bool needSetVisibleRegion) {
-        curSurface->setQosCal(vsyncControlEnabled_);
         if (!CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
-            curSurface->SetVisibleRegionRecursive({}, curVisVec, visMapForVsyncRate);
+            curSurface->SetVisibleRegionRecursive({}, curVisVec);
             return;
         }
 
@@ -2794,7 +2802,7 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
         auto visibleLevel =
             CalcSurfaceNodeVisibleRegion(screenNode, curSurface, accumulatedRegion, curRegion, totalRegion);
 
-        curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, visMapForVsyncRate, needSetVisibleRegion,
+        curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, needSetVisibleRegion,
             visibleLevel, !systemAnimatedScenesList_.empty());
         curSurface->AccumulateOcclusionRegion(
             accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_, filterCacheOcclusionEnabled);
@@ -2810,7 +2818,6 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     // if there are valid filter cache occlusion, recalculate surfacenode visibleregionforcallback for WMS/QOS callback
     if (hasFilterCacheOcclusion && isUniRender_) {
         curVisVec.clear();
-        visMapForVsyncRate.clear();
         occlusionSurfaces.clear();
         accumulatedRegion = {};
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -2822,7 +2829,6 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     }
 
     dstCurVisVec.insert(dstCurVisVec.end(), curVisVec.begin(), curVisVec.end());
-    dstVisMapForVsyncRate.insert(visMapForVsyncRate.begin(), visMapForVsyncRate.end());
 }
 
 void RSMainThread::CalcOcclusion()
@@ -2893,24 +2899,20 @@ void RSMainThread::CalcOcclusion()
             surface->CleanDirtyRegionUpdated();
         }
     }
-    bool needRefreshRates = systemAnimatedScenesList_.empty() &&
-        rsVsyncRateReduceManager_.GetIsReduceBySystemAnimatedScenes();
+    bool needRefreshRates = systemAnimatedScenesList_.empty();
     if (!winDirty && !needRefreshRates) {
         if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
             SurfaceOcclusionCallback();
         }
         return;
     }
-    rsVsyncRateReduceManager_.SetIsReduceBySystemAnimatedScenes(false);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstVisMapForVsyncRate;
     for (auto& surfaces : curAllSurfacesInDisplay) {
-        CalcOcclusionImplementation(surfaces.first, surfaces.second, dstCurVisVec, dstVisMapForVsyncRate);
+        CalcOcclusionImplementation(surfaces.first, surfaces.second, dstCurVisVec);
     }
 
     // Callback to WMS and QOS
     CallbackToWMS(dstCurVisVec);
-    rsVsyncRateReduceManager_.SetVSyncRateByVisibleLevel(dstVisMapForVsyncRate, curAllSurfaces);
     // Callback for registered self drawing surfacenode
     SurfaceOcclusionCallback();
 }
@@ -4133,6 +4135,28 @@ void RSMainThread::DumpMem(std::unordered_set<std::u16string>& argSets, std::str
 #endif
 }
 
+void RSMainThread::DumpGpuMem(std::unordered_set<std::u16string>& argSets,
+    std::string& dumpString, const std::string& type)
+{
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    DfxString log;
+    auto status = type.empty() || type == MEM_GPU_TYPE;
+    if (status) {
+        RSUniRenderThread::Instance().DumpGpuMem(log);
+    }
+    if (status && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
+        auto subThreadManager = RSSubThreadManager::Instance();
+        if (subThreadManager) {
+            subThreadManager->DumpGpuMem(log);
+        }
+    }
+    MemoryManager::DumpGpuNodeMemory(log);
+    dumpString.append(log.GetString());
+#else
+    dumpString.append("No GPU in this device");
+#endif
+}
+
 void RSMainThread::CountMem(int pid, MemoryGraphic& mem)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
@@ -4279,7 +4303,7 @@ bool RSMainThread::IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool
     return true;
 }
 
-void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
+bool RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
 {
     auto nowTime = SystemTime();
     uint64_t unsignedNowTime = static_cast<uint64_t>(nowTime);
@@ -4303,13 +4327,11 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
     }
     if (!IsFastComposeVsyncTimeSync(unsignedVsyncPeriod, nextVsyncRequested,
         unsignedNowTime, lastVsyncTime, vsyncTimeStamp)) {
-        RequestNextVSync();
-        return;
+        return false;
     }
     if (ret != VSYNC_ERROR_OK || !context_ ||
         !IsFastComposeAllow(unsignedVsyncPeriod, nextVsyncRequested, unsignedNowTime, lastVsyncTime)) {
-        RequestNextVSync();
-        return;
+        return false;
     }
     // if buffer come near vsync and next vsync not requested, do fast compose
     if (!nextVsyncRequested && (unsignedNowTime - lastVsyncTime) % unsignedVsyncPeriod >
@@ -4329,9 +4351,9 @@ void RSMainThread::CheckFastCompose(int64_t lastFlushedDesiredPresentTimeStamp)
         unsignedNowTime - lastVsyncTime < REFRESH_PERIOD / 2) { // invoke when late less than 1/2 refresh period
         RS_TRACE_NAME("RSMainThread::CheckFastCompose success, start fastcompose");
         ForceRefreshForUni(true);
-        return;
+        return true;
     }
-    RequestNextVSync();
+    return false;
 }
 
 bool RSMainThread::CheckAdaptiveCompose()

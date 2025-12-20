@@ -60,6 +60,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGAIBarGlow>();
         }
     },
+    {RSNGEffectType::AIBAR_RECT_HALO, [] {
+            return std::make_shared<RSNGAIBarRectHalo>();
+        }
+    },
     {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, [] {
             return std::make_shared<RSNGRoundedRectFlowlight>();
         }
@@ -74,6 +78,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::FROSTED_GLASS_EFFECT, [] {
             return std::make_shared<RSNGFrostedGlassEffect>();
+        }
+    },
+    {RSNGEffectType::DISTORT_CHROMA, [] {
+            return std::make_shared<RSNGDistortChroma>();
         }
     },
 };
@@ -204,6 +212,7 @@ std::shared_ptr<RSNGShaderBase> ConvertFrostedGlassEffectPara(std::shared_ptr<Vi
     frostedGlassEffect->Setter<FrostedGlassEffectEdLightKBSTag>(frostedGlassEffectPara->GetEdLightKBS());
     frostedGlassEffect->Setter<FrostedGlassEffectEdLightPosTag>(frostedGlassEffectPara->GetEdLightPos());
     frostedGlassEffect->Setter<FrostedGlassEffectEdLightNegTag>(frostedGlassEffectPara->GetEdLightNeg());
+    frostedGlassEffect->Setter<FrostedGlassEffectMaterialColorTag>(frostedGlassEffectPara->GetMaterialColor());
     return frostedGlassEffect;
 }
 

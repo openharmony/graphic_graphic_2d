@@ -452,5 +452,43 @@ HWTEST_F(RSPipelineClientTest, TriggerSurfaceCaptureCallback002, TestSize.Level1
         CaptureError::CAPTURE_OK, pixelMapHDR);
     EXPECT_TRUE(callback->isOnCallBack_);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: RegisterCanvasCallbackTest
+ * @tc.desc: RegisterCanvasCallback Test
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPipelineClientTest, RegisterCanvasCallbackTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    rsClient->RegisterCanvasCallback(nullptr);
+    ASSERT_EQ(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+    rsClient->RegisterCanvasCallback(nullptr);
+    ASSERT_NE(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+}
+
+/**
+ * @tc.name: SubmitCanvasPreAllocatedBufferTest
+ * @tc.desc: SubmitCanvasPreAllocatedBuffer Test
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPipelineClientTest, SubmitCanvasPreAllocatedBufferTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    auto renderServiceConnectHub = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    ASSERT_EQ(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    auto ret = rsClient->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
+    ASSERT_NE(ret, 0);
+    RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
+    ASSERT_NE(RSRenderServiceConnectHub::GetClientToRenderConnection(), nullptr);
+    ret = rsClient->SubmitCanvasPreAllocatedBuffer(1, nullptr, 1);
+    ASSERT_NE(ret, 0);
+}
+#endif
 } // namespace Rosen
 } // namespace OHOS

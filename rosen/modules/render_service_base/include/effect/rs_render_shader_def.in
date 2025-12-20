@@ -121,6 +121,7 @@ DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightKBS),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightPos),
     ADD_PROPERTY_TAG(FrostedGlassEffect, EdLightNeg),
+    ADD_PROPERTY_TAG(FrostedGlassEffect, MaterialColor),
     ADD_PROPERTY_TAG(FrostedGlassEffect, Shape)
 );
 
@@ -174,6 +175,21 @@ DECLARE_SHADER(AIBarGlow, AIBAR_GLOW,
     ADD_PROPERTY_TAG(AIBarGlow, Progress)
 );
 
+DECLARE_SHADER(AIBarRectHalo, AIBAR_RECT_HALO,
+    ADD_PROPERTY_TAG(AIBarRectHalo, LTWH),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color0),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color1),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color2),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color3),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position0),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position1),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position2),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position3),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Strength),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Brightness),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Progress)
+);
+
 DECLARE_SHADER(RoundedRectFlowlight, ROUNDED_RECT_FLOWLIGHT,
     ADD_PROPERTY_TAG(RoundedRectFlowlight, StartEndPosition),
     ADD_PROPERTY_TAG(RoundedRectFlowlight, WaveLength),
@@ -211,5 +227,23 @@ DECLARE_SHADER(CircleFlowlight, CIRCLE_FLOWLIGHT,
     ADD_PROPERTY_TAG(CircleFlowlight, GradientX),
     ADD_PROPERTY_TAG(CircleFlowlight, GradientY),
     ADD_PROPERTY_TAG(CircleFlowlight, Progress),
+    ADD_PROPERTY_TAG(CircleFlowlight, Strength),
+    ADD_PROPERTY_TAG(CircleFlowlight, DistortStrength),
+    ADD_PROPERTY_TAG(CircleFlowlight, BlendGradient),
     ADD_PROPERTY_TAG(CircleFlowlight, Mask)
+);
+
+DECLARE_SHADER(DistortChroma, DISTORT_CHROMA,
+    ADD_PROPERTY_TAG(DistortChroma, Progress),
+    ADD_PROPERTY_TAG(DistortChroma, TurbulentMask),
+    ADD_PROPERTY_TAG(DistortChroma, Mask),
+    ADD_PROPERTY_TAG(DistortChroma, Granularity),
+    ADD_PROPERTY_TAG(DistortChroma, Frequency),
+    ADD_PROPERTY_TAG(DistortChroma, Sharpness),
+    ADD_PROPERTY_TAG(DistortChroma, Brightness),
+    ADD_PROPERTY_TAG(DistortChroma, Dispersion),
+    ADD_PROPERTY_TAG(DistortChroma, DistortFactor),
+    ADD_PROPERTY_TAG(DistortChroma, Saturation),
+    ADD_PROPERTY_TAG(DistortChroma, ColorStrength),
+    ADD_PROPERTY_TAG(DistortChroma, VerticalMoveDistance)
 );

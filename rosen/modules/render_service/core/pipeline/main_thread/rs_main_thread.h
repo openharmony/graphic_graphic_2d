@@ -202,11 +202,12 @@ public:
     // check if timestamp in vsync receiver sync with mainthread timestamp, if not, return false;
     bool IsFastComposeVsyncTimeSync(uint64_t unsignedVsyncPeriod, bool nextVsyncRequested,
         uint64_t unsignedNowTime, uint64_t lastVsyncTime, int64_t vsyncTimeStamp);
-    void CheckFastCompose(int64_t bufferTimeStamp);
+    bool CheckFastCompose(int64_t bufferTimeStamp);
     bool CheckAdaptiveCompose();
     void ForceRefreshForUni(bool needDelay = false);
     void DumpMem(std::unordered_set<std::u16string>& argSets, std::string& result, std::string& type,
         pid_t pid = 0, bool isLite = false);
+    void DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString, const std::string& type);
     void CountMem(int pid, MemoryGraphic& mem);
     void CountMem(std::vector<MemoryGraphic>& mems);
     void SetAppWindowNum(uint32_t num);
@@ -474,8 +475,7 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedRegion,
         Occlusion::Region& curRegion, Occlusion::Region& totalRegion);
     void CalcOcclusionImplementation(const std::shared_ptr<RSScreenRenderNode>& screenNode,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
-        std::map<NodeId, RSVisibleLevel>& dstPidVisMap);
+        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec);
     void CalcOcclusion();
     void CallbackToWMS(VisibleData& curVisVec);
     void SendCommands();

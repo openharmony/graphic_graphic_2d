@@ -78,5 +78,18 @@ HWTEST_F(RSRenderServiceConnectHubTest, ConnectDiedTest, TestSize.Level1)
     RSRenderServiceConnectHub::GetInstance()->ConnectDied();
     EXPECT_NE(RSRenderServiceConnectHub::GetInstance(), nullptr);
 }
+
+/**
+ * @tc.name: RSRenderServiceConnectHubContructAndDestructTest001
+ * @tc.desc: Verify RenderServiceConnectHub Contruct And Destruct
+ * @tc.type:FUNC
+ * @tc.require: issueI9TOXM
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDestructTest001, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    ASSERT_EQ(connHub->renderService_, nullptr);
+    connHub->Destroy();
+}
 } // namespace Rosen
 } // namespace OHOS

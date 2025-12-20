@@ -47,6 +47,7 @@ class RSObjAbsGeometry;
 class RSNGRenderFilterBase;
 class ParticleRippleFields;
 class ParticleVelocityFields;
+struct ColorPickerParam;
 namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
@@ -400,11 +401,9 @@ public:
 
     // setter and getter of color picker related properties
     void SetColorPickerPlaceholder(int placeholder);
-    ColorPlaceholder GetColorPickerPlaceholder() const;
     void SetColorPickerStrategy(int strategy);
-    ColorPickStrategyType GetColorPickerStrategy() const;
     void SetColorPickerInterval(int interval);
-    uint64_t GetColorPickerInterval() const;
+    std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -902,6 +901,7 @@ public:
 
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
+    RRect GetRRectForSDF() const;
 
 private:
 struct CommonEffectParams {
@@ -1083,10 +1083,7 @@ struct CommonEffectParams {
     float unionSpacing_ = 0.f;
     Gravity frameGravity_ = Gravity::DEFAULT;
     float hdrUIBrightness_ = 1.0f;
-    // color picker properties
-    int colorPickerPlaceholder_ = 0;
-    int colorPickerStrategy_ = 0;
-    uint64_t colorPickerInterval_ = 0;
+    std::shared_ptr<ColorPickerParam> colorPicker_;
     // filter property
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSNGRenderShapeBase> renderSDFShape_ = nullptr;

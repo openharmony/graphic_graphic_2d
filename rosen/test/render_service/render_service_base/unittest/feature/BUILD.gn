@@ -149,6 +149,41 @@ ohos_unittest("RSUiCaptureHelperTest") {
   subsystem_name = "graphic"
 }
 
+##############################  RSColorPickerTest  ##################################
+ohos_unittest("RSColorPickerTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "color_picker/rs_color_picker_manager_test.cpp",
+    "color_picker/rs_color_picker_thread_test.cpp",
+    "color_picker/rs_hetero_color_picker_test.cpp",
+  ]
+
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
+  configs = [
+    ":render_test",
+    "$graphic_2d_root/rosen/modules/render_service_base:export_config",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
+  ]
+
+  external_deps = [ "googletest:gmock_main" ]
+
+  subsystem_name = "graphic"
+}
+
 ##############################  RSColorSpaceUtilTest  ##################################
 ohos_unittest("RSColorSpaceUtilTest") {
   module_out_path = module_output_path
@@ -232,6 +267,7 @@ ohos_unittest("RSImageDetailEnhancerThreadTest") {
   include_dirs = [
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/modules/2d_graphics/src/drawing/engine_adapter/skia_adapter/",
   ]
 
   deps = [
@@ -290,6 +326,7 @@ config("render_test") {
 group("unittest") {
   testonly = true
   deps = [
+    ":RSColorPickerTest",
     ":RSImageDetailEnhancerThreadTest",
     ":RSOpincCacheTest",
     ":RSOpincManagerTest",

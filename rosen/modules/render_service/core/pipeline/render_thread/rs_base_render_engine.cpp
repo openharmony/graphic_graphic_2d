@@ -641,6 +641,7 @@ std::shared_ptr<Drawing::Image> RSBaseRenderEngine::CreateImageFromBuffer(RSPain
 void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam& params)
 {
     RS_TRACE_NAME_FMT("RSBaseRenderEngine::DrawImage(GPU) targetColorGamut=%d", params.targetColorGamut);
+    LayerComposeCollection::GetInstance().UpdateDrawImageNumberForDFX();
 
     RS_LOGD_IF(DEBUG_COMPOSER, "RSBaseRenderEngine::DrawImage: Starting to draw image with gamut:%{public}d, "
         "src:[%{public}.2f,%{public}.2f,%{public}.2f,%{public}.2f],"
@@ -897,8 +898,12 @@ void RSBaseRenderEngine::ShrinkCachesIfNeeded(bool isForUniRedraw)
 void RSBaseRenderEngine::ClearCacheSet(const std::set<uint64_t>& unmappedCache)
 {
     if (imageManager_ != nullptr) {
-        for (auto id : unmappedCache) {
-            imageManager_->UnMapImageFromSurfaceBuffer(id);
+        if (RSSystemProperties::GetReleaseImageOneByOneFlag()) {
+            imageManager_->UnMapImageFromSurfaceBuffer(unmappedCache);
+        } else {
+            for (auto id : unmappedCache) {
+                imageManager_->UnMapImageFromSurfaceBuffer(id);
+            }
         }
     }
 }

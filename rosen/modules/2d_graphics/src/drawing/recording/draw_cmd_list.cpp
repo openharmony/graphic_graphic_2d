@@ -232,25 +232,17 @@ void DrawCmdList::MarshallingDrawOps()
     }
 }
 
-void DrawCmdList::ProfilerMarshallingDrawOps(Drawing::DrawCmdList *cmdlist)
+void DrawCmdList::ProfilerMarshallingDrawOps(Drawing::DrawCmdList* cmdlist) const
 {
-    if (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE) {
-        return;
-    }
-    if (!cmdlist) {
-        return;
-    }
-    if (!replacedOpListForVector_.empty()) {
+    if (!cmdlist || (mode_ == DrawCmdList::UnmarshalMode::IMMEDIATE)) {
         return;
     }
 
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    cmdlist->SetNoImageMarshallingFlag(true);
+    const std::lock_guard<std::recursive_mutex> lock(mutex_);
     for (auto& op : drawOpItems_) {
-        if (!op) {
-            continue;
+        if (op) {
+            op->Marshalling(*cmdlist);
         }
-        op->Marshalling(*cmdlist);
     }
 }
 

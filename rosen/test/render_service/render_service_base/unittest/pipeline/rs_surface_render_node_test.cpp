@@ -1863,28 +1863,27 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleRegionRecursive, TestSize.Level1)
     Occlusion::Rect rect2(0, 0, 1, 1);
     Occlusion::Region region2(rect2);
     VisibleData visibleVec;
-    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
     bool needSetVisibleRegion = true;
     RSVisibleLevel visibleLevel = RSVisibleLevel::RS_ALL_VISIBLE;
     bool isSystemAnimatedScenes = false;
 
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->SetVisibleRegionRecursive(
-        region, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
 
     node->SetVisibleRegionRecursive(
-        region, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
 
     needSetVisibleRegion = false;
     node->SetVisibleRegionRecursive(
-        region2, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region2, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_FALSE(node->visibleRegionForCallBack_.IsEmpty());
 
     node->qosPidCal_ = true;
     needSetVisibleRegion = true;
     node->SetVisibleRegionRecursive(
-        region2, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region2, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_FALSE(node->visibleRegionForCallBack_.IsEmpty());
 
     auto child1 = std::make_shared<RSSurfaceRenderNode>(id + 1);
@@ -1894,7 +1893,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleRegionRecursive, TestSize.Level1)
     children.push_back(child2);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     node->SetVisibleRegionRecursive(
-        region2, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region2, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_FALSE(node->visibleRegionForCallBack_.IsEmpty());
 }
 
@@ -2861,5 +2860,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetUIFirstVisibleFilterRectTest, TestSize.Leve
     ASSERT_TRUE(node->addedToPendingSyncList_);
     ASSERT_FALSE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
 }
+
 } // namespace Rosen
 } // namespace OHOS

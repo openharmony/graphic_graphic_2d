@@ -263,7 +263,7 @@ HWTEST_F(RSSystemPropertiesTest, GetUniPartialRenderEnabled, TestSize.Level1)
  */
 HWTEST_F(RSSystemPropertiesTest, GetRenderNodeLazyLoadEnabled, TestSize.Level1)
 {
-    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), false);
+    ASSERT_EQ(RSSystemProperties::GetRenderNodeLazyLoadEnabled(), true);
 }
 
 /**
@@ -1247,6 +1247,23 @@ HWTEST_F(RSSystemPropertiesTest, GetVKImageAdaptationForWallpaperEnabledTest001,
     EXPECT_FALSE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
     system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
     EXPECT_TRUE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+}
+
+/**
+ * @tc.name: CanvasDrawingNodeDmaTest
+ * @tc.desc: CanvasDrawingNodeDmaTest
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSSystemPropertiesTest, CanvasDrawingNodeDmaTest, TestSize.Level1)
+{
+    system::SetParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", "0");
+    EXPECT_FALSE(RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled());
+    system::SetParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", "1");
+    EXPECT_TRUE(RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled());
+    system::SetParameter("persist.sys.graphic.canvas_drawing_node_render_dma", "1");
+    EXPECT_TRUE(RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled());
+    system::SetParameter("persist.sys.graphic.canvas_drawing_node_render_dma", "0");
+    EXPECT_FALSE(RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled());
 }
 } // namespace Rosen
 } // namespace OHOS

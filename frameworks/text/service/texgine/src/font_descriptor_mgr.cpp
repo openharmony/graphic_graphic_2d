@@ -55,6 +55,12 @@ void FontDescriptorMgr::GetSystemFontFullNamesByType(
     descCache_.GetSystemFontFullNamesByType(systemFontType, fontList);
 }
 
+void FontDescriptorMgr::GetFontPathsByType(const int32_t& fontType, std::unordered_set<std::string>& fontPaths)
+{
+    std::shared_lock guard(parserMtx_);
+    descCache_.GetFontPathsByType(fontType, fontPaths);
+}
+
 void FontDescriptorMgr::CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName)
 {
     if (typeface == nullptr) {

@@ -21,21 +21,15 @@
 
 namespace OHOS::Text::ANI {
 using namespace OHOS::Rosen;
+
 ani_object AniLineMetricsConverter::ParseLineMetricsToAni(ani_env* env, const LineMetrics& lineMetrics)
 {
-    ani_object aniObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_LINEMETRICS, "iiddddddidC{escompat.Map}:",
-        ani_int(lineMetrics.startIndex),
-        ani_int(lineMetrics.endIndex),
-        ani_double(lineMetrics.ascender),
-        ani_double(lineMetrics.descender),
-        ani_double(lineMetrics.height),
-        ani_double(lineMetrics.width),
-        ani_double(lineMetrics.x),
-        ani_double(lineMetrics.baseline),
-        ani_int(lineMetrics.lineNumber),
-        ani_double(lineMetrics.y),
-        AniRunMetricsConverter::ParseRunMetricsToAni(env, lineMetrics.runMetrics)
-    );
+    ani_object aniObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().lineMetrics,
+        AniGlobalMethod::GetInstance().lineMetricsCtor, ani_int(lineMetrics.startIndex), ani_int(lineMetrics.endIndex),
+        ani_double(lineMetrics.ascender), ani_double(lineMetrics.descender), ani_double(lineMetrics.height),
+        ani_double(lineMetrics.width), ani_double(lineMetrics.x), ani_double(lineMetrics.baseline),
+        ani_int(lineMetrics.lineNumber), ani_double(lineMetrics.y),
+        AniRunMetricsConverter::ParseRunMetricsToAni(env, lineMetrics.runMetrics));
     return aniObj;
 }
 } // namespace OHOS::Text::ANI

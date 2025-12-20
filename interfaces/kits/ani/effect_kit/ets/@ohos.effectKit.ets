@@ -292,7 +292,7 @@ namespace effectKit {
     getTopProportionColors(colorCount: int): Array<Color | null>;
     getHighestSaturationColor(): Color;
     getAverageColor(): Color;
-    isBlackOrWhiteOrGrayColor(color: int): boolean;
+    isBlackOrWhiteOrGrayColor(color: long): boolean;
   }
 
   export class ColorPickerInternal implements ColorPicker {
@@ -311,7 +311,7 @@ namespace effectKit {
     public native getTopProportionColorsNative(colorCount: int): Array<Color | null>;
     public native getHighestSaturationColorNative(): Color;
     public native getAverageColorNative(): Color;
-    public native isBlackOrWhiteOrGrayColorNative(color: int): boolean;
+    public native isBlackOrWhiteOrGrayColorNative(color: long): boolean;
     private static native kitTransferStaticNative(input: ESValue): Object;
     private static native kitTransferDynamicNative(nativeObj: long): ESValue;
 
@@ -343,7 +343,7 @@ namespace effectKit {
     public getAverageColor(): Color {
       return this.getAverageColorNative();
     }
-    public isBlackOrWhiteOrGrayColor(color: int): boolean {
+    public isBlackOrWhiteOrGrayColor(color: long): boolean {
       return this.isBlackOrWhiteOrGrayColorNative(color);
     }
     public static kitTransferStatic(input: Any): Object {

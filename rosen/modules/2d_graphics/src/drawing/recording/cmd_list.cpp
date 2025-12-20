@@ -483,12 +483,12 @@ std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
 
 void CmdList::SetNoImageMarshallingFlag(bool flag)
 {
-    noImageMarshallingFlag = flag;
+    noImageMarshallingFlag_ = flag;
 }
 
-bool CmdList::GetNoImageMarshallingFlag()
+bool CmdList::GetNoImageMarshallingFlag() const
 {
-    return noImageMarshallingFlag;
+    return noImageMarshallingFlag_;
 }
 
 } // namespace Drawing

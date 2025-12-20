@@ -88,7 +88,7 @@ private:
     float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
 
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface,
-        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap) override;
+        const Rect &srcRect, std::shared_ptr<Media::PixelMap> &pixelMap, bool transformEnabled = false) override;
 
     ErrCode GetDefaultScreenId(uint64_t& screenId) override;
 
@@ -105,14 +105,18 @@ private:
         int32_t flags = 0,
         std::vector<NodeId> whiteList = {}) override;
 
-    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector) override;
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList) override;
 
     ErrCode SetVirtualScreenTypeBlackList(
         ScreenId id, std::vector<NodeType>& typeBlackListVector, int32_t& repCode) override;
 
-    ErrCode AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
+    ErrCode AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) override;
 
-    ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
+    ErrCode RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList, int32_t& repCode) override;
+
+    ErrCode AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode) override;
+
+    ErrCode RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList, int32_t& repCode) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
@@ -269,7 +273,7 @@ private:
     ErrCode GetPixelmap(NodeId id, std::shared_ptr<Media::PixelMap> pixelmap,
         const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList, bool& success) override;
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
-    int32_t RegisterTypeface(uint64_t id, uint32_t size, int32_t fd, int32_t& needUpdate, uint32_t index) override;
+    int32_t RegisterTypeface(Drawing::SharedTypeface& sharedTypeface, int32_t& needUpdate) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
     int32_t GetDisplayIdentificationData(ScreenId id, uint8_t& outPort, std::vector<uint8_t>& edidData) override;

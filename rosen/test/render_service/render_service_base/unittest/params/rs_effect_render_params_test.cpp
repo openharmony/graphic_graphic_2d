@@ -52,7 +52,7 @@ HWTEST_F(RSEffectRenderParamsTest, OnSync001, TestSize.Level1)
     RSEffectRenderParams params(id);
     params.OnSync(target);
     EXPECT_FALSE(params.cacheValid_);
-    EXPECT_FALSE(params.hasEffectChildren_);
+    EXPECT_FALSE(params.hasEffectChildrenWithoutEmptyRect_);
 }
 
 /**
@@ -68,12 +68,12 @@ HWTEST_F(RSEffectRenderParamsTest, OnSync002, TestSize.Level1)
     auto targetEffectRenderParam = static_cast<RSEffectRenderParams*>(target.get());
     RSEffectRenderParams params(id);
     params.cacheValid_ = true;
-    params.hasEffectChildren_ = true;
+    params.hasEffectChildrenWithoutEmptyRect_ = true;
     params.isDarkColorMode_ = true;
     params.isIntersectWithDRM_ = true;
     params.OnSync(target);
     EXPECT_EQ(params.cacheValid_, targetEffectRenderParam->cacheValid_);
-    EXPECT_EQ(params.hasEffectChildren_, targetEffectRenderParam->hasEffectChildren_);
+    EXPECT_EQ(params.hasEffectChildrenWithoutEmptyRect_, targetEffectRenderParam->hasEffectChildrenWithoutEmptyRect_);
 }
 
 /**
@@ -93,19 +93,23 @@ HWTEST_F(RSEffectRenderParamsTest, SetCacheValid001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHasEffectChildren001
+ * @tc.name: SetHasEffectChildrenWithoutEmptyRect001
  * @tc.desc:
  * @tc.type:FUNC
  * @tc.require:
  */
-HWTEST_F(RSEffectRenderParamsTest, SetHasEffectChildren001, TestSize.Level1)
+HWTEST_F(RSEffectRenderParamsTest, SetHasEffectChildrenWithoutEmptyRect001, TestSize.Level1)
 {
     constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
     std::unique_ptr<RSRenderParams> target = std::make_unique<RSEffectRenderParams>(id);
     RSEffectRenderParams params(id);
-    params.hasEffectChildren_ = true;
-    params.SetHasEffectChildren(true);
-    EXPECT_TRUE(params.GetHasEffectChildren());
+    params.hasEffectChildrenWithoutEmptyRect_ = true;
+    params.SetHasEffectChildrenWithoutEmptyRect(true);
+    EXPECT_TRUE(params.GetHasEffectChildrenWithoutEmptyRect());
+    EXPECT_FALSE(params.needSync_);
+    params.hasEffectChildrenWithoutEmptyRect_ = false;
+    params.SetHasEffectChildrenWithoutEmptyRect(true);
+    EXPECT_TRUE(params.needSync_);
 }
 
 /**

@@ -43,6 +43,7 @@ public:
     void UpdateVisibleUnionChildren(RSRenderNode& childNode);
     void ResetVisibleUnionChildren();
     void ProcessSDFShape();
+    void ResetChildRelevantFlags() override;
 
 private:
     explicit RSUnionRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
@@ -90,27 +91,17 @@ private:
                 RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] Get fail", childId);
                 continue;
             }
-            Drawing::Matrix childRelativeMatrix;
-            if (!GetChildRelativeMatrixToUnionNode(childRelativeMatrix, child)) {
-                RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] GetRelativeMatrix fail",
-                    childId);
-                continue;
-            }
-            auto childShape = GetOrCreateChildSDFShape(childRelativeMatrix, child);
-            if (!childShape) {
-                RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] GetChildSDFShape fail",
-                    childId);
-                continue;
-            }
+            auto childShape = GetOrCreateChildSDFShape(child);
+            auto transformShape = CreateChildToContainerSDFTransformShape(child, childShape);
             if (shapeQueue.empty()) {
                 RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, shapeTree full");
                 break;
             } else {
                 auto curShape = std::static_pointer_cast<NonLeafClass>(shapeQueue.front());
                 if (!curShape->template Getter<NonLeafShapeX>()->Get()) {
-                    curShape->template Setter<NonLeafShapeX>(childShape);
+                    curShape->template Setter<NonLeafShapeX>(transformShape);
                 } else {
-                    curShape->template Setter<NonLeafShapeY>(childShape);
+                    curShape->template Setter<NonLeafShapeY>(transformShape);
                     shapeQueue.pop();
                 }
             }
@@ -119,8 +110,9 @@ private:
 
     bool GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relativeMatrix, std::shared_ptr<RSRenderNode>& child);
     std::shared_ptr<RSNGRenderShapeBase> CreateSDFOpShapeWithBaseInitialization(RSNGEffectType type);
-    std::shared_ptr<RSNGRenderShapeBase> GetOrCreateChildSDFShape(Drawing::Matrix& relativeMatrix,
-        std::shared_ptr<RSRenderNode>& child);
+    std::shared_ptr<RSNGRenderShapeBase> CreateChildToContainerSDFTransformShape(
+        std::shared_ptr<RSRenderNode>& child, std::shared_ptr<RSNGRenderShapeBase>& childShape);
+    std::shared_ptr<RSNGRenderShapeBase> GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child);
 
     std::unordered_set<NodeId> visibleUnionChildren_;
     

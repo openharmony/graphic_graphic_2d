@@ -24,6 +24,13 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "surface_buffer.h"
+#include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
+#include "ui/rs_canvas_callback_router.h"
+#include "ui/rs_canvas_drawing_node.h"
+#endif
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
@@ -278,6 +285,22 @@ class CustomScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallba
         ScreenSwitchingNotifyCallback cb_;
     };
 
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+    public:
+        explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback &callback) : cb_(callback) {}
+        ~CustomFirstFrameCommitCallback() override {};
+    
+        void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+        {
+            if (cb_ != nullptr) {
+                cb_(screenId, timestamp);
+            }
+        }
+    
+    private:
+        FirstFrameCommitCallback cb_;
+};
+
 class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:
     explicit SurfaceCaptureCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
@@ -340,6 +363,22 @@ public:
 private:
     SelfDrawingNodeRectChangeCallback cb_;
 };
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+class CustomCanvasSurfaceBufferCallback : public RSCanvasSurfaceBufferCallbackStub {
+public:
+    void OnCanvasSurfaceBufferChanged(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override
+    {
+        auto node = RSCanvasCallbackRouter::GetInstance().RouteToNode(nodeId);
+        if (node == nullptr) {
+            RS_LOGE("GlobalCanvasSurfaceBufferCallback: Node not found or destroyed, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+
+        node->OnSurfaceBufferChanged(buffer, resetSurfaceIndex);
+    }
+};
+#endif
 } // namespace Rosen
 } // namespace OHOS
 

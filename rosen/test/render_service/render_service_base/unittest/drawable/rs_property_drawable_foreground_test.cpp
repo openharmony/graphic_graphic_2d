@@ -638,7 +638,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, GetShaderTest001, TestSize.Level1)
         std::make_shared<DrawableV2::RSPointLightDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
     EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetFeatheringBoardLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(), nullptr);
 }
 
 /**
@@ -653,7 +653,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, GetShaderTest002, TestSize.Level1)
         std::make_shared<DrawableV2::RSPointLightDrawable>();
     EXPECT_NE(pointLightDrawableTest, nullptr);
     EXPECT_NE(pointLightDrawableTest->GetPhongShaderBuilder(), nullptr);
-    EXPECT_NE(pointLightDrawableTest->GetFeatheringBoardLightShaderBuilder(), nullptr);
+    EXPECT_NE(pointLightDrawableTest->GetFeatheringBorderLightShaderBuilder(), nullptr);
     EXPECT_NE(pointLightDrawableTest->GetNormalLightShaderBuilder(), nullptr);
     static constexpr char shaderString[] = "";
     EXPECT_NE(pointLightDrawableTest->GetLightShaderBuilder<shaderString>(), nullptr);
@@ -702,6 +702,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CalcBezierResultYTest001, TestSize.Le
     std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
         std::make_shared<DrawableV2::RSPointLightDrawable>();
     auto resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {0.5f, 0.5f}, 0.5f);
+    EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {0.5f, 0.5f}, 0.5f);
+    EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
+    resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, 0.5f);
     EXPECT_EQ(0.5f, resultYOptional.value_or(0.5f));
     resultYOptional = pointLightDrawableTest->CalcBezierResultY({0.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 2.0f}, 2.0f);
     EXPECT_EQ(0.0f, resultYOptional.value_or(0.0f));
@@ -1186,5 +1190,95 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest003, TestSize.Level1)
     pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
         std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest);
+}
+
+/**
+ * @tc.name: RSParticleDrawableOnUpdateCacheTest001
+ * @tc.desc: Test RSParticleDrawable::OnUpdate caching - first call creates cachedDrawable_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest001, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSParticleDrawable> particleDrawable =
+        std::make_shared<DrawableV2::RSParticleDrawable>();
+    EXPECT_NE(particleDrawable, nullptr);
+    EXPECT_EQ(particleDrawable->cachedDrawable_, nullptr);
+
+    RSRenderNode renderNode(0);
+    std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();
+    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector;
+    renderParticleVector.push_back(std::make_shared<RSRenderParticle>(particleParams));
+    renderParticleVector.at(0)->lifeTime_ = 1;
+
+    RSRenderParticleVector particles;
+    particles.renderParticleVector_ = renderParticleVector;
+    renderNode.GetMutableRenderProperties().SetParticles(particles);
+
+    std::shared_ptr<RectF> rect = std::make_shared<RectF>(0, 0, 100, 100);
+    renderNode.GetMutableRenderProperties().SetDrawRegion(rect);
+
+    bool result = particleDrawable->OnUpdate(renderNode);
+    EXPECT_TRUE(result);
+    EXPECT_NE(particleDrawable->cachedDrawable_, nullptr);
+}
+
+/**
+ * @tc.name: RSParticleDrawableOnUpdateCacheTest002
+ * @tc.desc: Test RSParticleDrawable::OnUpdate caching - second call reuses cachedDrawable_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest002, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSParticleDrawable> particleDrawable =
+        std::make_shared<DrawableV2::RSParticleDrawable>();
+    EXPECT_NE(particleDrawable, nullptr);
+
+    RSRenderNode renderNode(0);
+    std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();
+    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector;
+    renderParticleVector.push_back(std::make_shared<RSRenderParticle>(particleParams));
+    renderParticleVector.at(0)->lifeTime_ = 1;
+
+    RSRenderParticleVector particles;
+    particles.renderParticleVector_ = renderParticleVector;
+    renderNode.GetMutableRenderProperties().SetParticles(particles);
+
+    std::shared_ptr<RectF> rect = std::make_shared<RectF>(0, 0, 100, 100);
+    renderNode.GetMutableRenderProperties().SetDrawRegion(rect);
+
+    // First call
+    particleDrawable->OnUpdate(renderNode);
+    auto firstCachedDrawable = particleDrawable->cachedDrawable_;
+    EXPECT_NE(firstCachedDrawable, nullptr);
+
+    // Second call - should reuse cached drawable (UpdateData branch)
+    renderParticleVector.push_back(std::make_shared<RSRenderParticle>(particleParams));
+    renderParticleVector.at(1)->lifeTime_ = 1;
+    particles.renderParticleVector_ = renderParticleVector;
+    renderNode.GetMutableRenderProperties().SetParticles(particles);
+
+    bool result = particleDrawable->OnUpdate(renderNode);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(particleDrawable->cachedDrawable_, firstCachedDrawable);
+}
+
+/**
+ * @tc.name: RSParticleDrawableOnUpdateCacheTest003
+ * @tc.desc: Test RSParticleDrawable::OnUpdate returns false when particle size is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest003, TestSize.Level1)
+{
+    std::shared_ptr<DrawableV2::RSParticleDrawable> particleDrawable =
+        std::make_shared<DrawableV2::RSParticleDrawable>();
+    EXPECT_NE(particleDrawable, nullptr);
+
+    RSRenderNode renderNode(0);
+    // Empty particles
+    RSRenderParticleVector particles;
+    renderNode.GetMutableRenderProperties().SetParticles(particles);
+
+    bool result = particleDrawable->OnUpdate(renderNode);
+    EXPECT_FALSE(result);
 }
 } // namespace OHOS::Rosen

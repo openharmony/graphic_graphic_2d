@@ -29,7 +29,6 @@
 
 #include "hdi_display_type.h"
 #include "hgm_frame_rate_manager.h"
-#include "hgm_hfbc_config.h"
 #include "hgm_screen.h"
 #include "hgm_task_handle_thread.h"
 #include "vsync_type.h"
@@ -339,10 +338,6 @@ public:
         return multiSelfOwnedScreenEnable_.load();
     }
 
-    HgmHfbcConfig& GetHfbcConfig()
-    {
-        return hfbcConfig_;
-    }
     static void SysModeChangeProcess(const char* key, const char* value, void* context);
 private:
     HgmCore();
@@ -408,7 +403,6 @@ private:
     bool enableDynamicMode_ = true;
     std::atomic<bool> multiSelfOwnedScreenEnable_{ false };
     std::atomic<bool> postHgmTaskFlag_{ true };
-    HgmHfbcConfig hfbcConfig_;
     std::atomic<int64_t> rsPhaseOffset_{ 0 };
     std::atomic<int64_t> appPhaseOffset_{ 0 };
     std::atomic<bool> isVsyncOffsetCustomized_{ false };

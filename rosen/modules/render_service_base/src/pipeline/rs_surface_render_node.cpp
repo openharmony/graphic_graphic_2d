@@ -256,6 +256,8 @@ void RSSurfaceRenderNode::UpdateInfoForClonedNode(NodeId nodeId)
         SetHwcChildrenDisabledState();
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " children disabled by isCloneNode",
             GetName().c_str(), GetId());
+        HwcDisabledReasonCollection::GetInstance().UpdateHwcDisabledReasonForDFX(GetId(),
+            HwcDisabledReasons::DISABLED_BY_IS_CLONE_NODE, GetName());
     }
     SetIsCloned(isClonedNode);
 }
@@ -568,6 +570,7 @@ void RSSurfaceRenderNode::GetAllSubSurfaceNodes(
     for (auto& [id, node] : childSubSurfaceNodes_) {
         auto subSubSurfaceNodePtr = node.lock();
         if (!subSubSurfaceNodePtr) {
+            RS_LOGE("RSSurfaceRenderNode::GetAllSubSurfaceNodes subSubSurfaceNodePtr is null");
             continue;
         }
         if (subSubSurfaceNodePtr->HasSubSurfaceNodes()) {
@@ -1037,15 +1040,6 @@ void RSSurfaceRenderNode::SetProtectedLayer(bool isProtectedLayer)
         specialLayerManager_.RemoveIds(SpecialLayerType::PROTECTED, GetId());
     }
     UpdateSpecialLayerInfoByTypeChange(SpecialLayerType::PROTECTED, isProtectedLayer);
-}
-
-void RSSurfaceRenderNode::SetIsOutOfScreen(bool isOutOfScreen)
-{
-    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
-    if (stagingSurfaceParams) {
-        stagingSurfaceParams->SetIsOutOfScreen(isOutOfScreen);
-        AddToPendingSyncList();
-    }
 }
 
 bool RSSurfaceRenderNode::GetHasPrivacyContentLayer() const
@@ -1976,7 +1970,6 @@ void RSSurfaceRenderNode::UpdateHardwareDisabledState(bool disabled)
 
 void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& region,
                                                     VisibleData& visibleVec,
-                                                    std::map<NodeId, RSVisibleLevel>& visMapForVsyncRate,
                                                     bool needSetVisibleRegion,
                                                     RSVisibleLevel visibleLevel,
                                                     bool isSystemAnimatedScenes)
@@ -1992,11 +1985,6 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
         visibleVec.emplace_back(std::make_pair(GetId(), GetVisibleLevelForWMS(visibleLevel)));
     }
 
-    // collect visible changed pid
-    if (qosPidCal_ && GetType() == RSRenderNodeType::SURFACE_NODE && !isSystemAnimatedScenes) {
-        visMapForVsyncRate[GetId()] = !IsSCBNode() ? RSVisibleLevel::RS_ALL_VISIBLE : visibleLevel;
-    }
-
     visibleRegionForCallBack_ = region;
     if (needSetVisibleRegion) {
         visibleRegion_ = region;
@@ -2007,7 +1995,7 @@ void RSSurfaceRenderNode::SetVisibleRegionRecursive(const Occlusion::Region& reg
 
     for (auto& child : *GetChildren()) {
         if (auto surfaceChild = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child)) {
-            surfaceChild->SetVisibleRegionRecursive(region, visibleVec, visMapForVsyncRate, needSetVisibleRegion,
+            surfaceChild->SetVisibleRegionRecursive(region, visibleVec, needSetVisibleRegion,
                 visibleLevel, isSystemAnimatedScenes);
         }
     }

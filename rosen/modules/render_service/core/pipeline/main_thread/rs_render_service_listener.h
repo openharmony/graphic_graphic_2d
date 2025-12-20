@@ -34,7 +34,8 @@ public:
     void OnTransformChange() override;
 private:
     void SetBufferInfoAndRequest(const std::shared_ptr<RSSurfaceRenderNode> &node,
-        const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer);
+        const std::shared_ptr<RSSurfaceHandler> &surfaceHandler, const sptr<IConsumerSurface> &consumer,
+        bool doFastCompose = false);
     std::weak_ptr<RSSurfaceRenderNode> surfaceRenderNode_;
     void CleanLayerBufferCache();
     bool ForceRefresh(std::shared_ptr<RSSurfaceRenderNode> &node);

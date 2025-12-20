@@ -1422,6 +1422,8 @@ bool DoCreatePixelMapFromSurface()
     };
     std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
     rsToServiceConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap);
+    rsToServiceConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap, true);
+    rsToServiceConn_->CreatePixelMapFromSurface(pSurface, srcRect, pixelMap, false);
     return true;
 }
 

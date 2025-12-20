@@ -33,8 +33,9 @@ namespace ANI::UIEffect {
 bool IsSystemApp()
 {
 #ifdef ENABLE_IPC_SECURITY
-    uint64_t tokenId = OHOS::IPCSkeleton::GetCallingFullTokenID();
-    return OHOS::Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(tokenId);
+    static bool isSys = OHOS::Security::AccessToken::AccessTokenKit::IsSystemAppByFullTokenID(
+        OHOS::IPCSkeleton::GetSelfTokenID());
+    return isSys;
 #else
     return true;
 #endif

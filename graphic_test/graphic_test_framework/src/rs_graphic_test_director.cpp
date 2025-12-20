@@ -13,20 +13,21 @@
  * limitations under the License.
  */
 
+#include <chrono>
+#include <condition_variable>
+#include <filesystem>
+#include <mutex>
+
 #include "display_manager.h"
+#include "rs_graphic_errors.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
-#include "rs_trace.h"
 #include "rs_parameter_parse.h"
+#include "rs_trace.h"
 #include "transaction/rs_interfaces.h"
 #include "ui/rs_root_node.h"
 #include "ui/rs_surface_node.h"
 #include "ui/rs_ui_director.h"
-
-#include <chrono>
-#include <condition_variable>
-#include <mutex>
-#include <filesystem>
 
 namespace OHOS {
 namespace Rosen {
@@ -34,6 +35,7 @@ namespace {
 constexpr float TOP_LEVEL_Z = 1000000.0f;
 constexpr uint32_t SCREEN_COLOR = 0;
 constexpr int64_t WAIT_ANIMATION_SYNC_TIME_OUT = 100;
+constexpr uint32_t SOCKET_RETRY_TIME = 1000;
 
 class TestSurfaceCaptureCallback : public SurfaceCaptureCallback {
 public:
@@ -133,6 +135,15 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
     sleep(1);
 }
 
+void RetryProfilerSocketConnection()
+{
+    std::cout << "Profiler socket connection failed, retrying..." << std::endl;
+    system("param set persist.graphic.profiler.enabled 0");
+    WaitTimeout(SOCKET_RETRY_TIME);
+    system("param set persist.graphic.profiler.enabled 1");
+    WaitTimeout(SOCKET_RETRY_TIME);
+}
+
 void RSGraphicTestDirector::Run()
 {
     rsUiDirector_ = RSUIDirector::Create();
@@ -150,8 +161,22 @@ void RSGraphicTestDirector::Run()
     runner_->Run();
 
     if (isProfilerTest_) {
-        profilerThread_ = std::make_shared<RSGraphicTestProfilerThread>();
-        profilerThread_->Start();
+        auto CreateAndStartProfilerThread = []() {
+            auto thread = std::make_shared<RSGraphicTestProfilerThread>();
+            thread->Start();
+            return thread;
+        };
+        auto WaitForThreadInit = [](std::shared_ptr<RSGraphicTestProfilerThread> thread) {
+            return thread->WaitForSocketResultWithTimeout(SOCKET_RETRY_TIME);
+        };
+
+        auto profilerThread = CreateAndStartProfilerThread();
+        if (WaitForThreadInit(profilerThread) != AGT_SUCCESS) {
+            RetryProfilerSocketConnection();
+            profilerThread = CreateAndStartProfilerThread();
+        }
+        
+        profilerThread_ = profilerThread;
     }
 
     screenId_ = RSInterfaces::GetInstance().GetDefaultScreenId();

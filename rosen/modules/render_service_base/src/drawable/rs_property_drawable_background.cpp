@@ -717,36 +717,62 @@ Drawing::RecordingCanvas::DrawFunc RSBackgroundEffectDrawable::CreateDrawFunc() 
     return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         Drawing::AutoCanvasRestore acr(*canvas, true);
-        paintFilterCanvas->ClipRect(*rect);
-        Drawing::Rect absRect(0.0, 0.0, 0.0, 0.0);
-        canvas->GetTotalMatrix().MapRect(absRect, *rect);
-        auto surface = canvas->GetSurface();
-        if (!surface) {
-            ROSEN_LOGE("RSBackgroundEffectDrawable::CreateDrawFunc surface is nullptr.");
-            return;
+        if (rect) {
+            paintFilterCanvas->ClipRect(*rect);
         }
 #ifdef RS_ENABLE_GPU
         RSTagTracker tagTracker(canvas->GetGPUContext(),
             RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDEFFECTDRAWABLE);
 #endif
-        RectI deviceRect(0, 0, surface->Width(), surface->Height());
-        RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
-            std::ceil(absRect.GetHeight()));
-        bounds = bounds.IntersectRect(deviceRect);
-        Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
-        // When the drawing area of a useEffect node is empty in the current frame,
-        // it won't be collected by the effect node, effect data is null(RSRenderNode::UpdateVisibleEffectChild).
-        // if useEffect is within a node group, it will draw with fallback branch,
-        // causing an increase in RSPropertyDrawableUtils::DrawBackgroundEffect g_blurCnt and
-        // triggering frequency boosting. so add check for boundsRect: skip DrawBackgroundEffect to reduce blur count.
+        RectF bound = rect != nullptr ?
+            RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF();
+        Drawing::RectI boundsRect = ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
         if (boundsRect.IsEmpty()) {
             RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect boundsRect is empty");
             return;
+        }
+        if (rect) {
+            Drawing::Rect snapshotRect = ptr->renderRelativeRectInfo_ != nullptr ?
+                ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound) : *rect;
+            Drawing::Rect drawRect = ptr->renderRelativeRectInfo_ != nullptr ?
+                ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound) : *rect;
+            RectF snapshotRelativeRect = ptr->GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
+            auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
+            if (filter) {
+                filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
+                    snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
+            }
         }
         RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", ptr->renderNodeId_);
         RSPropertyDrawableUtils::DrawBackgroundEffect(
             paintFilterCanvas, ptr->filter_, ptr->cacheManager_, boundsRect);
     };
+}
+
+Drawing::RectI RSBackgroundEffectDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
+    EffectRectType type, const RectF& bound) const
+{
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        ROSEN_LOGE("RSBackgroundEffectDrawable::GetAbsRenderEffectRect surface is nullptr.");
+        return Drawing::RectI();
+    }
+    RectF rect = GetRenderRelativeRect(type, bound);
+    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
+
+    Drawing::Rect absRect;
+    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
+    RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
+        std::ceil(absRect.GetHeight()));
+    bounds = bounds.IntersectRect(deviceRect);
+    Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
+    // When the drawing area of a useEffect node is empty in the current frame,
+    // it won't be collected by the effect node, effect data is null(RSRenderNode::UpdateVisibleEffectChild).
+    // if useEffect is within a node group, it will draw with fallback branch,
+    // causing an increase in RSPropertyDrawableUtils::DrawBackgroundEffect g_blurCnt and
+    // triggering frequency boosting. so add check for boundsRect: skip DrawBackgroundEffect to reduce blur count.
+    return boundsRect;
 }
 
 RSDrawable::Ptr RSUseEffectDrawable::OnGenerate(const RSRenderNode& node)
@@ -963,8 +989,10 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
         return false;
     }
     const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
-        drawingFilter, node.GetId());
+    if (!RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(node.GetRenderProperties(),
+        drawingFilter, node.GetId())) {
+        return false;
+    }
     RecordFilterInfos(rsFilter);
     needSync_ = true;
     stagingFilter_ = rsFilter;
@@ -978,18 +1006,18 @@ Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::C
     RectF rect = GetRenderRelativeRect(type, bound);
     auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
 
-    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    Drawing::Rect absRect;
     canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
     auto surface = canvas.GetSurface();
     if (!surface) {
         return Drawing::RectI();
     }
 
-    RectI deviceRect(0, 0, surface->Width(), surface->Height());
-    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
-        std::ceil(absRect.GetHeight()));
-    effectRect = effectRect.IntersectRect(deviceRect);
-    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+    Drawing::RectI absRectI = absRect.RoundOut();
+    Drawing::RectI deviceRect(0, 0, surface->Width(), surface->Height());
+    // if absRectI.Intersect(deviceRect) is true,
+    // it means that absRectI intersects with deviceRect, and absRectI has been set to their intersection.
+    return absRectI.Intersect(deviceRect) ? absRectI : Drawing::RectI();
 }
 
 void RSMaterialFilterDrawable::CalVisibleRect(const Drawing::Matrix& absMatrix,

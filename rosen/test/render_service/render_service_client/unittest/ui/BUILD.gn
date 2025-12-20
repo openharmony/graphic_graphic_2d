@@ -23,7 +23,11 @@ ohos_unittest("RSCanvasCallbackRouterTest") {
 
   sources = [ "rs_canvas_callback_router_test.cpp" ]
 
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include"
+  ]
 
   configs = [
     ":ui_test",
@@ -37,6 +41,7 @@ ohos_unittest("RSCanvasCallbackRouterTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 
@@ -59,7 +64,11 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
 
   sources = [ "rs_canvas_drawing_node_test.cpp" ]
 
-  include_dirs = [ "$graphic_2d_root/rosen/test/include" ]
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+    "$graphic_2d_root/rosen/test/include"
+  ]
 
   configs = [
     ":ui_test",
@@ -73,6 +82,7 @@ ohos_unittest("RSCanvasDrawingNodeTest") {
 
   deps = [
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+    "$graphic_2d_root/rosen/modules/render_service_base:render_service_base_src",
     "$graphic_2d_root/rosen/modules/render_service_client:render_service_client_src",
   ]
 

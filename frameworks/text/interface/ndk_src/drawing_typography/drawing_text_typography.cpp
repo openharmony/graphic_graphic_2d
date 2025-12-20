@@ -3701,5 +3701,4 @@ void OH_Drawing_DestroyPositionAndAffinity(OH_Drawing_PositionAndAffinity* posit
         return;
     }
     delete ConvertToOriginalText<IndexAndAffinity>(positionAndAffinity);
-    positionAndAffinity = nullptr;
 }

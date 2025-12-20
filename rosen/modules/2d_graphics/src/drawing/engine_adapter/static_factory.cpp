@@ -135,6 +135,17 @@ std::shared_ptr<Typeface> StaticFactory::MakeFromStream(std::unique_ptr<MemorySt
     return EngineStaticFactory::MakeFromStream(std::move(memoryStream), index);
 }
 
+std::unique_ptr<MemoryStream> StaticFactory::GenerateAshMemoryStream(std::unique_ptr<MemoryStream> memoryStream,
+    const void*& dataPtr, size_t& size, int32_t& fd)
+{
+#ifdef ENABLE_DDGR_OPTIMIZE
+    if (SystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
+        return DDGRStaticFactory::GenerateAshMemoryStream(std::move(memoryStream), dataPtr, size, fd);
+    }
+#endif
+    return EngineStaticFactory::GenerateAshMemoryStream(std::move(memoryStream), dataPtr, size, fd);
+}
+
 std::shared_ptr<Typeface> StaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
 #ifdef ENABLE_DDGR_OPTIMIZE

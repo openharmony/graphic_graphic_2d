@@ -22,6 +22,7 @@
 
 #include "impl_interface/typeface_impl.h"
 #include "static_factory.h"
+#include "utils/log.h"
 
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
@@ -83,6 +84,7 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
         ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
     auto tf = Typeface::MakeFromStream(std::move(stream), index);
     if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
         return nullptr;
     }
     tf->SetFd(fd);
@@ -97,6 +99,76 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, ui
     return nullptr;
 #endif
 }
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash,
+    const FontArguments& fontArguments)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    auto ashmem = std::make_unique<Ashmem>(fd, size);
+    bool mapResult = ashmem->MapReadOnlyAshmem();
+    const void* ptr = ashmem->ReadFromAshmem(size, 0);
+    if (!mapResult || ptr == nullptr) {
+        return nullptr;
+    }
+    auto stream = std::make_unique<MemoryStream>(
+        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    auto tf = Typeface::MakeFromStream(std::move(stream), fontArguments);
+    if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
+        return nullptr;
+    }
+    tf->SetFd(fd);
+    if (hash == 0) {
+        hash = CalculateHash(reinterpret_cast<const uint8_t*>(ptr), size, fontArguments.GetCollectionIndex());
+    }
+    tf->SetHash(hash);
+    tf->SetSize(size);
+    tf->index_ = fontArguments.GetCollectionIndex();
+    return tf;
+#else
+    return nullptr;
+#endif
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(SharedTypeface& sharedTypeface)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    uint32_t size = sharedTypeface.size_;
+    auto ashmem = std::make_unique<Ashmem>(sharedTypeface.fd_, size);
+    bool mapResult = ashmem->MapReadOnlyAshmem();
+    const void* ptr = ashmem->ReadFromAshmem(size, 0);
+    if (!mapResult || ptr == nullptr) {
+        return nullptr;
+    }
+    auto stream = std::make_unique<MemoryStream>(
+        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    std::shared_ptr<Typeface> tf = nullptr;
+    if (sharedTypeface.hasFontArgs_) {
+        FontArguments fontArguments;
+        fontArguments.SetCollectionIndex(sharedTypeface.index_);
+        fontArguments.SetVariationDesignPosition({reinterpret_cast<const FontArguments::VariationPosition::Coordinate*>(
+            sharedTypeface.coords_.data()), sharedTypeface.coords_.size()});
+        tf = Typeface::MakeFromStream(std::move(stream), fontArguments);
+    } else {
+        tf = Typeface::MakeFromStream(std::move(stream), sharedTypeface.index_);
+    }
+    if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
+        return nullptr;
+    }
+    tf->SetFd(sharedTypeface.fd_);
+    if (sharedTypeface.hash_ == 0) {
+        sharedTypeface.hash_ = CalculateHash(reinterpret_cast<const uint8_t*>(ptr), size, sharedTypeface.index_);
+    }
+    tf->SetHash(sharedTypeface.hash_);
+    tf->SetSize(size);
+    tf->index_ = sharedTypeface.index_;
+    return tf;
+#else
+    return nullptr;
+#endif
+}
+
 
 std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
     const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index)
@@ -114,12 +186,70 @@ std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
         ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
     auto tf = Typeface::MakeFromStream(std::move(stream), index);
     if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
         return nullptr;
     }
     tf->SetFd(fd);
     if (hash == 0) {
         hash = CalculateHash(data, size, index);
     }
+    tf->SetHash(hash);
+    tf->SetSize(size);
+    tf->index_ = index;
+    return tf;
+#else
+    return nullptr;
+#endif
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(
+    const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, const FontArguments& fontArguments)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    std::string ashmemName = name + "[cunstom font]";
+    int32_t fd = OHOS::AshmemCreate(ashmemName.c_str(), size);
+    auto ashmem = std::make_unique<Ashmem>(fd, size);
+    bool mapResult = ashmem->MapReadAndWriteAshmem();
+    bool writeResult = ashmem->WriteToAshmem(data, size, 0);
+    const void* ptr = ashmem->ReadFromAshmem(size, 0);
+    if (!mapResult || !writeResult || ptr == nullptr) {
+        return nullptr;
+    }
+    auto stream = std::make_unique<MemoryStream>(
+        ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); }, ashmem.release());
+    auto tf = Typeface::MakeFromStream(std::move(stream), fontArguments);
+    if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
+        return nullptr;
+    }
+    tf->SetFd(fd);
+    if (hash == 0) {
+        hash = CalculateHash(data, size, fontArguments.GetCollectionIndex());
+    }
+    tf->SetHash(hash);
+    tf->SetSize(size);
+    tf->index_ = fontArguments.GetCollectionIndex();
+    return tf;
+#else
+    return nullptr;
+#endif
+}
+
+std::shared_ptr<Typeface> Typeface::MakeFromAshmem(std::unique_ptr<MemoryStream> memoryStream, uint32_t index)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    size_t size = 0;
+    const void* data = nullptr;
+    int32_t fd;
+    std::unique_ptr<MemoryStream> stream = StaticFactory::GenerateAshMemoryStream(
+        std::move(memoryStream), data, size, fd);
+    auto tf = Typeface::MakeFromStream(std::move(stream));
+    if (tf == nullptr) {
+        LOGE("Typeface::MakeFromAshmem: typeface is nullptr");
+        return nullptr;
+    }
+    tf->SetFd(fd);
+    uint32_t hash = CalculateHash(static_cast<const uint8_t*>(data), size, index);
     tf->SetHash(hash);
     tf->SetSize(size);
     tf->index_ = index;

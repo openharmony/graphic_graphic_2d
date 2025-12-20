@@ -69,6 +69,9 @@
 namespace OHOS {
 namespace Rosen {
 using namespace OHOS::Media;
+constexpr Drawing::scalar ROTATE_90 = 90.0f;
+constexpr Drawing::scalar ROTATE_180 = 180.0f;
+constexpr Drawing::scalar ROTATE_270 = 270.0f;
 
 #ifdef RS_ENABLE_GPU
 // LCOV_EXCL_START
@@ -216,6 +219,9 @@ public:
     std::unique_ptr<OHOS::Media::PixelMap> Create(sptr<Surface> surface, const OHOS::Media::Rect &srcRect);
     std::unique_ptr<OHOS::Media::PixelMap> Create(sptr<SurfaceBuffer> surfaceBuffer, const OHOS::Media::Rect &srcRect);
 
+    void SetTransformType(GraphicTransformType transform);
+    void SetRotationEnabled(bool transformEnabled);
+
     PixelMapFromSurface(const PixelMapFromSurface &) = delete;
     void operator=(const PixelMapFromSurface &) = delete;
     PixelMapFromSurface(const PixelMapFromSurface &&) = delete;
@@ -236,6 +242,18 @@ private:
         const sptr<SurfaceBuffer> &surfaceBuffer, const OHOS::Media::Rect &srcRect);
     bool CanvasDrawImage(const std::shared_ptr<Drawing::Image> &drawingImage, const OHOS::Media::Rect &srcRect,
         std::shared_ptr<Drawing::Canvas> &canvas);
+    void CreateMatrixBySurface(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetRotation90(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetRotation180(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetRotation270(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipHorizontal(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipVertical(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipHorizontalRot90(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipVerticalRot90(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipHorizontalRot180(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipVerticalRot180(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipHorizontalRot270(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
+    void ResetFlipVerticalRot270(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect);
     bool DrawImageRectVK(const std::shared_ptr<Drawing::Image> &drawingImage,
         OHNativeWindowBuffer *nativeWindowBufferTmp, const sptr<SurfaceBuffer> &surfaceBufferTmp,
         const OHOS::Media::Rect &srcRect);
@@ -244,6 +262,9 @@ private:
     sptr<Surface> surface_ = nullptr;
     sptr<SurfaceBuffer> surfaceBuffer_ = nullptr;
     OHNativeWindowBuffer *nativeWindowBuffer_ = nullptr;
+    bool ShouldSwapDimensions();
+    bool transformEnabled_ = false;
+    GraphicTransformType transform_ = GraphicTransformType::GRAPHIC_ROTATE_NONE;
 #if defined(RS_ENABLE_GL)
     GLuint texId_ = 0U;
     EGLImageKHR eglImage_ = EGL_NO_IMAGE_KHR;
@@ -425,16 +446,22 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
     const OHOS::Media::Rect &srcRect, std::shared_ptr<Drawing::Canvas> &canvas)
 {
 #if defined(RS_ENABLE_VK)
+
+    RS_LOGD("CanvasDrawImage IN");
+    RS_LOGD("canvas width: %{public}d, height: %{public}d",
+        canvas->GetWidth(), canvas->GetHeight());
+
     Drawing::Paint paint;
     paint.SetStyle(Drawing::Paint::PaintStyle::PAINT_FILL);
 
     Drawing::Rect srcDrawRect = Drawing::Rect(srcRect.left, srcRect.top, srcRect.width, srcRect.height);
     Drawing::Rect dstRect = Drawing::Rect(0, 0, srcRect.width, srcRect.height);
 
+    Drawing::Matrix matrix;
+    CreateMatrixBySurface(matrix, srcRect);
     GraphicPixelFormat pixelFormat = static_cast<GraphicPixelFormat>(surfaceBuffer_->GetFormat());
     if (pixelFormat == GRAPHIC_PIXEL_FMT_YCBCR_P010 || pixelFormat == GRAPHIC_PIXEL_FMT_YCRCB_P010 ||
         pixelFormat == GRAPHIC_PIXEL_FMT_RGBA_1010102) {
-        Drawing::Matrix matrix; // Identity Matrix
         auto sx = dstRect.GetWidth() / srcDrawRect.GetWidth();
         auto sy = dstRect.GetHeight() / srcDrawRect.GetHeight();
         auto tx = dstRect.GetLeft() - srcDrawRect.GetLeft() * sx;
@@ -459,10 +486,8 @@ bool PixelMapFromSurface::CanvasDrawImage(const std::shared_ptr<Drawing::Image> 
         canvas->AttachPaint(paint);
         canvas->DrawRect(dstRect);
     } else {
-        canvas->AttachPaint(paint);
-        canvas->DrawImageRect(*drawingImage, srcDrawRect, dstRect,
-            Drawing::SamplingOptions(Drawing::FilterMode::NEAREST),
-            Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
+        canvas->ConcatMatrix(matrix);
+        CanvasDrawImageRect(paint, drawingImage, srcDrawRect, dstRect, canvas);
     }
     return true;
 #else
@@ -604,9 +629,15 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForVK(con
         return nullptr;
     }
 
+    int32_t tmpWidth = srcRect.width;
+    int32_t tmpHeight = srcRect.height;
+    if (ShouldSwapDimensions() && transformEnabled_) {
+        tmpWidth = srcRect.height;
+        tmpHeight = srcRect.width;
+    }
     InitializationOptions options;
-    options.size.width = srcRect.width;
-    options.size.height = srcRect.height;
+    options.size.width = tmpWidth;
+    options.size.height = tmpHeight;
     options.srcPixelFormat = PixelFormat::RGBA_8888;
     options.pixelFormat = PixelFormat::RGBA_8888;
     auto pixelMap = PixelMap::Create(options);
@@ -615,7 +646,7 @@ std::unique_ptr<OHOS::Media::PixelMap> PixelMapFromSurface::GetPixelMapForVK(con
         return nullptr;
     }
 
-    sptr<SurfaceBuffer> surfaceBufferTmp = LocalDmaMemAlloc(srcRect.width, srcRect.height, pixelMap);
+    sptr<SurfaceBuffer> surfaceBufferTmp = LocalDmaMemAlloc(tmpWidth, tmpHeight, pixelMap);
     if (!surfaceBufferTmp) {
         RS_LOGE("LocalDmaMemAlloc fail");
         return nullptr;
@@ -869,14 +900,160 @@ std::unique_ptr<PixelMap> PixelMapFromSurface::Create(
     return pixelMap;
 }
 
+void PixelMapFromSurface::SetRotationEnabled(bool transformEnabled)
+{
+    transformEnabled_ = transformEnabled;
+}
+
+void PixelMapFromSurface::SetTransformType(GraphicTransformType transform)
+{
+    RS_LOGD("[PixelMapFromSurface] SetTransformType");
+    transform_ = transform;
+}
+
+void PixelMapFromSurface::CreateMatrixBySurface(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    if (!transformEnabled_) {
+        RS_LOGD("[PixelMapFromSurface] CreateMatrixBySurface no need for rotation");
+        return;
+    }
+
+    switch (transform_) {
+        case GraphicTransformType::GRAPHIC_ROTATE_90:
+            ResetRotation90(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_ROTATE_180:
+            ResetRotation180(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_ROTATE_270:
+            ResetRotation270(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H:
+            ResetFlipHorizontal(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V:
+            ResetFlipVertical(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT90:
+            ResetFlipHorizontalRot90(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT90:
+            ResetFlipVerticalRot90(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT180:
+            ResetFlipHorizontalRot180(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT180:
+            ResetFlipVerticalRot180(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_H_ROT270:
+            ResetFlipHorizontalRot270(matrix, srcRect);
+            break;
+        case GraphicTransformType::GRAPHIC_FLIP_V_ROT270:
+            ResetFlipVerticalRot270(matrix, srcRect);
+            break;
+        default:
+            break;
+    }
+}
+
+void PixelMapFromSurface::ResetRotation90(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.Rotate(ROTATE_270, 0, 0);
+    matrix.PostTranslate(0, srcRect.width);
+}
+
+void PixelMapFromSurface::ResetRotation180(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.Rotate(ROTATE_180, 0, 0);
+    matrix.PostTranslate(srcRect.width, srcRect.height);
+}
+
+void PixelMapFromSurface::ResetRotation270(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.Rotate(ROTATE_90, 0, 0);
+    matrix.PostTranslate(srcRect.height, 0);
+}
+
+void PixelMapFromSurface::ResetFlipHorizontal(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScale(-1.0f, 1.0f);
+    matrix.PostTranslate(srcRect.width, 0);
+}
+
+void PixelMapFromSurface::ResetFlipVertical(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScale(1.0f, -1.0f);
+    matrix.PostTranslate(0, srcRect.height);
+}
+
+void PixelMapFromSurface::ResetFlipHorizontalRot90(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScale(-1.0f, 1.0f);
+    matrix.PostRotate(ROTATE_90, 0, 0);
+    matrix.PostTranslate(srcRect.height, srcRect.width);
+}
+
+void PixelMapFromSurface::ResetFlipVerticalRot90(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScale(1.0f, -1.0f);
+    matrix.PostRotate(ROTATE_90, 0, 0);
+}
+
+void PixelMapFromSurface::ResetFlipHorizontalRot180(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScaleTranslate(-1.0f, 1.0f, 0, -srcRect.height);
+    matrix.PostRotate(ROTATE_180, 0, 0);
+}
+
+void PixelMapFromSurface::ResetFlipVerticalRot180(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScaleTranslate(1.0f, -1.0f, -srcRect.width, 0);
+    matrix.PostRotate(ROTATE_180, 0, 0);
+}
+
+void PixelMapFromSurface::ResetFlipHorizontalRot270(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScale(-1.0f, 1.0f);
+    matrix.PostRotate(ROTATE_270, 0, 0);
+}
+
+void PixelMapFromSurface::ResetFlipVerticalRot270(Drawing::Matrix& matrix, const OHOS::Media::Rect &srcRect)
+{
+    matrix.SetScaleTranslate(1.0f, -1.0f, -srcRect.width, srcRect.height);
+    matrix.PostRotate(ROTATE_270, 0, 0);
+}
+
+bool PixelMapFromSurface::ShouldSwapDimensions()
+{
+    if (transform_ == GraphicTransformType::GRAPHIC_ROTATE_90 ||
+        transform_ == GraphicTransformType::GRAPHIC_ROTATE_270 ||
+        transform_ == GraphicTransformType::GRAPHIC_FLIP_H_ROT90 ||
+        transform_ == GraphicTransformType::GRAPHIC_FLIP_V_ROT90 ||
+        transform_ == GraphicTransformType::GRAPHIC_FLIP_H_ROT270 ||
+        transform_ == GraphicTransformType::GRAPHIC_FLIP_V_ROT270) {
+            return true;
+    } else {
+        return false;
+    }
+}
+
 std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMapFromSurface(sptr<Surface> surface,
-    const OHOS::Media::Rect &srcRect)
+    const OHOS::Media::Rect &srcRect, bool transformEnabled)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     auto helper = std::make_unique<PixelMapFromSurface>();
+    helper->SetRotationEnabled(transformEnabled);
+
+    GraphicTransformType type = surface == nullptr ?
+        GraphicTransformType::GRAPHIC_ROTATE_NONE : surface->GetTransform();
+
+    helper->SetTransformType(type);
+    RS_LOGD("[PixelMapFromSurface] transformEnabled: %{public}d, transformtype: %{public}d",
+        transformEnabled, type);
     return helper->Create(surface, srcRect);
 #else
-    RS_LOGE("CreatePixelMapFromSurface fail");
+    RS_LOGE("CreatePixelMapFromSurface fail.");
     return nullptr;
 #endif
 }

@@ -24,8 +24,8 @@ FontToolSet& FontToolSet::GetInstance()
     return instance;
 }
 
-std::vector<std::string> FontToolSet::GetFontFullName(const std::string& path)
+std::vector<std::string> FontToolSet::GetFontFullName(int fd)
 {
-    return TextEngine::FontParser::GetFontFullName(path);
+    return TextEngine::FontParser::GetFontFullName(fd);
 }
 } // namespace OHOS::Rosen

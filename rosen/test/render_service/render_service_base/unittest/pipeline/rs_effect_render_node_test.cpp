@@ -96,7 +96,7 @@ HWTEST_F(RSEffectRenderNodeTest, GetFilterRect, TestSize.Level1)
     Drawing::RectI path;
     rsEffectRenderNode.SetEffectRegion(path);
     rsEffectRenderNode.GetFilterRect();
-    rsEffectRenderNode.childHasVisibleEffect_ = true;
+    rsEffectRenderNode.hasEffectChildrenWithoutEmptyRect_ = true;
     rsEffectRenderNode.GetFilterRect();
     ASSERT_FALSE(rsEffectRenderNode.GetMutableRenderProperties().GetHaveEffectRegion());
 }
@@ -184,12 +184,12 @@ HWTEST_F(RSEffectRenderNodeTest, CheckBlurFilterCacheNeedForceClearOrSaveTest, T
 }
 
 /**
- * @tc.name: UpdateFilterCacheWithSelfDirtyTest
+ * @tc.name: UpdateFilterCacheWithSelfDirtyTest001
  * @tc.desc: test results of UpdateFilterCacheWithSelfDirty
  * @tc.type:FUNC
  * @tc.require: issueI9VAI2
  */
-HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest, TestSize.Level1)
+HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest001, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSEffectRenderNode rsEffectRenderNode(nodeId);
@@ -203,6 +203,28 @@ HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest, TestSize.Le
     rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
     EXPECT_FALSE(filterDrawable->stagingCacheManager_->stagingFilterRegionChanged_ ||
         filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_);
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithSelfDirtyTest002
+ * @tc.desc: test results of UpdateFilterCacheWithSelfDirty
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSEffectRenderNodeTest, UpdateFilterCacheWithSelfDirtyTest002, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+
+    auto backgroundFilterDrawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
+    rsEffectRenderNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] =
+        backgroundFilterDrawable;
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_FALSE(rsEffectRenderNode.backgroundFilterRegionChanged_);
+    backgroundFilterDrawable->stagingVisibleRectInfo_ =
+        std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
+    backgroundFilterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
+    rsEffectRenderNode.UpdateFilterCacheWithSelfDirty();
+    EXPECT_TRUE(rsEffectRenderNode.backgroundFilterRegionChanged_);
 }
 
 /**
@@ -241,6 +263,7 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsWithForceClearFilterCache, 
     filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->MarkFilterForceClearCache();
     node.GetFilterRegionInfo().filterRegion_ = RectI(0, 0, 10, 10);
+    node.GetFilterRegionInfo().defaultFilterRegion_ = RectI(0, 0, 10, 10);
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, false);
     EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), RectI(0, 0, 10, 10));
 }
@@ -308,15 +331,15 @@ HWTEST_F(RSEffectRenderNodeTest, MarkClearFilterCacheIfEffectChildrenChangedTest
     bgProperties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
     filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
     filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;
-    rsEffectRenderNode.lastFrameHasVisibleEffect_ = true;
+    rsEffectRenderNode.lastFrameHasVisibleEffectWithoutEmptyRect_ = true;
     rsEffectRenderNode.SetChildHasVisibleFilter(false);
     rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();
     EXPECT_EQ(rsEffectRenderNode.IsForceClearFilterCache(filterDrawable), true);
-    rsEffectRenderNode.lastFrameHasVisibleEffect_ = false;
+    rsEffectRenderNode.lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
     rsEffectRenderNode.SetChildHasVisibleFilter(true);
     rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();
     EXPECT_EQ(rsEffectRenderNode.IsForceClearFilterCache(filterDrawable), true);
-    rsEffectRenderNode.lastFrameHasVisibleEffect_ = false;
+    rsEffectRenderNode.lastFrameHasVisibleEffectWithoutEmptyRect_ = false;
     rsEffectRenderNode.SetChildHasVisibleFilter(false);
     rsEffectRenderNode.MarkClearFilterCacheIfEffectChildrenChanged();
     EXPECT_EQ(rsEffectRenderNode.IsForceClearFilterCache(filterDrawable), true);
@@ -467,5 +490,35 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterDebugEnabled001, TestSize.Level1)
     backgroundFilterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     rsEffectRenderNode.MarkFilterDebugEnabled();
     EXPECT_TRUE(backgroundFilterDrawable->stagingCacheManager_->debugEnabled_);
+}
+
+/**
+ * @tc.name: UpdateChildHasVisibleEffectWithoutEmptyRect001
+ * @tc.desc: Test function UpdateChildHasVisibleEffectWithoutEmptyRect
+ * @tc.type: FUNC
+ * @tc.require: issue21186
+ */
+HWTEST_F(RSEffectRenderNodeTest, UpdateChildHasVisibleEffectWithoutEmptyRect001, TestSize.Level1)
+{
+    NodeId nodeId = 0;
+    RSEffectRenderNode rsEffectRenderNode(nodeId);
+    rsEffectRenderNode.stagingRenderParams_ = std::make_unique<RSEffectRenderParams>(rsEffectRenderNode.GetId());
+    rsEffectRenderNode.hasEffectChildrenWithoutEmptyRect_ = true;
+    rsEffectRenderNode.SetChildHasVisibleEffect(false);
+    EXPECT_FALSE(rsEffectRenderNode.ChildHasVisibleEffect());
+    rsEffectRenderNode.UpdateChildHasVisibleEffectWithoutEmptyRect();
+    EXPECT_FALSE(rsEffectRenderNode.ChildHasVisibleEffectWithoutEmptyRect());
+
+    rsEffectRenderNode.hasEffectChildrenWithoutEmptyRect_ = true;
+    rsEffectRenderNode.SetChildHasVisibleEffect(true);
+    EXPECT_TRUE(rsEffectRenderNode.ChildHasVisibleEffect());
+    rsEffectRenderNode.UpdateChildHasVisibleEffectWithoutEmptyRect();
+    EXPECT_FALSE(rsEffectRenderNode.ChildHasVisibleEffectWithoutEmptyRect());
+
+    rsEffectRenderNode.hasEffectChildrenWithoutEmptyRect_ = true;
+    auto context = std::make_shared<RSContext>();
+    rsEffectRenderNode.context_ = context->weak_from_this();
+    rsEffectRenderNode.UpdateChildHasVisibleEffectWithoutEmptyRect();
+    EXPECT_FALSE(rsEffectRenderNode.ChildHasVisibleEffectWithoutEmptyRect());
 }
 } // namespace OHOS::Rosen

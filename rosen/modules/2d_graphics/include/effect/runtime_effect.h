@@ -30,6 +30,7 @@ class RuntimeEffectOptions {
 public:
     bool forceNoInline = false;
     bool useAF = false;
+    bool useHighpLocalCoords = false;
 };
 
 class DRAWING_API RuntimeEffect {

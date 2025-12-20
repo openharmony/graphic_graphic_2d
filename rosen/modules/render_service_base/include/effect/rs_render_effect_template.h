@@ -83,6 +83,7 @@ public:
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             case RSNGEffectType::AIBAR_GLOW: return "AIBarGlow";
+            case RSNGEffectType::AIBAR_RECT_HALO: return "AIBarRectHalo";
             case RSNGEffectType::ROUNDED_RECT_FLOWLIGHT: return "RoundedRectFlowlight";
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
@@ -92,6 +93,7 @@ public:
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
+            case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
@@ -103,6 +105,9 @@ public:
             case RSNGEffectType::GRID_WARP: return "GridWarp";
             case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
             case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
+            case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
+            case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
+            case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
             default: return "UNKNOWN";
         }
     }
@@ -192,8 +197,6 @@ public:
     virtual ~RSNGRenderEffectBase() = default;
     virtual RSNGEffectType GetType() const = 0;
     virtual bool Marshalling(Parcel& parcel) const = 0;
-    virtual bool SetValue(const std::shared_ptr<Derived>& other, RSRenderNode& node,
-        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) = 0;
     virtual void Detach() = 0;
     virtual void Dump(std::string& out) const = 0;
@@ -214,18 +217,6 @@ public:
     }
 
 protected:
-    inline void SetNextEffect(const std::shared_ptr<Derived>& effect, RSRenderNode& node,
-        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier)
-    {
-        if (nextEffect_) {
-            nextEffect_->Detach();
-        }
-        nextEffect_ = effect;
-        if (nextEffect_) {
-            nextEffect_->Attach(node, modifier);
-        }
-    }
-
     [[nodiscard]] virtual bool OnUnmarshalling(Parcel& parcel) = 0;
 
     virtual void DumpProperties(std::string& out) const {}
@@ -343,27 +334,6 @@ public:
         return RSMarshallingHelper::Marshalling(parcel, END_OF_CHAIN);
     }
 
-    bool SetValue(const std::shared_ptr<Base>& other, RSRenderNode& node,
-        const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
-    {
-        if (other == nullptr || GetType() != other->GetType()) {
-            return false;
-        }
-
-        auto otherDown = std::static_pointer_cast<RSNGRenderEffectTemplate>(other);
-        auto& otherProps = otherDown->GetProperties();
-        std::apply([&otherProps](const auto&... args) {
-                (args.value_->Set(std::get<std::decay_t<decltype(args)>>(otherProps).value_->Get()), ...);
-            },
-            properties_);
-
-        auto& otherNextEffect = otherDown->nextEffect_;
-        if (!Base::nextEffect_ || !Base::nextEffect_->SetValue(otherNextEffect, node, modifier)) {
-            Base::SetNextEffect(otherNextEffect, node, modifier);
-        }
-        return true;
-    }
-
     void Attach(RSRenderNode& node, const std::weak_ptr<ModifierNG::RSRenderModifier>& modifier) override
     {
         RS_OPTIONAL_TRACE_FMT("RSNGRenderEffectTemplate::Attach, Type:%s",
@@ -428,11 +398,6 @@ public:
         }
     }
 
-    const std::tuple<PropertyTags...>& GetProperties() const
-    {
-        return properties_;
-    }
-
 protected:
     [[nodiscard]] bool OnUnmarshalling(Parcel& parcel) override
     {
@@ -474,9 +439,6 @@ protected:
     }
 
     std::tuple<PropertyTags...> properties_;
-
-    template <typename U, typename R>
-    friend class RSNGEffectBase;
 
     template <typename U, RSNGEffectType T, typename... Tags>
     friend class RSNGEffectTemplate;

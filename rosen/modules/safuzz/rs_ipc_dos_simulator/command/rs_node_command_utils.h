@@ -51,6 +51,10 @@ public:
                                     PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleNoiseFields, Uint64, ParticleNoiseFieldsSharedPtr, Uint64,
                                     PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleRippleFields, Uint64, ParticleRippleFieldsSharedPtr, Uint64,
+                                    PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleVelocityFields, Uint64, ParticleVelocityFieldsSharedPtr,
+                                    Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShader, Uint64, RSShaderSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector2f, Uint64, Vector2f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector3f, Uint64, Vector3f, Uint64, PropertyUpdateType);
@@ -72,6 +76,15 @@ public:
                                     Uint64, RSShadowBlenderPara, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShort,
                                     Uint64, Short, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGFilterBase,
+                                    Uint64, RSNGFilterPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGMaskBase,
+                                    Uint64, RSNGMaskPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGShaderBase,
+                                    Uint64, RSNGShaderPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGShapeBase,
+                                    Uint64, RSNGShapePtr, Uint64, PropertyUpdateType);
+
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetFreeze, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNodeName, Uint64, String);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSMarkNodeGroup, Uint64, Bool, Bool, Bool);
@@ -82,6 +95,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSForceUifirstNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawRegion, Uint64, RectFSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_1(RSSetTakeSurfaceForUIFlag, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetOutOfParent, Uint64, OutOfParentType);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRegisterGeometryTransitionNodePair, Uint64, Uint64, Bool);

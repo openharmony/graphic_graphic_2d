@@ -23,6 +23,10 @@
 #include <iostream>
 #include <iomanip>
 #include <securec.h>
+#ifdef ENABLE_OHOS_ENHANCE
+#include <sys/mman.h>
+#include <sys/stat.h>
+#endif
 #include <unordered_map>
 #ifdef BUILD_NON_SDK_VER
 #include <iconv.h>
@@ -449,25 +453,52 @@ std::vector<uint32_t> FontParser::GetFontTypefaceUnicode(const void* data, size_
     return Drawing::FontUnicodeQuery::GenerateUnicodeItem(typeface);
 }
 
-std::vector<std::string> FontParser::GetFontFullName(const std::string& path)
+#ifdef ENABLE_OHOS_ENHANCE
+std::vector<uint8_t> FontParser::GetFontDataFromFd(int fd)
 {
+    struct stat st{};
+    if (fstat(fd, &st) < 0 || st.st_size <= 0) {
+        TEXT_LOGE("Failed to get fd size");
+        return {};
+    }
+
+    void* startAddr = ::mmap(nullptr, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (startAddr == MAP_FAILED) {
+        TEXT_LOGE("Failed to exec mmap");
+        return {};
+    }
+    uint8_t* byteData = static_cast<uint8_t*>(startAddr);
+    std::vector<uint8_t> fontData(byteData, byteData + st.st_size);
+    ::munmap(startAddr, st.st_size);
+    return fontData;
+}
+#endif
+
+std::vector<std::string> FontParser::GetFontFullName(int fd)
+{
+#ifdef ENABLE_OHOS_ENHANCE
+    std::vector<uint8_t> fontData = GetFontDataFromFd(fd);
+#else
+    std::vector<uint8_t> fontData = {};
+#endif
     int32_t fileCount = 0;
-    Drawing::FontFileType::GetFontFileType(path, fileCount);
+    Drawing::FontFileType::GetFontFileType(fontData, fileCount);
     if (fileCount == 0) {
-        TEXT_LOGE("Failed to get font count, path %{public}s", path.c_str());
+        TEXT_LOGE("Failed to get font count");
         return {};
     }
     std::vector<std::string> result;
     for (int32_t index = 0; index < fileCount; index++) {
-        std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromFile(path.c_str(), index);
+        auto stream = std::make_unique<Drawing::MemoryStream>(fontData.data(), fontData.size(), false);
+        std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeFromStream(std::move(stream), index);
         if (typeface == nullptr) {
-            TEXT_LOGE("Failed to make typeface, path %{public}s", path.c_str());
+            TEXT_LOGE("Failed to make typeface");
             return {};
         }
         FontDescriptor desc;
         desc.requestedLid = LANGUAGE_EN;
         if (!ParseOneTable<NameTable>(typeface, desc)) {
-            TEXT_LOGE("Failed to parse name table, path %{public}s", path.c_str());
+            TEXT_LOGE("Failed to parse name table");
             return {};
         }
         result.emplace_back(desc.fullName);
@@ -624,6 +655,11 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::GetVisibilityFontByName(
     const std::string locale)
 {
     return ParseFontDescriptor(fontName, GetLanguageId(locale));
+}
+
+const std::vector<std::string>& FontParser::GetFontSet() const
+{
+    return fontSet_;
 }
 } // namespace TextEngine
 } // namespace Rosen

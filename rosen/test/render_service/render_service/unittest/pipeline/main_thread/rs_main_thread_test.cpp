@@ -54,13 +54,9 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-constexpr int32_t DEFAULT_RATE = 1;
 constexpr int32_t INVALID_VALUE = -1;
-constexpr int32_t INVISBLE_WINDOW_RATE = 10;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
 constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
-constexpr int32_t SIMI_VISIBLE_RATE = 2;
-constexpr int32_t SYSTEM_ANIMATED_SCENES_RATE = 2;
 constexpr ScreenId DEFAULT_DISPLAY_SCREEN_ID = 0;
 constexpr uint32_t MULTI_WINDOW_PERF_END_NUM = 4;
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
@@ -2293,8 +2289,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation, TestSize.Level1)
     curAllSurfaces.emplace_back(nullptr);
     curAllSurfaces.emplace_back(surfaceNode);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(displayNode, curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(displayNode, curAllSurfaces, dstCurVisVec);
 }
 
 /**
@@ -3555,322 +3550,6 @@ HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes003, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetVSyncRateByVisibleLevel001
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when RSVisibleLevel is RS_SEMI_DEFAULT_VISIBLE
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    if (vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
-        vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-        std::map<NodeId, RSVisibleLevel> pidVisMap;
-        pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE;
-        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-        ASSERT_NE(connection->highPriorityRate_, (int32_t)SIMI_VISIBLE_RATE);
-    }
-}
-
-/**
- * @tc.name: SetVSyncRateByVisibleLevel002
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when RSVisibleLevel is RS_SYSTEM_ANIMATE_SCENE
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel002, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    if (vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
-        vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-        std::map<NodeId, RSVisibleLevel> pidVisMap;
-        pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_SYSTEM_ANIMATE_SCENE;
-        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-        ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-    }
-}
-
-/**
- * @tc.name: SetVSyncRateByVisibleLevel003
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when RSVisibleLevel is RS_INVISIBLE
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel003, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    if (vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
-        vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-        std::map<NodeId, RSVisibleLevel> pidVisMap;
-        pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_INVISIBLE;
-        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-        ASSERT_NE(connection->highPriorityRate_, (int32_t)INVISBLE_WINDOW_RATE);
-    }
-}
-
-/**
- * @tc.name: SetVSyncRateByVisibleLevel004
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when RSVisibleLevel is RS_UNKNOW_VISIBLE_LEVEL
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetVSyncRateByVisibleLevel004, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    if (vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid) == VSYNC_ERROR_OK) {
-        vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-        std::map<NodeId, RSVisibleLevel> pidVisMap;
-        pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-        std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-        mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-        mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-        ASSERT_NE(connection->highPriorityRate_, (int32_t)DEFAULT_RATE);
-    }
-}
-
-/**
- * @tc.name: SetSystemAnimatedScenes004
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when SystemAnimatedScenes is ENTER_MISSION_CENTER
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes004, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER);
-    ASSERT_NE(mainThread->systemAnimatedScenesList_.empty(), true);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    ASSERT_EQ(vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid), VSYNC_ERROR_OK);
-    vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-}
-
-/**
- * @tc.name: SetSystemAnimatedScenes005
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when SystemAnimatedScenes is ENTER_TFS_WINDOW
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes005, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_TFS_WINDOW);
-    ASSERT_NE(mainThread->systemAnimatedScenesList_.empty(), true);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    ASSERT_EQ(vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid), VSYNC_ERROR_OK);
-    vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-}
-
-/**
- * @tc.name: SetSystemAnimatedScenes006
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when SystemAnimatedScenes is ENTER_WINDOW_FULL_SCREEN
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes006, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_WINDOW_FULL_SCREEN);
-    ASSERT_NE(mainThread->systemAnimatedScenesList_.empty(), true);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    ASSERT_EQ(vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid), VSYNC_ERROR_OK);
-    vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-}
-
-/**
- * @tc.name: SetSystemAnimatedScenes007
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when SystemAnimatedScenes is ENTER_MAX_WINDOW
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes007, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MAX_WINDOW);
-    ASSERT_NE(mainThread->systemAnimatedScenesList_.empty(), true);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    ASSERT_EQ(vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid), VSYNC_ERROR_OK);
-    vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-}
-
-/**
- * @tc.name: SetSystemAnimatedScenes008
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when SystemAnimatedScenes is ENTER_SPLIT_SCREEN
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes008, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_SPLIT_SCREEN);
-    ASSERT_NE(mainThread->systemAnimatedScenesList_.empty(), true);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    ASSERT_EQ(vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid), VSYNC_ERROR_OK);
-    vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-}
-
-/**
- * @tc.name: SetSystemAnimatedScenes009
- * @tc.desc: SetVSyncRateByVisibleLevel Test, Check Vsyncrate when SystemAnimatedScenes is ENTER_APP_CENTER
- * @tc.type: FUNC
- * @tc.require: issueI7HDVG
- */
-HWTEST_F(RSMainThreadTest, SetSystemAnimatedScenes009, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
-    mainThread->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_APP_CENTER);
-    ASSERT_NE(mainThread->systemAnimatedScenesList_.empty(), true);
-    if (mainThread->appVSyncDistributor_ == nullptr) {
-        auto vsyncGenerator = CreateVSyncGenerator();
-        auto vsyncController = new VSyncController(vsyncGenerator, 0);
-        mainThread->appVSyncDistributor_ = new VSyncDistributor(vsyncController, "WMVSyncConnection");
-    }
-    auto& vsyncDistributor = mainThread->appVSyncDistributor_;
-    ASSERT_NE(vsyncDistributor, nullptr);
-    vsyncDistributor->connectionsMap_.clear();
-    sptr<VSyncConnection> connection = new VSyncConnection(vsyncDistributor, "WMVSyncConnection_0");
-    uint32_t tmpPid = 0;
-    ASSERT_EQ(vsyncDistributor->QosGetPidByName(connection->info_.name_, tmpPid), VSYNC_ERROR_OK);
-    vsyncDistributor->connectionsMap_[tmpPid].push_back(connection);
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    pidVisMap[static_cast<NodeId>(tmpPid)] = RSVisibleLevel::RS_UNKNOW_VISIBLE_LEVEL;
-    std::vector<RSBaseRenderNode::SharedPtr> curAllSurfaces;
-    mainThread->GetRSVsyncRateReduceManager().ClearLastVisMapForVsyncRate();
-    mainThread->GetRSVsyncRateReduceManager().SetVSyncRateByVisibleLevel(pidVisMap, curAllSurfaces);
-    ASSERT_NE(connection->highPriorityRate_, (int32_t)SYSTEM_ANIMATED_SCENES_RATE);
-}
-
-/**
  * @tc.name: SetSystemAnimatedScenes010
  * @tc.desc: SetSystemAnimatedScenes Test, check size is over max
  * @tc.type: FUNC
@@ -3921,7 +3600,7 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
     EXPECT_NE(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
         INVALID_SCREEN_ID);
 
-    for (auto nodeId = 0; nodeId <= MAX_WHITE_LIST_NUM + 1; nodeId++) {
+    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         whiteList.push_back(nodeId);
     }
     EXPECT_EQ(rsRenderServiceConnection->CreateVirtualScreen(name, width, height, surface, mirrorId, flags, whiteList),
@@ -3943,12 +3622,12 @@ HWTEST_F(RSMainThreadTest, SetVirtualScreenBlackList, TestSize.Level1)
 
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
-    EXPECT_NE(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::BLACKLIST_IS_EMPTY);
 
-    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
     }
-    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), 5);
+    EXPECT_EQ(rsRenderServiceConnection->SetVirtualScreenBlackList(id, blackList), StatusCode::INVALID_ARGUMENTS);
 }
 
 /**
@@ -3967,12 +3646,12 @@ HWTEST_F(RSMainThreadTest, AddVirtualScreenBlackList, TestSize.Level1)
     ScreenId id = 100;
     std::vector<uint64_t> blackList = {};
     int32_t repCode;
-    EXPECT_NE(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
+    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), ERR_INVALID_VALUE);
 
-    for (auto nodeId = 0; nodeId <= MAX_BLACK_LIST_NUM + 1; nodeId++) {
+    for (auto nodeId = 0; nodeId <= MAX_SPECIAL_LAYER_NUM + 1; nodeId++) {
         blackList.push_back(nodeId);
     }
-    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), 22);
+    EXPECT_EQ(rsRenderServiceConnection->AddVirtualScreenBlackList(id, blackList, repCode), ERR_INVALID_VALUE);
 }
 
 /**
@@ -4059,8 +3738,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation001, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 1);
@@ -4098,8 +3776,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation002, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 2);
@@ -4137,8 +3814,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation003, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), false);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
@@ -4177,8 +3853,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation004, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 1);
@@ -4219,8 +3894,7 @@ HWTEST_F(RSMainThreadTest, CalcOcclusionImplementation005, TestSize.Level1)
     curAllSurfaces.emplace_back(nodeBottom);
     curAllSurfaces.emplace_back(nodeTop);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstPidVisMap;
-    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec, dstPidVisMap);
+    mainThread->CalcOcclusionImplementation(nullptr, curAllSurfaces, dstCurVisVec);
     ASSERT_EQ(nodeBottom->GetOcclusionVisible(), false);
     ASSERT_EQ(nodeTop->GetOcclusionVisible(), true);
     ASSERT_EQ(nodeBottom->GetVisibleRegion().Size(), 0);
@@ -5492,6 +5166,42 @@ HWTEST_F(RSMainThreadTest, DumpMem004, TestSize.Level2)
 }
 
 /**
+ * @tc.name: DumpGpuMem001
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpGpuMem001, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "gpu";
+    mainThread->DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
+ * @tc.name: DumpGpuMem002
+ * @tc.desc: test DumpGpuMem
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, DumpGpuMem002, TestSize.Level2)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    mainThread->isUniRender_ = true;
+    std::unordered_set<std::u16string> argSets;
+    std::string dumpString;
+    std::string type = "";
+    mainThread->DumpGpuMem(argSets, dumpString, type);
+    ASSERT_TRUE(dumpString.find("GPU") != std::string::npos);
+}
+
+/**
  * @tc.name: CountMem
  * @tc.desc: test CountMem
  * @tc.type: FUNC
@@ -5849,6 +5559,7 @@ HWTEST_F(RSMainThreadTest, IsFastComposeVsyncTimeSync002, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    bool result;
     ASSERT_NE(mainThread, nullptr);
     auto receiver = mainThread->receiver_;
     if (mainThread->rsVSyncDistributor_ == nullptr) {
@@ -5863,8 +5574,8 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
     mainThread->lastFastComposeTimeStamp_ = 0;
     mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
     mainThread->lastFastComposeTimeStamp_ = mainThread->timestamp_;
-    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_EQ(result, false);
     mainThread->receiver_ = receiver;
 }
 
@@ -5877,11 +5588,12 @@ HWTEST_F(RSMainThreadTest, CheckFastCompose001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, CheckFastCompose002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
+    bool result;
     ASSERT_NE(mainThread, nullptr);
     uint64_t timestamp = mainThread->timestamp_;
     mainThread->timestamp_ = mainThread->timestamp_ - 16666666;
-    mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
-    ASSERT_NE(mainThread->requestNextVsyncNum_.load(), 0);
+    result = mainThread->CheckFastCompose(mainThread->timestamp_ - 1);
+    ASSERT_EQ(result, false);
     mainThread->timestamp_ = timestamp;
 }
 

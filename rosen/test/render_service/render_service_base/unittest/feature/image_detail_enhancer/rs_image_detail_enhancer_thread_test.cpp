@@ -20,6 +20,8 @@
 #include "gtest/gtest.h"
 #include "platform/common/rs_system_properties.h"
 #include "render/rs_pixel_map_util.h"
+#include "skia_image.h"
+#include "skia_image_info.h"
 #include "surface_buffer_impl.h"
 
 #ifdef RS_ENABLE_VK
@@ -902,6 +904,101 @@ HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest001, TestSize.Lev
     image->pixelMap_ = nullptr;
     result = RSImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams);
     EXPECT_FALSE(result);
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
+}
+
+/**
+ * @tc.name: EnhanceImageAsyncTest
+ * @tc.desc: Verify function EnhanceImageAsyncTest002
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest002, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions samplingOptions;
+    auto image = std::make_shared<RSImage>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    image->pixelMap_ = pixelMap;
+    int addr1 = 1;
+    int* addr = &addr1;
+    Drawing::ImageInfo imageInfo1(100, 100, Drawing::ColorType::COLORTYPE_ALPHA_8,
+        Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    Drawing::ImageInfo imageInfo2(120, 120, Drawing::ColorType::COLORTYPE_ALPHA_8,
+        Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto pixmap1 = Drawing::Pixmap(imageInfo1, addr, 400);
+    auto pixmap2 = Drawing::Pixmap(imageInfo2, addr, 480);
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    Drawing::ReleaseContext releaseContext = nullptr;
+    auto image1 = Drawing::Image::MakeFromRaster(pixmap1, rasterReleaseProc, releaseContext);
+    auto image2 = Drawing::Image::MakeFromRaster(pixmap2, rasterReleaseProc, releaseContext);
+    Drawing::Rect dstRect(0.0f, 0.0f, 100.0f, 100.0f);
+    image->dst_ = dstRect;
+    RSImageParams rsImageParams = {
+        image->pixelMap_, image->nodeId_, image->dst_, image->uniqueid_, image->image_, false, 1.0f
+    };
+    rsImageParams.mImage = image1;
+    rsImageDetailEnhancerThread.SetOutImage(image->uniqueid_, image2);
+    EXPECT_FALSE(rsImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams));
+    rsImageParams.mImage = image2;
+    rsImageDetailEnhancerThread.SetOutImage(image->uniqueid_, image1);
+    EXPECT_TRUE(rsImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams));
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
+}
+
+/**
+ * @tc.name: EnhanceImageAsyncTest
+ * @tc.desc: Verify function EnhanceImageAsyncTest003
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSImageDetailEnhancerThreadTest, EnhanceImageAsyncTest003, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0");
+    system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", "1");
+    Drawing::Canvas canvas;
+    Drawing::SamplingOptions samplingOptions;
+    auto image = std::make_shared<RSImage>();
+    auto pixelMap = std::make_shared<Media::PixelMap>();
+    RSImageDetailEnhancerThread& rsImageDetailEnhancerThread = RSImageDetailEnhancerThread::Instance();
+    image->pixelMap_ = pixelMap;
+    std::shared_ptr<Drawing::Image> image1 = std::make_shared<Drawing::Image>();
+    std::shared_ptr<Drawing::Image> image2 = std::make_shared<Drawing::Image>();
+    Drawing::ImageInfo imageInfo1(100, 100, Drawing::ColorType::COLORTYPE_ALPHA_8,
+        Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    Drawing::ImageInfo imageInfo2(0, 1, Drawing::ColorType::COLORTYPE_ALPHA_8,
+        Drawing::AlphaType::ALPHATYPE_OPAQUE);
+    auto skImageInfo1 = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo1);
+    auto skImageInfo2 = Drawing::SkiaImageInfo::ConvertToSkImageInfo(imageInfo2);
+    int addr1 = 1;
+    int* addr = &addr1;
+    auto skiaPixmap1 = SkPixmap(skImageInfo1, addr, 1);
+    auto skiaPixmap2 = SkPixmap(skImageInfo2, addr, 1);
+    Drawing::RasterReleaseProc rasterReleaseProc = nullptr;
+    Drawing::ReleaseContext releaseContext = nullptr;
+#ifdef USE_M133_SKIA
+    sk_sp<SkImage> skImage1 = SkImages::RasterFromPixmap(skiaPixmap1, rasterReleaseProc, releaseContext);
+    sk_sp<SkImage> skImage2 = SkImages::RasterFromPixmap(skiaPixmap2, rasterReleaseProc, releaseContext);
+#else
+    sk_sp<SkImage> skImage1 = SkImages::MakeFromRaster(skiaPixmap1, rasterReleaseProc, releaseContext);
+    sk_sp<SkImage> skImage2 = SkImages::MakeFromRaster(skiaPixmap2, rasterReleaseProc, releaseContext);
+#endif
+    auto skiaImage1 = std::make_shared<Draing::SkiaImage>(skImage1);
+    auto skiaImage2 = std::make_shared<Draing::SkiaImage>(skImage2);
+    image1->imageImplPtr = skiaImage1;
+    image2->imageImplPtr = skiaImage2;
+    Drawing::Rect dstRect(0.0f, 0.0f, 100.0f, 100.0f);
+    image->dst_ = dstRect;
+    RSImageParams rsImageParams = {
+        image->pixelMap_, image->nodeId_, image->dst_, image->uniqueid_, image->image_, false, 1.0f
+    };
+    rsImageParams.mImage = image1;
+    rsImageDetailEnhancerThread.SetOutImage(image->uniqueid_, image2);
+    EXPECT_FALSE(rsImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams));
+    rsImageParams.mImage = image2;
+    rsImageDetailEnhancerThread.SetOutImage(image->uniqueid_, image1);
+    EXPECT_FALSE(rsImageDetailEnhancerThread.EnhanceImageAsync(canvas, samplingOptions, rsImageParams));
     system::SetParameter("rosen.isEnabledScaleImageAsync.enabled", type);
 }
 

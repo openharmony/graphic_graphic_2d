@@ -427,4 +427,39 @@ HWTEST_F(RSRenderFilterBaseTest, CalculatePropTagHashImplRRect, TestSize.Level1)
     RRect value(rect, 0.5f, 0.5f);
     RSNGRenderEffectHelper::CalculatePropTagHashImpl(hash, value);
 }
+
+/**
+ * @tc.name: AdaptiveParamDark
+ * @tc.desc: Test adaptive parameter update when dark scale is enabled
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, AdaptiveParamDark, TestSize.Level1)
+{
+    auto filter = std::make_shared<RSNGRenderFrostedGlassFilter>();
+    // set base and dark-mode specific properties
+    filter->Setter<FrostedGlassBgPosRenderTag>(Vector3f(1.0f, 2.0f, 3.0f));
+    filter->Setter<FrostedGlassDarkModeBgPosRenderTag>(Vector3f(9.0f, 8.0f, 7.0f));
+
+    // should not crash and should produce a geFilter
+    filter->GenerateGEVisualEffect();
+    EXPECT_NE(filter->geFilter_, nullptr);
+}
+
+/**
+ * @tc.name: CalcRect001
+ * @tc.desc: Test the CalcRect method
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderFilterBaseTest, CalcRect001, TestSize.Level1)
+{
+    RectF bound(0.f, 0.f, 10.f, 10.f);
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(nullptr, bound, EffectRectType::TOTAL), RectF());
+
+    std::shared_ptr<RSNGRenderFilterBase> filter1 = std::make_shared<RSNGRenderBlurFilter>();
+    auto filter2 = std::make_shared<RSNGRenderEdgeLightFilter>();
+    filter1->nextEffect_ = filter2;
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::SNAPSHOT), bound);
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::DRAW), bound);
+    EXPECT_EQ(RSNGRenderFilterHelper::CalcRect(filter1, bound, EffectRectType::TOTAL), RectF());
+}
 } // namespace OHOS::Rosen

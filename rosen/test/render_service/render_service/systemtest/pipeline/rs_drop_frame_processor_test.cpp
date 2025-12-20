@@ -17,6 +17,7 @@
 #include "limit_number.h"
 #include "pipeline/render_thread/rs_base_render_util.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
+#include "../../unittest/pipeline/rs_test_util.h"
 #include "surface.h"
 
 using namespace testing;
@@ -48,7 +49,10 @@ public:
     static inline std::shared_ptr<RSSurfaceRenderNode> rsParentNode = nullptr;
 };
 
-void RSDropFrameProcessorTest::SetUpTestCase() {}
+void RSDropFrameProcessorTest::SetUpTestCase()
+{
+    RSTestUtil::InitRenderNodeGC();
+}
 
 void RSDropFrameProcessorTest::TearDownTestCase()
 {

@@ -157,6 +157,7 @@ private:
     void PostPrepare(RSRenderNode& node, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
+    void CheckResetAccumulatedOcclusionRegion(RSSurfaceRenderNode& node);
     bool IsParticipateInOcclusion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
@@ -351,6 +352,8 @@ private:
 
     void UpdateFixedSize(RSLogicalDisplayRenderNode& node);
 
+    void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
@@ -388,6 +391,7 @@ private:
     static std::unordered_set<NodeId> allWhiteList_; // The collection of whitelist for all screens
     // The info of whitelist contains screenId
     std::unordered_map<ScreenId, std::unordered_set<uint64_t>> screenWhiteList_;
+    std::unordered_set<NodeId> childHasProtectedNodeSet_;
 
     Occlusion::Region accumulatedOcclusionRegion_;
     Occlusion::Region accumulatedOcclusionRegionBehindWindow_; // Accumulate transparent area

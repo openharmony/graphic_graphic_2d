@@ -82,6 +82,15 @@ public:
 
     void MarkFilterDebugEnabled();
 
+    void UpdateChildHasVisibleEffectWithoutEmptyRect();
+
+    bool ChildHasVisibleEffectWithoutEmptyRect() const
+    {
+        return hasEffectChildrenWithoutEmptyRect_;
+    }
+
+    void ResetChildRelevantFlags() override;
+
 protected:
     RectI GetFilterRect() const override;
     void UpdateFilterCacheWithSelfDirty() override;
@@ -102,6 +111,8 @@ private:
     bool preStaticStatus_ = false;
     bool isIntersectWithDRM_ = false;
     bool isDarkColorMode_ = false;
+    // visible effect children with GetOldDirtyInSurface() is not empty
+    bool hasEffectChildrenWithoutEmptyRect_ = false;
 
     uint64_t currentAttachedScreenId_ = INVALID_SCREEN_ID; // the current screen this node attached.
     bool foldStatusChanged_ = false; // fold or expand screen.

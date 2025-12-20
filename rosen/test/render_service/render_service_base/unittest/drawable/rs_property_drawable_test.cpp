@@ -347,7 +347,8 @@ HWTEST_F(RSPropertyDrawableTest, ForceReduceAIBarCacheInterval, TestSize.Level1)
 
     filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
     filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-    EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval());
+    EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval(true));
+    EXPECT_FALSE(filterDrawable->ForceReduceAIBarCacheInterval(false));
 }
 
 /**
@@ -531,4 +532,110 @@ HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest015, TestSize.Level1)
     EXPECT_EQ(shaderLinearGradientBlurFilter->geoHeight_, 10.0f);
 }
 
+/**
+ * @tc.name: RSFilterDrawableTest018
+ * @tc.desc: Test RSFilterDrawable CalVisibleRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest018, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    Drawing::Canvas canvas;
+
+    RectF defaultRelativeRect(0.0f, 0.0f, 10.0f, 10.0f);
+    drawable->CalVisibleRect(canvas.GetTotalMatrix(), std::nullopt, defaultRelativeRect);
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_, nullptr);
+
+    RectF snapshotRect = RectF(-5.0f, -5.0f, 15.0f, 15.0f);
+    RectF drawRect = RectF(-2.0f, -2.0f, 18.0f, 18.0f);
+    RectF totalRect = snapshotRect.JoinRect(drawRect);
+    drawable->stagingRelativeRectInfo_ = std::make_unique<DrawableV2::RSFilterDrawable::FilterRectInfo>();
+    drawable->stagingRelativeRectInfo_->snapshotRect_ = snapshotRect;
+    drawable->stagingRelativeRectInfo_->drawRect_ = drawRect;
+    drawable->CalVisibleRect(canvas.GetTotalMatrix(), std::nullopt, defaultRelativeRect);
+    ASSERT_NE(drawable->stagingVisibleRectInfo_, nullptr);
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>());
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>());
+
+    RectI clipRect = RectI(-4, -4, 17, 17);
+    drawable->CalVisibleRect(canvas.GetTotalMatrix(), clipRect, defaultRelativeRect);
+    ASSERT_NE(drawable->stagingVisibleRectInfo_, nullptr);
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>().IntersectRect(clipRect));
+    EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>().IntersectRect(clipRect));
+}
+
+/**
+ * @tc.name: RSFilterDrawableTest019
+ * @tc.desc: Test RSFilterDrawable GetRelativeRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest019, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    RectF defaultRelativeRect(0.0f, 0.0f, 10.0f, 10.0f);
+    RectF snapshotRect = RectF(-5.0f, -5.0f, 15.0f, 15.0f);
+    RectF drawRect = RectF(-2.0f, -2.0f, 18.0f, 18.0f);
+    RectF totalRect = snapshotRect.JoinRect(drawRect);
+    auto rectInfo = std::make_unique<DrawableV2::RSFilterDrawable::FilterRectInfo>();
+    rectInfo->snapshotRect_ = snapshotRect;
+    rectInfo->drawRect_ = drawRect;
+
+    EXPECT_EQ(DrawableV2::RSFilterDrawable::GetRelativeRect(rectInfo, EffectRectType::SNAPSHOT, defaultRelativeRect),
+        snapshotRect);
+    EXPECT_EQ(DrawableV2::RSFilterDrawable::GetRelativeRect(rectInfo, EffectRectType::DRAW, defaultRelativeRect),
+        drawRect);
+    EXPECT_EQ(DrawableV2::RSFilterDrawable::GetRelativeRect(rectInfo, EffectRectType::TOTAL, defaultRelativeRect),
+        totalRect);
+    EXPECT_EQ(DrawableV2::RSFilterDrawable::GetRelativeRect(rectInfo, EffectRectType(UINT8_MAX), defaultRelativeRect),
+        defaultRelativeRect);
+}
+
+/**
+ * @tc.name: RSFilterDrawableTest020
+ * @tc.desc: Test RSFilterDrawable UpdateFilterRectInfo
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, RSFilterDrawableTest020, TestSize.Level1)
+{
+    RectF bound(0.0f, 0.0f, 10.0f, 10.0f);
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    drawable->UpdateFilterRectInfo(bound, nullptr);
+    ASSERT_EQ(drawable->stagingRelativeRectInfo_, nullptr);
+    
+    auto drawingFilter = std::make_shared<RSDrawingFilter>();
+    drawingFilter->imageFilter_ = std::make_shared<Drawing::ImageFilter>();
+    drawable->UpdateFilterRectInfo(bound, drawingFilter);
+    ASSERT_EQ(drawable->stagingRelativeRectInfo_, nullptr);
+
+    drawingFilter->imageFilter_ = nullptr;
+    drawable->UpdateFilterRectInfo(bound, drawingFilter);
+    ASSERT_NE(drawable->stagingRelativeRectInfo_, nullptr);
+    EXPECT_EQ(drawable->stagingRelativeRectInfo_->snapshotRect_,
+        drawingFilter->GetRect(bound, EffectRectType::SNAPSHOT));
+    EXPECT_EQ(drawable->stagingRelativeRectInfo_->drawRect_, drawingFilter->GetRect(bound, EffectRectType::DRAW));
+}
+
+/**
+ * @tc.name: GetAbsRenderEffectRect001
+ * @tc.desc: Test RSFilterDrawable GetAbsRenderEffectRect
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSPropertyDrawableTest, GetAbsRenderEffectRect001, TestSize.Level1)
+{
+    Drawing::Canvas canvas;
+    auto bound = RectF(-5.0f, -5.0f, 8.0f, 8.0f);
+    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    drawable->renderRelativeRectInfo_ = std::make_unique<DrawableV2::RSFilterDrawable::FilterRectInfo>();
+    drawable->renderRelativeRectInfo_->snapshotRect_ = bound;
+    drawable->renderRelativeRectInfo_->drawRect_ = bound;
+    auto absRenderEffectRect = drawable->GetAbsRenderEffectRect(canvas, EffectRectType::SNAPSHOT, bound);
+    auto drawingClipBound = canvas.GetDeviceClipBounds();
+    auto effectRect = RectI(std::floor(bound.GetLeft()), std::floor(bound.GetTop()),
+        std::ceil(bound.GetWidth()), std::ceil(bound.GetHeight()));
+    auto result = effectRect.IntersectRect(RectI(
+        drawingClipBound.GetLeft(), drawingClipBound.GetTop(),
+        drawingClipBound.GetWidth(), drawingClipBound.GetHeight()));
+    EXPECT_EQ(absRenderEffectRect,
+        Drawing::RectI(result.GetLeft(), result.GetTop(), result.GetRight(), result.GetBottom()));
+}
 } // namespace OHOS::Rosen

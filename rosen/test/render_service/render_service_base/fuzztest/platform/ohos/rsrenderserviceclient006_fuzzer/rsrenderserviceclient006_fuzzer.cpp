@@ -38,7 +38,9 @@ const uint8_t DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST = 1;
 const uint8_t DO_SET_SCREEN_POWER_STATUS = 2;
 const uint8_t DO_GET_BITMAP = 3;
 const uint8_t DO_SET_HWCNODE_BOUNDS = 4;
-const uint8_t TARGET_SIZE = 5;
+const uint8_t DO_ADD_VIRTUAL_SCREEN_WHITE_LIST = 5;
+const uint8_t DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST = 6;
+const uint8_t TARGET_SIZE = 7;
 
 sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
@@ -122,6 +124,34 @@ bool DoRemoveVirtualScreenBlackList()
     return true;
 }
 
+bool DoAddVirtualScreenWhiteList()
+{
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+    renderServiceClient->AddVirtualScreenWhiteList(id, whiteList);
+    return true;
+}
+
+bool DoRemoveVirtualScreenWhiteList()
+{
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+    renderServiceClient->RemoveVirtualScreenWhiteList(id, whiteList);
+    return true;
+}
+
 bool DoSetScreenPowerStatus()
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
@@ -169,6 +199,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST:
             OHOS::Rosen::DoRemoveVirtualScreenBlackList();
+            break;
+        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoAddVirtualScreenWhiteList();
+            break;
+        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoRemoveVirtualScreenWhiteList();
             break;
         case OHOS::Rosen::DO_SET_SCREEN_POWER_STATUS:
             OHOS::Rosen::DoSetScreenPowerStatus();

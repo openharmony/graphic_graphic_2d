@@ -67,17 +67,17 @@ void RSPointLightManager::UnRegisterIlluminated(const std::shared_ptr<RSRenderNo
     illuminatedNodeMap_.erase(nodeId);
 }
 void RSPointLightManager::SetChildHasVisibleIlluminated(
-    const std::shared_ptr<RSRenderNode>& renderNode, bool hasVisbleIlluminated)
+    const std::shared_ptr<RSRenderNode>& renderNode, bool hasVisibleIlluminated)
 {
     if (!renderNode) {
         return;
     }
     NodeId id = renderNode->GetId();
     auto weak_ptr = renderNode->weak_from_this();
-    if (hasVisbleIlluminated) {
-        childHasVisbleIlluminatedNodeMap_[id] = weak_ptr;
+    if (hasVisibleIlluminated) {
+        childHasVisibleIlluminatedNodeMap_[id] = weak_ptr;
     } else {
-        childHasVisbleIlluminatedNodeMap_.erase(id);
+        childHasVisibleIlluminatedNodeMap_.erase(id);
     }
 }
 bool RSPointLightManager::GetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode)
@@ -86,8 +86,8 @@ bool RSPointLightManager::GetChildHasVisibleIlluminated(const std::shared_ptr<RS
         return false;
     }
     NodeId id = renderNode->GetId();
-    auto it = childHasVisbleIlluminatedNodeMap_.find(id);
-    return it != childHasVisbleIlluminatedNodeMap_.end();
+    auto it = childHasVisibleIlluminatedNodeMap_.find(id);
+    return it != childHasVisibleIlluminatedNodeMap_.end();
 }
 void RSPointLightManager::AddDirtyLightSource(std::weak_ptr<RSRenderNode> renderNode)
 {
@@ -127,8 +127,8 @@ void RSPointLightManager::PrepareLight()
     ClearDirtyList();
     lastFrameIlluminatedNodeSet_.clear();
     // clean up expired node
-    if (childHasVisbleIlluminatedNodeMap_.size() > CLEANUP_THRESHOLD) {
-        EraseIf(childHasVisbleIlluminatedNodeMap_, [](const auto& pair) -> bool { return pair.second.expired(); });
+    if (childHasVisibleIlluminatedNodeMap_.size() > CLEANUP_THRESHOLD) {
+        EraseIf(childHasVisibleIlluminatedNodeMap_, [](const auto& pair) -> bool { return pair.second.expired(); });
     }
 }
 void RSPointLightManager::PrepareLight(std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>& map,
@@ -225,7 +225,7 @@ Vector4f RSPointLightManager::CalculateLightPosForIlluminated(
     }
     lightPos.z_ = lightPosition.z_;
     // store the lightRadius at lightPos.w_
-    lightPos.w_ = lightSource.GetLightRadius();
+    lightPos.w_ = ROSEN_EQ(lightSource.GetLightRadius(), 0.0f) ? 1.0f : lightSource.GetLightRadius();
     return lightPos;
 }
 

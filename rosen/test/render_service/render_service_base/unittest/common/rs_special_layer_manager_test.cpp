@@ -155,11 +155,11 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIds002, TestSize.Level1)
 {
     RSSpecialLayerManager slManager;
     NodeId id = 1;
-    for (uint32_t i = 0; i < MAX_IDS_SIZE; i++) {
+    for (uint32_t i = 0; i < MAX_SPECIAL_LAYER_NUM; i++) {
         slManager.specialLayerIds_[SpecialLayerType::SKIP].insert(id++);
     }
     slManager.AddIds(SpecialLayerType::SKIP, id);
-    ASSERT_EQ(slManager.specialLayerIds_[SpecialLayerType::SKIP].size(), MAX_IDS_SIZE);
+    ASSERT_EQ(slManager.specialLayerIds_[SpecialLayerType::SKIP].size(), MAX_SPECIAL_LAYER_NUM);
     slManager.Clear();
 }
 
@@ -194,11 +194,11 @@ HWTEST_F(RSSpecialLayerManagerTest, ResetWhiteListRootId001, TestSize.Level2)
 HWTEST_F(RSSpecialLayerManagerTest, SetWhiteListRootId001, TestSize.Level2)
 {
     LeashPersistentId persistentId = 1;
-    std::deque<LeashPersistentId> deq(MAX_IDS_SIZE, persistentId);
+    std::deque<LeashPersistentId> deq(MAX_SPECIAL_LAYER_NUM, persistentId);
     RSSpecialLayerManager::whiteListRootIds_ = std::stack<LeashPersistentId>(deq);
 
     RSSpecialLayerManager::SetWhiteListRootId(persistentId);
-    ASSERT_EQ(RSSpecialLayerManager::whiteListRootIds_.size(), MAX_IDS_SIZE);
+    ASSERT_EQ(RSSpecialLayerManager::whiteListRootIds_.size(), MAX_SPECIAL_LAYER_NUM);
     // restore
     RSSpecialLayerManager::ClearWhiteListRootIds();
 }
@@ -246,5 +246,23 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen002, TestSize.Level2)
     slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId1);
     slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId2);
     ASSERT_FALSE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
+}
+
+/**
+ * @tc.name: AddIdsWithScreen003
+ * @tc.desc: test while black list overflows
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen003, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    ScreenId screenId = 1;
+    NodeId id = 1;
+    for (uint32_t i = 0; i < MAX_SPECIAL_LAYER_NUM + 1; i++) {
+        slManager.AddIdsWithScreen(screenId, SpecialLayerType::IS_BLACK_LIST, id++);
+    }
+    ASSERT_EQ(
+        slManager.screenSpecialLayerIds_[screenId][SpecialLayerType::IS_BLACK_LIST].size(), MAX_SPECIAL_LAYER_NUM);
 }
 } // namespace OHOS::Rosen

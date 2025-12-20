@@ -22,6 +22,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "property/rs_properties.h"
+#include "property/rs_color_picker_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -1293,6 +1294,84 @@ HWTEST_F(PropertiesTest,  UpdateForegroundFilterTest_RenderFilter001, TestSize.L
 }
 
 /**
+ * @tc.name: SetColorPickerPlaceholderTest
+ * @tc.desc: verify placeholder clamping and dirty flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerPlaceholderTest, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_EQ(properties.GetColorPicker(), nullptr);
+
+    properties.SetColorPickerPlaceholder(-100); // below NONE
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::NONE);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.ResetDirty();
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::MAX) + 100); // above MAX
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
+    EXPECT_TRUE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetColorPickerStrategyTest
+ * @tc.desc: verify strategy clamping and dirty flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerStrategyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerStrategy(-5); // below NONE
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->strategy, ColorPickStrategyType::NONE);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.ResetDirty();
+    properties.SetColorPickerStrategy(999); // above MAX
+    EXPECT_EQ(properties.GetColorPicker()->strategy, ColorPickStrategyType::MAX);
+    EXPECT_TRUE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetColorPickerIntervalTest
+ * @tc.desc: verify interval setting and dirty flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerIntervalTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerInterval(0);
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(0));
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.ResetDirty();
+    properties.SetColorPickerInterval(123);
+    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(123));
+    EXPECT_TRUE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: GetColorPickerTest
+ * @tc.desc: verify GetColorPicker returns params after setters
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetColorPickerTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    properties.SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::AVERAGE));
+    properties.SetColorPickerInterval(200);
+
+    auto picker = properties.GetColorPicker();
+    ASSERT_NE(picker, nullptr);
+    EXPECT_EQ(picker->placeholder, ColorPlaceholder::SURFACE);
+    EXPECT_EQ(picker->strategy, ColorPickStrategyType::AVERAGE);
+    EXPECT_EQ(picker->interval, static_cast<uint64_t>(200));
+}
+
+/**
  * @tc.name: PixelStretchUpdateFilterFlag001
  * @tc.desc: test update filter flag with pixel stretch enable
  * @tc.type: FUNC
@@ -1365,5 +1444,44 @@ HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
     ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
 }
 
+/**
+ * @tc.name: GetRRectForSDFTest001
+ * @tc.desc: GetClipToRRect == true test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    ASSERT_TRUE(properties.GetClipToRRect());
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest002
+ * @tc.desc: GetCornerRadius().IsZero() == false test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.cornerRadius_ = Vector4f(5.f);
+    properties.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest003
+ * @tc.desc: else test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 10.f;
+    properties.boundsGeo_->height_ = 10.f;
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
 } // namespace Rosen
 } // namespace OHOS

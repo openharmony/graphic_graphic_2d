@@ -88,11 +88,11 @@ public:
     /**
      * @brief Set list of surface node id, these nodes will be excluded from this screen.
      * @param id Valid screen id: set screen record black list; INVALID_SCREEN_ID: set screen cast black list.
-     * @param blackListVector List of surface node id. If the screen id is INVALID_SCREEN_ID, the blackListVector will
+     * @param blackList List of surface node id. If the screen id is INVALID_SCREEN_ID, the blackList will
      * apply to all virtual screens.
      * @return 0 means success.
      */
-    int32_t SetVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
 
     /**
      * @brief Use nodeType to Set blackList for mirror screen.
@@ -105,18 +105,34 @@ public:
     /**
      * @brief Add list of surfaceNodeId excluded on virtual screen.
      * @param id Screen id.
-     * @param blackListVector Vector of surfaceNodeId excluded on virtual screen.
+     * @param blackList Vector of surfaceNodeId excluded on virtual screen.
      * @return 0 means success, others failed.
      */
-    int32_t AddVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+    int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
 
     /**
      * @brief Remove list of surfaceNodeId excluded on virtual screen.
      * @param id screen id.
-     * @param blackListVector Vector of surfaceNodeId excluded on virtual screen.
+     * @param blackList Vector of surfaceNodeId excluded on virtual screen.
      * @return 0 means success, others failed.
      */
-    int32_t RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector);
+    int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList);
+
+    /**
+     * @brief Add nodeIds that are allowed to render on the specified virtual screen
+     * @param id screen id.
+     * @param whiteList nodeIds to be added to the whitelist (duplicates will be ignored)
+     * @return 0 means success, others failed.
+     */
+    int32_t AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
+
+    /**
+     * @brief Remove nodeIds that are allowed to render on the specified virtual screen
+     * @param id screen id.
+     * @param whiteList nodeIds to be removed from the whitelist
+     * @return 0 means success, others failed.
+     */
+    int32_t RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList);
 
     /**
      * @brief Set security layer exemption list for mirror screen.
@@ -232,9 +248,12 @@ public:
      * @brief Set watermark for surfaceNode.
      * @param name Watermark name.
      * @param watermark Watermark pixelmap.
+     * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
+     * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
      * @return set watermark success return true, else return false.
      */
-    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE);
 
 
     /**
@@ -910,9 +929,11 @@ public:
      * @brief Create a pixelmap obeject from surface id.
      * @param surfaceId Indicates the id of surface.
      * @param srcRect Indicates the area that requires a rectangle.
+     * @param transformEnabled Indicates the rotation toggle for the pixelmap interface.
      * @return return a pixelmap obeject.
      */
-    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId, const Rect &srcRect);
+    std::shared_ptr<Media::PixelMap> CreatePixelMapFromSurfaceId(uint64_t surfaceId,
+        const Rect &srcRect, bool transformEnabled = false);
 
     /**
      * @brief Register window occlusion change callback.

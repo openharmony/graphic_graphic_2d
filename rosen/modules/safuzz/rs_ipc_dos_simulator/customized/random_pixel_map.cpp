@@ -34,6 +34,8 @@ constexpr uint32_t SCALEMODE_MODULO = 2;
 constexpr uint32_t BOOL_MODULO = 2;
 constexpr uint32_t DMA_WIDTH = 1024;
 constexpr uint32_t DMA_HEIGHT = 512;
+constexpr uint32_t MAX_MAP_WIDTH = 1080;
+constexpr uint32_t MAX_MAP_HEIGHT = 1080;
 
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
@@ -69,8 +71,8 @@ uint8_t* GetRandomUInt8Array()
 
 Media::InitializationOptions GetInitialRandomOpts()
 {
-    int32_t width = GetData<uint16_t>() % (MAX_LENGTH_MODULO + (MAX_LENGTH_MODULO >> 3));
-    int32_t height = GetData<uint16_t>() % (MAX_LENGTH_MODULO + (MAX_LENGTH_MODULO >> 3));
+    int32_t width = (GetData<uint16_t>() % (MAX_LENGTH_MODULO + (MAX_LENGTH_MODULO >> 3))) % MAX_MAP_WIDTH;
+    int32_t height = (GetData<uint16_t>() % (MAX_LENGTH_MODULO + (MAX_LENGTH_MODULO >> 3))) % MAX_MAP_HEIGHT;
     Media::InitializationOptions opts;
     opts.useDMA = GetData<uint8_t>() % BOOL_MODULO;
     if (opts.useDMA) {

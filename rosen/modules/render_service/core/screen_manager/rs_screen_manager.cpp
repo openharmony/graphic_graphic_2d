@@ -22,6 +22,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_switching_thread.h"
 #include "display_engine/rs_color_temperature.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "graphic_feature_param_manager.h"
 #include "hgm_core.h"
@@ -466,6 +467,7 @@ void RSScreenManager::OnHwcDeadEvent()
     }
     isHwcDead_ = true;
     defaultScreenId_ = INVALID_SCREEN_ID;
+    mipiCheckInFirstHotPlugEvent_ = false;
 #ifdef RS_ENABLE_GPU
     std::atomic<size_t> composerCount = screens.size();
     for (const auto& [screenId, screen] : screens) {
@@ -702,7 +704,11 @@ void RSScreenManager::ProcessScreenConnected(std::shared_ptr<HdiOutput>& output)
     ScreenId defaultScreenId = defaultScreenId_;
     if (screen->GetCapability().type == GraphicInterfaceType::GRAPHIC_DISP_INTF_MIPI) {
         if (!mipiCheckInFirstHotPlugEvent_.exchange(true)) {
+            RS_LOGI("%{public}s The screen id %{public}" PRIu64
+                " is set to defaultScreenId. last defaultScreenId is %{public}" PRIu64, __func__, id, defaultScreenId);
             defaultScreenId = id;
+        } else {
+            RS_LOGI("%{public}s The screen id %{public}" PRIu64 " is not set to defaultScreenId", __func__, id);
         }
     } else if (defaultScreenId == INVALID_SCREEN_ID) {
         RS_LOGI("%{public}s The screen id %{public}" PRIu64
@@ -856,6 +862,9 @@ void RSScreenManager::HandleDefaultScreenDisConnected()
         defaultScreenId = screens_.cbegin()->first;
     }
     defaultScreenId_ = defaultScreenId;
+    if (defaultScreenId_ == INVALID_SCREEN_ID) {
+        mipiCheckInFirstHotPlugEvent_ = false;
+    }
 }
 
 void RSScreenManager::UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected)
@@ -1145,6 +1154,8 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     }
     ++currentVirtualScreenNum_;
     NotifyScreenNodeChange(newId, true);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_WHITE_LIST, newId, screen->GetWhiteList());
     RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u.",
         __func__, newId, width, height);
     return newId;
@@ -1168,14 +1179,56 @@ std::unordered_set<uint64_t> RSScreenManager::GetBlackListVirtualScreenByNode(ui
     return virtualScreens;
 }
 
-int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+int32_t RSScreenManager::AddVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!virtualScreen->IsVirtual()) {
+        RS_LOGW("%{public}s: Screen[%{public}" PRIu64 "] isn't a virtual screen, " \
+            "unable to set whitelist.", __func__, id);
+        return SCREEN_TYPE_ERROR;
+    }
+    if (virtualScreen->GetWhiteList().size() + whiteList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("%{public}s: whitelist is over max size!", __func__);
+        return INVALID_ARGUMENTS;
+    }
+
+    virtualScreen->AddWhiteList(whiteList);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_WHITE_LIST, id, virtualScreen->GetWhiteList());
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::RemoveVirtualScreenWhiteList(ScreenId id, const std::vector<NodeId>& whiteList)
+{
+    auto virtualScreen = GetScreen(id);
+    if (virtualScreen == nullptr) {
+        RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
+        return SCREEN_NOT_FOUND;
+    }
+    if (!virtualScreen->IsVirtual()) {
+        RS_LOGW("%{public}s: Screen[%{public}" PRIu64 "] isn't a virtual screen, " \
+            "unable to set whitelist.", __func__, id);
+        return SCREEN_TYPE_ERROR;
+    }
+
+    virtualScreen->RemoveWhiteList(whiteList);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_WHITE_LIST, id, virtualScreen->GetWhiteList());
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
     if (id == INVALID_SCREEN_ID) {
-        RS_LOGI("%{public}s: Cast screen blacklists for id %{public}" PRIu64, __func__, id);
         std::lock_guard<std::mutex> lock(blackListMutex_);
         castScreenBlackList_ = std::move(screenBlackList);
-        PrintScreenBlackList(std::string(__func__), id, castScreenBlackList_);
+        RSSpecialLayerUtils::DumpScreenSpecialLayer(
+            __func__, SpecialLayerType::IS_BLACK_LIST, id, castScreenBlackList_);
         return SUCCESS;
     }
     auto virtualScreen = GetScreen(id);
@@ -1183,9 +1236,8 @@ int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vecto
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->SetBlackList(screenBlackList);
-    PrintScreenBlackList(std::string(__func__), id, screenBlackList);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(__func__, SpecialLayerType::IS_BLACK_LIST, id, screenBlackList);
     {
         std::lock_guard<std::mutex> lock(blackListMutex_);
         for (const auto& [nodeId, screenIdSet] : blackListInVirtualScreen_) {
@@ -1223,23 +1275,17 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
     return SUCCESS;
 }
 
-static inline bool IsBlackListExceeded(const std::vector<uint64_t>& blackList,
-    const std::unordered_set<uint64_t>& screenBlacklist)
-{
-    return blackList.size() + screenBlacklist.size() > MAX_BLACK_LIST_NUM;
-}
-
-int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
         std::lock_guard<std::mutex> lock(blackListMutex_);
-        if (IsBlackListExceeded(blackList, castScreenBlackList_)) {
+        if (castScreenBlackList_.size() + blackList.size() > MAX_SPECIAL_LAYER_NUM) {
             RS_LOGW("%{public}s: blacklist is over max size!", __func__);
             return INVALID_ARGUMENTS;
         }
-        RS_LOGI("%{public}s: Cast screen blacklists", __func__);
         castScreenBlackList_.insert(blackList.cbegin(), blackList.cend());
-        PrintScreenBlackList(std::string(__func__), id, castScreenBlackList_);
+        RSSpecialLayerUtils::DumpScreenSpecialLayer(
+            __func__, SpecialLayerType::IS_BLACK_LIST, id, castScreenBlackList_);
         return SUCCESS;
     }
     auto virtualScreen = GetScreen(id);
@@ -1247,13 +1293,13 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    if (IsBlackListExceeded(blackList, virtualScreen->GetBlackList())) {
+    if (virtualScreen->GetBlackList().size() + blackList.size() > MAX_SPECIAL_LAYER_NUM) {
         RS_LOGW("%{public}s: blacklist is over max size!", __func__);
         return INVALID_ARGUMENTS;
     }
-    RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->AddBlackList(blackList);
-    PrintScreenBlackList(std::string(__func__), id, virtualScreen->GetBlackList());
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, id, virtualScreen->GetBlackList());
     {
         std::lock_guard<std::mutex> lock(blackListMutex_);
         for (const auto& nodeId : blackList) {
@@ -1268,7 +1314,7 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
             RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, mainId);
             return SCREEN_NOT_FOUND;
         }
-        if (IsBlackListExceeded(blackList, mainScreen->GetBlackList())) {
+        if (blackList.size() + mainScreen->GetBlackList().size() > MAX_SPECIAL_LAYER_NUM) {
             RS_LOGW("%{public}s: blacklist is over max size!", __func__);
             return INVALID_ARGUMENTS;
         }
@@ -1277,15 +1323,15 @@ int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vecto
     return SUCCESS;
 }
 
-int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
-        RS_LOGI("%{public}s: Cast screen blacklists", __func__);
         std::lock_guard<std::mutex> lock(blackListMutex_);
         for (const auto& list : blackList) {
             castScreenBlackList_.erase(list);
         }
-        PrintScreenBlackList(std::string(__func__), id, castScreenBlackList_);
+        RSSpecialLayerUtils::DumpScreenSpecialLayer(
+            __func__, SpecialLayerType::IS_BLACK_LIST, id, castScreenBlackList_);
         return SUCCESS;
     }
     auto virtualScreen = GetScreen(id);
@@ -1293,9 +1339,9 @@ int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::ve
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->RemoveBlackList(blackList);
-    PrintScreenBlackList(std::string(__func__), id, virtualScreen->GetBlackList());
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, id, virtualScreen->GetBlackList());
     {
         std::lock_guard<std::mutex> lock(blackListMutex_);
         for (const auto& nodeId : blackList) {
@@ -1313,19 +1359,6 @@ int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::ve
         mainScreen->RemoveBlackList(blackList);
     }
     return SUCCESS;
-}
-
-void RSScreenManager::PrintScreenBlackList(
-    std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const
-{
-    std::ostringstream out;
-    out << "[ ";
-    for (const auto& nodeId : set) {
-        out << nodeId << " ";
-    }
-    out << "]";
-    RS_LOGI("%{public}s: screenId: %{public}" PRIu64 "; blacklist: %{public}s", funcName.c_str(), id,
-        out.str().c_str());
 }
 
 int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(

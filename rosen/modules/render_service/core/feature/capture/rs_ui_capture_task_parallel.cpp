@@ -50,6 +50,7 @@
 #include "drawable/rs_canvas_render_node_drawable.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include <unistd.h>
+#include "utils/matrix.h"
 #include <sys/stat.h>
 #include <sys/time.h>
 
@@ -334,10 +335,9 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         xOffset, yOffset);
     Drawing::Matrix invertMatrix;
     if (HasEndNodeRect()) {
-        if (endMatrix_.Invert(invertMatrix)) {
+        if (endNodeDrawable_->GetRenderParams()->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
         }
-        relativeMatrix.PreConcat(startMatrix_);
     } else {
         if (nodeParams->GetMatrix().Invert(invertMatrix)) {
             relativeMatrix.PreConcat(invertMatrix);
@@ -370,14 +370,42 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         offScreenCanvas.CopyConfigurationToOffscreenCanvas(canvas);
         offScreenCanvas.ResetMatrix();
         nodeDrawable_->OnCapture(offScreenCanvas);
-        auto image = offScreenSurface->GetImageSnapshot();
-        if (!image) {
-            RS_LOGE("RSUiCaptureTaskParallel::Run: image is nullptr");
-            return false;
-        }
         RS_LOGD("RSUiCaptureTaskParallel::Run: offScreenSurface width: %{public}d, height: %{public}d",
             offScreenSurface->Width(), offScreenSurface->Height());
-        canvas.DrawImage(*image, 0, 0, Drawing::SamplingOptions());
+
+        auto effectData = RSUniRenderThread::GetCaptureParam().effectData_;
+        RSUniRenderThread::ResetCaptureParam();
+        RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
+            INVALID_NODEID, false));
+        auto offScreenCardSurface = offScreenSurface->MakeSurface(offScreenWidth, offScreenHeight);
+        if (offScreenCardSurface == nullptr) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: offScreenCardSurface is nullptr");
+            return false;
+        }
+        RSPaintFilterCanvas offScreenCardCanvas(offScreenCardSurface.get());
+        offScreenCardCanvas.SetDisableFilterCache(true);
+        offScreenCardCanvas.SetUICapture(true);
+        offScreenCardCanvas.CopyHDRConfiguration(offScreenCanvas);
+        offScreenCardCanvas.CopyConfigurationToOffscreenCanvas(offScreenCanvas);
+        offScreenCardCanvas.ResetMatrix();
+        if (effectData != nullptr) {
+            RS_LOGI("RSUiCaptureTaskParallel::Run: effectData set matrix");
+            Drawing::Matrix endMatrixInvert;
+            endMatrix_.Invert(endMatrixInvert);
+            Drawing::Matrix matrix = startMatrix_;
+            matrix.PostConcat(endMatrixInvert);
+            effectData->cachedMatrix_.PostConcat(matrix);
+        }
+        offScreenCardCanvas.SetEffectData(effectData);
+        endNodeDrawable_->OnCapture(offScreenCardCanvas);
+        auto cardImage = offScreenCardSurface->GetImageSnapshot();
+        if (!cardImage) {
+            RS_LOGE("RSUiCaptureTaskParallel::Run: cardImage is nullptr");
+            return false;
+        }
+        RS_LOGI("RSUiCaptureTaskParallel::Run: offScreenCardSurface width: %{public}d, height: %{public}d",
+            offScreenCardSurface->Width(), offScreenCardSurface->Height());
+        canvas.DrawImage(*cardImage, 0, 0, Drawing::SamplingOptions());
     } else {
         nodeDrawable_->OnCapture(canvas);
     }
@@ -439,7 +467,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByRect(
     float pixmapWidth = specifiedAreaRect.GetWidth();
     float pixmapHeight = specifiedAreaRect.GetHeight();
     Media::InitializationOptions opts;
-    OHOS::ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
+    ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
     BuildPixelMapOpts(pixmapWidth, pixmapHeight, opts, colorSpace);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByRect:"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
@@ -458,7 +486,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
-    OHOS::ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
+    ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
     BuildPixelMapOpts(pixmapWidth, pixmapHeight, opts, colorSpace);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
@@ -472,26 +500,26 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
 }
 
 void RSUiCaptureTaskParallel::BuildPixelMapOpts(float pixmapWidth, float pixmapHeight,
-    Media::InitializationOptions& opts, OHOS::ColorManager::ColorSpaceName& colorSpace)
+    Media::InitializationOptions& opts, ColorManager::ColorSpaceName& colorSpace)
 {
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    auto colorSpaceName = static_cast<OHOS::ColorManager::ColorSpaceName>(captureConfig_.colorSpace.first);
+    auto colorSpaceName = static_cast<ColorManager::ColorSpaceName>(captureConfig_.colorSpace.first);
     bool isAutoAdjust = captureConfig_.colorSpace.second;
     colorSpace = SelectColorSpace(colorSpaceName, isAutoAdjust);
     isHdrCapture_ = IsHdrCapture(colorSpace);
     opts.pixelFormat = isHdrCapture_ ? Media::PixelFormat::RGBA_F16 : Media::PixelFormat::RGBA_8888;
 }
 
-OHOS::ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
-    OHOS::ColorManager::ColorSpaceName capTureTargetColorSpace, bool isAutoAdjust)
+ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
+    ColorManager::ColorSpaceName captureTargetColorSpace, bool isAutoAdjust)
 {
-    auto retColorSpace = capTureTargetColorSpace;
+    auto retColorSpace = captureTargetColorSpace;
     if (!isAutoAdjust && retColorSpace != ColorManager::BT2020 && retColorSpace != ColorManager::SRGB &&
         retColorSpace != ColorManager::DISPLAY_P3) {
         errorCode_ = CaptureError::COLOR_SPACE_NOT_SUPPORT;
         retColorSpace = ColorManager::SRGB;
-        RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace %{public}d not support", capTureTargetColorSpace);
+        RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace %{public}d not support", captureTargetColorSpace);
     }
     if (isAutoAdjust) {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
@@ -499,17 +527,12 @@ OHOS::ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
             auto nodeColorSpace = node->GetNodeColorSpace();
             retColorSpace = RSColorSpaceUtil::GraphicGamutToColorSpaceName(
                 RSColorSpaceUtil::MapGamutToStandard(nodeColorSpace));
-            if (errorCode_ == CaptureError::COLOR_SPACE_NOT_SUPPORT) {
-                RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace Now use %{public}d "
-                    "colorspace(real colorspace for this node), rather than input %{public}d", retColorSpace,
-                    capTureTargetColorSpace);
-            }
         }
     }
     return retColorSpace;
 }
 
-bool RSUiCaptureTaskParallel::IsHdrCapture(OHOS::ColorManager::ColorSpaceName colorSpace)
+bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpace)
 {
     // valid input hdr param valid, dynamic range mode should be 0 or 2.
     // color space should be 2020.
@@ -521,7 +544,7 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(OHOS::ColorManager::ColorSpaceName co
         RS_LOGE("RSUiCaptureTaskParallel::IsHdrUiCapture %{public}d not support", dynamicRangeMode);
         return false;
     }
-    if (dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD && isAutoAdjust == false) {
+    if (!isAutoAdjust && dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD) {
         return false;
     }
     if (colorSpace != ColorManager::BT2020 && colorSpace != ColorManager::BT2020_HLG &&
@@ -537,11 +560,11 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(OHOS::ColorManager::ColorSpaceName co
 }
 
 std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByColorSpace(
-    Media::InitializationOptions& opts, OHOS::ColorManager::ColorSpaceName colorSpaceName) const
+    Media::InitializationOptions& opts, ColorManager::ColorSpaceName colorSpaceName) const
 {
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
-        pixelMap->InnerSetColorSpace(static_cast<OHOS::ColorManager::ColorSpaceName>(colorSpaceName));
+        pixelMap->InnerSetColorSpace(static_cast<ColorManager::ColorSpaceName>(colorSpaceName));
     }
     return pixelMap;
 }
@@ -558,7 +581,7 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureTaskParallel::CreateSurface(
         RS_LOGE("RSUiCaptureTaskParallel::CreateSurface: address == nullptr");
         return nullptr;
     }
-    OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+    ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
     auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
     auto colorType = pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16 ?
         Drawing::ColorType::COLORTYPE_RGBA_F16 :
@@ -621,7 +644,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
-        OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+        ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
         auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
         auto colorType = pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16 ?
             Drawing::ColorType::COLORTYPE_RGBA_F16 :

@@ -91,6 +91,8 @@ public:
         float geoWidth, float geoHeight);
     void SetDisplayHeadroom(float headroom);
 
+    void SetDarkScale(float darkScale);
+
     bool CanSkipFrame() const
     {
         return canSkipFrame_;

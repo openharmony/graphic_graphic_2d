@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 
 #ifdef RS_ENABLE_VK
+#include <parameter.h>
+#include <parameters.h>
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #else
 #include "feature/gpuComposition/rs_egl_image_manager.h"
@@ -62,7 +64,36 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+#ifdef RS_ENABLE_VK
+    static std::set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+        uint32_t imageNums);
+#endif
 };
+
+#ifdef RS_ENABLE_VK
+std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+    uint32_t imageNums)
+{
+    std::set<uint64_t> bufferIdCache;
+    for (uint32_t i = 0; i < imageNums; i++) {
+        auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+        if (!recordingCanvas) {
+            return bufferIdCache;
+        }
+
+        BufferDrawParam params;
+        VideoInfo videoInfo;
+        params.buffer = CreateBuffer();
+        if (params.buffer && renderEngine->imageManager_ && recordingCanvas) {
+            bufferIdCache.insert(params.buffer->GetBufferId());
+            renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo);
+        }
+    }
+    return bufferIdCache;
+}
+#endif
 
 void RSBaseRenderEngineUnitTest::SetUpTestCase()
 {
@@ -680,5 +711,51 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest002, TestSize.Level
     renderEngine->Init();
     renderEngine->ShrinkCachesIfNeeded();
     EXPECT_NE(renderEngine, nullptr);
+}
+
+/**
+ * @tc.name: ClearCacheSet001
+ * @tc.desc: Test ClearCacheSet
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ClearCacheSet001, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    constexpr const char *paramStr = "persist.sys.graphic.release.image.onebyone.flag";
+    if (RSSystemProperties::IsUseVulkan()) {
+        const uint32_t imageNums = 40;
+        const bool flag = RSSystemProperties::GetReleaseImageOneByOneFlag();
+        {
+            auto renderEngine = std::make_shared<RSRenderEngine>();
+            renderEngine->Init();
+            EXPECT_NE(renderEngine->imageManager_, nullptr);
+            auto unmappedCache = RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(renderEngine, imageNums);
+            auto vkImageManager = std::static_pointer_cast<RSVkImageManager>(renderEngine->imageManager_);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), imageNums);
+
+            system::SetParameter(paramStr, "0");
+            renderEngine->ClearCacheSet(unmappedCache);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
+            system::SetParameter(paramStr, flag ? "1" : "0");
+            EXPECT_EQ(flag, RSSystemProperties::GetReleaseImageOneByOneFlag());
+        }
+
+        {
+            auto renderEngine = std::make_shared<RSRenderEngine>();
+            renderEngine->Init();
+            EXPECT_NE(renderEngine->imageManager_, nullptr);
+            auto unmappedCache = RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(renderEngine, imageNums);
+            auto vkImageManager = std::static_pointer_cast<RSVkImageManager>(renderEngine->imageManager_);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), imageNums);
+
+            system::SetParameter(paramStr, "1");
+            renderEngine->ClearCacheSet(unmappedCache);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
+            system::SetParameter(paramStr, flag ? "1" : "0");
+            EXPECT_EQ(flag, RSSystemProperties::GetReleaseImageOneByOneFlag());
+        }
+    }
+#endif
 }
 }

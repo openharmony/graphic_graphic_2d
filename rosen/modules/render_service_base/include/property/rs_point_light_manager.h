@@ -44,7 +44,7 @@ public:
         return screenRotation_;
     }
 
-    void SetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode, bool hasVisbleIlluminated);
+    void SetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode, bool hasVisibleIlluminated);
     bool GetChildHasVisibleIlluminated(const std::shared_ptr<RSRenderNode>& renderNode);
 
 private:
@@ -62,7 +62,7 @@ private:
         std::vector<std::weak_ptr<RSRenderNode>>& dirtyList, bool isLightSourceDirty);
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> lightSourceNodeMap_;
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> illuminatedNodeMap_;
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> childHasVisbleIlluminatedNodeMap_;
+    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> childHasVisibleIlluminatedNodeMap_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyLightSourceList_;
     std::vector<std::weak_ptr<RSRenderNode>> dirtyIlluminatedList_;
     // collect the illuminated nodes from last frame

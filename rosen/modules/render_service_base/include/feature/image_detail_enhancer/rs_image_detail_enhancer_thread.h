@@ -38,6 +38,7 @@ struct RSImageParams {
     uint64_t mUniqueid;
     std::shared_ptr<Drawing::Image> mImage;
     bool mNeedDetachPen;
+    float mMatrixScaleX;
 };
 
 class RSB_EXPORT RSImageDetailEnhancerThread final {

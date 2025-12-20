@@ -69,6 +69,8 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_TYPE_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST),
+    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SECURITY_EXEMPTION_LIST),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SECURITY_MASK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_MIRROR_SCREEN_VISIBLE_RECT),
@@ -656,13 +658,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
-            std::vector<NodeId> blackListVector;
-            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackListVector)) {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackList)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            int32_t status = SetVirtualScreenBlackList(id, blackListVector);
+            int32_t status = SetVirtualScreenBlackList(id, blackList);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_VIRTUAL_SCREEN_BLACKLIST Write status failed!");
                 ret = ERR_INVALID_REPLY;
@@ -689,14 +691,14 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
-            std::vector<NodeId> blackListVector;
-            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackListVector)) {
+            std::vector<NodeId> blackList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackList)) {
                 RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             int32_t repCode;
-            AddVirtualScreenBlackList(id, blackListVector, repCode);
+            AddVirtualScreenBlackList(id, blackList, repCode);
             if (!reply.WriteInt32(repCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
@@ -706,16 +708,50 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_BLACKLIST): {
             // read the parcel data.
             ScreenId id{INVALID_SCREEN_ID};
-            std::vector<NodeId> blackListVector;
-            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackListVector)) {
-                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
+            std::vector<NodeId> blackList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&blackList)) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_BLACKLIST read parcel failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             int32_t repCode;
-            RemoveVirtualScreenBlackList(id, blackListVector, repCode);
+            RemoveVirtualScreenBlackList(id, blackList, repCode);
             if (!reply.WriteInt32(repCode)) {
                 RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_BLACKLIST Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeId> whiteList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&whiteList)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_WHITELIST read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t repCode;
+            AddVirtualScreenWhiteList(id, whiteList, repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::ADD_VIRTUAL_SCREEN_WHITELIST Write repCode failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
+            // read the parcel data.
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeId> whiteList;
+            if (!data.ReadUint64(id) || !data.ReadUInt64Vector(&whiteList)) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_WHITELIST read parcel failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            int32_t repCode;
+            RemoveVirtualScreenWhiteList(id, whiteList, repCode);
+            if (!reply.WriteInt32(repCode)) {
+                RS_LOGE("RSClientToServiceConnectionStub::REMOVE_VIRTUAL_SCREEN_WHITELIST Write repCode failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1933,7 +1969,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 .h = h
             };
             std::shared_ptr<Media::PixelMap> pixelMap = nullptr;
-            CreatePixelMapFromSurface(surface, srcRect, pixelMap);
+            bool transformEnabled = false;
+            if (!data.ReadBool(transformEnabled)) {
+                RS_LOGE("RSClientToServiceConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            CreatePixelMapFromSurface(surface, srcRect, pixelMap, transformEnabled);
             if (pixelMap) {
                 if (!reply.WriteBool(true)) {
                     RS_LOGE("RSClientToServiceConnectionStub::CREATE_PIXEL_MAP_FROM_SURFACE Read parcel failed");
@@ -2322,27 +2364,20 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE): {
             int32_t result{0};
-            uint64_t id{0};
-            int32_t fd{-1};
-            uint32_t size{0};
-            uint32_t index{0};
             int32_t needUpdate{0};
-            if (!data.ReadUint64(id) || !data.ReadUint32(size) || !data.ReadUint32(index)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            fd = data.ReadFileDescriptor();
-            if (fd == -1) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE read parcel failed!");
+            Drawing::SharedTypeface sharedTypeface;
+            bool unmarshallingRes = RSMarshallingHelper::Unmarshalling(data, sharedTypeface);
+            if (!unmarshallingRes) {
+                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Unmarshalling failed!");
                 ret = ERR_INVALID_DATA;
                 break;
             }
             // safe check
-            if (IsValidCallingPid(ExtractPid(id), callingPid)) {
-                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, id);
-                result = RegisterTypeface(id, size, fd, needUpdate, index);
+            if (IsValidCallingPid(ExtractPid(sharedTypeface.id_), callingPid)) {
+                RS_PROFILER_PATCH_TYPEFACE_GLOBALID(data, sharedTypeface.id_);
+                result = RegisterTypeface(sharedTypeface, needUpdate);
             } else {
+                ::close(sharedTypeface.fd_);
                 RS_LOGE("RSClientToServiceConnectionStub::OnRemoteRequest callingPid[%{public}d] "
                     "no permission REGISTER_SHARED_TYPEFACE", callingPid);
             }
@@ -2350,7 +2385,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Write needUpdate failed!");
                 ret = ERR_INVALID_REPLY;
             }
-            if (needUpdate == 0) {
+            if (needUpdate == 0 || needUpdate == -1) {
                 break;
             }
             if (!reply.WriteFileDescriptor(result)) {
@@ -3246,7 +3281,8 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             const auto& LayerComposeInfo = GetLayerComposeInfo();
             if (!reply.WriteInt32(LayerComposeInfo.uniformRenderFrameNumber) ||
                 !reply.WriteInt32(LayerComposeInfo.offlineComposeFrameNumber) ||
-                !reply.WriteInt32(LayerComposeInfo.redrawFrameNumber)) {
+                !reply.WriteInt32(LayerComposeInfo.redrawFrameNumber) ||
+                !reply.WriteInt32(LayerComposeInfo.drawImageNumber)) {
                 RS_LOGE("RSClientToServiceConnectionStub::GET_LAYER_COMPOSE_INFO Write LayerComposeInfo failed!");
                 ret = ERR_INVALID_REPLY;
             }

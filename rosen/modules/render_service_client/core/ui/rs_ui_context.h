@@ -179,6 +179,10 @@ public:
      */
     void PostDelayTask(const std::function<void()>& task, uint32_t delay);
 
+    int32_t GetUiPiplineNum() const;
+    void AttachFromUI();
+    void DetachFromUI();
+
     /**
      * @brief Checks if the task runner is set.
      *
@@ -188,9 +192,6 @@ public:
     {
         return bool(taskRunner_);
     }
-
-    void DetachFromUI();
-    bool HasDetachedFromUI() const;
 
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
 
@@ -220,6 +221,7 @@ private:
     std::function<void()> requestVsyncCallback_;
     std::mutex implicitAnimatorMutex_;
     bool detachedFromUI_ = false;
+    std::atomic<int32_t> uiPiplineNum_ = UI_PiPLINE_NUM_UNDEFINED;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;

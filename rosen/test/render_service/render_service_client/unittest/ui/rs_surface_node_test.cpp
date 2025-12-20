@@ -1758,22 +1758,6 @@ HWTEST_F(RSSurfaceNodeTest, SetIsTextureExportNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SplitSurfaceNodeName Test
- * @tc.desc: SplitSurfaceNodeName
- * @tc.type: FUNC
- * @tc.require:SR000HSUII
- */
-HWTEST_F(RSSurfaceNodeTest, SplitSurfaceNodeName, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    std::string surfaceNodeName = "0#1";
-    std::pair<std::string, std::string> res = surfaceNode->SplitSurfaceNodeName(surfaceNodeName);
-    EXPECT_EQ(res.first, "0");
-    EXPECT_EQ(res.second, "1");
-}
-
-/**
  * @tc.name: SetColorSpace Test
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -1797,6 +1781,9 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipDraw, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSkipDraw(false);
+    EXPECT_FALSE(surfaceNode->GetSkipDraw());
+
     surfaceNode->SetSkipDraw(true);
     EXPECT_TRUE(surfaceNode->GetSkipDraw());
 

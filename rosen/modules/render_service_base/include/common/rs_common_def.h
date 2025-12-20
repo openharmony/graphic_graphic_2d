@@ -61,6 +61,7 @@ static const std::string CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr uint32_t DEFAULT_DYNAMIC_RANGE_MODE_STANDARD = 2;
 constexpr uint32_t DYNAMIC_RANGE_MODE_HIGH = 0;
 constexpr uint32_t DYNAMIC_RANGE_MODE_CONSTRAINT = 1;
+constexpr int32_t UI_PiPLINE_NUM_UNDEFINED = -1;
 
 /**
  * Bitmask enumeration for hierarchical type identification
@@ -320,7 +321,7 @@ enum class CaptureError : uint8_t {
     AUTO_NOT_SUPPORT,
     COLOR_SPACE_NOT_SUPPORT,
     DYNAMIC_RANGE_NOT_SUPPORT,
-// please add new enum before this comment
+    // please add new enum before this comment
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };
 
@@ -728,6 +729,11 @@ enum class ComponentEnableSwitch : uint8_t {
     CANVAS,
     MAX_VALUE,
 };
+typedef enum : uint32_t {
+    SA_WATER_MARK_DEFAULT_SIZE = 0, // 512KB
+    SA_WATER_MARK_MIDDLE_SIZE = 1, // 6M
+    SA_WATER_MARK_BOTTOM = 2,
+} SaSurfaceWatermarkMaxSize;
 
 typedef enum : uint32_t {
     WATER_MARK_SUCCESS = 0,

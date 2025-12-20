@@ -24,7 +24,6 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "feature/param_manager/rs_param_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_memory_manager.h"
 #include "parameter.h"
@@ -225,10 +224,6 @@ void RSRenderService::Run()
         RS_LOGE("Run failed, mainThread is nullptr");
         return;
     }
-    mainThread_->PostTask([]() {
-        RS_LOGD("RSRenderService::Run(): Subscribe event.");
-        RSParamManager::GetInstance().SubscribeEvent();
-    });
     RS_LOGE("Run");
     mainThread_->Start();
 }
@@ -612,6 +607,25 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         }).wait();
 }
 
+void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n--------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpGpuMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        mainThread_->ScheduleTask(
+            [this, &argSets, &dumpString, &type]() {
+                return mainThread_->DumpGpuMem(argSets, dumpString, type);
+            }).wait();
+    }
+}
+
 void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
 {
     dumpString.append("\n");
@@ -888,12 +902,19 @@ void RSRenderService::RegisterMemFuncs()
         DumpExistPidMem(argSets, dumpString);
     };
 
+    // gpu mem
+    RSDumpFunc gpuMemDumpFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                        std::string &dumpString) -> void {
+        DumpGpuMem(argSets, dumpString);
+    };
+
     std::vector<RSDumpHander> handers = {
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },
         { RSDumpID::MEM_INFO_LITE, memDumpLiteFunc },
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
+        { RSDumpID::GPU_MEM_INFO, gpuMemDumpFunc },
     };
 
     RSDumpManager::GetInstance().Register(handers);

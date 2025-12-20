@@ -189,7 +189,7 @@ void RSClipToBoundsDrawable::OnSync()
 Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSClipToBoundsDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas *canvas, const Drawing::Rect *rect) {
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         switch (ptr->type_) {
             case RSClipToBoundsType::CLIP_PATH: {
                 canvas->ClipPath(ptr->drawingPath_, Drawing::ClipOp::INTERSECT, true);
@@ -198,9 +198,14 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
             case RSClipToBoundsType::CLIP_RRECT: {
                 if (RSSystemProperties::GetClipRRectOptimizationEnabled() || ptr->isClipRRectOptimization_) {
                     RS_TRACE_NAME_FMT("RSClipToBoundsDrawable ClipRRectOptimization NodeId[%llu]", ptr->nodeId_);
-                    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+                    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+                    auto matrix = canvas->GetTotalMatrix();
+                    canvas->ResetMatrix();
+                    Drawing::RectF absRect;
+                    matrix.MapRect(absRect, ptr->clipRRect_.GetRect());
+                    canvas->ClipRect(absRect.RoundOut(), Drawing::ClipOp::INTERSECT, false);
+                    canvas->SetMatrix(matrix);
                     paintFilterCanvas->ClipRRectOptimization(ptr->clipRRect_);
-                    canvas->ClipRect(ptr->clipRRect_.GetRect(), Drawing::ClipOp::INTERSECT, false);
                 } else {
                     canvas->ClipRoundRect(ptr->clipRRect_, Drawing::ClipOp::INTERSECT, true);
                 }
@@ -230,7 +235,7 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
                     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
                     geRender->DrawShaderEffect(canvas, *geContainer, rect);
                 };
-                auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+                auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
                 Drawing::SaveLayerOps slo(rect, nullptr);
                 paintFilterCanvas->SaveLayer(slo);
                 paintFilterCanvas->CustomSaveLayer(customFunc);
@@ -300,7 +305,7 @@ void RSFilterDrawable::OnSync()
     renderNodeName_ = stagingNodeName_;
     renderIntersectWithDRM_ = stagingIntersectWithDRM_;
     renderIsDarkColorMode_ = stagingIsDarkColorMode_;
-    
+
     lastStagingVisibleSnapshotRect_ = stagingVisibleRectInfo_ != nullptr ?
         std::make_unique<RectI>(stagingVisibleRectInfo_->snapshotRect_) : nullptr;
 
@@ -350,20 +355,13 @@ Drawing::RectI RSFilterDrawable::GetAbsRenderEffectRect(
     RectF rect = GetRenderRelativeRect(type, bound);
     auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
 
-    Drawing::Rect absRect(0.0f, 0.0f, 0.0f, 0.0f);
+    Drawing::Rect absRect;
     canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
-    auto surface = canvas.GetSurface();
-    if (!surface) {
-        return Drawing::RectI();
-    }
-
-    RectI effectRect(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
-        std::ceil(absRect.GetHeight()));
-    auto drawingClipBound = canvas.GetDeviceClipBounds();
-    RectI clipBound(drawingClipBound.GetLeft(), drawingClipBound.GetTop(), drawingClipBound.GetWidth(),
-        drawingClipBound.GetHeight());
-    effectRect = effectRect.IntersectRect(clipBound);
-    return Drawing::RectI(effectRect.GetLeft(), effectRect.GetTop(), effectRect.GetRight(), effectRect.GetBottom());
+    Drawing::RectI absRectI = absRect.RoundOut();
+    Drawing::RectI clipBounds = canvas.GetDeviceClipBounds();
+    // if absRectI.Intersect(clipBounds) is true,
+    // it means that absRectI intersects with clipBounds, and absRectI has been set to their intersection.
+    return absRectI.Intersect(clipBounds) ? absRectI : Drawing::RectI();
 }
 
 Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
@@ -416,6 +414,9 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             return;
         }
         if (canvas && ptr && ptr->filter_) {
+            auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
+            RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
+
             RectF bound = (rect != nullptr ?
                 RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
             Drawing::RectI snapshotRect = ptr->GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
@@ -423,7 +424,6 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
             RectF snapshotRelativeRect = ptr->GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
             RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
             if (rect) {
-                auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
                 filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
                     snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
             }
@@ -652,13 +652,17 @@ bool RSFilterDrawable::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
     return stagingCacheManager_->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
 }
 
-bool RSFilterDrawable::ForceReduceAIBarCacheInterval()
+bool RSFilterDrawable::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
 {
     if (!IsAIBarFilter()) {
         return false;
     }
 
-    return stagingCacheManager_->ReduceCacheUpdateInterval();
+    if (intersectHwcDamage) {
+        return stagingCacheManager_->ReduceCacheUpdateInterval();
+    }
+
+    return stagingCacheManager_->ReduceCacheUpdateIntervalIfPendingPurge();
 }
 
 void RSFilterDrawable::SetDrawBehindWindowRegion(RectI region)
@@ -751,7 +755,7 @@ void RSFilterDrawable::UpdateFilterRectInfo(const RectF& bound, const std::share
     auto drawRect = filter->GetRect(bound, EffectRectType::DRAW);
     bool needGenerateRectInfo = !bound.IsEmpty() &&
         (!snapshotRect.IsNearEqual(bound) || !drawRect.IsNearEqual(bound));
-    if (needGenerateRectInfo) {
+    if (!needGenerateRectInfo) {
         return;
     }
 

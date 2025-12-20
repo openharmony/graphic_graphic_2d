@@ -316,8 +316,20 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::OnCapture screenParams is null!");
         return;
     }
-    bool noBuffer = RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
-        screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr;
+    sptr<SurfaceBuffer> virtualBuffer = nullptr;
+    sptr<SyncFence> virtualFence = nullptr;
+    auto screenManager = CreateOrGetScreenManager();
+    sptr<Surface> producerSurface_ = screenManager->GetProducerSurface(params->GetScreenId());
+    bool virtualHasBuffer = false;
+    if (producerSurface_) {
+        float matrix[16];
+        bool isUseNewMatrix = false;
+        GSError sRet = producerSurface_->GetLastFlushedBuffer(virtualBuffer, virtualFence, matrix, isUseNewMatrix);
+        virtualHasBuffer = sRet == GSERROR_OK;
+        RS_TRACE_NAME_FMT("RSLogicalDisplayRenderNodeDrawable::OnCapture Using buffer from virtual screen");
+    }
+    bool noBuffer = (RSUniRenderThread::GetCaptureParam().isSnapshot_ &&
+        screenDrawable->GetRSSurfaceHandlerOnDraw()->GetBuffer() == nullptr) && !virtualHasBuffer;
     if (noBuffer) {
         RS_LOGW("RSLogicalDisplayRenderNodeDrawable::OnCapture: buffer is null!");
     }
@@ -350,12 +362,12 @@ void RSLogicalDisplayRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
         DrawAdditionalContent(*paintFilterCanvas);
     } else {
         canvas.Clear(Drawing::Color::COLOR_BLACK);
-        DrawHardwareEnabledNodes(canvas, *params);
+        DrawHardwareEnabledNodes(canvas, *params, virtualBuffer, virtualFence);
     }
 }
 
-void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(
-    Drawing::Canvas& canvas, RSLogicalDisplayRenderParams& params)
+void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(Drawing::Canvas& canvas,
+    RSLogicalDisplayRenderParams& params, sptr<SurfaceBuffer> virtualBuffer, sptr<SyncFence> virtualFence)
 {
     auto rsCanvas = static_cast<RSPaintFilterCanvas*>(&canvas);
     if (!rsCanvas) {
@@ -381,7 +393,9 @@ void RSLogicalDisplayRenderNodeDrawable::DrawHardwareEnabledNodes(
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcNodes, canvas, *screenParams);
 
     auto renderEngine = RSUniRenderThread::Instance().GetRenderEngine();
-    auto drawParams = RSUniRenderUtil::CreateBufferDrawParam(*screenDrawable->GetRSSurfaceHandlerOnDraw(), false);
+    auto drawParams = (virtualBuffer && virtualFence)
+        ? RSUniRenderUtil::CreateBufferDrawParam(virtualBuffer, virtualFence, false)
+        : RSUniRenderUtil::CreateBufferDrawParam(*screenDrawable->GetRSSurfaceHandlerOnDraw(), false);
     RSBaseRenderUtil::WriteSurfaceBufferToPng(drawParams.buffer);
     renderEngine->DrawScreenNodeWithParams(*rsCanvas, *screenDrawable->GetRSSurfaceHandlerOnDraw(), drawParams);
     RSUniRenderUtil::AdjustZOrderAndDrawSurfaceNode(hwcTopNodes, canvas, *screenParams);
@@ -903,8 +917,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen mirror source is null");
         return;
     }
-    auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
-        &params, mirroredScreenParams);
+
     auto virtualProcesser = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
     if (!virtualProcesser) {
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen virtualProcesser is null");
@@ -920,7 +933,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
         RS_LOGE("RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen screenParams is null");
         return;
     }
-
+    auto specialLayerType = RSSpecialLayerUtils::GetSpecialLayerStateInVisibleRect(
+        &params, screenParams);
     uniParam->SetScreenInfo(screenParams->GetScreenInfo());
     // When mirrorSource is paused, mirrorScreen needs to redraw to avoid using an expired cacheImage
     bool mirroredScreenIsPause =
@@ -1255,7 +1269,9 @@ void RSLogicalDisplayRenderNodeDrawable::ScaleAndRotateMirrorForWiredScreen(
     auto mirrorWidth = screenParam->GetBounds().GetWidth();
     auto mirrorHeight = screenParam->GetBounds().GetHeight();
 
-    auto rotation = mirroredParams->GetScreenRotation();
+    auto mirrorSourceRotation = params->GetMirrorSourceRotation();
+    auto rotation = mirrorSourceRotation != ScreenRotation::INVALID_SCREEN_ROTATION ?
+        mirrorSourceRotation : mirroredParams->GetScreenRotation();
     auto screenManager = CreateOrGetScreenManager();
     RS_TRACE_NAME_FMT("ScaleAndRotateMirrorForWiredScreen[%" PRIu64 "](%f, %f), [%" PRIu64 "](%f, %f), rotation: %d",
         mirroredParams->GetScreenId(), mainWidth, mainHeight, params->GetScreenId(),

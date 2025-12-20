@@ -766,7 +766,6 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
     Occlusion::Rect rect{0, 80, 2560, 1600};
     Occlusion::Region region{rect};
     VisibleData vData;
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
 
     auto partialRenderType = RSSystemProperties::GetUniPartialRenderEnabled();
     auto isPartialRenderEnabled = (partialRenderType != PartialRenderType::DISABLED);
@@ -787,7 +786,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
 
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsDisplayRenderNode);
-    rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData, pidVisMap);
+    rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData);
     screenManager->RemoveVirtualScreen(screenId);
 }
 
@@ -1173,15 +1172,14 @@ HWTEST_F(RSUniRenderVisitorTest, SetSurfafaceGlobalDirtyRegion, TestSize.Level1)
     Occlusion::Rect rect{0, 80, 2560, 1600};
     Occlusion::Region region{rect};
     VisibleData vData;
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    rsSurfaceRenderNode1->SetVisibleRegionRecursive(region, vData, pidVisMap);
+    rsSurfaceRenderNode1->SetVisibleRegionRecursive(region, vData);
 
     config.id = 11;
     auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     rsSurfaceRenderNode2->InitRenderParams();
     Occlusion::Rect rect2{100, 100, 500, 1500};
     Occlusion::Region region2{rect2};
-    rsSurfaceRenderNode2->SetVisibleRegionRecursive(region2, vData, pidVisMap);
+    rsSurfaceRenderNode2->SetVisibleRegionRecursive(region2, vData);
 
     auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(9, 0, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
@@ -2405,19 +2403,16 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareScreenRenderNode005, TestSize.Level
     auto rsScreenRenderNode = std::make_shared<RSScreenRenderNode>(11, 0, rsContext->weak_from_this());
     rsScreenRenderNode->InitRenderParams();
 
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-
     auto screenManager = CreateOrGetScreenManager();
     auto screenId = CreateVirtualScreen(screenManager);
     ASSERT_NE(screenId, INVALID_SCREEN_ID);
 
-    rsScreenRenderNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenId);
-    ASSERT_NE(rsScreenRenderNode->stagingRenderParams_, nullptr);
-    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
-
     auto parent = std::make_shared<RSRenderNode>(1);
     parent->InitRenderParams();
     rsScreenRenderNode->parent_ = parent;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = rsScreenRenderNode;
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsScreenRenderNode);
 }
 
@@ -2853,6 +2848,29 @@ HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode008, TestSize.Le
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
     auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
     ASSERT_TRUE(!isQuickSkip);
+}
+
+/*
+ * @tc.name: CheckQuickSkipSurfaceRenderNode009
+ * @tc.desc: Test RSUniRenderVisitorTest.CheckQuickSkipSurfaceRenderNode while has sub hardware enabled node
+ * @tc.type: FUNC
+ * @tc.require: issue20827
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckQuickSkipSurfaceRenderNode009, TestSize.Level2)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(surfaceNode, nullptr);
+    const_cast<SurfaceWindowType&>(surfaceNode->surfaceWindowType_) = SurfaceWindowType::SYSTEM_SCB_WINDOW;
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+
+    auto id = surfaceNode->GetId();
+    std::weak_ptr<RSSurfaceRenderNode> childNode = std::make_shared<RSSurfaceRenderNode>(id + 1);
+    surfaceNode->AddChildHardwareEnabledNode(childNode);
+    ASSERT_FALSE(surfaceNode->GetChildHardwareEnabledNodes().empty());
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto isQuickSkip = rsUniRenderVisitor->CheckQuickSkipSurfaceRenderNode(*surfaceNode);
+    ASSERT_FALSE(isQuickSkip);
 }
 
 /*
@@ -3809,7 +3827,7 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
     parent->AddChild(node);
     node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    EXPECT_FALSE(parent->ChildHasVisibleEffect());
+    EXPECT_TRUE(parent->ChildHasVisibleEffect());
 }
 
 /**
@@ -3821,30 +3839,32 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo003, TestSize.Level2)
 HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo004, TestSize.Level2)
 {
     auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    ASSERT_NE(rsUniRenderVisitor, nullptr);
     constexpr NodeId nodeId = 1;
     constexpr NodeId parentNodeId = 2;
     constexpr NodeId childNodeId = 3;
+    constexpr NodeId nodeId2 = 4;
     auto node = std::make_shared<RSRenderNode>(nodeId);
-    ASSERT_NE(node, nullptr);
+    auto node2 = std::make_shared<RSRenderNode>(nodeId2);
     auto parent = std::make_shared<RSRenderNode>(parentNodeId);
-    ASSERT_NE(parent, nullptr);
     auto child = std::make_shared<RSRenderNode>(childNodeId);
-    ASSERT_NE(child, nullptr);
     node->InitRenderParams();
+    node2->InitRenderParams();
     parent->InitRenderParams();
     child->InitRenderParams();
     node->AddChild(child);
+    parent->AddChild(node2);
     parent->AddChild(node);
     child->GetMutableRenderProperties().GetEffect().useEffect_ = true;
     child->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     node->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    node2->childHasVisibleEffect_ = true;
     rsUniRenderVisitor->CollectEffectInfo(*child);
     rsUniRenderVisitor->CollectEffectInfo(*node);
+    rsUniRenderVisitor->CollectEffectInfo(*node2);
     EXPECT_TRUE(node->ChildHasVisibleEffect());
     EXPECT_EQ(node->GetVisibleEffectChild().count(childNodeId), 1);
     EXPECT_TRUE(parent->ChildHasVisibleEffect());
-    EXPECT_EQ(parent->GetVisibleEffectChild().count(nodeId), 0);
+    EXPECT_EQ(parent->GetVisibleEffectChild().count(nodeId), 1);
     EXPECT_EQ(parent->GetVisibleEffectChild().count(childNodeId), 1);
 }
 
@@ -3991,6 +4011,31 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo008, TestSize.Level2)
     node->SetHasChildExcludedFromNodeGroup(false);
     rsUniRenderVisitor->CollectEffectInfo(*node);
     EXPECT_FALSE(parent->HasChildExcludedFromNodeGroup());
+}
+
+/**
+ * @tc.name: CollectEffectInfo009
+ * @tc.desc: Test RSUnitRenderVisitorTest.CollectEffectInfo with parent node, ChildHasProtectedNode
+ * @tc.type: FUNC
+ * @tc.require: issue21180
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo009, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId nodeId = 1;
+    constexpr NodeId parentNodeId = 2;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    auto parent = std::make_shared<RSRenderNode>(parentNodeId);
+    ASSERT_NE(parent, nullptr);
+    node->InitRenderParams();
+    parent->InitRenderParams();
+    parent->AddChild(node);
+
+    rsUniRenderVisitor->childHasProtectedNodeSet_.insert(nodeId);
+    rsUniRenderVisitor->CollectEffectInfo(*node);
+    EXPECT_TRUE(rsUniRenderVisitor->childHasProtectedNodeSet_.count(nodeId));
 }
 
 /*
@@ -5116,6 +5161,53 @@ HWTEST_F(RSUniRenderVisitorTest, CalculateOpaqueAndTransparentRegion007, TestSiz
 }
 
 /**
+ * @tc.name: CheckResetAccumulatedOcclusionRegion001
+ * @tc.desc: Test CheckResetAccumulatedOcclusionRegion with needReset
+ * @tc.type: FUNC
+ * @tc.require: issue21091
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckResetAccumulatedOcclusionRegion001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSMainThread::Instance()->isAnimationOcclusion_.first = true;
+
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    config.id = 0;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+
+    // set surface node trasnparent.
+    rsSurfaceRenderNode->globalAlpha_ = 0.f;
+    rsSurfaceRenderNode->abilityBgAlpha_ = 0;
+    NodeId id = 1;
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    RectI screenRect = { 0, 0, 1000, 1000};
+    rsUniRenderVisitor->curScreenNode_->screenRect_ = screenRect;
+    // add filter node to parent surface.
+    auto filterNode = std::make_shared<RSCanvasRenderNode>(++id);
+    filterNode->oldDirtyInSurface_ = screenRect;
+    auto& nodeMap = rsContext->GetMutableNodeMap();
+    nodeMap.renderNodeMap_.clear();
+    nodeMap.RegisterRenderNode(filterNode);
+    rsSurfaceRenderNode->visibleFilterChild_.push_back(filterNode->GetId());
+
+    RectI rect = RectI(0, 0, 100, 100);
+    auto occlusionRegion = Occlusion::Region(rect);
+    rsUniRenderVisitor->accumulatedOcclusionRegion_ = occlusionRegion;
+    rsUniRenderVisitor->CheckResetAccumulatedOcclusionRegion(*rsSurfaceRenderNode);
+    ASSERT_TRUE(rsUniRenderVisitor->accumulatedOcclusionRegion_.IsEmpty());
+
+    rsUniRenderVisitor->accumulatedOcclusionRegion_ = occlusionRegion;
+    RSMainThread::Instance()->isAnimationOcclusion_.first = false;
+    rsUniRenderVisitor->CheckResetAccumulatedOcclusionRegion(*rsSurfaceRenderNode);
+    ASSERT_FALSE(rsUniRenderVisitor->accumulatedOcclusionRegion_.IsEmpty());
+}
+
+/**
  * @tc.name: QuickPrepareCanvasRenderNode001
  * @tc.desc: Test QuickPrepareCanvasRenderNode with multi-params
  * @tc.type: FUNC
@@ -5964,6 +6056,47 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
 }
 
 /*
+ * @tc.name: CheckFilterNodeInSkippedSubTreeNeedClearCache004
+ * @tc.desc: Test CheckFilterNodeInSkippedSubTreeNeedClearCache
+ * @tc.type: FUNC
+ * @tc.require: issues21186
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(0, 0, rsContext->weak_from_this());
+
+    NodeId id = 0;
+    RSDisplayNodeConfig config;
+    auto node = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    rsUniRenderVisitor->curLogicalDisplayNode_ = node;
+    node->InitRenderParams();
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode);
+    canvasNode->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode);
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(2);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    canvasNode->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    canvasNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(2);
+
+    EXPECT_FALSE(effectNode->ChildHasVisibleEffectWithoutEmptyRect());
+}
+
+/*
  * @tc.name: TryNotifyUIBufferAvailable
  * @tc.desc: Test RSUniRenderVisitorTest.TryNotifyUIBufferAvailable test
  * @tc.type: FUNC
@@ -6720,28 +6853,6 @@ HWTEST_F(RSUniRenderVisitorTest, QuickPrepareUnionRenderNode002, TestSize.Level1
 }
 
 /**
- * @tc.name: QuickPrepareChildren001
- * @tc.desc: Test QuickPrepareChildren ResetVisibleUnionChildren branch
- * @tc.type: FUNC
- * @tc.require: issueIB7GLO
- */
-HWTEST_F(RSUniRenderVisitorTest, QuickPrepareChildren001, TestSize.Level2)
-{
-    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
-    EXPECT_NE(rsUniRenderVisitor, nullptr);
-    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
-    rsUniRenderVisitor->curSurfaceNode_ = surfaceNode;
-    auto dirtyManager = surfaceNode->GetDirtyManager();
-    EXPECT_NE(dirtyManager, nullptr);
-    rsUniRenderVisitor->curSurfaceDirtyManager_ = dirtyManager;
-    NodeId id = 1;
-    auto rsContext = std::make_shared<RSContext>();
-    auto node = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
-    node->InitRenderParams();
-    rsUniRenderVisitor->QuickPrepareChildren(*node);
-}
-
-/**
  * @tc.name: CollectUnionInfo001
  * @tc.desc: Test CollectUnionInfo
  * @tc.type: FUNC
@@ -6833,6 +6944,29 @@ HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo004, TestSize.Level2)
 
     node->renderProperties_.useUnion_ = false;
     node->shouldPaint_ = false;
+    rsUniRenderVisitor->CollectUnionInfo(*node);
+    ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
+}
+
+/**
+ * @tc.name: CollectUnionInfo005
+ * @tc.desc: Test CollectUnionInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, CollectUnionInfo005, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, rsContext->weak_from_this());
+    NodeId id1 = 2;
+    auto node = std::make_shared<RSCanvasRenderNode>(id1, rsContext->weak_from_this());
+    node->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
+    rsUniRenderVisitor->curUnionNode_ = nullptr;
+
+    node->renderProperties_.useUnion_ = true;
+    node->shouldPaint_ = true;
     rsUniRenderVisitor->CollectUnionInfo(*node);
     ASSERT_TRUE(unionNode->visibleUnionChildren_.empty());
 }
@@ -6990,5 +7124,435 @@ HWTEST_F(RSUniRenderVisitorTest, DisableHardwareHdrTest003, TestSize.Level1)
     displayNode->SetHasUniRenderHdrSurface(true);
     ASSERT_TRUE(childNode1->isHardwareForcedDisabled_);
     RSLuminanceControl::Get().rSLuminanceControlInterface_ = originalInterface;
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest001
+ * @tc.desc: Test RenderNodeGroup for CanvasRenderNode with RSRenderNode::NodeGroupType:NONE
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsCanvasRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::NONE;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsCanvasRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest002
+ * @tc.desc: Test RenderNodeGroup for CanvasRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_UI
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest002, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsCanvasRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_UI;
+    rsCanvasRenderNode->nodeGroupType_ = type;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsCanvasRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::TARGETED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest003
+ * @tc.desc: Test RenderNodeGroup for CanvasRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_USER
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest003, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsCanvasRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsCanvasRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::FORCED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest004
+ * @tc.desc: Test RenderNodeGroup for CanvasRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_FOREGROUND_FILTER
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest004, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsCanvasRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_FOREGROUND_FILTER;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsCanvasRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest005
+ * @tc.desc: Test RenderNodeGroup for UnionRenderNode with RSRenderNode::NodeGroupType:NONE
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest005, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsUnionRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::NONE;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsUnionRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest006
+ * @tc.desc: Test RenderNodeGroup for UnionRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_UI
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest006, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsUnionRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_UI;
+    rsUnionRenderNode->nodeGroupType_ = type;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsUnionRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::TARGETED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest007
+ * @tc.desc: Test RenderNodeGroup for UnionRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_USER
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest007, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsUnionRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsUnionRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::FORCED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest008
+ * @tc.desc: Test RenderNodeGroup for UnionRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_FOREGROUND_FILTER
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest008, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsUnionRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_FOREGROUND_FILTER;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsUnionRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest009
+ * @tc.desc: Test RenderNodeGroup for CanvasRenderNode with isNodeGroup:false,
+ * RSRenderNode::NodeGroupType:GROUPED_BY_USER
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest009, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsCanvasRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
+    bool isNodeGroup = false;
+    bool includeProperty = true;
+    rsCanvasRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest010
+ * @tc.desc: Test RenderNodeGroup for UnionRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_USER, with
+ * isNodeGroup:false
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest010, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsUnionRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
+    bool isNodeGroup = false;
+    bool includeProperty = true;
+    rsUnionRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest011
+ * @tc.desc: Test RenderNodeGroup for EffectRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_USER, with
+ * isNodeGroup:true
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest011, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsEffectRenderNode = std::make_shared<RSEffectRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsEffectRenderNode, nullptr);
+    rsEffectRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(rsEffectRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsEffectRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareEffectRenderNode(*rsEffectRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsEffectRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest012
+ * @tc.desc: Test RenderNodeGroup for WindowKeyFrameRenderNode with RSRenderNode::NodeGroupType:GROUPED_BY_USER, with
+ * isNodeGroup:true
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest012, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsWindowKeyFrameRenderNode = std::make_shared<RSWindowKeyFrameRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsWindowKeyFrameRenderNode, nullptr);
+    rsWindowKeyFrameRenderNode->stagingRenderParams_ =
+        std::make_unique<RSRenderParams>(rsWindowKeyFrameRenderNode->GetId());
+    RSRenderNode::NodeGroupType type = RSRenderNode::NodeGroupType::GROUPED_BY_USER;
+    bool isNodeGroup = true;
+    bool includeProperty = true;
+    rsWindowKeyFrameRenderNode->MarkNodeGroup(type, isNodeGroup, includeProperty);
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareWindowKeyFrameRenderNode(*rsWindowKeyFrameRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsWindowKeyFrameRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest013
+ * @tc.desc: Test RenderNodeGroup with MarkForegroundFilter for CanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest013, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->InitRenderParams();
+    rsCanvasRenderNode->renderProperties_.SetForegroundFilterCache(std::make_shared<RSFilter>());
+    rsCanvasRenderNode->MarkForegroundFilterCache();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest014
+ * @tc.desc: Test RenderNodeGroup with MarkForegroundFilter for CanvasRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest014, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsCanvasRenderNode, nullptr);
+    rsCanvasRenderNode->InitRenderParams();
+    rsCanvasRenderNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_FOREGROUND_FILTER;
+    rsCanvasRenderNode->MarkForegroundFilterCache();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareCanvasRenderNode(*rsCanvasRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsCanvasRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest015
+ * @tc.desc: Test RenderNodeGroup with MarkForegroundFilter for UnionRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest015, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->InitRenderParams();
+    rsUnionRenderNode->renderProperties_.SetForegroundFilterCache(std::make_shared<RSFilter>());
+    rsUnionRenderNode->MarkForegroundFilterCache();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
+}
+
+/**
+ * @tc.name: RenderGroupCacheTypeTest016
+ * @tc.desc: Test RenderNodeGroup with MarkForegroundFilter for UnionRenderNode
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest016, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    ASSERT_NE(rsContext, nullptr);
+    auto rsUnionRenderNode = std::make_shared<RSUnionRenderNode>(1, rsContext->weak_from_this());
+    ASSERT_NE(rsUnionRenderNode, nullptr);
+    rsUnionRenderNode->InitRenderParams();
+    rsUnionRenderNode->nodeGroupType_ = RSRenderNode::NodeGroupType::GROUPED_BY_FOREGROUND_FILTER;
+    rsUnionRenderNode->MarkForegroundFilterCache();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    rsUniRenderVisitor->QuickPrepareUnionRenderNode(*rsUnionRenderNode);
+
+    RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
+    EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: DisableOccludedHwcNodeInSkippedSubTreeTest001
+ * @tc.desc: Test DisableOccludedHwcNodeInSkippedSubTree with curSurfaceNode nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21170
+ */
+HWTEST_F(RSUniRenderVisitorTest, DisableOccludedHwcNodeInSkippedSubTreeTest001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSRenderNode node(0);
+    rsUniRenderVisitor->DisableOccludedHwcNodeInSkippedSubTree(node);
 }
 } // OHOS::Rosen

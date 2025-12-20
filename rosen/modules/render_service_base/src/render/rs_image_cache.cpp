@@ -245,7 +245,7 @@ void RSImageCache::RemoveImageMemForWindow(NodeId surfaceNodeId)
     if (!RSSystemProperties::GetDefaultMemClearEnabled()) {
         return;
     }
-    RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%{public}" PRIu64,
+    RS_TRACE_NAME_FMT_DEBUG("", "RSImageCache::RemoveImageMemForWindow surfaceNodeId:%" PRIu64,
         surfaceNodeId);
     ImageContent& rsImageVec = rsImageInfoMap[surfaceNodeId];
     for (auto& [img_wptr, imageOp] : rsImageVec) {

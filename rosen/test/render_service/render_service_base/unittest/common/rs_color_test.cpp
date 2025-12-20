@@ -403,4 +403,28 @@ HWTEST_F(RSColorTest, ConvertToSRGBColorSpaceTest, TestSize.Level1)
     color.ConvertToSRGBColorSpace();
     EXPECT_EQ(color.GetColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
+
+/**
+ * @tc.name: PlaceholderOperatorsTest
+ * @tc.desc: Verify branches when RSColor is a placeholder (UNLIKELY branches)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSColorTest, PlaceholderOperatorsTest, TestSize.Level1)
+{
+    // construct placeholder colors using the explicit constructor
+    RSColor ph(ColorPlaceholder::SURFACE);
+    RSColor ph2(ColorPlaceholder::SURFACE_CONTRAST);
+    RSColor normal(10, 11, 12, 13);
+
+    // operator+ and operator- should early-return when either side is a placeholder
+    EXPECT_TRUE(ph == (ph + normal));
+    EXPECT_TRUE(ph == (normal + ph));
+    EXPECT_TRUE(ph == (ph - normal));
+    EXPECT_TRUE(ph == (normal - ph));
+    EXPECT_TRUE(ph == (ph + ph2));
+
+    // operator* should early-return when left operand is a placeholder
+    EXPECT_TRUE(ph == (ph * 2.0f));
+}
 } // namespace OHOS::Rosen

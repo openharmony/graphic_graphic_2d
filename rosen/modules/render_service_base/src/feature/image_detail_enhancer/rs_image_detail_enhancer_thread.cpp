@@ -273,13 +273,22 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::EnhanceImageAsync(
     const RSImageParams& RSImageParams) const
 {
     bool isEnable = GetEnableStatus() && IsEnableImageDetailEnhance(RSImageParams.mNodeId);
-    if (isEnable || RSImageParams.mPixelMap == nullptr) {
+    if (isEnable || RSImageParams.mPixelMap == nullptr || RSImageParams.mImage == nullptr) {
         return false;
     }
     ScaleImageAsync(RSImageParams.mPixelMap, RSImageParams.mDst, RSImageParams.mNodeId,
         RSImageParams.mUniqueId, RSImageParams.mImage);
     std::shared_ptr<Drawing::Image> dstImage = GetOutImage(RSImageParams.mUniqueId);
     if (dstImage == nullptr) {
+        return false;
+    }
+    if (dstImage->GetWidth() == 0 || RSImageParams.mImage->GetWidth() == 0) {
+        return false;
+    }
+    float realDstWidth = RSImageParams.mDst.GetWidth() * RSImageParams.mMatrixScaleX;
+    float newScaleRatio = realDstWidth / static_cast<float>(dstImage->GetWidth());
+    float originScaleRatio = realDstWidth / static_cast<float>(RSImageParams.mImage->GetWidth());
+    if (abs(originScaleRatio - 1.0f) < abs(newScaleRatio - 1.0f)) {
         return false;
     }
     Drawing::Rect newSrcRect(0, 0, dstImage->GetWidth(), dstImage->GetHeight());
@@ -362,7 +371,8 @@ bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
 bool RSImageDetailEnhancerThread::GetEnableStatus() const
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR &&
+        std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
         RSSystemProperties::GetMemoryWatermarkEnabled() &&
         isParamValidate_) {
         return true;

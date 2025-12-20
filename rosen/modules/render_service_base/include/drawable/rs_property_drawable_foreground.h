@@ -205,8 +205,8 @@ public:
 private:
     std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> lightSourcesAndPosVec_;
     std::vector<std::pair<std::shared_ptr<RSLightSource>, Vector4f>> stagingLightSourcesAndPosVec_;
-    IlluminatedType stagingIlluminatedType_ = IlluminatedType::INVALID;
     IlluminatedType illuminatedType_ = IlluminatedType::INVALID;
+    IlluminatedType stagingIlluminatedType_ = IlluminatedType::INVALID;
     float borderWidth_ = 0.0f;
     float stagingBorderWidth_ = 0.0f;
     NodeId screenNodeId_ = INVALID_NODEID;
@@ -214,8 +214,8 @@ private:
     NodeId nodeId_ = INVALID_NODEID;
     NodeId stagingNodeId_ = INVALID_NODEID;
     RRect stagingRRect_ = {};
-    bool stagingEnableEDREffect_ = false;
     bool enableEDREffect_ = false;
+    bool stagingEnableEDREffect_ = false;
     std::shared_ptr<Drawing::ShaderEffect> stagingSDFShaderEffect_;
     std::shared_ptr<Drawing::ShaderEffect> sdfShaderEffect_;
 
@@ -225,14 +225,14 @@ private:
     bool needSync_ = false;
     float displayHeadroom_ = 0.0f;
     void DrawLight(Drawing::Canvas* canvas) const;
-    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetPhongShaderBuilder();
-    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetFeatheringBoardLightShaderBuilder();
-    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetNormalLightShaderBuilder();
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetPhongShaderBuilder();
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetFeatheringBorderLightShaderBuilder();
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetNormalLightShaderBuilder();
 
     static float GetBrightnessMapping(float headroom, float input);
     static bool NeedToneMapping(float supportHeadroom);
     static std::optional<float> CalcBezierResultY(
-        const Vector2f& start, const Vector2f& end, const Vector2f& control, float x);
+        const Vector2f& start, const Vector2f& end, const Vector2f& control, float input);
 
     std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeFeatheringBoardLightShaderBuilder() const;
     std::shared_ptr<Drawing::RuntimeShaderBuilder> MakeNormalLightShaderBuilder() const;
@@ -245,22 +245,19 @@ private:
     bool DrawSDFBorderLight(Drawing::Canvas& canvas,
         std::shared_ptr<Drawing::ShaderEffect>& lightShaderEffect) const;
 
-    template <const char* lightString>
-    static const std::shared_ptr<Drawing::RuntimeShaderBuilder>& GetLightShaderBuilder()
+    template<const char* lightString>
+    static std::shared_ptr<Drawing::RuntimeShaderBuilder> GetLightShaderBuilder()
     {
         thread_local std::shared_ptr<Drawing::RuntimeShaderBuilder> shaderBuilder;
         if (shaderBuilder) {
             return shaderBuilder;
         }
-        std::shared_ptr<Drawing::RuntimeEffect> lightEffect;
-
         std::shared_ptr<Drawing::RuntimeEffect> effect =
             Drawing::RuntimeEffect::CreateForShader(std::string(lightString));
         if (!effect) {
-            return shaderBuilder;
+            return nullptr;
         }
-        lightEffect = std::move(effect);
-        shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(lightEffect);
+        shaderBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(std::move(effect));
         return shaderBuilder;
     }
 };

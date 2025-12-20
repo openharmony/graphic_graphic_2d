@@ -26,11 +26,16 @@ namespace OHOS::Rosen {
 namespace {
 using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
 using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
+const std::string g_foregroundImagePath = "/data/local/tmp/fg_test.jpg";
 
 static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
     {RSNGEffectType::DOUBLE_RIPPLE_MASK,
      [] {
          return std::make_shared<RSNGDoubleRippleMask>();
+     }},
+    {RSNGEffectType::NOISY_FRAME_GRADIENT_MASK,
+     [] {
+         return std::make_shared<RSNGNoisyFrameGradientMask>();
      }},
 };
 
@@ -51,49 +56,55 @@ std::vector<std::array<float, DOUBLE_RIPPLE_MASK_PARAMS_COUNT>> doubleRippleMask
     {20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f},
 };
 
-constexpr int CIRCLE_FLOWLIGHT_PARAMS_COUNT = 9;
-std::vector<std::array<Vector4f, CIRCLE_FLOWLIGHT_PARAMS_COUNT>> circleFlowlightParams = {
+constexpr int CIRCLE_FLOWLIGHT_PARAMS_COUNT = 12;
+std::vector<std::array<std::variant<float, Vector4f>, CIRCLE_FLOWLIGHT_PARAMS_COUNT>> circleFlowlightParams = {
     {
         Vector4f{-1.0f, -1.0f, -1.0f, -1.0f}, Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},
         Vector4f{-1.0f, -1.0f, -1.0f, -1.0f}, Vector4f{-1.0f, -1.0f, -1.0f, -1.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
         Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
-        Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f},
+        Vector4f{1000.0f, 1000.0f, 1000.0f, 1000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.9921f, 0.5020f, 0.0196f, 1.0f}, Vector4f{0.0039f, 0.5255f, 1.000f, 1.0f},
         Vector4f{0.0569f, 0.3429f, 1.000f, 1.0f}, Vector4f{0.5510f, 0.3412f, 0.5098f, 1.0f},
         Vector4f{0.500f, 0.600f, 0.300f, 0.5f}, Vector4f{0.300f, 0.300f, 0.300f, 0.3f},
         Vector4f{0.200f, 0.400f, 0.600f, 0.8f}, Vector4f{0.300f, 0.700f, 0.300f, 0.7f},
-        Vector4f{0.300f, 0.300f, 0.700f, 0.7f},
+        Vector4f{0.300f, 0.300f, 0.700f, 0.7f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{0.5f, 0.5f, 0.5f, 1.0f},
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{0.5f, 0.5f, 0.5f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
-        Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.8f, 0.2f, 0.6f, 1.0f}, Vector4f{0.2f, 0.8f, 0.4f, 1.0f},
         Vector4f{0.6f, 0.4f, 0.8f, 1.0f}, Vector4f{0.4f, 0.6f, 0.2f, 1.0f},
         Vector4f{2.0f, 0.5f, 1.5f, 0.8f}, Vector4f{0.5f, 2.0f, 0.8f, 1.5f},
         Vector4f{1.5f, 0.8f, 0.5f, 2.0f}, Vector4f{0.8f, 1.5f, 2.0f, 0.5f},
-        Vector4f{0.5f, 1.5f, 0.8f, 2.0f},
+        Vector4f{0.5f, 1.5f, 0.8f, 2.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{0.5f, 0.5f, 0.5f, 1.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
-        Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 1.0f, 1.0f, 1.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
     {
         Vector4f{2.0f, 2.0f, 2.0f, 2.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{2.0f, 2.0f, 2.0f, 2.0f}, Vector4f{2.0f, 2.0f, 2.0f, 2.0f},
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
         Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
-        Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f},
+        Vector4f{10000.0f, 10000.0f, 10000.0f, 10000.0f}, Vector4f{1.0f, 1.0f, 1.0f, 1.0f},
+        4.0f, 1.0f
     },
 };
 
@@ -150,6 +161,251 @@ std::vector<std::array<std::variant<Vector2f, float, Vector4f>, ROUNDED_RECT_FLO
     }
 };
 
+constexpr int COLOR_GRADIENMT_EFFECT_PARAMS_COUNT = 15;
+std::vector<std::array<std::variant<Vector2f, float, Vector4f>, COLOR_GRADIENMT_EFFECT_PARAMS_COUNT>>
+    colorGradientEffectParams = {
+    {
+        Vector4f{0.0f, 0.0f, -1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, 1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, 1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{1.0f, 0.0f, 0.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+        Vector2f{0.0f, 0.5f},
+        Vector2f{0.5f, 0.0f},
+        Vector2f{1.0f, 0.5f},
+        Vector2f{0.5f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 1.0f, 0.0f, 1.0f},
+        Vector2f{0.0f, 0.5f},
+        Vector2f{0.5f, 0.0f},
+        Vector2f{1.0f, 0.5f},
+        Vector2f{0.5f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, -1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 5.4f, 5.4f, 5.4f, 4.0f, 6.0f, 20.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.0f, 1.0f, 1.0f},
+        Vector2f{0.0f, 1.0f},
+        Vector2f{1.0f, 0.0f},
+        Vector2f{0.0f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        5.4f, 1.0f, 5.4f, 1.0f, 4.0f, 6.0f, 20.0f
+    }
+};
+
+constexpr int NOISY_FRAME_GRADIENT_MASK_PARAMS_COUNT = 9;
+std::vector<std::array<std::variant<Vector2f, float, Vector4f>, NOISY_FRAME_GRADIENT_MASK_PARAMS_COUNT>>
+    noisyFrameGradientMaskParams = {
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.0f, -1.0f},
+        Vector2f{0.0f, -1.0f},
+        Vector2f{0.0f, -1.0f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        0.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        0.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        0.2f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.4f,
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.7f, 0.7f},
+        Vector2f{0.0f, 0.0f},
+        0.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{0.1f, 0.0f},
+        Vector2f{1.0f, 1.0f},
+        Vector2f{0.0f, 0.0f},
+        -1.0f, 0.0f
+    },
+    {
+        Vector4f{0.0f, 0.0f, 1.0f, 1.0f},
+        0.1f,
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{0.0f, 0.1f},
+        Vector2f{-999.0f, -999.0f},
+        Vector2f{999.0f, 999.0f},
+        0.0f, 0.0f
+    }
+};
+
+constexpr int ROUNDED_RECT_AIBAR_RECT_HALO_COUNT = 12;
+std::vector<std::array<std::variant<Vector4f, Vector2f, float>, ROUNDED_RECT_AIBAR_RECT_HALO_COUNT>>
+    aibarRectHaloParams = {
+    {
+        Vector4f{0.0f, -0.8f, 0.3f, 0.1f},
+        Vector4f{0.5f, 0.3f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.6f, 0.5f, 1.0f},
+        Vector4f{0.6f, 0.4f, 0.8f, 1.0f},
+        Vector4f{1.0f, 0.95f, 0.9f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.5f
+    },
+    {
+        Vector4f{0.0f, -0.8f, 0.5f, 0.1f},
+        Vector4f{0.5f, 0.3f, 1.0f, 1.0f},
+        Vector4f{1.0f, 0.6f, 0.5f, 1.0f},
+        Vector4f{0.6f, 0.4f, 0.8f, 1.0f},
+        Vector4f{1.0f, 0.95f, 0.9f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.6f
+    },
+    {
+        Vector4f{0.0f, -0.8f, 0.3f, 0.6f},
+        Vector4f{0.3f, 1.0f, 0.5f, 1.0f},
+        Vector4f{1.0f, 0.5f, 0.6f, 1.0f},
+        Vector4f{0.6f, 0.8f, 0.4f, 1.0f},
+        Vector4f{0.9f, 1.0f, 0.95f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.7f
+    },
+    {
+        Vector4f{0.5f, -0.8f, 0.3f, 0.1f},
+        Vector4f{0.3f, 1.0f, 0.5f, 1.0f},
+        Vector4f{1.0f, 0.5f, 0.6f, 1.0f},
+        Vector4f{0.6f, 0.8f, 0.4f, 1.0f},
+        Vector4f{0.9f, 1.0f, 0.95f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.3f
+    },
+    {
+        Vector4f{0.5f, -0.8f, 0.0f, 0.1f},
+        Vector4f{0.3f, 1.0f, 0.5f, 1.0f},
+        Vector4f{1.0f, 0.5f, 0.6f, 1.0f},
+        Vector4f{0.6f, 0.8f, 0.4f, 1.0f},
+        Vector4f{0.9f, 1.0f, 0.95f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.5f
+    },
+    {
+        Vector4f{0.5f, -0.8f, 1.3f, 0.1f},
+        Vector4f{0.3f, 1.0f, 0.5f, 1.0f},
+        Vector4f{1.0f, 0.5f, 0.6f, 1.0f},
+        Vector4f{0.6f, 0.8f, 0.4f, 1.0f},
+        Vector4f{0.9f, 1.0f, 0.95f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.5f
+    },
+    {
+        Vector4f{0.5f, -0.5f, 0.1f, 1.8f},
+        Vector4f{0.3f, 1.0f, 0.5f, 1.0f},
+        Vector4f{1.0f, 0.5f, 0.6f, 1.0f},
+        Vector4f{0.6f, 0.8f, 0.4f, 1.0f},
+        Vector4f{0.9f, 1.0f, 0.95f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.5f
+    },
+    {
+        Vector4f{0.5f, -0.5f, 0.1f, -0.5f},
+        Vector4f{0.3f, 1.0f, 0.5f, 1.0f},
+        Vector4f{1.0f, 0.5f, 0.6f, 1.0f},
+        Vector4f{0.6f, 0.8f, 0.4f, 1.0f},
+        Vector4f{0.9f, 1.0f, 0.95f, 1.0f},
+        Vector2f{0.2f, 0.2f},
+        Vector2f{0.8f, 0.2f},
+        Vector2f{0.8f, 0.8f},
+        Vector2f{0.2f, 0.8f},
+        Vector4f{0.2f, 0.3f, 0.4f, 0.5f},
+        5.0f, 0.5f
+    }
+};
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,
@@ -172,6 +428,9 @@ constexpr uint32_t NUM_8 = 8;
 constexpr uint32_t NUM_9 = 9;
 constexpr uint32_t NUM_10 = 10;
 constexpr uint32_t NUM_11 = 11;
+constexpr uint32_t NUM_12 = 12;
+constexpr uint32_t NUM_13 = 13;
+constexpr uint32_t NUM_14 = 14;
 }
 
 class NGEffectTest : public RSGraphicTest {
@@ -189,6 +448,9 @@ private:
 
 void SetDoubleRippleMaskParams(const std::shared_ptr<RSNGDoubleRippleMask>& mask, int index)
 {
+    if (!mask) {
+        return;
+    }
     mask->Setter<DoubleRippleMaskCenter1Tag>(
         Vector2f{ doubleRippleMaskParams[index][NUM_0], doubleRippleMaskParams[index][NUM_1] });
     mask->Setter<DoubleRippleMaskCenter2Tag>(
@@ -200,6 +462,9 @@ void SetDoubleRippleMaskParams(const std::shared_ptr<RSNGDoubleRippleMask>& mask
 
 void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowlight>& flowlight, int index)
 {
+    if (!flowlight) {
+        return;
+    }
     flowlight->Setter<RoundedRectFlowlightStartEndPositionTag>(
         std::get<Vector2f>(roundedRectFlowlightParams[index][NUM_0]));
     flowlight->Setter<RoundedRectFlowlightWaveLengthTag>(
@@ -228,22 +493,106 @@ void SetRoundedRectFlowlightParams(const std::shared_ptr<RSNGRoundedRectFlowligh
 
 void SetCircleFlowlightParams(const std::shared_ptr<RSNGCircleFlowlight>& flowlight, int index)
 {
-    flowlight->Setter<CircleFlowlightColor0Tag>(circleFlowlightParams[index][NUM_0]);
-    flowlight->Setter<CircleFlowlightColor1Tag>(circleFlowlightParams[index][NUM_1]);
-    flowlight->Setter<CircleFlowlightColor2Tag>(circleFlowlightParams[index][NUM_2]);
-    flowlight->Setter<CircleFlowlightColor3Tag>(circleFlowlightParams[index][NUM_3]);
-    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(circleFlowlightParams[index][NUM_4]);
-    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(circleFlowlightParams[index][NUM_5]);
-    flowlight->Setter<CircleFlowlightRotationSeedTag>(circleFlowlightParams[index][NUM_6]);
-    flowlight->Setter<CircleFlowlightGradientXTag>(circleFlowlightParams[index][NUM_7]);
-    flowlight->Setter<CircleFlowlightGradientYTag>(circleFlowlightParams[index][NUM_8]);
+    if (!flowlight) {
+        return;
+    }
+    flowlight->Setter<CircleFlowlightColor0Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_0]));
+    flowlight->Setter<CircleFlowlightColor1Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_1]));
+    flowlight->Setter<CircleFlowlightColor2Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_2]));
+    flowlight->Setter<CircleFlowlightColor3Tag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_3]));
+    flowlight->Setter<CircleFlowlightRotationFrequencyTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_4]));
+    flowlight->Setter<CircleFlowlightRotationAmplitudeTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_5]));
+    flowlight->Setter<CircleFlowlightRotationSeedTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_6]));
+    flowlight->Setter<CircleFlowlightGradientXTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_7]));
+    flowlight->Setter<CircleFlowlightGradientYTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_8]));
+    flowlight->Setter<CircleFlowlightStrengthTag>(std::get<Vector4f>(circleFlowlightParams[index][NUM_9]));
+    flowlight->Setter<CircleFlowlightDistortStrengthTag>(std::get<float>(circleFlowlightParams[index][NUM_10]));
+    flowlight->Setter<CircleFlowlightBlendGradientTag>(std::get<float>(circleFlowlightParams[index][NUM_11]));
     flowlight->Setter<CircleFlowlightProgressTag>(0.0f);
+}
+
+void SetColorGradientEffectParams(const std::shared_ptr<RSNGColorGradientEffect>& colorGradient, int index)
+{
+    if (!colorGradient) {
+        return;
+    }
+    colorGradient->Setter<ColorGradientEffectColor0Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_0]));
+    colorGradient->Setter<ColorGradientEffectColor1Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_1]));
+    colorGradient->Setter<ColorGradientEffectColor2Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_2]));
+    colorGradient->Setter<ColorGradientEffectColor3Tag>(
+        std::get<Vector4f>(colorGradientEffectParams[index][NUM_3]));
+    colorGradient->Setter<ColorGradientEffectPosition0Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_4]));
+    colorGradient->Setter<ColorGradientEffectPosition1Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_5]));
+    colorGradient->Setter<ColorGradientEffectPosition2Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_6]));
+    colorGradient->Setter<ColorGradientEffectPosition3Tag>(
+        std::get<Vector2f>(colorGradientEffectParams[index][NUM_7]));
+    colorGradient->Setter<ColorGradientEffectStrength0Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_8]));
+    colorGradient->Setter<ColorGradientEffectStrength1Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_9]));
+    colorGradient->Setter<ColorGradientEffectStrength2Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_10]));
+    colorGradient->Setter<ColorGradientEffectStrength3Tag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_11]));
+    colorGradient->Setter<ColorGradientEffectColorNumberTag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_12]));
+    colorGradient->Setter<ColorGradientEffectBlendTag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_13]));
+    colorGradient->Setter<ColorGradientEffectBlendKTag>(
+        std::get<float>(colorGradientEffectParams[index][NUM_14]));
+}
+
+void SetNoisyFrameGradientMaskParams(const std::shared_ptr<RSNGNoisyFrameGradientMask>& mask, int index)
+{
+    if (!mask) {
+        return;
+    }
+    mask->Setter<NoisyFrameGradientMaskGradientBezierControlPointsTag>(
+        std::get<Vector4f>(noisyFrameGradientMaskParams[index][NUM_0]));
+    mask->Setter<NoisyFrameGradientMaskCornerRadiusTag>(
+        std::get<float>(noisyFrameGradientMaskParams[index][NUM_1]));
+    mask->Setter<NoisyFrameGradientMaskInnerFrameWidthTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_2]));
+    mask->Setter<NoisyFrameGradientMaskMiddleFrameWidthTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_3]));
+    mask->Setter<NoisyFrameGradientMaskOutsideFrameWidthTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_4]));
+    mask->Setter<NoisyFrameGradientMaskRRectWHTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_5]));
+    mask->Setter<NoisyFrameGradientMaskRRectPosTag>(
+        std::get<Vector2f>(noisyFrameGradientMaskParams[index][NUM_6]));
+    mask->Setter<NoisyFrameGradientMaskSlopeTag>(
+        std::get<float>(noisyFrameGradientMaskParams[index][NUM_7]));
+    mask->Setter<NoisyFrameGradientMaskProgressTag>(
+        std::get<float>(noisyFrameGradientMaskParams[index][NUM_8]));
+}
+
+static void SetAIBarRectHaloParams(const std::shared_ptr<RSNGAIBarRectHalo>& aiBarRectHalo, int index)
+{
+    aiBarRectHalo->Setter<AIBarRectHaloLTWHTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_0]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor0Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_1]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor1Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_2]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor2Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_3]));
+    aiBarRectHalo->Setter<AIBarRectHaloColor3Tag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_4]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition0Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_5]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition1Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_6]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition2Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_7]));
+    aiBarRectHalo->Setter<AIBarRectHaloPosition3Tag>(std::get<Vector2f>(aibarRectHaloParams[index][NUM_8]));
+    aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_9]));
+    aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(std::get<float>(aibarRectHaloParams[index][NUM_10]));
+    aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(std::get<float>(aibarRectHaloParams[index][NUM_11]));
 }
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -260,7 +609,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foregroun
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode = SetUpNodeBgImage(g_foregroundImagePath, { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(circleFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -269,8 +618,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foregroun
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -298,8 +647,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Backgroun
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_First_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -321,7 +670,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
         circleFlowlight->Append(roundedRectFlowlight);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode = SetUpNodeBgImage(g_foregroundImagePath, { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(circleFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -330,8 +679,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Second_Foreground_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -353,7 +702,7 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
         roundedRectFlowlight->Append(circleFlowlight);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode = SetUpNodeBgImage(g_foregroundImagePath, { x, y, sizeX, sizeY });
         backgroundTestNode->SetForegroundShader(roundedRectFlowlight);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -362,8 +711,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_First_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -396,8 +745,8 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Fir
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Second_Background_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
@@ -428,4 +777,131 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_Multi_NG_Effect_Circle_Flowlight_Sec
     }
 }
 
+// Test Background Noisy Frame Gradient Mask and Color Gradient Effect
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Background_Test)
+{
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create Noisy Frame Gradient Mask
+        auto mask = CreateMask(RSNGEffectType::NOISY_FRAME_GRADIENT_MASK);
+        auto noisyFrameGradientMask = std::static_pointer_cast<RSNGNoisyFrameGradientMask>(mask);
+        SetNoisyFrameGradientMaskParams(noisyFrameGradientMask, i);
+
+        // Create Color Gradient Effect
+        auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        SetColorGradientEffectParams(colorGradient, i);
+        colorGradient->Setter<ColorGradientEffectMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(noisyFrameGradientMask));
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetBackgroundNGShader(colorGradient);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_1)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+
+        // Create circle flowLight effect
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        SetAIBarRectHaloParams(aiBarRectHalo, i);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetBackgroundNGShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+// Test Foreground Noisy Frame Gradient Mask and Color Gradient Effect
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Mask_Noisy_Frame_Gradient_Foreground_Test)
+{
+    const int columnCount = 2;
+    const int rowCount = static_cast<int>(TestDataGroupParamsType::COUNT);
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        // Create Noisy Frame Gradient Mask
+        auto mask = CreateMask(RSNGEffectType::NOISY_FRAME_GRADIENT_MASK);
+        auto noisyFrameGradientMask = std::static_pointer_cast<RSNGNoisyFrameGradientMask>(mask);
+        SetNoisyFrameGradientMaskParams(noisyFrameGradientMask, i);
+
+        // Create Color Gradient Effect
+        auto colorGradient = std::make_shared<RSNGColorGradientEffect>();
+        SetColorGradientEffectParams(colorGradient, i);
+        colorGradient->Setter<ColorGradientEffectMaskTag>(
+            std::static_pointer_cast<RSNGMaskBase>(noisyFrameGradientMask));
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto foregroundTestNode = SetUpNodeBgImage(g_foregroundImagePath, { x, y, sizeX, sizeY });
+        foregroundTestNode->SetForegroundShader(colorGradient);
+        GetRootNode()->AddChild(foregroundTestNode);
+        RegisterNode(foregroundTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Test_2)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+
+        // Create circle flowLight effect
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        SetAIBarRectHaloParams(aiBarRectHalo, 4 + i); // invalid LTWH params
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetBackgroundNGShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
+
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Foreground_Test)
+{
+    int columnCount = 2;
+    int rowCount = 4;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+
+        // Create circle flowLight effect
+        auto aiBarRectHalo = std::make_shared<RSNGAIBarRectHalo>();
+        SetAIBarRectHaloParams(aiBarRectHalo, i);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto node = Rosen::RSCanvasNode::Create();
+        node->SetBounds({ x, y, sizeX, sizeY });
+        node->SetFrame({ x, y, sizeX, sizeY });
+        node->SetForegroundShader(aiBarRectHalo);
+        node->SetBackgroundColor(0x88888888);
+        GetRootNode()->AddChild(node);
+        RegisterNode(node);
+    }
+}
 }  // namespace OHOS::Rosen

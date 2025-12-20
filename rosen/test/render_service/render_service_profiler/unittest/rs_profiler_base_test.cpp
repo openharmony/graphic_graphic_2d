@@ -492,32 +492,40 @@ HWTEST(RSProfilerMetrics, DoNoAddNegativeBlurMetrics, Level1)
 }
 
 class RecorRsProfileRecordTest : public testing::Test {
-protected:
-    void SetUp() override
-    {
-        renderService = GetAndInitRenderService();
-        RSProfiler::Init(renderService);
-    }
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
 
 private:
-    sptr<RSRenderService> GetAndInitRenderService()
-    {
-        sptr<RSRenderService> renderService(new RSRenderService());
-        if (renderService) {
-            renderService->mainThread_ = RSMainThread::Instance();
-            renderService->screenManager_ = CreateOrGetScreenManager();
-        }
-        if (renderService->mainThread_) {
-            renderService->mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
-            renderService->mainThread_->handler_ =
-                std::make_shared<AppExecFwk::EventHandler>(renderService->mainThread_->runner_);
-        }
-        return renderService;
-    }
-
-private:
-    sptr<RSRenderService> renderService;
+    static sptr<RSRenderService> renderService_;
+    static RSMainThread* mainThread_;
 };
+sptr<RSRenderService> RecorRsProfileRecordTest::renderService_ = nullptr;
+RSMainThread* RecorRsProfileRecordTest::mainThread_ = nullptr;
+
+void RecorRsProfileRecordTest::SetUpTestCase()
+{
+    mainThread_ = RSMainThread::Instance();
+    mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
+    mainThread_->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread_->runner_);
+
+    renderService_ = new RSRenderService();
+    renderService_->mainThread_ = mainThread_;
+    renderService_->screenManager_ = CreateOrGetScreenManager();
+
+    RSProfiler::Init(renderService_);
+}
+
+void RecorRsProfileRecordTest::TearDownTestCase()
+{
+    // Wait for all tasks in the main thread to complete.
+    mainThread_->ScheduleTask([]() -> int { return 0; }).get();
+}
+
+void RecorRsProfileRecordTest::SetUp() {}
+void RecorRsProfileRecordTest::TearDown() {}
 
 /*
  * @tc.name: RecordStartFail

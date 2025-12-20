@@ -31,6 +31,7 @@ public:
     static bool IsMirrorDisplayCloseP3();
     static bool IsSkipFrameByActiveRefreshRate();
     static Drawing::MipmapMode GetMipmapMode();
+    static bool IsForceRenderForMirror();
 
 protected:
     static void SetExternalScreenSecure(bool isSecure);
@@ -39,6 +40,7 @@ protected:
     static void SetMirrorDisplayCloseP3(bool isEnabled);
     static void SetMipmapMode(Drawing::MipmapMode modeValue);
     static void SetSkipFrameByActiveRefreshRate(bool isEnabled);
+    static void SetForceRenderForMirror(bool isEnabled);
 
 private:
     inline static bool isExternalScreenSecure_ = false;
@@ -47,6 +49,7 @@ private:
     inline static bool isMirrorDisplayCloseP3_ = true;
     inline static bool isSkipFrameByActiveRefreshRate_ = false;
     inline static Drawing::MipmapMode mipMapModeValue_ = Drawing::MipmapMode::NEAREST;
+    inline static bool isForceRenderForMirror_ = false;
  
     friend class MultiScreenParamParse;
 };

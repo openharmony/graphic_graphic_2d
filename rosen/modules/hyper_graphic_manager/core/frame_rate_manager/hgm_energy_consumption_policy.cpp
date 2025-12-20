@@ -229,7 +229,7 @@ bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange, pid_t pid
         }
     }
     if (!isEnergyAssured) {
-        HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
+        HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}u is invalid", rsRange.type_);
         return false;
     }
     bool isEnergyAssuranceEnable = fpsInfo.first;

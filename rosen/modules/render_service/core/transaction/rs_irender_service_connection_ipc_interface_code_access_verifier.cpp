@@ -267,6 +267,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_BLACKLIST");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_VIRTUAL_SCREEN_WHITELIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_WHITELIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_WHITELIST");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROG_SCREEN_RESOLUTION): {
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_ROG_SCREEN_RESOLUTION");
             break;

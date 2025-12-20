@@ -233,7 +233,7 @@ bool MemoryTrack::RemoveNodeFromMap(const NodeId id, pid_t& pid, size_t& size)
         RS_LOGD("MemoryTrack::RemoveNodeFromMap no this nodeId = %{public}" PRIu64, id);
         return false;
     }
-    pid = memNodeMap_[id].pid;
+    pid = static_cast<pid_t>(memNodeMap_[id].pid);
     size = memNodeMap_[id].size;
     memNodeMap_.erase(itr);
     return true;
@@ -282,7 +282,7 @@ MemoryGraphic MemoryTrack::CountRSMemory(const pid_t pid)
         });
 
         for (auto it = memPicRecord_.begin(); it != memPicRecord_.end(); it++) {
-            pid_t picPid = it->second.pid;
+            pid_t picPid = static_cast<pid_t>(it->second.pid);
             if (pid == picPid) {
                 totalMemSize += static_cast<uint64_t>(it->second.size);
             }
@@ -355,7 +355,7 @@ void MemoryTrack::UpdatePictureInfo(const void* addr, NodeId nodeId, pid_t pid)
     std::lock_guard<std::mutex> lock(mutex_);
     auto itr = memPicRecord_.find(addr);
     if (itr != memPicRecord_.end()) {
-        itr->second.pid = pid;
+        itr->second.pid = static_cast<uint32_t>(pid);
         itr->second.nid = nodeId;
     }
 }

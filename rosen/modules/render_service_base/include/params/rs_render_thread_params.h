@@ -19,6 +19,7 @@
 #include <memory>
 #include <vector>
 #include "common/rs_occlusion_region.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/ohos/rs_jank_stats.h"
@@ -41,6 +42,7 @@ struct CaptureParam {
     NodeId endNodeId_ = INVALID_NODEID;
     bool captureFinished_ = false;
     bool needCaptureSpecialLayer_ = false;
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData_ = nullptr;
     CaptureParam() {}
     CaptureParam(bool isSnapshot, bool isSingleSurface, bool isMirror, bool isFirstNode = false,
         bool isSystemCalling = false, bool isSelfCapture = false, bool isNeedBlur = false,

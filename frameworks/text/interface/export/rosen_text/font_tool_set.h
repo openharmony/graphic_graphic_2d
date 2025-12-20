@@ -26,7 +26,8 @@ public:
     static FontToolSet& GetInstance();
     ~FontToolSet() = default;
     
-    std::vector<std::string> GetFontFullName(const std::string& path);
+    // This function only works in the OHOS environment.
+    std::vector<std::string> GetFontFullName(int fd);
 private:
     FontToolSet() = default;
     FontToolSet(const FontToolSet&) = delete;

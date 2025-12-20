@@ -360,7 +360,7 @@ HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsReplacedOpListForVectorIsNot
 
     drawCmdList->replacedOpListForVector_.emplace_back();
     drawCmdList->ProfilerMarshallingDrawOps(secondDrawCmdList);
-    EXPECT_FALSE(secondDrawCmdList->lastOpItemOffset_.has_value());
+    EXPECT_TRUE(secondDrawCmdList->lastOpItemOffset_.has_value());
 
     delete drawCmdList;
     delete secondDrawCmdList;
@@ -568,6 +568,53 @@ HWTEST_F(DrawCmdListTest, GetDrawingObjectOutOfBounds001, TestSize.Level1)
     // Index greater than size should fail
     auto outOfBoundsResult4 = drawCmdList->GetDrawingObject(4);
     EXPECT_EQ(outOfBoundsResult4, nullptr); // index 4 >= size 3
+}
+
+/**
+ * @tc.name: SetNoImageMarshallingFlagTest
+ * @tc.desc: Test the SetNoImageMarshallingFlag function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, SetNoImageMarshallingFlagTest, TestSize.Level1)
+{
+    auto cmdList = std::make_shared<CmdList>();
+    ASSERT_NE(cmdList, nullptr);
+    cmdList->SetNoImageMarshallingFlag(false);
+    ASSERT_FALSE(cmdList->GetNoImageMarshallingFlag());
+    cmdList->SetNoImageMarshallingFlag(true);
+    ASSERT_TRUE(cmdList->GetNoImageMarshallingFlag());
+}
+
+/**
+ * @tc.name: ProfilerMarshallingDrawOpsTest001
+ * @tc.desc: Test the ProfilerMarshallingDrawOps function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsTest001, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->ProfilerMarshallingDrawOps(nullptr);
+    auto otherDrawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->ProfilerMarshallingDrawOps(otherDrawCmdList.get());
+    ASSERT_EQ(drawCmdList->mode_, DrawCmdList::UnmarshalMode::IMMEDIATE);
+}
+
+/**
+ * @tc.name: ProfilerMarshallingDrawOpsTest002
+ * @tc.desc: Test the ProfilerMarshallingDrawOps function.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DrawCmdListTest, ProfilerMarshallingDrawOpsTest002, TestSize.Level1)
+{
+    auto drawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::DEFERRED);
+    auto otherDrawCmdList = std::make_shared<DrawCmdList>(DrawCmdList::UnmarshalMode::IMMEDIATE);
+    drawCmdList->drawOpItems_.clear();
+    drawCmdList->ProfilerMarshallingDrawOps(otherDrawCmdList.get());
+    drawCmdList->drawOpItems_.push_back(nullptr);
+    Brush brush;
+    drawCmdList->drawOpItems_.push_back(std::make_shared<DrawBackgroundOpItem>(brush));
+    drawCmdList->ProfilerMarshallingDrawOps(otherDrawCmdList.get());
+    ASSERT_NE(drawCmdList->mode_, DrawCmdList::UnmarshalMode::IMMEDIATE);
 }
 } // namespace Drawing
 } // namespace Rosen

@@ -559,6 +559,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
     surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
@@ -604,6 +605,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
     surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
@@ -649,6 +651,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
     surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
@@ -694,6 +697,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetSecurityDispla
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
     surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
@@ -745,6 +749,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMir
 
     RSSurfaceNodeConfig surfaceNodeConfig0;
     auto surfaceNode0 = RSSurfaceNode::Create(surfaceNodeConfig0);
+    ASSERT_NE(surfaceNode0, nullptr);
     surfaceNode0->SetBounds({ 0, 0, 500, 500 });
     surfaceNode0->SetFrame({ 0, 0, 500, 500 });
     surfaceNode0->SetBackgroundColor(SK_ColorYELLOW);
@@ -783,6 +788,7 @@ GRAPHIC_N_TEST(RSLogicalDisplayNodeTest, CONTENT_DISPLAY_TEST, SetDisplayNodeMir
 
     RSSurfaceNodeConfig surfaceNodeConfig;
     auto surfaceNode1 = RSSurfaceNode::Create(surfaceNodeConfig);
+    ASSERT_NE(surfaceNode1, nullptr);
     surfaceNode1->SetBounds({ 0, 0, 300, 400 });
     surfaceNode1->SetFrame({ 0, 0, 300, 400 });
     surfaceNode1->SetBackgroundColor(SK_ColorBLUE);
