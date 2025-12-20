@@ -647,7 +647,7 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(const Drawing::Path& path,
     brush.SetAntiAlias(true);
     brush.SetColor(styleBlock.fStyle.getColor());
     bitmapCanvas_->AttachBrush(brush);
-  
+
     bitmapCanvas_->Translate(-left, -top);
     bitmapCanvas_->DrawPath(path);
     bitmapCanvas_->Flush();
