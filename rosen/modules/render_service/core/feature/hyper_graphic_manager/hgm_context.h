@@ -40,7 +40,6 @@ public:
     void InitHgmTaskHandleThread(
         const sptr<VSyncController>& rsVSyncController, const sptr<VSyncController>& appVSyncController,
         const sptr<VSyncGenerator>& vsyncGenerator);
-    void InitHfbcConfig();
     void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
 
@@ -104,6 +103,7 @@ private:
     void InitHgmUpdateCallback();
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
+    void InitHfbcConfig();
     std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_ = nullptr;
     std::shared_ptr<HgmFrameRateManager> frameRateManager_ = nullptr;
     HgmCore& hgmCore_;
@@ -123,6 +123,7 @@ private:
 
     bool isAdaptive_ = false;
     std::string gameNodeName_ = "";
+
     std::function<void(bool, ScreenId)> requestRSNextVsyncFunc_;
     mutable std::mutex hgmMutex_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;

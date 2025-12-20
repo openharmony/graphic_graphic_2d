@@ -166,18 +166,15 @@ void RSRenderService::CoreComponentsInit()
 
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
-            if (renderProcessManager_ == nullptr) {
-                RS_LOGE("%{public}s: renderProcessManager_ is nullptr", __func__);
-                return;
-            }
-            if (auto serviceToRenderConn = renderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
-                serviceToRenderConn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+            if (renderProcessManager_) {
+                if (auto serviceToRenderConn = renderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
+                    serviceToRenderConn ->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+                }
             }
         };
         hgmContext_ = std::make_shared<HgmContext>(handler_, frameRateMgr, callbackFunc,
             appVSyncDistributor_, rsVSyncDistributor_);
         hgmContext_->InitHgmTaskHandleThread(rsVSyncController_, appVSyncController_, vsyncGenerator_);
-        hgmContext_->InitHfbcConfig();
     }
 
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);

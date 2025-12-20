@@ -131,7 +131,6 @@ ohos_shared_library("librender_service") {
     "core/feature/hpae/rs_hpae_buffer.cpp",
     "core/feature/hpae/rs_hpae_manager.cpp",
     "core/feature/hpae/rs_hpae_render_listener.cpp",
-    "core/feature/hyper_graphic_manager/hgm_client.cpp",
     "core/feature/hyper_graphic_manager/hgm_context.cpp",
     "core/feature/hyper_graphic_manager/hgm_hardware_utils.cpp",
     "core/feature/hyper_graphic_manager/hgm_info_parcel.cpp",

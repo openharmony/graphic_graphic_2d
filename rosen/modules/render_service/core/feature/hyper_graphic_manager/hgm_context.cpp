@@ -68,8 +68,8 @@ void HgmContext::InitHgmTaskHandleThread(
         frameRateManager->SetForceUpdateCallback(task);
         frameRateManager->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
     });
-
     InitHgmUpdateCallback();
+    InitHfbcConfig();
 }
 
 void HgmContext::InitHgmUpdateCallback()
