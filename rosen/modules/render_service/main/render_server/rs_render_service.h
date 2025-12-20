@@ -48,6 +48,28 @@ public:
     void Run();
 
 private:
+    class ScreenManagerListener : public RSIScreenManagerListener {
+    public:
+        explicit ScreenManagerListener(RSRenderService& renderService) : renderService_(renderService) {}
+        ~ScreenManagerListener() noexcept override = default;
+
+        sptr<IRemoteObject> OnScreenConnected(ScreenId id,
+            const ScreenEventData& data, const sptr<RSScreenProperty>& property) override;
+        void OnScreenDisconnected(ScreenId id) override;
+        void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
+        void OnScreenRefresh(ScreenId id) override;
+        void OnVBlankIdle(ScreenId id, uint64_t ns) override;
+        void OnVirtualScreenConnected(ScreenId id,
+            ScreenId associatedScreenId, const sptr<RSScreenProperty>& property) override;
+        void OnVirtualScreenDisconnected(ScreenId id) override;
+        void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
+        void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
+        void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
+
+    private:
+        RSRenderService& renderService_;
+    };
+
     int Dump(int fd, const std::vector<std::u16string>& args) override;
     void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
 

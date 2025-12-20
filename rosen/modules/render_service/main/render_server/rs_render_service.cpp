@@ -240,7 +240,8 @@ void RSRenderService::RenderProcessManagerInit()
     // TODO: mainThread_ need to be removed in render_service asap
     mainThread_ = RSMainThread::Instance();
     renderProcessManager_ = RSRenderProcessManager::Create(*this);
-    screenManager_->RegisterCoreListener(renderProcessManager_);
+    auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
+    screenManager_->RegisterCoreListener(screenManagerListener);
     if (screenManager_->Init_V2(handler_)) {
         RS_LOGE("ScreenManager initV2 Success");
     }
@@ -381,6 +382,60 @@ void RSRenderService::FpsDump(std::string& dumpString, std::string& arg)
     if (rsRenderComposerManager_) {
         rsRenderComposerManager_->FpsDump(dumpString, arg);
     }
+}
+
+sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(ScreenId screenId,
+    const ScreenEventData& data, const sptr<RSScreenProperty>& property)
+{
+    return renderService_.renderProcessManager_->OnScreenConnected(screenId, data, property);
+}
+
+void RSRenderService::ScreenManagerListener::OnScreenDisconnected(ScreenId id)
+{
+    renderService_.renderProcessManager_->OnScreenDisconnected(id);
+}
+
+void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(ScreenId id,
+    const sptr<RSScreenProperty>& property)
+{
+    renderService_.renderProcessManager_->OnScreenPropertyChanged(id, property);
+}
+
+void RSRenderService::ScreenManagerListener::OnScreenRefresh(ScreenId id)
+{
+    renderService_.renderProcessManager_->OnScreenRefresh(id, property);
+}
+
+void RSRenderService::ScreenManagerListener::OnVBlankIdle(ScreenId id, uint64_t ns)
+{
+    renderService_.renderProcessManager_->OnVBlankIdle(id, ns);
+}
+
+void RSRenderService::ScreenManagerListener::OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
+    const sptr<RSScreenProperty>& property)
+{
+    renderService_.renderProcessManager_->OnVirtualScreenConnected(id, associatedScreenId, property);
+}
+
+void RSRenderService::ScreenManagerListener::OnVirtualScreenDisconnected(ScreenId id)
+{
+    renderService_.renderProcessManager_->OnVirtualScreenDisconnected(id);
+}
+
+void RSRenderService::ScreenManagerListener::OnHwcEvent(uint32_t deviceId, uint32_t eventId,
+    const std::vector<int32_t>& eventData)
+{
+    renderService_.renderProcessManager_->OnHwcEvent(deviceId, eventId, eventData);
+}
+
+void RSRenderService::ScreenManagerListener::OnActiveScreenIdChanged(ScreenId activeScreenId)
+{
+    renderService_.renderProcessManager_->OnActiveScreenIdChanged(activeScreenId);
+}
+
+void RSRenderService::ScreenManagerListener::OnScreenBacklightChanged(ScreenId id, uint32_t level)
+{
+    renderService_.renderProcessManager_->OnScreenBacklightChanged(id, level);
 }
 } // namespace Rosen
 } // namespace OHOS
