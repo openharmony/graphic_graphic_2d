@@ -56,7 +56,8 @@ GRAPHIC_TEST(CustomDrawTest, CONTENT_DISPLAY_TEST, DrawOnNode_Test)
     auto testNode1 = RSCanvasNode::Create(true);
     auto node = std::static_pointer_cast<RSNode>(testNode1);
     setNode(node, { 0, 0, width, height }, Vector4<Color>(Color(0, 255, 0)));
-    testNode1->DrawOnNode(ModifierNG::RSModifierType::CONTENT_STYLE, [testNode1](std::shared_ptr<Drawing::Canvas> canvas) {
+    testNode1->DrawOnNode(ModifierNG::RSModifierType::CONTENT_STYLE,
+        [testNode1](std::shared_ptr<Drawing::Canvas> canvas) {
         Drawing::Brush brush;
         brush.SetColor(Drawing::Color::COLOR_CYAN);
         canvas->AttachBrush(brush);
