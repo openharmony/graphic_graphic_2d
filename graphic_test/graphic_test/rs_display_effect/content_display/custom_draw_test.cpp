@@ -79,4 +79,3 @@ GRAPHIC_TEST(CustomDrawTest, CONTENT_DISPLAY_TEST, DrawOnNode_Test)
     RegisterNode(testNode2);
 }
 } // namespace OHOS::Rosen
-
