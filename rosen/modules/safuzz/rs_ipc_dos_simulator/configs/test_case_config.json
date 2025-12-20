@@ -1530,6 +1530,15 @@
     "commandListRepeat": 1
   },
   {
+    "testCaseDesc": "COMMIT_TRANSACTION_TEST_178",
+    "interfaceName": "COMMIT_TRANSACTION",
+    "inputParams": "WriteRSTransactionData",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC",
+    "commandList": "RSSetTakeSurfaceForUIFlag*100",
+    "commandListRepeat": 1
+  },
+  {
     "testCaseDesc": "GET_UNI_RENDER_ENABLED_TEST_001",
     "interfaceName": "GET_UNI_RENDER_ENABLED",
     "inputParams": "",
@@ -2682,6 +2691,27 @@
     "interfaceName": "TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS",
     "inputParams": "WriteUint64;WriteBool;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
     "writeInterfaceToken": true,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "TAKE_UI_CAPTURE_IN_RANGE_TEST_001",
+    "interfaceName": "TAKE_UI_CAPTURE_IN_RANGE",
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_ASYNC"
+  },
+  {
+    "testCaseDesc": "TAKE_SURFACE_CAPTURE_SOLO_TEST_001",
+    "interfaceName": "TAKE_SURFACE_CAPTURE_SOLO",
+    "inputParams": "WriteUint64;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
+    "writeInterfaceToken": false,
+    "messageOption": "TF_SYNC"
+  },
+  {
+    "testCaseDesc": "TAKE_SELF_SURFACE_CAPTURE_TEST_001",
+    "interfaceName": "TAKE_SELF_SURFACE_CAPTURE",
+    "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUint64;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteUInt64Vector;WriteUint32",
+    "writeInterfaceToken": false,
     "messageOption": "TF_ASYNC"
   },
   {
