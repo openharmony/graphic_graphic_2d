@@ -97,12 +97,9 @@ public:
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     void OnScreenRefresh(ScreenId screenId);
-    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
-    void RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn);
 
 private:
-    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const std::shared_ptr<VSyncReceiver>& receiver,
+    void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void InitEnvironment();

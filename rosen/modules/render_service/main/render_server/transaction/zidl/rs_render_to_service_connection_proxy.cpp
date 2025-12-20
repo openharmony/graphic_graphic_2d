@@ -91,7 +91,7 @@ sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRpHgmFrame
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_PROCESS_FRAME_RATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGE("%{public}s SendRequest failed, err is %{public}d.", __func__, err);
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return nullptr;
     }
     auto serviceToProcessInfo = sptr<HgmServiceToProcessInfo>(reply.ReadParcelable<HgmServiceToProcessInfo>());
@@ -110,12 +110,12 @@ void RSRenderToServiceConnectionProxy::NotifyScreenSwitchFinished(ScreenId scree
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCH_FINISHED);
     if (!data.WriteUint64(screenId)) {
-        RS_LOGE("%{public}s WriteUint64 failed", __func__);
+        RS_LOGE("%{public}s: WriteUint64 failed", __func__);
         return;
     }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        RS_LOGE("%{public}s SendRequest failed, err is %{public}d.", __func__, err);
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
     }
 }
 

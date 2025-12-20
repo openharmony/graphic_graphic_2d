@@ -592,7 +592,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         std::placeholders::_1));
     RSSystemProperties::WatchSystemProperty(HIDE_NOTCH_STATUS, OnHideNotchStatusCallback, nullptr);
     RSSystemProperties::WatchSystemProperty(DRAWING_CACHE_DFX, OnDrawingCacheDfxSwitchCallback, nullptr);
-    rsVsyncManagerAgent_ = rsVsyncManagerAgent_;
+    rsVsyncManagerAgent_ = rsVsyncManagerAgent;
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
         unmarshalBarrierTask_ = [this]() {
