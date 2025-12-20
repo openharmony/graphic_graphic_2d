@@ -56,7 +56,10 @@ public:
         }
         node->SetAlpha(0.5f);
         node->SetBounds(bounds);
-        node->SetTranslate(translate[0], translate[1], translate[2]);
+        float transX = translate[0];
+        float transY = translate[1];
+        float transZ = translate[2];
+        node->SetTranslate(transX, transY, transZ);
         Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
         node->SetBorderStyle(style);
         Vector4f borderWidth = { 50, 50, 50, 50 };
@@ -648,13 +651,25 @@ enum {
 static RSCanvasNode::SharedPtr BorderCreate(vector<vector<float>> &vecs)
 {
     auto testNode = RSCanvasNode::Create();
+    float left = vecs[BOUNDS][0];
+    float top = vecs[BOUNDS][1];
+    float right = vecs[BOUNDS][2];
+    float bottom = vecs[BOUNDS][3];
     testNode->SetAlpha(0.1f);
-    testNode->SetBounds(vecs[BOUNDS][0], vecs[BOUNDS][1], vecs[BOUNDS][2], vecs[BOUNDS][3]);
+    testNode->SetBounds(left, top, right, bottom);
     testNode->SetBackgroundColor(0x8FFF00FF);
-    testNode->SetBorderColor(vecs[COLOR][0], vecs[COLOR][1], vecs[COLOR][2], vecs[COLOR][3]);
+    float colorOne = vecs[COLOR][0];
+    float colorTwo = vecs[COLOR][1];
+    float colorThree = vecs[COLOR][2];
+    float colorFour = vecs[COLOR][3];
+    testNode->SetBorderColor(colorOne, colorTwo, colorThree, colorFour);
     testNode->SetBorderWidth({vecs[WIDTH][0], vecs[WIDTH][1], vecs[WIDTH][2], vecs[WIDTH][3]});
     testNode->SetCornerRadius({vecs[RADIUS][0], vecs[RADIUS][1], vecs[RADIUS][2], vecs[RADIUS][3]});
-    testNode->SetBorderStyle(vecs[STYLE][0], vecs[STYLE][1], vecs[STYLE][2], vecs[STYLE][3]);
+    float styleOne = vecs[STYLE][0];
+    float styleTwo = vecs[STYLE][1];
+    float styleThree = vecs[STYLE][2];
+    float styleFour = vecs[STYLE][3];
+    testNode->SetBorderStyle(styleOne, styleTwo, styleThree, styleFour);
     testNode->SetBorderDashGap({vecs[DASHGAP][0], vecs[DASHGAP][1], vecs[DASHGAP][2], vecs[DASHGAP][3]});
     testNode->SetBorderDashWidth({vecs[DASHWIDTH][0], vecs[DASHWIDTH][1], vecs[DASHWIDTH][2], vecs[DASHWIDTH][3]});
     return testNode;
@@ -663,8 +678,12 @@ static RSCanvasNode::SharedPtr BorderCreate(vector<vector<float>> &vecs)
 static RSCanvasNode::SharedPtr BorderCreate2(vector<vector<float>> &vecs)
 {
     auto testNode = RSCanvasNode::Create();
+    float left = vecs[BOUNDS][0];
+    float top = vecs[BOUNDS][1];
+    float right = vecs[BOUNDS][2];
+    float bottom = vecs[BOUNDS][3];
     testNode->SetAlpha(0.2f);
-    testNode->SetBounds(vecs[BOUNDS][0], vecs[BOUNDS][1], vecs[BOUNDS][2], vecs[BOUNDS][3]);
+    testNode->SetBounds(left, top, right, bottom);
     testNode->SetBackgroundColor(0x12FF0000);
     testNode->SetBorderColor(vecs[COLOR][0]);
     testNode->SetBorderWidth(vecs[WIDTH][0]);
@@ -678,8 +697,12 @@ static RSCanvasNode::SharedPtr BorderCreate2(vector<vector<float>> &vecs)
 static RSCanvasNode::SharedPtr BorderCreate3(vector<vector<float>> &vecs)
 {
     auto testNode = RSCanvasNode::Create();
+    float left = vecs[BOUNDS][0];
+    float top = vecs[BOUNDS][1];
+    float right = vecs[BOUNDS][2];
+    float bottom = vecs[BOUNDS][3];
     testNode->SetAlpha(0.3f);
-    testNode->SetBounds(vecs[BOUNDS][0], vecs[BOUNDS][1], vecs[BOUNDS][2], vecs[BOUNDS][3]);
+    testNode->SetBounds(left, top, right, bottom);
     testNode->SetBackgroundColor(0x12FF0000);
     Vector4<Color> outLineColor = {
         {vecs[COLOR][0], vecs[COLOR][1], vecs[COLOR][2]},
@@ -688,7 +711,11 @@ static RSCanvasNode::SharedPtr BorderCreate3(vector<vector<float>> &vecs)
         {vecs[COLOR][0], vecs[COLOR][3], vecs[COLOR][1]}
     };
     testNode->SetBorderColor(outLineColor);
-    testNode->SetBorderWidth(vecs[WIDTH][0], vecs[WIDTH][1], vecs[WIDTH][2], vecs[WIDTH][3]);
+    float widthOne = vecs[WIDTH][0];
+    float widthTwo = vecs[WIDTH][1];
+    float widthThree = vecs[WIDTH][2];
+    float widthFour = vecs[WIDTH][3];
+    testNode->SetBorderWidth(widthOne, widthTwo, widthThree, widthFour);
     testNode->SetCornerRadius({vecs[RADIUS][0], vecs[RADIUS][1], vecs[RADIUS][2], vecs[RADIUS][3]});
     Vector4<BorderStyle> style = {
         (BorderStyle)vecs[STYLE][0],
