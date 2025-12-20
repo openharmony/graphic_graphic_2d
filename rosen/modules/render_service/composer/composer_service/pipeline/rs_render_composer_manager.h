@@ -26,7 +26,6 @@ public:
     RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler);
     ~RSRenderComposerManager() = default;
 
-    void SetComposerToRenderConnection(ScreenId screenId, sptr<RSIComposerToRenderConnection> conn);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnHwcRestored(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);

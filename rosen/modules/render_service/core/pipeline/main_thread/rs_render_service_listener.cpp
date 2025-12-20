@@ -173,7 +173,7 @@ void RSRenderServiceListener::CleanLayerBufferCache()
     uint64_t surfaceId = consumer->GetUniqueId();
     auto rsRenderComposerClientMap = uniRenderThread_->GetRSRenderComposerClientMap();
     for (auto iter = rsRenderComposerClientMap.begin(); iter != rsRenderComposerClientMap.end(); iter++) {
-        if (iter->second->GetComposerContext()->GetRSLayer(node->GetId()) != nullptr) {
+        if (iter->second->GetRSLayer(node->GetId()) != nullptr) {
             iter->second->CleanLayerBufferBySurfaceId(surfaceId);
             break;
         }

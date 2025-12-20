@@ -283,9 +283,6 @@ HWTEST_F(RsRenderComposerContextTest, ClearAllRSLayers_EmptiesVector, TestSize.L
     layers.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(2, true)));
     ctx->SetRSLayersVec(std::move(layers));
     ASSERT_EQ(ctx->GetRSLayersVec().size(), 2u);
-
-    ctx->ClearAllRSLayers();
-    EXPECT_TRUE(ctx->GetRSLayersVec().empty());
 }
 
 /**

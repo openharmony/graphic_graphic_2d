@@ -27,7 +27,7 @@ RSRenderComposerAgent::RSRenderComposerAgent(const std::shared_ptr<RSRenderCompo
     : rsRenderComposer_(rsRenderComposer)
 {}
 
-void RSRenderComposerAgent::SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn)
+void RSRenderComposerAgent::SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
 {
     if (rsRenderComposer_ == nullptr) {
         RS_LOGE("rsRenderComposer is nullptr");
@@ -35,12 +35,12 @@ void RSRenderComposerAgent::SetComposerToRenderConnection(sptr<RSIComposerToRend
     }
     std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
     rsRenderComposer_->PostTask(
-        [weakThis, conn]() {
+        [weakThis, composerToRenderConn]() {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
                 return;
             }
-            renderComposerAgent->rsRenderComposer_->SetComposerToRenderConnection(conn);
+            renderComposerAgent->rsRenderComposer_->SetComposerToRenderConnection(composerToRenderConn);
         }
     );
 }
