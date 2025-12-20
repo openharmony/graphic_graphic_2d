@@ -77,10 +77,13 @@ void RSRenderComposerClient::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
     IncUnExecuteTaskNum();
     commitLayerInfo.pipelineParam = pipelineParam_;
     pipelineParam_.ResetSurfaceFpsOp();
+    if (!rsLayerContext_->CommitRSLayer(commitLayerInfo)) {
+        SubUnExecuteTaskNum();
+        RS_LOGE("CommitRSLayer failed, restore task count");
+    }
     if (rsVsyncManagerAgent_ != nullptr) {
         rsVsyncManagerAgent_->SetHardwareTaskNum(GetUnExecuteTaskNum());
     }
-    rsLayerContext_->CommitRSLayer(commitLayerInfo);
 }
 
 PipelineParam RSRenderComposerClient::GetPipelineParam()

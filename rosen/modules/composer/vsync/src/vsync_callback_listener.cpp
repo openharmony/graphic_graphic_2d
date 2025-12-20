@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <hitrace_meter.h>
 #if defined(RS_ENABLE_DVSYNC_2)
-#include "dvsync_delay.h"
+#include "dvsync_lib_manager.h"
 #endif
 #include "graphic_common.h"
 #include "rs_frame_report_ext.h"
@@ -61,13 +61,13 @@ void VSyncCallBackListener::OnReadable(int32_t fileDescriptor)
             dataCount, fileDescriptor, weak = weak_from_this()]() {
         if (auto self = weak.lock()) {
             int64_t newData[3] = {now, period, vsyncId};
-            DVSyncDelay::Instance().UpdateDelayInfo();
+            DVSyncLibManager::Instance().UpdateDelayInfo();
             self->HandleVsyncCallbacks(newData, dataCount, fileDescriptor);
         } else {
             VLOGE("VSyncCallBackListener::OnReadable, weak.lock error");
         }
     };
-    DVSyncDelay::Instance().ToDelay(taskFunc, name_, fileDescriptor);
+    DVSyncLibManager::Instance().ToDelay(taskFunc, name_, fileDescriptor);
 #else
     HandleVsyncCallbacks(data, dataCount, fileDescriptor);
 #endif

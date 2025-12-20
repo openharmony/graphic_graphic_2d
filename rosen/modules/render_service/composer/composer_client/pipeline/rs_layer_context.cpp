@@ -108,15 +108,15 @@ void RSLayerContext::DumpCurrentFrameLayers()
     }
 }
 
-void RSLayerContext::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
+bool RSLayerContext::CommitRSLayer(CommitLayerInfo& commitLayerInfo)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsLayerTransactionHandler_ == nullptr) {
         RS_LOGE("RSLayerContext::CommitLayers rsLayerTransactionHandler is nullptr");
-        return;
+        return false;
     }
     RS_LOGD("RSLayerContext::CommitRSLayer rsLayers_ size: %{public}zu", rsLayers_.size());
-    rsLayerTransactionHandler_->CommitRSLayerTransaction(commitLayerInfo);
+    return rsLayerTransactionHandler_->CommitRSLayerTransaction(commitLayerInfo);
 }
 
 
@@ -191,8 +191,8 @@ void RSLayerContext::ReleaseLayerBuffers(uint64_t screenId,
         auto seqNum = buffer->GetSeqNum();
         auto bufferOwnerCount = layer->GetSeqNumFromBufferOwnerCounts(seqNum);
 
-        RS_LOGI("RSBufferManager ReleaseLayerBuffers seqNum %{public}u fence %{public}d", uint32_t(seqNum), fence ? fence->Get() : -1);
-        RS_TRACE_NAME_FMT("RSBufferManager ReleaseLayerBuffers seqNum %u fence %d", uint32_t(seqNum), fence ? fence->Get() : -1);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager ReleaseLayerBuffers seqNum %u fence %d",
+            uint32_t(seqNum), fence ? fence->Get() : -1);
 
         if (bufferOwnerCount) {
             if (layer->GetUniRenderFlag()) {
@@ -203,11 +203,8 @@ void RSLayerContext::ReleaseLayerBuffers(uint64_t screenId,
             if (onBufferReleaseFunc_) {
                 onBufferReleaseFunc_(seqNum, fence);
             } else {
-                RS_LOGI("RSBufferManager onBufferReleaseFunc_ is nullptr");
+                RS_LOGE("RSBufferManager onBufferReleaseFunc_ is nullptr");
             }
-
-            RS_LOGI("RSBufferManager ReleaseLayerBuffers GetSeqNumFromBufferOwnerCounts DecRef seqNum %{public}u", uint32_t(seqNum));
-            RS_TRACE_NAME_FMT("RSBufferManager ReleaseLayerBuffers GetSeqNumFromBufferOwnerCounts DecRef seqNum %u", uint32_t(seqNum));
 
             bufferOwnerCount->OnBufferReleased();
             decedSet.insert(seqNum);
@@ -237,7 +234,7 @@ void RSLayerContext::ReleaseLayerBuffers(uint64_t screenId,
             if (onBufferReleaseFunc_) {
                 onBufferReleaseFunc_(bufferOwnerCount->seqNum_, uniFence);
             } else {
-                RS_LOGI("RSBufferManager onBufferReleaseFunc_ is nullptr");
+                RS_LOGE("RSBufferManager onBufferReleaseFunc_ is nullptr");
             }
             if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->seqNum_)) {
                 layer->SetBufferOwnerCount(bufferOwnerCount);

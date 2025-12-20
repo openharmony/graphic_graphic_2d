@@ -516,6 +516,14 @@
               "header_files": [ "canvas_ani/ani_canvas.h" ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/ani/drawing"
             }
+          },
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+            "header": {
+              "header_files": [],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include"
+            }
           }
         ],
         "test": [

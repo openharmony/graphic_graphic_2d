@@ -53,7 +53,7 @@ group("unittest") {
     deps += [
       ":RSSubThreadManagerTest",
       ":RSSubThreadTest",
-      ":RSVsyncRateReduceManagerTest",
+      ":RPVsyncRateReduceManagerTest",
     ]
   }
   if (rs_enable_eglimage) {
@@ -380,6 +380,7 @@ ohos_unittest("RSUifirstManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -437,6 +438,7 @@ ohos_unittest("RSDrawWindowCacheTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -456,6 +458,7 @@ ohos_unittest("RSSubThreadManagerTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -490,6 +493,7 @@ ohos_unittest("RSSubThreadTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -524,6 +528,7 @@ ohos_unittest("RSSubThreadCacheTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = [
     "c_utils:utils",
@@ -536,10 +541,10 @@ ohos_unittest("RSSubThreadCacheTest") {
   }
 }
 
-## Build RSVsyncRateReduceManagerTest
-ohos_unittest("RSVsyncRateReduceManagerTest") {
+## Build RPVsyncRateReduceManagerTest
+ohos_unittest("RPVsyncRateReduceManagerTest") {
   module_out_path = module_output_path
-  sources = [ "vrate/rs_vsync_rate_reduce_manager_test.cpp" ]
+  sources = [ "vrate/rp_vsync_rate_reduce_manager_test.cpp" ]
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",

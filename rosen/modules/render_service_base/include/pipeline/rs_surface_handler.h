@@ -89,7 +89,7 @@ public:
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
             uniOnDrawBufferMap_.erase(layerId);
-            uniOnDrawBufferMap_.insert({layerId, seqNum});
+            uniOnDrawBufferMap_[layerId] = seqNum;
         }
 
         void SetUniBufferOwner(uint64_t seqNum)
