@@ -35,33 +35,16 @@ const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
 }
 
 HgmContext::HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const sptr<RSRenderProcessManager>& rsRenderProcessManager,
     const std::shared_ptr<HgmFrameRateManager>& frameRateMgr,
     const sptr<VSyncDistributor>& appVSyncDistributor,
     const sptr<VSyncDistributor>& rsVSyncDistributor,
-    const sptr<VSyncController>& rsVSyncController,
-    const sptr<VSyncController>& appVSyncController,
-    const sptr<VSyncGenerator>& vsyncGenerator)
     : renderServiceHandler_(handler),
-      rsRenderProcessManager_(rsRenderProcessManager),
       frameRateManager_(frameRateMgr),
       hgmCore_(HgmCore::Instance()),
       appVSyncDistributor_(appVSyncDistributor),
       rsVSyncDistributor_(rsVSyncDistributor)
 {
-    requestRSNextVsyncFunc_ = [this](bool forceUpdate, ScreenId activeScreenId) {
-        if (rsRenderProcessManager_ == nullptr) {
-            RS_LOGE("%{public}s: renderProcessManager_ is nullptr", __func__);
-            return;
-        }
-        if (auto serviceToRenderConn = rsRenderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
-            serviceToRenderConn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
-        }
-    };
     rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>([this] { hgmCore_.SetHgmTaskFlag(true); });
-    InitHgmTaskHandleThread(rsVSyncController, appVSyncController, vsyncGenerator);
-    InitHgmUpdateCallback();
-    InitHfbcConfig();
 }
 
 void HgmContext::InitHgmTaskHandleThread(
@@ -84,6 +67,8 @@ void HgmContext::InitHgmTaskHandleThread(
         frameRateManager->SetForceUpdateCallback(task);
         frameRateManager->Init(rsVSyncController, appVSyncController, vsyncGenerator, appVSyncDistributor);
     });
+    InitHgmUpdateCallback();
+    InitHfbcConfig();
 }
 
 void HgmContext::InitHgmUpdateCallback()

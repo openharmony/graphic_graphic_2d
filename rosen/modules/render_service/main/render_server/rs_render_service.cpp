@@ -165,8 +165,14 @@ void RSRenderService::CoreComponentsInit()
     rsRenderComposerManager_->InitRsVsyncManagerAgent(rsVsyncManagerAgent_);
 
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
-        hgmContext_ = std::make_shared<HgmContext>(handler_, renderProcessManager_, frameRateMgr,
-            appVSyncDistributor_, rsVSyncDistributor_, rsVSyncController_, appVSyncController_, vsyncGenerator_);
+        auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
+            if (renderProcessManager_ && auto conn = renderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
+                conn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+            }
+        };
+        hgmContext_ = std::make_shared<HgmContext>(handler_, frameRateMgr, callbackFunc,
+            appVSyncDistributor_, rsVSyncDistributor_);
+        hgmContext_->InitHgmTaskHandleThread(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     }
 
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);

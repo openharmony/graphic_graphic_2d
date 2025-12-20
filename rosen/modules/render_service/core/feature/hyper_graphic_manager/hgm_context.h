@@ -32,19 +32,14 @@ class RSRenderProcessManager;
 class HgmContext {
 public:
     HgmContext(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        const sptr<RSRenderProcessManager>& rsRenderProcessManager,
         const std::shared_ptr<HgmFrameRateManager>& frameRateMgr,
         const sptr<VSyncDistributor>& appVSyncDistributor,
-        const sptr<VSyncDistributor>& rsVSyncDistributor,
-        const sptr<VSyncController>& rsVSyncController,
-        const sptr<VSyncController>& appVSyncController,
-        const sptr<VSyncGenerator>& vsyncGenerator);
+        const sptr<VSyncDistributor>& rsVSyncDistributor);
     ~HgmContext() noexcept = default;
 
     void InitHgmTaskHandleThread(
         const sptr<VSyncController>& rsVSyncController, const sptr<VSyncController>& appVSyncController,
         const sptr<VSyncGenerator>& vsyncGenerator);
-    void InitHfbcConfig();
     void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
 
@@ -108,8 +103,8 @@ private:
     void InitHgmUpdateCallback();
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
+    void InitHfbcConfig();
     std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_ = nullptr;
-    sptr<RSRenderProcessManager> rsRenderProcessManager_ = nullptr;
     std::shared_ptr<HgmFrameRateManager> frameRateManager_ = nullptr;
     HgmCore& hgmCore_;
     FrameRateRange rsCurrRange_;

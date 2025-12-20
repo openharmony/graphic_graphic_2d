@@ -40,11 +40,12 @@ public:
         std::vector<std::string>& appBufferList);
     ~HgmRPContext() noexcept = default;
 
+    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
+        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
     void NotifyRpHgmFrameRate(uint64_t vsyncId,
         std::shared_ptr<RSContext> rsContext, std::map<NodeId, int> vrateMap, PipelineParam& pipelineParam);
     void AddScreenId(ScreenId screenId);
     void RemoveScreenId(ScreenId screenId);
-    void HandleGameNode(const RSRenderNodeMap& nodeMap);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
         uint32_t *pendingScreenRefreshRate, uint64_t *pendingConstraintRelativeTime);
 
@@ -73,8 +74,7 @@ public:
     }
 
 private:
-    int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
-        std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
+    void HandleGameNode(const RSRenderNodeMap& nodeMap);
 
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
     std::unordered_set<ScreenId> screenIds_;

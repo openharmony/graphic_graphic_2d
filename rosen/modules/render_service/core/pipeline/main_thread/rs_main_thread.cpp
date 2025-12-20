@@ -472,7 +472,6 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         ProcessCommand();
         RsFrameBlurPredict::GetInstance().AdjustCurrentFrameDrawLargeAreaBlurFrequencyPredictively();
         UpdateSubSurfaceCnt();
-        hgmRPContext_->HandleGameNode(context_->GetNodeMap());
         Animate(timestamp_);
         CollectInfoForHardwareComposer();
 #ifdef RS_ENABLE_GPU
@@ -716,8 +715,8 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
 
     hwcContext_ = std::make_shared<RSHwcContext>(
         HWCParam::GetSourceTuningForAppMap(), HWCParam::GetSolidColorLayerMap());
-    hgmRPContext_ = std::make_shared<HgmRPContext>(renderToServiceConnection,
-        hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),
+    hgmRPContext_ = std::make_shared<HgmRPContext>(renderToServiceConnection);
+    hgmRPContext_->InitHgmConfig(hwcContext_->GetMutableSourceTuningConfig(), hwcContext_->GetMutableSolidLayerConfig(),	
         context_->GetMutableUiFrameworkTypeTable());
 
     RSRenderNodeGC::Instance().SetImageReleaseFunc([this]() {

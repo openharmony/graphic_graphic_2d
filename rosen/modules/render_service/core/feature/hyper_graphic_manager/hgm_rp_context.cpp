@@ -30,17 +30,13 @@ namespace {
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
 }
 
-HgmRPContext::HgmRPContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
-    std::unordered_map<std::string, std::string>& sourceTuningConfig,
-    std::unordered_map<std::string, std::string>& solidLayerConfig,
-    std::vector<std::string>& appBufferList)
+HgmRPContext::HgmRPContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
     : renderToServiceConnection_(renderToServiceConnection)
 {
     hgmRPEnergy_ = std::make_shared<HgmRPEnergy>();
     convertFrameRateFunc_ = [this](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
         return rpFrameRatePolicy_.GetExpectedFrameRate(unit, velocity, area, length);
     };
-    InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList);
 }
 
 int32_t HgmRPContext::InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
@@ -66,6 +62,7 @@ void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
         RSRealtimeRefreshRateManager::Instance().SetShowRefreshRateEnabled(enable, 1);
     }
 
+    HandleGameNode(rsContext->GetNodeMap());
     sptr<HgmProcessToServiceInfo> info = sptr<HgmProcessToServiceInfo>::MakeSptr();
     info->isGameNodeOnTree = isGameNodeOnTree_;
     info->rsCurrRange = rsCurrRange_;
@@ -99,7 +96,7 @@ void HgmRPContext::RemoveScreenId(ScreenId screenId)
 
 void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
 {
-    if(isAdaptive_ != SupportASStatus::SUPPORT_AS) {
+    if (isAdaptive_ != SupportASStatus::SUPPORT_AS) {
         isGameNodeOnTree_ = false;
         return;
     }
