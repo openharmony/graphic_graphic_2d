@@ -48,6 +48,8 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
     }
     return boxes;
 }
+
+constexpr float EPSILON = 1e-6f;
 } // anonymous namespace
 
 ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
@@ -661,10 +663,11 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(const Drawing::Path& path,
  */
 int ComputeOrientation(const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p3)
 {
-    int val = (p2.GetX() - p1.GetX()) * (p2.GetY() - p3.GetY()) - (p1.GetY() - p2.GetY()) * (p3.GetX() - p2.GetX());
-    if (val > 0) {
+    float val = (p2.GetX() - p1.GetX()) * (p2.GetY() - p3.GetY()) - (p1.GetY() - p2.GetY()) * (p3.GetX() - p2.GetX());
+    
+    if (val > EPSILON) {
         return 1;  // Counter-clockwise
-    } else if (val < 0) {
+    } else if (val < -EPSILON) {
         return -1; // Clockwise
     } else {
         return 0;  // Collinear
