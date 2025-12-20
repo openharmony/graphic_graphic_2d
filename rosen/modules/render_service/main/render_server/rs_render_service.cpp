@@ -166,8 +166,10 @@ void RSRenderService::CoreComponentsInit()
 
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
-            if (renderProcessManager_ && auto conn = renderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
-                conn->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+            if (renderProcessManager_) {
+                if (auto serviceToRenderConn = renderProcessManager_->GetServiceToRenderConn(activeScreenId)) {
+                    serviceToRenderConn ->HgmForceUpdateTask(forceUpdate, "ltpoForceUpdate");
+                }
             }
         };
         hgmContext_ = std::make_shared<HgmContext>(handler_, frameRateMgr, callbackFunc,
