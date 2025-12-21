@@ -95,4 +95,4 @@ HWTEST_F(RSRenderProcessManagerAgentTest, GetServiceToRenderConnTest, TestSize.L
     rsManager_->GetServiceToRenderConns();
     ASSERT_TRUE(rsManager_);
 }
-}
+} // namespace OHOS::Rosen
