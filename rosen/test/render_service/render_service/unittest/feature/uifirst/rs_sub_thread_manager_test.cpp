@@ -129,13 +129,14 @@ HWTEST_F(RsSubThreadManagerTest, DumpGpuMemTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
     DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
     auto renderContext = RenderContext::Create();
     std::shared_ptr<RSSubThread> curThread = nullptr;
     auto curThreadf = std::make_shared<RSSubThread>(renderContext, 0);
-    rsSubThreadManager->DumpGpuMem(log);
+    rsSubThreadManager->DumpGpuMem(log, nodeTags);
     rsSubThreadManager->threadList_.push_back(curThread);
     rsSubThreadManager->threadList_.push_back(curThreadf);
-    rsSubThreadManager->DumpGpuMem(log);
+    rsSubThreadManager->DumpGpuMem(log, nodeTags);
     EXPECT_FALSE(rsSubThreadManager->threadList_.empty());
     rsSubThreadManager->threadList_.clear();
 }

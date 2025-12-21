@@ -1054,7 +1054,8 @@ HWTEST_F(RSUniRenderThreadTest, DumpGpuMemTest001, TestSize.Level1)
 {
     auto& instance = RSUniRenderThread::Instance();
     DfxString log;
-    instance.DumpGpuMem(log);
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    instance.DumpGpuMem(log, nodeTags);
     std::string dumpStr = log.GetString();
     ASSERT_TRUE(dumpStr.find("GPU") == std::string::npos);
 }
@@ -1071,9 +1072,8 @@ HWTEST_F(RSUniRenderThreadTest, DumpGpuMemTest002, TestSize.Level1)
     auto renderContext = RenderContext::Create();
     instance.uniRenderEngine_->renderContext_ = renderContext;
     DfxString log;
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    ASSERT_NE(renderNode, nullptr);
-    instance.DumpGpuMem(log);
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    instance.DumpGpuMem(log, nodeTags);
     std::string dumpStr = log.GetString();
     ASSERT_TRUE(dumpStr.find("GPU") == std::string::npos);
 }
