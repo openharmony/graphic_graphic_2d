@@ -1480,7 +1480,7 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             bool invalidWatermarkType = (!data.ReadUint8(watermarkType) || watermarkType >=
                 static_cast<uint8_t>(SurfaceWatermarkType::INVALID_WATER_MARK));
-            if (!invalidWatermarkType) {
+            if (invalidWatermarkType) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read watermarkType failed!");
                 ret = ERR_INVALID_DATA;
                 break;
