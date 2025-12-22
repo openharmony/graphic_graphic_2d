@@ -560,7 +560,7 @@ static int32_t MemoryTrackerGetGLByPid(int32_t pid)
 }
 
 void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* gpuContext,
-    std::vector<std::pair<NodeId, std::string>>& nodeTags)
+    const std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");

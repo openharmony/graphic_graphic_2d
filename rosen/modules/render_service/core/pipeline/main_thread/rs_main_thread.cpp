@@ -4140,14 +4140,19 @@ void RSMainThread::DumpGpuMem(std::unordered_set<std::u16string>& argSets,
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        nodeTags.push_back({node->GetId(), ""});
+    });
     auto status = type.empty() || type == MEM_GPU_TYPE;
     if (status) {
-        RSUniRenderThread::Instance().DumpGpuMem(log);
+        RSUniRenderThread::Instance().DumpGpuMem(log, nodeTags);
     }
     if (status && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
-            subThreadManager->DumpGpuMem(log);
+            subThreadManager->DumpGpuMem(log, nodeTags);
         }
     }
     MemoryManager::DumpGpuNodeMemory(log);
