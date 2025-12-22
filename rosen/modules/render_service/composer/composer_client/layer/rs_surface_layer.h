@@ -174,8 +174,6 @@ private:
 
     virtual void AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd);
 
-    std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;
-
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;
     std::map<RSLayerPropertyId, std::shared_ptr<RSLayerCmd>> commands_;

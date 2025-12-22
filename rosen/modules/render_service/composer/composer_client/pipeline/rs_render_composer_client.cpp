@@ -23,24 +23,32 @@ constexpr uint32_t COMPOSER_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 };
 
-RSRenderComposerClient::RSRenderComposerClient(bool isMultiProcess, const sptr<IRSRenderToComposerConnection>& conn)
-    : isMultiProcess_(isMultiProcess)
+RSRenderComposerClient::RSRenderComposerClient(bool isMultiProcess,
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
+    : isMultiProcess_(isMultiProcess), rsVsyncManagerAgent_(rsVsyncManagerAgent)
 {
     rsComposerContext_ = std::make_shared<RSComposerContext>();
-    rsComposerContext_->SetRenderComposerClientConnection(conn);
-    connection_ = conn;
+    rsComposerContext_->SetRenderComposerClientConnection(renderToComposerConn);
+    renderToComposerConn_ = renderToComposerConn;
 }
 
 std::shared_ptr<RSRenderComposerClient> RSRenderComposerClient::Create(bool isMultiProcess,
-    const sptr<IRSRenderToComposerConnection>& conn)
+    const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+    const sptr<RSIComposerToRenderConnection>& composerToRenderConn,
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     RS_TRACE_NAME_FMT("RSRenderComposerClient::Create");
-    return std::make_shared<RSRenderComposerClient>(isMultiProcess, conn);
+    if (renderToComposerConn != nullptr) {
+        renderToComposerConn->SetComposerToRenderConnection(composerToRenderConn);
+    }
+    return std::make_shared<RSRenderComposerClient>(isMultiProcess, renderToComposerConn, rsVsyncManagerAgent);
 }
 
-void RSRenderComposerClient::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
+std::shared_ptr<RSLayer> RSRenderComposerClient::GetRSLayer(RSLayerId rsLayerId)
 {
-    rsVsyncManagerAgent_ = rsVsyncManagerAgent;
+    std::unique_lock<std::mutex> lock(clientMutex_);
+    return rsComposerContext_->GetRSLayer(rsLayerId);
 }
 
 void RSRenderComposerClient::CommitLayers(ComposerInfo& composerInfo)
@@ -117,16 +125,16 @@ int RSRenderComposerClient::GetAccumulatedBufferCount()
 void RSRenderComposerClient::ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds)
 {
     std::lock_guard<std::mutex> lock(clientMutex_);
-    if (connection_ != nullptr) {
-        connection_->ClearRedrawGPUCompositionCache(bufferIds);
+    if (renderToComposerConn_ != nullptr) {
+        renderToComposerConn_->ClearRedrawGPUCompositionCache(bufferIds);
     }
 }
 
 void RSRenderComposerClient::SetScreenBacklight(uint32_t level)
 {
     std::lock_guard<std::mutex> lock(clientMutex_);
-    if (connection_ != nullptr) {
-        connection_->SetScreenBacklight(level);
+    if (renderToComposerConn_ != nullptr) {
+        renderToComposerConn_->SetScreenBacklight(level);
     }
 }
 

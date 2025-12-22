@@ -98,18 +98,13 @@ RSLayerId RSSurfaceLayer::GetRSLayerId() const
     return rsLayerId_;
 }
 
-std::shared_ptr<RSLayerTransactionHandler> RSSurfaceLayer::GetRSLayerTransaction() const
+bool RSSurfaceLayer::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId rsLayerId)
 {
     auto rsComposerContext = rsComposerContext_.lock();
     if (!rsComposerContext) {
-        return nullptr;
+        return false;
     }
-    return rsComposerContext->GetRSLayerTransaction();
-}
-
-bool RSSurfaceLayer::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId rsLayerId)
-{
-    auto rsLayerTransaction = GetRSLayerTransaction();
+    auto rsLayerTransaction = rsComposerContext->GetRSLayerTransaction();
     if (rsLayerTransaction != nullptr) {
         rsLayerTransaction->AddRSLayerParcel(layerParcel, rsLayerId);
         return true;

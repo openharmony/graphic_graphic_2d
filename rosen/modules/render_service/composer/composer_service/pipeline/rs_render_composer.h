@@ -64,7 +64,7 @@ public:
 protected:
     void ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam);
     void ComposerProcess(uint32_t currentRate, std::shared_ptr<RSLayerTransactionData> transactionData);
-    void SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn);
+    void SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn);
     void PostTask(const std::function<void()>& task);
     void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);

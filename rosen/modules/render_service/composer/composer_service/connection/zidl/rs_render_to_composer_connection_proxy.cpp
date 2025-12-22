@@ -214,5 +214,23 @@ void RSRenderToComposerConnectionProxy::SetScreenBacklight(uint32_t level)
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_BACKLIGHT_LEVEL, parcel, reply, option);
 }
+
+void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
+    const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
+{
+    MessageOption option;
+    MessageParcel reply;
+    MessageParcel parcel;
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
+        RS_LOGE("SetComposerToRenderConnection WriteInterfaceToken failed");
+        return;
+    }
+    if (!parcel.WriteRemoteObject(composerToRenderConn->AsObject())) {
+        RS_LOGE("SetComposerToRenderConnection object failed");
+        return;
+    }
+    SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION, parcel, reply, option);
+}
 } // namespace Rosen
 } // namespace OHOS

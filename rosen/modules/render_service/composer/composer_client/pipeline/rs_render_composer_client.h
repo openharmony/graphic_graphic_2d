@@ -31,11 +31,16 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderComposerClient {
 public:
-    explicit RSRenderComposerClient(bool isMultiProcess, const sptr<IRSRenderToComposerConnection>& conn);
+    explicit RSRenderComposerClient(bool isMultiProcess,
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     ~RSRenderComposerClient() = default;
 
     static std::shared_ptr<RSRenderComposerClient> Create(bool isMultiProcess,
-        const sptr<IRSRenderToComposerConnection>& conn);
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<RSIComposerToRenderConnection>& composerToRenderConn,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+    std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId);
     void CommitLayers(ComposerInfo& composerInfo);
     void ReleaseLayerBuffers(uint64_t screenId,
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
@@ -54,7 +59,6 @@ public:
     int GetAccumulatedBufferCount();
     void DumpLayersInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
-    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
 
@@ -66,7 +70,7 @@ private:
     std::mutex clientMutex_;
     std::shared_ptr<RSComposerContext> rsComposerContext_;
     bool isMultiProcess_;
-    sptr<IRSRenderToComposerConnection> connection_;
+    sptr<IRSRenderToComposerConnection> renderToComposerConn_;
     std::condition_variable composerThreadTaskCond_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     std::atomic<int> acquiredBufferCount_ = 0;
