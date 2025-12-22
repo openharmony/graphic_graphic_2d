@@ -208,5 +208,21 @@ void RSRenderPipelineClient::ClearUifirstCache(NodeId id)
 void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
 }
+
+uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    return 0;
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+    const std::vector<NodeId> &nodeIdList)
+{
+}
+    
+void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

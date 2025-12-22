@@ -171,6 +171,14 @@ public:
     virtual int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
 #endif
+    virtual uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) = 0;
+        
+    virtual void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList) = 0;
+        
+    virtual void ClearSurfaceWatermark(pid_t pid, const std::string &name) = 0;
 };
 
 } // namespace Rosen

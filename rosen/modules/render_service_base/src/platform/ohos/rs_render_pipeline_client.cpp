@@ -869,5 +869,35 @@ int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
     return clientToRender->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
+
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return WATER_MARK_RENDER_SERVICE_NULL;
+    }
+    return clientToRender->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+}
+    
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId> &nodeIdList)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return;
+    }
+    clientToRender->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+}
+    
+void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return;
+    }
+    clientToRender->ClearSurfaceWatermark(pid, name);
+}
 } // namespace Rosen
 } // namespace OHOS

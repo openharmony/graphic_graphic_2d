@@ -134,7 +134,15 @@ public:
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
 #endif
-
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
+        
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList) override;
+        
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
+    
     void RemoveToken() override {};
     static inline BrokerDelegator<RSClientToRenderConnectionProxy> delegator_;
 

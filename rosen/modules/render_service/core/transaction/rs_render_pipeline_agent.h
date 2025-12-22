@@ -179,7 +179,12 @@ public:
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
     int32_t NotifyScreenRefresh(ScreenId screenId);
-
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
+        const std::shared_ptr<Media::PixelMap> &watermark, const std::vector<NodeId>& nodeIdList,
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+        const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
 private:
     // TODO: maybe do not use reference of a std::shared pointer
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;

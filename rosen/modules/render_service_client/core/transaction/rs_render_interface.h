@@ -30,6 +30,8 @@ namespace Rosen {
 
 class RSC_EXPORT RSRenderInterface {
 public:
+    RSRenderInterface();
+    ~RSRenderInterface() noexcept;
     static RSRenderInterface &GetInstance();
     /**
      * @brief Get snapshot of surfaceNode.
@@ -276,11 +278,37 @@ public:
      */
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name. Note: ensure watermark name is unique.
+     * @param watermark Watermark pixelmap.
+     * @param nodeIdList Node id list
+     * @param watermarkType custom or system watermark.
+     * @return set watermark success return 0, else return errorCode.
+     */
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name.
+     * @param watermark Watermark pixelmap.
+     */
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList);
+
+    /**
+     * @brief Set watermark for surfaceNode.
+     * @param pid pid of process.
+     * @param name Watermark name.
+     */
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
 
 private:
-    RSRenderInterface();
-    ~RSRenderInterface() noexcept;
-    std::unique_ptr<RSRenderPipelineClient> renderPiplineClient_;
+    std::unique_ptr<RSRenderPipelineClient> renderPipelineClient_;
     friend class RSUIContext;
     friend class RSApplicationAgentImpl;
     friend class RSDisplayNode;
