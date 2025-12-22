@@ -524,24 +524,6 @@ void RSUniRenderVisitor::DealWithSpecialLayer(RSSurfaceRenderNode& node)
     node.UpdateVirtualScreenWhiteListInfo();
 }
 
-// void RSUniRenderVisitor::UpdateBlackListRecord(RSSurfaceRenderNode& node)
-// {
-//     bool hasVirtualDisplay = screenState_ == ScreenState::SOFTWARE_OUTPUT_ENABLE;
-//     if ((!hasVirtualDisplay && !hasMirrorDisplay_) || !screenManager_) {
-//         return;
-//     }
-//     std::unordered_set<uint64_t> virtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetId());
-//     if (node.IsLeashWindow()) {
-//         const auto& leashVirtualScreens = screenManager_->GetBlackListVirtualScreenByNode(node.GetLeashPersistentId());
-//         virtualScreens.insert(leashVirtualScreens.begin(), leashVirtualScreens.end());
-//     }
-//     for (const auto& screenId : virtualScreens) {
-//         node.UpdateBlackListStatus(screenId);
-//         curLogicalDisplayNode_->GetMultableSpecialLayerMgr().SetWithScreen(
-//             screenId, SpecialLayerType::HAS_BLACK_LIST, true);
-//     }
-// }
-
 void RSUniRenderVisitor::UpdateScreenSpecialLayersRecord(const RSSurfaceRenderNode& node)
 {
     if (!node.ShouldPaint()) {
