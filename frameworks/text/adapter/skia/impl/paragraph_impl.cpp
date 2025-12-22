@@ -618,7 +618,7 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(const Drawing::Path& path,
     int32_t height_ = bottom - top;
 
     OHOS::Media::InitializationOptions opts;
-    opts.srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888;
+    opts.pixelFormat = OHOS::Media::PixelFormat::RGBA_8888;
     opts.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
     opts.size.width = width_;
     opts.size.height = height_;

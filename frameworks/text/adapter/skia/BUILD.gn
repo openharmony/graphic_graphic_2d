@@ -103,13 +103,15 @@ template("skia_libtxt") {
       "txt/typeface_font_asset_provider.cpp",
     ]
 
+    deps = [
+      "$platform_root:image_native"
+    ]
     external_deps = []
     if (platform_is_ohos) {
       external_deps += [
         "bundle_framework:appexecfwk_base",
         "bundle_framework:appexecfwk_core",
         "hitrace:hitrace_meter",
-        "image_framework:image_native",
         "init:libbegetutil",
         "ipc:ipc_core",
         "samgr:samgr_proxy",
@@ -120,17 +122,12 @@ template("skia_libtxt") {
       ]
     } else {
       defines += [ "MODULE_TEXTING" ]
-      include_dirs += [
-        "$multimedia_root/image_framework/interfaces/innerkits/include",
-      ]
     }
 
     if (is_arkui_x) {
-      include_dirs += [
-        "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter",
-      ]
+      include_dirs += [ "//base/hiviewdfx/hitrace/interfaces/native/innerkits/include/hitrace_meter" ]
       defines += [ "CROSS_PLATFORM" ]
-      deps = [
+      deps += [
         "//third_party/bounds_checking_function:libsec_static",
         "//third_party/jsoncpp:jsoncpp_static",
         "//third_party/skia:skia_$platform",

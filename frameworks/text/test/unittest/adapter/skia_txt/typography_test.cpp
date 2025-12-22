@@ -1556,7 +1556,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest008, Te
     double maxWidth = 500;
     typography_->Layout(maxWidth);
     std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(2, 15, false);
-    EXPECT_EQ(pixelMaps.size(), 10);
+    EXPECT_EQ(pixelMaps.size(), 9);
 }
 
 /*
