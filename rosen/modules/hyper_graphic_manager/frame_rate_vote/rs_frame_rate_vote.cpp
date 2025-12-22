@@ -144,9 +144,9 @@ void RSFrameRateVote::ReleaseSurfaceMap(uint64_t surfaceNodeId)
             surfaceVideoFrameRateVote_.erase(it);
         }
     };
-    ffrt::task_attr taskAttr;
-    taskAttr.qos(FFRT_QOS_INHERIT);
     if (ffrtQueue_) {
+        ffrt::task_attr taskAttr;
+        taskAttr.qos(FFRT_QOS_INHERIT);
         ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }
