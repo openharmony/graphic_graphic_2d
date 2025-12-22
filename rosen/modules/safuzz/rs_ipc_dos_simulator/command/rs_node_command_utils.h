@@ -67,7 +67,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorVector2f,
                                     Uint64, VectorVector2f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorVector4f,
-                                    Uint64, VectorVector4f, Uint64, PropertyUpdateType);
+                                    Uint64, SmallVectorVector4f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyPixelMap,
                                     Uint64, PixelMap, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShadowBlenderPara,
