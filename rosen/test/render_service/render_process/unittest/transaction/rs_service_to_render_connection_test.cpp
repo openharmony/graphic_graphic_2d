@@ -45,7 +45,8 @@ void RSServiceToRenderConnectionTest::SetUpTestCase()
     auto renderPipeline = RSRenderPipeline::Create(handler, nullptr, nullptr);
     RSRenderService renderService;
     auto rsRenderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
-    sptr<RSRenderServiceAgent> renderPipelineAgent = new sptr<RSRenderServiceAgent>::MakeSptr(renderPipeline);
+    sptr<RSRenderServicePipelineAgent> renderPipelineAgent =
+        new sptr<RSRenderServicePipelineAgent>::MakeSptr(renderPipeline);
     rsConn_ = sptr<RSServiceToRenderConnection>::MakeSptr(rsRenderServiceAgent, renderPipelineAgent);
 }
 void RSServiceToRenderConnectionTest::TearDownTestCase() {}
@@ -90,9 +91,8 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetShowRefreshRateEnabledTest, TestSiz
 {
     bool enabled = true;
     bool enabled1 = false;
-    int32_t type = 1;
-    rsConn_->GetShowRefreshRateEnabled(enabled, type);
-    rsConn_->GetShowRefreshRateEnabled(enabled1, type);
+    rsConn_->GetShowRefreshRateEnabled(enabled);
+    rsConn_->GetShowRefreshRateEnabled(enabled1);
     ASSERT_TRUE(rsConn_);
 }
 } // namespace OHOS::Rosen
