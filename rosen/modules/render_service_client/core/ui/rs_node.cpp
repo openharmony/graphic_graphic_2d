@@ -154,15 +154,17 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 std::once_flag flag_;
 } // namespace
 
-const std::set<std::pair<uint16_t, uint16_t>> RSNode::createNodeCommandTypes_{
-    {RSCommandType::CANVAS_NODE, RSCanvasNodeCommandType::CANVAS_NODE_CREATE}
-};
+const std::array<std::pair<uint16_t, uint16_t>, 2> RSNode::lazyLoadCommandTypes_{{
+    {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY}
+}};
 
-const std::set<std::pair<uint16_t, uint16_t>> RSNode::lazyLoadCommandTypes_{
-    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY},
-    {RSCommandType::BASE_NODE, RSNodeCommandType::SET_UICONTEXT_TOKEN},
-    {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY}
-};
+const std::array<std::pair<uint16_t, uint16_t>, 4> RSNode::childOpCommandTypes_{{
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_ADD_CHILD},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_REMOVE_CHILD},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_CLEAR_CHILDREN},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_MOVE_CHILD}
+}};
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
     bool isOnTheTree)
@@ -2359,8 +2361,7 @@ void RSNode::SetMaterialWithQualityLevel(const std::shared_ptr<RSNGFilterBase> &
         return;
     }
     if (materialFilter->GetType() == RSNGEffectType::FROSTED_GLASS && quality == FilterQuality::ADAPTIVE) {
-        constexpr uint64_t DEFAULT_INTERVAL = 100; // unit: ms
-        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, DEFAULT_INTERVAL);
+        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, 0);
     }
 }
 
@@ -2976,13 +2977,29 @@ void RSNode::LoadRenderNodeIfNeed() const
     if (!lazyLoad_) {
         return;
     }
-    CreateRenderNode();
-    lazyLoad_ = false;
 
     for (auto& command : lazyLoadCommands_) {
         AddCommandInner(command.command_, command.isRenderServiceCommand_, command.followType_, command.nodeId_);
     }
     lazyLoadCommands_.clear();
+    lazyLoad_ = false;
+
+    int index{0};
+    for (auto weakChild : children_) {
+        auto child = weakChild.lock();
+        if (child == nullptr) {
+            continue;
+        }
+        // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+        auto childId = child->GetHierarchyCommandNodeId();
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+        AddCommandInner(command, IsRenderServiceNode(), GetFollowType(), id_);
+        if (child->GetRSUIContext() != GetRSUIContext()) {
+            std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+            child->AddCommandInner(child_command, IsRenderServiceNode(), GetFollowType(), id_);
+        }
+        ++index;
+    }
 
     for (auto [_, modifier] : modifiersNG_) {
         if (modifier == nullptr) {
@@ -4194,16 +4211,23 @@ bool RSNode::AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderS
 bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
     FollowType followType, NodeId nodeId) const
 {
-    if (!IsCreateNodeCommand(*command)) {
+    {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         if (lazyLoad_) {
-            constexpr size_t maxLazyCommandSize{std::numeric_limits<uint8_t>::max()};
+            constexpr size_t maxLazyCommandSize{8};
             if (IsLazyLoadCommand(*command) && lazyLoadCommands_.size() < maxLazyCommandSize) {
                 lazyLoadCommands_.emplace_back(std::move(command), isRenderServiceCommand, followType, nodeId);
                 return true;
-            } else {
-                LoadRenderNodeIfNeed();
             }
+            // lazy loaded nodes intercept child operations
+            if (IsChildOperationCommand(*command)) {
+                constexpr size_t maxChildrenSize{8};
+                if (children_.size() >= maxChildrenSize) {
+                    LoadRenderNodeIfNeed();
+                }
+                return true;
+            }
+            LoadRenderNodeIfNeed();
         }
     }
     return AddCommandInner(command, isRenderServiceCommand, followType, nodeId);

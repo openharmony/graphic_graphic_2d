@@ -863,5 +863,10 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
 {
     return false;
 }
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
+{
+    return false;
+}
 } // namespace Rosen
 } // namespace OHOS

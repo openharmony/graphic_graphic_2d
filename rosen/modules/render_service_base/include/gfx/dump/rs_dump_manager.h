@@ -79,7 +79,7 @@ struct RSDumpCmd {
 // Map commands to their corresponding Dump points and help information
 const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"h", { { RSDumpID::HELP_INFO }, "help text for the tool" } },
-    { u"screen", { { RSDumpID::SCREEN_INFO }, "dump all screen infomation in the system" } },
+    { u"screen", { { RSDumpID::SCREEN_INFO }, "dump all screen information in the system" } },
     { u"surface", { { RSDumpID::SURFACE_INFO }, "dump all surface information" } },
     { u"fps", { { RSDumpID::FPS_INFO }, "[windowname] fps, dump the fps info of window" } },
     { u"nodeNotOnTree", { { RSDumpID::RS_NOT_ON_TREE_INFO }, "dump nodeNotOnTree info" } },

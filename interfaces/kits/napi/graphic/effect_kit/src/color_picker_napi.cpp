@@ -29,7 +29,7 @@ namespace {
     constexpr uint32_t NUM_2 = 2;
     constexpr uint32_t NUM_3 = 3;
     constexpr uint32_t NUM_4 = 4;
-    constexpr double PROPORTION_COLORS_NUM_LIMIT = 10.0; // proportion colors limit num 10
+    constexpr double PROPORTION_COLORS_NUM_LIMIT = 20.0; // proportion colors limit num 20
 }
 
 namespace {

@@ -57,7 +57,7 @@ public:
      * and update the adaptive frosted glass params.
      */
     static void ApplyAdaptiveFrostedGlassParams(
-        Drawing::Canvas* canvas, const std::shared_ptr<RSNGRenderFilterBase>& effect);
+        Drawing::Canvas* canvas, const std::shared_ptr<RSDrawingFilter>& filter);
     static Color GetColorForShadowSyn(Drawing::Canvas* canvas, Drawing::Path& path, const Color& color,
         const int& colorStrategy);
     static std::shared_ptr<Drawing::Image> GetShadowRegionImage(Drawing::Canvas* canvas,
@@ -65,7 +65,7 @@ public:
     static bool PickColorSyn(Drawing::Canvas* canvas, Drawing::Path& drPath, Drawing::Matrix& matrix,
         RSColor& colorPicked, const int& colorStrategy);
     static bool PickColor(std::shared_ptr<Drawing::GPUContext> context, std::shared_ptr<Drawing::Image> image,
-        Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy);
+        Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy, bool prevDark);
     static std::shared_ptr<Drawing::Image> GpuScaleImage(std::shared_ptr<Drawing::GPUContext> context,
         std::shared_ptr<Drawing::Image> image);
     static void GetDarkColor(RSColor& color);
@@ -130,7 +130,7 @@ public:
         const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect, RoundingStrategyType roundingStrategy);
     RSB_EXPORT static std::tuple<Drawing::RectI, Drawing::RectI> GetAbsRectByStrategyForImage(
         const Drawing::Surface* surface, const Drawing::Matrix& totalMatrix, const Drawing::Rect& relativeRect);
-    static void ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
+    static bool ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
         const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId);
 
 private:

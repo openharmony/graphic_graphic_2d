@@ -3184,6 +3184,23 @@ void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
     }
 }
 
+void RSUniRenderVisitor::DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const
+{
+    if (curSurfaceNode_ == nullptr || curSurfaceNode_->GetId() != node.GetId()) {
+        return;
+    }
+    const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
+    for (auto& hwcNode : hwcNodes) {
+        auto hwcNodePtr = hwcNode.lock();
+        if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
+            continue;
+        }
+        hwcNodePtr->SetHardwareForcedDisabledState(true);
+        RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
+            hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
+    }
+}
+
 CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeSkipped)
 {
     UpdateCurFrameInfoDetail(node, subTreeSkipped, true);
@@ -3201,17 +3218,9 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
             hwcVisitor_->UpdateHwcNodeRectInSkippedSubTree(node);
             CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
             UpdateSubSurfaceNodeRectInSkippedSubTree(node);
-        } else if (curSurfaceNode_->GetId() == node.GetId()) {
-            const auto& hwcNodes = curSurfaceNode_->GetChildHardwareEnabledNodes();
-            for (auto& hwcNode : hwcNodes) {
-                auto hwcNodePtr = hwcNode.lock();
-                if (!hwcNodePtr || hwcNodePtr->IsHardwareForcedDisabled()) {
-                    continue;
-                }
-                hwcNodePtr->SetHardwareForcedDisabledState(true);
-                RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by subTreeSkipped && isOccluded",
-                    hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId());
-            }
+        } else {
+            CheckFilterNodeInSkippedSubTreeNeedClearCache(node, *curDirtyManager);
+            DisableOccludedHwcNodeInSkippedSubTree(node);
         }
     }
     if (node.NeedUpdateDrawableBehindWindow()) {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "feature/colorpicker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 

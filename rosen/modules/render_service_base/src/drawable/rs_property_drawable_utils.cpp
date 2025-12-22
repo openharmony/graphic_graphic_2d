@@ -52,15 +52,19 @@ std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::lightUpShaderEf
 std::shared_ptr<Drawing::RuntimeEffect> RSPropertyDrawableUtils::shadowBlenderEffect_ = nullptr;
 
 void RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(
-    Drawing::Canvas* canvas, const std::shared_ptr<RSNGRenderFilterBase>& effect)
+    Drawing::Canvas* canvas, const std::shared_ptr<RSDrawingFilter>& filter)
 {
+    auto effect = filter->GetNGRenderFilter();
     if (!effect || effect->GetType() != RSNGEffectType::FROSTED_GLASS || canvas == nullptr) {
         return;
     }
     auto glass = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(effect);
     auto color = static_cast<RSPaintFilterCanvas*>(canvas)->GetColorPicked(ColorPlaceholder::SURFACE_CONTRAST);
-    const bool isDark = (color == Drawing::Color::COLOR_WHITE); // contrast color white means dark mode
-    glass->Setter<FrostedGlassDarkScaleRenderTag>(isDark ? 1.0f : 0.0f);
+    // assuming r, g, b are interpolated the same way
+    constexpr float COLOR_MAX = 255.0f;
+    // we use opposite color: dark if foreground is light
+    const float darkScale = static_cast<float>(Drawing::Color::ColorQuadGetR(color)) / COLOR_MAX;
+    filter->SetDarkScale(darkScale);
 }
 
 Drawing::RoundRect RSPropertyDrawableUtils::RRect2DrawingRRect(const RRect& rr)
@@ -190,7 +194,8 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
 }
 
 bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> context,
-    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy)
+    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy,
+    bool prevDark)
 {
     std::shared_ptr<Drawing::Pixmap> dst;
     image = GpuScaleImage(context, image); // use shared GPU context
@@ -209,7 +214,7 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
         RS_LOGE("RSPropertyDrawableUtils::PickColor CreateColorPicker failed");
         return false;
     }
-    if (colorPicker->PickColor(colorPicked, strategy) != 0) {
+    if (colorPicker->PickColor(colorPicked, strategy, prevDark) != 0) {
         RS_LOGE("RSPropertyDrawableUtils::PickColor PickColor failed");
         return false;
     }
@@ -1704,23 +1709,26 @@ std::tuple<Drawing::RectI, Drawing::RectI> RSPropertyDrawableUtils::GetAbsRectBy
     return {absImageRect, absDrawRect};
 }
 
-void RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
+bool RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperties& properties,
     const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId)
 {
     if (!drawingFilter) {
-        return;
+        return false;
     }
     const auto& renderFilter = drawingFilter->GetNGRenderFilter();
     if (!renderFilter || renderFilter->GetType() != RSNGEffectType::FROSTED_GLASS) {
-        return;
+        return true;
     }
     const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
     auto sdfShape = properties.GetSDFShape();
     if (sdfShape) {
+        if (sdfShape->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
+            return false;
+        }
         ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, use sdfShape, node %{public}" PRIu64,
-        nodeId);
+            nodeId);
         filter->Setter<FrostedGlassShapeRenderTag>(sdfShape);
-        return;
+        return true;
     }
     auto sdfRRect = properties.GetRRectForSDF();
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
@@ -1729,6 +1737,7 @@ void RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperti
         sdfRRect.rect_.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
+    return true;
 }
 
 } // namespace Rosen

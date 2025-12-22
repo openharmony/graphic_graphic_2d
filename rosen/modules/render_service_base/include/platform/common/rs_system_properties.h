@@ -407,6 +407,7 @@ public:
 
     static bool GetSceneBoardIsPcMode();
     static bool GetReleaseImageOneByOneFlag();
+    static bool GetTransactionDataTraceEnabled();
 
 private:
     RSSystemProperties() = default;

@@ -189,7 +189,7 @@ void RSClipToBoundsDrawable::OnSync()
 Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() const
 {
     auto ptr = std::static_pointer_cast<const RSClipToBoundsDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas *canvas, const Drawing::Rect *rect) {
+    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
         switch (ptr->type_) {
             case RSClipToBoundsType::CLIP_PATH: {
                 canvas->ClipPath(ptr->drawingPath_, Drawing::ClipOp::INTERSECT, true);
@@ -198,9 +198,14 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
             case RSClipToBoundsType::CLIP_RRECT: {
                 if (RSSystemProperties::GetClipRRectOptimizationEnabled() || ptr->isClipRRectOptimization_) {
                     RS_TRACE_NAME_FMT("RSClipToBoundsDrawable ClipRRectOptimization NodeId[%llu]", ptr->nodeId_);
-                    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+                    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+                    auto matrix = canvas->GetTotalMatrix();
+                    canvas->ResetMatrix();
+                    Drawing::RectF absRect;
+                    matrix.MapRect(absRect, ptr->clipRRect_.GetRect());
+                    canvas->ClipRect(absRect.RoundOut(), Drawing::ClipOp::INTERSECT, false);
+                    canvas->SetMatrix(matrix);
                     paintFilterCanvas->ClipRRectOptimization(ptr->clipRRect_);
-                    canvas->ClipRect(ptr->clipRRect_.GetRect(), Drawing::ClipOp::INTERSECT, false);
                 } else {
                     canvas->ClipRoundRect(ptr->clipRRect_, Drawing::ClipOp::INTERSECT, true);
                 }
@@ -230,7 +235,7 @@ Drawing::RecordingCanvas::DrawFunc RSClipToBoundsDrawable::CreateDrawFunc() cons
                     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
                     geRender->DrawShaderEffect(canvas, *geContainer, rect);
                 };
-                auto paintFilterCanvas = static_cast<RSPaintFilterCanvas *>(canvas);
+                auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
                 Drawing::SaveLayerOps slo(rect, nullptr);
                 paintFilterCanvas->SaveLayer(slo);
                 paintFilterCanvas->CustomSaveLayer(customFunc);
@@ -410,7 +415,7 @@ Drawing::RecordingCanvas::DrawFunc RSFilterDrawable::CreateDrawFunc() const
         }
         if (canvas && ptr && ptr->filter_) {
             auto filter = std::static_pointer_cast<RSDrawingFilter>(ptr->filter_);
-            RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter->GetNGRenderFilter());
+            RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
 
             RectF bound = (rect != nullptr ?
                 RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());

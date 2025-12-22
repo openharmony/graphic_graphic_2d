@@ -247,4 +247,22 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen002, TestSize.Level2)
     slManager.RemoveIdsWithScreen(screenId, SpecialLayerType::SKIP, nodeId2);
     ASSERT_FALSE(slManager.FindWithScreen(screenId, SpecialLayerType::HAS_SKIP));
 }
+
+/**
+ * @tc.name: AddIdsWithScreen003
+ * @tc.desc: test while black list overflows
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSSpecialLayerManagerTest, AddIdsWithScreen003, TestSize.Level2)
+{
+    RSSpecialLayerManager slManager;
+    ScreenId screenId = 1;
+    NodeId id = 1;
+    for (uint32_t i = 0; i < MAX_SPECIAL_LAYER_NUM + 1; i++) {
+        slManager.AddIdsWithScreen(screenId, SpecialLayerType::IS_BLACK_LIST, id++);
+    }
+    ASSERT_EQ(
+        slManager.screenSpecialLayerIds_[screenId][SpecialLayerType::IS_BLACK_LIST].size(), MAX_SPECIAL_LAYER_NUM);
+}
 } // namespace OHOS::Rosen

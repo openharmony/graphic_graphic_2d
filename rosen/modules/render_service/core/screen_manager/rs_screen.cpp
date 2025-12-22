@@ -1457,7 +1457,7 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     return StatusCode::SUCCESS;
 }
 
-const std::unordered_set<NodeId>& RSScreen::GetWhiteList() const
+std::unordered_set<NodeId> RSScreen::GetWhiteList() const
 {
     return property_.GetWhiteList();
 }
@@ -1537,7 +1537,7 @@ bool RSScreen::GetCastScreenEnableSkipWindow()
     return property_.GetCastScreenEnableSkipWindow();
 }
 
-const std::unordered_set<NodeId>& RSScreen::GetBlackList() const
+std::unordered_set<NodeId> RSScreen::GetBlackList() const
 {
     return property_.GetBlackList();
 }

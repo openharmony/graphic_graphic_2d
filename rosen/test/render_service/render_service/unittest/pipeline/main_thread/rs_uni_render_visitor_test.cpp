@@ -766,7 +766,6 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
     Occlusion::Rect rect{0, 80, 2560, 1600};
     Occlusion::Region region{rect};
     VisibleData vData;
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
 
     auto partialRenderType = RSSystemProperties::GetUniPartialRenderEnabled();
     auto isPartialRenderEnabled = (partialRenderType != PartialRenderType::DISABLED);
@@ -787,7 +786,7 @@ HWTEST_F(RSUniRenderVisitorTest, CalcDirtyDisplayRegion, TestSize.Level1)
     rsUniRenderVisitor->curScreenNode_ = rsDisplayRenderNode;
 
     rsUniRenderVisitor->QuickPrepareScreenRenderNode(*rsDisplayRenderNode);
-    rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData, pidVisMap);
+    rsSurfaceRenderNode->SetVisibleRegionRecursive(region, vData);
     screenManager->RemoveVirtualScreen(screenId);
 }
 
@@ -1173,15 +1172,14 @@ HWTEST_F(RSUniRenderVisitorTest, SetSurfafaceGlobalDirtyRegion, TestSize.Level1)
     Occlusion::Rect rect{0, 80, 2560, 1600};
     Occlusion::Region region{rect};
     VisibleData vData;
-    std::map<NodeId, RSVisibleLevel> pidVisMap;
-    rsSurfaceRenderNode1->SetVisibleRegionRecursive(region, vData, pidVisMap);
+    rsSurfaceRenderNode1->SetVisibleRegionRecursive(region, vData);
 
     config.id = 11;
     auto rsSurfaceRenderNode2 = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
     rsSurfaceRenderNode2->InitRenderParams();
     Occlusion::Rect rect2{100, 100, 500, 1500};
     Occlusion::Region region2{rect2};
-    rsSurfaceRenderNode2->SetVisibleRegionRecursive(region2, vData, pidVisMap);
+    rsSurfaceRenderNode2->SetVisibleRegionRecursive(region2, vData);
 
     auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(9, 0, rsContext->weak_from_this());
     rsDisplayRenderNode->InitRenderParams();
@@ -7542,5 +7540,19 @@ HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest016, TestSize.Level2)
 
     RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
     EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
+}
+
+/**
+ * @tc.name: DisableOccludedHwcNodeInSkippedSubTreeTest001
+ * @tc.desc: Test DisableOccludedHwcNodeInSkippedSubTree with curSurfaceNode nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21170
+ */
+HWTEST_F(RSUniRenderVisitorTest, DisableOccludedHwcNodeInSkippedSubTreeTest001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSRenderNode node(0);
+    rsUniRenderVisitor->DisableOccludedHwcNodeInSkippedSubTree(node);
 }
 } // OHOS::Rosen

@@ -162,7 +162,7 @@ public:
     void SetCastScreenEnableSkipWindow(bool enable);
     bool GetCastScreenEnableSkipWindow();
     void SetBlackList(const std::unordered_set<NodeId>& blackList);
-    const std::unordered_set<NodeId>& GetBlackList() const;
+    std::unordered_set<NodeId> GetBlackList() const;
     void AddBlackList(const std::vector<NodeId>& blackList);
     void RemoveBlackList(const std::vector<NodeId>& blackList);
 
@@ -172,7 +172,7 @@ public:
 
     // whitelist
     void SetWhiteList(const std::unordered_set<NodeId>& whiteList);
-    const std::unordered_set<NodeId>& GetWhiteList() const;
+    std::unordered_set<NodeId> GetWhiteList() const;
     void AddWhiteList(const std::vector<NodeId>& whiteList);
     void RemoveWhiteList(const std::vector<NodeId>& whiteList);
 

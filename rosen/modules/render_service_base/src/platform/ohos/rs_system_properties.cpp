@@ -305,7 +305,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
+#else
     static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "0") != "0";
+#endif
     return enabled;
 }
 
@@ -1821,6 +1825,12 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
+{
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
 }
 } // namespace Rosen
 } // namespace OHOS

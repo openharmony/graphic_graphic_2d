@@ -48,16 +48,6 @@ public:
         }
         UpdateVisualEffectParamImpl(*geFilter, Tag::NAME, propTag.value_->Get());
     }
-    template<typename Tag, typename V>
-    static void UpdateAdaptiveParam(std::shared_ptr<Drawing::GEVisualEffect> geFilter,
-        const Tag& propTag, const V& darkValue, float darkScale)
-    {
-        if (!geFilter) {
-            return;
-        }
-        const auto& value = (darkScale == 1.0f) ? darkValue : propTag.value_->Get(); // change to interpolation later
-        UpdateVisualEffectParamImpl(*geFilter, Tag::NAME, value);
-    }
 
     template<typename Tag>
     static void CalculatePropTagHash(uint32_t& hash, const Tag& propTag)
@@ -93,6 +83,7 @@ public:
             case RSNGEffectType::CONTENT_LIGHT: return "ContentLight";
             case RSNGEffectType::BORDER_LIGHT: return "BorderLight";
             case RSNGEffectType::AIBAR_GLOW: return "AIBarGlow";
+            case RSNGEffectType::AIBAR_RECT_HALO: return "AIBarRectHalo";
             case RSNGEffectType::ROUNDED_RECT_FLOWLIGHT: return "RoundedRectFlowlight";
             case RSNGEffectType::FRAME_GRADIENT_MASK: return "FrameGradientMask";
             case RSNGEffectType::GRADIENT_FLOW_COLORS: return "GradientFlowColors";
@@ -102,6 +93,7 @@ public:
             case RSNGEffectType::SDF_RRECT_SHAPE: return "SDFRRectShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
+            case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
             case RSNGEffectType::HARMONIUM_EFFECT: return "HarmoniumEffect";
             case RSNGEffectType::GASIFY_SCALE_TWIST: return "GasifyScaleTwist";
             case RSNGEffectType::GASIFY_BLUR: return "GasifyBlur";
@@ -113,6 +105,9 @@ public:
             case RSNGEffectType::GRID_WARP: return "GridWarp";
             case RSNGEffectType::FROSTED_GLASS_EFFECT: return "FrostedGlassEffect";
             case RSNGEffectType::FROSTED_GLASS_BLUR: return "FrostedGlassBlur";
+            case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
+            case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
+            case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
             default: return "UNKNOWN";
         }
     }

@@ -248,9 +248,12 @@ public:
      * @brief Set watermark for surfaceNode.
      * @param name Watermark name.
      * @param watermark Watermark pixelmap.
+     * @param maxSize The maximum supported image size is 6MB. if the maximum image size exceeds 512Kb,
+     * the time to draw the watermark will increase. In such cases, consider using DMA mode for pixelMap
      * @return set watermark success return true, else return false.
      */
-    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
+    bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+        SaSurfaceWatermarkMaxSize maxSize = SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE);
 
 
     /**

@@ -394,11 +394,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
- 
+
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_NE(src, nullptr);
     (*src) = defaultSelfDrawingRect;
- 
+
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
@@ -1299,7 +1299,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty003, TestSize.Level1)
         filterDrawable;
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] =
         filterDrawable;
-    
+
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
     properties.GetEffect().filter_ = std::make_shared<RSFilter>();
@@ -3201,6 +3201,53 @@ HWTEST_F(RSRenderNodeTest2, GetFilterDrawableSnapshotRegion001, TestSize.Level1)
         filterDrawable;
     node->UpdateFilterRectInfo();
     EXPECT_EQ(node->GetFilterDrawableSnapshotRegion(), RectI());
+}
+
+/**
+ * @tc.name: UpdateDrawableEnableEDR
+ * @tc.desc: Test function UpdateDrawableEnableEDR
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateDrawableEnableEDR, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(2);
+    node->UpdateDrawableEnableEDR();
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithBackgroundAndAlphaDirtyTest
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundAndAlphaDirtyTest
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBackgroundAndAlphaDirtyTest, TestSize.Level1)
+{
+    // both false
+    {
+        auto renderNode = std::make_shared<RSRenderNode>(1);
+        ASSERT_NE(renderNode, nullptr);
+        renderNode->UpdateFilterCacheWithBackgroundDirty();
+    }
+
+    // alphaDirty
+    {
+        auto renderNode = std::make_shared<RSRenderNode>(1);
+        ASSERT_NE(renderNode, nullptr);
+        renderNode->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA), true);
+        renderNode->UpdateFilterCacheWithBackgroundDirty();
+    }
+
+    // both true
+    {
+        auto renderNode = std::make_shared<RSRenderNode>(1);
+        renderNode->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA), true);
+        auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
+        EXPECT_NE(backgroundColorDrawable, nullptr);
+        renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
+            = backgroundColorDrawable;
+        renderNode->UpdateFilterCacheWithBackgroundDirty();
+    }
 }
 } // namespace Rosen
 } // namespace OHOS

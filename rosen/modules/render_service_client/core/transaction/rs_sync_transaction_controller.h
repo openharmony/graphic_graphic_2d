@@ -14,7 +14,7 @@
  */
 
 /**
-* @file rs_sync_transaction_control.h
+* @file rs_sync_transaction_controller.h
 * @brief this file is used to control the execution of synchronous transctios.
 */
 

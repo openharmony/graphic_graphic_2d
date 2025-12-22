@@ -127,7 +127,7 @@ public:
 
     // Type definitions
     using Ptr = std::shared_ptr<RSDrawable>;
-    using Vec = std::array<Ptr, static_cast<size_t>(RSDrawableSlot::MAX)>;
+    using Vec = std::map<int8_t, Ptr>;
     using Generator = std::function<Ptr(const RSRenderNode&)>;
 
     // UI methods: OnUpdate and OnGenerate (static method defined in every subclass) can only access the UI (staging)

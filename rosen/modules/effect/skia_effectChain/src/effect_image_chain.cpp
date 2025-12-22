@@ -223,7 +223,7 @@ DrawingError EffectImageChain::ApplyEllipticalGradientBlur(float blurRadius, flo
         {centerX, centerY}, maskRadiusX, maskRadiusY, degrees, positions};
     auto radialGradientShaderMask = std::make_shared<Drawing::GERadialGradientShaderMask>(maskParams);
 
-    Drawing::GEVariableRadiusBlurShaderFilterParams filterParams{radialGradientShaderMask, blurRadius};
+    Drawing::GEVariableRadiusBlurShaderFilterParams filterParams{radialGradientShaderMask, blurRadius, true};
     auto variableRadiusBlurFilter = std::make_shared<GEVariableRadiusBlurShaderFilter>(filterParams);
     image_ = variableRadiusBlurFilter->ProcessImage(*canvas_,
         image_,

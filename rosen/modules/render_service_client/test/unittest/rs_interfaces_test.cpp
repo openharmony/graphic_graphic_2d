@@ -25,12 +25,15 @@
 
 #include "accesstoken_kit.h"
 #include "nativetoken_kit.h"
+#include "platform/ohos/rs_render_service_connect_hub.h"
 #include "token_setproc.h"
 
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+constexpr uint32_t DEFAULT_SCREEN_WIDTH = 640;
+constexpr uint32_t DEFAULT_SCREEN_HEIGHT = 1000;
 class BufferConsumerTestListener : public ::OHOS::IBufferConsumerListener {
 public:
     void OnBufferAvailable() override
@@ -3149,6 +3152,62 @@ HWTEST_F(RSInterfacesTest, SetDualScreenState003, Function | SmallTest | Level2)
 
     auto ret = rsInterfaces->SetDualScreenState(screenId, DualScreenStatus::DUAL_SCREEN_STATUS_BUTT);
     EXPECT_NE(ret, static_cast<int32_t>(StatusCode::SUCCESS));
+}
+
+/*
+ * @tc.name: ModifyVirtualScreenWhiteList001
+ * @tc.desc: modify virtual screen white list
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSInterfacesTest, ModifyVirtualScreenWhiteList001, Function | SmallTest | Level2)
+{
+    ScreenId virtualScreenId = rsInterfaces->CreateVirtualScreen(
+        "virtual0", DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, nullptr, INVALID_SCREEN_ID, -1);
+    ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    NodeId nodeId = 1;
+    ASSERT_EQ(rsInterfaces->AddVirtualScreenWhiteList(virtualScreenId, {nodeId}), SUCCESS);
+    ASSERT_EQ(rsInterfaces->RemoveVirtualScreenWhiteList(virtualScreenId, {nodeId}), SUCCESS);
+    rsInterfaces->RemoveVirtualScreen(virtualScreenId);
+}
+
+/*
+ * @tc.name: ModifyVirtualScreenWhiteList002
+ * @tc.desc: modify virtual screen white list while connectionHub is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSInterfacesTest, ModifyVirtualScreenWhiteList002, Function | SmallTest | Level2)
+{
+    RSRenderServiceConnectHub::instance_ = nullptr;
+
+    NodeId nodeId = 1;
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_NE(rsInterfaces->AddVirtualScreenWhiteList(screenId, {nodeId}), SUCCESS);
+    ASSERT_NE(rsInterfaces->RemoveVirtualScreenWhiteList(screenId, {nodeId}), SUCCESS);
+
+    // restore
+    RSRenderServiceConnectHub::instance_ = new RSRenderServiceConnectHub();
+}
+
+/*
+ * @tc.name: ModifyVirtualScreenBlackList001
+ * @tc.desc: modify virtual screen black list while connectionHub is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSInterfacesTest, ModifyVirtualScreenBlackList001, Function | SmallTest | Level2)
+{
+    RSRenderServiceConnectHub::instance_ = nullptr;
+
+    NodeId nodeId = 1;
+    ScreenId screenId = INVALID_SCREEN_ID;
+    ASSERT_NE(rsInterfaces->AddVirtualScreenBlackList(screenId, {nodeId}), SUCCESS);
+    ASSERT_NE(rsInterfaces->RemoveVirtualScreenBlackList(screenId, {nodeId}), SUCCESS);
+
+    // restore
+    RSRenderServiceConnectHub::instance_ = new RSRenderServiceConnectHub();
 }
 } // namespace Rosen
 } // namespace OHOS

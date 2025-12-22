@@ -248,7 +248,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         mSurfaceList.emplace_back(nativeWindowBuffer);
         hpaeSurfaceBufferList_.pop_front();
     } else {
-        bool isUsingPreAllocateProtectedBuffer= isProtected && mPreAllocateProtectedBuffer && (mProtectedFenceFd != -1);
+        bool isUsingPreAllocateProtectedBuffer = isProtected && mPreAllocateProtectedBuffer;
         if (isUsingPreAllocateProtectedBuffer) {
             RS_TRACE_NAME_FMT("use protectedSurfaceBuffer");
             nativeWindowBuffer = mPreAllocateProtectedBuffer;

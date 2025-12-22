@@ -821,7 +821,7 @@ static void MarshalRenderModifier(const ModifierNG::RSRenderModifier& modifier, 
 }
 
 static uint32_t MarshalDrawCmdModifiers(
-    ModifierNG::RSRenderModifier& modifier, bool skipDrawCmdModifiers, std::stringstream& data)
+    ModifierNG::RSRenderModifier& modifier, bool skipDrawCmdModifiers, bool isBetaRecording, std::stringstream& data)
 {
     auto propertyType = ModifierNG::ModifierTypeConvertor::GetPropertyType(modifier.GetType());
     auto oldCmdList = modifier.Getter<Drawing::DrawCmdListPtr>(propertyType, nullptr);
@@ -835,6 +835,7 @@ static uint32_t MarshalDrawCmdModifiers(
 
     auto newCmdList = std::make_shared<Drawing::DrawCmdList>(
         oldCmdList->GetWidth(), oldCmdList->GetHeight(), Drawing::DrawCmdList::UnmarshalMode::IMMEDIATE);
+    newCmdList->SetNoImageMarshallingFlag(isBetaRecording);
     oldCmdList->ProfilerMarshallingDrawOps(newCmdList.get());
     newCmdList->PatchTypefaceIds(oldCmdList);
     modifier.Setter<Drawing::DrawCmdListPtr>(propertyType, newCmdList);
@@ -885,7 +886,7 @@ void RSProfiler::MarshalNodeModifiers(const RSRenderNode& node, std::stringstrea
             if (!modifierNG || modifierNG->GetType() == ModifierNG::RSModifierType::PARTICLE_EFFECT) {
                 continue;
             }
-            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, skipDrawCmdModifiers, data);
+            modifierNGCount += MarshalDrawCmdModifiers(*modifierNG, skipDrawCmdModifiers, isBetaRecording, data);
         }
     }
 

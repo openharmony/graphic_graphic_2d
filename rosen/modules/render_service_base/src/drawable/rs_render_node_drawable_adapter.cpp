@@ -20,6 +20,7 @@
 #include "skia_adapter/skia_canvas.h"
 
 #include "common/rs_background_thread.h"
+#include "common/rs_common_tools.h"
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_render_node_shadow_drawable.h"
@@ -38,6 +39,7 @@
 #endif
 
 namespace OHOS::Rosen::DrawableV2 {
+using namespace TemplateUtils;
 static const size_t CMD_LIST_COUNT_WARNING_LIMIT = 5000;
 
 std::map<RSRenderNodeType, RSRenderNodeDrawableAdapter::Generator> RSRenderNodeDrawableAdapter::GeneratorMap;
@@ -431,7 +433,7 @@ void RSRenderNodeDrawableAdapter::DumpDrawableTree(int32_t depth, std::string& o
 
     // Dump children drawable(s)
     auto childrenDrawable = std::static_pointer_cast<RSChildrenDrawable>(
-        renderNode->GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::CHILDREN)]);
+        findMapValueRef(renderNode->GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::CHILDREN)));
     if (childrenDrawable) {
         const auto& childrenVec = childrenDrawable->needSync_ ? childrenDrawable->stagingChildrenDrawableVec_
             : childrenDrawable->childrenDrawableVec_;
@@ -449,8 +451,8 @@ std::string RSRenderNodeDrawableAdapter::DumpDrawableVec(const std::shared_ptr<R
     }
     const auto& drawableVec = renderNode->GetDrawableVec(__func__);
     std::string str;
-    for (uint8_t i = 0; i < drawableVec.size(); ++i) {
-        if (drawableVec[i]) {
+    for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        if (findMapValueRef(drawableVec, i)) {
             str += std::to_string(i) + ", ";
         }
     }

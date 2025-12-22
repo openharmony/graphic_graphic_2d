@@ -36,6 +36,7 @@ namespace Rosen {
 #ifdef ROSEN_OHOS
 namespace {
 constexpr uint32_t WATERMARK_PIXELMAP_SIZE_LIMIT = 500 * 1024;
+constexpr uint32_t WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT = 6 * 1024 * 1024;
 constexpr uint32_t WATERMARK_NAME_LENGTH_LIMIT = 128;
 constexpr int32_t SECURITYMASK_IMAGE_WIDTH_LIMIT = 4096;
 constexpr int32_t SECURITYMASK_IMAGE_HEIGHT_LIMIT = 4096;
@@ -162,7 +163,8 @@ void RSInterfaces::RemoveVirtualScreen(ScreenId id)
     renderServiceClient_->RemoveVirtualScreen(id);
 }
 
-bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark)
+bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark,
+    SaSurfaceWatermarkMaxSize maxSizeEnum)
 {
 #ifdef ROSEN_OHOS
     if (renderServiceClient_ == nullptr) {
@@ -172,7 +174,9 @@ bool RSInterfaces::SetWatermark(const std::string& name, std::shared_ptr<Media::
         ROSEN_LOGE("SetWatermark failed, name[%{public}s] is error.", name.c_str());
         return false;
     }
-    if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > WATERMARK_PIXELMAP_SIZE_LIMIT)) {
+    uint32_t limitMaxSize = (maxSizeEnum == SaSurfaceWatermarkMaxSize::SA_WATER_MARK_DEFAULT_SIZE) ?
+        WATERMARK_PIXELMAP_SIZE_LIMIT : WATERMARK_PIXELMAP_MIDDLE_SIZE_LIMIT;
+    if (watermark && (watermark->IsAstc() || watermark->GetCapacity() > limitMaxSize)) {
         ROSEN_LOGE("SetWatermark failed, watermark[%{public}d, %{public}u] is error",
             watermark->IsAstc(), watermark->GetCapacity());
         return false;
@@ -450,25 +454,31 @@ bool RSInterfaces::TakeUICaptureInRangeWithConfig(std::shared_ptr<RSNode> beginN
 int32_t RSInterfaces::RegisterTypeface(std::shared_ptr<Drawing::Typeface>& tf)
 {
     if (tf == nullptr) {
-        return -1;
+        return INVALID_FD;
     }
     if (RSSystemProperties::GetUniRenderEnabled()) {
-        if (tf->GetFd() == -1) {
+        int32_t result = INVALID_FD;
+        if (tf->GetFd() == INVALID_FD) {
             RS_LOGI("RSInterfaces: Register typeface without share memory, name: %{public}s hash: %{public}u",
                 tf->GetFamilyName().c_str(), tf->GetHash());
-            return renderServiceClient_->RegisterTypeface(tf);
+            result = renderServiceClient_->RegisterTypeface(tf);
+        } else {
+            RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
+                tf->GetFamilyName().c_str(), tf->GetHash());
+            result = renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
         }
-        RS_LOGI("RSInterfaces: Register typeface with share memory, name: %{public}s hash: %{public}u",
-            tf->GetFamilyName().c_str(), tf->GetHash());
-        return renderServiceClient_->RegisterTypeface(tf, tf->GetIndex());
+        if (result != INVALID_FD) {
+            TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
+        } else {
+            RS_LOGE("RSInterfaces: Failed to register typeface, name: %{public}s hash: %{public}u",
+                tf->GetFamilyName().c_str(), tf->GetHash());
+        }
+        return result;
     }
 
     RS_LOGI("RSInterfaces:Succeed in reg typeface, family name:%{public}s, uniqueid:%{public}u",
         tf->GetFamilyName().c_str(), tf->GetUniqueID());
-    if (tf->GetFd() == -1) {
-        TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
-        return true;
-    }
+    TypefaceMap::InsertTypeface(tf->GetUniqueID(), tf);
     return tf->GetFd();
 }
 

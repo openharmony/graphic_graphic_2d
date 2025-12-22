@@ -352,6 +352,8 @@ private:
 
     void UpdateFixedSize(RSLogicalDisplayRenderNode& node);
 
+    void DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const;
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 

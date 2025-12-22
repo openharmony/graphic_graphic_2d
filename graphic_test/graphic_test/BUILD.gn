@@ -28,8 +28,11 @@ rs_display_effect_sources = [
   "rs_display_effect/animation/anim_custom_modifier_test.cpp",
   "rs_display_effect/animation/animation_protocol_test.cpp",
   "rs_display_effect/animation/point_custom_modifier_test.cpp",
+  "rs_display_effect/content_display/canvas_drawing_node_test.cpp",
   "rs_display_effect/content_display/content_effectnode_test.cpp",
+  "rs_display_effect/content_display/custom_draw_test.cpp",
   "rs_display_effect/content_display/rs_image_native_test.cpp",
+  "rs_display_effect/property_display/appearance_alpha_border_test.cpp",
   "rs_display_effect/property_display/appearance_alpha_test.cpp",
   "rs_display_effect/property_display/appearance_border_radius_test.cpp",
   "rs_display_effect/property_display/appearance_border_test.cpp",
@@ -73,6 +76,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_linear_gradient_blur_test.cpp",
   "rs_effect_feature/effect_magnifier_test.cpp",
   "rs_effect_feature/effect_pixel_stretch_test.cpp",
+  "rs_effect_feature/effect_distort_chroma_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_effect_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_sdf_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_test.cpp",
@@ -87,6 +91,8 @@ rs_func_feature_sources = [
   "rs_func_feature/color_space_and_hdr/color_space_test.cpp",
   "rs_func_feature/component_capture/demo.cpp",
   "rs_func_feature/multi_screen/logical_display_node_test.cpp",
+  "rs_func_feature/multi_screen/create_pixel_map_with_transform_test.cpp",
+  "rs_func_feature/multi_screen/create_pixel_map_without_transform_test.cpp",
   "rs_func_feature/multi_screen/multi_screen_test.cpp",
   "rs_func_feature/screen_capture/display_node_capture_test.cpp",
   "rs_func_feature/special_layer/security_layer_test.cpp",
@@ -103,6 +109,7 @@ rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/subtree_skip_test.cpp",
   "rs_perform_feature/dirty_region/update_self_draw_rect_test.cpp",
   "rs_perform_feature/hybrid_render/hybrid_render_test.cpp",
+  "rs_perform_feature/gpu_composer/gpu_composer_test.cpp",
 ]
 
 group("test") {
