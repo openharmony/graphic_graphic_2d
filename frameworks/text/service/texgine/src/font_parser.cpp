@@ -120,7 +120,7 @@ FontParser::FontParser()
 void FontParser::ProcessTable(const CmapTables* cmapTable, FontParser::FontDescriptor& fontDescriptor, size_t size)
 {
     auto count = cmapTable->numTables.Get();
-    for (auto i = 0; i < count && (sizeof(CmapTables) + (i + 1) * sizeof(EncodingRecord)) <= size; ++i) {
+    for (size_t i = 0; i < count && (sizeof(CmapTables) + (i + 1) * sizeof(EncodingRecord)) <= size; ++i) {
         const auto& record = cmapTable->encodingRecords[i];
         FontParser::PlatformId platformId = static_cast<FontParser::PlatformId>(record.platformID.Get());
         FontParser::EncodingIdWin encodingId = static_cast<FontParser::EncodingIdWin>(record.encodingID.Get());
