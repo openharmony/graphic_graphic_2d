@@ -37,6 +37,7 @@ public:
     void SetFreeMultiWindowStatus(bool enable) override;
 
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) override;
+    int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) override;
     int32_t RegisterSurfaceOcclusionChangeCallback(
         NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;

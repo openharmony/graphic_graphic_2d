@@ -169,6 +169,16 @@ ErrCode RSServiceToRenderConnection::GetBehindWindowFilterEnabled(bool& enabled)
     return ERR_OK;
 }
 
+int32_t RSServiceToRenderConnection::SetBrightnessInfoChangeCallback(pid_t pid,
+    sptr<RSIBrightnessInfoChangeCallback> callback)
+{
+    if (renderPipelineAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->SetBrightnessInfoChangeCallback(pid, callback);
+}
+
 int32_t RSServiceToRenderConnection::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
 {
     if (renderPipelineAgent_ == nullptr) {

@@ -753,26 +753,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO): {
-            ScreenId screenId = INVALID_SCREEN_ID;
-            if (!data.ReadUint64(screenId)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_BRIGHTNESS_INFO Read screenId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            BrightnessInfo brightnessInfo;
-            int32_t result = GetBrightnessInfo(screenId, brightnessInfo);
-            if (!reply.WriteInt32(result)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_BRIGHTNESS_INFO Write result failed!");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            if (!WriteBrightnessInfo(brightnessInfo, reply)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_BRIGHTNESS_INFO Write brightnessInfo failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK): {
             auto remoteObject = data.ReadRemoteObject();
             if (remoteObject == nullptr) {
@@ -3396,17 +3376,6 @@ bool RSClientToServiceConnectionStub::ReadGameStateDataRs(GameStateData& info, M
         !data.ReadInt32(info.state) || !data.ReadInt32(info.renderTid) ||
         !data.ReadString(info.bundleName)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadGameStateDataRs Read parcel failed!");
-        return false;
-    }
-    return true;
-}
-
-bool RSClientToServiceConnectionStub::WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
-        !data.WriteFloat(brightnessInfo.maxHeadroom) ||
-        !data.WriteFloat(brightnessInfo.sdrNits)) {
-        RS_LOGE("RSClientToServiceConnectionStub::WriteBrightnessInfo write brightnessInfo failed!");
         return false;
     }
     return true;

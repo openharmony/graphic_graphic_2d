@@ -158,6 +158,11 @@ int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
     return 0;
 }
 
+int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return 0;
+}
+
 int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     return 0;

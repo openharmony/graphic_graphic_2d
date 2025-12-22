@@ -247,7 +247,7 @@ int32_t RSInterfaces::SetBrightnessInfoChangeCallback(const BrightnessInfoChange
 
 int32_t RSInterfaces::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
 {
-    return renderServiceClient_->GetBrightnessInfo(screenId, brightnessInfo);
+    return RSRenderInterface::GetInstance().GetBrightnessInfo(screenId, brightnessInfo);
 }
 
 int32_t RSInterfaces::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid)

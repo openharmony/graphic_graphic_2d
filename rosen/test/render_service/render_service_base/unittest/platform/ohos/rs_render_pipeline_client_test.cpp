@@ -247,6 +247,20 @@ HWTEST_F(RSPipelineClientTest, TriggerTransactionDataCallbackAndErase02, TestSiz
 }
 
 /**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: GetBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineClientTest, GetBrightnessInfoTest, TestSize.Level1)
+{
+    BrightnessInfo brightnessInfo = { 0 };
+    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), 0);
+    RSRenderServiceConnectHub::Destroy();
+    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
+    RSRenderServiceConnectHub::Init();
+}
+
+/**
  * @tc.name: SetFocusAppInfo Test
  * @tc.desc: SetFocusAppInfo Test
  * @tc.type:FUNC

@@ -517,16 +517,6 @@ int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessI
     return clientToService->SetBrightnessInfoChangeCallback(cb);
 }
 
-int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
-        return RENDER_SERVICE_NULL;
-    }
-    return clientToService->GetBrightnessInfo(screenId, brightnessInfo);
-}
-
 uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();

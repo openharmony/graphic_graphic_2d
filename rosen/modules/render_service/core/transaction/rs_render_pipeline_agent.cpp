@@ -1110,6 +1110,28 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     return ERR_INVALID_VALUE;
 }
 
+int32_t RSRenderPipelineAgent::SetBrightnessInfoChangeCallback(pid_t pid,
+    sptr<RSIBrightnessInfoChangeCallback> callback)
+{
+    if (!rsRenderPipeline_) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (!rsRenderPipeline_->mainThread_) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto task = [this, &callback, &pid]() {
+        auto& context = rsRenderPipeline_->mainThread_->GetContext();
+        return context.SetBrightnessInfoChangeCallback(pid, callback);
+    };
+    return rsRenderPipeline_->mainThread_->ScheduleTask(task).get();
+}
+
+int32_t RSRenderPipelineAgent::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
+    return StatusCode::SUCCESS;
+}
+
 int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback)
 {
     if (!rsRenderPipeline_) {
@@ -1603,6 +1625,7 @@ ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
             }
             auto& context = mainThread->GetContext();
             auto& nodeMap = context.GetMutableNodeMap();
+            context.SetBrightnessInfoChangeCallback(pid, nullptr);
             MemoryTrack::Instance().RemovePidRecord(pid);
 
             nodeMap.FilterNodeByPid(pid);

@@ -169,8 +169,6 @@ public:
 
     int32_t SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback);
 
-    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
-
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
     int32_t GetCurrentRefreshRateMode();

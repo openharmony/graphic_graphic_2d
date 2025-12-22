@@ -143,6 +143,33 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK): {
+            auto interfaceToken = data.ReadInterfaceToken();
+            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
+                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Read interfaceToken failed!");
+                ret = ERR_INVALID_STATE;
+                break;
+            }
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Read pid failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto remoteObject = data.ReadRemoteObject();
+            if (remoteObject == nullptr) {
+                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK ReadRemoteObject failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
+            sptr<RSIBrightnessInfoChangeCallback> callback = iface_cast<RSIBrightnessInfoChangeCallback>(remoteObject);
+            int32_t status = SetBrightnessInfoChangeCallback(pid, callback); 
+            if (!reply.WriteInt32(status)) {
+                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Write status failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_DISCARD_JANK_FRAME): {
             bool discardJankFrames{false};
             if (!data.ReadBool(discardJankFrames)) {

@@ -1019,6 +1019,48 @@ ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, floa
     return ERR_OK;
 }
 
+int32_t RSClientToRenderConnectionProxy::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetBrightnessInfo: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(screenId)) {
+        ROSEN_LOGE("GetBrightnessInfo: WriteUint64 screenId err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetBrightnessInfo Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    if (!ReadBrightnessInfo(brightnessInfo, reply)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::ReadBrightnessInfo ReadBrightnessInfo failed!");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
+bool RSClientToRenderConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
+{
+    if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
+        !data.ReadFloat(brightnessInfo.maxHeadroom) ||
+        !data.ReadFloat(brightnessInfo.sdrNits)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::ReadBrightnessInfo read parcel failed!");
+        return false;
+    }
+    return true;
+}
+
 ErrCode RSClientToRenderConnectionProxy::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
 {
     MessageParcel data;

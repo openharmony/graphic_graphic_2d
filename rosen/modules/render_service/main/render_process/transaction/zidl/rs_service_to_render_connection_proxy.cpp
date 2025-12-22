@@ -604,6 +604,34 @@ int32_t RSServiceToRenderConnectionProxy::RegisterOcclusionChangeCallback(
     return SUCCESS;
 }
 
+int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t pid,
+    sptr<RSIBrightnessInfoChangeCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInt32(static_cast<int32_t>(pid))) {
+        ROSEN_LOGE("dmulti_process %{public}s WriteInt32 failed.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s WriteRemoteObject callback->AsObject() err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    return SUCCESS;
+}
+
 int32_t RSServiceToRenderConnectionProxy::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {

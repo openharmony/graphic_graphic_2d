@@ -141,6 +141,8 @@ public:
     virtual ErrCode SetHwcNodeBounds(
         int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
 
+    virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
+
     virtual ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) = 0;
 
     virtual ErrCode DropFrameByPid(const std::vector<int32_t> pidList) = 0;

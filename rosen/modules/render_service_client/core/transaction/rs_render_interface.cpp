@@ -358,6 +358,11 @@ void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
     renderPipelineClient_->SetWindowContainer(nodeId, value);
 }
 
+int32_t RSRenderInterface::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    return renderPipelineClient_->GetBrightnessInfo(screenId, brightnessInfo);
+}
+
 int32_t RSRenderInterface::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     return renderPipelineClient_->GetScreenHDRStatus(id, hdrStatus);

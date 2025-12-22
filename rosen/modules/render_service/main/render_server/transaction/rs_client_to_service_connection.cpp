@@ -222,7 +222,6 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
             }
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", connection->remotePid_);
             connection->CleanRenderNodes();
-            connection->CleanBrightnessInfoChangeCallbacks();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
             connection->CleanCanvasCallbacksAndPendingBuffer();
 #endif
@@ -270,6 +269,9 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
                 monitor.UnRegisterRectChangeCallback(connection->remotePid_);
             }).wait();
     }
+
+    CleanBrightnessInfoChangeCallbacks();
+
     RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(remotePid_);
 
     if (hgmContext_ != nullptr) {
@@ -735,31 +737,26 @@ int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSISc
 
 int32_t RSClientToServiceConnection::SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback)
 {
-    // if (mainThread_ == nullptr) {
-    //     return INVALID_ARGUMENTS;
-    // }
-    // auto task = [this, &callback]() {
-    //     auto& context = mainThread_->GetContext();
-    //     return context.SetBrightnessInfoChangeCallback(remotePid_, callback);
-    // };
-    // return mainThread_->ScheduleTask(task).get();
-    return 0; // ??? todo
+    if (renderProcessManagerAgent_ == nullptr) {
+        RS_LOGE("%{public}s renderProcessManagerAgent_ is nullptr", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    auto serviceToRenderConns = renderProcessManagerAgent_->GetServiceToRenderConns();
+    if (serviceToRenderConns.empty()) {
+        RS_LOGE("%{public}s serviceToRenderConns is empty", __func__);
+        return StatusCode::INVALID_ARGUMENTS;
+    }
+    int32_t ret = StatusCode::SUCCESS;
+    for (auto conn : serviceToRenderConns) {
+        int32_t retTmp = conn->SetBrightnessInfoChangeCallback(remotePid_, callback);
+        ret = (retTmp != StatusCode::SUCCESS) ? retTmp : ret;
+    }
+    return ret;
 }
 
-void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks() noexcept
+void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks()
 {
-    // if (mainThread_ == nullptr) {
-    //     return;
-    // }
-    // auto& context = mainThread_->GetContext();
-    // context.SetBrightnessInfoChangeCallback(remotePid_, nullptr);
-}
-
-int32_t RSClientToServiceConnection::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
-{
-    // brightnessInfo = RSLuminanceControl::Get().GetBrightnessInfo(screenId);
-    // return StatusCode::SUCCESS;
-    return StatusCode::SUCCESS; // ??? todo
+    SetBrightnessInfoChangeCallback(nullptr);
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

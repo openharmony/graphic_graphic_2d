@@ -227,6 +227,13 @@ public:
     void DropFrameByPid(const std::vector<int32_t> pidList);
 
     /**
+     * @brief Get brightness info by screenId.
+     * @param screenId is screen id.
+     * @return Returns 0 success, otherwise, failed.
+     */
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
+    /**
      * @brief Get the HDR status of the current screen.
      * @param id Id of the screen.
      * @param hdrStatus The HDR status of the current screen.

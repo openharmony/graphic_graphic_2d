@@ -98,6 +98,10 @@ public:
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
     
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
+
+    bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
+    
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
     ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;

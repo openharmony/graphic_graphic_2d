@@ -616,6 +616,21 @@ int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
     return repCode;
 }
 
+int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t resCode = SUCCESS;
+    auto err = clientToRender->GetBrightnessInfo(screenId, brightnessInfo);
+    if (err != SUCCESS) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetBrightnessInfo err(%{public}d)!", err);
+        resCode = err;
+    }
+    return resCode;
+}
+
 int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();

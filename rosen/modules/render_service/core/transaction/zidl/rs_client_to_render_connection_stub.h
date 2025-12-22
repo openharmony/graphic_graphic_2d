@@ -38,6 +38,7 @@ public:
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
 
+    bool WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data);
     bool ReadDataBaseRs(DataBaseRs& info, MessageParcel& data);
     bool ReadSurfaceCaptureConfig(RSSurfaceCaptureConfig& captureConfig, MessageParcel& data);
     bool ReadSurfaceCaptureBlurParam(RSSurfaceCaptureBlurParam& blurParam, MessageParcel& data);

@@ -417,6 +417,14 @@ ErrCode RSClientToRenderConnection::SetHwcNodeBounds(int64_t rsNodeId, float pos
     return renderPipelineAgent_->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
 }
 
+int32_t RSClientToRenderConnection::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->GetBrightnessInfo(screenId, brightnessInfo);
+}
+
 ErrCode RSClientToRenderConnection::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode)
 {
     if (!renderPipelineAgent_) {

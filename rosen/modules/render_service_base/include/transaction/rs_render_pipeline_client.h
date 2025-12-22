@@ -164,6 +164,8 @@ public:
 
     void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     void DropFrameByPid(const std::vector<int32_t> pidList);
