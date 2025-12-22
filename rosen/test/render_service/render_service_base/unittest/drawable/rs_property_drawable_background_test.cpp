@@ -337,13 +337,13 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundNGShaderDrawable004, TestSize
     drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
     ASSERT_TRUE(true);
 
-    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData = 
+    std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> effectData =
         std::make_shared<RSPaintFilterCanvas::CachedEffectData>();
     std::shared_ptr<Drawing::Image> cachedImage = std::make_shared<Drawing::Image>();
     effectData->cachedImage_ = cachedImage;
     rspaintfiltercanvas->SetEffectData(effectData);
     drawable->OnDraw(rspaintfiltercanvas.get(), rect.get());
-    ASSERT_TRUE(true); 
+    ASSERT_TRUE(true);
 }
 
 /**

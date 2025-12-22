@@ -189,9 +189,8 @@ void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect*
         auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
         if (paintFilterCanvas != nullptr) {
             auto color = colorPickerManager_->GetColorPicked(
-                    *paintFilterCanvas, rect, nodeId_,
-                     colorPicker_.strategy, colorPicker_.interval);
-                paintFilterCanvas->SetColorPicked(colorPicker_.placeholder, color);
+                *paintFilterCanvas, rect, nodeId_, colorPicker_.strategy, colorPicker_.interval);
+            paintFilterCanvas->SetColorPicked(colorPicker_.placeholder, color);
         }
     }
 }
