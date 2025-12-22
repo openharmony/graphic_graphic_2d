@@ -1081,7 +1081,8 @@ bool RSUniRenderVisitor::CheckSkipBackgroundSurfaceRenderNode(RSSurfaceRenderNod
     }
     const auto& screenInfo = curScreenNode_->GetScreenInfo();
     const auto& rect = accumulatedOcclusionRegion_.GetRegionRects()[0];
-    auto isFullScreenOcclusion = (rect.GetWidth() * rect.GetHeight()) == (screenInfo.width * screenInfo.height);
+    auto isFullScreenOcclusion = static_cast<uint64_t>(rect.GetWidth() * rect.GetHeight()) ==
+                                 static_cast<uint64_t>(screenInfo.width * screenInfo.height);
     if (isFullScreenOcclusion) {
         return true;
     }
