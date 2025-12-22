@@ -15,243 +15,13 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ng_sdf_test_utils.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
-using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
-using FilterCreator = std::function<std::shared_ptr<RSNGFilterBase>()>;
-using FilterConvertor = std::function<std::shared_ptr<RSNGFilterBase>(std::shared_ptr<FilterPara>)>;
-
-static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
-    {RSNGEffectType::DOUBLE_RIPPLE_MASK,
-     [] {
-         return std::make_shared<RSNGDoubleRippleMask>();
-     }},
-};
-
-static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
-    {RSNGEffectType::DISPLACEMENT_DISTORT,
-     [] {
-         return std::make_shared<RSNGDispDistortFilter>();
-     }},
-    {RSNGEffectType::COLOR_GRADIENT,
-     [] {
-         return std::make_shared<RSNGColorGradientFilter>();
-     }},
-    {RSNGEffectType::FROSTED_GLASS,
-     [] {
-         return std::make_shared<RSNGFrostedGlassFilter>();
-     }},
-    {RSNGEffectType::GRID_WARP,
-     [] {
-         return std::make_shared<RSNGGridWarpFilter>();
-     }},
-};
-
-// Default values
-const Vector2f defaultBlurParams = Vector2f(48.0f, 4.0f);
-const Vector2f defaultWeightsEmboss = Vector2f(1.0f, 1.0f); // (envLight, sd)
-const Vector2f defaultWeightsEdl = Vector2f(1.0f, 1.0f); // (envLight, sd)
-const Vector3f defaultRefractParams = Vector3f(0.010834f, 0.007349f, 1.2f);
-const Vector2f defaultBgRates = Vector2f(-0.00003f, 1.2f);
-const Vector3f defaultBgKBS = Vector3f(0.010834f, 0.007349f, 1.2f);
-const Vector3f defaultBgPos = Vector3f(0.3f, 0.5f, 1.0f);
-const Vector3f defaultBgNeg = Vector3f(0.5f, 0.5f, 1.0f);
-const Vector3f defaultSdParams = Vector3f(0.0f, 2.0f, 0.0f);
-const Vector2f defaultSdRates = Vector2f(0.0f, 0.0f);
-const Vector3f defaultSdKBS = Vector3f(-0.02f, 2.0f, 4.62f);
-const Vector3f defaultSdPos = Vector3f(1.0f, 1.5f, 2.0f);
-const Vector3f defaultSdNeg = Vector3f(1.7f, 3.0f, 1.0f);
-const Vector3f defaultEnvLightParams = Vector3f(0.8f, 0.2745f, 2.0f);
-const Vector2f defaultEnvLightRates = Vector2f(0.0f, 0.0f);
-const Vector3f defaultEnvLightKBS = Vector3f(0.8f, 0.2745f, 2.0f);
-const Vector3f defaultEnvLightPos = Vector3f(1.0f, 1.5f, 2.0f);
-const Vector3f defaultEnvLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
-const Vector2f defaultEdLightParams = Vector2f(2.0f, -1.0f);
-const Vector2f defaultEdLightAngles = Vector2f(30.0f, 30.0f);
-const Vector2f defaultEdLightDir = Vector2f(-1.0f, 1.0f);
-const Vector2f defaultEdLightRates = Vector2f(0.0f, 0.0f);
-const Vector3f defaultEdLightKBS = Vector3f(0.6027f, 0.64f, 2.0f);
-const Vector3f defaultEdLightPos = Vector3f(1.0f, 1.5f, 2.0f);
-const Vector3f defaultEdLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
- 
-// Param arrays
-std::vector<Vector2f> blurparamsParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector2f> weightsEmbossParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector2f> weightsEdlParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector2f> bgRatesParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector3f> bgKBSParams = {
-    Vector3f{0.8f, 70.0f, 2.0f},
-    Vector3f{0.0f, 70.0f, 2.0f},
-    Vector3f{1.0f, 70.0f, 2.0f},
-    Vector3f{0.8f, 0.0f, 2.0f},
-    Vector3f{0.8f, 180.0f, 2.0f},
-    Vector3f{0.8f, 70.0f, 0.0f},
-    Vector3f{std::numeric_limits<float>::infinity(), 70.0f, 2.0f}
-};
-
-std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)
-{
-    auto it = creatorMask.find(type);
-    return it != creatorMask.end() ? it->second() : nullptr;
-}
-
-std::shared_ptr<RSNGFilterBase> CreateFilter(RSNGEffectType type)
-{
-    auto it = creatorFilter.find(type);
-    return it != creatorFilter.end() ? it->second() : nullptr;
-}
-
-constexpr int DOUBLE_RIPPLE_MASK_PARAMS_COUNT = 7;
-std::vector<std::array<float, DOUBLE_RIPPLE_MASK_PARAMS_COUNT>> doubleRippleMaskParams = {
-    {-20.0f, -20.0f, -20.0f, -20.0f, -1.0f, -1.0f, -1.0f},
-    {0.15f, 0.15f, 0.15f, 0.15f, 0.4f, 0.35f, 0.75f},
-    {0.25f, 0.25f, 0.75f, 0.75f, 0.5f, 0.5f, 0.5f},
-    {0.15f, 0.15f, 0.65f, 0.65f, 0.8f, 0.15f, 0.35f},
-    {10.0f, 10.0f, 0.75f, 0.75f, 0.5f, 0.5f, 12.0f},
-    {20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f},
-};
-
-constexpr int DISPLACEMENT_DISTORT_PARAMS_COUNT = 2;
-std::vector<std::array<float, DISPLACEMENT_DISTORT_PARAMS_COUNT>> displacementDistortParams = {
-    {-1, -1}, {6.0f, 6.0f}, {6.0f, 6.0f}, {10.0f, 10.0f}, {3.0f, 7.0f}, {999.0f, 999.0f}
-};
-
-constexpr int COLOR_GRADIENT_PARAMS_COUNT = 7;
-std::vector<std::array<float, COLOR_GRADIENT_PARAMS_COUNT>> colorGradientParams = {
-    {-1, -1, -1, -1, -1, -1, -1},
-    {0.5f, 0.6f, 0.9f, 0.9f, 0.9f, 0.9f, 3.0f},
-    {0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 1.5f},
-    {0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 3.0f},
-    {0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f},
-    {999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f},
-};
-
-constexpr int GRID_WARP_POINT_PARAMS_COUNT = 9;
-std::vector<std::array<Vector2f, GRID_WARP_POINT_PARAMS_COUNT>> gridWarpPointParams = {
-    {
-        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
-        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, -0.1f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ -0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.1f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.1f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.1f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ 0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.9f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 0.9f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ -999.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 999.0f, 0.0f },
-        Vector2f{ -999.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 999.0f, 0.5f },
-        Vector2f{ -999.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 999.0f, 999.0f }
-    },
-};
-
-constexpr int GRID_WARP_ANGLE_PARAMS_COUNT = 9;
-std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAngleParams = {
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ -999.0f, -999.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-};
-
-std::vector<Vector2f> blurparamsParamsForMaterialFilter = {
-    Vector2f{48.0f, 4.0f},
-    Vector2f{-48.0f, 4.0f},
-    Vector2f{std::numeric_limits<float>::max(), 4.0f},
-    Vector2f{std::numeric_limits<float>::min(), 4.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), 4.0f}
-};
-
-enum class TestDataGroupParamsType {
-    INVALID_DATA_MIN,
-    VALID_DATA1,
-    VALID_DATA2,
-    VALID_DATA3,
-    INVALID_AND_VALID_DATA,
-    INVALID_DATA_MAX,
-    COUNT
-};
-
 class NGFilterTest : public RSGraphicTest {
 public:
     // called before each tests
@@ -265,6 +35,63 @@ private:
     const int screenHeight = 2000;
     const int filterParaTypeCount = static_cast<int>(FilterPara::ParaType::CONTENT_LIGHT);
 };
+
+static void InitFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>& frostedGlassFilter)
+{
+    if (frostedGlassFilter == nullptr) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    }
+
+    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(DEFAULT_BLUR_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(DEFAULT_WEIGHTS_EMBOSS);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(DEFAULT_WEIGHTS_EDL);
+
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(DEFAULT_BG_RATES);
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(DEFAULT_BG_KBS);
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(DEFAULT_BG_POS);
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(DEFAULT_BG_NEG);
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(DEFAULT_REFRACT_PARAMS);
+
+    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(DEFAULT_SD_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(DEFAULT_SD_RATES);
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(DEFAULT_SD_KBS);
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(DEFAULT_SD_POS);
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(DEFAULT_SD_NEG);
+
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(DEFAULT_ENV_LIGHT_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(DEFAULT_ENV_LIGHT_RATES);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(DEFAULT_ENV_LIGHT_KBS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(DEFAULT_ENV_LIGHT_POS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(DEFAULT_ENV_LIGHT_NEG);
+
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(DEFAULT_ED_LIGHT_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(DEFAULT_ED_LIGHT_ANGLES);
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(DEFAULT_ED_LIGHT_DIR);
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(DEFAULT_ED_LIGHT_RATES);
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(DEFAULT_ED_LIGHT_KBS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(DEFAULT_ED_LIGHT_POS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(DEFAULT_ED_LIGHT_NEG);
+
+    frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(DEFAULT_BASE_VIBRANCY_ENABLED);
+    frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(DEFAULT_SAMPLING_SCALE);
+}
+
+static std::shared_ptr<OHOS::Rosen::RSCanvasNode> CreateSdfChildNode(
+    const int x, const int y, const int sizeX, const int sizeY,
+    std::shared_ptr<RSNGFrostedGlassFilter>& frostedGlassFilter)
+{
+    auto childTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    childTestNode->SetBounds(bounds);
+    childTestNode->SetFrame(bounds);
+    childTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+    const RRect defaultRectParam = {RectT<float>{sizeX/4, sizeY/4, sizeX/2, sizeY/2}, sizeX/16, sizeX/16};
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
+    childTestNode->SetSDFShape(sdfShape);
+    return childTestNode;
+}
 
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test)
 {
@@ -292,7 +119,8 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test)
         
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
         backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -330,59 +158,35 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test)
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
     }
 }
 
-GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_Test)
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_DefaultTest)
 {
     int columnCount = 1;
     int rowCount = 1;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
  
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -393,45 +197,20 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BlurParamsTe
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(blurparamsParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -442,135 +221,68 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_WeightsEmbos
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(weightsEmbossParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_WeightsEdlTest)
 {
-    int columnCount = 1;
+    int columnCount = 2;
     int rowCount = static_cast<int>(weightsEdlParams.size());
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(weightsEdlParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgRatesTest)
 {
-    int columnCount = 1;
+    int columnCount = 2;
     int rowCount = static_cast<int>(bgRatesParams.size());
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(bgRatesParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -581,41 +293,478 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgKBSTest)
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(bgKBSParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(bgPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(bgPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(bgNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(bgNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_RefractParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(refractParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(refractParamsParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(sdParamsParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdRatesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdRatesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(sdRatesParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdKBSTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdKBSParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(sdKBSParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(sdPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(sdNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(envLightParamsParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightRatesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightRatesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(envLightRatesParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightKBSTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightKBSParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(envLightKBSParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(envLightPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(envLightNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightRatesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightRatesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(edLightRatesParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightKBSTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightKBSParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(edLightKBSParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(edLightPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(edLightNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BaseVibrancyEnabledTest)
+{
+    int columnCount = 1;
+    int rowCount = static_cast<int>(baseVibrancyEnabledParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        bool baseVibrancyEnabled = baseVibrancyEnabledParams[i];
+        frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(baseVibrancyEnabled);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SamplingScaleTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(samplingScaleParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(samplingScaleParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -626,36 +775,12 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_Frosted_Glass_Material_Filter_Test)
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         if (i == blurparamsParamsForMaterialFilter.size()) {
-            filter = nullptr;
+            frostedGlassFilter = nullptr;
         } else {
+            InitFrostedGlassFilter(frostedGlassFilter);
             frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(blurparamsParamsForMaterialFilter[i]);
-            frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-            frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-            frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-            frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-            frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-            frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-            frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-            frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-            frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-            frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-            frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-            frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-            frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-            frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-            frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-            frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-            frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-            frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-            frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
         }
 
         int x = (i % columnCount) * sizeX;
@@ -803,5 +928,4 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Grid_Warp_Displacement_Dis
         RegisterNode(backgroundTestNode);
     }
 }
-
 }  // namespace OHOS::Rosen
