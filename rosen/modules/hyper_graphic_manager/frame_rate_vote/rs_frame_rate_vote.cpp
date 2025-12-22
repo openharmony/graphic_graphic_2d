@@ -101,7 +101,7 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
             transactionFlags.find(strLastVotedPid) != std::string::npos) {
             hasUiOrSurface = true;
     }
-    RS_LOGD("sourceType (%{public}d), hasUiOrSurface (%{public}d)", sourceType, hasUiOrSurface);
+    RS_LOGD("sourceType: %{public}d, hasUiOrSurface: %{public}d", sourceType, hasUiOrSurface);
     // OH SURFACE SOURCE VIDEO AN UI VOTE
     if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
         return;
@@ -125,9 +125,9 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         }
         rsVideoFrameRateVote->StartVideoFrameRateVote(videoRate);
     };
-    ffrt::task_attr taskAttr;
-    taskAttr.qos(FFRT_QOS_INHERIT);
     if (ffrtQueue_) {
+        ffrt::task_attr taskAttr;
+        taskAttr.qos(FFRT_QOS_INHERIT);
         ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }
@@ -193,9 +193,9 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
     auto initTask = [this, maxPid, maxRate]() {
         VoteRate(maxPid, VIDEO_VOTE_FLAG, maxRate);
     };
-    ffrt::task_attr taskAttr;
-    taskAttr.delay(VIDEO_VOTE_DELAYS_TIME);
     if (ffrtQueue_) {
+        ffrt::task_attr taskAttr;
+        taskAttr.delay(VIDEO_VOTE_DELAYS_TIME);
         taskHandler_ = ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }
