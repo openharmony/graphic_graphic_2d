@@ -116,7 +116,7 @@ ErrCode RSServiceToRenderConnection::AvcodecVideoStop(const std::vector<uint64_t
     return renderPipelineAgent_->AvcodecVideoStop(uniqueIdList, surfaceNameList, fps);
 }
 
-void RSServiceToRenderConnection::DoDump(std::unordered_set<std::u16string> &argSets)
+void RSServiceToRenderConnection::DoDump(std::unordered_set<std::u16string>& argSets)
 {
     renderPipelineAgent_->DoDump(argSets);
 }
@@ -127,7 +127,7 @@ void RSServiceToRenderConnection::NotifyPackageEvent(uint32_t listSize, const st
         RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
         return;
     }
-    renderPipelineAgent_->NotifyPackageEvent(listSize, packageList);
+    renderPipelineAgent_->NotifyPackageEvent(packageList);
 }
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
@@ -337,7 +337,8 @@ ErrCode RSServiceToRenderConnection::GetMemoryGraphics(std::vector<MemoryGraphic
     return renderPipelineAgent_->GetMemoryGraphics(memoryGraphics);
 }
 
-ErrCode RSServiceToRenderConnection::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode)
+ErrCode RSServiceToRenderConnection::GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector,
+    pid_t pid, int32_t& repCode)
 {
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
@@ -346,7 +347,8 @@ ErrCode RSServiceToRenderConnection::GetPixelMapByProcessId(std::vector<PixelMap
     return renderPipelineAgent_->GetPixelMapByProcessId(pixelMapInfoVector, pid, repCode);
 }
 
-ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success)
+ErrCode RSServiceToRenderConnection::SetWatermark(pid_t callingPid, const std::string& name,
+    std::shared_ptr<Media::PixelMap> watermark, bool& success)
 {
     if (renderPipelineAgent_ == nullptr) {
         RS_LOGE("%{public}s renderPipelineAgent_ is nullptr", __func__);
@@ -389,7 +391,7 @@ void RSServiceToRenderConnection::SetFreeMultiWindowStatus(bool enable)
         RS_LOGE("dmulti_process %{public}s renderPipelineAgent_ is nullptr", __func__);
         return;
     }
-    return renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
+    renderPipelineAgent_->SetFreeMultiWindowStatus(enable);
 }
 
 int32_t RSServiceToRenderConnection::RegisterSelfDrawingNodeRectChangeCallback(

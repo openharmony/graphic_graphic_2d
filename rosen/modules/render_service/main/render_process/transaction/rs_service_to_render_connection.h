@@ -30,7 +30,7 @@ public:
     virtual ~RSServiceToRenderConnection() noexcept = default;
 
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
-    void DoDump(std::unordered_set<std::u16string> &argSets) override;
+    void DoDump(std::unordered_set<std::u16string>& argSets) override;
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;

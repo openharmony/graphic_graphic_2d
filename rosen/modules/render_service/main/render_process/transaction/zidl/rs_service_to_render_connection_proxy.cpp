@@ -792,7 +792,7 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
     }
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name, 
+ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name,
     std::shared_ptr<Media::PixelMap> watermark, bool& success)
 {
     MessageParcel data;
@@ -830,7 +830,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string> &argSets)
+void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -941,7 +941,7 @@ void RSServiceToRenderConnectionProxy::ReportGameStateData(GameStateData info)
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::ReportGameStateData WriteString bundleName failed");
         return;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
 
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -1522,7 +1522,7 @@ HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInf
     MessageParcel reply;
     MessageOption option;
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE(
             "dmulti_process RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo: WriteInterfaceToken failed.");
         return hwcDisabledReasonInfos;
