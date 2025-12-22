@@ -136,7 +136,7 @@ RSGraphicTestDirector::~RSGraphicTestDirector()
 
 void RSGraphicTestDirector::Run()
 {
-    rsUiDirector_ = RSUIDirector::Create(nullptr);
+    rsUiDirector_ = RSUIDirector::Create();
 
     rsUiDirector_->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) {
         if (task) {
@@ -191,8 +191,7 @@ std::shared_ptr<Media::PixelMap> RSGraphicTestDirector::TakeScreenCaptureAndWait
     }
 
     auto callback = std::make_shared<TestSurfaceCaptureCallback>();
-    auto rsRenderInterface = rsUiDirector_->GetRSUIContext()->GetRSRenderInterface();
-    if (!rsRenderInterface->TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
+    if (!RSInterface::GetInstance().renderInterface_->TakeSurfaceCaptureForUI(rootNode_->screenSurfaceNode_, callback)) {
         return nullptr;
     }
 
