@@ -522,7 +522,7 @@ ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
 {
     if (screenManagerAgent_ == nullptr) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
-        return -1; // ERR_INVALID_OPERATION
+        return ERR_INVALID_OPERATION;
     }
     return screenManagerAgent_->GetDefaultScreenId(screenId);
 }
@@ -531,7 +531,7 @@ ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
 {
     if (screenManagerAgent_ == nullptr) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
-        return -1;
+        return ERR_INVALID_OPERATION;
     }
     return screenManagerAgent_->GetActiveScreenId(screenId);
 }
@@ -540,7 +540,7 @@ std::vector<ScreenId> RSClientToServiceConnection::GetAllScreenIds()
 {
     if (screenManagerAgent_ == nullptr) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
-        return {}; // chenke fix
+        return {};
     }
     return screenManagerAgent_->GetAllScreenIds();
 }
@@ -1204,21 +1204,7 @@ std::vector<RSScreenModeInfo> RSClientToServiceConnection::GetScreenSupportedMod
     if (!screenManagerAgent_) {
         return std::vector<RSScreenModeInfo>();
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return {};
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->GetScreenSupportedModes(id); }).get();
-#else
-        return std::vector<RSScreenModeInfo>();
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->GetScreenSupportedModes(id); }).get();
-    } else {
-        return std::vector<RSScreenModeInfo>();
-    }
+    return screenManagerAgent_->GetScreenSupportedModes(id);
 }
 
 RSScreenCapability RSClientToServiceConnection::GetScreenCapability(ScreenId id)
@@ -1227,21 +1213,7 @@ RSScreenCapability RSClientToServiceConnection::GetScreenCapability(ScreenId id)
     if (!screenManagerAgent_) {
         return screenCapability;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return screenCapability;
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->GetScreenCapability(id); }).get();
-#else
-        return screenCapability;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->GetScreenCapability(id); }).get();
-    } else {
-        return screenCapability;
-    }
+    return screenManagerAgent_->GetScreenCapability(id);
 }
 
 ErrCode RSClientToServiceConnection::GetScreenPowerStatus(uint64_t screenId, uint32_t& status)
