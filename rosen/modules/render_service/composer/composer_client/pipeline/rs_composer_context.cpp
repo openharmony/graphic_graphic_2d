@@ -66,12 +66,6 @@ void RSComposerContext::RemoveRSLayer(RSLayerId layerId)
     rsLayers_.erase(iter);
 }
 
-void RSComposerContext::ClearAllRSLayers()
-{
-    std::unique_lock<std::mutex> lock(rsLayerMutex_);
-    rsLayers_.clear();
-}
-
 std::shared_ptr<RSLayer> RSComposerContext::GetRSLayer(RSLayerId rsLayerId) const
 {
     std::unique_lock<std::mutex> lock(rsLayerMutex_);

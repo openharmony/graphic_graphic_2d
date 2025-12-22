@@ -26,7 +26,7 @@ public:
     explicit RSRenderComposerAgent(const std::shared_ptr<RSRenderComposer>& rsRenderComposer);
     ~RSRenderComposerAgent() = default;
 
-    void SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn);
+    void SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn);
     bool ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected();

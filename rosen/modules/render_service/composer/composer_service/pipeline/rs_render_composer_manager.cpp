@@ -26,26 +26,6 @@ namespace Rosen {
 RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler) :
     handler_(handler) {}
 
-void RSRenderComposerManager::SetComposerToRenderConnection(ScreenId screenId,
-    sptr<RSIComposerToRenderConnection> conn)
-{
-    if (conn == nullptr) {
-        RS_LOGE("SetComposerToRenderConnection conn is nullptr, screenId:%{public}" PRIu64, screenId);
-        return;
-    }
-    std::shared_ptr<RSRenderComposerAgent> renderComposerAgent;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        auto iter = rsRenderComposerAgentMap_.find(screenId);
-        if (iter == rsRenderComposerAgentMap_.end()) {
-            RS_LOGE("SetComposerToRenderConnection not find screenId:%{public}" PRIu64, screenId);
-            return;
-        }
-        renderComposerAgent = iter->second;
-    }
-    renderComposerAgent->SetComposerToRenderConnection(conn);
-}
-
 void RSRenderComposerManager::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     rsVsyncManagerAgent_ = rsVsyncManagerAgent;

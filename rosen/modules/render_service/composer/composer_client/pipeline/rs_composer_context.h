@@ -37,12 +37,12 @@ public:
     RSComposerContext& operator=(const RSComposerContext&&) = delete;
     virtual ~RSComposerContext() = default;
 
+protected:
     std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;
     void SetRenderComposerClientConnection(const sptr<IRSRenderToComposerConnection>& conn);
 
     void AddRSLayer(const std::shared_ptr<RSLayer>& rsLayer);
     void RemoveRSLayer(RSLayerId layerId);
-    void ClearAllRSLayers();
     std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId) const;
 
     bool CommitLayers(ComposerInfo& composerInfo);
@@ -53,7 +53,6 @@ public:
     void ClearFrameBuffers();
     void DumpLayersInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
-
     bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc)
     {
         if (onBufferReleaseFunc_ == nullptr) {
@@ -71,6 +70,9 @@ private:
     sptr<IRSRenderToComposerConnection> rsComposerConnection_;
 
     OnBufferReleaseFunc onBufferReleaseFunc_ = nullptr;
+    friend class RSRenderComposerClient;
+    friend class RSSurfaceLayer;
+    friend class RSSurfaceRCDLayer;
 };
 } // namespace Rosen
 } // namespace OHOS

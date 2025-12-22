@@ -31,6 +31,8 @@ public:
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId) override;
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) override;
     void SetScreenBacklight(uint32_t level) override;
+    void SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn) override;
+
 private:
     bool FillParcelWithTransactionData(std::unique_ptr<RSLayerTransactionData>& transactionData,
         std::shared_ptr<MessageParcel>& data);
@@ -40,7 +42,6 @@ private:
     pid_t pid_ = GetRealPid();
     uint32_t transactionDataIndex_ = 0;
     static inline BrokerDelegator<RSRenderToComposerConnectionProxy> delegator_;
-
 };
 } // namespace OHOS::Rosen
 

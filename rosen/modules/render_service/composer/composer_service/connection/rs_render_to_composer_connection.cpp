@@ -84,5 +84,16 @@ void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
     }
     rsRenderComposerAgent_->SetScreenBacklight(level);
 }
+
+void RSRenderToComposerConnection::SetComposerToRenderConnection(
+    const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
+{
+    RS_TRACE_NAME_FMT("RSComposerConnection::SetComposerToRenderConnection");
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::SetComposerToRenderConnection param illegal");
+        return;
+    }
+    rsRenderComposerAgent_->SetComposerToRenderConnection(composerToRenderConn);
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -1125,9 +1125,9 @@ void RSRenderComposer::ContextRegisterPostTask()
 #endif
 }
 
-void RSRenderComposer::SetComposerToRenderConnection(sptr<RSIComposerToRenderConnection> conn)
+void RSRenderComposer::SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
 {
-    composerToRenderConnection_ = conn;
+    composerToRenderConnection_ = composerToRenderConn;
 }
 
 void RSRenderComposer::ReInit(const std::shared_ptr<HdiOutput>& output,

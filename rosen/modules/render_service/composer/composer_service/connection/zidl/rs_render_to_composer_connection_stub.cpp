@@ -63,7 +63,11 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
                 SetScreenBacklight(level);
             }
             break;
-        }        
+        }
+        case IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION: {
+            SetComposerToRenderConnectionStub(data);
+            break;
+        }
         default: {
             ret = COMPOSITOR_ERROR_BINDER_ERROR;
             break;
@@ -112,6 +116,21 @@ int32_t RSRenderToComposerConnectionStub::GetBacklightLevel(OHOS::MessageParcel&
         RS_LOGE("RSRenderToComposerConnectionStub::GetBacklightLevel failed.");
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSRenderToComposerConnectionStub::SetComposerToRenderConnectionStub(OHOS::MessageParcel& parcel)
+{
+    sptr<IRemoteObject> composerToRenderObject = parcel.ReadRemoteObject();
+    if (composerToRenderObject == nullptr) {
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    sptr<RSIComposerToRenderConnection> composerToRenderConn =
+        iface_cast<RSIComposerToRenderConnection>(composerToRenderObject);
+    if (composerToRenderConn == nullptr) {
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    SetComposerToRenderConnection(composerToRenderConn);
     return COMPOSITOR_ERROR_OK;
 }
 } // namespace Rosen

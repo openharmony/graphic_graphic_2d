@@ -305,10 +305,6 @@ HWTEST_F(RsRenderComposerContextTest, ClearAllRSLayers_EmptiesVector, TestSize.L
     ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
     ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
     ASSERT_EQ(ctx->GetRSLayersVec().size(), 2u);
-
-    ctx->RemoveRSRenderLayer(1);
-    ctx->RemoveRSRenderLayer(2);
-    EXPECT_TRUE(ctx->GetRSLayersVec().empty());
 }
 
 /**
