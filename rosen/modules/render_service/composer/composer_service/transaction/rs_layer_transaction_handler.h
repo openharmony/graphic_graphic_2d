@@ -22,7 +22,6 @@
 #include <stack>
 #include "rs_layer_parcel.h"
 #include "rs_layer_transaction_data.h"
-#include "../connection/zidl/rs_render_to_composer_connection_proxy.h"
 
 namespace OHOS::Rosen {
 class RSB_EXPORT RSLayerTransactionHandler final {
