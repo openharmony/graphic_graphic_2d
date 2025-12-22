@@ -3844,7 +3844,7 @@ void RSSurfaceRenderNode::SetUIFirstVisibleFilterRect(const RectI& rect)
 bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
 {
     auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(ancestorScreenNode_.lock());
-    if (screenNode) {
+    if (screenNode != nullptr) {
         return screenNode->GetForceFreeze();
     }
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
