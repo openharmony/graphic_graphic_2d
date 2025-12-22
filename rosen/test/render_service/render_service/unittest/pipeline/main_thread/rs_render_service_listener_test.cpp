@@ -21,6 +21,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_test_util.h"
 #include "hgm_core.h"
+#include "hgm_frame_rate_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
 using namespace testing;
