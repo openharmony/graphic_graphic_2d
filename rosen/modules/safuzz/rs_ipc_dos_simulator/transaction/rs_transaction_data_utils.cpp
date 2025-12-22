@@ -125,6 +125,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeUpdateRecording),
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeClearRecording),
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeSetHDRPresent),
+    DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeSetColorGamut),
 
     /********** RSSurfaceNodeCommand **********/
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeCreate),
