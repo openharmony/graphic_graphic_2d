@@ -21,7 +21,6 @@
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_render_to_composer_connection_proxy.h"
 #include "irs_render_to_composer_connection.h"
-#include "rs_render_process_agent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_single_process_manager.h"
 

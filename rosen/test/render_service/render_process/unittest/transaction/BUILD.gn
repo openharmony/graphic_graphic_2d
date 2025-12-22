@@ -151,6 +151,7 @@ ohos_unittest("RSServiceToRenderConnectionTest") {
     ]
 
     include_dirs = [
+        "../../../../../rosen/modules/platform",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
         "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
@@ -171,6 +172,18 @@ ohos_unittest("RSServiceToRenderConnectionTest") {
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
         "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/test/include",
+        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
     ]
 
     deps = [
