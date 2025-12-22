@@ -34,15 +34,18 @@ GraphicFeatureParamManager::~GraphicFeatureParamManager() noexcept
 
 void GraphicFeatureParamManager::Init()
 {
-    RS_LOGI("GraphicFeatureParamManager %{public}s : Init feature map", __func__);
-    // Init feature configs
-    for (const auto& module : FEATURE_MODULES) {
-        featureParseMap_.emplace(module.name, module.xmlParser());
-        featureParamMap_.emplace(module.name, module.featureParam());
-    }
-
-    // Start parse feature
-    FeatureParamParseEntry();
+    static std::once_flag flag;
+    std::call_once(flag, [this] {
+        RS_LOGI("GraphicFeatureParamManager %{public}s : Init feature map", __func__);
+        // Init feature configs
+        for (const auto& module : FEATURE_MODULES) {
+            featureParseMap_.emplace(module.name, module.xmlParser());
+            featureParamMap_.emplace(module.name, module.featureParam());
+        }
+    
+        // Start parse feature
+        FeatureParamParseEntry();
+    })
 }
 
 void GraphicFeatureParamManager::FeatureParamParseEntry()

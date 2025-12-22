@@ -26,7 +26,6 @@
 
 #include "feature/param_manager/rs_param_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
-#include "ge_mesa_blur_shader_filter.h"
 #include "hgm_core.h"
 #include "parameter.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
@@ -46,17 +45,14 @@
 #include "dfx/rs_service_dump_manager.h" // todo dfx or dfx ?
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "graphic_feature_param_manager.h"
-#include "system/rs_system_parameters.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
-#include "render/rs_render_kawase_blur_filter.h"
 
 #include "text/font_mgr.h"
 #include "transaction/rs_client_to_service_connection.h"
 #include "xcollie/watchdog.h"
 #include "rs_render_process_manager_agent.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
-#include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #ifdef RS_ENABLE_RDO
 #include "feature/rdo/rs_rdo.h"
 #endif
@@ -99,6 +95,7 @@ bool RSRenderService::Init()
         mallopt(M_DELAYED_FREE, M_DELAYED_FREE_ENABLE);
     }
 
+    // CCM config parsing
     InitCCMConfig();
 
     // Create core components
@@ -125,45 +122,37 @@ void RSRenderService::InitCCMConfig()
 {
     // feature param parse
     GraphicFeatureParamManager::GetInstance().Init();
-
-    // need called after GraphicFeatureParamManager::GetInstance().Init();
-    FilterCCMInit();
-}
-
-void RSRenderService::FilterCCMInit()
-{
-    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
-    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
-    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
-    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
-    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
-    GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 
 void RSRenderService::CoreComponentsInit()
 {
+    RS_LOGD("dmulti_process %{public}s: CoreComponentsInit", __func__);
+    // vk init
 #ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
     }
 #endif
 
-    RS_LOGD("dmulti_process %{public}s: rsRenderComposerManager_ init", __func__);
-    rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_);
-
-    RS_LOGD("dmulti_process %{public}s: screenManager_ init", __func__);
-    screenManager_ = CreateOrGetScreenManager();
-    HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
-
-#ifdef TP_FEATURE_ENABLE
-    RS_LOGD("dmulti_process %{public}s: touchScreen init", __func__);
-    TOUCH_SCREEN->InitTouchScreen();
-#endif
-
-    RS_LOGD("dmulti_process %{public}s: vsync generate init", __func__);
+    // vsyncManager init
     VsyncComponentInit();
-    rsRenderComposerManager_->InitRsVsyncManagerAgent(rsVsyncManagerAgent_);
 
+    // composerManager init
+    rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_, rsVsyncManagerAgent_);
+
+    // screenManager init
+    screenManager_ = sptr<RSScreenManager>::MakeSptr();
+
+    // hgm init
+    HgmInit();
+
+    // reature init
+    FeatureComponentInit();
+}
+
+void RSRenderService::HgmInit()
+{
+    HgmCore::Instance().SetScreenManager(screenManager_.GetRefPtr());
     if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr()) {
         auto callbackFunc = [this](bool forceUpdate, ScreenId activeScreenId) {
             if (renderProcessManager_) {
@@ -176,10 +165,20 @@ void RSRenderService::CoreComponentsInit()
             appVSyncDistributor_, rsVSyncDistributor_);
         hgmContext_->InitHgmTaskHandleThread(rsVSyncController_, appVSyncController_, vsyncGenerator_);
     }
+}
 
+void RSRenderService::FeatureComponentInit()
+{
+    // touch screen init
+#ifdef TP_FEATURE_ENABLE
+    TOUCH_SCREEN->InitTouchScreen();
+#endif
+
+    // dump init
     rsDumper_ = std::make_shared<RSServiceDumper>(handler_, screenManager_, rsRenderComposerManager_);
     rsDumper_->RsDumpInit();
 
+    // rdo init
 #ifdef RS_ENABLE_RDO
     EnableRSCodeCache();
 #endif
