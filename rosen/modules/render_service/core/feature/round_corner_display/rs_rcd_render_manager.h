@@ -78,6 +78,7 @@ private:
     void RemoveRcdResource(NodeId id);
 
     bool rcdRenderEnabled_ = false;
+    static bool isRcdServiceRegister_;
 
     std::mutex topNodeMapMut_;
     std::mutex bottomNodeMapMut_;

@@ -25,9 +25,7 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #ifdef RS_ENABLE_GPU
-#include "feature/round_corner_display/rs_message_bus.h"
-#include "feature/round_corner_display/rs_rcd_render_manager.h"
-#include "feature/round_corner_display/rs_round_corner_display_manager.h"
+
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
@@ -81,9 +79,6 @@ void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& han
     InitCCMConfig();
 
     InitUniRenderThread();
-
-    // todo
-    RegisterRcdMsg();
 
     InitMainThread(handler, receiver, renderToServiceConnection);
 
@@ -232,33 +227,6 @@ void RSRenderPipeline::FilterCCMInit()
     RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
     RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
     GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
-}
-
-void RSRenderPipeline::RegisterRcdMsg()
-{
-    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RS_LOGD("RSRenderPipeline::RegisterRcdMsg");
-        if (isRcdServiceRegister_) {
-            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
-            auto& rcdHardManager = RSRcdRenderManager::GetInstance();
-            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
-            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
-                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateDisplayParameter);
-            msgBus.RegisterTopic<NodeId, ScreenRotation>(
-                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateOrientationStatus);
-            msgBus.RegisterTopic<NodeId, int>(
-                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateNotchStatus);
-            msgBus.RegisterTopic<NodeId, bool>(
-                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
-                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
-            RS_LOGD("RSRenderPipeline::RegisterRcdMsg Registed rcd renderservice end.");
-            return;
-        }
-        RS_LOGD("RSRenderPipeline::RegisterRcdMsg Registed rcd renderservice already.");
-    }
 }
 
 void RSRenderPipeline::InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,

@@ -108,14 +108,11 @@ private:
     void InitCCMConfig();
     // RS Filter CCM init
     void FilterCCMInit();
-    void RegisterRcdMsg();
     void InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
         const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     void InitUniRenderThread();
     void InitDumper();
-
-    bool isRcdServiceRegister_ = false;
 
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;

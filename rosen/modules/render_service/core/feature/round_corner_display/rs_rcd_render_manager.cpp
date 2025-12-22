@@ -37,6 +37,8 @@ namespace {
 static std::unique_ptr<RSRcdRenderManager> g_rcdRenderManagerInstance =
     std::make_unique<RSRcdRenderManager>();
 
+RSRcdRenderManager::isRcdServiceRegister_ = false;
+
 RSRcdRenderManager& RSRcdRenderManager::GetInstance()
 {
     return *g_rcdRenderManagerInstance;
@@ -45,6 +47,27 @@ RSRcdRenderManager& RSRcdRenderManager::GetInstance()
 void RSRcdRenderManager::InitInstance()
 {
     g_rcdRenderManagerInstance->rcdRenderEnabled_ = true;
+    if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
+        if (!isRcdServiceRegister_) {
+            auto& rcdInstance = RSSingleton<RoundCornerDisplayManager>::GetInstance();
+            auto& msgBus = RSSingleton<RsMessageBus>::GetInstance();
+            msgBus.RegisterTopic<NodeId, uint32_t, uint32_t, uint32_t, uint32_t>(
+                TOPIC_RCD_DISPLAY_SIZE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateDisplayParameter);
+            msgBus.RegisterTopic<NodeId, ScreenRotation>(
+                TOPIC_RCD_DISPLAY_ROTATION, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateOrientationStatus);
+            msgBus.RegisterTopic<NodeId, int>(
+                TOPIC_RCD_DISPLAY_NOTCH, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateNotchStatus);
+            msgBus.RegisterTopic<NodeId, bool>(
+                TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
+                &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
+            RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice end.");
+            return;
+        }
+        RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice already.");
+    }
 }
 
 bool RSRcdRenderManager::GetRcdRenderEnabled() const
