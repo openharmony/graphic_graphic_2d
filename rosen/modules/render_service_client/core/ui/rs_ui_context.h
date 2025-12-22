@@ -179,7 +179,7 @@ public:
      */
     void PostDelayTask(const std::function<void()>& task, uint32_t delay);
 
-    int32_t GetUiPiplineNum() const;
+    int32_t GetUiPiplineNum();
     void AttachFromUI();
     void DetachFromUI();
 
@@ -220,8 +220,8 @@ private:
     TaskRunner taskRunner_ = TaskRunner();
     std::function<void()> requestVsyncCallback_;
     std::mutex implicitAnimatorMutex_;
-    bool detachedFromUI_ = false;
-    std::atomic<int32_t> uiPiplineNum_ = UI_PiPLINE_NUM_UNDEFINED;
+    std::mutex uiPiplineNumMutex_;
+    int32_t uiPiplineNum_ = UI_PiPLINE_NUM_UNDEFINED;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;

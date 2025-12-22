@@ -180,23 +180,28 @@ void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskI
     transaction->FlushImplicitTransaction();
 }
 
-int32_t RSUIContext::GetUiPiplineNum() const
+int32_t RSUIContext::GetUiPiplineNum()
 {
+    std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
     return uiPiplineNum_.load();
 }
  
 void RSUIContext::DetachFromUI()
 {
-    if (uiPiplineNum_.load() <= 0) {
-        ROSEN_LOGD("RSUIContext::DetachFromUI failed");
+    std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
+    if (uiPiplineNum_ <= 0) {
+        ROSEN_LOGE("RSUIContext::DetachFromUI failed. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
         return;
     }
     uiPiplineNum_--;
+    ROSEN_LOGI("RSUIContext::DetachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
 }
  
 void RSUIContext::AttachFromUI()
 {
-    if (uiPiplineNum_.load() == UI_PiPLINE_NUM_UNDEFINED) {
+    std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
+    ROSEN_LOGI("RSUIContext::AttachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
+    if (uiPiplineNum_ == UI_PiPLINE_NUM_UNDEFINED) {
         uiPiplineNum_ = 1;
         return;
     }
