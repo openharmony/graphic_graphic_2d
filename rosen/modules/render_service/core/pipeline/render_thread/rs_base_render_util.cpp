@@ -1003,7 +1003,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
             auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
             if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {
-                RS_TRACE_NAME_FMT("Reuse buffer.seq = %lld after screen frozen", holdReturnValue->buffer->GetSeqNum());
                 returnValue.buffer = holdReturnValue->buffer;
                 returnValue.fence = holdReturnValue->fence;
                 returnValue.timestamp = holdReturnValue->timestamp;
@@ -1023,7 +1022,6 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         }
         if (UNLIKELY(dropFrameByScreenFrozen)) {
             surfaceHandler.SetHoldReturnValue(returnValue);
-            RS_TRACE_NAME_FMT("stash buffer.seq = %lld by screen frozen", returnValue.buffer->GetSeqNum());
             return false;
         }
         surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
