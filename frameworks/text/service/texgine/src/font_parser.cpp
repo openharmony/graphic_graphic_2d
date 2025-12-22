@@ -211,7 +211,7 @@ void FontParser::ProcessTable(const NameTable* nameTable, FontParser::FontDescri
     auto count = nameTable->count.Get();
     auto storageOffset = nameTable->storageOffset.Get();
     const char* stringStorage = reinterpret_cast<const char*>(nameTable) + storageOffset;
-    for (int i = 0; i < count && (sizeof(NameTable) + (i + 1) * sizeof(NameRecord)) <= size; ++i) {
+    for (size_t i = 0; i < count && (sizeof(NameTable) + (i + 1) * sizeof(NameRecord)) <= size; ++i) {
         if (nameTable->nameRecord[i].stringOffset.Get() == 0 && nameTable->nameRecord[i].length.Get() == 0) {
             continue;
         }
