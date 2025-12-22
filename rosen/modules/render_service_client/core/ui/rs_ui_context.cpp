@@ -183,7 +183,7 @@ void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskI
 int32_t RSUIContext::GetUiPiplineNum()
 {
     std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
-    return uiPiplineNum_.load();
+    return uiPiplineNum_;
 }
  
 void RSUIContext::DetachFromUI()
