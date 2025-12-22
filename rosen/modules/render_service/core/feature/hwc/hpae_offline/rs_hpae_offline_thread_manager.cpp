@@ -32,6 +32,7 @@ RSHpaeOfflineThreadManager::RSHpaeOfflineThreadManager()
     queue_ = std::make_unique<ffrt::queue>("RSHpaeOfflineThread", ffrt::queue_attr().qos(FFRT_QOS_LEVEL));
 #endif
 }
+
 RSHpaeOfflineThreadManager::~RSHpaeOfflineThreadManager() = default;
 
 bool RSHpaeOfflineThreadManager::PostTask(const std::function<void()>& task)
