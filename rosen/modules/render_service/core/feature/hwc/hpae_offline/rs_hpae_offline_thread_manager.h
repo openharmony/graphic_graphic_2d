@@ -29,12 +29,12 @@ namespace OHOS::Rosen {
 class RSB_EXPORT RSHpaeOfflineThreadManager final {
 public:
     RSHpaeOfflineThreadManager();
-    ~RSHpaeOfflineThreadManager() {}
+    ~RSHpaeOfflineThreadManager();
     bool PostTask(const std::function<void()>& task);
 
 private:
 #if defined(ROSEN_OHOS)
-    std::shared_ptr<ffrt::queue> queue_ = nullptr;
+    std::unique_ptr<ffrt::queue> queue_;
 #endif
 };
 }

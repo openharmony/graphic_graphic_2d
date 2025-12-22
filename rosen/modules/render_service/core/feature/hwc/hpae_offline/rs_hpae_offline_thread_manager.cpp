@@ -29,9 +29,10 @@ namespace OHOS::Rosen {
 RSHpaeOfflineThreadManager::RSHpaeOfflineThreadManager()
 {
 #if defined(ROSEN_OHOS)
-    queue_ = std::make_shared<ffrt::queue>("RSHpaeOfflineThread", ffrt::queue_attr().qos(FFRT_QOS_LEVEL));
+    queue_ = std::make_unique<ffrt::queue>("RSHpaeOfflineThread", ffrt::queue_attr().qos(FFRT_QOS_LEVEL));
 #endif
 }
+RSHpaeOfflineThreadManager::~RSHpaeOfflineThreadManager() = default;
 
 bool RSHpaeOfflineThreadManager::PostTask(const std::function<void()>& task)
 {
