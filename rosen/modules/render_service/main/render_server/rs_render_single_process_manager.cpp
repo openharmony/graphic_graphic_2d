@@ -54,9 +54,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
     renderToServiceConnection_ =
         sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent, screenManagerAgent);
     renderService.renderPipeline_ = RSRenderPipeline::Create(renderService.handler_,
-        receiver, renderToServiceConnection_);
-    renderService.renderPipeline_->InitRsVsyncManagerAgent(renderService_.rsVsyncManagerAgent_);
-    renderService.renderPipeline_->RegisterScreenSwitchFinishCallback(renderToServiceConnection_);
+        receiver, renderToServiceConnection_, renderService_.rsVsyncManagerAgent_);
     auto renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderService_.renderPipeline_);
     serviceToRenderConnection_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderServiceAgent, renderPipelineAgent);
     composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();

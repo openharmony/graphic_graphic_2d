@@ -60,16 +60,20 @@ namespace OHOS{
 namespace Rosen {
 
 std::shared_ptr<RSRenderPipeline> RSRenderPipeline::Create(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
+    const std::shared_ptr<VSyncReceiver>& receiver,
+    const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     RS_LOGD("%{public}s: renderPipeline create", __func__);
     std::shared_ptr<RSRenderPipeline> render = std::make_shared<RSRenderPipeline>();
-    render->Init(handler, receiver, renderToServiceConnection);
+    render->Init(handler, receiver, renderToServiceConnection, rsVsyncManagerAgent);
     return render;
 }
 
 void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
+    const std::shared_ptr<VSyncReceiver>& receiver,
+    const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     InitEnvironment();
 
@@ -80,7 +84,7 @@ void RSRenderPipeline::Init(const std::shared_ptr<AppExecFwk::EventHandler>& han
 
     InitUniRenderThread();
 
-    InitMainThread(handler, receiver, renderToServiceConnection);
+    InitMainThread(handler, receiver, renderToServiceConnection, rsVsyncManagerAgent);
 
     // Gfx init
     InitDumper();
@@ -230,10 +234,12 @@ void RSRenderPipeline::FilterCCMInit()
 }
 
 void RSRenderPipeline::InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    const std::shared_ptr<VSyncReceiver>& receiver, const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
+    const std::shared_ptr<VSyncReceiver>& receiver,
+    const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     mainThread_ = RSMainThread::Instance();
-    mainThread_->Init(handler, receiver, renderToServiceConnection);
+    mainThread_->Init(handler, receiver, renderToServiceConnection, rsVsyncManagerAgent);
 }
 
 void RSRenderPipeline::InitUniRenderThread()
@@ -251,22 +257,5 @@ void RSRenderPipeline::InitDumper()
     rpDumper_->RpDumpInit();
 }
 
-void RSRenderPipeline::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
-{
-    if (!mainThread_) {
-        RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);
-        return;
-    }
-    mainThread_->rsVsyncManagerAgent_ = rsVsyncManagerAgent;
-}
-
-void RSRenderPipeline::RegisterScreenSwitchFinishCallback(const sptr<RSIRenderToServiceConnection>& conn)
-{
-    if (!mainThread_) {
-        RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);
-        return;
-    }
-    mainThread_->RegisterScreenSwitchFinishCallback(conn);
-}
 } // namespace Rosen
 } // namespace OHOS

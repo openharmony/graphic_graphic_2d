@@ -37,7 +37,7 @@ namespace {
 static std::unique_ptr<RSRcdRenderManager> g_rcdRenderManagerInstance =
     std::make_unique<RSRcdRenderManager>();
 
-RSRcdRenderManager::isRcdServiceRegister_ = false;
+bool RSRcdRenderManager::isRcdServiceRegister_ = false;
 
 RSRcdRenderManager& RSRcdRenderManager::GetInstance()
 {
@@ -63,6 +63,7 @@ void RSRcdRenderManager::InitInstance()
             msgBus.RegisterTopic<NodeId, bool>(
                 TOPIC_RCD_DISPLAY_HWRESOURCE, &rcdInstance,
                 &RoundCornerDisplayManager::UpdateHardwareResourcePrepared);
+            isRcdServiceRegister_ = true;
             RS_LOGI("RSRcdRenderManager::InitInstance Registed rcd renderservice end.");
             return;
         }

@@ -1189,7 +1189,7 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphic(int pid, MemoryGraphic& memoryGr
     return ERR_INVALID_VALUE;
 }
 
-void RSRenderPipelineAgent::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
+void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& packageList)
 {
     if (rsRenderPipeline_ != nullptr) {
         rsRenderPipeline_->PostMainThreadTask([this, packageList] {
@@ -1409,7 +1409,7 @@ int32_t RSRenderPipelineAgent::NotifyScreenRefresh(ScreenId screenId)
     return 0;
 }
 
-void RSRenderPipelineAgent::DoDump(std::unordered_set<std::u16string> &argSets)
+void RSRenderPipelineAgent::DoDump(std::unordered_set<std::u16string>& argSets)
 {
     if (rsRenderPipeline_ != nullptr) {
         std::string dumpString;

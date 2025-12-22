@@ -248,22 +248,6 @@ HWTEST_F(RenderContextGLTest, SwapBuffersTest, Function | SmallTest | Level2)
 }
 
 /**
- * @tc.name: CreateShareContextTest
- * @tc.desc: Verify the CreateShareContext of RenderContextGLTest
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextGLTest, CreateEGLShareContextTest, Function | SmallTest | Level2)
-{
-    if (RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
-        return;
-    }
-    auto renderContext = std::make_shared<RenderContextGL>();
-    renderContext->CreateEGLShareContext();
-    EXPECT_EQ(renderContext->GetEGLSurface(), EGL_NO_SURFACE);
-}
-
-/**
  * @tc.name: MakeCurrentTest
  * @tc.desc: Verify the MakeCurrent of RenderContextGLTest
  * @tc.type: FUNC

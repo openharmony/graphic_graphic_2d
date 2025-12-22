@@ -799,9 +799,7 @@ void RSUniRenderVisitor::UpdateCurFrameInfoDetail(RSRenderNode& node, bool subTr
 {
     if (GetDumpRsTreeDetailEnabled()) {
         auto& curFrameInfoDetail = node.GetCurFrameInfoDetail();
-        // TODO: HGM to be deleted, need to be adapted
-        // curFrameInfoDetail.curFrameVsyncId = HgmCore::Instance().GetVsyncId();
-        curFrameInfoDetail.curFrameVsyncId = 1; // need adapte
+        curFrameInfoDetail.curFrameVsyncId = RSMainThread::Instance()->GetVsyncId();
         curFrameInfoDetail.curFrameSubTreeSkipped = subTreeSkipped;
         if (isPostPrepare) {
             curFrameInfoDetail.curFramePostPrepareSeqNum = IncreasePostPrepareSeq();

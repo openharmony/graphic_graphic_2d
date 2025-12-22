@@ -32,7 +32,7 @@ public:
     virtual ~RSServiceToRenderConnectionProxy() noexcept = default;
 
     int32_t NotifyScreenRefresh(ScreenId id) override;
-    void DoDump(std::unordered_set<std::u16string> &argSets) override;
+    void DoDump(std::unordered_set<std::u16string>& argSets) override;
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
     void SetFreeMultiWindowStatus(bool enable) override;
     void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList) override;
@@ -76,12 +76,12 @@ public:
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) override;
     ErrCode SetWatermark(
         pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
-    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;    
+    void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
     ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) override;
     int32_t RegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid, const RectConstraint& constraint,
         sptr<RSISelfDrawingNodeRectChangeCallback> callback) override;
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback(pid_t remotePid) override;
-    
+
     uint32_t GetRealtimeRefreshRate(ScreenId screenId) override;
     void SetShowRefreshRateEnabled(bool enabled, int32_t type) override;
     ErrCode GetShowRefreshRateEnabled(bool& enable) override;
@@ -106,4 +106,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_SERVICE_TO_RENDER_CONNECTION_STUB_H
+#endif // RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_SERVICE_TO_RENDER_CONNECTION_PROXY_H

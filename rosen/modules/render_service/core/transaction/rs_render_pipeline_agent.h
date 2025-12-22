@@ -131,7 +131,7 @@ public:
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
         std::shared_ptr<Media::PixelMap> &pixelMap);  
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
-    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+    void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
@@ -145,7 +145,7 @@ public:
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void GetSurfaceRootNodeId(NodeId &windowNodeId);
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
-    void DoDump(std::unordered_set<std::u16string> &argSets);
+    void DoDump(std::unordered_set<std::u16string>& argSets);
     void NotifyHwcEventToRender(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode);
