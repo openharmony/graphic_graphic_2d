@@ -45,7 +45,7 @@ void GraphicFeatureParamManager::Init()
     
         // Start parse feature
         FeatureParamParseEntry();
-    })
+    });
 }
 
 void GraphicFeatureParamManager::FeatureParamParseEntry()
