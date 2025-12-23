@@ -80,7 +80,7 @@ HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Le
     auto conn = mgr->GetRSComposerConnection(screenId);
     sptr<IRSRenderToComposerConnection> ifaceConn = conn;
 
-    client = RSRenderComposerClient::Create(false, ifaceConn);
+    client = RSRenderComposerClient::Create(false, ifaceConn, nullptr, nullptr);
     EXPECT_NE(client, nullptr);
 }
 
