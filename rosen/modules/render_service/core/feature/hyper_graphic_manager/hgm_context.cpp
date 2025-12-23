@@ -202,9 +202,14 @@ void HgmContext::AddScreenToHgm(const sptr<RSScreenProperty>& property)
         RS_LOGI("%{public}s: add screen: w * h: [%{public}u * %{public}u], capability w * h: "
             "[%{public}u * %{public}u]", __func__, property->GetWidth(), property->GetHeight(),
             capability.GetPhyWidth(), capability.GetPhyHeight());
-        if (hgmCore_.AddScreen(screenId, initModeId, screenSize, scmFromHgm->GetScreenSupportedModes(screenId))) {
+        bool isSelfOwnedScreen = false;
+        if (hgmCore_.AddScreen(screenId, initModeId, screenSize, isSelfOwnedScreen,
+                               scmFromHgm->GetScreenSupportedModes(screenId))) {
             RS_LOGE("%{public}s failed to add screen : %{public}" PRIu64, __func__, screenId);
             return;
+        }
+        if (isSelfOwnedScreen && screenId == frameRateManager_->GetCurScreenId()) {
+            frameRateManager_->SyncHgmConfigUpdateCallback();
         }
     });
 }

@@ -186,6 +186,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level0)
     int sizeListBefore = 0;
     int sizeListAfter = 0;
     int sizeScreenIds = 0;
+    bool isSelfOwnedScreen = false;
 
     PART("CaseDescription") {
         STEP("1. mark screenList_ size before add") {
@@ -195,7 +196,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreen, Function | MediumTest | Level0)
 
         STEP("2. add new screen") {
             ScreenId screenId = 2;
-            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
             STEP_ASSERT_EQ(addScreen, 0);
         }
 
@@ -225,10 +226,11 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level0)
     auto& instance5 = HgmCore::Instance();
     sptr<HgmScreen> screen = nullptr;
     ScreenId screenId = 3;
+    bool isSelfOwnedScreen = false;
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
-            auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
+            auto addScreen = instance5.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
             auto activeScreen = instance5.GetActiveScreen();
 
             activeScreen = instance5.GetActiveScreen();
@@ -259,10 +261,11 @@ HWTEST_F(HyperGraphicManagerTest, AddScreenModeInfo, Function | SmallTest | Leve
     auto& instance6 = HgmCore::Instance();
     int addMode = 0;
     ScreenId screenId = 4;
+    bool isSelfOwnedScreen = false;
 
     PART("EnvConditions") {
         STEP("get Instance and add a screen") {
-            auto addScreen = instance6.AddScreen(screenId, 0, screenSize);
+            auto addScreen = instance6.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
             STEP_ASSERT_GE(addScreen, 0);
         }
     }
@@ -274,7 +277,7 @@ HWTEST_F(HyperGraphicManagerTest, AddScreenModeInfo, Function | SmallTest | Leve
         }
 
         STEP("2. add a supported config to the new screen") {
-            addMode = instance6.AddScreen(screenId, addMode, screenSize);
+            addMode = instance6.AddScreen(screenId, addMode, screenSize, isSelfOwnedScreen);
         }
 
         STEP("3. verify adding result") {
@@ -295,10 +298,11 @@ HWTEST_F(HyperGraphicManagerTest, RemoveScreen, Function | MediumTest | Level0)
     int sizeListBefore = 0;
     int sizeListAfter = 0;
     ScreenId screenId = 6;
+    bool isSelfOwnedScreen = false;
 
     PART("EnvConditions") {
         STEP("get Instance and call Init and add a screen") {
-            auto addScreen = instance7.AddScreen(screenId, 0, screenSize);
+            auto addScreen = instance7.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
             STEP_ASSERT_EQ(addScreen, 0);
         }
     }
@@ -345,13 +349,14 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
     uint32_t rate0 = 60;
     int32_t mode0 = 0;
     int32_t timestamp = 1704038400; // 2024-01-01 00:00:00
+    bool isSelfOwnedScreen = false;
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
             std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
             modeList.push_back({width0, height0, rate0, mode0});
             modeList.push_back({width, height, rate, mode});
-            auto addScreen = instance8.AddScreen(screenId, 0, screenSize, modeList);
+            auto addScreen = instance8.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen, modeList);
             STEP_ASSERT_EQ(addScreen, 0);
             auto setRate500 = instance8.SetScreenRefreshRate(screenId, 0, 500);
             STEP_ASSERT_EQ(setRate500, -1);
@@ -393,13 +398,14 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate_002, Function | MediumTes
     int32_t height0 = 2772;
     uint32_t rate0 = 60;
     int32_t mode0 = 0;
+    bool isSelfOwnedScreen = false;
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
             std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
             modeList.push_back({width0, height0, rate0, mode0});
             modeList.push_back({width, height, rate, mode});
-            auto addScreen = instance.AddScreen(screenId, 0, screenSize, modeList);
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen, modeList);
             STEP_ASSERT_EQ(addScreen, 0);
             bool shouldSendCallback = false;
             auto setRate120 = instance.SetScreenRefreshRate(screenId, 0, 120, shouldSendCallback);
@@ -431,12 +437,13 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
     uint32_t rate = 120;
     int32_t mode = 1;
     int32_t modeToSet = 2;
+    bool isSelfOwnedScreen = false;
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
             std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
             modeList.push_back({width, height, rate, mode});
-            auto addScreen = instance.AddScreen(screenId, 0, screenSize);
+            auto addScreen = instance.AddScreen(screenId, 0, screenSize, isSelfOwnedScreen);
             STEP_ASSERT_GE(addScreen, 0);
         }
 
@@ -470,14 +477,15 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level0
     uint32_t rate5 = 80;
     int32_t mode = 1;
     int32_t mode2 = 2;
+    bool isSelfOwnedScreen = false;
     std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
-    instance.AddScreen(screenId2, 1, screenSize, modeList);
+    instance.AddScreen(screenId2, 1, screenSize, isSelfOwnedScreen, modeList);
     sptr<HgmScreen> screen = instance.GetScreen(screenId1);
     sptr<HgmScreen> screen2 = instance.GetScreen(screenId2);
 
-    instance.AddScreen(screenId1, 0, screenSize);
+    instance.AddScreen(screenId1, 0, screenSize, isSelfOwnedScreen);
     EXPECT_GE(screen->GetActiveRefreshRate(), 0);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate), 0);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate2), 1);
@@ -558,10 +566,11 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
     uint32_t rate3 = -1;
     int32_t mode = 1;
     int32_t mode2 = 2;
+    bool isSelfOwnedScreen = false;
     std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
-    instance.AddScreen(screenId2, 1, screenSize, modeList);
+    instance.AddScreen(screenId2, 1, screenSize, isSelfOwnedScreen, modeList);
 
     PART("HgmCore") {
         STEP("1. set active mode") {
@@ -580,7 +589,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
         }
 
         STEP("3. set rate and resolution") {
-            int32_t addResult = instance.AddScreen(screenId2, 1, screenSize);
+            int32_t addResult = instance.AddScreen(screenId2, 1, screenSize, isSelfOwnedScreen);
             STEP_ASSERT_GE(addResult, -1);
         }
 
@@ -609,10 +618,11 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
     uint32_t rate2 = 60;
     int32_t mode = 1;
     int32_t mode2 = 2;
+    bool isSelfOwnedScreen = false;
     std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
-    instance.AddScreen(screenId2, 1, screenSize, modeList);
+    instance.AddScreen(screenId2, 1, screenSize, isSelfOwnedScreen, modeList);
 
     PART("HgmCore") {
         STEP("1. set active mode") {

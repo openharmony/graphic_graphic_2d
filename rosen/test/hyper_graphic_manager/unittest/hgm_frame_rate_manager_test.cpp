@@ -690,7 +690,8 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenRectFrameRate, Function | SmallTest | 
 {
     int32_t testThreadNum = 100;
     auto& hgmCore = HgmCore::Instance();
-    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize), EXEC_SUCCESS);
+    bool isSelfOwnedScreen = false;
+    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     auto screen = hgmCore.GetScreen(externalScreenId);
     ASSERT_NE(screen, nullptr);
     screen->isSelfOwnedScreenFlag_.store(true);
@@ -1245,31 +1246,32 @@ HWTEST_F(HgmFrameRateMgrTest, HandleScreenPowerStatus, Function | SmallTest | Le
     configData->screenStrategyConfigs_["screen0_LTPO"] = "LTPO-DEFAULT";
     configData->screenStrategyConfigs_["screen5_LTPS"] = "LTPS-DEFAULT";
     configData->screenStrategyConfigs_["screen5_LTPO"] = "LTPO-DEFAULT";
-    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize), EXEC_SUCCESS);
-    EXPECT_EQ(hgmCore.AddScreen(internalScreenId, 0, screenSize), EXEC_SUCCESS);
+    bool isSelfOwnedScreen = false;
+    EXPECT_EQ(hgmCore.AddScreen(externalScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(internalScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
 
     // fold -> expand -> fold
     frameRateMgr->curScreenStrategyId_.clear();
     frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
     frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
-    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
     EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
 
-    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
     frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
     EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
     EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
 
-    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     EXPECT_EQ(frameRateMgr->curScreenId_, internalScreenId);
     EXPECT_EQ(hgmCore.RemoveScreen(extraScreenId), EXEC_SUCCESS);
 
-    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize), EXEC_SUCCESS);
+    EXPECT_EQ(hgmCore.AddScreen(extraScreenId, 0, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     frameRateMgr->HandleScreenPowerStatus(internalScreenId, ScreenPowerStatus::POWER_STATUS_SUSPEND);
     frameRateMgr->HandleScreenPowerStatus(externalScreenId, ScreenPowerStatus::POWER_STATUS_ON);
     EXPECT_EQ(frameRateMgr->curScreenId_, externalScreenId);
