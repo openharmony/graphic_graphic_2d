@@ -20,6 +20,7 @@
 #include "rs_render_composer_manager.h"
 #include "hdi_output.h"
 #include "event_handler.h"
+#include "screen_manager/rs_screen_property.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -58,9 +59,10 @@ void RsRenderComposerManagerTest::TearDown() {}
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_NullOutput_EarlyReturn, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->OnScreenConnected(nullptr);
-    EXPECT_TRUE(mgr->rsRenderComposerMap_.empty());
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    mgr->OnScreenConnected(nullptr, nullptr);
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
 }
 
 /**
@@ -75,11 +77,13 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_NullOutput_EarlyReturn, 
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(10u);
     output->Init();
-    mgr->OnScreenConnected(output);
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 1u);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
     EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
     auto conn = mgr->GetRSComposerConnection(10u);
     EXPECT_NE(conn, nullptr);
@@ -96,14 +100,16 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Leve
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_Existing_Forward, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(20u);
     output->Init();
-    mgr->OnScreenConnected(output); // first insert
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 1u);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property); // first insert
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
     EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
-    mgr->OnScreenConnected(output); // second enter else branch
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 1u);
+    mgr->OnScreenConnected(output, property); // second enter else branch
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
     EXPECT_EQ(mgr->rsComposerConnectionMap_.size(), 1u);
 }
 
@@ -118,9 +124,10 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_Existing_Forward, TestSi
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_NotFound_EarlyReturn, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     mgr->OnScreenDisconnected(9999);
-    EXPECT_TRUE(mgr->rsRenderComposerMap_.empty());
+    EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
 }
 
 /**
@@ -134,13 +141,15 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_NotFound_EarlyReturn,
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_Found_Path, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(30u);
     output->Init();
-    mgr->OnScreenConnected(output);
-    ASSERT_EQ(mgr->rsRenderComposerMap_.size(), 1u);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+    ASSERT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
     mgr->OnScreenDisconnected(30u);
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 1u);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.size(), 1u);
 }
 
 /**
@@ -154,57 +163,16 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_Found_Path, TestSize.
  */
 HWTEST_F(RsRenderComposerManagerTest, GetRSComposerConnection_FoundAndNotFound, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     EXPECT_EQ(mgr->GetRSComposerConnection(1), nullptr);
     auto output = std::make_shared<HdiOutput>(40u);
     output->Init();
-    mgr->OnScreenConnected(output);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
     EXPECT_NE(mgr->GetRSComposerConnection(40u), nullptr);
 }
 
-#ifdef RS_ENABLE_VK
-/**
- * Function: PreAllocateProtectedBuffer_And_Task_Branches
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. call PreAllocateProtectedBuffer/GetUnExecuteTaskNum/PostTask/ClearFrameBuffers
- *                      with missing screenId
- *                  2. call the same methods after OnScreenConnected and ensure tasks execute / functions forward
- */
-HWTEST_F(RsRenderComposerManagerTest, PreAllocateProtectedBuffer_And_Task_Branches, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-
-    // 1. operations with missing screenId should early return or provide defaults
-    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
-    mgr->PreAllocateProtectedBuffer(9999, surfaceBuffer); // should early return, no crash
-    EXPECT_EQ(mgr->GetUnExecuteTaskNum(9999), 0u);
-    mgr->PostTask(9999, []{}); // early return
-    GSError err = mgr->ClearFrameBuffers(9999, true);
-    EXPECT_EQ(err, GSERROR_INVALID_ARGUMENTS);
-
-    // 2. after connecting an output, operations should forward and run
-    auto out = std::make_shared<HdiOutput>(50u);
-    out->Init();
-    mgr->OnScreenConnected(out);
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 1u);
-
-    mgr->PreAllocateProtectedBuffer(50u, surfaceBuffer);
-
-    // PostTask should execute the task; observe via atomic flag
-    std::atomic<bool> ran{false};
-    mgr->PostTask(50u, [&ran]() { ran.store(true); });
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_TRUE(ran.load());
-
-    // GetUnExecuteTaskNum should be callable and return a numeric value (>= 0)
-    EXPECT_EQ(mgr->GetUnExecuteTaskNum(50u), 0);
-
-    // ClearFrameBuffers should forward and return a GSError (OK or other) but must not crash
-    EXPECT_EQ(mgr->ClearFrameBuffers(50u, true), GSERROR_OK);
-}
-#endif
 /**
  * Function: GetAccumulatedBufferCount_FoundAndNotFound
  * Type: Function
@@ -216,16 +184,15 @@ HWTEST_F(RsRenderComposerManagerTest, PreAllocateProtectedBuffer_And_Task_Branch
  */
 HWTEST_F(RsRenderComposerManagerTest, GetAccumulatedBufferCount_FoundAndNotFound, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    EXPECT_EQ(mgr->GetAccumulatedBufferCount(1u), 0);
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(1u);
     output->Init();
-    mgr->OnScreenConnected(output); // first insert
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property); // first insert
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(mgr->GetAccumulatedBufferCount(1u), 0);
-    mgr->OnScreenConnected(output); // second enter else branch
+    mgr->OnScreenConnected(output, property); // second enter else branch
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(mgr->GetAccumulatedBufferCount(1u), 0);
     mgr->OnScreenDisconnected(1u);
 }
 
@@ -240,15 +207,18 @@ HWTEST_F(RsRenderComposerManagerTest, GetAccumulatedBufferCount_FoundAndNotFound
  */
 HWTEST_F(RsRenderComposerManagerTest, OnScreenVBlankIdleCallback_FoundAndNotFound, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->OnScreenVBlankIdleCallback(1, 0);
-    EXPECT_EQ(mgr->rsRenderComposerMap_.find(1), mgr->rsRenderComposerMap_.end());
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    EXPECT_EQ(mgr->rsRenderComposerAgentMap_.find(1), mgr->rsRenderComposerAgentMap_.end());
     auto output = std::make_shared<HdiOutput>(1u);
     output->Init();
-    mgr->OnScreenConnected(output);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    mgr->OnScreenVBlankIdleCallback(1, 0);
-    EXPECT_NE(mgr->rsRenderComposerMap_.find(1), mgr->rsRenderComposerMap_.end());
+    auto it = mgr->rsRenderComposerAgentMap_.find(1);
+    ASSERT_NE(it, mgr->rsRenderComposerAgentMap_.end());
+    it->second->OnScreenVBlankIdleCallback(1, 0);
+    EXPECT_NE(mgr->rsRenderComposerAgentMap_.find(1), mgr->rsRenderComposerAgentMap_.end());
 }
 
 /**
@@ -263,14 +233,16 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenVBlankIdleCallback_FoundAndNotFoun
 HWTEST_F(RsRenderComposerManagerTest, RateCount_Operations, TestSize.Level1)
 {
     std::string dumpString = "";
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     mgr->RefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
     mgr->ClearRefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
     auto output = std::make_shared<HdiOutput>(1u);
     output->Init();
-    mgr->OnScreenConnected(output);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     mgr->RefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
@@ -278,7 +250,7 @@ HWTEST_F(RsRenderComposerManagerTest, RateCount_Operations, TestSize.Level1)
     mgr->ClearRefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
 
-    mgr->rsRenderComposerMap_.insert(std::pair(0u, nullptr));
+    mgr->rsRenderComposerAgentMap_.insert(std::pair(0u, nullptr));
     mgr->RefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
     dumpString = "";
@@ -300,7 +272,8 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
     std::string dumpString = "";
     std::string layerName = "composer";
     std::string layerArg = "window_test";
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
 
     mgr->FpsDump(dumpString, layerName);
     EXPECT_EQ(dumpString.find("[Id:"), std::string::npos);
@@ -308,10 +281,6 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
     dumpString = "";
     mgr->ClearFpsDump(dumpString, layerName);
     EXPECT_EQ(dumpString.find("[Id:"), std::string::npos);
-
-    dumpString = "";
-    mgr->DumpCurrentFrameLayers();
-    EXPECT_TRUE(dumpString.empty());
 
     dumpString = "";
     mgr->HitchsDump(dumpString, layerArg);
@@ -319,9 +288,10 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
 
     auto output = std::make_shared<HdiOutput>(1u);
     output->Init();
-    mgr->OnScreenConnected(output);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    mgr->rsRenderComposerMap_.insert(std::pair(0u, nullptr));
+    mgr->rsRenderComposerAgentMap_.insert(std::pair(0u, nullptr));
 
     mgr->FpsDump(dumpString, layerName);
     EXPECT_NE(dumpString.find("[Id:1]"), std::string::npos);
@@ -331,256 +301,8 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
     EXPECT_NE(dumpString.find("[Id:1]"), std::string::npos);
 
     dumpString = "";
-    mgr->DumpCurrentFrameLayers();
-    EXPECT_TRUE(dumpString.empty());
-
-    dumpString = "";
     mgr->HitchsDump(dumpString, layerArg);
     EXPECT_EQ(dumpString.find("window_test"), std::string::npos);
-}
-
-/**
- * Function: GetReleaseFence
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call GetReleaseFence after prepared rsRenderComposerMap_
- *                  3. check result
- */
-HWTEST_F(RsRenderComposerManagerTest, GetReleaseFence, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    EXPECT_EQ(mgr->GetReleaseFence(0u), nullptr);
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-    EXPECT_EQ(mgr->GetReleaseFence(1u), nullptr);
-    EXPECT_NE(mgr->GetReleaseFence(2u), nullptr);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-    rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer->uniRenderEngine_ = nullptr;
-}
-
-/**
- * Function: WaitComposerTaskExecute
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call WaitComposerTaskExecute after prepared rsRenderComposerMap_
- *                  3. check result
- */
-HWTEST_F(RsRenderComposerManagerTest, WaitComposerTaskExecute, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-
-    EXPECT_FALSE(mgr->WaitComposerTaskExecute(0u));
-    EXPECT_FALSE(mgr->WaitComposerTaskExecute(1u));
-    EXPECT_TRUE(mgr->WaitComposerTaskExecute(2u));
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer->uniRenderEngine_ = nullptr;
-}
-
-/**
- * Function: CleanLayerBufferBySurfaceId
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call CleanLayerBufferBySurfaceId after prepared rsRenderComposerMap_
- *                  3. check result
- */
-HWTEST_F(RsRenderComposerManagerTest, CleanLayerBufferBySurfaceId, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->CleanLayerBufferBySurfaceId(0u);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_TRUE(mgr->rsRenderComposerMap_.empty());
-
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
-    mgr->CleanLayerBufferBySurfaceId(1u);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 1);
-
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-    mgr->CleanLayerBufferBySurfaceId(2u);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 2);
-
-    rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer->uniRenderEngine_ = nullptr;
-}
-
-/**
- * Function: DumpVkImageInfo
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call DumpVkImageInfo after prepared rsRenderComposerMap_
- *                  3. check dumpString
- */
-HWTEST_F(RsRenderComposerManagerTest, DumpVkImageInfo, TestSize.Level1)
-{
-    std::string dumpString = "";
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->DumpVkImageInfo(dumpString);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_TRUE(dumpString.empty());
-
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
-    mgr->DumpVkImageInfo(dumpString);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(dumpString.find("id : 1"), std::string::npos);
-
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-
-    mgr->DumpVkImageInfo(dumpString);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_NE(dumpString.find("id : 2"), std::string::npos);
-
-    rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer->uniRenderEngine_ = nullptr;
-}
-
-/**
- * Function: ClearRedrawGPUCompositionCache
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call ClearRedrawGPUCompositionCache after prepared rsRenderComposerMap_
- *                  3. check result
- */
-HWTEST_F(RsRenderComposerManagerTest, ClearRedrawGPUCompositionCache, TestSize.Level1)
-{
-    std::string dumpString = "";
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-
-    std::set<uint64_t> bufferIds;
-    bufferIds.insert(1u);
-    bufferIds.insert(2u);
-    mgr->ClearRedrawGPUCompositionCache(bufferIds);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(mgr->rsRenderComposerMap_.size(), 2);
-
-    rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer->uniRenderEngine_ = nullptr;
-}
-
-/**
- * Function: PostTaskToAllScreens
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call PostTaskToAllScreens after prepared rsRenderComposerMap_
- *                  3. check result
- */
-HWTEST_F(RsRenderComposerManagerTest, PostTaskToAllScreens, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-
-    std::atomic<bool> ran{false};
-    mgr->PostTaskToAllScreens([&ran]() { ran.store(true); });
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_TRUE(ran.load());
-
-    rsRenderComposer->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer->uniRenderEngine_ = nullptr;
-}
-
-/**
- * Function: SetScreenPowerOnChanged
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposerManager
- *                  2. call SetScreenPowerOnChanged with different composer
- *                  3. check result
- */
-HWTEST_F(RsRenderComposerManagerTest, SetScreenPowerOnChanged, TestSize.Level1)
-{
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>();
-    // cannot find in map
-    mgr->SetScreenPowerOnChanged(0u, false);
-
-    // composer is nullptr
-    mgr->rsRenderComposerMap_.insert(std::pair(1u, nullptr));
-    mgr->SetScreenPowerOnChanged(1u, false);
-
-    // normal composer
-    auto output = std::make_shared<HdiOutput>(2u);
-    output->Init();
-    auto rsRenderComposer = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer->runner_) {
-        rsRenderComposer->runner_->Run();
-    }
-    mgr->rsRenderComposerMap_.insert(std::pair(2u, rsRenderComposer));
-    EXPECT_GT(mgr->rsRenderComposerMap_.size(), 0);
-    mgr->SetScreenPowerOnChanged(2u, false);
-
-    // composer without output
-    auto rsRenderComposer2 = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer2->runner_) {
-        rsRenderComposer2->runner_->Run();
-    }
-    rsRenderComposer2->hdiOutput_ = nullptr;
-    mgr->rsRenderComposerMap_.insert(std::pair(3u, rsRenderComposer2));
-    EXPECT_GT(mgr->rsRenderComposerMap_.size(), 0);
-    mgr->SetScreenPowerOnChanged(3u, false);
-
-    // clear resources
-    for (auto& [id, composer] : mgr->rsRenderComposerMap_) {
-        if (composer) {
-            composer->frameBufferSurfaceOhosMap_.clear();
-            composer->uniRenderEngine_ = nullptr;
-        }
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

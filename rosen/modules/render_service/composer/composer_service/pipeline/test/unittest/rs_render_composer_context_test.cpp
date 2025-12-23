@@ -51,6 +51,12 @@ public:
         : id_(id), isNeedComposition_(usingFlag), surfaceName_(name) {}
     ~FakeRSLayer() override = default;
 
+    RSLayerId GetRSLayerId() const override { return id_; }
+    void SetRSLayerId(RSLayerId rsLayerId) override { id_ = rsLayerId; }
+    std::shared_ptr<RSComposerContext> GetComposerContext() const override { return rsComposerContext_; }
+    void SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext) override { rsComposerContext_ = rsComposerContext; }
+    void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override { (void)command; }
+
     void SetAlpha(const GraphicLayerAlpha &alpha) override { alpha_ = alpha; }
     const GraphicLayerAlpha &GetAlpha() const override { return alpha_; }
     void SetZorder(int32_t zOrder) override { zOrder_ = zOrder; }
@@ -145,6 +151,8 @@ public:
 
     void SetSurface(const sptr<IConsumerSurface>& surface) override { surface_ = surface; }
     sptr<IConsumerSurface> GetSurface() const override { return surface_; }
+    void SetSurfaceUniqueId(uint64_t uniqueId) override { surfaceUniqueId_ = uniqueId; }
+    uint64_t GetSurfaceUniqueId() const override { return surfaceUniqueId_; }
     void SetBuffer(const sptr<SurfaceBuffer>& sbuffer, const sptr<SyncFence>& acquireFence) override
     {
         buffer_ = sbuffer;
@@ -156,6 +164,20 @@ public:
     sptr<SurfaceBuffer> GetPreBuffer() const override { return preBuffer_; }
     void SetAcquireFence(const sptr<SyncFence>& acquireFence) override { acquireFence_ = acquireFence; }
     sptr<SyncFence> GetAcquireFence() const override { return acquireFence_; }
+    void SetCycleBuffersNum(uint32_t cycleBuffersNum) override { cycleBuffersNum_ = cycleBuffersNum; }
+    uint32_t GetCycleBuffersNum() const override { return cycleBuffersNum_; }
+    void SetSurfaceName(std::string name) override { surfaceName_ = name; }
+    std::string GetSurfaceName() const override { return surfaceName_; }
+    void SetSolidColorLayerProperty(GraphicSolidColorLayerProperty solidColorLayerProperty) override
+    { solidColorLayerProperty_ = solidColorLayerProperty; }
+    GraphicSolidColorLayerProperty GetSolidColorLayerProperty() const override { return solidColorLayerProperty_; }
+    void SetBufferOwnerCount(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> boc) override { bufferOwnerCount_ = boc; }
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetSeqNumFromBufferOwnerCounts(uint64_t seqNum) override
+    {
+        (void)seqNum;
+        return bufferOwnerCount_;
+    }
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetBufferOwnerCount() const override { return bufferOwnerCount_; }
 
     // Provide overrides to avoid undefined reference to base default implementations during linking
     void SetUseDeviceOffline(bool useOffline) override { useDeviceOffline_ = useOffline; }
@@ -166,11 +188,14 @@ public:
     void CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer) override { (void)rsLayer; }
     void Dump(std::string& result) const override { (void)result; }
     void DumpCurrentFrameLayer() const override {}
+    bool GetIsNeedComposition() const override { return isNeedComposition_; }
+    void SetIsNeedComposition(bool isNeedComposition) override { isNeedComposition_ = isNeedComposition; }
 
 private:
     RSLayerId id_ = 0;
     bool isNeedComposition_ = false;
     std::string surfaceName_;
+    std::shared_ptr<RSComposerContext> rsComposerContext_ = nullptr;
 
     GraphicLayerAlpha alpha_ {};
     int32_t zOrder_ = 0;
@@ -220,6 +245,8 @@ private:
     sptr<SurfaceBuffer> preBuffer_ = nullptr;
     sptr<SyncFence> acquireFence_ = nullptr;
     uint32_t cycleBuffersNum_ = 0;
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
+    GraphicSolidColorLayerProperty solidColorLayerProperty_ {};
     bool ignoreAlpha_ {false};
     bool useDeviceOffline_ {false};
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
@@ -250,20 +277,17 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_Empty_ReturnsEmpty, TestSiz
  *                  2. call GetRSLayersVec()
  *                  3. check returned vector only contains the used layer
  */
-HWTEST_F(RsRenderComposerContextTest, SetAndGet_ReturnsSameVector, TestSize.Level1)
+HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_FiltersByisNeedComposition, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    std::vector<std::shared_ptr<RSLayer>> layers;
     std::shared_ptr<RSLayer> l1 = std::make_shared<FakeRSLayer>(1, false, "L1");
     std::shared_ptr<RSLayer> l2 = std::make_shared<FakeRSLayer>(2, true, "L2");
-    layers.push_back(l1);
-    layers.push_back(l2);
-    ctx->SetRSLayersVec(std::move(layers));
+    ctx->AddRSRenderLayer(1, l1);
+    ctx->AddRSRenderLayer(2, l2);
 
     auto vec = ctx->GetRSLayersVec();
-    ASSERT_EQ(vec.size(), 2u);
-    EXPECT_EQ(vec[0], l1);
-    EXPECT_EQ(vec[1], l2);
+    ASSERT_EQ(vec.size(), 1u);
+    EXPECT_EQ(vec[0], l2);
 }
 
 /**
@@ -278,10 +302,8 @@ HWTEST_F(RsRenderComposerContextTest, SetAndGet_ReturnsSameVector, TestSize.Leve
 HWTEST_F(RsRenderComposerContextTest, ClearAllRSLayers_EmptiesVector, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    std::vector<std::shared_ptr<RSLayer>> layers;
-    layers.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(1, true)));
-    layers.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(2, true)));
-    ctx->SetRSLayersVec(std::move(layers));
+    ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
+    ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
     ASSERT_EQ(ctx->GetRSLayersVec().size(), 2u);
 }
 
@@ -297,10 +319,8 @@ HWTEST_F(RsRenderComposerContextTest, ClearAllRSLayers_EmptiesVector, TestSize.L
 HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_CopySemantics, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    std::vector<std::shared_ptr<RSLayer>> layers;
-    layers.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(1, true)));
-    layers.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(2, true)));
-    ctx->SetRSLayersVec(std::move(layers));
+    ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
+    ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
 
     auto vecA = ctx->GetRSLayersVec();
     ASSERT_EQ(vecA.size(), 2u);
@@ -309,7 +329,7 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_CopySemantics, TestSize.Lev
 
     // internal storage should remain unchanged
     auto vecB = ctx->GetRSLayersVec();
-    EXPECT_EQ(vecB.size(), 0);
+    EXPECT_EQ(vecB.size(), 2u);
 }
 
 /**
@@ -324,15 +344,13 @@ HWTEST_F(RsRenderComposerContextTest, GetRSLayersVec_CopySemantics, TestSize.Lev
 HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_Override, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    std::vector<std::shared_ptr<RSLayer>> layersA;
-    layersA.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(1, true)));
-    ctx->SetRSLayersVec(std::move(layersA));
-    ASSERT_EQ(ctx->GetRSLayersVec().size(), 1u);
+    ctx->AddRSRenderLayer(1, std::make_shared<FakeRSLayer>(1, true));
+    ASSERT_EQ(ctx->GetRSRenderLayerCount(), 1u);
 
-    std::vector<std::shared_ptr<RSLayer>> layersB;
-    layersB.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(2, true)));
-    layersB.push_back(std::shared_ptr<RSLayer>(std::make_shared<FakeRSLayer>(3, true)));
-    ctx->SetRSLayersVec(std::move(layersB));
+    // override by removing old and adding new layers
+    ctx->RemoveRSRenderLayer(1);
+    ctx->AddRSRenderLayer(2, std::make_shared<FakeRSLayer>(2, true));
+    ctx->AddRSRenderLayer(3, std::make_shared<FakeRSLayer>(3, true));
     auto vec = ctx->GetRSLayersVec();
     EXPECT_EQ(vec.size(), 2u);
 }
@@ -349,8 +367,7 @@ HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_Override, TestSize.Level1)
 HWTEST_F(RsRenderComposerContextTest, SetRSLayersVec_WithEmptyVector, TestSize.Level1)
 {
     std::shared_ptr<RSRenderComposerContext> ctx = std::make_shared<RSRenderComposerContext>();
-    std::vector<std::shared_ptr<RSLayer>> empty;
-    ctx->SetRSLayersVec(std::move(empty));
+    // without adding any layers, returned vector should be empty
     EXPECT_TRUE(ctx->GetRSLayersVec().empty());
 }
 

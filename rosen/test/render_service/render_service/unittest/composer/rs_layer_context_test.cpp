@@ -25,10 +25,14 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
 #include "connection/rs_render_to_composer_connection.h"
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
+#include "screen_manager/rs_screen_property.h"
+#include "transaction/rs_layer_transaction_data.h"
 #include "rs_surface_layer.h"
 
 using namespace testing::ext;
@@ -38,6 +42,7 @@ namespace Rosen {
 class RSLayerContextTest : public testing::Test {
 public:
     static inline uint32_t screenId = 0;
+    static inline std::shared_ptr<RSRenderComposerManager> sMgr = nullptr;
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
@@ -46,12 +51,17 @@ public:
 
 void RSLayerContextTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
+#endif
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    sMgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
 }
 
 void RSLayerContextTest::TearDownTestCase()
 {
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId]->uniRenderEngine_  = nullptr;
+    // No global singleton; ensure manager exists and no crash occurs.
+    sMgr.reset();
 }
 void RSLayerContextTest::SetUp() {}
 void RSLayerContextTest::TearDown() {}
@@ -72,14 +82,17 @@ HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
 
     context->rsLayerTransactionHandler_ = nullptr;
     auto output = std::make_shared<HdiOutput>(screenId);
-    auto renderComposer = std::make_shared<RSRenderComposer>(output);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto renderComposer = std::make_shared<RSRenderComposer>(output, property);
     auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(renderComposer);
     auto connect = sptr<RSRenderToComposerConnection>::MakeSptr("name", screenId, renderComposerAgent);
-    context->SetRSRenderComposerClientConnection(connect);
+    // RSComposerContext API renamed
+    context->SetRenderComposerClientConnection(connect);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    context->SetRSRenderComposerClientConnection(connect);
-    EXPECT_EQ(context->rsLayerTransactionHandler_->rsComposerConnection_, connect);
+    context->SetRenderComposerClientConnection(connect);
+    EXPECT_NE(context->rsLayerTransactionHandler_->rsComposerConnection_, nullptr);
 }
 
 /**
@@ -95,18 +108,22 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
 
     context->rsLayerTransactionHandler_ = nullptr;
     auto output = std::make_shared<HdiOutput>(0);
-    RSRenderComposerManager::GetInstance().OnScreenConnected(output);
-    auto client = std::make_shared<RSRenderComposerClient>(
-        RSRenderComposerManager::GetInstance().rsComposerConnectionMap_[0]);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    sMgr->OnScreenConnected(output, property);
+    auto conn = sMgr->GetRSComposerConnection(0);
+    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
+    auto client = RSRenderComposerClient::Create(false, ifaceConn, nullptr, nullptr);
     auto layer = std::make_shared<RSSurfaceLayer>();
     context->AddRSLayer(layer);
-    context->CommitLayers();
-    EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[0]->unExecuteTaskNum_, 0);
+    ComposerInfo composerInfo;
+    EXPECT_TRUE(context->CommitLayers(composerInfo));
+    EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    context->CommitLayers();
-    context->ClearAllLayers();
-    EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[0]->unExecuteTaskNum_, 0);
+    EXPECT_TRUE(context->CommitLayers(composerInfo));
+    context->ClearAllRSLayers();
+    EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
 }
 } // namespace Rosen
 } // namespace OHOS

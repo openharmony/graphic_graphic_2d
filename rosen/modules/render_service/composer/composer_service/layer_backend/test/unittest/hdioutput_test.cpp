@@ -822,25 +822,6 @@ HWTEST_F(HdiOutputTest, CheckSupportCopybitMetadata001, Function | MediumTest | 
 }
 
 /*
- * Function: ANCOTransactionOnComplete
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call ANCOTransactionOnComplete()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete001, Function | MediumTest | Level1)
-{
-    std::shared_ptr<RSLayer> rsLayer = nullptr;
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
-    rsLayer = std::make_shared<RSSurfaceLayer>();
-    const uint32_t ancoFlag = 0x0111;
-    rsLayer->SetAncoFlags(ancoFlag);
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
-    ASSERT_EQ(rsLayer->GetAncoFlags(), ancoFlag);
-}
-
-/*
  * Function: RegPrepareComplete
  * Type: Function
  * Rank: Important(1)
@@ -944,25 +925,7 @@ HWTEST_F(HdiOutputTest, CreateLayerLocked001, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->arsrPreEnabledForVm_ = arsrPreEnabledForVm;
 }
 
-/*
- * Function: DumpCurrentFrameLayers
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call DumpCurrentFrameLayers()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers001, Function | MediumTest | Level1)
-{
-    std::shared_ptr<HdiLayer> hdiLayer = HdiLayer::CreateHdiLayer(1);
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
-    hdiLayer->UpdateRSLayer(rsLayer);
-    HdiOutputTest::hdiOutput_->surfaceIdMap_[1] = hdiLayer;
-    HdiOutputTest::hdiOutput_->DumpCurrentFrameLayers();
-    HdiOutputTest::hdiOutput_->surfaceIdMap_.erase(1);
-}
-
-/*
+/**
  * Function: FlushScreen
  * Type: Function
  * Rank: Important(1)
@@ -1084,157 +1047,6 @@ HWTEST_F(HdiOutputTest, FlushScreen002, Function | MediumTest | Level1)
 }
 
 /*
- * Function: ReleaseSurfaceBuffer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call ReleaseSurfaceBuffer()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer001, Function | MediumTest | Level3)
-{
-    HdiOutputTest::hdiOutput_->layersId_.clear();
-    HdiOutputTest::hdiOutput_->fences_.clear();
-    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-
-    std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(0);
-    std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(1);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
-    hdiLayer2->UpdateRSLayer(rsLayer2);
-    std::shared_ptr<HdiLayer> hdiLayer3 = HdiLayer::CreateHdiLayer(2);
-    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
-    hdiLayer3->UpdateRSLayer(rsLayer3);
-    rsLayer3->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    HdiOutputTest::hdiOutput_->layerIdMap_[0] = hdiLayer1;
-    HdiOutputTest::hdiOutput_->layerIdMap_[1] = hdiLayer2;
-    HdiOutputTest::hdiOutput_->layerIdMap_[2] = hdiLayer3;
-    HdiOutputTest::hdiOutput_->layerIdMap_[3] = nullptr;
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
-    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
-}
-
-/*
- * Function: ReleaseSurfaceBuffer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call ReleaseSurfaceBuffer()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer002, Function | MediumTest | Level1)
-{
-    HdiOutputTest::hdiOutput_->layersId_.clear();
-    HdiOutputTest::hdiOutput_->fences_.clear();
-    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    ASSERT_NE(fence, nullptr);
-    // hdilayer no rslayer
-    std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
-    ASSERT_NE(hdiLayer1, nullptr);
-    // has rslayer but no surface
-    std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
-    ASSERT_NE(hdiLayer2, nullptr);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(rsLayer2, nullptr);
-    hdiLayer2->UpdateRSLayer(rsLayer2);
-    // has rslayer and surface
-    std::shared_ptr<HdiLayer> hdiLayer3 = HdiLayer::CreateHdiLayer(3);
-    ASSERT_NE(hdiLayer3, nullptr);
-    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(rsLayer3, nullptr);
-    hdiLayer3->UpdateRSLayer(rsLayer3);
-    rsLayer3->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    // has rslayer and surface and setUniRenderFlag true
-    std::shared_ptr<HdiLayer> hdiLayer4 = HdiLayer::CreateHdiLayer(4);
-    ASSERT_NE(hdiLayer4, nullptr);
-    std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(rsLayer4, nullptr);
-    hdiLayer4->UpdateRSLayer(rsLayer4);
-    rsLayer4->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    rsLayer4->SetUniRenderFlag(true);
-
-    HdiOutputTest::hdiOutput_->layerIdMap_[1] = hdiLayer1;
-    HdiOutputTest::hdiOutput_->layersId_.push_back(1);
-    HdiOutputTest::hdiOutput_->fences_.push_back(fence);
-
-    HdiOutputTest::hdiOutput_->layerIdMap_[2] = hdiLayer2;
-    HdiOutputTest::hdiOutput_->layersId_.push_back(2);
-    HdiOutputTest::hdiOutput_->fences_.push_back(fence);
-
-    HdiOutputTest::hdiOutput_->layerIdMap_[3] = hdiLayer3;
-    HdiOutputTest::hdiOutput_->layersId_.push_back(3);
-    HdiOutputTest::hdiOutput_->fences_.push_back(fence);
-    
-    HdiOutputTest::hdiOutput_->layerIdMap_[4] = hdiLayer4;
-    HdiOutputTest::hdiOutput_->layersId_.push_back(4);
-    HdiOutputTest::hdiOutput_->fences_.push_back(fence);
-
-    HdiOutputTest::hdiOutput_->layersId_.push_back(5);
-
-    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
-}
-
-/*
- * Function: ReleaseSurfaceBuffer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call ReleaseSurfaceBuffer()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, ReleaseSurfaceBuffer003, Function | MediumTest | Level1)
-{
-    HdiOutputTest::hdiOutput_->layersId_.clear();
-    HdiOutputTest::hdiOutput_->fences_.clear();
-    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-
-    sptr<SyncFence> fence = SyncFence::INVALID_FENCE;
-    ASSERT_NE(fence, nullptr);
-    // hdilayer no rslayer
-    std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
-    ASSERT_NE(hdiLayer1, nullptr);
-    // has rslayer but no surface
-    std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
-    ASSERT_NE(hdiLayer2, nullptr);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(rsLayer2, nullptr);
-    hdiLayer2->UpdateRSLayer(rsLayer2);
-    // has rslayer and surface, UniRenderFlag is false
-    std::shared_ptr<HdiLayer> hdiLayer3 = HdiLayer::CreateHdiLayer(3);
-    ASSERT_NE(hdiLayer3, nullptr);
-    std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(rsLayer3, nullptr);
-    hdiLayer3->UpdateRSLayer(rsLayer3);
-    rsLayer3->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    // has rslayer and surface , UniRenderFlag is true, prebuffer is not nullptr
-    std::shared_ptr<HdiLayer> hdiLayer4 = HdiLayer::CreateHdiLayer(4);
-    ASSERT_NE(hdiLayer4, nullptr);
-    std::shared_ptr<RSLayer> rsLayer4 = std::make_shared<RSSurfaceLayer>();
-    ASSERT_NE(rsLayer4, nullptr);
-    rsLayer4->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    rsLayer4->SetPreBuffer(new SurfaceBufferImpl());
-    rsLayer4->SetUniRenderFlag(true);
-    hdiLayer4->UpdateRSLayer(rsLayer4);
-
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
-        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer1);
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
-        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer2);
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
-        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer3);
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
-        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), hdiLayer4);
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.insert(
-        HdiOutputTest::hdiOutput_->layersTobeRelease_.begin(), nullptr);
-    HdiOutputTest::hdiOutput_->ReleaseSurfaceBuffer(fence);
-}
-
-/*
  * Function: ReleaseLayers
  * Type: Function
  * Rank: Important(1)
@@ -1291,7 +1103,9 @@ HWTEST_F(HdiOutputTest, ReleaseLayers001, Function | MediumTest | Level1)
     HdiOutputTest::hdiOutput_->layerIdMap_[4] = hdiLayer4;
     HdiOutputTest::hdiOutput_->layerIdMap_[5] = hdiLayer5;
     HdiOutputTest::hdiOutput_->layerIdMap_[6] = nullptr;
-    HdiOutputTest::hdiOutput_->ReleaseLayers(fence);
+    ReleaseLayerBuffersInfo releaseLayerInfo;
+    releaseLayerInfo.screenId = HdiOutputTest::hdiOutput_->GetScreenId();
+    HdiOutputTest::hdiOutput_->ReleaseLayers(releaseLayerInfo);
 }
 
 /*
@@ -1461,41 +1275,6 @@ HWTEST_F(HdiOutputTest, DumpFps003, Function | MediumTest | Level1)
 }
 
 /*
- * Function: DumpCurrentFrameLayers
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call DumpCurrentFrameLayers()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, DumpCurrentFrameLayers002, Function | MediumTest | Level1)
-{
-    HdiOutputTest::hdiOutput_->layersId_.clear();
-    HdiOutputTest::hdiOutput_->fences_.clear();
-    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
-    HdiOutputTest::hdiOutput_->layersTobeRelease_.clear();
-    HdiOutputTest::hdiOutput_->solidSurfaceIdMap_.clear();
-
-    // hdilayer has rslayer SetUniRenderFlag false
-    std::shared_ptr<HdiLayer> hdiLayer1 = HdiLayer::CreateHdiLayer(1);
-    EXPECT_NE(hdiLayer1, nullptr);
-    std::shared_ptr<RSLayer> rsLayer1 = std::make_shared<RSSurfaceLayer>();
-    EXPECT_NE(rsLayer1, nullptr);
-    rsLayer1->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    hdiLayer1->UpdateRSLayer(rsLayer1);
-    HdiOutputTest::hdiOutput_->layerIdMap_[1] = hdiLayer1;
-
-    std::shared_ptr<HdiLayer> hdiLayer2 = HdiLayer::CreateHdiLayer(2);
-    EXPECT_NE(hdiLayer2, nullptr);
-    std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
-    EXPECT_NE(rsLayer2, nullptr);
-    hdiLayer2->UpdateRSLayer(rsLayer2);
-    HdiOutputTest::hdiOutput_->layerIdMap_[2] = hdiLayer2;
-
-    HdiOutputTest::hdiOutput_->DumpCurrentFrameLayers();
-}
-
-/*
  * Function: Dump002
  * Type: Function
  * Rank: Important(1)
@@ -1612,35 +1391,6 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
     rsLayer->SetLayerArsr(true);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), true);
-}
-
-/*
- * Function: ANCOTransactionOnComplete002
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1.call ANCOTransactionOnComplete()
- *                  2.check ret
- */
-HWTEST_F(HdiOutputTest, ANCOTransactionOnComplete002, Function | MediumTest | Level1)
-{
-    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>();
-    const uint32_t ancoFlag = 0x0111;
-    rsLayer->SetAncoFlags(ancoFlag);
-    // no surface no buffer
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
-    // has surface no buffer
-    rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
-    // no surface has buffer
-    rsLayer->SetSurface(nullptr);
-    rsLayer->SetBuffer(new SurfaceBufferImpl());
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
-    // has surface has buffer
-    rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
-    rsLayer->SetBuffer(new SurfaceBufferImpl());
-    HdiOutputTest::hdiOutput_->ANCOTransactionOnComplete(rsLayer, SyncFence::InvalidFence());
-    ASSERT_EQ(rsLayer->GetAncoFlags(), ancoFlag);
 }
 
 /*

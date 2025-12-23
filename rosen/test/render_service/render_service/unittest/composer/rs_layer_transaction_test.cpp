@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "hdi_output.h"
+#include "screen_manager/rs_screen_property.h"
 #include "rs_render_to_composer_connection.h"
 #include "rs_render_composer.h"
 #include "rs_render_composer_agent.h"
@@ -52,7 +53,9 @@ void RSLayerTransactionTest::SetUpTestCase()
 #endif
     handler_ = std::make_shared<RSLayerTransactionHandler>();
     auto output = std::make_shared<HdiOutput>(screenId);
-    rsRenderComposer = std::make_shared<RSRenderComposer>(output);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    rsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
     if (rsRenderComposer->runner_) {
         rsRenderComposer->runner_->Run();
     }
@@ -69,18 +72,19 @@ void RSLayerTransactionTest::TearDownTestCase()
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSLayerTransactionTest, SetRSComposerConnectionTest, Level1)
+HWTEST_F(RSLayerTransactionTest, SetRSComposerConnectionProxyTest, Level1)
 {
     ASSERT_NE(handler_, nullptr);
     sptr<RSRenderToComposerConnection> composerConnection = nullptr;
-    handler_->SetRSComposerConnection(composerConnection);
+    handler_->SetRSComposerConnectionProxy(composerConnection);
     ASSERT_EQ(handler_->rsComposerConnection_, nullptr);
 
     auto renderComposerAgent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer);
     composerConnection = sptr<RSRenderToComposerConnection>::MakeSptr(
         "composer_conn", screenId, renderComposerAgent);
-    handler_->SetRSComposerConnection(composerConnection);
-    ASSERT_EQ(handler_->rsComposerConnection_, composerConnection);
+    handler_->SetRSComposerConnectionProxy(composerConnection);
+    sptr<IRSRenderToComposerConnection> ifaceConn = composerConnection;
+    ASSERT_EQ(handler_->rsComposerConnection_, ifaceConn);
 }
 
 /**
@@ -93,7 +97,8 @@ HWTEST_F(RSLayerTransactionTest, CommitLayersTransactionTest, Level1)
 {
     ASSERT_NE(handler_, nullptr);
     ASSERT_NE(handler_->rsComposerConnection_, nullptr);
-    handler_->CommitLayersTransaction();
+    ComposerInfo composerInfo;
+    handler_->CommitRSLayerTransaction(composerInfo);
 }
 
 /**
@@ -106,10 +111,19 @@ HWTEST_F(RSLayerTransactionTest, AddLayerTest, Level1)
 {
     ASSERT_NE(handler_, nullptr);
     ASSERT_NE(handler_->rsLayerTransactionData_, nullptr);
-    ASSERT_EQ(handler_->rsLayerTransactionData_->layersVec_.size(), 0);
-    std::shared_ptr<RSLayer> layer = std::make_shared<RSSurfaceLayer>();
-    handler_->AddLayer(layer);
-    ASSERT_EQ(handler_->rsLayerTransactionData_->layersVec_.size(), 1);
+    ASSERT_TRUE(handler_->rsLayerTransactionData_->IsEmpty());
+    // Create a minimal fake RSLayerParcel for testing
+    class FakeLayerParcel : public RSLayerParcel {
+    public:
+        uint16_t GetRSLayerParcelType() const override { return 0; }
+        RSLayerId GetRSLayerId() const override { return 0; }
+        bool Marshalling(OHOS::MessageParcel& /*parcel*/) const override { return true; }
+        void ApplyRSLayerCmd(std::shared_ptr<RSRenderComposerContext> /*context*/) override {}
+    };
+    auto parcel = std::make_shared<FakeLayerParcel>();
+    std::shared_ptr<RSLayerParcel> baseParcel = std::static_pointer_cast<RSLayerParcel>(parcel);
+    handler_->AddRSLayerParcel(baseParcel, 0);
+    ASSERT_EQ(handler_->rsLayerTransactionData_->GetCommandCount(), 1u);
 }
 
 /**
@@ -121,8 +135,8 @@ HWTEST_F(RSLayerTransactionTest, AddLayerTest, Level1)
 HWTEST_F(RSLayerTransactionTest, ClearAllLayersTest, Level1)
 {
     ASSERT_NE(handler_, nullptr);
-    handler_->ClearAllLayers();
-    ASSERT_EQ(handler_->rsLayerTransactionData_->layersVec_.size(), 0);
+    handler_->rsLayerTransactionData_->Clear();
+    ASSERT_TRUE(handler_->rsLayerTransactionData_->IsEmpty());
 }
 } // namespace Rosen
 } // namespace OHOS

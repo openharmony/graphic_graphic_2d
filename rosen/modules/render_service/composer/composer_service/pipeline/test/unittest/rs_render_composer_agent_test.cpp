@@ -18,6 +18,7 @@
 #include "rs_render_composer_agent.h"
 #include "hdi_output.h"
 #include "rs_layer_transaction_data.h"
+#include "screen_manager/rs_screen_property.h"
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
@@ -44,15 +45,11 @@ void RsRenderComposerAgentTest::SetUpTestCase()
 #endif
     auto output = std::make_shared<HdiOutput>(0u);
     output->Init();
-    rsRenderComposer_ = std::make_shared<RSRenderComposer>(output);
-    if (rsRenderComposer_->runner_) {
-        rsRenderComposer_->runner_->Run();
-    }
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    rsRenderComposer_ = std::make_shared<RSRenderComposer>(output, property);
 }
 void RsRenderComposerAgentTest::TearDownTestCase()
 {
-    rsRenderComposer_->frameBufferSurfaceOhosMap_.clear();
-    rsRenderComposer_->uniRenderEngine_ = nullptr;
 }
 void RsRenderComposerAgentTest::SetUp() {}
 void RsRenderComposerAgentTest::TearDown() {}
@@ -105,45 +102,28 @@ HWTEST_F(RsRenderComposerAgentTest, ComposerProcess_NonNullTransactionData_NoCra
 HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, TestSize.Level1)
 {
     // Null composer: methods should early return or provide default values
-    sptr<SurfaceBuffer> surfaceBuffer = SurfaceBuffer::Create();
     auto nullAgent = std::make_shared<RSRenderComposerAgent>(nullptr);
-    nullAgent->OnScreenConnected(nullptr);
+    nullAgent->OnScreenConnected(nullptr, nullptr);
     nullAgent->OnScreenDisconnected();
-    nullAgent->PreAllocateProtectedBuffer(surfaceBuffer);
-    EXPECT_EQ(nullAgent->GetUnExecuteTaskNum(), 0u);
-    nullAgent->PostTask([]{});
     EXPECT_EQ(nullAgent->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
-    nullAgent->OnScreenVBlankIdleCallback(123456ULL);
+    nullAgent->OnScreenVBlankIdleCallback(static_cast<ScreenId>(0), 123456ULL);
 
     // Non-null composer: methods should forward to composer and execute without crash
     auto agent = std::make_shared<RSRenderComposerAgent>(rsRenderComposer_);
     ASSERT_TRUE(agent->rsRenderComposer_ != nullptr);
-    agent->PreAllocateProtectedBuffer(surfaceBuffer);
     // OnScreenConnected/Disconnected
     auto out = std::make_shared<HdiOutput>(5u);
     out->Init();
-    agent->OnScreenConnected(out);
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    agent->OnScreenConnected(out, property);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(agent->rsRenderComposer_->hdiOutput_->GetScreenId(), 5u);
     agent->OnScreenDisconnected();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_EQ(agent->rsRenderComposer_->hdiOutput_, nullptr);
-
-    agent->PreAllocateProtectedBuffer(surfaceBuffer);
-
-    // PostTask should schedule task on composer thread -> use an atomic flag to observe execution
-    std::atomic<bool> ran{false};
-    agent->PostTask([&ran]() { ran.store(true); });
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    EXPECT_TRUE(ran.load());
-
-    // GetUnExecuteTaskNum should be callable
-    EXPECT_EQ(agent->GetUnExecuteTaskNum(), 0);
     // ClearFrameBuffers should return a GSError (may be OK or error depending on environment), ensure no crash
     EXPECT_EQ(agent->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
 
     // VBlank callback forwarding
-    agent->OnScreenVBlankIdleCallback(98765ULL);
+    agent->OnScreenVBlankIdleCallback(static_cast<ScreenId>(5u), 98765ULL);
 }
 
 /**
@@ -160,7 +140,6 @@ HWTEST_F(RsRenderComposerAgentTest, Call_Interface_With_Null_Composer, TestSize.
     std::shared_ptr<RSRenderComposer> nullComposer = nullptr;
     std::shared_ptr<RSRenderComposerAgent> agent = std::make_shared<RSRenderComposerAgent>(nullComposer);
     EXPECT_TRUE(agent->rsRenderComposer_ == nullptr);
-    EXPECT_EQ(agent->GetAccumulatedBufferCount(), 0);
     agent->CleanLayerBufferBySurfaceId(0u);
 
     std::string dumpString = "";
@@ -177,21 +156,12 @@ HWTEST_F(RsRenderComposerAgentTest, Call_Interface_With_Null_Composer, TestSize.
     agent->ClearFpsDump(dumpString, layerName);
     EXPECT_TRUE(dumpString.empty());
 
-    agent->DumpCurrentFrameLayers();
-    EXPECT_TRUE(dumpString.empty());
-
     agent->HitchsDump(dumpString, layerName);
-    EXPECT_TRUE(dumpString.empty());
-
-    agent->DumpVkImageInfo(dumpString);
     EXPECT_TRUE(dumpString.empty());
 
     std::set<uint64_t> bufferIds;
     agent->ClearRedrawGPUCompositionCache(bufferIds);
     EXPECT_TRUE(bufferIds.empty());
-
-    EXPECT_EQ(agent->GetReleaseFence(), nullptr);
-    EXPECT_FALSE(agent->WaitComposerTaskExecute());
 }
 } // namespace Rosen
 } // namespace OHOS
