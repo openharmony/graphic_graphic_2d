@@ -108,7 +108,7 @@ bool RSModifierManager::Animate(int64_t time, int64_t vsyncPeriod)
         bool isFinished = false;
         AnimationId animId = animation->GetAnimationId();
         if (!JudgeAnimateWhetherSkip(animId, time, vsyncPeriod)) {
-            isFinished = animation->Animate(time, minLeftDelayTime);
+            isFinished = animation->Animate(time, minLeftDelayTime, true);
         }
 
         if (isFinished) {

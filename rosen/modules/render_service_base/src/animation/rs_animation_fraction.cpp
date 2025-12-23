@@ -67,6 +67,9 @@ void RSAnimationFraction::OnAnimationScaleChangedCallback(const char* key, const
         return;
     }
     float animationScale = std::atof(value);
+    if (ROSEN_NE(animationScale, 1.0f)) {
+        ROSEN_LOGW("Animation scale changed to %{public}f", animationScale);
+    }
     SetAnimationScale(animationScale);
 }
 
@@ -85,9 +88,9 @@ int64_t RSAnimationFraction::GetLastFrameTime() const
     return lastFrameTime_;
 }
 
-bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs)
+bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs, bool isCustom)
 {
-    float animationScale = GetAnimationScale();
+    const float animationScale = isCustom ? 1.0f : GetAnimationScale();
     if (direction_ == ForwardDirection::NORMAL) {
         if (ROSEN_EQ(animationScale, 0.0f)) {
             runningTime_ += static_cast<int64_t>(deltaTime * MAX_SPEED);
@@ -105,7 +108,7 @@ bool RSAnimationFraction::IsStartRunning(const int64_t deltaTime, const int64_t 
     return runningTime_ > startDelayNs;
 }
 
-int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs)
+int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs, bool isCustom)
 {
     if (ROSEN_LE(speed_, 0.0f)) {
         return 0;
@@ -113,7 +116,7 @@ int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs)
     if (runningTime_ > startDelayNs) {
         return 0;
     }
-    float animationScale = GetAnimationScale();
+    const float animationScale = isCustom ? 1.0f : GetAnimationScale();
     int64_t leftDelayTimeOrigin;
     if (direction_ == ForwardDirection::NORMAL) {
         leftDelayTimeOrigin = startDelayNs - runningTime_;
@@ -128,7 +131,8 @@ int64_t RSAnimationFraction::CalculateLeftDelayTime(const int64_t startDelayNs)
     return static_cast<int64_t>(ret);
 }
 
-std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime)
+std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(
+    int64_t time, int64_t& minLeftDelayTime, bool isCustom)
 {
     int64_t durationNs = duration_ * MS_TO_NS;
     int64_t startDelayNs = startDelay_ * MS_TO_NS;
@@ -152,14 +156,14 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
         return { GetEndFraction(), isInStartDelay, isFinished, isRepeatFinished };
     }
     // 1. Calculates the total running fraction of animation
-    if (!IsStartRunning(deltaTime, startDelayNs)) {
-        if (IsFinished()) {
+    if (!IsStartRunning(deltaTime, startDelayNs, isCustom)) {
+        if (IsFinished(isCustom)) {
             minLeftDelayTime = 0;
             return { GetStartFraction(), isInStartDelay, true, isRepeatFinished };
         }
         isInStartDelay = true;
         if (minLeftDelayTime > 0) {
-            minLeftDelayTime = std::min(CalculateLeftDelayTime(startDelayNs), minLeftDelayTime);
+            minLeftDelayTime = std::min(CalculateLeftDelayTime(startDelayNs, isCustom), minLeftDelayTime);
         }
         return { GetStartFraction(), isInStartDelay, false, isRepeatFinished };
     }
@@ -184,7 +188,7 @@ std::tuple<float, bool, bool, bool> RSAnimationFraction::GetAnimationFraction(in
     }
 
     // 4. update status for auto reverse
-    isFinished = IsFinished();
+    isFinished = IsFinished(isCustom);
     UpdateReverseState(isFinished);
 
     // 5. get final animation fraction
@@ -205,12 +209,13 @@ bool RSAnimationFraction::IsInRepeat() const
     return false;
 }
 
-bool RSAnimationFraction::IsFinished() const
+bool RSAnimationFraction::IsFinished(bool isCustom) const
 {
     if (direction_ == ForwardDirection::NORMAL) {
         if (repeatCount_ == INFINITE) {
             // When the animation scale is zero, the infinitely looping animation is considered to be finished
-            return ROSEN_EQ(RSAnimationFraction::GetAnimationScale(), 0.0f);
+            const float animationScale = isCustom ? 1.0f : GetAnimationScale();
+            return ROSEN_EQ(animationScale, 0.0f);
         }
         int64_t totalDuration = (static_cast<int64_t>(duration_) * repeatCount_ + startDelay_) * MS_TO_NS;
         return runningTime_ >= totalDuration;

@@ -146,7 +146,7 @@ void RSRenderInterpolatingSpringAnimation::OnAnimate(float fraction)
     }
 }
 
-void RSRenderInterpolatingSpringAnimation::OnInitialize(int64_t time)
+void RSRenderInterpolatingSpringAnimation::OnInitialize(int64_t time, bool isCustom)
 {
     // set the initial status of spring model
     initialOffset_ = -1.0f;
@@ -155,7 +155,7 @@ void RSRenderInterpolatingSpringAnimation::OnInitialize(int64_t time)
     // use duration calculated by spring model as animation duration
     SetDuration(std::lroundf(EstimateDuration() * SECOND_TO_MILLISECOND));
     // this will set needInitialize_ to false
-    RSRenderPropertyAnimation::OnInitialize(time);
+    RSRenderPropertyAnimation::OnInitialize(time, isCustom);
 }
 
 void RSRenderInterpolatingSpringAnimation::InitValueEstimator()
