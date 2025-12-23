@@ -13,82 +13,81 @@
  * limitations under the License.
  */
 
-// CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE
+// CMD_NAME, TYPE, CMD_TYPE
 // base command
-DECLARE_RSLAYER_CMD(RSLayerId, uint64_t, ID, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(Alpha, GraphicLayerAlpha, ALPHA, Multiply, COARSE)
-DECLARE_RSLAYER_CMD(Zorder, int32_t, ZORDER, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(Type, GraphicLayerType, TYPE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(Transform, GraphicTransformType, TRANSFORM, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(CompositionType, GraphicCompositionType, COMPOSITION_TYPE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(Gravity, int32_t, GRAVITY, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(BlendType, GraphicBlendType, BLEND_TYPE, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(RSLayerId, uint64_t, ID)
+DECLARE_RSLAYER_CMD(Alpha, GraphicLayerAlpha, ALPHA)
+DECLARE_RSLAYER_CMD(Zorder, int32_t, ZORDER)
+DECLARE_RSLAYER_CMD(Type, GraphicLayerType, TYPE)
+DECLARE_RSLAYER_CMD(Transform, GraphicTransformType, TRANSFORM)
+DECLARE_RSLAYER_CMD(CompositionType, GraphicCompositionType, COMPOSITION_TYPE)
+DECLARE_RSLAYER_CMD(Gravity, int32_t, GRAVITY)
+DECLARE_RSLAYER_CMD(BlendType, GraphicBlendType, BLEND_TYPE)
 
 // bool command
-DECLARE_RSLAYER_CMD(PreMulti, bool, PRE_MULTI, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(UniRenderFlag, bool, UNI_RENDER_FLAG, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(TunnelHandleChange, bool, TUNNEL_HANDLE_CHANGE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(IsSupportedPresentTimestamp, bool, IS_SUPPORTED_PRESENT_TIMESTAMP, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(RotationFixed, bool, ROTATION_FIXED, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(LayerArsr, bool, LAYER_ARSR, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(LayerCopybit, bool, LAYER_COPYBIT, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(NeedBilinearInterpolation, bool, NEED_BILINEAR_INTERPOLATION, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(IsMaskLayer, bool, IS_MASK_LAYER, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(IsNeedComposition, bool, IS_NEED_COMPOSITION, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(UseDeviceOffline, bool, USE_DEVICE_OFFLINE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(IgnoreAlpha, bool, IGNORE_ALPHA, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(PreMulti, bool, PRE_MULTI)
+DECLARE_RSLAYER_CMD(UniRenderFlag, bool, UNI_RENDER_FLAG)
+DECLARE_RSLAYER_CMD(TunnelHandleChange, bool, TUNNEL_HANDLE_CHANGE)
+DECLARE_RSLAYER_CMD(IsSupportedPresentTimestamp, bool, IS_SUPPORTED_PRESENT_TIMESTAMP)
+DECLARE_RSLAYER_CMD(RotationFixed, bool, ROTATION_FIXED)
+DECLARE_RSLAYER_CMD(LayerArsr, bool, LAYER_ARSR)
+DECLARE_RSLAYER_CMD(LayerCopybit, bool, LAYER_COPYBIT)
+DECLARE_RSLAYER_CMD(NeedBilinearInterpolation, bool, NEED_BILINEAR_INTERPOLATION)
+DECLARE_RSLAYER_CMD(IsMaskLayer, bool, IS_MASK_LAYER)
+DECLARE_RSLAYER_CMD(IsNeedComposition, bool, IS_NEED_COMPOSITION)
+DECLARE_RSLAYER_CMD(UseDeviceOffline, bool, USE_DEVICE_OFFLINE)
+DECLARE_RSLAYER_CMD(IgnoreAlpha, bool, IGNORE_ALPHA)
 
 // float command
-DECLARE_RSLAYER_CMD(SdrNit, float, SDR_NIT, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(DisplayNit, float, DISPLAY_NIT, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(BrightnessRatio, float, BRIGHTNESS_RATIO, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(SdrNit, float, SDR_NIT)
+DECLARE_RSLAYER_CMD(DisplayNit, float, DISPLAY_NIT)
+DECLARE_RSLAYER_CMD(BrightnessRatio, float, BRIGHTNESS_RATIO)
 
 // int command
-DECLARE_RSLAYER_CMD(NodeId, uint64_t, NODE_ID, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(TunnelLayerId, uint64_t, TUNNEL_LAYER_ID, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(TunnelLayerProperty, uint32_t, TUNNEL_LAYER_PROPERTY, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(AncoFlags, uint32_t, ANCO_FLAGS, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(LayerSourceTuning, int32_t, LAYER_SOURCE_TUNING, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(CycleBuffersNum, uint32_t, CYCLE_BUFFERS_NUM, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(SurfaceUniqueId, uint64_t, SURFACE_UNIQUE_ID, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(NodeId, uint64_t, NODE_ID)
+DECLARE_RSLAYER_CMD(TunnelLayerId, uint64_t, TUNNEL_LAYER_ID)
+DECLARE_RSLAYER_CMD(TunnelLayerProperty, uint32_t, TUNNEL_LAYER_PROPERTY)
+DECLARE_RSLAYER_CMD(AncoFlags, uint32_t, ANCO_FLAGS)
+DECLARE_RSLAYER_CMD(LayerSourceTuning, int32_t, LAYER_SOURCE_TUNING)
+DECLARE_RSLAYER_CMD(CycleBuffersNum, uint32_t, CYCLE_BUFFERS_NUM)
+DECLARE_RSLAYER_CMD(SurfaceUniqueId, uint64_t, SURFACE_UNIQUE_ID)
 
 // rect_bound command
-DECLARE_RSLAYER_CMD(LayerSize, GraphicIRect, LAYER_SIZE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(BoundSize, GraphicIRect, BOUND_SIZE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(CropRect, GraphicIRect, CROP_RECT, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(AncoSrcRect, GraphicIRect, ANCO_SRC_RECT, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(VisibleRegions, std::vector<GraphicIRect>, VISIBLE_REGIONS, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(DirtyRegions, std::vector<GraphicIRect>, DIRTY_REGIONS, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(LayerSize, GraphicIRect, LAYER_SIZE)
+DECLARE_RSLAYER_CMD(BoundSize, GraphicIRect, BOUND_SIZE)
+DECLARE_RSLAYER_CMD(CropRect, GraphicIRect, CROP_RECT)
+DECLARE_RSLAYER_CMD(AncoSrcRect, GraphicIRect, ANCO_SRC_RECT)
+DECLARE_RSLAYER_CMD(VisibleRegions, std::vector<GraphicIRect>, VISIBLE_REGIONS)
+DECLARE_RSLAYER_CMD(DirtyRegions, std::vector<GraphicIRect>, DIRTY_REGIONS)
 
 // rect_matrix command
-DECLARE_RSLAYER_CMD(Matrix, GraphicMatrix, MATRIX, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(ColorTransform, std::vector<float>, COLOR_TRANSFORM, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(LayerLinearMatrix, std::vector<float>, LAYER_LINEAR_MATRIX, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(CornerRadiusInfoForDRM, std::vector<float>, CORNER_RADIUS_INFO_FOR_DRM, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(Matrix, GraphicMatrix, MATRIX)
+DECLARE_RSLAYER_CMD(ColorTransform, std::vector<float>, COLOR_TRANSFORM)
+DECLARE_RSLAYER_CMD(LayerLinearMatrix, std::vector<float>, LAYER_LINEAR_MATRIX)
+DECLARE_RSLAYER_CMD(CornerRadiusInfoForDRM, std::vector<float>, CORNER_RADIUS_INFO_FOR_DRM)
 
 // color command
-DECLARE_RSLAYER_CMD(LayerColor, GraphicLayerColor, LAYER_COLOR, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(BackgroundColor, GraphicLayerColor, BACKGROUND_COLOR, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(ColorDataSpace, GraphicColorDataSpace, COLOR_DATA_SPACE, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(LayerColor, GraphicLayerColor, LAYER_COLOR)
+DECLARE_RSLAYER_CMD(BackgroundColor, GraphicLayerColor, BACKGROUND_COLOR)
+DECLARE_RSLAYER_CMD(ColorDataSpace, GraphicColorDataSpace, COLOR_DATA_SPACE)
 
 // metaData command
-DECLARE_RSLAYER_CMD(MetaData, std::vector<GraphicHDRMetaData>, META_DATA, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(MetaDataSet, GraphicHDRMetaDataSet, META_DATA_SET, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(MetaData, std::vector<GraphicHDRMetaData>, META_DATA)
+DECLARE_RSLAYER_CMD(MetaDataSet, GraphicHDRMetaDataSet, META_DATA_SET)
 
 // timestamp command
-DECLARE_RSLAYER_CMD(PresentTimestamp, GraphicPresentTimestamp, PRESENT_TIMESTAMP, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(PresentTimestamp, GraphicPresentTimestamp, PRESENT_TIMESTAMP)
 
 // solid color layer property command
-DECLARE_RSLAYER_CMD(SolidColorLayerProperty, GraphicSolidColorLayerProperty, SOLID_COLOR_LAYER_PROPERTY,
-    Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(SolidColorLayerProperty, GraphicSolidColorLayerProperty, SOLID_COLOR_LAYER_PROPERTY)
 
 //string command
-DECLARE_RSLAYER_CMD(WindowsName, std::vector<std::string>, WINDOWS_NAME, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(SurfaceName, std::string, SURFACE_NAME, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(WindowsName, std::vector<std::string>, WINDOWS_NAME)
+DECLARE_RSLAYER_CMD(SurfaceName, std::string, SURFACE_NAME)
 
 // spec command
-DECLARE_RSLAYER_CMD(TunnelHandle, sptr<SurfaceTunnelHandle>, TUNNEL_HANDLE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(LayerMaskInfo, LayerMask, LAYER_MASK_INFO, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(Buffer, sptr<SurfaceBuffer>, BUFFER, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(AcquireFence, sptr<SyncFence>, ACQUIRE_FENCE, Overwrite, ZERO)
-DECLARE_RSLAYER_CMD(PreBuffer, sptr<SurfaceBuffer>, PRE_BUFFER, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(TunnelHandle, sptr<SurfaceTunnelHandle>, TUNNEL_HANDLE)
+DECLARE_RSLAYER_CMD(LayerMaskInfo, LayerMask, LAYER_MASK_INFO)
+DECLARE_RSLAYER_CMD(Buffer, sptr<SurfaceBuffer>, BUFFER)
+DECLARE_RSLAYER_CMD(AcquireFence, sptr<SyncFence>, ACQUIRE_FENCE)
+DECLARE_RSLAYER_CMD(PreBuffer, sptr<SurfaceBuffer>, PRE_BUFFER)

@@ -42,8 +42,8 @@ public:
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
 
 private:
-    template<typename RSLayerCmdName, typename RSLayerPropertyName, typename T>
-    void SetRSLayerCmd(RSLayerCmdType rsLayerCmdType, T value);
+    template<typename RSLayerCmdName, typename T>
+    void SetRSLayerCmd(const T& value);
     void AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd) override;
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
 };

@@ -23,7 +23,7 @@ namespace OHOS {
 namespace Rosen {
 
 using RSRenderLayerCmdUnmarshallingFunc = std::shared_ptr<RSRenderLayerCmd> (*)(OHOS::MessageParcel& parcel);
-#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE)                                  \
+#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                         \
     {                                                                                                            \
         RSLayerCmdType::CMD_TYPE,                                                                                \
         [](OHOS::MessageParcel& parcel) -> std::shared_ptr<RSRenderLayerCmd> {                                   \
@@ -39,7 +39,7 @@ using RSRenderLayerCmdUnmarshallingFunc = std::shared_ptr<RSRenderLayerCmd> (*)(
 
 static std::unordered_map<RSLayerCmdType, RSRenderLayerCmdUnmarshallingFunc> funcRSRLUT = {
 #include "rs_layer_cmd_def.in"
-DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP)
 };
 #undef DECLARE_RSLAYER_CMD
 
@@ -56,7 +56,7 @@ std::shared_ptr<RSRenderLayerCmd> RSRenderLayerCmd::Unmarshalling(OHOS::MessageP
     return it->second(parcel);
 }
 
-#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE)                                   \
+#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                          \
 bool RSRenderLayer##CMD_NAME##Cmd::Marshalling(OHOS::MessageParcel& parcel)                                       \
 {                                                                                                                 \
     auto renderProperty = std::static_pointer_cast<RSRenderLayerCmdProperty<TYPE>>(rsRenderLayerProperty_);       \
@@ -72,7 +72,7 @@ std::shared_ptr<RSRenderLayerPropertyBase> RSRenderLayer##CMD_NAME##Cmd::GetRSRe
     return rsRenderLayerProperty_;                                                                                \
 }
 #include "rs_layer_cmd_def.in"
-DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP)
 #undef DECLARE_RSLAYER_CMD
 } // namespace Rosen
 } // namespace OHOS

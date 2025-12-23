@@ -60,15 +60,13 @@ void RSSurfaceRCDLayer::AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd
 void RSSurfaceRCDLayer::SetPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap)
 {
     pixelMap_ = pixelMap;
-    SetRSLayerCmd<RSLayerPixelMapCmd, RSLayerCmdProperty<std::shared_ptr<Media::PixelMap>>>(
-        RSLayerCmdType::PIXEL_MAP, pixelMap);
+    SetRSLayerCmd<RSLayerPixelMapCmd>(pixelMap);
 }
 
-template<typename RSLayerCmdName, typename RSLayerPropertyName, typename T>
-void RSSurfaceRCDLayer::SetRSLayerCmd(RSLayerCmdType rsLayerCmdType, T value)
+template<typename RSLayerCmdName, typename T>
+void RSSurfaceRCDLayer::SetRSLayerCmd(const T& value)
 {
-    auto rsLayerProperty = std::make_shared<RSLayerPropertyName>(value);
-    auto rsLayerCmd = std::make_shared<RSLayerCmdName>(rsLayerProperty);
+    auto rsLayerCmd = std::make_shared<RSLayerCmdName>(value);
     AddRSLayerCmd(rsLayerCmd);
 }
 

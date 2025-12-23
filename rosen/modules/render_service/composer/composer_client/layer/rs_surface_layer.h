@@ -169,8 +169,8 @@ protected:
     bool AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
 
 private:
-    template<typename RSLayerCmdName, typename RSLayerPropertyName, typename T>
-    void SetRSLayerCmd(RSLayerCmdType rsLayerCmdType, T value);
+    template<typename RSLayerCmdName, typename T>
+    void SetRSLayerCmd(const T& value);
 
     virtual void AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd);
 

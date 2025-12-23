@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_COMPOSER_SERVICE_TRANSACTION_COMMAND_RS_LAYER_CMD_PROPERTY_H
 
 #include <type_traits>
-#include <unistd.h>
 
 #include "rs_layer_cmd_type.h"
 #include "rs_layer_common_def.h"
@@ -26,67 +25,23 @@
 namespace OHOS {
 namespace Rosen {
 
-class RSB_EXPORT RSLayerPropertyBase : public std::enable_shared_from_this<RSLayerPropertyBase> {
+class RSB_EXPORT RSLayerPropertyBase {
 public:
-    RSLayerPropertyBase();
+    RSLayerPropertyBase() = default;
     virtual ~RSLayerPropertyBase() = default;
- 
-    RSLayerPropertyId GetId() const
-    {
-        return id_;
-    }
+
 protected:
     virtual void SetValue(const std::shared_ptr<RSLayerPropertyBase>& value) = 0;
     virtual std::shared_ptr<RSLayerPropertyBase> Clone() const = 0;
-
     virtual std::shared_ptr<RSRenderLayerPropertyBase> GetRSRenderLayerProperty() = 0;
-
-    RSLayerPropertyId id_;
-    RSLayerCmdType type_ {RSLayerCmdType::INVALID};
-private:
-    virtual std::shared_ptr<RSLayerPropertyBase> Add(const std::shared_ptr<const RSLayerPropertyBase>& value)
-    {
-        return shared_from_this();
-    }
-
-    virtual std::shared_ptr<RSLayerPropertyBase> Minus(const std::shared_ptr<const RSLayerPropertyBase>& value)
-    {
-        return shared_from_this();
-    }
-
-    virtual std::shared_ptr<RSLayerPropertyBase> Multiply(const float scale)
-    {
-        return shared_from_this();
-    }
-
-    virtual bool IsEqual(const std::shared_ptr<const RSLayerPropertyBase>& value) const
-    {
-        return true;
-    }
-
-    friend std::shared_ptr<RSLayerPropertyBase> operator+=(
-        const std::shared_ptr<RSLayerPropertyBase>& a, const std::shared_ptr<const RSLayerPropertyBase>& b);
-    friend std::shared_ptr<RSLayerPropertyBase> operator-=(
-        const std::shared_ptr<RSLayerPropertyBase>& a, const std::shared_ptr<const RSLayerPropertyBase>& b);
-    friend std::shared_ptr<RSLayerPropertyBase> operator*=(const std::shared_ptr<RSLayerPropertyBase>& value, const float scale);
-    friend std::shared_ptr<RSLayerPropertyBase> operator+(
-        const std::shared_ptr<const RSLayerPropertyBase>& a, const std::shared_ptr<const RSLayerPropertyBase>& b);
-    friend std::shared_ptr<RSLayerPropertyBase> operator-(
-        const std::shared_ptr<const RSLayerPropertyBase>& a, const std::shared_ptr<const RSLayerPropertyBase>& b);
-    friend std::shared_ptr<RSLayerPropertyBase> operator*(
-        const std::shared_ptr<const RSLayerPropertyBase>& value, const float scale);
-    friend bool operator==(
-        const std::shared_ptr<const RSLayerPropertyBase>& a, const std::shared_ptr<const RSLayerPropertyBase>& b);
-    friend bool operator!=(
-        const std::shared_ptr<const RSLayerPropertyBase>& a, const std::shared_ptr<const RSLayerPropertyBase>& b);
 
     friend class RSLayerCmd;
 };
 template<typename T>
 class RSLayerCmdProperty : public RSLayerPropertyBase {
 public:
-    RSLayerCmdProperty() : RSLayerPropertyBase() {}
-    explicit RSLayerCmdProperty(const T& value) : RSLayerPropertyBase()
+    RSLayerCmdProperty() = default;
+    explicit RSLayerCmdProperty(const T& value)
     {
         stagingValue_ = value;
     }
@@ -125,7 +80,7 @@ protected:
 
     std::shared_ptr<RSRenderLayerPropertyBase> GetRSRenderLayerProperty() override
     {
-        return std::make_shared<RSRenderLayerCmdProperty<T>>(stagingValue_, id_);
+        return std::make_shared<RSRenderLayerCmdProperty<T>>(stagingValue_);
     }
 
     T stagingValue_ {};

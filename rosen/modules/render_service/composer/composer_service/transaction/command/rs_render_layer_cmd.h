@@ -49,13 +49,12 @@ protected:
     std::shared_ptr<RSRenderLayerPropertyBase> rsRenderLayerProperty_;
 };
 
-#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE)                          \
+#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                 \
 class RSB_EXPORT RSRenderLayer##CMD_NAME##Cmd : public RSRenderLayerCmd {                                \
 public:                                                                                                  \
     RSRenderLayer##CMD_NAME##Cmd(const std::shared_ptr<RSRenderLayerPropertyBase>& property)             \
     : RSRenderLayerCmd(property)                                                                         \
     {                                                                                                    \
-        property->SetCmdType(RSLayerCmdType::CMD_TYPE);                                                  \
     }                                                                                                    \
     virtual ~RSRenderLayer##CMD_NAME##Cmd() = default;                                                   \
     bool Marshalling(OHOS::MessageParcel& parcel) override;                                              \
@@ -66,7 +65,7 @@ public:                                                                         
     std::shared_ptr<RSRenderLayerPropertyBase> GetRSRenderLayerProperty() const override;                \
 };
 #include "rs_layer_cmd_def.in"
-DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP)
 #undef DECLARE_RSLAYER_CMD
 
 } // namespace Rosen
