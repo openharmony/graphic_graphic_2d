@@ -42,6 +42,10 @@ void HgmRPEnergy::SetTouchState(bool isIdle)
 
 void HgmRPEnergy::HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData)
 {
+    if (configData == nullptr) {
+        ROSEN_LOGE("%{public}s configData is null", __func__);
+        return;
+    }
     componentPowerConfig_ = configData->GetComponentPowerConfig();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoFrameRateSwtich(configData->GetVideoSwitch());
 }
