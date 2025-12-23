@@ -39,18 +39,22 @@ ohos_unittest("RSLayerTransactionTest") {
   include_dirs = [
     "$graphic_2d_root/interfaces/inner_api/common",
     "$graphic_2d_root/rosen/include/common",
+    "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/rosen/modules/2d_graphics/include",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/composer/vsync/include",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service",
@@ -70,6 +74,7 @@ ohos_unittest("RSLayerTransactionTest") {
   defines = []
   deps = [
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -83,6 +88,7 @@ ohos_unittest("RSLayerTransactionTest") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "safwk:system_ability_fwk",
   ]
 
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -126,10 +132,12 @@ ohos_unittest("RSLayerContextTest") {
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
@@ -144,7 +152,7 @@ ohos_unittest("RSLayerContextTest") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
-    #"$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -158,6 +166,7 @@ ohos_unittest("RSLayerContextTest") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 
@@ -202,10 +211,12 @@ ohos_unittest("RSRenderComposerClientTest") {
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
@@ -220,7 +231,7 @@ ohos_unittest("RSRenderComposerClientTest") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
-    #"$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -234,6 +245,7 @@ ohos_unittest("RSRenderComposerClientTest") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 
@@ -278,10 +290,12 @@ ohos_unittest("RSSurfaceLayerTest") {
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
@@ -296,7 +310,7 @@ ohos_unittest("RSSurfaceLayerTest") {
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
-    #"$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service:librender_service",
     "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   ]
@@ -310,6 +324,7 @@ ohos_unittest("RSSurfaceLayerTest") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "memmgr:memmgrclient",
+    "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
 

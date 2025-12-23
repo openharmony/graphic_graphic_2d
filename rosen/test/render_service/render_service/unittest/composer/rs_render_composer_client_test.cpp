@@ -26,10 +26,14 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer/rs_surface_layer.h"
 #include "layer_backend/hdi_output.h"
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
+#include "screen_manager/rs_screen_property.h"
+#include "transaction/rs_layer_transaction_data.h"
 #include "rs_surface_layer.h"
 
 using namespace testing::ext;
@@ -49,13 +53,12 @@ public:
 
 void RSRenderComposerClientTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
+#endif
 }
 
-void RSRenderComposerClientTest::TearDownTestCase()
-{
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId]->uniRenderEngine_ = nullptr;
-}
+void RSRenderComposerClientTest::TearDownTestCase() {}
 
 void RSRenderComposerClientTest::SetUp() {}
 void RSRenderComposerClientTest::TearDown() {}
@@ -68,11 +71,16 @@ void RSRenderComposerClientTest::TearDown() {}
  */
 HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Level2)
 {
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
     auto output = std::make_shared<HdiOutput>(screenId);
-    RSRenderComposerManager::GetInstance().OnScreenConnected(output);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    mgr->OnScreenConnected(output, property);
+    auto conn = mgr->GetRSComposerConnection(screenId);
+    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
 
-    client = std::make_shared<RSRenderComposerClient>(
-        RSRenderComposerManager::GetInstance().rsComposerConnectionMap_[screenId]);
+    client = RSRenderComposerClient::Create(false, ifaceConn);
     EXPECT_NE(client, nullptr);
 }
 
@@ -85,7 +93,10 @@ HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Le
 HWTEST_F(RSRenderComposerClientTest, LayerFuncTest, Function | SmallTest | Level2)
 {
     auto layer = std::make_shared<RSSurfaceLayer>();
-    client->AddRSLayer(layer);
+    ASSERT_NE(client, nullptr);
+    auto context = client->GetComposerContext();
+    ASSERT_NE(context, nullptr);
+    context->AddRSLayer(layer);
 }
 
 /**
@@ -98,10 +109,14 @@ HWTEST_F(RSRenderComposerClientTest, CommitRSLayerTest, Function | SmallTest | L
 {
     auto layer = std::make_shared<RSSurfaceLayer>();
     layer->SetTunnelHandleChange(true);
-    client->AddRSLayer(layer);
-    client->CommitLayers();
+    ASSERT_NE(client, nullptr);
+    auto context = client->GetComposerContext();
+    ASSERT_NE(context, nullptr);
+    context->AddRSLayer(layer);
+    ComposerInfo composerInfo;
+    client->CommitLayers(composerInfo);
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId]->unExecuteTaskNum_, 0);
+    EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
 }
 } // namespace Rosen
 } // namespace OHOS

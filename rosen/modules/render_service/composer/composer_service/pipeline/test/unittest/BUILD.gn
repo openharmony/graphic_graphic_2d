@@ -20,6 +20,7 @@ module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_serv
 _common_deps = [
   "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   "$graphic_2d_root/rosen/modules/render_service:librender_service",
+  "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
   "$graphic_2d_root/rosen/modules/composer:libcomposer",
   "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
@@ -36,6 +37,7 @@ _common_external_deps = [
   "samgr:samgr_proxy",
   "hisysevent:libhisysevent",
   "init:libbegetutil",
+  "safwk:system_ability_fwk",
 ]
 
 # Add memmgr client dependency when memory manager integration is enabled so
@@ -110,7 +112,11 @@ config("rs_render_composer_common_test_config") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager",

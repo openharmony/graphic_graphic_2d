@@ -25,10 +25,16 @@
 #include "connection/rs_render_to_composer_connection.h"
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
+#ifdef RS_ENABLE_VK
+#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
+#endif
+#endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "pipeline/rs_render_composer_manager.h"
+
+#include "screen_manager/rs_screen_property.h"
 
 #include "layer/rs_surface_layer.h"
 
@@ -46,20 +52,28 @@ public:
     static inline uint32_t screenId = 0;
     static inline std::shared_ptr<RSRenderComposerClient> client;
     static inline std::shared_ptr<RSSurfaceLayer> layer;
+    static inline std::shared_ptr<RSRenderComposerManager> sMgr;
 };
 
 void RSSurfaceLayerTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
     RsVulkanContext::SetRecyclable(false);
+#endif
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    sMgr = std::make_shared<RSRenderComposerManager>(handler);
     auto output = std::make_shared<HdiOutput>(screenId);
-    RSRenderComposerManager::GetInstance().OnScreenConnected(output);
-    client = std::make_shared<RSRenderComposerClient>(
-        RSRenderComposerManager::GetInstance().rsComposerConnectionMap_[screenId]);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    sMgr->OnScreenConnected(output, property);
+    auto conn = sMgr->GetRSComposerConnection(screenId);
+    sptr<IRSRenderToComposerConnection> ifaceConn = conn;
+    client = RSRenderComposerClient::Create(false, ifaceConn);
 }
 
 void RSSurfaceLayerTest::TearDownTestCase()
 {
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId]->uniRenderEngine_ = nullptr;
+    sMgr.reset();
 }
 
 void RSSurfaceLayerTest::SetUp() {}
@@ -88,7 +102,7 @@ HWTEST_F(RSSurfaceLayerTest, CreateLayerTest, Function | SmallTest | Level2)
  */
 HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest, Function | SmallTest | Level2)
 {
-    layer = std::make_shared<RSSurfaceLayer>()\;
+    layer = std::make_shared<RSSurfaceLayer>();
     EXPECT_NE(layer, nullptr);
 
     GraphicLayerAlpha alpha;
@@ -278,7 +292,7 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest4, Function | SmallTest | 
 
     EXPECT_EQ(layer->IsAncoNative(), false);
 
-    LayerMask mask = LAYER_MASK_NORMAL;
+    LayerMask mask {};
     layer->SetLayerMaskInfo(mask);
     EXPECT_EQ(layer->GetLayerMaskInfo(), mask);
 
