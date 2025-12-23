@@ -25,6 +25,7 @@
 #endif
 
 #include "rs_buffer_thread.h"
+#include "rs_layer.h"
 #include "pipeline/rs_surface_handler.h"
 
 namespace OHOS {
@@ -82,6 +83,8 @@ public:
         }
     }
 
+    void ReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
     void BufferReleaseCallBack(uint64_t seqNum);
 
 private:

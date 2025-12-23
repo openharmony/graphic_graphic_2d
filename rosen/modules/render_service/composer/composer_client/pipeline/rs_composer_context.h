@@ -26,7 +26,8 @@
 namespace OHOS {
 namespace Rosen {
 
-using OnBufferReleaseFunc = std::function<void(uint64_t, sptr<SyncFence>)>;
+using OnBufferReleaseFunc = std::function<void(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+    std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)>;
 
 class RSC_EXPORT RSComposerContext : public std::enable_shared_from_this<RSComposerContext> {
 public:
