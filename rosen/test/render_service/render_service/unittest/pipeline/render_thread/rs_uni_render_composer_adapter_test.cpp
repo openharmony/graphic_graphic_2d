@@ -73,7 +73,7 @@ void RSUniRenderComposerAdapterTest::SetUpTestCase()
     ASSERT_NE(composerAdapter_, nullptr);
     auto runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    auto renderComposerManager = std::make_shared<RSRenderComposerManager>(handler);
+    auto renderComposerManager = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(screenId_);
     auto property = sptr<RSScreenProperty>();
     renderComposerManager->OnScreenConnected(output, property);
