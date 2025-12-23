@@ -20,7 +20,7 @@
 #include <iremote_proxy.h>
 #include <memory>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>
-#include <platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code.h>
+#include <platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
 
 namespace OHOS {

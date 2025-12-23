@@ -136,7 +136,7 @@ void DoSetPointerColorInversionConfig()
     dataParcel.WriteFloat(brightBuffer);
     dataParcel.WriteInt64(interval);
     dataParcel.WriteInt32(rangeSize);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 #endif
 }
@@ -152,7 +152,7 @@ void DoSetPointerColorInversionEnabled()
     }
     bool enable = GetData<bool>();
     dataParcel.WriteBool(enable);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, reply, option);
 #endif
 }
@@ -163,7 +163,7 @@ void DoRegisterPointerLuminanceChangeCallback()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
 
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
@@ -184,7 +184,7 @@ void DoUnRegisterPointerLuminanceChangeCallback()
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK);
 
     if (!dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         return;

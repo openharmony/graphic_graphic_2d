@@ -192,7 +192,7 @@ void DoTakeSurfaceCapture()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
@@ -226,7 +226,7 @@ void DoTakeSurfaceCaptureSolo()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_SOLO);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     if (!dataP.WriteUint64(id)) {
         return;
@@ -246,7 +246,7 @@ void DoTakeSelfSurfaceCapture()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_SELF_SURFACE_CAPTURE);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
@@ -272,7 +272,7 @@ void DoSetWindowFreezeImmediately()
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_ASYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WINDOW_FREEZE_IMMEDIATELY);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     if (!dataP.WriteUint64(id)) {
         return;

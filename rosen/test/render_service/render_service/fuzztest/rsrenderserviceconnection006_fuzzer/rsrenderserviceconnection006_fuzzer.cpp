@@ -127,7 +127,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoGetScreenActiveMode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -139,7 +139,7 @@ void DoGetScreenActiveMode()
 
 void DoGetScreenSupportedModes()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_MODES);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -151,7 +151,7 @@ void DoGetScreenSupportedModes()
 
 void DoGetScreenCapability()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_CAPABILITY);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -163,7 +163,7 @@ void DoGetScreenCapability()
 
 void DoGetScreenPowerStatus()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_POWER_STATUS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -175,7 +175,7 @@ void DoGetScreenPowerStatus()
 
 void DoGetScreenBacklight()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_BACK_LIGHT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -187,7 +187,7 @@ void DoGetScreenBacklight()
 
 void DoGetScreenData()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_DATA);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -199,7 +199,7 @@ void DoGetScreenData()
 
 void DoGetScreenSupportedColorGamuts()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -211,7 +211,7 @@ void DoGetScreenSupportedColorGamuts()
 
 void DoGetScreenSupportedMetaDataKeys()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_METADATAKEYS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -223,7 +223,7 @@ void DoGetScreenSupportedMetaDataKeys()
 
 void DoGetScreenColorGamut()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_GAMUT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -235,7 +235,7 @@ void DoGetScreenColorGamut()
 
 void DoGetScreenGamutMap()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

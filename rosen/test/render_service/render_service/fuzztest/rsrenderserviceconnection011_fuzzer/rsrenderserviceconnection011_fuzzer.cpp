@@ -114,7 +114,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoRegisterFirstFrameCommitCallback()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::ON_FIRST_FRAME_COMMIT);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;

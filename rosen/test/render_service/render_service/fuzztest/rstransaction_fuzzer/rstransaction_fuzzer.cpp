@@ -19,7 +19,7 @@
 #include <cstdint>
 #include <securec.h>
 
-#include "platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -58,7 +58,7 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest001(const u
     // get data
     uint32_t code = GetData<uint32_t>();
 
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier verifier;
+    RSIClientToServiceConnectionInterfaceCodeAccessVerifier verifier;
     verifier.IsExclusiveVerificationPassed(code);
 #ifdef ENABLE_IPC_SECURITY
     uint32_t times = GetData<uint32_t>();
@@ -79,27 +79,27 @@ bool RSIRenderServiceConnectionIpcInterFaceCodeAccessVerifierFuzztest002(const u
     g_pos = 0;
     
     // get data
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier verifier;
+    RSIClientToServiceConnectionInterfaceCodeAccessVerifier verifier;
     uint32_t code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_REFRESH_RATE_MODE);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_SHOW_REFRESH_RATE_ENABLED);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SHOW_REFRESH_RATE_ENABLED);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SHOW_REFRESH_RATE_ENABLED);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_REALTIME_REFRESH_RATE);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_REALTIME_REFRESH_RATE);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::TAKE_SURFACE_CAPTURE);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_MEMORY_GRAPHICS);
     verifier.IsExclusiveVerificationPassed(code);
     code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_POWER_STATUS);
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_SCREEN_POWER_STATUS);
     verifier.IsExclusiveVerificationPassed(code);
 #ifdef ENABLE_IPC_SECURITY
     uint32_t times = GetData<uint32_t>();

@@ -118,7 +118,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoGetDisplayIdentificationData()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -132,7 +132,7 @@ void DoGetDisplayIdentificationData()
 void DoSetOverlayDisplayMode()
 {
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;

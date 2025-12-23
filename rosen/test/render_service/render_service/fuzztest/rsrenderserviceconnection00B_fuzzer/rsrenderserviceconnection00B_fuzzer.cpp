@@ -210,7 +210,7 @@ void DoReportJankStats()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_JANK_STATS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_JANK_STATS);
 
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
@@ -224,7 +224,7 @@ void DoReportEventResponse()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_RESPONSE);
     DataBaseRs info;
     WriteDataBaseRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -239,7 +239,7 @@ void DoReportEventComplete()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_COMPLETE);
     DataBaseRs info;
     WriteDataBaseRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -254,7 +254,7 @@ void DoReportEventJankFrame()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_JANK_FRAME);
     DataBaseRs info;
     WriteDataBaseRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -269,7 +269,7 @@ void DoReportRsSceneJankStart()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
     AppInfo info;
     WriteAppInfo(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -284,7 +284,7 @@ void DoReportRsSceneJankEnd()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
     AppInfo info;
     WriteAppInfo(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -299,7 +299,7 @@ void DoReportGameStateData()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
     GameStateData info;
     WriteGameStateDataRs(info, dataP);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -307,7 +307,7 @@ void DoReportGameStateData()
 
 void DoAvcodecVideoStart()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_START);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -331,7 +331,7 @@ void DoAvcodecVideoStart()
 
 void DoAvcodecVideoStop()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::AVCODEC_VIDEO_STOP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

@@ -23,9 +23,9 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-#define DECLARE_INTERFACE_CODE_NAME(code) { #code, RSIRenderServiceConnectionInterfaceCode::code }
+#define DECLARE_INTERFACE_CODE_NAME(code) { #code, RSIClientToServiceConnectionInterfaceCode::code }
 
-const std::unordered_map<std::string, RSIRenderServiceConnectionInterfaceCode> INTERFACE_NAME_TO_CODE_MAPPING = {
+const std::unordered_map<std::string, RSIClientToServiceConnectionInterfaceCode> INTERFACE_NAME_TO_CODE_MAPPING = {
     DECLARE_INTERFACE_CODE_NAME(COMMIT_TRANSACTION),
     DECLARE_INTERFACE_CODE_NAME(GET_UNI_RENDER_ENABLED),
     DECLARE_INTERFACE_CODE_NAME(CREATE_NODE),

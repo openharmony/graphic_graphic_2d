@@ -102,7 +102,7 @@ void TearDown()
 /* Fuzzer test GetPixelFormat */
 void DoGetPixelFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXEL_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXEL_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -115,7 +115,7 @@ void DoGetPixelFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test SetPixelFormat */
 void DoSetPixelFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_PIXEL_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_PIXEL_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -130,7 +130,7 @@ void DoSetPixelFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenSupportedHDRFormats */
 void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_HDR_FORMATS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -143,7 +143,7 @@ void DoGetScreenSupportedHDRFormats(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenHDRFormat */
 void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -156,7 +156,7 @@ void DoGetScreenHDRFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test SetScreenHDRFormat */
 void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_HDR_FORMAT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -171,7 +171,7 @@ void DoSetScreenHDRFormat(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenSupportedColorSpaces */
 void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_COLORSPACES);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -184,7 +184,7 @@ void DoGetScreenSupportedColorSpaces(FuzzedDataProvider& fdp)
 /* Fuzzer test GetScreenColorSpace */
 void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_COLORSPACE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -197,7 +197,7 @@ void DoGetScreenColorSpace(FuzzedDataProvider& fdp)
 /* Fuzzer test SetScreenColorSpace */
 void DoSetScreenColorSpace(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_COLORSPACE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -256,7 +256,7 @@ void DoSetLayerTop(FuzzedDataProvider& fdp)
 /* Fuzzer test SetBrightnessInfoChangeCallback */
 void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -273,7 +273,7 @@ void DoSetBrightnessInfoChangeCallback(FuzzedDataProvider& fdp)
 /* Fuzzer test GetBrightnessInfo */
 void DoGetBrightnessInfo(FuzzedDataProvider& fdp)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

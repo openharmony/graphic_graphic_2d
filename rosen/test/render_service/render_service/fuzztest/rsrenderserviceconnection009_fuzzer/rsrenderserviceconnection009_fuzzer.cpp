@@ -120,7 +120,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoShowWatermark()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -142,7 +142,7 @@ void DoSetWatermark()
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteString(name);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -165,7 +165,7 @@ void DoRegisterTransactionDataCallback()
     dataP.WriteUint64(timeStamp);
     dataP.WriteRemoteObject(remoteObject);
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+        RSIClientToServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     if (rsToServiceConnStub_ == nullptr) {
         return;
     }
