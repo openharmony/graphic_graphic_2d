@@ -755,7 +755,7 @@ HWTEST_F(RSNodeTest2, SetUIMaterialFilter001, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     rsNode->SetUIMaterialFilter(nullptr);
-    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::MATERIAL_FILTER), nullptr);
 }
 
 /**
