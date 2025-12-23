@@ -1960,4 +1960,18 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
         transactionProxy->FlushImplicitTransaction();
     }
 }
+
+/**
+ * @tc.name: SetContainerWindowTransparentTest
+ * @tc.desc: Test function SetContainerWindowTransparent
+ * @tc.type: FUNC
+ * @tc.require: issue21291
+ */
+HWTEST_F(RSSurfaceNodeTest, SetContainerWindowTransparentTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetContainerWindowTransparent(true);
+}
 } // namespace OHOS::Rosen

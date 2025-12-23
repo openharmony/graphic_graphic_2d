@@ -8855,4 +8855,21 @@ HWTEST_F(RSNodeTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
     rsNode->SetNeedUseCmdlistDrawRegion(true);
     rsNode->SetNeedUseCmdlistDrawRegion(false);
 }
+
+/**
+ * @tc.name: SetDrawNodeChangeCallback
+ * @tc.desc: test results of SetDrawNodeChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issue21291
+ */
+HWTEST_F(RSNodeTest, SetDrawNodeChangeCallback, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSNode::SetDrawNodeChangeCallback(nullptr);
+    ASSERT_EQ(RSNode::drawNodeChangeCallback_, nullptr);
+
+    auto changeCallback = [](std::shared_ptr<RSNode> rsNode, bool isPositionZ) {};
+    RSNode::SetDrawNodeChangeCallback(changeCallback);
+    ASSERT_NE(RSNode::drawNodeChangeCallback_, nullptr);
+}
 } // namespace OHOS::Rosen
