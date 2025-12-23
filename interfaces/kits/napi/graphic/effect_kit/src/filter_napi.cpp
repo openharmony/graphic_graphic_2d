@@ -377,6 +377,7 @@ void FilterNapi::GetPixelMapAsyncExecute(napi_env env, void* data)
     }
 
     if (!managerFlag) {
+        std::lock_guard<std::mutex> lock2(ctx->filterNapi->renderMutex_);
         if (ctx->filterNapi->Render(ctx->forceCPU) != DrawingError::ERR_OK) {
             ctx->status = ERROR;
             return;
