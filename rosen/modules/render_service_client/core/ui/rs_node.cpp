@@ -2109,7 +2109,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
 void RSNode::SetUIMaterialFilter(const OHOS::Rosen::Filter* materialFilter)
 {
     if (materialFilter == nullptr) {
-        ROSEN_LOGE("Failed to set materialFilter, materialFilter is null!");
+        SetMaterialNGFilter(nullptr);
         return;
     }
     // To do: generate composed filter here.
@@ -2341,7 +2341,6 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
 void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)
 {
     if (!materialFilter) {
-        ROSEN_LOGW("RSNode::SetMaterialNGFilter filter is nullptr");
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_FILTER);
         if (modifier != nullptr) {
