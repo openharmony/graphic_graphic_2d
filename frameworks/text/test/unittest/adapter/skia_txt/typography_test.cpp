@@ -61,10 +61,10 @@ void OH_Drawing_TypographyTest::SetUp()
     typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
     ASSERT_NE(typographyCreate_, nullptr);
     textStyle_.fontSize = 30;
-    textStyle_.color = Drawing::Color::ColorQuadSetARGB(255, 255, 0, 0);
-    textStyle_.fontWeight = FontWeight::W500;
-    textStyle_.fontWidth = FontWidth::SEMI_EXPANDED;
-    textStyle_.fontStyle = FontStyle::OBLIQUE;
+    textStyle_.color = Drawing::Color::ColorQuadSetARGB(255, 200, 255, 221);
+    textStyle_.fontWeight = FontWeight::W900;
+    textStyle_.fontWidth = FontWidth::ULTRA_CONDENSED;
+    textStyle_.fontStyle = FontStyle::ITALIC;
     typographyCreate_->PushStyle(textStyle_);
 }
 
@@ -1391,6 +1391,23 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
     EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
 }
 
+void CreateImg(std::vector<std::shared_ptr<OHOS::Media::PixelMap>>& pixelMaps, const std::string& fileName)
+{
+    OHOS::Media::ImagePacker imagePacker;
+    OHOS::Media::PackOption packOption;
+    packOption.format = OPTION_FORMAT_TEST;
+    packOption.quality = OPTION_QUALITY_TEST;
+    packOption.numberHint = OPTION_NUMBER_HINT_TEST;
+    EnsureDirectoryExists(IMAGE_INPUT_PNG_PATH_TEST);
+    for (size_t i = 0; i < pixelMaps.size(); i++) {
+        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = pixelMaps[i];
+        ASSERT_NE(pixelMap, nullptr);
+        imagePacker.StartPacking(IMAGE_INPUT_PNG_PATH_TEST + fileName + std::to_string(i) + ".png", packOption);
+        imagePacker.AddImage(*pixelMap);
+        imagePacker.FinalizePacking();
+    }
+}
+
 /*
  * @tc.name: TypographyGetTextPathImageByIndexTest001
  * @tc.desc: test for get text path image by index
@@ -1405,19 +1422,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest001, Te
     typography_->Layout(maxWidth);
     std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(0, 11, false);
     EXPECT_EQ(pixelMaps.size(), 11);
-    OHOS::Media::ImagePacker imagePacker;
-    OHOS::Media::PackOption packOption;
-    packOption.format = OPTION_FORMAT_TEST;
-    packOption.quality = OPTION_QUALITY_TEST;
-    packOption.numberHint = OPTION_NUMBER_HINT_TEST;
-    EnsureDirectoryExists(IMAGE_INPUT_PNG_PATH_TEST);
-    for (size_t i = 0; i < pixelMaps.size(); i++) {
-        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = pixelMaps[i];
-        ASSERT_NE(pixelMap, nullptr);
-        imagePacker.StartPacking(IMAGE_INPUT_PNG_PATH_TEST + "text_test_path_" + std::to_string(i) + ".png", packOption);
-        imagePacker.AddImage(*pixelMap);
-        imagePacker.FinalizePacking();
-    }
+    CreateImg(pixelMaps, "text_test_path_");
 }
 
 /*
@@ -1434,19 +1439,7 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest002, Te
     typography_->Layout(maxWidth);
     std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(0, 11, true);
     EXPECT_EQ(pixelMaps.size(), 11);
-    OHOS::Media::ImagePacker imagePacker;
-    OHOS::Media::PackOption packOption;
-    packOption.format = OPTION_FORMAT_TEST;
-    packOption.quality = OPTION_QUALITY_TEST;
-    packOption.numberHint = OPTION_NUMBER_HINT_TEST;
-    EnsureDirectoryExists(IMAGE_INPUT_PNG_PATH_TEST);
-    for (size_t i = 0; i < pixelMaps.size(); i++) {
-        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = pixelMaps[i];
-        ASSERT_NE(pixelMap, nullptr);
-        imagePacker.StartPacking(IMAGE_INPUT_PNG_PATH_TEST + "text_test_filled_path_" + std::to_string(i) + ".png", packOption);
-        imagePacker.AddImage(*pixelMap);
-        imagePacker.FinalizePacking();
-    }
+    CreateImg(pixelMaps, "text_test_filled_path_");
 }
 
 /*

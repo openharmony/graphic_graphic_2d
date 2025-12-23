@@ -631,7 +631,7 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(const Drawing::Path& path,
     uint8_t* pixel = const_cast<uint8_t*>(pixelMap->GetPixels());
     if (pixel == nullptr) {
         TEXT_LOGE("Failed to get PixelMap pixels");
-        return std::move(pixelMap);
+        return nullptr;
     }
     std::shared_ptr<Drawing::Canvas> bitmapCanvas_ = std::make_shared<Drawing::Canvas>();
 
@@ -746,8 +746,13 @@ std::vector<std::shared_ptr<OHOS::Media::PixelMap>> ParagraphImpl::GetTextPathIm
     size_t from, size_t to, bool fill) const
 {
     std::vector<std::shared_ptr<OHOS::Media::PixelMap>> images;
-    skt::SkRange<skt::TextIndex> range{from, to};
-    std::vector<skt::PathInfo> paths = paragraph_->getTextPathByGlyphRange(range);
+    if (from >= to) {
+        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", from, to);
+        return images;
+    }
+    
+    skt::SkRange<size_t> range{from, to};
+    std::vector<skt::PathInfo> paths = paragraph_->getTextPathByClusterRange(range);
     for (size_t i = 0; i < paths.size(); i++) {
         const auto& pathInfo = paths[i];
         Drawing::Path tempPath;
