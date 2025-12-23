@@ -5379,8 +5379,6 @@ HWTEST_F(RSMainThreadTest, ProcessHgmFrameRate, TestSize.Level2)
     mainThread->hgmContext_.rsFrameRateLinker_ = std::make_shared<RSRenderFrameRateLinker>(id);
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     frameRateMgr->isAdaptive_ = SupportASStatus::SUPPORT_AS;
-    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
-    mainThread->context_->animatingNodeList_.clear();
     mainThread->ProcessHgmFrameRate(timestamp);
 
     auto vsyncGenerator = CreateVSyncGenerator();
@@ -6117,10 +6115,6 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
     mainThread->hgmContext_.InitHgmTaskHandleThread(mainThread->rsVSyncController_, mainThread->appVSyncController_,
         mainThread->vsyncGenerator_, mainThread->appVSyncDistributor_);
     ASSERT_EQ(mainThread->forceUpdateUniRenderFlag_, true);
-
-    HgmCore::Instance().GetFrameRateMgr()->isAdaptive_ = SupportASStatus::SUPPORT_AS;
-    mainThread->context_->GetMutableNodeMap().surfaceNodeMap_.clear();
-    mainThread->context_->animatingNodeList_.clear();
     mainThread->hgmContext_.ProcessHgmFrameRate(0, mainThread->rsVSyncDistributor_, mainThread->vsyncId_);
 
     auto convertFrameRateFunc = mainThread->hgmContext_.GetConvertFrameRateFunc();
