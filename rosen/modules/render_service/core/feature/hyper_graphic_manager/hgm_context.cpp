@@ -203,7 +203,7 @@ void HgmContext::AddScreenToHgm(ScreenId screenId)
             capability.GetPhyWidth(), capability.GetPhyHeight());
         bool isSelfOwnedScreen = false;
         if (hgmCore_.AddScreen(screenId, initModeId, screenSize, isSelfOwnedScreen,
-            scmFromHgm->GetScreenSupportedModes(screenId))) {
+                               scmFromHgm->GetScreenSupportedModes(screenId))) {
             RS_LOGE("%{public}s failed to add screen : %{public}" PRIu64, __func__, screenId);
             return;
         }
