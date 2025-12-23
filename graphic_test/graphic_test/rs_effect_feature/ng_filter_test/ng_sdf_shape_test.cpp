@@ -443,4 +443,175 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Rect_Test)
         RegisterNode(childY);
     }
 }
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap(sdfPixelmapShapePath[i], Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+        backgroundTestNode->SetSDFShape(childShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_Empty_Test)
+{
+    int columnCount = 1;
+    int rowCount = 1;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap = nullptr;
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+        backgroundTestNode->SetSDFShape(childShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_Transform_1_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(matrix3fParams1.size());
+    uint16_t pixelmapIndex = 0;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap(sdfPixelmapShapePath[pixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+        auto sdfShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+        auto transformShape = std::static_pointer_cast<RSNGSDFTransformShape>(sdfShape);
+        transformShape->Setter<SDFTransformShapeMatrixTag>(matrix3fParams1[i].Inverse());
+        transformShape->Setter<SDFTransformShapeShapeTag>(childShape);
+        backgroundTestNode->SetSDFShape(transformShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_Transform_2_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(matrix3fParams2.size());
+    uint16_t pixelmapIndex = 0;
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap(sdfPixelmapShapePath[pixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+        auto sdfShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+        auto transformShape = std::static_pointer_cast<RSNGSDFTransformShape>(sdfShape);
+        transformShape->Setter<SDFTransformShapeMatrixTag>(matrix3fParams2[i].Inverse());
+        transformShape->Setter<SDFTransformShapeShapeTag>(childShape);
+        backgroundTestNode->SetSDFShape(transformShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdfShapeSpacingParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    uint16_t leftPixelmapIndex = 0;
+    uint16_t rightPixelmapIndex = 1;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+        backgroundTestNode->SetBounds(bounds);
+        backgroundTestNode->SetFrame(bounds);
+        backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+        std::shared_ptr<RSNGShapeBase> sdfShape;
+        std::shared_ptr<Media::PixelMap> pixelmapX =
+            DecodePixelMap(sdfPixelmapShapePath[leftPixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
+        std::shared_ptr<Media::PixelMap> pixelmapY =
+            DecodePixelMap(sdfPixelmapShapePath[rightPixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
+        InitSmoothUnionShapesByPixelmap(sdfShape, pixelmapX, pixelmapX, sdfShapeSpacingParams[i]);
+        backgroundTestNode->SetSDFShape(sdfShape);
+
+        auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        childNode->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        GetRootNode()->AddChild(childNode);
+        RegisterNode(childNode);
+    }
+}
 }  // namespace OHOS::Rosen

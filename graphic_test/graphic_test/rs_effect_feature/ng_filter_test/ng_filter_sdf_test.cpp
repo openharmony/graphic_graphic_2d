@@ -209,4 +209,98 @@ GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_SDF_Clip_Test_1)
         RegisterNode(testNode);
     }
 }
+
+GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{x, y, sizeX, sizeY};
+        testNode->SetBounds(bounds);
+        testNode->SetFrame(bounds);
+        testNode->SetBackgroundColor(0xFF888888);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap(sdfPixelmapShapePath[i], Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+
+        testNode->SetSDFShape(pixelmapChildShape);
+        testNode->SetShadowRadius(25.0f); // 25.0f is radius
+        testNode->SetShadowColor(0xFF00FF00);
+        testNode->SetClipToBounds(i <= columnCount);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Border_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{x, y, sizeX, sizeY};
+        testNode->SetBounds(bounds);
+        testNode->SetFrame(bounds);
+        testNode->SetBackgroundColor(0xFF888888);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap(sdfPixelmapShapePath[i], Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+
+        testNode->SetSDFShape(pixelmapChildShape);
+        testNode->SetBorderWidth(5.0f); // 5.0f is radius
+        testNode->SetBorderColor(0xFFFF0000);
+        testNode->SetBorderStyle(0);
+        testNode->SetClipToBounds(i <= columnCount);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterSDFTest, EFFECT_TEST, Set_NG_Filter_Pixelmap_SDF_Shadow_Border_Test)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdfPixelmapShapePath.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto testNode = RSCanvasNode::Create();
+        Rosen::Vector4f bounds{x, y, sizeX, sizeY};
+        testNode->SetBounds(bounds);
+        testNode->SetFrame(bounds);
+        testNode->SetBackgroundColor(0xFF888888);
+
+        auto childShape = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+        auto pixelmapChildShape = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShape);
+        std::shared_ptr<Media::PixelMap> pixelmap =
+            DecodePixelMap(sdfPixelmapShapePath[i], Media::AllocatorType::SHARE_MEM_ALLOC);
+        pixelmapChildShape->Setter<SDFPixelmapShapeImageTag>(pixelmap);
+
+        testNode->SetSDFShape(pixelmapChildShape);
+        testNode->SetShadowRadius(25.0f); // 25.0f is radius
+        testNode->SetShadowColor(0xFF00FF00);
+        testNode->SetBorderWidth(5.0f); // 5.0f is radius
+        testNode->SetBorderColor(0xFFFF0000);
+        testNode->SetBorderStyle(0);
+        testNode->SetClipToBounds(true);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 }  // namespace OHOS::Rosen

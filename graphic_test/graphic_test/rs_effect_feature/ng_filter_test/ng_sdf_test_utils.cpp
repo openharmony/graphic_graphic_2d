@@ -25,7 +25,9 @@ static std::unordered_map<RSNGEffectType, ShapeCreator> creatorShape = {
     {RSNGEffectType::SDF_RRECT_SHAPE,
         [] { return std::make_shared<RSNGSDFRRectShape>(); }},
     {RSNGEffectType::SDF_TRANSFORM_SHAPE,
-        [] { return std::make_shared<RSNGSDFTransformShape>(); }}
+        [] { return std::make_shared<RSNGSDFTransformShape>(); }},
+    {RSNGEffectType::SDF_PIXELMAP_SHAPE,
+        [] { return std::make_shared<RSNGSDFPixelmapShape>(); }}
 };
 
 std::shared_ptr<RSNGShapeBase> CreateShape(RSNGEffectType type)
@@ -49,6 +51,32 @@ void InitSmoothUnionShapes(
     auto rRectChildShapeY = std::static_pointer_cast<RSNGSDFRRectShape>(childShapeY);
     rRectChildShapeY->Setter<SDFRRectShapeRRectTag>(rRectY);
     sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(childShapeY);
+
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(spacing);
+}
+
+void InitSmoothUnionShapesByPixelmap(std::shared_ptr<RSNGShapeBase>& rootShape,
+    std::shared_ptr<Media::PixelMap> pixelmapX, std::shared_ptr<Media::PixelMap> pixelmapY, float spacing)
+{
+    rootShape = CreateShape(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    auto sdfUnionRootShape = std::static_pointer_cast<RSNGSDFSmoothUnionOpShape>(rootShape);
+
+    auto childShapeX = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+    auto pixelmapChildShapeX = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShapeX);
+    pixelmapChildShapeX->Setter<SDFPixelmapShapeImageTag>(pixelmapX);
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeXTag>(childShapeX);
+
+    auto childShapeY = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
+    auto pixelmapChildShapeY = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShapeY);
+    pixelmapChildShapeY->Setter<SDFPixelmapShapeImageTag>(pixelmapY);
+
+    auto sdfShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+    auto transformShape = std::static_pointer_cast<RSNGSDFTransformShape>(sdfShape);
+    auto translateX = pixelmapX ? pixelmapX->GetWidth() : 0.0f;
+    Matrix3f matrix{1.0f, 0.0f, translateX, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+    transformShape->Setter<SDFTransformShapeMatrixTag>(matrix);
+    transformShape->Setter<SDFTransformShapeShapeTag>(childShapeY);
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(sdfShape);
 
     sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(spacing);
 }
