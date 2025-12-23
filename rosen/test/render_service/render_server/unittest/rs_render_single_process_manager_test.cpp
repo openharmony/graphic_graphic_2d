@@ -17,13 +17,13 @@
 
 #include "dfx/rs_service_dump_manager.h"
 #include "dfx/rs_process_dump_manager.h"
+#include "parameters.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_single_process_manager.h"
 #include "rs_render_pipeline.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
-#include "rs_profiler.h"
 #include "rs_render_service.h"
 #include "rs_render_to_composer_connection.h"
 #include "rs_render_composer_agent.h"
@@ -37,7 +37,7 @@ using namespace testing::ext;
 
 namespace OHOS::Rosen {
 namespace {
-ScreenId screenid = 1;
+ScreenId screenId = 1;
 RSRenderService renderService;
 }
 
@@ -80,7 +80,7 @@ HWTEST_F(RSRenderSingleProcessManagerTest, OnScreenConnectedTest, TestSize.Level
  */
 HWTEST_F(RSRenderSingleProcessManagerTest, OnVirtualScreenConnectedTest, TestSize.Level1)
 {
-    renderService.renderProcessManager_->OnVirtualScreenDisconnectedTest(screenId);
+    renderService.renderProcessManager_->OnVirtualScreenDisconnected(screenId);
     renderService.renderProcessManager_->GetServiceToRenderConn(screenId);
     renderService.renderProcessManager_->GetServiceToRenderConns();
     renderService.renderProcessManager_->GetConnectToRenderConnection(screenId);
