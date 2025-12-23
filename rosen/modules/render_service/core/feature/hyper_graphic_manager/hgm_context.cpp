@@ -109,7 +109,8 @@ void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
     HgmEnergyConsumptionPolicy::Instance().HandleEnergyCommonData(info->energyCommonData);
     frameRateLinkerMap_.UnregisterFrameRateLinker(info->frameRateLinkerDestroyIds);
     frameRateLinkerMap_.UpdateFrameRateLinker(info->frameRateLinkerUpdateInfoMap);
-    RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(info->vRateMap, appVSyncDistributor_);
+
+    RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(info->vRateMap, info->isNeedRefreshVRate, appVSyncDistributor_);
 
     rsCurrRange_ = info->rsCurrRange;
     for (const auto& [surfaceName, nodePid] : info->surfaceData) {
