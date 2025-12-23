@@ -163,7 +163,7 @@ void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenP
         return;
     }
     std::shared_ptr<RSRenderComposerClient> composerClient = nullptr;
-    if (!rsScreenProperty.IsVirtual()) {
+    if (!rsScreenProperty->IsVirtual()) {
         composerClient = RSRenderComposerClient::Create(false, renderToComposerConn, composerToRenderConn,
             rsVsyncManagerAgent);
     }
