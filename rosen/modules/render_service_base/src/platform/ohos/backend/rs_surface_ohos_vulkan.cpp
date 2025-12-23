@@ -62,11 +62,7 @@ RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurf
 
 RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 {
-    if (cleanUpHelper_) {
-        cleanUpHelper_(mSurfaceMap);
-    } else {
-        mSurfaceMap.clear();
-    }
+    mSurfaceMap.clear();
     mSurfaceList.clear();
     ReleasePreAllocateBuffer();
     DestoryNativeWindow(mNativeWindow);
@@ -74,6 +70,9 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     if (mReservedFlushFd != -1) {
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
+    }
+    if (cleanUpHelper_) {
+        cleanUpHelper_();
     }
 }
 
@@ -679,8 +678,7 @@ void RSSurfaceOhosVulkan::ResetBufferAge()
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
 }
 
-void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void(std::unordered_map<NativeWindowBuffer*,
-    NativeBufferUtils::NativeSurfaceInfo>& mSurfaceMap)> func)
+void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void()> func)
 {
     cleanUpHelper_ = func;
 }

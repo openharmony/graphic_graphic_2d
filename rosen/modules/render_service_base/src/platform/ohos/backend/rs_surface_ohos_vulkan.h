@@ -64,8 +64,7 @@ public:
     sptr<SurfaceBuffer> GetCurrentBuffer() override;
     void ClearBuffer() override;
     void ResetBufferAge() override;
-    void SetCleanUpHelper(std::function<void(std::unordered_map<NativeWindowBuffer*,
-        NativeBufferUtils::NativeSurfaceInfo>& mSurfaceMap)> func);
+    void SetCleanUpHelper(std::function<void()> func) override;
     void SetUiTimeStamp(const std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp) override;
     void SetSkContext(std::shared_ptr<Drawing::GPUContext> skContext)
     {
@@ -93,8 +92,7 @@ private:
     int mWidth = -1;
     int mHeight = -1;
     int mReservedFlushFd = -1;
-    std::function<void(std::unordered_map<NativeWindowBuffer*,
-        NativeBufferUtils::NativeSurfaceInfo>&)> cleanUpHelper_ = nullptr;
+    std::function<void()> cleanUpHelper_ = nullptr;
     bool mIsHpaeSurface = false;
 
     void SetNativeWindowInfo(int32_t width, int32_t height, bool useAFBC, bool isProtected = false);
