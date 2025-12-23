@@ -348,7 +348,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate, Function | MediumTest | 
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            std::vector<GraphicDisplayModeInfo> modeList;
+            std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
             modeList.push_back({width0, height0, rate0, mode0});
             modeList.push_back({width, height, rate, mode});
             auto addScreen = instance8.AddScreen(screenId, 0, screenSize, modeList);
@@ -396,7 +396,7 @@ HWTEST_F(HyperGraphicManagerTest, SetScreenRefreshRate_002, Function | MediumTes
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            std::vector<GraphicDisplayModeInfo> modeList;
+            std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
             modeList.push_back({width0, height0, rate0, mode0});
             modeList.push_back({width, height, rate, mode});
             auto addScreen = instance.AddScreen(screenId, 0, screenSize, modeList);
@@ -434,7 +434,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode, Function | SmallTest | Lev
 
     PART("CaseDescription") {
         STEP("1. add a new screen") {
-            std::vector<GraphicDisplayModeInfo> modeList;
+            std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
             modeList.push_back({width, height, rate, mode});
             auto addScreen = instance.AddScreen(screenId, 0, screenSize);
             STEP_ASSERT_GE(addScreen, 0);
@@ -470,7 +470,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level0
     uint32_t rate5 = 80;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    std::vector<GraphicDisplayModeInfo> modeList;
+    std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
     instance.AddScreen(screenId2, 1, screenSize, modeList);
@@ -558,7 +558,7 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
     uint32_t rate3 = -1;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    std::vector<GraphicDisplayModeInfo> modeList;
+    std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
     instance.AddScreen(screenId2, 1, screenSize, modeList);
@@ -609,7 +609,7 @@ HWTEST_F(HyperGraphicManagerTest, SetRefreshRateMode002, Function | MediumTest |
     uint32_t rate2 = 60;
     int32_t mode = 1;
     int32_t mode2 = 2;
-    std::vector<GraphicDisplayModeInfo> modeList;
+    std::vector<OHOS::Rosen::RSScreenModeInfo> modeList;
     modeList.push_back({width, height, rate, mode});
     modeList.push_back({width, height, rate2, mode2});
     instance.AddScreen(screenId2, 1, screenSize, modeList);
@@ -755,65 +755,6 @@ HWTEST_F(HyperGraphicManagerTest, TestAbnormalCase, Function | SmallTest | Level
     hgm.customFrameRateMode_ = savedFrameRateMode;
     std::swap(hgm.mPolicyConfigData_, cachedPolicyConfigData);
     EXPECT_NE(hgm.mPolicyConfigData_, nullptr);
-}
-
-/**
- * @tc.name: SetActualTimestamp
- * @tc.desc: Verify the result of SetActualTimestamp function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, SetActualTimestamp, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    int64_t timestamp = 1700;
-    hgmCore.SetActualTimestamp(timestamp);
-    EXPECT_EQ(hgmCore.GetActualTimestamp() == timestamp, true);
-}
-
-/**
- * @tc.name: SetVsyncId
- * @tc.desc: Verify the result of SetVsyncId function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, SetVsyncId, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    uint64_t vsyncId = 1800;
-    hgmCore.SetVsyncId(vsyncId);
-    EXPECT_EQ(hgmCore.GetVsyncId() == vsyncId, true);
-}
-
-/**
- * @tc.name: SetForceRefreshFlag
- * @tc.desc: Verify the result of SetForceRefreshFlag function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HyperGraphicManagerTest, SetForceRefreshFlag, Function | SmallTest | Level0)
-{
-    auto& hgmCore = HgmCore::Instance();
-    bool isForceRefresh = false;
-    hgmCore.SetForceRefreshFlag(isForceRefresh);
-    EXPECT_EQ(hgmCore.GetForceRefreshFlag() == isForceRefresh, true);
-}
-
-/**
- * @tc.name: SetFastComposeTimeStampDiff
- * @tc.desc: Verify the result of SetFastComposeTimeStampDiff function
- * @tc.type: FUNC
- * @tc.require: issueIBGV2W
- */
-HWTEST_F(HyperGraphicManagerTest, SetFastComposeTimeStampDiff, Function | SmallTest | Level0)
-{
-    auto &hgmCore = HgmCore::Instance();
-    uint64_t fastComposeTimeStampDiff = UINT64_MAX;
-    hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
-    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff(), fastComposeTimeStampDiff);
-    fastComposeTimeStampDiff = 0;
-    hgmCore.SetFastComposeTimeStampDiff(fastComposeTimeStampDiff);
-    EXPECT_EQ(hgmCore.GetFastComposeTimeStampDiff(), fastComposeTimeStampDiff);
 }
 
 /**

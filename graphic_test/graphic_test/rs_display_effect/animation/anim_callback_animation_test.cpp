@@ -16,6 +16,7 @@
 #include "anim_custom_modifier_test.h"
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_text.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -74,8 +75,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_FinishCallback_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -102,8 +102,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_1)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -137,8 +136,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_2)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -172,8 +170,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_3)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -207,8 +204,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_RepeatCallback_Test_4)
     protocol.SetDuration(1000);
     protocol.SetRepeatCount(repeatCount);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -241,8 +237,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_OpenImplicitAnimation_Test
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // just OpenImplicitAnimation
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         std::cout << "Animation_OpenImplicitAnimation_Test_1 animation finish callback" << std::endl;
     });
@@ -263,8 +258,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_CloseImplicitAnimation_Tes
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // just CloseImplicitAnimation
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::CloseImplicitAnimation(rsUIContext);
 }
 
@@ -283,8 +277,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_OpenImplicitAnimation_Clos
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
     // OpenImplicitAnimation & CloseImplicitAnimation
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
@@ -313,8 +306,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddKeyFrame_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
@@ -350,8 +342,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_AddDurationKeyFrame_Test_1
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::OpenImplicitAnimation(rsUIContext, protocol, timingCurve, [this]() {
         auto finishCallbackNode = FinishCallbackFunc();
         GetRootNode()->AddChild(finishCallbackNode);
@@ -388,8 +379,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -418,8 +408,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_2)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -448,8 +437,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_3)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -480,8 +468,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_4)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -512,8 +499,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_5)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -544,8 +530,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_6)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -576,8 +561,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_7)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -608,8 +592,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_8)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -640,8 +623,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_9)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -671,8 +653,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_10)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -702,8 +683,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_11)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {
@@ -733,8 +713,7 @@ GRAPHIC_TEST(AnimationTest, ANIMATION_TEST, Animation_PathAnimation_Test_12)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(1000);
     auto timingCurve = RSAnimationTimingCurve::EASE_IN_OUT;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     RSNode::Animate(rsUIContext,
         protocol, timingCurve, [&]() { animationCustomModifier->SetPosition(500); },
         [this]() {

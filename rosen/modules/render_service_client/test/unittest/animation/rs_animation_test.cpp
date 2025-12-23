@@ -55,8 +55,7 @@ HWTEST_F(RSAnimationTest, AnimationGetId001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -215,8 +214,7 @@ HWTEST_F(RSAnimationTest, AnimationGetTarget001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -293,8 +291,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus001, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -382,8 +379,7 @@ HWTEST_F(RSAnimationTest, AnimationStatus004, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -438,8 +434,7 @@ HWTEST_F(RSAnimationTest, InteractivePause, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -482,8 +477,7 @@ HWTEST_F(RSAnimationTest, InteractiveContinue, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -529,8 +523,7 @@ HWTEST_F(RSAnimationTest, InteractiveReverse, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
@@ -576,8 +569,7 @@ HWTEST_F(RSAnimationTest, Finish, TestSize.Level1)
     RSAnimationTimingProtocol protocol;
     protocol.SetDuration(ANIMATION_DURATION);
     RSAnimationTimingCurve curve = RSAnimationTimingCurve::SPRING;
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto animations = RSNode::Animate(rsUIContext, protocol, curve, [&property]() {
         property->Set(ANIMATION_END_BOUNDS);
     });
