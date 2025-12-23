@@ -16,11 +16,10 @@
 #ifndef RENDER_SERVICE_COMPOSER_BASE_RENDER_LAYER_RS_RENDER_LAYER_CMD_PROPERTY_H
 #define RENDER_SERVICE_COMPOSER_BASE_RENDER_LAYER_RS_RENDER_LAYER_CMD_PROPERTY_H
 
+#include <type_traits>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <string>
-#include <type_traits>
 
 #include "buffer_utils.h"
 #include "common/rs_macros.h"
@@ -40,36 +39,18 @@ namespace Rosen {
 class RSRenderLayerPropertyBase {
 public:
     RSRenderLayerPropertyBase() = default;
-    RSRenderLayerPropertyBase(const RSLayerPropertyId& id) : propertyId_(id) {}
     RSRenderLayerPropertyBase(const RSRenderLayerPropertyBase&) = delete;
     RSRenderLayerPropertyBase(const RSRenderLayerPropertyBase&&) = delete;
     RSRenderLayerPropertyBase& operator=(const RSRenderLayerPropertyBase&) = delete;
     RSRenderLayerPropertyBase& operator=(const RSRenderLayerPropertyBase&&) = delete;
     virtual ~RSRenderLayerPropertyBase() = default;
-
-    void SetPropertyId(RSLayerPropertyId id)
-    {
-        propertyId_ = id;
-    }
-
-    RSLayerPropertyId GetPropertyId() const
-    {
-        return propertyId_;
-    }
-
-    virtual void SetCmdType(RSLayerCmdType type) = 0;
-
-protected:
-    RSLayerPropertyId propertyId_ = 0;
 };
 
 template<typename T>
 class RSRenderLayerCmdProperty : public RSRenderLayerPropertyBase {
 public:
-    RSRenderLayerCmdProperty() : RSRenderLayerPropertyBase(0) {}
-    RSRenderLayerCmdProperty(const T& value) : RSRenderLayerPropertyBase(0), stagingValue_(value) {}
-    RSRenderLayerCmdProperty(const T& value, const RSLayerPropertyId& id) : RSRenderLayerPropertyBase(id),
-        stagingValue_(value) {}
+    RSRenderLayerCmdProperty() = default;
+    explicit RSRenderLayerCmdProperty(const T& value) : stagingValue_(value) {}
     ~RSRenderLayerCmdProperty() override = default;
 
     using ValueType = T;
@@ -84,28 +65,9 @@ public:
         return stagingValue_;
     }
 
-    RSLayerCmdType GetCmdType() const
-    {
-        return cmdType_;
-    }
-
-    void SetCmdType(RSLayerCmdType type) override
-    {
-        cmdType_ = type;
-    }
-
     template<typename U>
     bool OnMarshalling(OHOS::MessageParcel& parcel, const U& value)
     {
-        if (cmdType_ == RSLayerCmdType::INVALID) {
-            return false;
-        }
-        if (!parcel.WriteUint16(static_cast<uint16_t>(cmdType_))) {
-            return false;
-        }
-        if (!parcel.WriteUint64(propertyId_)) {
-            return false;
-        }
         return MarshallingValue(parcel, value);
     }
 
@@ -207,21 +169,11 @@ public:
     template<typename U>
     bool OnUnmarshalling(OHOS::MessageParcel& parcel, std::shared_ptr<RSRenderLayerCmdProperty<U>>& val)
     {
-        uint16_t typeValue;
-        if (!parcel.ReadUint16(typeValue)) {
-            return false;
-        }
-        RSLayerPropertyId id;
-        if (!parcel.ReadUint64(id)) {
-            return false;
-        }
         U value;
         if (!UnmarshallingValue(parcel, value)) {
             return false;
         }
         val = std::make_shared<RSRenderLayerCmdProperty<U>>(value);
-        val->SetPropertyId(id);
-        val->SetCmdType(static_cast<RSLayerCmdType>(typeValue));
         return true;
     }
 
@@ -440,8 +392,6 @@ protected:
         return true;
     }
 
-    RSLayerCmdType cmdType_ = RSLayerCmdType::INVALID;
-    RSLayerPropertyId propertyId_ = 0;
     T stagingValue_ {};
 };
 } // namespace Rosen

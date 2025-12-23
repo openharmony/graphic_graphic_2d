@@ -55,7 +55,6 @@ public:                                                                         
     RSRenderLayer##CMD_NAME##Cmd(const std::shared_ptr<RSRenderLayerPropertyBase>& property)             \
     : RSRenderLayerCmd(property)                                                                         \
     {                                                                                                    \
-        property->SetCmdType(RSLayerCmdType::CMD_TYPE);                                                  \
     }                                                                                                    \
     virtual ~RSRenderLayer##CMD_NAME##Cmd() = default;                                                   \
     bool Marshalling(OHOS::MessageParcel& parcel) override;                                              \

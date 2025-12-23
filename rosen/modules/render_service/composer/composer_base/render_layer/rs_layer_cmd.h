@@ -57,7 +57,6 @@ public:                                                                         
     std::shared_ptr<RSRenderLayerCmd> CreateRenderLayerCmd() override                                   \
     {                                                                                                   \
         auto renderProperty = std::make_shared<RSRenderLayerCmdProperty<TYPE>>(value_);                 \
-        renderProperty->SetCmdType(RSLayerCmdType::CMD_TYPE);                                           \
         return std::make_shared<RSRenderLayer##CMD_NAME##Cmd>(renderProperty);                          \
     }                                                                                                   \
 private:                                                                                                \
