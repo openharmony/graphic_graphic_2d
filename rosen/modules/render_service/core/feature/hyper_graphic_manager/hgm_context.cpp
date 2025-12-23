@@ -126,10 +126,9 @@ void HgmContext::ProcessHgmFrameRate(
     auto& rsContext = mainThread->GetContext();
     if (frameRateMgr->AdaptiveStatus() == SupportASStatus::SUPPORT_AS) {
         frameRateMgr->HandleGameNode(rsContext.GetNodeMap());
-        if (rsContext.GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM
-            && rsContext.GetAnimatingNodeList().empty()) {
-            SetIsAdaptiveVsyncComposeReady(true);
-        }
+        SetIsAdaptiveVsyncComposeReady(
+            rsContext.GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM &&
+            rsContext.GetAnimatingNodeList().empty());
     }
 
     // Check and processing refresh rate task.
