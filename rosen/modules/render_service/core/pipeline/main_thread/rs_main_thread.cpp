@@ -496,7 +496,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
 #endif
         hgmRPContext_->NotifyRpHgmFrameRate(vsyncId_, context_,
-            rpVsyncRateReduceManager_.GetVrateMap(), pipelineParam_);
+            rpVsyncRateReduceManager_.GetVrateMap(), rpVsyncRateReduceManager_.CheckNeedNotify(), pipelineParam_);
         RS_PROFILER_ON_RENDER_BEGIN();
         // cpu boost feature start
         ffrt_cpu_boost_start(CPUBOOST_START_POINT);

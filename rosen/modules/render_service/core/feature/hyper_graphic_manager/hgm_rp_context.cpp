@@ -54,8 +54,8 @@ int32_t HgmRPContext::InitHgmConfig(std::unordered_map<std::string, std::string>
     return EXEC_SUCCESS;
 }
 
-void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
-    const std::shared_ptr<RSContext>& rsContext, std::map<NodeId, int> vRateMap, PipelineParam& pipelineParam)
+void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_ptr<RSContext>& rsContext,
+    const std::unordered_map<NodeId, int>& vRateMap, bool isNeedRefreshVRate, PipelineParam& pipelineParam)
 {
     int changed = 0;
     if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
@@ -74,7 +74,8 @@ void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
     rsContext->ClearFrameRateLinker();
     info->uiFrameworkDirtyNodeNameMap = rsContext->GetUIFrameworkDirtyNodeNameMap();
     info->energyCommonData = hgmRPEnergy_->GetEnergyCommonData();
-    info->vRateMap = std::move(vRateMap);
+    info->vRateMap = vRateMap;
+    info->isNeedRefreshVRate = isNeedRefreshVRate;
     auto serviceToProcessInfo =
         renderToServiceConnection_->NotifyRpHgmFrameRate(pipelineParam.frameTimestamp, vsyncId, screenIds_, info);
     SetServiceToProcessInfo(serviceToProcessInfo,
