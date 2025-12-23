@@ -23,6 +23,7 @@
 #include "draw/canvas.h"
 #include "draw/color.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "property/rs_color_picker_def.h"
 #include "property/rs_properties_def.h"
 #include "utils/rect.h"
 
@@ -35,17 +36,31 @@ class RSColorPickerManager : public std::enable_shared_from_this<RSColorPickerMa
 public:
     RSColorPickerManager() = default;
     ~RSColorPickerManager() noexcept = default;
+    /**
+     * @brief Return previously picked color and conditionally schedule a new color pick task on the current canvas.
+     * @param strategy Only CONTRAST is currently supported.
+     */
     Drawing::ColorQuad GetColorPicked(RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId,
         ColorPickStrategyType strategy, uint64_t interval);
 
 private:
-    // Execute color picking work on a snapshot and update state if needed
-    void RunColorPickTask(
-        const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);
-    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId);
+    void ScheduleColorPick(
+        RSPaintFilterCanvas& canvas, const Drawing::Rect* rect, uint64_t nodeId, ColorPickStrategyType strategy);
+    void PickColor(const std::shared_ptr<Drawing::Image>& snapshot, uint64_t nodeId, ColorPickStrategyType strategy);
+    void HandleColorUpdate(Drawing::ColorQuad newColor, uint64_t nodeId, ColorPickStrategyType strategy);
+
     inline std::pair<Drawing::ColorQuad, Drawing::ColorQuad> GetColor();
+
     static Drawing::ColorQuad InterpolateColor(
         Drawing::ColorQuad startColor, Drawing::ColorQuad endColor, float fraction);
+
+    /**
+     * @brief Get a contrasting black or white color with hysteresis.
+     *
+     * @param color input to contrast with, usually the average color of the background.
+     * @param prevDark whether previously picked color was dark.
+     */
+    static Drawing::ColorQuad GetContrastColor(Drawing::ColorQuad color, bool prevDark);
 
     std::mutex colorMtx_;
     Drawing::ColorQuad colorPicked_ = Drawing::Color::COLOR_TRANSPARENT;

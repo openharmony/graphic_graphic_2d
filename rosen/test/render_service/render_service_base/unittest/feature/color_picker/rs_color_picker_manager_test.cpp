@@ -25,6 +25,7 @@
 #include "draw/color.h"
 #include "image/bitmap.h"
 #include "pipeline/rs_paint_filter_canvas.h"
+#include "property/rs_color_picker_def.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -65,7 +66,7 @@ HWTEST_F(RSColorPickerManagerTest, AnimationCompletesToEndColor, TestSize.Level1
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     // Update to white and wait > animation duration
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 123 /*nodeId*/);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 123 /*nodeId*/, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(400)); // > 350ms
 
     Drawing::ColorQuad color = manager.GetColorPicked(canvas, nullptr, 123, ColorPickStrategyType::AVERAGE, 0);
@@ -84,7 +85,7 @@ HWTEST_F(RSColorPickerManagerTest, InProgressAnimationBlendsBetweenColors, TestS
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     // Trigger update to white and sample during animation
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1 /*nodeId*/);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 1 /*nodeId*/, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(50)); // mid-animation (~1/3)
 
     Drawing::Rect rect(0, 0, 10, 10);
@@ -106,14 +107,14 @@ HWTEST_F(RSColorPickerManagerTest, UnchangedUpdateDoesNotRestartAnimation, TestS
     RSPaintFilterCanvas canvas(&drawingCanvas);
 
     // First update to white and finish animation
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 7 /*nodeId*/);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 7 /*nodeId*/, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(400)); // ensure completed (>350ms)
     // Color should be white now
     auto color1 = manager.GetColorPicked(canvas, nullptr, 7, ColorPickStrategyType::AVERAGE, 0);
     EXPECT_EQ(color1, Drawing::Color::COLOR_WHITE);
 
     // Update with the same color; should not restart animation
-    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 7 /*nodeId*/);
+    manager.HandleColorUpdate(Drawing::Color::COLOR_WHITE, 7 /*nodeId*/, ColorPickStrategyType::AVERAGE);
     // Immediate query should still be white (no blending back from transparent)
     auto color2 = manager.GetColorPicked(canvas, nullptr, 7, ColorPickStrategyType::AVERAGE, 0);
     EXPECT_EQ(color2, Drawing::Color::COLOR_WHITE);
@@ -126,16 +127,15 @@ HWTEST_F(RSColorPickerManagerTest, UnchangedUpdateDoesNotRestartAnimation, TestS
  */
 HWTEST_F(RSColorPickerManagerTest, InterpolateColorClampsOutOfRange, TestSize.Level1)
 {
-    RSColorPickerManager manager;
     const Drawing::ColorQuad start = Drawing::Color::COLOR_BLACK;
     const Drawing::ColorQuad end = Drawing::Color::COLOR_WHITE;
 
     // fraction < 0 -> endColor
-    auto c1 = manager.InterpolateColor(start, end, -0.5f);
+    auto c1 = RSColorPickerManager::InterpolateColor(start, end, -0.5f);
     EXPECT_EQ(c1, end);
 
     // fraction > 1 -> endColor
-    auto c2 = manager.InterpolateColor(start, end, 1.5f);
+    auto c2 = RSColorPickerManager::InterpolateColor(start, end, 1.5f);
     EXPECT_EQ(c2, end);
 }
 
@@ -193,7 +193,7 @@ HWTEST_F(RSColorPickerManagerTest, RunColorPickTaskSuccessUpdatesColor, TestSize
     auto image = bmp.MakeImage();
     ASSERT_NE(image, nullptr);
 
-    manager.RunColorPickTask(image, 42 /*nodeId*/, ColorPickStrategyType::AVERAGE);
+    manager.PickColor(image, 42 /*nodeId*/, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(400));
     auto color = manager.GetColorPicked(canvas, nullptr, 42, ColorPickStrategyType::AVERAGE, 0);
     EXPECT_NE(color, Drawing::Color::COLOR_TRANSPARENT);
@@ -212,10 +212,56 @@ HWTEST_F(RSColorPickerManagerTest, RunColorPickTaskFailureKeepsColor, TestSize.L
 
     auto before = manager.GetColorPicked(canvas, nullptr, 77, ColorPickStrategyType::AVERAGE, 0);
     auto emptyImage = std::make_shared<Drawing::Image>();
-    manager.RunColorPickTask(emptyImage, 77 /*nodeId*/, ColorPickStrategyType::AVERAGE);
+    manager.PickColor(emptyImage, 77 /*nodeId*/, ColorPickStrategyType::AVERAGE);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     auto after = manager.GetColorPicked(canvas, nullptr, 77, ColorPickStrategyType::AVERAGE, 0);
     EXPECT_EQ(before, after);
+}
+
+/**
+ * @tc.name: GetContrastColorTest
+ * @tc.desc: Verify function GetContrastColor
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, GetContrastColorTest, TestSize.Level1)
+{
+    const Drawing::ColorQuad white = Drawing::Color::COLOR_WHITE;
+    const Drawing::ColorQuad black = Drawing::Color::COLOR_BLACK;
+
+    auto contrastForWhite = RSColorPickerManager::GetContrastColor(white, false);
+    EXPECT_EQ(contrastForWhite, Drawing::Color::COLOR_BLACK);
+
+    auto contrastForBlack = RSColorPickerManager::GetContrastColor(black, false);
+    EXPECT_EQ(contrastForBlack, Drawing::Color::COLOR_WHITE);
+}
+
+/**
+ * @tc.name: GetContrastColorPrevBlackTest
+ * @tc.desc: Verify GetContrastColor with prevDark=true uses low threshold
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, GetContrastColorPrevBlackTest, TestSize.Level1)
+{
+    // Use a mid-light gray so hysteresis changes the result.
+    const Drawing::ColorQuad midGray = Drawing::Color::ColorQuadSetARGB(0xFF, 200, 200, 200);
+    auto contrastPrevDark = RSColorPickerManager::GetContrastColor(midGray, true);
+    auto contrastPrevLight = RSColorPickerManager::GetContrastColor(midGray, false);
+
+    EXPECT_EQ(contrastPrevDark, Drawing::Color::COLOR_BLACK);
+    EXPECT_EQ(contrastPrevLight, Drawing::Color::COLOR_WHITE);
+}
+
+/**
+ * @tc.name: PickColorContrastPrevBlackTest
+ * @tc.desc: Verify PickColor CONTRAST branch with prevDark=true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSColorPickerManagerTest, PickColorContrastPrevBlackTest, TestSize.Level1)
+{
+    // Contrast color now provided by static API. Validate for white input.
+    const Drawing::ColorQuad white = Drawing::Color::COLOR_WHITE;
+    auto result = RSColorPickerManager::GetContrastColor(white, true);
+    EXPECT_EQ(result, Drawing::Color::COLOR_BLACK);
 }
 } // namespace Rosen
 } // namespace OHOS

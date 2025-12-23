@@ -19,6 +19,7 @@
 #include "common/rs_optional_trace.h"
 #include "effect/rs_render_shape_base.h"
 #include "platform/common/rs_log.h"
+#include "property/rs_color_picker_def.h"
 #include "property/rs_properties_painter.h"
 #include "render/rs_blur_filter.h"
 #include "render/rs_color_picker.h"
@@ -194,8 +195,7 @@ bool RSPropertyDrawableUtils::PickColorSyn(Drawing::Canvas* canvas, Drawing::Pat
 }
 
 bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> context,
-    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked, ColorPickStrategyType strategy,
-    bool prevDark)
+    std::shared_ptr<Drawing::Image> image, Drawing::ColorQuad& colorPicked)
 {
     std::shared_ptr<Drawing::Pixmap> dst;
     image = GpuScaleImage(context, image); // use shared GPU context
@@ -214,7 +214,7 @@ bool RSPropertyDrawableUtils::PickColor(std::shared_ptr<Drawing::GPUContext> con
         RS_LOGE("RSPropertyDrawableUtils::PickColor CreateColorPicker failed");
         return false;
     }
-    if (colorPicker->PickColor(colorPicked, strategy, prevDark) != 0) {
+    if (colorPicker->GetAverageColor(colorPicked) != 0) {
         RS_LOGE("RSPropertyDrawableUtils::PickColor PickColor failed");
         return false;
     }
