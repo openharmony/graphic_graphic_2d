@@ -65,6 +65,7 @@ public:
 
     std::shared_ptr<Drawing::Canvas> drawingCanvas_ = nullptr;
     std::shared_ptr<Drawing::Canvas> drawingCanvasForMirror_ = nullptr;
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -96,14 +97,13 @@ void RSScreenRenderNodeDrawableTest::SetUp()
         return;
     }
     // init RSScreen
-    auto screenManager = CreateOrGetScreenManager();
     auto output = std::make_shared<HdiOutput>(renderNode_->GetScreenId());
     auto rsScreen = std::make_shared<RSScreen>(output);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
     auto mirroredOutput = std::make_shared<HdiOutput>(mirroredNode_->GetScreenId());
     auto output2 = std::make_shared<HdiOutput>(mirroredNode_->GetScreenId());
     auto mirroredRsScreen = std::make_shared<RSScreen>(output2);
-    screenManager->MockHdiScreenConnected(mirroredRsScreen);
+    screenManager_->MockHdiScreenConnected(mirroredRsScreen);
 
     renderNode_->AddChild(displayRenderNode_);
     mirroredNode_->AddChild(mirroredDisplayNode_);

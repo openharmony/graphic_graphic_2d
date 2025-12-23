@@ -77,7 +77,7 @@ public:
         ScreenRotation rotation = ScreenRotation::ROTATION_0);
     static inline Mock::HdiDeviceMock* hdiDeviceMock_;
     static inline std::unique_ptr<RSComposerAdapter> composerAdapter_;
-    static inline sptr<RSScreenManager> screenManager_;
+    static inline sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
     static inline RSMainThread* mainThread_;
     static inline std::shared_ptr<HdiOutput> hdiOutput_;
     int32_t offsetX = 0; //screenOffset on x axis equals to 0
@@ -95,7 +95,7 @@ uint32_t RSClientToRenderConnectionStubTest::screenId_ = 0;
 sptr<RSIConnectionToken> RSClientToRenderConnectionStubTest::token_ = new IRemoteStub<RSIConnectionToken>();
 sptr<RSClientToRenderConnectionStub> RSClientToRenderConnectionStubTest::connectionStub_ =
     new RSClientToRenderConnection(
-        0, nullptr, RSMainThread::Instance(), CreateOrGetScreenManager(), token_->AsObject(), nullptr);
+        0, nullptr, RSMainThread::Instance(), screenManager_, token_->AsObject(), nullptr);
 std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surfaceNode_ =
     std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(10003, std::make_shared<RSContext>(), true),
     RSRenderNodeGC::NodeDestructor);
@@ -107,7 +107,6 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
 #endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
-    screenManager_ = CreateOrGetScreenManager();
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
@@ -281,7 +280,7 @@ public:
 void RSClientToRenderConnectionStubTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,
     ScreenColorGamut colorGamut, ScreenState state, ScreenRotation rotation)
 {
-    auto info = screenManager_->QueryScreenInfo(screenId_);
+    ScreenInfo info;
     info.phyWidth = width;
     info.phyHeight = height;
     info.colorGamut = colorGamut;

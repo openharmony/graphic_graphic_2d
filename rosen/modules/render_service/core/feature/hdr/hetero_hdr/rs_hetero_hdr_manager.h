@@ -82,7 +82,7 @@ private:
     bool PrepareHpaeTask(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& surfaceDrawable,
         RSSurfaceRenderParams* surfaceParams, uint64_t curFrameId);
     void FindParentLeashWindowNode();
-    ScreenId GetScreenIDByDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable);
+    RSScreenRenderParams* GetScreenParamsByDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable);
 
     bool ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, uint64_t curFrameId);
     bool CheckWindowOwnership(NodeId nodeId);

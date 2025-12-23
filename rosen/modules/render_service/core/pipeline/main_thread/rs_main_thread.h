@@ -51,7 +51,6 @@
 #include "feature/vrate/rp_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
-#include "screen_manager/rs_screen_node_listener.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"

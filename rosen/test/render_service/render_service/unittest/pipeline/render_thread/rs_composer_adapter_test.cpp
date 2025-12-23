@@ -62,7 +62,7 @@ void RSComposerAdapterTest::SetUpTestCase()
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
     RSRenderComposerManager::GetInstance().OnScreenConnected(hdiOutput_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_, hdiOutput_);
-    screenManager_ = CreateOrGetScreenManager();
+    screenManager_ = sptr<RSScreenManager>::MakeSptr();
     screenManager_->MockHdiScreenConnected(rsScreen);
     composerAdapter_ = std::make_unique<RSComposerAdapter>();
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
@@ -85,7 +85,7 @@ void RSComposerAdapterTest::TearDown() {}
 void RSComposerAdapterTest::CreateComposerAdapterWithScreenInfo(uint32_t width, uint32_t height,
     ScreenColorGamut colorGamut, ScreenState state, ScreenRotation rotation)
 {
-    auto info = screenManager_->QueryScreenInfo(screenId_);
+    ScreenInfo info;
     info.width = width;
     info.height = height;
     info.phyWidth = width;

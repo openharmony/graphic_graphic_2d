@@ -2468,7 +2468,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_TRACE_NAME("DoDirectComposition skip, screen frozen");
         return true;
     }
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     const auto& screenProperty = screenNode->GetScreenProperty();
     if (screenProperty.GetState() != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("DoDirectComposition: ScreenState error!");

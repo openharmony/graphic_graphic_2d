@@ -108,9 +108,11 @@ bool RSHeteroHDRManager::FixConditionPrejudgment(std::shared_ptr<DrawableV2::RSS
     // The precondition has already checked that srcRect w and dstRect h are not zero (ValidateSurface)
     float ratio = static_cast<float>(srcRect.h * dstRect.w) / (static_cast<float>(dstRect.h * srcRect.w));
     Vector2f boundSize = surfaceParams->GetCacheSize();
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
+    auto screenParams = GetScreenParamsByDrawable(drawable);
+    uint32_t screenWidth = screenParams ? screenParams->GetScreenProperty().GetWidth() : 0;
+    uint32_t screenHeight = screenParams ? screenParams->GetScreenProperty().GetHeight() : 0;
     bool ratioJudge = !ROSEN_EQ<float>(ratio, 1.0, RATIO_CHANGE_TH) ||
-        (!ROSEN_EQ<float>(boundSize.x_, curScreenInfo.width) && !ROSEN_EQ<float>(boundSize.y_, curScreenInfo.height));
+        (!ROSEN_EQ<float>(boundSize.x_, screenWidth) && !ROSEN_EQ<float>(boundSize.y_, screenHeight));
 
     sptr<SurfaceBuffer> srcBuffer = surfaceParams->GetBuffer();
     ScalingMode scalingMode = srcBuffer->GetSurfaceBufferScalingMode();
@@ -142,13 +144,15 @@ void RSHeteroHDRManager::GetFixedDstRectStatus(std::shared_ptr<DrawableV2::RSSur
     Drawing::Matrix matrix = surfaceParams->GetLayerInfo().matrix;
     Vector2f boundSize = surfaceParams->GetCacheSize();
 
-    ScreenInfo curScreenInfo = CreateOrGetScreenManager()->QueryScreenInfo(GetScreenIDByDrawable(drawable));
     auto transform = RSBaseRenderUtil::GetRotateTransform(surfaceParams->GetLayerInfo().transformType);
     bool isVertical = (transform == GraphicTransformType::GRAPHIC_ROTATE_90 ||
         transform == GraphicTransformType::GRAPHIC_ROTATE_270);
 
-    hpaeBufferSize_ = (isVertical) ? Vector2f(curScreenInfo.height, curScreenInfo.width) :
-        Vector2f(curScreenInfo.width, curScreenInfo.height);
+    auto screenParams = GetScreenParamsByDrawable(drawable);
+    uint32_t screenWidth = screenParams ? screenParams->GetScreenProperty().GetWidth() : 0;
+    uint32_t screenHeight = screenParams ? screenParams->GetScreenProperty().GetHeight() : 0;
+    hpaeBufferSize_ = (isVertical) ? Vector2f(screenHeight, screenWidth) :
+        Vector2f(screenWidth, screenHeight);
     bool sizeJudge = !(ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_X), 0.0f) &&
         ROSEN_EQ(matrix.Get(Drawing::Matrix::Index::SKEW_Y), 0.0f));
 
@@ -216,7 +220,7 @@ bool RSHeteroHDRManager::PrepareHpaeTask(
         return false;
     }
 
-    dstBuffer_ = rsHeteroHDRBufferLayer_.PrepareHDRDstBuffer(surfaceParams, GetScreenIDByDrawable(nodeDrawable));
+    dstBuffer_ = rsHeteroHDRBufferLayer_.PrepareHDRDstBuffer(surfaceParams);
     if (dstBuffer_ == nullptr) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask prepare dstBuffer is nullptr");
         RSHDRPatternManager::Instance().MHCResetCurFrameId();
@@ -254,9 +258,9 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
         ClearBufferCache();
         return false;
     }
-    // isHdrOn_ will be updated in function GetScreenIDByDrawable
-    ScreenId screenId = GetScreenIDByDrawable(nodeDrawable);
-    if (!isHdrOn_ || surfaceParams->GetColorFollow()) {
+    auto screenParams = GetScreenParamsByDrawable(nodeDrawable);
+    bool isHdrOn = screenParams ? screenParams->GetHDRPresent() : false;
+    if (!isHdrOn || surfaceParams->GetColorFollow()) {
         RS_LOGD("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode isHdrOn is false or GetColorFollow is true");
         ClearBufferCache();
         return false;
@@ -444,34 +448,28 @@ void RSHeteroHDRManager::PostHDRSubTasks()
     isCurrentFrameBufferConsumedMap_.clear();
 }
 
-ScreenId RSHeteroHDRManager::GetScreenIDByDrawable(std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable)
+RSScreenRenderParams* RSHeteroHDRManager::GetScreenParamsByDrawable(
+    std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& drawable)
 {
-    isHdrOn_ = false;
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
     if (!surfaceParams) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager GetScreenIDByDrawable surfaceParams is nullptr");
-        return INVALID_SCREEN_ID;
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager %{public}s surfaceParams is nullptr", __func__);
+        return nullptr;
     }
     auto screenNodeptr = surfaceParams->GetAncestorScreenNode().lock();
     if (!screenNodeptr) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager GetScreenIDByDrawable screenNodeptr is nullptr");
-        return INVALID_SCREEN_ID;
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager %{public}s screenNodeptr is nullptr", __func__);
+        return nullptr;
     }
     auto ancestor = screenNodeptr->ReinterpretCastTo<RSScreenRenderNode>();
     if (!ancestor) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager GetScreenIDByDrawable ancestor is nullptr");
-        return INVALID_SCREEN_ID;
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager %{public}s ancestor is nullptr", __func__);
+        return nullptr;
     }
-    auto screenParams = static_cast<RSScreenRenderParams*>(ancestor->GetRenderParams().get());
-    if (!screenParams) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager GetScreenIDByDrawable screenParams is nullptr");
-        return INVALID_SCREEN_ID;
-    }
-    isHdrOn_ = screenParams->GetHDRPresent();
-    return screenParams->GetScreenId();
+    return static_cast<RSScreenRenderParams*>(ancestor->GetRenderParams().get());
 #else
-    return INVALID_SCREEN_ID;
+    return nullptr;
 #endif
 }
 
@@ -553,7 +551,9 @@ bool RSHeteroHDRManager::IsHDRSurfaceNodeSkipped(
         RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager IsHDRSurfaceNodeSkipped FilterCache Skip");
         return true;
     }
-    if (RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(GetScreenIDByDrawable(surfaceDrawable))) {	
+    auto screenParams = GetScreenParamsByDrawable(surfaceDrawable);
+    auto screenId = screenParams ? screenParams->GetScreenId() : INVALID_SCREEN_ID;
+    if (RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(screenId)) {	
         return true;	
     }
     if (!surfaceDrawable->ShouldPaint()) {

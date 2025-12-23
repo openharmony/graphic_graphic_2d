@@ -187,20 +187,20 @@ void HgmContext::ProcessHgmFrameRate(
     });
 }
 
-void HgmContext::AddScreenToHgm(ScreenId screenId)
+void HgmContext::AddScreenToHgm(const sptr<RSScreenProperty>& property)
 {
+    auto screenId = property->GetScreenId();
     RS_LOGI("%{public}s in screenId:%{public}" PRIu64, __func__, screenId);
-    HgmTaskHandleThread::Instance().PostSyncTask([this, screenId] {
+    HgmTaskHandleThread::Instance().PostSyncTask([this, screenId, property] {
         RSScreenManager* scmFromHgm = hgmCore_.GetScreenManager();
         RSScreenModeInfo rsScreenModeInfo;
         scmFromHgm->GetScreenActiveMode(screenId, rsScreenModeInfo);
         int32_t initModeId = rsScreenModeInfo.GetScreenModeId();
         const auto& capability = scmFromHgm->GetScreenCapability(screenId);
-        ScreenInfo curScreenInfo = scmFromHgm->QueryScreenInfo(screenId);
         ScreenSize screenSize =
-            { curScreenInfo.width, curScreenInfo.height, capability.GetPhyWidth(), capability.GetPhyHeight() };
+            { property->GetWidth(), property->GetHeight(), capability.GetPhyWidth(), capability.GetPhyHeight() };
         RS_LOGI("%{public}s: add screen: w * h: [%{public}u * %{public}u], capability w * h: "
-            "[%{public}u * %{public}u]", __func__, curScreenInfo.width, curScreenInfo.height,
+            "[%{public}u * %{public}u]", __func__, property->GetWidth(), property->GetHeight(),
             capability.GetPhyWidth(), capability.GetPhyHeight());
         if (hgmCore_.AddScreen(screenId, initModeId, screenSize, scmFromHgm->GetScreenSupportedModes(screenId))) {
             RS_LOGE("%{public}s failed to add screen : %{public}" PRIu64, __func__, screenId);

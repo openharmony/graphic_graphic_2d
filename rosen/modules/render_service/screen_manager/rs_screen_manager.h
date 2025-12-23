@@ -30,10 +30,6 @@
 #include <ipc_callbacks/screen_change_callback.h>
 #include <ipc_callbacks/screen_switching_notify_callback.h>
 #include <refbase.h>
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-#include <sensor_agent.h>
-#include <sensor_agent_type.h>
-#endif
 #include <surface.h>
 #include <surface_type.h>
 
@@ -51,33 +47,27 @@
 namespace OHOS {
 namespace Rosen {
 class RSScreen;
-class RSIScreenNodeListener;
 enum class FoldState : uint32_t {
     UNKNOW,
     FOLDED,
     EXPAND
 };
 
+// This class can be only created by RSRenderService to manager screen.
 class RSScreenManager : public RefBase {
 public:
-    static sptr<OHOS::Rosen::RSScreenManager> GetInstance() noexcept;
-
+    RSScreenManager() = default;
+    ~RSScreenManager() = default;
+    RSScreenManager(const RSScreenManager&) = delete;
+    RSScreenManager& operator=(const RSScreenManager&) = delete;
     void RegisterCoreListener(const sptr<RSIScreenManagerListener>& listener);
     void RegisterAgentListener(const sptr<RSIScreenManagerAgentListener>& listener);
     void UnRegisterAgentListener(const sptr<RSIScreenManagerAgentListener>& listener);
     bool Init_V2(const std::shared_ptr<AppExecFwk::EventHandler>& mainHandler) noexcept;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void HandlePostureData(const SensorEvent* const event);
-#endif
 
     ScreenId GetDefaultScreenId() const;
     ScreenId GetActiveScreenId();
     std::vector<ScreenId> GetAllScreenIds() const;
-
-    ScreenInfo QueryScreenInfo(ScreenId id) const;
-    ScreenInfo QueryDefaultScreenInfo() const;
-
-    sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const;
 
     int32_t GetScreenType(ScreenId id, RSScreenType& type) const;
 
@@ -87,9 +77,6 @@ public:
 
     /* only used for mock tests */
     void MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen);
-
-    // physical screen
-    std::shared_ptr<HdiOutput> GetOutput(ScreenId id) const;
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
     void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const;
@@ -204,11 +191,6 @@ public:
     bool GetIsFoldScreenFlag();
 
 private:
-    RSScreenManager() = default;
-    ~RSScreenManager() = default;
-    RSScreenManager(const RSScreenManager&) = delete;
-    RSScreenManager& operator=(const RSScreenManager&) = delete;
-
     void OnRefreshEvent(ScreenId id);
     void OnHwcDeadEvent();
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
@@ -219,22 +201,18 @@ private:
 
     // physical screen
     bool CheckFoldScreenIdBuiltIn(ScreenId id);
-    void ProcessScreenConnected(std::shared_ptr<HdiOutput>& output);
+    void ProcessScreenConnected(ScreenId id);
     void ProcessPendingConnections();
-    void ProcessScreenDisConnected(ScreenId id, std::shared_ptr<HdiOutput>& output);
+    void ProcessScreenDisConnected(ScreenId id);
     void HandleDefaultScreenDisConnected();
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void InitFoldSensor();
-    void RegisterSensorCallback();
-    void UnRegisterSensorCallback();
-    static void OnBootComplete(const char* key, const char* value, void *context);
-    void OnBootCompleteEvent();
     void HandleSensorData(float angle);
-    void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
     FoldState TransferAngleToScreenState(float angle);
+    void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
 #endif
 
+    sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId id) const;
     void NotifySwitchingCallback(bool status) const;
 
@@ -277,9 +255,6 @@ private:
 
     uint64_t frameId_ = 0; // only used by SetScreenConstraint, called in hardware thread per frame
 
-    static std::once_flag createFlag_;
-    static sptr<OHOS::Rosen::RSScreenManager> instance_;
-
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
 
     std::function<void()> registerHwcEventFunc_ = nullptr;
@@ -291,7 +266,6 @@ private:
     std::atomic<bool> isScreenSwitching_ = false;
 
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    SensorUser sensorUser_;
     bool isFoldScreenFlag_ = false;
     ScreenId innerScreenId_ = 0;
     ScreenId externalScreenId_ = INVALID_SCREEN_ID;
@@ -299,8 +273,6 @@ private:
     bool isPostureSensorDataHandled_ = false;
     std::condition_variable activeScreenIdAssignedCV_;
     mutable std::mutex activeScreenIdAssignedMutex_;
-    mutable std::mutex registerSensorMutex_;
-    bool hasRegisterSensorCallback_ = false;
 #endif
     struct FoldScreenStatus {
         bool isConnected;
@@ -314,8 +286,6 @@ private:
 
     friend class RSScreenPreprocessor;
 };
-
-sptr<RSScreenManager> CreateOrGetScreenManager();
 } // namespace Rosen
 } // namespace OHOS
 

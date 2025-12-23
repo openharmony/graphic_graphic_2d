@@ -683,9 +683,7 @@ void RSRenderComposer::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer)
     auto usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB | BUFFER_USAGE_PROTECTED |
         BUFFER_USAGE_DRM_REDRAW;
     rsSurface->SetSurfaceBufferUsage(usage);
-    auto screenManager = CreateOrGetScreenManager();
-    auto screenInfo = screenManager->QueryScreenInfo(screenId_);
-    auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo.phyWidth, screenInfo.phyHeight);
+    auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo_.phyWidth, screenInfo_.phyHeight);
     hdiOutput_->SetProtectedFrameBufferState(ret);
 #endif
 }

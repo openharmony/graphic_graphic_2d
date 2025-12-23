@@ -139,23 +139,6 @@ RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
 {
 }
 
-void RSClientToRenderConnection::CleanVirtualScreens() noexcept
-{
-    // std::lock_guard<std::mutex> lock(mutex_);
-
-    // if (screenManager_ != nullptr) {
-    //     for (const auto id : virtualScreenIds_) {
-    //         screenManager_->RemoveVirtualScreen(id);
-    //     }
-    // }
-    // virtualScreenIds_.clear();
-
-    // if (screenChangeCallback_ != nullptr && screenManager_ != nullptr) {
-    //     screenManager_->RemoveScreenChangeCallback(screenChangeCallback_);
-    //     screenChangeCallback_ = nullptr;
-    // }
-}
-
 void RSClientToRenderConnection::CleanRenderNodes() noexcept
 {
     if (mainThread_ == nullptr) {

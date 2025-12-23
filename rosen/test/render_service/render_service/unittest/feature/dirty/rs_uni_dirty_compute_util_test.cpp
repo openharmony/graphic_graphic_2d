@@ -46,6 +46,7 @@ public:
     void TearDown() override;
     static inline RectI DEFAULT_RECT1 {0, 0, 500, 500};
     static inline RectI DEFAULT_RECT2 {500, 500, 1000, 1000};
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 };
 
 RSScreenRenderNodeDrawable* GenerateScreenDrawableById(NodeId id,
@@ -737,11 +738,10 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestS
     ASSERT_NE(displayParams, nullptr);
     mirroredScreenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     NodeType cursorType = 12;
     std::vector<NodeType> typeBlackList = {cursorType};
-    screenManager->SetVirtualScreenTypeBlackList(logicalScreenNodeId, typeBlackList);
+    screenManager_->SetVirtualScreenTypeBlackList(logicalScreenNodeId, typeBlackList);
 
     screenDrawable->syncDirtyManager_->typeHwcDirtyRegion_ =
         {{RSSurfaceNodeType::CURSOR_NODE, defaultDirtyRect}};

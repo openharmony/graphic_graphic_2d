@@ -147,7 +147,7 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     if (mainThread_ == nullptr) {
         RS_LOGW("RSClientToServiceConnection: mainThread_ is nullptr");
     }
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGW("RSClientToServiceConnection: screenManagerAgent_ is nullptr");
     }
 
@@ -167,7 +167,7 @@ RSClientToServiceConnection::~RSClientToServiceConnection() noexcept
 
 void RSClientToServiceConnection::CleanVirtualScreens() noexcept
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return;
     }
@@ -522,7 +522,7 @@ ErrCode RSClientToServiceConnection::SetWatermark(const std::string& name,
 
 ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return ERR_INVALID_OPERATION;
     }
@@ -531,7 +531,7 @@ ErrCode RSClientToServiceConnection::GetDefaultScreenId(uint64_t& screenId)
 
 ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return ERR_INVALID_OPERATION;
     }
@@ -540,7 +540,7 @@ ErrCode RSClientToServiceConnection::GetActiveScreenId(uint64_t& screenId)
 
 std::vector<ScreenId> RSClientToServiceConnection::GetAllScreenIds()
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return {};
     }
@@ -556,7 +556,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
     int32_t flags,
     std::vector<NodeId> whiteList)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGW("%{public}s screenManagerAgent_ is nullptr", __func__);
         return INVALID_SCREEN_ID;
     }
@@ -575,7 +575,7 @@ ScreenId RSClientToServiceConnection::CreateVirtualScreen(
 
 int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, std::vector<uint64_t>& blackListVector)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetVirtualScreenBlackList(id, blackListVector);
@@ -584,7 +584,7 @@ int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, std:
 ErrCode RSClientToServiceConnection::SetVirtualScreenTypeBlackList(
     ScreenId id, std::vector<uint8_t>& typeBlackListVector, int32_t& repCode)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
@@ -595,7 +595,7 @@ ErrCode RSClientToServiceConnection::SetVirtualScreenTypeBlackList(
 ErrCode RSClientToServiceConnection::AddVirtualScreenBlackList(
     ScreenId id, std::vector<uint64_t>& blackListVector, int32_t& repCode)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
@@ -611,7 +611,7 @@ ErrCode RSClientToServiceConnection::RemoveVirtualScreenBlackList(
         repCode = StatusCode::BLACKLIST_IS_EMPTY;
         return ERR_INVALID_VALUE;
     }
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         repCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
@@ -623,7 +623,7 @@ int32_t RSClientToServiceConnection::SetVirtualScreenSecurityExemptionList(
     ScreenId id,
     const std::vector<uint64_t>& securityExemptionList)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetVirtualScreenSecurityExemptionList(id, securityExemptionList);
@@ -632,7 +632,7 @@ int32_t RSClientToServiceConnection::SetVirtualScreenSecurityExemptionList(
 int32_t RSClientToServiceConnection::SetScreenSecurityMask(ScreenId id,
     std::shared_ptr<Media::PixelMap> securityMask)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetScreenSecurityMask(id, securityMask);
@@ -641,7 +641,7 @@ int32_t RSClientToServiceConnection::SetScreenSecurityMask(ScreenId id,
 int32_t RSClientToServiceConnection::SetMirrorScreenVisibleRect(ScreenId id, const Rect& mainScreenRect,
     bool supportRotation)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetMirrorScreenVisibleRect(id, mainScreenRect, supportRotation);
@@ -649,8 +649,7 @@ int32_t RSClientToServiceConnection::SetMirrorScreenVisibleRect(ScreenId id, con
 
 int32_t RSClientToServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, bool enable)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetCastScreenEnableSkipWindow(id, enable);
@@ -658,8 +657,7 @@ int32_t RSClientToServiceConnection::SetCastScreenEnableSkipWindow(ScreenId id, 
 
 int32_t RSClientToServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<Surface> surface)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetVirtualScreenSurface(id, surface);
@@ -700,7 +698,7 @@ int32_t RSClientToServiceConnection::UnRegisterPointerLuminanceChangeCallback()
 
 void RSClientToServiceConnection::RemoveVirtualScreen(ScreenId id)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return;
     }
     screenManagerAgent_->RemoveVirtualScreen(id);
@@ -710,7 +708,7 @@ void RSClientToServiceConnection::RemoveVirtualScreen(ScreenId id)
 
 int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGE("%{public}s screenManagerAgent_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
@@ -725,7 +723,7 @@ int32_t RSClientToServiceConnection::SetScreenChangeCallback(sptr<RSIScreenChang
 
 int32_t RSClientToServiceConnection::SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
         return StatusCode::SCREEN_NOT_FOUND;
     }
@@ -770,8 +768,8 @@ void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcep
 
 uint32_t RSClientToServiceConnection::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
-    if (screenManagerAgent_ == nullptr) {
-        return StatusCode::SCREEN_MANAGER_NULL;
+    if (!screenManagerAgent_) {
+        return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetScreenActiveMode(id, modeId);
 }
@@ -927,7 +925,7 @@ int32_t RSClientToServiceConnection::GetCurrentRefreshRateMode()
 int32_t RSClientToServiceConnection::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_MANAGER_NULL;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetPhysicalScreenResolution(id, width, height);
 }
@@ -937,39 +935,23 @@ int32_t RSClientToServiceConnection::SetVirtualScreenResolution(ScreenId id, uin
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return StatusCode::SCREEN_NOT_FOUND;
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->SetVirtualScreenResolution(id, width, height); }).get();
-#else
-        return StatusCode::SCREEN_NOT_FOUND;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->SetVirtualScreenResolution(id, width, height); }).get();
-    } else {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
+    return screenManagerAgent_->SetVirtualScreenResolution(id, width, height);
 }
 
 int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
-    // if (!screenManager_) {
-    //     return StatusCode::SCREEN_MANAGER_NULL;
-    // }
-    // return screenManager_->SetRogScreenResolution(id, width, height);
-    return 0; // ??? todo
+    if (!screenManagerAgent_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->SetRogScreenResolution(id, width, height);
 }
 
 int32_t RSClientToServiceConnection::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
 {
-    // if (!screenManager_) {
-    //     return StatusCode::SCREEN_MANAGER_NULL;
-    // }
-    // return screenManager_->GetRogScreenResolution(id, width, height);
-    return 0; // ??? todo
+    if (!screenManagerAgent_) {
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManagerAgent_->GetRogScreenResolution(id, width, height);
 }
 
 ErrCode RSClientToServiceConnection::MarkPowerOffNeedProcessOneFrame()
@@ -1038,7 +1020,7 @@ ErrCode RSClientToServiceConnection::RepaintEverything()
 
 void RSClientToServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         RS_LOGE("%{public}s: screenManagerAgent_ is nullptr", __func__);
         return;
     }
@@ -1047,7 +1029,7 @@ void RSClientToServiceConnection::DisablePowerOffRenderControl(ScreenId id)
 
 void RSClientToServiceConnection::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
 {
-    if (screenManagerAgent_ == nullptr || renderServiceAgent_ == nullptr) {
+    if (!screenManagerAgent_ || renderServiceAgent_ == nullptr) {
         RS_LOGE("%{public}s screenManager or renderServiceAgent is null, id: %{public}" PRIu64, __func__, id);
         return;
     }
@@ -1085,7 +1067,7 @@ void RSClientToServiceConnection::UnRegisterApplicationAgent(sptr<IApplicationAg
 
 RSVirtualScreenResolution RSClientToServiceConnection::GetVirtualScreenResolution(ScreenId id)
 {
-    if (screenManagerAgent_ == nullptr) {
+    if (!screenManagerAgent_) {
         return RSVirtualScreenResolution();
     }
     return screenManagerAgent_->GetVirtualScreenResolution(id);;
@@ -1096,18 +1078,7 @@ ErrCode RSClientToServiceConnection::GetScreenActiveMode(uint64_t id, RSScreenMo
     if (!screenManagerAgent_) {
         return ERR_INVALID_VALUE;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        // RSHardwareThread::Instance().ScheduleTask(
-            // [=, &screenModeInfo]() { return screenManagerAgent_->GetScreenActiveMode(id, screenModeInfo); }).wait();
-#else
-        return screenModeInfo;
-#endif
-    } else if (mainThread_ != nullptr) {
-        mainThread_->ScheduleTask(
-            [=, &screenModeInfo]() { return screenManagerAgent_->GetScreenActiveMode(id, screenModeInfo); }).wait();
-    }
+    screenManagerAgent_->GetScreenActiveMode(id, screenModeInfo);
     return ERR_OK;
 }
 
@@ -1219,21 +1190,7 @@ ErrCode RSClientToServiceConnection::GetScreenPowerStatus(uint64_t screenId, uin
         status = ScreenPowerStatus::INVALID_POWER_STATUS;
         return ERR_INVALID_VALUE;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        // status = RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->GetScreenPowerStatus(screenId); }).get();
-#else
-        status = ScreenPowerStatus::INVALID_POWER_STATUS;
-#endif
-    } else if (mainThread_ != nullptr) {
-        status = mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->GetScreenPowerStatus(screenId); }).get();
-    } else {
-        status = ScreenPowerStatus::INVALID_POWER_STATUS;
-        return ERR_INVALID_VALUE;
-    }
+    status = screenManagerAgent_->GetScreenPowerStatus(screenId);
     return ERR_OK;
 }
 
@@ -1243,21 +1200,7 @@ RSScreenData RSClientToServiceConnection::GetScreenData(ScreenId id)
     if (!screenManagerAgent_) {
         return screenData;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return screenData;
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->GetScreenData(id); }).get();
-#else
-        return screenData;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->GetScreenData(id); }).get();
-    } else {
-        return screenData;
-    }
+    return screenManagerAgent_->GetScreenData(id);
 }
 
 ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t id, int32_t& level)
@@ -1266,21 +1209,7 @@ ErrCode RSClientToServiceConnection::GetScreenBacklight(uint64_t id, int32_t& le
         level = INVALID_BACKLIGHT_VALUE;
         return ERR_INVALID_VALUE;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        // level = RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->GetScreenBacklight(id); }).get();
-#else
-        level = INVALID_BACKLIGHT_VALUE;
-#endif
-    } else if (mainThread_ != nullptr) {
-        level = mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->GetScreenBacklight(id); }).get();
-    } else {
-        level = INVALID_BACKLIGHT_VALUE;
-        return ERR_INVALID_VALUE;
-    }
+    level = screenManagerAgent_->GetScreenBacklight(id);
     return ERR_OK;
 }
 
@@ -1290,16 +1219,7 @@ void RSClientToServiceConnection::SetScreenBacklight(ScreenId id, uint32_t level
         RS_LOGE("%{public}s screenManagerAgent_ is nullptr.", __func__);
         return;
     }
-
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        screenManagerAgent_->SetScreenBacklight(id, level);
-#endif
-    } else if (mainThread_ != nullptr) {
-        mainThread_->ScheduleTask(
-            [=]() { screenManagerAgent_->SetScreenBacklight(id, level); }).wait();
-    }
+    screenManagerAgent_->SetScreenBacklight(id, level);
 }
 
 int32_t RSClientToServiceConnection::GetScreenSupportedColorGamuts(ScreenId id, std::vector<ScreenColorGamut>& mode)
@@ -1315,21 +1235,7 @@ int32_t RSClientToServiceConnection::GetScreenSupportedMetaDataKeys(ScreenId id,
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return StatusCode::SCREEN_NOT_FOUND;
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=, &keys]() { return screenManagerAgent_->GetScreenSupportedMetaDataKeys(id, keys); }).get();
-#else
-        return StatusCode::SCREEN_NOT_FOUND;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=, &keys]() { return screenManagerAgent_->GetScreenSupportedMetaDataKeys(id, keys); }).get();
-    } else {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
+    return screenManagerAgent_->GetScreenSupportedMetaDataKeys(id, keys);
 }
 
 int32_t RSClientToServiceConnection::GetScreenColorGamut(ScreenId id, ScreenColorGamut& mode)
@@ -1353,26 +1259,11 @@ int32_t RSClientToServiceConnection::SetScreenGamutMap(ScreenId id, ScreenGamutM
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return StatusCode::SCREEN_NOT_FOUND;
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->SetScreenGamutMap(id, mode); }).get();
-#else
-        return StatusCode::SCREEN_NOT_FOUND;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->SetScreenGamutMap(id, mode); }).get();
-    } else {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
+    return screenManagerAgent_->SetScreenGamutMap(id, mode);
 }
 
 int32_t RSClientToServiceConnection::SetScreenCorrection(ScreenId id, ScreenRotation screenRotation)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
@@ -1381,7 +1272,6 @@ int32_t RSClientToServiceConnection::SetScreenCorrection(ScreenId id, ScreenRota
 
 bool RSClientToServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManagerAgent_) {
         return false;
     }
@@ -1391,14 +1281,13 @@ bool RSClientToServiceConnection::SetVirtualMirrorScreenCanvasRotation(ScreenId 
 int32_t RSClientToServiceConnection::SetVirtualScreenAutoRotation(ScreenId id, bool isAutoRotation)
 {
     if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_MANAGER_NULL;
+        return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManagerAgent_->SetVirtualScreenAutoRotation(id, isAutoRotation);
 }
 
 bool RSClientToServiceConnection::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenScaleMode scaleMode)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManagerAgent_) {
         return false;
     }
@@ -1410,26 +1299,11 @@ int32_t RSClientToServiceConnection::GetScreenGamutMap(ScreenId id, ScreenGamutM
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        return StatusCode::SCREEN_NOT_FOUND;
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [=, &mode]() { return screenManagerAgent_->GetScreenGamutMap(id, mode); }).get();
-#else
-        return StatusCode::SCREEN_NOT_FOUND;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [=, &mode]() { return screenManagerAgent_->GetScreenGamutMap(id, mode); }).get();
-    } else {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
+    return screenManagerAgent_->GetScreenGamutMap(id, mode);
 }
 
 int32_t RSClientToServiceConnection::GetScreenHDRCapability(ScreenId id, RSScreenHDRCapability& screenHdrCapability)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
@@ -1528,7 +1402,6 @@ ErrCode RSClientToServiceConnection::SetScreenColorSpace(
 
 int32_t RSClientToServiceConnection::GetScreenType(ScreenId id, RSScreenType& screenType)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
@@ -1603,7 +1476,6 @@ bool RSClientToServiceConnection::UnRegisterTypeface(uint64_t globalUniqueId)
 int32_t RSClientToServiceConnection::GetDisplayIdentificationData(ScreenId id, uint8_t& outPort,
     std::vector<uint8_t>& edidData)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
@@ -1616,22 +1488,7 @@ ErrCode RSClientToServiceConnection::SetScreenSkipFrameInterval(uint64_t id, uin
         resCode = StatusCode::SCREEN_NOT_FOUND;
         return ERR_INVALID_VALUE;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        // resCode = RSHardwareThread::Instance().ScheduleTask(
-        //     [=]() { return screenManagerAgent_->SetScreenSkipFrameInterval(id, skipFrameInterval); }).get();
-#else
-        resCode = StatusCode::SCREEN_NOT_FOUND;
-#endif
-    } else {
-        if (!mainThread_) {
-            resCode = StatusCode::INVALID_ARGUMENTS;
-            return ERR_INVALID_VALUE;
-        }
-        resCode = mainThread_->ScheduleTask(
-            [=]() { return screenManagerAgent_->SetScreenSkipFrameInterval(id, skipFrameInterval); }).get();
-    }
+    resCode = screenManagerAgent_->SetScreenSkipFrameInterval(id, skipFrameInterval);
     return ERR_OK;
 }
 
@@ -1840,35 +1697,7 @@ int32_t RSClientToServiceConnection::ResizeVirtualScreen(ScreenId id, uint32_t w
     if (!screenManagerAgent_) {
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
-    if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-#ifdef RS_ENABLE_GPU
-        // return RSHardwareThread::Instance().ScheduleTask(
-        //     [weakThis = wptr<RSClientToServiceConnection>(this), id, width, height]() -> int32_t {
-        //         sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        //         if (connection == nullptr || connection->screenManagerAgent_ == nullptr) {
-        //             return RS_CONNECTION_ERROR;
-        //         }
-        //         return connection->screenManagerAgent_->ResizeVirtualScreen(id, width, height);
-        //     }
-        // ).get();
-        return StatusCode::SCREEN_NOT_FOUND;
-#else
-        return StatusCode::SCREEN_NOT_FOUND;
-#endif
-    } else if (mainThread_ != nullptr) {
-        return mainThread_->ScheduleTask(
-            [weakThis = wptr<RSClientToServiceConnection>(this), id, width, height]() -> int32_t {
-                sptr<RSClientToServiceConnection> connection = weakThis.promote();
-                if (connection == nullptr || connection->screenManagerAgent_ == nullptr) {
-                    return RS_CONNECTION_ERROR;
-                }
-                return connection->screenManagerAgent_->ResizeVirtualScreen(id, width, height);
-            }
-        ).get();
-    } else {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
+    return screenManagerAgent_->ResizeVirtualScreen(id, width, height);
 }
 
 ErrCode RSClientToServiceConnection::ReportJankStats()
@@ -1899,7 +1728,7 @@ ErrCode RSClientToServiceConnection::NotifyLightFactorStatus(int32_t lightFactor
 
 void RSClientToServiceConnection::NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList)
 {
-    if (renderServiceAgent_ == nullptr || renderProcessManagerAgent_ == nullptr || screenManagerAgent_ == nullptr) {
+    if (!renderServiceAgent_ || !renderProcessManagerAgent_ || !screenManagerAgent_) {
         RS_LOGE("%{public}s renderServiceAgent_ or renderProcessManagerAgent_ "
             "or screenManagerAgent_ is nullptr", __func__);
         return;
@@ -2336,15 +2165,15 @@ int32_t RSClientToServiceConnection::RegisterUIExtensionCallback(uint64_t userId
 }
 
 ErrCode RSClientToServiceConnection::SetVirtualScreenStatus(ScreenId id,
-    VirtualScreenStatus screenStatus, bool& success)
+    VirtualScreenStatus screenStatus, bool& res)
 {
     if (!screenManagerAgent_) {
-        success = false;
+        res = false;
         return StatusCode::SCREEN_NOT_FOUND;
     }
     RS_LOGD("SetVirtualScreenStatus ScreenId:%{public}" PRIu64 " screenStatus:%{public}d",
         id, screenStatus);
-    success = screenManagerAgent_->SetVirtualScreenStatus(id, screenStatus);
+    res = screenManagerAgent_->SetVirtualScreenStatus(id, screenStatus);
     return StatusCode::SUCCESS;
 }
 

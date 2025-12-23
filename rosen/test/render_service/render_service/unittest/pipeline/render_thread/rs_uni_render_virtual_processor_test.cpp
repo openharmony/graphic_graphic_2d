@@ -62,6 +62,7 @@ public:
     std::shared_ptr<RSScreenRenderNode> rsScreenRenderNode_ = nullptr;
     RSScreenRenderNodeDrawable* screenDrawable_ = nullptr;
     RSLogicalDisplayRenderNodeDrawable* displayDrawable_ = nullptr;
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
     RSDisplayNodeConfig config_;
     NodeId nodeId_ = 0;
@@ -163,11 +164,11 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, Init001, TestSize.Level2)
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level1)
 {
-    auto screenManager = CreateOrGetScreenManager();
+
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
-    screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
+    auto screenId = screenManager_->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
+    screenManager_->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
@@ -219,11 +220,10 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
  */
 HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level1)
 {
-    auto screenManager = CreateOrGetScreenManager();
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
-    screenManager->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
+    auto screenId = screenManager_->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
+    screenManager_->SetVirtualScreenStatus(screenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY);
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
@@ -261,7 +261,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level
     virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
     
-    screenManager->SetVirtualScreenAutoRotation(screenId, true);
+    screenManager_->SetVirtualScreenAutoRotation(screenId, true);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
 
     virtualRenderDrawable->SetFirstBufferRotation(ScreenRotation::ROTATION_90);
@@ -269,7 +269,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread002, TestSize.Level
     virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
     mainRenderParams->SetNewColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     virtualProcessor->InitForRenderThread(*mainRenderDrawable, renderEngine);
-    screenManager->RemoveVirtualScreen(screenId);
+    screenManager_->RemoveVirtualScreen(screenId);
 }
 
 /**
