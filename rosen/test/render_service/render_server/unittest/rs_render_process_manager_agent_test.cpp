@@ -16,10 +16,9 @@
 #include "gtest/gtest.h"
 
 #include "parameters.h"
-#include "rs_render_process_manager_agent.h"
-#include "rs_render_multi_process_manager.h"
-#include "rs_render_service.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "rs_render_process_manager_agent.h"
+#include "rs_render_service.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -29,7 +28,6 @@ namespace {
 RSRenderService renderService;
 static inline sptr<RSRenderProcessManagerAgent> rsManager_ = nullptr;
 static inline sptr<RSRenderProcessManagerAgent> rsManager1_ = nullptr;
-
 }
 class RSRenderProcessManagerAgentTest : public testing::Test {
 public:
@@ -42,7 +40,7 @@ public:
 void RSRenderProcessManagerAgentTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init_V2();
+    renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     rsManager_ = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     rsManager1_ = sptr<RSRenderProcessManagerAgent>::MakeSptr(nullptr);
@@ -51,36 +49,6 @@ void RSRenderProcessManagerAgentTest::SetUpTestCase()
 void RSRenderProcessManagerAgentTest::TearDownTestCase() {}
 void RSRenderProcessManagerAgentTest::SetUp() {}
 void RSRenderProcessManagerAgentTest::TearDown() {}
-
-/**
- * @tc.name: HandleHwcPackageEventTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderProcessManagerAgentTest, HandleHwcPackageEventTest, TestSize.Level1)
-{
-    uint32_t listSize = 1;
-    std::vector<std::string> packageList = {"a", "b"};
-    rsManager_->HandleHwcPackageEvent(listSize, packageList);
-    ASSERT_TRUE(rsManager_);
-}
-
-/**
- * @tc.name: RegisterTypefaceTest
- * @tc.desc: Test
- * @tc.type: FUNC
- * @tc.require: issueIBRN69
- */
-HWTEST_F(RSRenderProcessManagerAgentTest, RegisterTypefaceTest, TestSize.Level1)
-{
-    uint64_t globalUniqueId = 1;
-    std::shared_ptr<Drawing::Typeface> typeface = nullptr;
-    ASSERT_TRUE(rsManager_->RegisterTypeface(globalUniqueId, typeface));
-    ASSERT_TRUE(rsManager_->UnRegisterTypeface(globalUniqueId));
-    ASSERT_FALSE(rsManager1_->RegisterTypeface(globalUniqueId, typeface));
-    ASSERT_FALSE(rsManager1_->UnRegisterTypeface(globalUniqueId));
-}
 
 /**
  * @tc.name: GetServiceToRenderConnTest
@@ -93,6 +61,8 @@ HWTEST_F(RSRenderProcessManagerAgentTest, GetServiceToRenderConnTest, TestSize.L
     ScreenId screenId = 1;
     rsManager_->GetServiceToRenderConn(screenId);
     rsManager_->GetServiceToRenderConns();
+    ASSERT_EQ(rsManager1_->GetServiceToRenderConn(screenId), nullptr);
+    ASSERT_TRUE(rsManager1_->GetServiceToRenderConns().empty());
     ASSERT_TRUE(rsManager_);
 }
 } // namespace OHOS::Rosen

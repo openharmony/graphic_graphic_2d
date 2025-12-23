@@ -17,6 +17,7 @@
 
 #include <refbase.h>
 #include <iremote_broker.h>
+
 #include "parameters.h"
 #include "rs_render_service_agent.h"
 #include "rs_render_process_manager.h"
@@ -25,6 +26,7 @@
 #include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_to_composer_connection.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "rs_render_composer_agent.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,7 +47,7 @@ public:
 void RenderServiceAgentTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init_V2();
+    renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     rsAgent_ = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
 }
@@ -80,7 +82,7 @@ HWTEST_F(RenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
     int32_t vsyncId = 1;
     std::unordered_set<ScreenId> screenIds = {1, 2, 3};
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    sptr<HgmProcessToServiceInfo> serviceToProcessInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
+    sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
     rsAgent_->ProcessHgmFrameRate(timeStamp, vsyncId, screenIds, processToServiceInfo, serviceToProcessInfo);
     ASSERT_TRUE(rsAgent_);
 }

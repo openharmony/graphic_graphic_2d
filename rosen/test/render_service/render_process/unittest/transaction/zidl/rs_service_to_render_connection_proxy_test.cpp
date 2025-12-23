@@ -19,9 +19,9 @@
 #include <iremote_stub.h>
 #include <iservice_registry.h>
 #include <mutex>
+#include <refbase.h>
 #include <system_ability_definition.h>
 #include <unistd.h>
-#include <refbase.h>
 
 #include "transaction/zidl/rs_service_to_render_connection_proxy.h"
 

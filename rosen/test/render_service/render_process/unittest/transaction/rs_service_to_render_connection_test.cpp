@@ -16,14 +16,15 @@
 #include "gtest/gtest.h"
 
 #include <iremote_broker.h>
-#include "transaction/rs_service_to_render_connection.h"
-#include "rs_render_process_manager.h"
-#include "rs_render_service.h"
-#include "screen_manager/rs_screen_manager.h"
-#include "rs_render_to_composer_connection_proxy.h"
+
 #include "irs_render_to_composer_connection.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "rs_render_process_manager.h"
+#include "rs_render_service.h"
+#include "rs_render_to_composer_connection_proxy.h"
 #include "rs_render_single_process_manager.h"
+#include "screen_manager/rs_screen_manager.h"
+#include "transaction/rs_service_to_render_connection.h"
 
 using namespace testing;
 using namespace testing::ext;

@@ -19,12 +19,12 @@
 #include <iremote_stub.h>
 #include <iservice_registry.h>
 #include <mutex>
+#include <refbase.h>
 #include <system_ability_definition.h>
 #include <unistd.h>
-#include <refbase.h>
 
-#include "transaction/zidl/rs_render_to_service_connection_proxy.h"
 #include "rs_render_pipeline.h"
+#include "transaction/zidl/rs_render_to_service_connection_proxy.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -51,12 +51,12 @@ void RSRenderToServiceConnectionProxyTest::SetUp() {}
 void RSRenderToServiceConnectionProxyTest::TearDown() {}
 
 /**
- * @tc.name: NotifyRenderServiceProcessHgmFrameRateTest
+ * @tc.name: NotifyRpHgmFrameRateTest
  * @tc.desc: Test
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderToServiceConnectionProxyTest, NotifyRenderServiceProcessHgmFrameRateTest, TestSize.Level1)
+HWTEST_F(RSRenderToServiceConnectionProxyTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
 {
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
@@ -67,6 +67,6 @@ HWTEST_F(RSRenderToServiceConnectionProxyTest, NotifyRenderServiceProcessHgmFram
         screenIds.insert(i);
     }
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    ASSERT_TRUE(proxy->NotifyRenderServiceProcessHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo));
+    ASSERT_TRUE(proxy->NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo));
 }
 } // namespace OHOS::Rosen

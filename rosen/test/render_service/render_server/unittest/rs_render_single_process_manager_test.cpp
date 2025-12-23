@@ -15,21 +15,19 @@
 
 #include "gtest/gtest.h"
 
-#include "rs_render_single_process_manager.h"
-
 #include "dfx/rs_service_dump_manager.h"
 #include "dfx/rs_process_dump_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "rs_render_single_process_manager.h"
 #include "rs_render_pipeline.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
 #include "rs_profiler.h"
 #include "rs_render_service.h"
-
 #include "rs_render_to_composer_connection.h"
 #include "rs_render_composer_agent.h"
 #include "rs_render_composer_manager.h"
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_connect_to_render_process.h"
@@ -53,7 +51,7 @@ public:
 
 void RSRenderSingleProcessManagerTest::SetUpTestCase()
 {
-    OHOS::system::SetParameter("bootevent.samgr.ready", false);
+    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }

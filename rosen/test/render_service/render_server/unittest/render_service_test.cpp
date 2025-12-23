@@ -45,7 +45,7 @@ public:
 void RenderServiceTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
-    renderService.Init_V2();
+    renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 

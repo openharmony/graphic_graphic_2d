@@ -16,12 +16,13 @@
 #include <gtest/gtest.h>
 
 #include "parameters.h"
-#include "transaction/zidl/rs_irender_to_service_connection_stub.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_process_manager_agent.h"
 #include "rs_render_service_agent.h"
+#include "screen_manager/public/rs_screen_manager_agent.h"
 #include "transaction/zidl/rs_irender_to_service_connection_ipc_interface_code.h"
+#include "transaction/zidl/rs_render_to_service_connection_stub.h"
 #include "transaction/rs_render_to_service_connection.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -43,13 +44,16 @@ public:
 
 void RSRenderToServiceConnectionStubTest::SetUpTestCase()
 {
-    OHOS::system::SetParameter("bootevent.samgr.ready", false);
+    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<RSRenderServiceAgent> rsRenderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    connectionStub_ = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent);
+    auto rsScreenManager = RSScreenManager::GetInstance();
+    sptr<RSScreenManagerAgent> screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(rsScreenManager);
+    connectionStub_ = sptr<RSRenderToServiceConnection>::MakeSptr(rsRenderServiceAgent,
+        renderProcessManagerAgent, screenManagerAgent);
 }
 void RSRenderToServiceConnectionStubTest::TearDownTestCase() {}
 void RSRenderToServiceConnectionStubTest::SetUp() {}
@@ -73,8 +77,8 @@ HWTEST_F(RSRenderToServiceConnectionStubTest, TestRSRenderToServiceConnectionStu
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
     data.WriteInt32(sizes);
-    data.WriteUint64_t(timestamp);
-    data.WriteUint64_t(vsyncId);
+    data.WriteUint64(timestamp);
+    data.WriteUint64(vsyncId);
     for (uint64_t i = 0; i < sizes; ++i) {
         data.WriteUint64(i);
     }

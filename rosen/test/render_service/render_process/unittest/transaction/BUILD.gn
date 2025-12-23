@@ -197,13 +197,13 @@ ohos_unittest("RSServiceToRenderConnectionTest") {
 
     external_deps = [
         "c_utils:utils",
-        "memmgr:memmgrclient",
         "eventhandler:libeventhandler",
         "hilog:libhilog",
         "hisysevent:libhisysevent",
         "hitrace:hitrace_meter",
         "init:libbegetutil",
         "ipc:ipc_core",
+        "memmgr:memmgrclient",
         "samgr:samgr_proxy",
         "skia:skia_canvaskit",
     ]

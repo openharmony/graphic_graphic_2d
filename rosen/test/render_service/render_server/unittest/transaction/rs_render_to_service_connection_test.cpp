@@ -15,17 +15,18 @@
 
 #include <gtest/gtest.h>
 
-#include <refbase.h>
 #include <iremote_broker.h>
+#include <refbase.h>
 
+#include "irs_render_to_composer_connection.h"
 #include "parameters.h"
-#include "transaction/rs_render_to_service_connection.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_process_manager.h"
 #include "rs_render_service.h"
-#include "screen_manager/rs_screen_manager.h"
 #include "rs_render_to_composer_connection_proxy.h"
-#include "irs_render_to_composer_connection.h"
-#include "pipeline/render_thread/rs_uni_render_thread.h"
+#include "screen_manager/rs_screen_manager.h"
+#include "screen_manager/public/rs_screen_manager_agent.h"
+#include "transaction/rs_render_to_service_connection.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -43,32 +44,61 @@ public:
     void TearDown() override;
 };
 
-void RSRenderToServiceConnectionTest::SetUpTestCase()
+void RSRenderToServiceConnectionStubTest::SetUpTestCase()
 {
-    OHOS::system::SetParameter("bootevent.samgr.ready", false);
+    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    rsConn_ = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent, renderProcessManagerAgent);
+    auto rsScreenManager = RSScreenManager::GetInstance();
+    sptr<RSScreenManagerAgent> screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(rsScreenManager);
+    rsConn_ = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
+        renderProcessManagerAgent, screenManagerAgent);
 }
 void RSRenderToServiceConnectionTest::TearDownTestCase() {}
 void RSRenderToServiceConnectionTest::SetUp() {}
 void RSRenderToServiceConnectionTest::TearDown() {}
 
 /**
- * @tc.name: GetRealtimeRefreshRateTest
+ * @tc.name: ReplyDumpResultToServiceTest
  * @tc.desc: Test
  * @tc.type: FUNC
  * @tc.require: issueIBRN69
  */
-HWTEST_F(RSRenderToServiceConnectionTest, GetRealtimeRefreshRateTest, TestSize.Level1)
+HWTEST_F(RSRenderToServiceConnectionTest, ReplyDumpResultToServiceTest, TestSize.Level1)
+{
+    std::string dumpString = "dump";
+    rsConn_->ReplyDumpResultToService(dumpString);
+    ASSERT_TRUE(rsConn_);
+}
+
+/**
+ * @tc.name: NotifyRpHgmFrameRateTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderToServiceConnectionTest, NotifyRpHgmFrameRateTest, TestSize.Level1)
 {
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
     std::unordered_set<ScreenId> screenIds = {1, 2, 3};
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    ASSERT_TRUE(rsConn_->NotifyRenderServiceProcessHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo));
+    ASSERT_TRUE(rsConn_->NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo));
+}
+
+/**
+ * @tc.name: NotifyScreenSwitchFinishedTest
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require: issueIBRN69
+ */
+HWTEST_F(RSRenderToServiceConnectionTest, NotifyScreenSwitchFinishedTest, TestSize.Level1)
+{
+    ScreenId screenId = 1;
+    rsConn_->NotifyScreenSwitchFinished(screenId);
+    ASSERT_TRUE(rsConn_);
 }
 } // namespace OHOS::Rosen
