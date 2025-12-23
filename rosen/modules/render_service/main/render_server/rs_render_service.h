@@ -78,10 +78,9 @@ private:
 
     void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
     void InitCCMConfig();
-    // RS Filter CCM init
-    void FilterCCMInit();
 
     void CoreComponentsInit();
+    void HgmInit();
     void FeatureComponentInit();
     void VsyncComponentInit();
     void RenderProcessManagerInit();
@@ -105,6 +104,7 @@ private:
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
     std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
+    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
 
     // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
@@ -119,8 +119,6 @@ private:
     mutable std::mutex mutex_;
     std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
         connections_;
-
-    std::shared_ptr<RSServiceDumper> rsDumper_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

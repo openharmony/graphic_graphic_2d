@@ -14,6 +14,14 @@
  */
 
 #include "filter_param_parse.h"
+
+#include "filter_param.h"
+#include "ge_mesa_blur_shader_filter.h"
+#include "platform/common/rs_system_properties.h"
+#include "property/rs_properties.h"
+#include "render/rs_render_kawase_blur_filter.h"
+#include "system/rs_system_parameters.h"
+
 #define XML_KEY_NAME "name"
 #define XML_KEY_VALUE "value"
 #define XML_PARAM_FILTER_CACHE_ENABLED "FilterCacheEnabled"
@@ -45,6 +53,7 @@ int32_t FilterParamParse::ParseFeatureParam(FeatureParamMapType &featureMap, xml
         }
     }
 
+    FilterCCMInit();
     return PARSE_EXEC_SUCCESS;
 }
 
@@ -82,5 +91,15 @@ int32_t FilterParamParse::ParseFilterCacheInternal(xmlNode &node)
     }
 
     return PARSE_EXEC_SUCCESS;
+}
+
+void FilterParamParse::FilterCCMInit()
+{
+    RSFilterCacheManager::isCCMFilterCacheEnable_ = FilterParam::IsFilterCacheEnable();
+    RSFilterCacheManager::isCCMEffectMergeEnable_ = FilterParam::IsEffectMergeEnable();
+    RSProperties::SetFilterCacheEnabledByCCM(RSFilterCacheManager::isCCMFilterCacheEnable_);
+    RSProperties::SetBlurAdaptiveAdjustEnabledByCCM(FilterParam::IsBlurAdaptiveAdjust());
+    RSKawaseBlurShaderFilter::SetMesablurAllEnabledByCCM(FilterParam::IsMesablurAllEnable());
+    GEMESABlurShaderFilter::SetMesaModeByCCM(FilterParam::GetSimplifiedMesaMode());
 }
 } // namespace OHOS::Rosen

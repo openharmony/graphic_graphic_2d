@@ -23,13 +23,9 @@
 #define LOG_TAG "ComposerManager"
 namespace OHOS {
 namespace Rosen {
-RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler) :
-    handler_(handler) {}
-
-void RSRenderComposerManager::InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
-{
-    rsVsyncManagerAgent_ = rsVsyncManagerAgent;
-}
+RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler,
+    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent)
+    : handler_(handler), rsVsyncManagerAgent_(rsVsyncManagerAgent) {}
 
 void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
     const sptr<RSScreenProperty>& property)

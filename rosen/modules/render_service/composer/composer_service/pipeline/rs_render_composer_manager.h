@@ -23,7 +23,8 @@
 namespace OHOS::Rosen {
 class RSRenderComposerManager {
 public:
-    RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler);
+    RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler,
+        sptr<RSVsyncManagerAgent> rsVsyncManagerAgent);
     ~RSRenderComposerManager() = default;
 
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
@@ -41,7 +42,6 @@ public:
     void HitchsDump(std::string& dumpString, std::string& arg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
-    void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
 
 private:
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap_;
