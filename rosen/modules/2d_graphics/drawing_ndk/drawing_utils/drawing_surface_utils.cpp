@@ -328,7 +328,7 @@ void DrawingSurfaceUtils::RemoveSurface(Drawing::Surface* surface)
             EGLSurface eglSurface = (iter->second).second;
             renderContext->DestroyEGLSurface(eglSurface);
         } else {
-            LOGE("RemoveSurface: get renderContext failed.");
+            LOGD("RemoveSurface: get renderContext failed.");
         }
         g_eglSurfaceMap.erase(iter);
     }
