@@ -38,7 +38,6 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
-#include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -1214,7 +1213,7 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, MultiScreenParam::GetMipmapMode());
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
 }
@@ -1226,7 +1225,7 @@ void RSUniRenderUtil::ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, MultiScreenParam::GetMipmapMode());
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImageRect(cacheImageProcessed, src, dst, sampling, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 }
@@ -1242,7 +1241,7 @@ void RSUniRenderUtil::ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& c
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.Save();
     // Use Fill Mode
     const float scaleX = rect.GetWidth() / cacheImageProcessed.GetWidth();

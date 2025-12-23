@@ -15,243 +15,13 @@
 
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
-#include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
-#include "ui_effect/property/include/rs_ui_filter_base.h"
-#include "ui_effect/property/include/rs_ui_mask_base.h"
+#include "ng_sdf_test_utils.h"
+#include "ng_filter_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-
-using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
-using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
-using FilterCreator = std::function<std::shared_ptr<RSNGFilterBase>()>;
-using FilterConvertor = std::function<std::shared_ptr<RSNGFilterBase>(std::shared_ptr<FilterPara>)>;
-
-static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
-    {RSNGEffectType::DOUBLE_RIPPLE_MASK,
-     [] {
-         return std::make_shared<RSNGDoubleRippleMask>();
-     }},
-};
-
-static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
-    {RSNGEffectType::DISPLACEMENT_DISTORT,
-     [] {
-         return std::make_shared<RSNGDispDistortFilter>();
-     }},
-    {RSNGEffectType::COLOR_GRADIENT,
-     [] {
-         return std::make_shared<RSNGColorGradientFilter>();
-     }},
-    {RSNGEffectType::FROSTED_GLASS,
-     [] {
-         return std::make_shared<RSNGFrostedGlassFilter>();
-     }},
-    {RSNGEffectType::GRID_WARP,
-     [] {
-         return std::make_shared<RSNGGridWarpFilter>();
-     }},
-};
-
-// Default values
-const Vector2f defaultBlurParams = Vector2f(48.0f, 4.0f);
-const Vector2f defaultWeightsEmboss = Vector2f(1.0f, 1.0f); // (envLight, sd)
-const Vector2f defaultWeightsEdl = Vector2f(1.0f, 1.0f); // (envLight, sd)
-const Vector3f defaultRefractParams = Vector3f(0.010834f, 0.007349f, 1.2f);
-const Vector2f defaultBgRates = Vector2f(-0.00003f, 1.2f);
-const Vector3f defaultBgKBS = Vector3f(0.010834f, 0.007349f, 1.2f);
-const Vector3f defaultBgPos = Vector3f(0.3f, 0.5f, 1.0f);
-const Vector3f defaultBgNeg = Vector3f(0.5f, 0.5f, 1.0f);
-const Vector3f defaultSdParams = Vector3f(0.0f, 2.0f, 0.0f);
-const Vector2f defaultSdRates = Vector2f(0.0f, 0.0f);
-const Vector3f defaultSdKBS = Vector3f(-0.02f, 2.0f, 4.62f);
-const Vector3f defaultSdPos = Vector3f(1.0f, 1.5f, 2.0f);
-const Vector3f defaultSdNeg = Vector3f(1.7f, 3.0f, 1.0f);
-const Vector3f defaultEnvLightParams = Vector3f(0.8f, 0.2745f, 2.0f);
-const Vector2f defaultEnvLightRates = Vector2f(0.0f, 0.0f);
-const Vector3f defaultEnvLightKBS = Vector3f(0.8f, 0.2745f, 2.0f);
-const Vector3f defaultEnvLightPos = Vector3f(1.0f, 1.5f, 2.0f);
-const Vector3f defaultEnvLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
-const Vector2f defaultEdLightParams = Vector2f(2.0f, -1.0f);
-const Vector2f defaultEdLightAngles = Vector2f(30.0f, 30.0f);
-const Vector2f defaultEdLightDir = Vector2f(-1.0f, 1.0f);
-const Vector2f defaultEdLightRates = Vector2f(0.0f, 0.0f);
-const Vector3f defaultEdLightKBS = Vector3f(0.6027f, 0.64f, 2.0f);
-const Vector3f defaultEdLightPos = Vector3f(1.0f, 1.5f, 2.0f);
-const Vector3f defaultEdLightNeg = Vector3f(1.7f, 3.0f, 1.0f);
- 
-// Param arrays
-std::vector<Vector2f> blurparamsParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector2f> weightsEmbossParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector2f> weightsEdlParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector2f> bgRatesParams = {
-    Vector2f{2.0f, -1.0f},
-    Vector2f{0.0f, -1.0f},
-    Vector2f{-2.0f, -1.0f},
-    Vector2f{2.0f, 0.0f},
-    Vector2f{2.0f, 1.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), -1.0f}
-};
-
-std::vector<Vector3f> bgKBSParams = {
-    Vector3f{0.8f, 70.0f, 2.0f},
-    Vector3f{0.0f, 70.0f, 2.0f},
-    Vector3f{1.0f, 70.0f, 2.0f},
-    Vector3f{0.8f, 0.0f, 2.0f},
-    Vector3f{0.8f, 180.0f, 2.0f},
-    Vector3f{0.8f, 70.0f, 0.0f},
-    Vector3f{std::numeric_limits<float>::infinity(), 70.0f, 2.0f}
-};
-
-std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)
-{
-    auto it = creatorMask.find(type);
-    return it != creatorMask.end() ? it->second() : nullptr;
-}
-
-std::shared_ptr<RSNGFilterBase> CreateFilter(RSNGEffectType type)
-{
-    auto it = creatorFilter.find(type);
-    return it != creatorFilter.end() ? it->second() : nullptr;
-}
-
-constexpr int DOUBLE_RIPPLE_MASK_PARAMS_COUNT = 7;
-std::vector<std::array<float, DOUBLE_RIPPLE_MASK_PARAMS_COUNT>> doubleRippleMaskParams = {
-    {-20.0f, -20.0f, -20.0f, -20.0f, -1.0f, -1.0f, -1.0f},
-    {0.15f, 0.15f, 0.15f, 0.15f, 0.4f, 0.35f, 0.75f},
-    {0.25f, 0.25f, 0.75f, 0.75f, 0.5f, 0.5f, 0.5f},
-    {0.15f, 0.15f, 0.65f, 0.65f, 0.8f, 0.15f, 0.35f},
-    {10.0f, 10.0f, 0.75f, 0.75f, 0.5f, 0.5f, 12.0f},
-    {20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f, 20.0f},
-};
-
-constexpr int DISPLACEMENT_DISTORT_PARAMS_COUNT = 2;
-std::vector<std::array<float, DISPLACEMENT_DISTORT_PARAMS_COUNT>> displacementDistortParams = {
-    {-1, -1}, {6.0f, 6.0f}, {6.0f, 6.0f}, {10.0f, 10.0f}, {3.0f, 7.0f}, {999.0f, 999.0f}
-};
-
-constexpr int COLOR_GRADIENT_PARAMS_COUNT = 7;
-std::vector<std::array<float, COLOR_GRADIENT_PARAMS_COUNT>> colorGradientParams = {
-    {-1, -1, -1, -1, -1, -1, -1},
-    {0.5f, 0.6f, 0.9f, 0.9f, 0.9f, 0.9f, 3.0f},
-    {0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 0.3f, 1.5f},
-    {0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 0.9f, 3.0f},
-    {0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f, 0.6f},
-    {999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f, 999.0f},
-};
-
-constexpr int GRID_WARP_POINT_PARAMS_COUNT = 9;
-std::vector<std::array<Vector2f, GRID_WARP_POINT_PARAMS_COUNT>> gridWarpPointParams = {
-    {
-        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f },
-        Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.5f, 0.5f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, -0.1f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ -0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.1f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.1f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.5f, 0.1f }, Vector2f{ 1.0f, 0.0f },
-        Vector2f{ 0.1f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 0.9f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 0.9f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 1.0f, 0.5f },
-        Vector2f{ 0.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 1.0f, 1.0f }
-    },
-    {
-        Vector2f{ -999.0f, 0.0f }, Vector2f{ 0.5f, 0.0f }, Vector2f{ 999.0f, 0.0f },
-        Vector2f{ -999.0f, 0.5f }, Vector2f{ 0.5f, 0.5f }, Vector2f{ 999.0f, 0.5f },
-        Vector2f{ -999.0f, 1.0f }, Vector2f{ 0.5f, 1.0f }, Vector2f{ 999.0f, 999.0f }
-    },
-};
-
-constexpr int GRID_WARP_ANGLE_PARAMS_COUNT = 9;
-std::vector<std::array<Vector2f, GRID_WARP_ANGLE_PARAMS_COUNT>> gridWarpAngleParams = {
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ -999.0f, -999.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 15.0f, 15.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-    {
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 0.0f, 0.0f },
-        Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f },
-        Vector2f{ 0.0f, 0.0f }, Vector2f{ 999.0f, 999.0f }, Vector2f{ 0.0f, 0.0f }
-    },
-};
-
-std::vector<Vector2f> blurparamsParamsForMaterialFilter = {
-    Vector2f{48.0f, 4.0f},
-    Vector2f{-48.0f, 4.0f},
-    Vector2f{std::numeric_limits<float>::max(), 4.0f},
-    Vector2f{std::numeric_limits<float>::min(), 4.0f},
-    Vector2f{std::numeric_limits<float>::infinity(), 4.0f}
-};
-
-enum class TestDataGroupParamsType {
-    INVALID_DATA_MIN,
-    VALID_DATA1,
-    VALID_DATA2,
-    VALID_DATA3,
-    INVALID_AND_VALID_DATA,
-    INVALID_DATA_MAX,
-    COUNT
-};
-
 class NGFilterTest : public RSGraphicTest {
 public:
     // called before each tests
@@ -265,6 +35,63 @@ private:
     const int screenHeight = 2000;
     const int filterParaTypeCount = static_cast<int>(FilterPara::ParaType::CONTENT_LIGHT);
 };
+
+static void InitFrostedGlassFilter(std::shared_ptr<RSNGFrostedGlassFilter>& frostedGlassFilter)
+{
+    if (frostedGlassFilter == nullptr) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    }
+
+    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(DEFAULT_BLUR_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(DEFAULT_WEIGHTS_EMBOSS);
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(DEFAULT_WEIGHTS_EDL);
+
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(DEFAULT_BG_RATES);
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(DEFAULT_BG_KBS);
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(DEFAULT_BG_POS);
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(DEFAULT_BG_NEG);
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(DEFAULT_REFRACT_PARAMS);
+
+    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(DEFAULT_SD_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(DEFAULT_SD_RATES);
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(DEFAULT_SD_KBS);
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(DEFAULT_SD_POS);
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(DEFAULT_SD_NEG);
+
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(DEFAULT_ENV_LIGHT_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(DEFAULT_ENV_LIGHT_RATES);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(DEFAULT_ENV_LIGHT_KBS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(DEFAULT_ENV_LIGHT_POS);
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(DEFAULT_ENV_LIGHT_NEG);
+
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(DEFAULT_ED_LIGHT_PARAMS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(DEFAULT_ED_LIGHT_ANGLES);
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(DEFAULT_ED_LIGHT_DIR);
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(DEFAULT_ED_LIGHT_RATES);
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(DEFAULT_ED_LIGHT_KBS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(DEFAULT_ED_LIGHT_POS);
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(DEFAULT_ED_LIGHT_NEG);
+
+    frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(DEFAULT_BASE_VIBRANCY_ENABLED);
+    frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(DEFAULT_SAMPLING_SCALE);
+}
+
+static std::shared_ptr<OHOS::Rosen::RSCanvasNode> CreateSdfChildNode(
+    const int x, const int y, const int sizeX, const int sizeY,
+    std::shared_ptr<RSNGFrostedGlassFilter>& frostedGlassFilter)
+{
+    auto childTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    childTestNode->SetBounds(bounds);
+    childTestNode->SetFrame(bounds);
+    childTestNode->SetMaterialNGFilter(frostedGlassFilter);
+
+    const RRect defaultRectParam = {RectT<float>{sizeX/4, sizeY/4, sizeX/2, sizeY/2}, sizeX/16, sizeX/16};
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
+    childTestNode->SetSDFShape(sdfShape);
+    return childTestNode;
+}
 
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test)
 {
@@ -292,7 +119,8 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test)
         
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x, y, sizeX, sizeY });
         backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
@@ -330,59 +158,35 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test)
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
     }
 }
 
-GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_Test)
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_DefaultTest)
 {
     int columnCount = 1;
     int rowCount = 1;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
  
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -393,45 +197,20 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BlurParamsTe
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(blurparamsParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -442,135 +221,68 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_WeightsEmbos
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(weightsEmbossParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-    
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_WeightsEdlTest)
 {
-    int columnCount = 1;
+    int columnCount = 2;
     int rowCount = static_cast<int>(weightsEdlParams.size());
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(weightsEdlParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
 GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgRatesTest)
 {
-    int columnCount = 1;
+    int columnCount = 2;
     int rowCount = static_cast<int>(bgRatesParams.size());
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(bgRatesParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -581,41 +293,478 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgKBSTest)
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
-
-        frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(defaultBlurParams);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-        frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-        frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
         frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(bgKBSParams[i]);
-        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-        frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-        frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-        frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-        frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
-        auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        backgroundTestNode->SetBackgroundNGFilter(frostedGlassFilter);
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
         GetRootNode()->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(bgPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassBgPosTag>(bgPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BgNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(bgNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassBgNegTag>(bgNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_RefractParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(refractParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(refractParamsParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(sdParamsParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdRatesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdRatesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(sdRatesParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdKBSTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdKBSParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(sdKBSParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdPosTag>(sdPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SdNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(sdNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSdNegTag>(sdNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightParamsTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightParamsParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(envLightParamsParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightRatesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightRatesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(envLightRatesParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightKBSTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightKBSParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(envLightKBSParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(envLightPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EnvLightNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(envLightNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(envLightNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightRatesTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightRatesParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(edLightRatesParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightKBSTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightKBSParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(edLightKBSParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightPosTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightPosParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(edLightPosParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_EdLightNegTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(edLightNegParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(edLightNegParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_BaseVibrancyEnabledTest)
+{
+    int columnCount = 1;
+    int rowCount = static_cast<int>(baseVibrancyEnabledParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        bool baseVibrancyEnabled = baseVibrancyEnabledParams[i];
+        frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(baseVibrancyEnabled);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
+    }
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Frosted_Glass_SamplingScaleTest)
+{
+    int columnCount = 2;
+    int rowCount = static_cast<int>(samplingScaleParams.size());
+    auto sizeX = screenWidth / columnCount;
+    auto sizeY = screenHeight * columnCount / rowCount;
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+        InitFrostedGlassFilter(frostedGlassFilter);
+        frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(samplingScaleParams[i]);
+
+        int x = (i % columnCount) * sizeX;
+        int y = (i / columnCount) * sizeY;
+        auto backgroundTestNode =
+            SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+
+        auto childTestNode = CreateSdfChildNode(x, y, sizeX, sizeY, frostedGlassFilter);
+        backgroundTestNode->AddChild(childTestNode);
+        RegisterNode(childTestNode);
     }
 }
 
@@ -626,36 +775,12 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_Frosted_Glass_Material_Filter_Test)
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     for (int i = 0; i < rowCount; i++) {
-        auto filter = CreateFilter(RSNGEffectType::FROSTED_GLASS);
-        auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+        auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
         if (i == blurparamsParamsForMaterialFilter.size()) {
-            filter = nullptr;
+            frostedGlassFilter = nullptr;
         } else {
+            InitFrostedGlassFilter(frostedGlassFilter);
             frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(blurparamsParamsForMaterialFilter[i]);
-            frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(defaultWeightsEmboss);
-            frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(defaultWeightsEdl);
-            frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(defaultBgRates);
-            frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(defaultBgKBS);
-            frostedGlassFilter->Setter<FrostedGlassBgPosTag>(defaultBgPos);
-            frostedGlassFilter->Setter<FrostedGlassBgNegTag>(defaultBgNeg);
-            frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(defaultRefractParams);
-            frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(defaultSdParams);
-            frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(defaultSdRates);
-            frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(defaultSdKBS);
-            frostedGlassFilter->Setter<FrostedGlassSdPosTag>(defaultSdPos);
-            frostedGlassFilter->Setter<FrostedGlassSdNegTag>(defaultSdNeg);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(defaultEnvLightParams);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(defaultEnvLightRates);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(defaultEnvLightKBS);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(defaultEnvLightPos);
-            frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(defaultEnvLightNeg);
-            frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(defaultEdLightParams);
-            frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(defaultEdLightAngles);
-            frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(defaultEdLightDir);
-            frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(defaultEdLightRates);
-            frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(defaultEdLightKBS);
-            frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(defaultEdLightPos);
-            frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(defaultEdLightNeg);
         }
 
         int x = (i % columnCount) * sizeX;
@@ -804,4 +929,1061 @@ GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Grid_Warp_Displacement_Dis
     }
 }
 
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_EdgeLight_Test_1)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[0][0], doubleRippleMaskParams[0][1] });
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[0][2], doubleRippleMaskParams[0][3] });
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[0][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[0][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[0][6]);
+    
+    // Create edge light filter
+    auto filter = CreateFilter(RSNGEffectType::EDGE_LIGHT);
+    auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
+    edgeLightFilter->Setter<EdgeLightAlphaTag>(1.0f);
+    edgeLightFilter->Setter<EdgeLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    edgeLightFilter->Setter<EdgeLightMaskTag>(mask);
+    edgeLightFilter->Setter<EdgeLightBloomTag>(false);
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(false);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(edgeLightFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_EdgeLight_Test_2)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[1][0], doubleRippleMaskParams[1][1] });
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[1][2], doubleRippleMaskParams[1][3] });
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[1][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[1][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[1][6]);
+    
+    // Create edge light filter
+    auto filter = CreateFilter(RSNGEffectType::EDGE_LIGHT);
+    auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
+    edgeLightFilter->Setter<EdgeLightAlphaTag>(0.5f);
+    edgeLightFilter->Setter<EdgeLightColorTag>(Vector4f(1.0f, 1.0f, 1.0f, 1.0f));
+    edgeLightFilter->Setter<EdgeLightMaskTag>(mask);
+    edgeLightFilter->Setter<EdgeLightBloomTag>(false);
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(false);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(edgeLightFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_EdgeLight_Test_3)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[2][0], doubleRippleMaskParams[2][1] });
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[2][2], doubleRippleMaskParams[2][3] });
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[2][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[2][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[2][6]);
+    
+    // Create edge light filter
+    auto filter = CreateFilter(RSNGEffectType::EDGE_LIGHT);
+    auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
+    edgeLightFilter->Setter<EdgeLightAlphaTag>(1.0f);
+    edgeLightFilter->Setter<EdgeLightColorTag>(Vector4f(1.0f, 0.0f, 0.0f, 1.0f)); // 红色
+    edgeLightFilter->Setter<EdgeLightMaskTag>(mask);
+    edgeLightFilter->Setter<EdgeLightBloomTag>(false);
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(false);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(edgeLightFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_EdgeLight_Test_4)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[3][0], doubleRippleMaskParams[3][1] });
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[3][2], doubleRippleMaskParams[3][3] });
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[3][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[3][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[3][6]);
+    
+    // Create edge light filter
+    auto filter = CreateFilter(RSNGEffectType::EDGE_LIGHT);
+    auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
+    edgeLightFilter->Setter<EdgeLightAlphaTag>(1.0f);
+    edgeLightFilter->Setter<EdgeLightColorTag>(Vector4f(0.0f, 1.0f, 0.0f, 1.0f)); // 绿色
+    edgeLightFilter->Setter<EdgeLightMaskTag>(mask);
+    edgeLightFilter->Setter<EdgeLightBloomTag>(true);
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(false);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(edgeLightFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_EdgeLight_Test_5)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[4][0], doubleRippleMaskParams[4][1] });
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[4][2], doubleRippleMaskParams[4][3] });
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[4][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[4][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[4][6]);
+    
+    // Create edge light filter
+    auto filter = CreateFilter(RSNGEffectType::EDGE_LIGHT);
+    auto edgeLightFilter = std::static_pointer_cast<RSNGEdgeLightFilter>(filter);
+    edgeLightFilter->Setter<EdgeLightAlphaTag>(1.0f);
+    edgeLightFilter->Setter<EdgeLightColorTag>(Vector4f(0.0f, 0.0f, 1.0f, 1.0f)); // 蓝色
+    edgeLightFilter->Setter<EdgeLightMaskTag>(mask);
+    edgeLightFilter->Setter<EdgeLightBloomTag>(false);
+    edgeLightFilter->Setter<EdgeLightUseRawColorTag>(true);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(edgeLightFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Dispersion_Filter_Basic_Offset)
+{
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.3f, 0.3f});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{0.7f, 0.7f});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(0.4f);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(0.1f);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(0.05f);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPERSION);
+    auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
+    dispersionFilter->Setter<DispersionMaskTag>(mask);
+    dispersionFilter->Setter<DispersionOpacityTag>(1.0f);
+    dispersionFilter->Setter<DispersionRedOffsetTag>(Vector2f{5.0f, 0.0f});
+    dispersionFilter->Setter<DispersionGreenOffsetTag>(Vector2f{0.0f, 5.0f});
+    dispersionFilter->Setter<DispersionBlueOffsetTag>(Vector2f{-5.0f, 0.0f});
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(dispersionFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Dispersion_Filter_High_Transparency)
+{
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.5f, 0.5f});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{0.6f, 0.6f});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(0.3f);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(0.08f);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(0.03f);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPERSION);
+    auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
+    dispersionFilter->Setter<DispersionMaskTag>(mask);
+    dispersionFilter->Setter<DispersionOpacityTag>(0.3f);
+    dispersionFilter->Setter<DispersionRedOffsetTag>(Vector2f{10.0f, 0.0f});
+    dispersionFilter->Setter<DispersionGreenOffsetTag>(Vector2f{0.0f, 10.0f});
+    dispersionFilter->Setter<DispersionBlueOffsetTag>(Vector2f{-10.0f, 0.0f});
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(dispersionFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Dispersion_Filter_Subtle_Offset)
+{
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.2f, 0.8f});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{0.8f, 0.2f});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(0.2f);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(0.05f);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(0.01f);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPERSION);
+    auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
+    dispersionFilter->Setter<DispersionMaskTag>(mask);
+    dispersionFilter->Setter<DispersionOpacityTag>(0.8f);
+    dispersionFilter->Setter<DispersionRedOffsetTag>(Vector2f{2.0f, 0.0f});
+    dispersionFilter->Setter<DispersionGreenOffsetTag>(Vector2f{0.0f, 2.0f});
+    dispersionFilter->Setter<DispersionBlueOffsetTag>(Vector2f{-2.0f, 0.0f});
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(dispersionFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Dispersion_Filter_Strong_Diagonal_Offset)
+{
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.1f, 0.9f});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{0.9f, 0.1f});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(0.5f);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(0.15f);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(0.07f);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPERSION);
+    auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
+    dispersionFilter->Setter<DispersionMaskTag>(mask);
+    dispersionFilter->Setter<DispersionOpacityTag>(1.0f);
+    dispersionFilter->Setter<DispersionRedOffsetTag>(Vector2f{15.0f, 15.0f});
+    dispersionFilter->Setter<DispersionGreenOffsetTag>(Vector2f{-15.0f, -15.0f});
+    dispersionFilter->Setter<DispersionBlueOffsetTag>(Vector2f{0.0f, 0.0f});
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(dispersionFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Dispersion_Filter_Extreme_Offset_Transparent)
+{
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(Vector2f{0.0f, 1.0f});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(Vector2f{1.0f, 0.0f});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(0.6f);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(0.2f);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(0.1f);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPERSION);
+    auto dispersionFilter = std::static_pointer_cast<RSNGDispersionFilter>(filter);
+    dispersionFilter->Setter<DispersionMaskTag>(mask);
+    dispersionFilter->Setter<DispersionOpacityTag>(0.1f);
+    dispersionFilter->Setter<DispersionRedOffsetTag>(Vector2f{30.0f, 0.0f});
+    dispersionFilter->Setter<DispersionGreenOffsetTag>(Vector2f{0.0f, 30.0f});
+    dispersionFilter->Setter<DispersionBlueOffsetTag>(Vector2f{-30.0f, 0.0f});
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(dispersionFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_DirectionLight_Test_Negative_Boundary)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[0][0], doubleRippleMaskParams[0][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[0][2], doubleRippleMaskParams[0][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[0][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[0][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[0][6]);
+
+    // Create DirectionLight filter
+    auto filter = CreateFilter(RSNGEffectType::DIRECTION_LIGHT);
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    directionLightFilter->Setter<DirectionLightMaskTag>(mask);
+    directionLightFilter->Setter<DirectionLightFactorTag>(-1.0f);
+    directionLightFilter->Setter<DirectionLightDirectionTag>(Vector3f{-1.0f, -1.0f, -1.0f});
+    directionLightFilter->Setter<DirectionLightColorTag>(Vector4f{-1.0f, -1.0f, -1.0f, -1.0f});
+    directionLightFilter->Setter<DirectionLightIntensityTag>(-1.0f);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(filter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_DirectionLight_Test_Warm_Color_Normal)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[1][0], doubleRippleMaskParams[1][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[1][2], doubleRippleMaskParams[1][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[1][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[1][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[1][6]);
+
+    // Create DirectionLight filter
+    auto filter = CreateFilter(RSNGEffectType::DIRECTION_LIGHT);
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    directionLightFilter->Setter<DirectionLightMaskTag>(mask);
+    directionLightFilter->Setter<DirectionLightFactorTag>(0.5f);
+    directionLightFilter->Setter<DirectionLightDirectionTag>(Vector3f{0.5f, -0.6f, -0.9f});
+    directionLightFilter->Setter<DirectionLightColorTag>(Vector4f{0.9f, 0.9f, 0.8f, 1.0f});
+    directionLightFilter->Setter<DirectionLightIntensityTag>(3.0f);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(filter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_DirectionLight_Test_Low_Factor_Intensity)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[2][0], doubleRippleMaskParams[2][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[2][2], doubleRippleMaskParams[2][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[2][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[2][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[2][6]);
+
+    // Create DirectionLight filter
+    auto filter = CreateFilter(RSNGEffectType::DIRECTION_LIGHT);
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    directionLightFilter->Setter<DirectionLightMaskTag>(mask);
+    directionLightFilter->Setter<DirectionLightFactorTag>(0.3f);
+    directionLightFilter->Setter<DirectionLightDirectionTag>(Vector3f{0.3f, 0.3f, 0.3f});
+    directionLightFilter->Setter<DirectionLightColorTag>(Vector4f{0.3f, 0.3f, 0.3f, 1.0f});
+    directionLightFilter->Setter<DirectionLightIntensityTag>(1.5f);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(filter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_DirectionLight_Test_High_White_Light)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[3][0], doubleRippleMaskParams[3][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[3][2], doubleRippleMaskParams[3][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[3][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[3][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[3][6]);
+
+    // Create DirectionLight filter
+    auto filter = CreateFilter(RSNGEffectType::DIRECTION_LIGHT);
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    directionLightFilter->Setter<DirectionLightMaskTag>(mask);
+    directionLightFilter->Setter<DirectionLightFactorTag>(0.9f);
+    directionLightFilter->Setter<DirectionLightDirectionTag>(Vector3f{0.9f, 0.9f, -0.9f});
+    directionLightFilter->Setter<DirectionLightColorTag>(Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+    directionLightFilter->Setter<DirectionLightIntensityTag>(3.0f);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(filter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_DirectionLight_Test_Mid_Neutral_Color)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[4][0], doubleRippleMaskParams[4][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[4][2], doubleRippleMaskParams[4][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[4][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[4][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[4][6]);
+
+    // Create DirectionLight filter
+    auto filter = CreateFilter(RSNGEffectType::DIRECTION_LIGHT);
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    directionLightFilter->Setter<DirectionLightMaskTag>(mask);
+    directionLightFilter->Setter<DirectionLightFactorTag>(0.6f);
+    directionLightFilter->Setter<DirectionLightDirectionTag>(Vector3f{0.6f, 0.6f, 0.6f});
+    directionLightFilter->Setter<DirectionLightColorTag>(Vector4f{0.6f, 0.6f, 0.6f, 1.0f});
+    directionLightFilter->Setter<DirectionLightIntensityTag>(0.6f);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(filter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_DirectionLight_Test_Extreme_Large_Params)
+{
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[5][0], doubleRippleMaskParams[5][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[5][2], doubleRippleMaskParams[5][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[5][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[5][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[5][6]);
+
+    // Create DirectionLight filter
+    auto filter = CreateFilter(RSNGEffectType::DIRECTION_LIGHT);
+    auto directionLightFilter = std::static_pointer_cast<RSNGDirectionLightFilter>(filter);
+    directionLightFilter->Setter<DirectionLightMaskTag>(mask);
+    directionLightFilter->Setter<DirectionLightFactorTag>(999.0f);
+    directionLightFilter->Setter<DirectionLightDirectionTag>(Vector3f{999.0f, 999.0f, 999.0f});
+    directionLightFilter->Setter<DirectionLightColorTag>(Vector4f{999.0f, 999.0f, 999.0f, 999.0f});
+    directionLightFilter->Setter<DirectionLightIntensityTag>(999.0f);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(filter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_BasicTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::BEZIER_WARP);
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    
+    bezierWarpFilter->Setter<BezierWarpControlPoint0Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint1Tag>(Vector2f{ 0.5f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint2Tag>(Vector2f{ 1.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint3Tag>(Vector2f{ 0.0f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint4Tag>(Vector2f{ 0.5f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint5Tag>(Vector2f{ 1.0f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint6Tag>(Vector2f{ 0.0f, 1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint7Tag>(Vector2f{ 0.5f, 1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint8Tag>(Vector2f{ 1.0f, 1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint9Tag>(Vector2f{ 0.25f, 0.25f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f{ 0.75f, 0.25f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f{ 0.25f, 0.75f });
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(bezierWarpFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_BoundaryTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::BEZIER_WARP);
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    
+    bezierWarpFilter->Setter<BezierWarpControlPoint0Tag>(Vector2f{ -1.0f, -1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint1Tag>(Vector2f{ 0.5f, -1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint2Tag>(Vector2f{ 2.0f, -1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint3Tag>(Vector2f{ -1.0f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint4Tag>(Vector2f{ 0.5f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint5Tag>(Vector2f{ 2.0f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint6Tag>(Vector2f{ -1.0f, 2.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint7Tag>(Vector2f{ 0.5f, 2.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint8Tag>(Vector2f{ 2.0f, 2.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint9Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f{ 1.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f{ 0.0f, 1.0f });
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(bezierWarpFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_CenterDeformTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::BEZIER_WARP);
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    
+    bezierWarpFilter->Setter<BezierWarpControlPoint0Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint1Tag>(Vector2f{ 0.5f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint2Tag>(Vector2f{ 1.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint3Tag>(Vector2f{ 0.0f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint4Tag>(Vector2f{ 0.4f, 0.4f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint5Tag>(Vector2f{ 1.0f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint6Tag>(Vector2f{ 0.0f, 1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint7Tag>(Vector2f{ 0.5f, 1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint8Tag>(Vector2f{ 1.0f, 1.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint9Tag>(Vector2f{ 0.3f, 0.3f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f{ 0.7f, 0.3f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f{ 0.3f, 0.7f });
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(bezierWarpFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_TwistTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::BEZIER_WARP);
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    
+    bezierWarpFilter->Setter<BezierWarpControlPoint0Tag>(Vector2f{ 0.1f, 0.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint1Tag>(Vector2f{ 0.6f, -0.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint2Tag>(Vector2f{ 0.9f, 0.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint3Tag>(Vector2f{ -0.1f, 0.6f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint4Tag>(Vector2f{ 0.5f, 0.5f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint5Tag>(Vector2f{ 1.1f, 0.6f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint6Tag>(Vector2f{ 0.1f, 0.9f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint7Tag>(Vector2f{ 0.4f, 1.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint8Tag>(Vector2f{ 0.9f, 0.9f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint9Tag>(Vector2f{ 0.2f, 0.2f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f{ 0.8f, 0.2f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f{ 0.2f, 0.8f });
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(bezierWarpFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_WaveTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::BEZIER_WARP);
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    
+    bezierWarpFilter->Setter<BezierWarpControlPoint0Tag>(Vector2f{ 0.0f, 0.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint1Tag>(Vector2f{ 0.25f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint2Tag>(Vector2f{ 0.5f, 0.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint3Tag>(Vector2f{ 0.75f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint4Tag>(Vector2f{ 1.0f, 0.1f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint5Tag>(Vector2f{ 0.0f, 0.33f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint6Tag>(Vector2f{ 0.25f, 0.4f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint7Tag>(Vector2f{ 0.5f, 0.33f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint8Tag>(Vector2f{ 0.75f, 0.4f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint9Tag>(Vector2f{ 1.0f, 0.33f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f{ 0.0f, 0.67f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f{ 0.25f, 0.6f });
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(bezierWarpFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Bezier_Warp_ZeroTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::BEZIER_WARP);
+    auto bezierWarpFilter = std::static_pointer_cast<RSNGBezierWarpFilter>(filter);
+    
+    bezierWarpFilter->Setter<BezierWarpControlPoint0Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint1Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint2Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint3Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint4Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint5Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint6Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint7Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint8Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint9Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint10Tag>(Vector2f{ 0.0f, 0.0f });
+    bezierWarpFilter->Setter<BezierWarpControlPoint11Tag>(Vector2f{ 0.0f, 0.0f });
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(bezierWarpFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_BasicTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(filter);
+    
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f{ 1.0f, 0.0f, 0.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f{ 0.0f, 1.0f, 0.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f{ 0.0f, 0.0f, 1.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.5f);
+    soundWaveFilter->Setter<SoundWaveIntensityTag>(0.8f);
+    soundWaveFilter->Setter<SoundWaveAlphaATag>(0.7f);
+    soundWaveFilter->Setter<SoundWaveAlphaBTag>(0.9f);
+    soundWaveFilter->Setter<SoundWaveProgressATag>(0.3f);
+    soundWaveFilter->Setter<SoundWaveProgressBTag>(0.7f);
+    soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(0.85f);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(soundWaveFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_BoundaryTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(filter);
+    
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f{ 0.0f, 0.0f, 0.0f, 0.0f });
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f{ 1.0f, 1.0f, 1.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f{ 0.5f, 0.5f, 0.5f, 0.5f });
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveIntensityTag>(1.0f);
+    soundWaveFilter->Setter<SoundWaveAlphaATag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveAlphaBTag>(1.0f);
+    soundWaveFilter->Setter<SoundWaveProgressATag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveProgressBTag>(1.0f);
+    soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(1.0f);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(soundWaveFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_HighSaturationTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(filter);
+    
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f{ 1.0f, 0.0f, 1.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f{ 0.0f, 1.0f, 1.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f{ 1.0f, 1.0f, 0.0f, 1.0f });
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(1.0f);
+    soundWaveFilter->Setter<SoundWaveIntensityTag>(2.0f);
+    soundWaveFilter->Setter<SoundWaveAlphaATag>(0.5f);
+    soundWaveFilter->Setter<SoundWaveAlphaBTag>(0.5f);
+    soundWaveFilter->Setter<SoundWaveProgressATag>(0.5f);
+    soundWaveFilter->Setter<SoundWaveProgressBTag>(0.5f);
+    soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(0.6f);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(soundWaveFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_LowAlphaTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(filter);
+    
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f{ 0.2f, 0.3f, 0.4f, 0.1f });
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f{ 0.4f, 0.5f, 0.6f, 0.2f });
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f{ 0.6f, 0.7f, 0.8f, 0.3f });
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.25f);
+    soundWaveFilter->Setter<SoundWaveIntensityTag>(0.3f);
+    soundWaveFilter->Setter<SoundWaveAlphaATag>(0.1f);
+    soundWaveFilter->Setter<SoundWaveAlphaBTag>(0.2f);
+    soundWaveFilter->Setter<SoundWaveProgressATag>(0.1f);
+    soundWaveFilter->Setter<SoundWaveProgressBTag>(0.9f);
+    soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(0.15f);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(soundWaveFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_MediumAlphaTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(filter);
+    
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f{ 0.8f, 0.2f, 0.6f, 0.7f });
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f{ 0.2f, 0.8f, 0.4f, 0.6f });
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f{ 0.4f, 0.6f, 0.8f, 0.5f });
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.6f);
+    soundWaveFilter->Setter<SoundWaveIntensityTag>(0.6f);
+    soundWaveFilter->Setter<SoundWaveAlphaATag>(0.4f);
+    soundWaveFilter->Setter<SoundWaveAlphaBTag>(0.6f);
+    soundWaveFilter->Setter<SoundWaveProgressATag>(0.2f);
+    soundWaveFilter->Setter<SoundWaveProgressBTag>(0.8f);
+    soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(0.5f);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(soundWaveFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Sound_Wave_ZeroTest)
+{
+    auto filter = CreateFilter(RSNGEffectType::SOUND_WAVE);
+    auto soundWaveFilter = std::static_pointer_cast<RSNGSoundWaveFilter>(filter);
+    
+    soundWaveFilter->Setter<SoundWaveColorATag>(Vector4f{ 0.0f, 0.0f, 0.0f, 0.0f });
+    soundWaveFilter->Setter<SoundWaveColorBTag>(Vector4f{ 0.0f, 0.0f, 0.0f, 0.0f });
+    soundWaveFilter->Setter<SoundWaveColorCTag>(Vector4f{ 0.0f, 0.0f, 0.0f, 0.0f });
+    soundWaveFilter->Setter<SoundWaveColorProgressTag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveIntensityTag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveAlphaATag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveAlphaBTag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveProgressATag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveProgressBTag>(0.0f);
+    soundWaveFilter->Setter<SoundWaveTotalAlphaTag>(0.0f);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(soundWaveFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test_Case1)
+{
+    const int caseIndex = 0;
+
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    // Create color gradient filter
+    auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    std::vector<float> colors = {colorGradientParams[caseIndex][0], colorGradientParams[caseIndex][1],
+                                 colorGradientParams[caseIndex][2], colorGradientParams[caseIndex][3]};
+    std::vector<float> positions = {colorGradientParams[caseIndex][4], colorGradientParams[caseIndex][5]};
+    std::vector<float> strengths = {colorGradientParams[caseIndex][6]};
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+    colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test_Case2)
+{
+    const int caseIndex = 1;
+
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    // Create color gradient filter
+    auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    std::vector<float> colors = {colorGradientParams[caseIndex][0], colorGradientParams[caseIndex][1],
+                                 colorGradientParams[caseIndex][2], colorGradientParams[caseIndex][3]};
+    std::vector<float> positions = {colorGradientParams[caseIndex][4], colorGradientParams[caseIndex][5]};
+    std::vector<float> strengths = {colorGradientParams[caseIndex][6]};
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+    colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test_Case3)
+{
+    const int caseIndex = 2;
+
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    // Create color gradient filter
+    auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    std::vector<float> colors = {colorGradientParams[caseIndex][0], colorGradientParams[caseIndex][1],
+                                 colorGradientParams[caseIndex][2], colorGradientParams[caseIndex][3]};
+    std::vector<float> positions = {colorGradientParams[caseIndex][4], colorGradientParams[caseIndex][5]};
+    std::vector<float> strengths = {colorGradientParams[caseIndex][6]};
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+    colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test_Case4)
+{
+    const int caseIndex = 3;
+
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    // Create color gradient filter
+    auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    std::vector<float> colors = {colorGradientParams[caseIndex][0], colorGradientParams[caseIndex][1],
+                                 colorGradientParams[caseIndex][2], colorGradientParams[caseIndex][3]};
+    std::vector<float> positions = {colorGradientParams[caseIndex][4], colorGradientParams[caseIndex][5]};
+    std::vector<float> strengths = {colorGradientParams[caseIndex][6]};
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+    colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test_Case5)
+{
+    const int caseIndex = 4;
+
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    // Create color gradient filter
+    auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    std::vector<float> colors = {colorGradientParams[caseIndex][0], colorGradientParams[caseIndex][1],
+                                 colorGradientParams[caseIndex][2], colorGradientParams[caseIndex][3]};
+    std::vector<float> positions = {colorGradientParams[caseIndex][4], colorGradientParams[caseIndex][5]};
+    std::vector<float> strengths = {colorGradientParams[caseIndex][6]};
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+    colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Color_Gradient_Test_Case6)
+{
+    const int caseIndex = 5;
+
+    // Create double ripple mask
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    // Create color gradient filter
+    auto filter = CreateFilter(RSNGEffectType::COLOR_GRADIENT);
+    auto colorGradientFilter = std::static_pointer_cast<RSNGColorGradientFilter>(filter);
+    std::vector<float> colors = {colorGradientParams[caseIndex][0], colorGradientParams[caseIndex][1],
+                                 colorGradientParams[caseIndex][2], colorGradientParams[caseIndex][3]};
+    std::vector<float> positions = {colorGradientParams[caseIndex][4], colorGradientParams[caseIndex][5]};
+    std::vector<float> strengths = {colorGradientParams[caseIndex][6]};
+    colorGradientFilter->Setter<ColorGradientColorsTag>(colors);
+    colorGradientFilter->Setter<ColorGradientPositionsTag>(positions);
+    colorGradientFilter->Setter<ColorGradientStrengthsTag>(strengths);
+    colorGradientFilter->Setter<ColorGradientMaskTag>(mask);
+
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    backgroundTestNode->SetBackgroundNGFilter(colorGradientFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test_Case1)
+{
+    const int caseIndex = 0;
+
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+    auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
+    dispDistortFilter->Setter<DispDistortFactorTag>(
+        Vector2f{ displacementDistortParams[caseIndex][0], displacementDistortParams[caseIndex][1] });
+    dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test_Case2)
+{
+    const int caseIndex = 1;
+
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+    auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
+    dispDistortFilter->Setter<DispDistortFactorTag>(
+        Vector2f{ displacementDistortParams[caseIndex][0], displacementDistortParams[caseIndex][1] });
+    dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test_Case3)
+{
+    const int caseIndex = 2;
+
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+    auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
+    dispDistortFilter->Setter<DispDistortFactorTag>(
+        Vector2f{ displacementDistortParams[caseIndex][0], displacementDistortParams[caseIndex][1] });
+    dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test_Case4)
+{
+    const int caseIndex = 3;
+
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+    auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
+    dispDistortFilter->Setter<DispDistortFactorTag>(
+        Vector2f{ displacementDistortParams[caseIndex][0], displacementDistortParams[caseIndex][1] });
+    dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test_Case5)
+{
+    const int caseIndex = 4;
+
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+    auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
+    dispDistortFilter->Setter<DispDistortFactorTag>(
+        Vector2f{ displacementDistortParams[caseIndex][0], displacementDistortParams[caseIndex][1] });
+    dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
+
+GRAPHIC_TEST(NGFilterTest, EFFECT_TEST, Set_NG_Filter_Displacement_Distort_Test_Case6)
+{
+    const int caseIndex = 5;
+
+    auto mask = CreateMask(RSNGEffectType::DOUBLE_RIPPLE_MASK);
+    auto doubleRippleMask = std::static_pointer_cast<RSNGDoubleRippleMask>(mask);
+    doubleRippleMask->Setter<DoubleRippleMaskCenter1Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][0], doubleRippleMaskParams[caseIndex][1]});
+    doubleRippleMask->Setter<DoubleRippleMaskCenter2Tag>(
+        Vector2f{ doubleRippleMaskParams[caseIndex][2], doubleRippleMaskParams[caseIndex][3]});
+    doubleRippleMask->Setter<DoubleRippleMaskRadiusTag>(doubleRippleMaskParams[caseIndex][4]);
+    doubleRippleMask->Setter<DoubleRippleMaskWidthTag>(doubleRippleMaskParams[caseIndex][5]);
+    doubleRippleMask->Setter<DoubleRippleMaskTurbulenceTag>(doubleRippleMaskParams[caseIndex][6]);
+
+    auto filter = CreateFilter(RSNGEffectType::DISPLACEMENT_DISTORT);
+    auto dispDistortFilter = std::static_pointer_cast<RSNGDispDistortFilter>(filter);
+    dispDistortFilter->Setter<DispDistortFactorTag>(
+        Vector2f{ displacementDistortParams[caseIndex][0], displacementDistortParams[caseIndex][1] });
+    dispDistortFilter->Setter<DispDistortMaskTag>(mask);
+    
+    auto backgroundTestNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { 0, 0, screenWidth, screenHeight });
+    backgroundTestNode->SetBackgroundNGFilter(dispDistortFilter);
+    GetRootNode()->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+}
 }  // namespace OHOS::Rosen

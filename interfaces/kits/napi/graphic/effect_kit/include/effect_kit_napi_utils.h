@@ -112,7 +112,7 @@ public:
             status = napi_create_async_work(
                 env, nullptr, resource, exec, complete, static_cast<void*>(aContext.get()), &work);
             if (status == napi_ok) {
-                status = napi_queue_async_work(env, work);
+                status = napi_queue_async_work_with_qos(env, work, napi_qos_user_initiated);
             }
         }
         aContext.release();

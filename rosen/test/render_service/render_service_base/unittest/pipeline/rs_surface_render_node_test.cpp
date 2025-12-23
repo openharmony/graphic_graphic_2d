@@ -29,6 +29,7 @@
 #include "params/rs_surface_render_params.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 
@@ -2861,5 +2862,32 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetUIFirstVisibleFilterRectTest, TestSize.Leve
     ASSERT_FALSE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
 }
 
+/**
+ * @tc.name: IsAncestorScreenFrozenTest
+ * @tc.desc: IsAncestorScreenFrozen
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsAncestorScreenFrozenTest, TestSize.Level1)
+{
+    NodeId id = 10000;
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto firstLevelNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(firstLevelNode, nullptr);
+    EXPECT_TRUE(context->GetMutableNodeMap().RegisterRenderNode(firstLevelNode));
+    EXPECT_FALSE(firstLevelNode->IsAncestorScreenFrozen());
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id + 1, 0);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->forceFreeze_ = true;
+    firstLevelNode->SetAncestorScreenNode(screenNode);
+    ASSERT_TRUE(firstLevelNode->IsAncestorScreenFrozen());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->firstLevelNodeId_ = firstLevelNode->GetId();
+    EXPECT_TRUE(surfaceNode->IsAncestorScreenFrozen());
+    context->GetMutableNodeMap().UnregisterRenderNode(firstLevelNode->GetId());
+}
 } // namespace Rosen
 } // namespace OHOS

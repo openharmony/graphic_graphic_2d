@@ -170,10 +170,9 @@ HWTEST_F(RsSubThreadTest, DumpGpuMemTest001, TestSize.Level1)
     std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
     auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
-    auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
-    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
-    curThread->DumpGpuMem(log);
+    curThread->DumpGpuMem(log, nodeTags);
     EXPECT_TRUE(curThread->grContext_);
 }
 

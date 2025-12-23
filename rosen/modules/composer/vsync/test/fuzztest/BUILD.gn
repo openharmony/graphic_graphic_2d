@@ -23,6 +23,7 @@ group("fuzztest") {
     "vsyncgenerator_fuzzer:fuzztest",
     "vsyncreceiver_fuzzer:fuzztest",
     "vsyncreceiverconcurrent_fuzzer:fuzztest",
+    "vsyncsafe_fuzzer:fuzztest",
     "vsyncsampler_fuzzer:fuzztest",
   ]
 }

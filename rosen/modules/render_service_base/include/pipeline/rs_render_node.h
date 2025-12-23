@@ -1284,7 +1284,7 @@ private:
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     DrawCmdIndex stagingDrawCmdIndex_;
-    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
+    RSDrawable::DrawList stagingDrawCmdList_;
     std::vector<NodeId> visibleFilterChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;

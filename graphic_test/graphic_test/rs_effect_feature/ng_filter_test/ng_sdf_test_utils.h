@@ -114,12 +114,12 @@ const std::vector<Matrix3f> matrix3fParams3 = {
 const std::vector<float> sdfShapeSpacingParams = {0.0f, 30.0f, 50.0f, 100.0f, 500000.0f, -5.0f};
 
 const std::vector<std::string> sdfPixelmapShapePath = {
-    "/data/local/tmp/sdfImage1.jpg",
-    "/data/local/tmp/sdfImage2.jpg",
-    "/data/local/tmp/sdfImage3.jpg",
-    "/data/local/tmp/sdfImage4.jpg",
-    "/data/local/tmp/sdfImage5.jpg",
-    "/data/local/tmp/sdfImage6.jpg",
+    "/data/local/tmp/sdfImage0.png",
+    "/data/local/tmp/sdfImage3.png",
+    "/data/local/tmp/sdfImage5.png",
+    "/data/local/tmp/sdfImage6.png",
+    "/data/local/tmp/sdfImage8.png",
+    "/data/local/tmp/sdfImage9.png",
 };
 }  // namespace OHOS::Rosen
 #endif // NG_SDF_TEST_UTILS_H

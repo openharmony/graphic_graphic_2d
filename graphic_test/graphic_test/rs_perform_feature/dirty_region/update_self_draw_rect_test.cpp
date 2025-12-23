@@ -46,6 +46,8 @@ Vector4<BorderStyle> STYLE_SOLID = Vector4<BorderStyle>(BorderStyle::SOLID);
 Vector4<BorderStyle> STYLE_DASHED = Vector4<BorderStyle>(BorderStyle::DASHED);
 Vector4<BorderStyle> STYLE_DOTTED = Vector4<BorderStyle>(BorderStyle::DOTTED);
 Vector4<BorderStyle> STYLE_NONE = Vector4<BorderStyle>(BorderStyle::NONE);
+
+const std::string TEST_IMG_PATH = "/data/local/tmp/dr_test.jpg";
 } //namespace
 
 class DirtyRegionTest03 : public RSGraphicTest {
@@ -127,7 +129,7 @@ public:
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Image01)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     DoAnimation(testNode, DEFAULT_TRANSLATE);
@@ -202,7 +204,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shader01)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow01)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_DKGRAY);
@@ -224,7 +226,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow01)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow02)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_CYAN);
@@ -232,7 +234,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow02)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetShadowColor(COLOR_BLUE);
@@ -257,7 +259,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow03)
 {
     float offSetX = -100.f;
     float offSetY = -100.f;
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_DKGRAY);
@@ -280,7 +282,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow03)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow04)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_DKGRAY);
@@ -304,7 +306,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow04)
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow05)
 {
     float radius = 80.0f;
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_DKGRAY);
@@ -326,7 +328,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow05)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow06)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_DKGRAY);
@@ -335,7 +337,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow06)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetShadowColor(COLOR_DKGRAY);
@@ -359,7 +361,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow06)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow07)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetShadowColor(COLOR_BLUE);
@@ -368,7 +370,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow07)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetShadowColor(COLOR_BLUE);
@@ -377,7 +379,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Shadow07)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
     testNode3->SetShadowColor(COLOR_BLUE);
@@ -404,7 +406,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline01)
 {
     Color color(0, 0, 0);
     Vector4<Color> outlineColor = { color, color, color, color };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetOutlineStyle(STYLE_SOLID);
@@ -430,7 +432,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline02)
     Color color(0, 0, 0);
     Vector4<Color> outlineColor = { color, color, color, color };
     Vector4f outlineWidth = { 5, 10, 15, 20 };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetOutlineStyle(STYLE_SOLID);
@@ -455,7 +457,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline03)
 {
     Color color(0, 0, 0);
     Vector4<Color> outlineColor = { color, color, color, color };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetOutlineStyle(STYLE_DASHED);
@@ -464,7 +466,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline03)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetOutlineStyle(STYLE_DOTTED);
@@ -473,7 +475,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Outline03)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
     testNode3->SetOutlineStyle(STYLE_NONE);
@@ -500,7 +502,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border01)
 {
     Color color(0, 0, 0);
     Vector4<Color> borderColor = { color, color, color, color };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetBorderStyle(STYLE_SOLID);
@@ -525,7 +527,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border02)
 {
     Color color(0, 0, 0);
     Vector4<Color> borderColor = { color, color, color, color };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetBorderStyle(STYLE_DASHED);
@@ -534,7 +536,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border02)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetBorderStyle(STYLE_DOTTED);
@@ -543,7 +545,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border02)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
     testNode3->SetBorderStyle(STYLE_NONE);
@@ -568,7 +570,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Border02)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, PixelStretch01)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH, Drawing::TileMode::CLAMP);
@@ -591,21 +593,21 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, PixelStretch02)
 {
     std::vector<Vector4f> pixelStretchList = { { 0, 20, 0, 0 }, { 0, 0, 40, 0 }, { 0, 0, 0, 60 } };
     
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetPixelStretch(pixelStretchList[0], Drawing::TileMode::CLAMP);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetPixelStretch(pixelStretchList[1], Drawing::TileMode::CLAMP);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
     testNode3->SetPixelStretch(pixelStretchList[2], Drawing::TileMode::CLAMP);
@@ -631,21 +633,21 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, PixelStretch03)
     std::vector<Drawing::TileMode> modeList = { Drawing::TileMode::REPEAT,
         Drawing::TileMode::MIRROR, Drawing::TileMode::DECAL };
     
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetPixelStretch(DEFAULT_PIXEL_STRETCH, modeList[0]);
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetPixelStretch(DEFAULT_PIXEL_STRETCH, modeList[1]);
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 0, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetTranslate({ 0, 0 });
     testNode3->SetPixelStretch(DEFAULT_PIXEL_STRETCH, modeList[2]);
@@ -668,7 +670,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, PixelStretch03)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground01)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetForegroundEffectRadius(DEFAULT_FOREGROUND_RADIUS);
@@ -689,7 +691,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground01)
  */
 GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground02)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetTranslate({ 0, 0 });
     testNode->SetForegroundEffectRadius(DEFAULT_FOREGROUND_RADIUS);
@@ -698,7 +700,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground02)
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
     float radius = 50.0f;
-    auto testNode2 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds2);
+    auto testNode2 = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNode2);
     testNode2->SetTranslate({ 0, 0 });
     testNode2->SetForegroundEffectRadius(radius);
@@ -707,6 +709,233 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Foreground02)
 
     GetRootNode()->AddChild(testNode);
     GetRootNode()->AddChild(testNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Magnifier01
+ * @tc.desc: test self draw rect changed, add Magnifier with small size
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Magnifier01)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, { 0, 0, screenSize.x_, screenSize.y_ });
+    RegisterNode(testNodeBackGround);
+    auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
+    magnifierParams->factor_ = 3;
+    magnifierParams->width_ = 150;
+    magnifierParams->height_ = 150;
+    magnifierParams->cornerRadius_ = 15;
+    magnifierParams->borderWidth_ = 3;
+    magnifierParams->offsetX_ = 15;
+    magnifierParams->offsetY_ = 15;
+    testNodeBackGround->SetMagnifierParams(magnifierParams);
+    
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Magnifier02
+ * @tc.desc: test self draw rect changed, add Magnifier with medium size
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Magnifier02)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, { 0, 0, screenSize.x_, screenSize.y_ });
+    RegisterNode(testNodeBackGround);
+    auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
+    magnifierParams->factor_ = 5;
+    magnifierParams->width_ = 500;
+    magnifierParams->height_ = 500;
+    magnifierParams->cornerRadius_ = 50;
+    magnifierParams->borderWidth_ = 10;
+    magnifierParams->offsetX_ = 50;
+    magnifierParams->offsetY_ = 50;
+    testNodeBackGround->SetMagnifierParams(magnifierParams);
+    
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Magnifier03
+ * @tc.desc: test self draw rect changed, add Magnifier with big size
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Magnifier03)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, { 0, 0, screenSize.x_, screenSize.y_ });
+    RegisterNode(testNodeBackGround);
+    auto magnifierParams = std::make_shared<Rosen::RSMagnifierParams>();
+    magnifierParams->factor_ = 10;
+    magnifierParams->width_ = 1000;
+    magnifierParams->height_ = 1000;
+    magnifierParams->cornerRadius_ = 100;
+    magnifierParams->borderWidth_ = 10;
+    magnifierParams->offsetX_ = 100;
+    magnifierParams->offsetY_ = 100;
+    testNodeBackGround->SetMagnifierParams(magnifierParams);
+    
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Distortion01
+ * @tc.desc: test self draw rect changed, add Distortion with the greatest distortion
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion01)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    Vector4f bounds2 = { 0, 800, 400, 400 };
+    auto testNodeBackGround =
+            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    RegisterNode(testNodeBackGround);
+    testNodeBackGround->SetDistortionK(1);
+    testNodeBackGround->SetClipToBounds(true);
+    testNodeBackGround->SetClipToFrame(true);
+    testNodeBackGround->SetBorderStyle(STYLE_DASHED);
+    testNodeBackGround->SetBorderWidth(DEFAULT_BORDER_WIDTH);
+    testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Distortion02
+ * @tc.desc: test self draw rect changed, add Distortion with no distortion
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion02)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    Vector4f bounds2 = { 0, 800, 400, 400 };
+    auto testNodeBackGround =
+            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    RegisterNode(testNodeBackGround);
+    testNodeBackGround->SetDistortionK(0);
+    testNodeBackGround->SetClipToBounds(true);
+    testNodeBackGround->SetClipToFrame(true);
+    testNodeBackGround->SetBorderStyle(STYLE_DASHED);
+    testNodeBackGround->SetBorderWidth(DEFAULT_BORDER_WIDTH);
+    testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Distortion03
+ * @tc.desc: test self draw rect changed, add Distortion with outward distortion
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion03)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    Vector4f bounds2 = { 0, 800, 400, 400 };
+    auto testNodeBackGround =
+            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    RegisterNode(testNodeBackGround);
+    testNodeBackGround->SetDistortionK(0.5);
+    testNodeBackGround->SetClipToBounds(true);
+    testNodeBackGround->SetClipToFrame(true);
+    testNodeBackGround->SetBorderStyle(STYLE_DASHED);
+    testNodeBackGround->SetBorderWidth(DEFAULT_BORDER_WIDTH);
+    testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Distortion04
+ * @tc.desc: test self draw rect changed, add Distortion with reverse distortion
+ * @tc.type: FUNC
+ * @tc.require: issue21219
+ */
+GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion04)
+{
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
+    RegisterNode(testNode);
+    testNode->SetTranslate({ 0, 0 });
+    DoAnimation(testNode, DEFAULT_TRANSLATE);
+
+    Vector4f bounds2 = { 0, 800, 400, 400 };
+    auto testNodeBackGround =
+            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    RegisterNode(testNodeBackGround);
+    testNodeBackGround->SetDistortionK(-0.5);
+    testNodeBackGround->SetClipToBounds(true);
+    testNodeBackGround->SetClipToFrame(true);
+    testNodeBackGround->SetBorderStyle(STYLE_DASHED);
+    testNodeBackGround->SetBorderWidth(DEFAULT_BORDER_WIDTH);
+    testNodeBackGround->SetBorderColor(Vector4<Color>(RgbPalette::Green()));
+
+    GetRootNode()->AddChild(testNodeBackGround);
+    GetRootNode()->AddChild(testNode);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);

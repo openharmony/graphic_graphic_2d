@@ -44,7 +44,7 @@ public:
 
     void OnSync() override;
     void OnPurge() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 protected:
     bool needSync_ = false;
@@ -96,7 +96,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     Drawing::Path stagingDrawingPath_;
@@ -177,7 +177,7 @@ public:
 
     void PostUpdate(const RSRenderNode& node);
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
     const RectI GetFilterCachedRegion() const;
 
     bool GetEnableEDR() const override

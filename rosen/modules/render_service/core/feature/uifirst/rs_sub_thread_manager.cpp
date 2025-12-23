@@ -86,7 +86,7 @@ void RSSubThreadManager::DumpMem(DfxString& log, bool isLite)
     }
 }
 
-void RSSubThreadManager::DumpGpuMem(DfxString& log)
+void RSSubThreadManager::DumpGpuMem(DfxString& log, const std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
     if (threadList_.empty()) {
         return;
@@ -95,7 +95,7 @@ void RSSubThreadManager::DumpGpuMem(DfxString& log)
         if (!subThread) {
             continue;
         }
-        subThread->DumpGpuMem(log);
+        subThread->DumpGpuMem(log, nodeTags);
     }
 }
 

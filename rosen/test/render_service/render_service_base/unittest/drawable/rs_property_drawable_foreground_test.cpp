@@ -429,56 +429,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest004, TestSize.Level1)
         pointLightDrawableTest2->borderRRect_.GetRect().GetWidth() + 1.0f);
 }
 
-
-/**
- * @tc.name: CreateDrawFuncTest001
- * @tc.desc: CreateDrawFunc test
- * @tc.type: FUNC
- * @tc.require:issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncTest001, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSBinarizationDrawable> binarizationDrawable =
-        std::make_shared<DrawableV2::RSBinarizationDrawable>();
-    EXPECT_NE(binarizationDrawable, nullptr);
-    EXPECT_NE(binarizationDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSColorFilterDrawable> colorFilterDrawable =
-        std::make_shared<DrawableV2::RSColorFilterDrawable>();
-    EXPECT_NE(colorFilterDrawable, nullptr);
-    EXPECT_NE(colorFilterDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSLightUpEffectDrawable> lightUpEffectDrawable =
-        std::make_shared<DrawableV2::RSLightUpEffectDrawable>();
-    EXPECT_NE(lightUpEffectDrawable, nullptr);
-    EXPECT_NE(lightUpEffectDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSDynamicDimDrawable> dynamicDimDrawable =
-        std::make_shared<DrawableV2::RSDynamicDimDrawable>();
-    EXPECT_NE(dynamicDimDrawable, nullptr);
-    EXPECT_NE(dynamicDimDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSForegroundFilterDrawable> foregroundFilterDrawable =
-        std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
-    EXPECT_NE(foregroundFilterDrawable, nullptr);
-    EXPECT_NE(foregroundFilterDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
-        std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
-    EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
-    EXPECT_NE(foregroundFilterRestoreDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSPixelStretchDrawable> pixelStretchDrawable =
-        std::make_shared<DrawableV2::RSPixelStretchDrawable>();
-    EXPECT_NE(pixelStretchDrawable, nullptr);
-    EXPECT_NE(pixelStretchDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
-        std::make_shared<DrawableV2::RSPointLightDrawable>();
-    EXPECT_NE(pointLightDrawableTest, nullptr);
-    EXPECT_NE(pointLightDrawableTest->CreateDrawFunc(), nullptr);
-}
-
 /**
  * @tc.name: DrawLightTest001
  * @tc.desc: DrawLight test
@@ -569,8 +519,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
     std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
     EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
-    auto drawFunction = foregroundFilterRestoreDrawable->CreateDrawFunc();
-    EXPECT_NE(drawFunction, nullptr);
 
     // initialize drawing filter
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
@@ -597,7 +545,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
 
     Drawing::Canvas canvasTest;
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    drawFunction(&paintFilterCanvas, nullptr);
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, nullptr);
     // rect == nullptr, still initial width/height
     for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
         EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
@@ -607,7 +555,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
     const auto width = 100.0f;
     const auto height = 100.0f;
     Drawing::Rect rect(0.0f, 0.0f, width, height);
-    drawFunction(&paintFilterCanvas, &rect);
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect);
     // properly initialized
     for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
         EXPECT_EQ(filter->GetCanvasInfo().geoWidth, width);
@@ -616,14 +564,14 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
 
     // in case foregroundFilter_ happens to be nullptr
     foregroundFilterRestoreDrawable->foregroundFilter_ = nullptr;
-    drawFunction(&paintFilterCanvas, &rect); // should not crash or anything
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect); // should not crash or anything
 
     // RSFilter is used instead of RSDrawingFilter
     stagingForegroundFilter = std::make_shared<RSFilter>();
     foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
     foregroundFilterRestoreDrawable->needSync_ = true;
     foregroundFilterRestoreDrawable->OnSync();
-    drawFunction(&paintFilterCanvas, &rect);
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect);
 }
 
 /**

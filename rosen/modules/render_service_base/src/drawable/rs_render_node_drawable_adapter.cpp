@@ -223,10 +223,10 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
         if (start <= skipIndex_ && end > skipIndex_) {
             // skip index is in the range
             for (auto i = start; i < skipIndex_; i++) {
-                drawCmdList_[i](&canvas, &rect);
+                drawCmdList_[i]->OnDraw(&canvas, &rect);
             }
             for (auto i = skipIndex_ + 1; i < end; i++) {
-                drawCmdList_[i](&canvas, &rect);
+                drawCmdList_[i]->OnDraw(&canvas, &rect);
             }
             return;
         }
@@ -240,7 +240,7 @@ void RSRenderNodeDrawableAdapter::DrawRangeImpl(
                 __builtin_prefetch(&drawCmdList_[prefetchIndex], 0, 1);
             }
 #endif
-        drawCmdList_[i](&canvas, &rect);
+        drawCmdList_[i]->OnDraw(&canvas, &rect);
     }
 }
 
@@ -257,7 +257,7 @@ void RSRenderNodeDrawableAdapter::DrawImpl(Drawing::Canvas& canvas, const Drawin
         }
     }
 
-    drawCmdList_[index](&canvas, &rect);
+    drawCmdList_[index]->OnDraw(&canvas, &rect);
 }
 
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -271,37 +271,37 @@ void RSRenderNodeDrawableAdapter::DrawQuickImpl(
     }
 
     if (drawCmdIndex_.transitionIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.transitionIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.transitionIndex_]->OnDraw(&canvas, &rect);
     }
     if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_]->OnDraw(&canvas, &rect);
     }
 
     // BG_START
     if (drawCmdIndex_.bgSaveBoundsIndex_ == - 1 || drawCmdIndex_.bgRestoreBoundsIndex_ == -1) {
         if (drawCmdIndex_.clipToBoundsIndex_ != -1) {
-            drawCmdList_[drawCmdIndex_.clipToBoundsIndex_](&canvas, &rect);
+            drawCmdList_[drawCmdIndex_.clipToBoundsIndex_]->OnDraw(&canvas, &rect);
         }
         if (drawCmdIndex_.backgroudStyleIndex_ != -1) {
-            drawCmdList_[drawCmdIndex_.backgroudStyleIndex_](&canvas, &rect);
+            drawCmdList_[drawCmdIndex_.backgroudStyleIndex_]->OnDraw(&canvas, &rect);
         }
     }
 
     if (drawCmdIndex_.envForegroundColorStrategyIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.envForegroundColorStrategyIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.envForegroundColorStrategyIndex_]->OnDraw(&canvas, &rect);
     }
     if (drawCmdIndex_.frameOffsetIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.frameOffsetIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.frameOffsetIndex_]->OnDraw(&canvas, &rect);
     }
     if (drawCmdIndex_.clipToFrameIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.clipToFrameIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.clipToFrameIndex_]->OnDraw(&canvas, &rect);
     }
     if (drawCmdIndex_.customClipToFrameIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.customClipToFrameIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.customClipToFrameIndex_]->OnDraw(&canvas, &rect);
     }
 
     if (drawCmdIndex_.contentIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.contentIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.contentIndex_]->OnDraw(&canvas, &rect);
     }
 }
 #endif
@@ -335,7 +335,7 @@ void RSRenderNodeDrawableAdapter::DrawContent(Drawing::Canvas& canvas, const Dra
     if (index == -1) {
         return;
     }
-    drawCmdList_[index](&canvas, &rect);
+    drawCmdList_[index]->OnDraw(&canvas, &rect);
 }
 
 void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect) const
@@ -348,7 +348,7 @@ void RSRenderNodeDrawableAdapter::DrawChildren(Drawing::Canvas& canvas, const Dr
     if (index == -1) {
         return;
     }
-    drawCmdList_[index](&canvas, &rect);
+    drawCmdList_[index]->OnDraw(&canvas, &rect);
 }
 
 void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& canvas, const Drawing::Rect& rect)
@@ -370,10 +370,10 @@ void RSRenderNodeDrawableAdapter::DrawUifirstContentChildren(Drawing::Canvas& ca
     auto contentIdx = uifirstDrawCmdIndex_.contentIndex_;
     auto childrenIdx = uifirstDrawCmdIndex_.childrenIndex_;
     if (0 <= contentIdx && contentIdx < drawCmdList.size()) {
-        drawCmdList[contentIdx](&canvas, &rect);
+        drawCmdList[contentIdx]->OnDraw(&canvas, &rect);
     }
     if (0 <= childrenIdx && childrenIdx < drawCmdList.size()) {
-        drawCmdList[childrenIdx](&canvas, &rect);
+        drawCmdList[childrenIdx]->OnDraw(&canvas, &rect);
     }
 }
 
@@ -539,7 +539,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
                 UpdateFilterInfoForNodeGroup(curCanvas);
             } else {
                 CollectInfoForNodeWithoutFilter(canvas);
-                drawCmdList_[index](&canvas, &bounds);
+                drawCmdList_[index]->OnDraw(&canvas, &bounds);
             }
             continue;
         }
@@ -561,7 +561,7 @@ void RSRenderNodeDrawableAdapter::DrawBackgroundWithoutFilterAndEffect(
             UpdateFilterInfoForNodeGroup(curCanvas);
             return;
         } else {
-            drawCmdList_[index](&canvas, &bounds);
+            drawCmdList_[index]->OnDraw(&canvas, &bounds);
         }
     }
 }
@@ -761,7 +761,7 @@ void RSRenderNodeDrawableAdapter::ApplyForegroundColorIfNeed(Drawing::Canvas& ca
         return;
     }
     if (drawCmdIndex_.envForeGroundColorIndex_ != -1) {
-        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_](&canvas, &rect);
+        drawCmdList_[drawCmdIndex_.envForeGroundColorIndex_]->OnDraw(&canvas, &rect);
     }
 }
 

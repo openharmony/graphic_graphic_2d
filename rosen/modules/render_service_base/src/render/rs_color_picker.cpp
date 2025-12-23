@@ -34,13 +34,6 @@
 
 namespace OHOS {
 namespace Rosen {
-namespace {
-constexpr float RED_LUMINANCE_COEFF = 0.299f;
-constexpr float GREEN_LUMINANCE_COEFF = 0.587f;
-constexpr float BLUE_LUMINANCE_COEFF = 0.114f;
-constexpr float THRESHOLD_HIGH = 220.0f;
-constexpr float THRESHOLD_LOW = 150.0f;
-}
 
 std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::shared_ptr<Drawing::Pixmap>& pixmap,
     uint32_t &errorCode)
@@ -290,43 +283,6 @@ uint32_t RSColorPicker::HSVtoRGB(HSV hsv) const
     }
     rgb = r << ARGB_R_SHIFT | g << ARGB_G_SHIFT | b << ARGB_B_SHIFT;
     return rgb;
-}
-
-uint32_t RSColorPicker::GetContrastColor(Drawing::ColorQuad& color, bool prevDark) const
-{
-    uint32_t errorCode = GetAverageColor(color);
-    auto red = Drawing::Color::ColorQuadGetR(color);
-    auto green = Drawing::Color::ColorQuadGetG(color);
-    auto blue = Drawing::Color::ColorQuadGetB(color);
-    float luminance = red * RED_LUMINANCE_COEFF + green * GREEN_LUMINANCE_COEFF + blue * BLUE_LUMINANCE_COEFF;
-
-    // Use hysteresis thresholds based on previous contrast color state
-    const float threshold = prevDark ? THRESHOLD_LOW : THRESHOLD_HIGH;
-    color = luminance > threshold ? Drawing::Color::COLOR_BLACK : Drawing::Color::COLOR_WHITE;
-    return errorCode;
-}
-
-uint32_t RSColorPicker::PickColor(Drawing::ColorQuad& color, ColorPickStrategyType strategy, bool prevDark)
-{
-    uint32_t errorCode = 0;
-    switch (strategy) {
-        case ColorPickStrategyType::AVERAGE: {
-            errorCode = GetAverageColor(color);
-            break;
-        }
-        case ColorPickStrategyType::DOMINANT: {
-            errorCode = GetLargestProportionColor(color);
-            break;
-        }
-        case ColorPickStrategyType::CONTRAST: {
-            errorCode = GetContrastColor(color, prevDark);
-            break;
-        }
-        default: {
-            errorCode = RS_COLOR_PICKER_ERROR;
-        }
-    }
-    return errorCode;
 }
 } // namespace Rosen
 } // namespace OHOS

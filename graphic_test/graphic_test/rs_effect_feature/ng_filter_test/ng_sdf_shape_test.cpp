@@ -444,6 +444,301 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_Union_Container_Rect_Test)
     }
 }
 
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_Case1)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 0;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, rectXParams[caseIndex], rectYParams[caseIndex], 30.0f);
+    backgroundTestNode->SetSDFShape(sdfShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_Case2)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 1;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, rectXParams[caseIndex], rectYParams[caseIndex], 30.0f);
+    backgroundTestNode->SetSDFShape(sdfShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_Case3)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 2;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, rectXParams[caseIndex], rectYParams[caseIndex], 30.0f);
+    backgroundTestNode->SetSDFShape(sdfShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_Case4)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 3;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, rectXParams[caseIndex], rectYParams[caseIndex], 30.0f);
+    backgroundTestNode->SetSDFShape(sdfShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_Case5)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 4;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, rectXParams[caseIndex], rectYParams[caseIndex], 30.0f);
+    backgroundTestNode->SetSDFShape(sdfShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_UnionOpShape_Test_Case6)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 5;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    std::shared_ptr<RSNGShapeBase> sdfShape;
+    InitSmoothUnionShapes(sdfShape, rectXParams[caseIndex], rectYParams[caseIndex], 30.0f);
+    backgroundTestNode->SetSDFShape(sdfShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_Case1)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 0;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[caseIndex]);
+    backgroundTestNode->SetSDFShape(childShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_Case2)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 1;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[caseIndex]);
+    backgroundTestNode->SetSDFShape(childShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_Case3)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 2;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[caseIndex]);
+    backgroundTestNode->SetSDFShape(childShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_Case4)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 3;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[caseIndex]);
+    backgroundTestNode->SetSDFShape(childShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_Case5)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 4;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[caseIndex]);
+    backgroundTestNode->SetSDFShape(childShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
+GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_RRectShape_Test_Case6)
+{
+    auto sizeX = screenWidth;
+    auto sizeY = screenHeight;
+    const int caseIndex = 5;
+
+    auto frostedGlassFilter = std::make_shared<RSNGFrostedGlassFilter>();
+    InitFrostedGlassFilter(frostedGlassFilter);
+    auto backgroundTestNode = RSCanvasNode::Create();
+    Rosen::Vector4f bounds{0, 0, sizeX, sizeY};
+    backgroundTestNode->SetBounds(bounds);
+    backgroundTestNode->SetFrame(bounds);
+    backgroundTestNode->SetMaterialNGFilter(frostedGlassFilter);
+    auto childShape = CreateShape(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto rRectChildShape = std::static_pointer_cast<RSNGSDFRRectShape>(childShape);
+    rRectChildShape->Setter<SDFRRectShapeRRectTag>(rrectParams[caseIndex]);
+    backgroundTestNode->SetSDFShape(childShape);
+
+    auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {0, 0, screenWidth, screenHeight});
+    childNode->AddChild(backgroundTestNode);
+    RegisterNode(backgroundTestNode);
+    GetRootNode()->AddChild(childNode);
+    RegisterNode(childNode);
+}
+
 GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_Test)
 {
     int columnCount = 2;
@@ -604,7 +899,7 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
             DecodePixelMap(sdfPixelmapShapePath[leftPixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
         std::shared_ptr<Media::PixelMap> pixelmapY =
             DecodePixelMap(sdfPixelmapShapePath[rightPixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
-        InitSmoothUnionShapesByPixelmap(sdfShape, pixelmapX, pixelmapX, sdfShapeSpacingParams[i]);
+        InitSmoothUnionShapesByPixelmap(sdfShape, pixelmapX, pixelmapY, sdfShapeSpacingParams[i]);
         backgroundTestNode->SetSDFShape(sdfShape);
 
         auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});

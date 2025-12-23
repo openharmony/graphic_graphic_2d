@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 #include <test_header.h>
 
-#include "draw/canvas.h"
 #include "multiscreen_param.h"
 
 using namespace testing;
@@ -91,20 +90,6 @@ HWTEST_F(MultiScreenParamTest, SetMirrorDisplayCloseP3, Function | SmallTest | L
     EXPECT_TRUE(MultiScreenParam::IsMirrorDisplayCloseP3());
     MultiScreenParam::SetMirrorDisplayCloseP3(false);
     EXPECT_FALSE(MultiScreenParam::IsMirrorDisplayCloseP3());
-}
-
-/**
- * @tc.name: SetMipmapMode
- * @tc.desc: Verify the SetMipmapMode function
- * @tc.type: FUNC
- * @tc.require: #IBOA5Q
- */
-HWTEST_F(MultiScreenParamTest, SetMipmapMode, Function | SmallTest | Level1)
-{
-    MultiScreenParam::SetMipmapMode(Drawing::MipmapMode::NONE);
-    ASSERT_EQ(MultiScreenParam::GetMipmapMode(), Drawing::MipmapMode::NONE);
-    MultiScreenParam::SetMipmapMode(Drawing::MipmapMode::NEAREST);
-    ASSERT_EQ(MultiScreenParam::GetMipmapMode(), Drawing::MipmapMode::NEAREST);
 }
 
 /**

@@ -45,12 +45,12 @@ static ani_error CreateAniError(ani_env* env, std::string&& errMsg, ani_double c
         return nullptr;
     }
     ani_class errClass;
-    if (ANI_OK != env->FindClass("@ohos/base/BusinessError", &errClass)) {
+    if (ANI_OK != env->FindClass("@ohos.base.BusinessError", &errClass)) {
         ACMLOGE("AniError, find class failed");
         return nullptr;
     }
     ani_method ctor;
-    if (ANI_OK != env->Class_FindMethod(errClass, "<ctor>", ":V", &ctor)) {
+    if (ANI_OK != env->Class_FindMethod(errClass, "<ctor>", ":", &ctor)) {
         ACMLOGE("AniError, Cannot find constructor for class.");
         return nullptr;
     }

@@ -726,8 +726,6 @@ HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
     ScreenId screenId = mockScreenId_;
     uint32_t width{0};
     uint32_t height{0};
-    uint32_t setWidth{1920};
-    uint32_t setHeight{1080};
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
     
@@ -742,7 +740,7 @@ HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
 
     // case 2: GetRogResolution with prior setup
     EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
-    rsScreen->SetRogResolution(setWidth, setHeight);
+    rsScreen->isRogResolution_ = true;
     ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::SUCCESS);
 }
 

@@ -80,11 +80,7 @@ public:
     ~RSChildrenDrawableAdapter() override = default;
     bool OnUpdate(const RSRenderNode& content) override { return true; }
     void OnSync() override {}
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override
-    {
-        auto ptr = std::static_pointer_cast<const RSChildrenDrawableAdapter>(shared_from_this());
-        return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
-    }
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override {}
 
 private:
     bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node) { return true; }

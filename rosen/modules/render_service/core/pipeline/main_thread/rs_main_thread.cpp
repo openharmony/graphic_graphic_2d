@@ -1553,7 +1553,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             auto parentNode = surfaceNode->GetParent().lock();
             auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
-                parentNode ? parentNode->GetId() : 0);
+                parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
@@ -4140,14 +4140,19 @@ void RSMainThread::DumpGpuMem(std::unordered_set<std::u16string>& argSets,
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        nodeTags.push_back({node->GetId(), ""});
+    });
     auto status = type.empty() || type == MEM_GPU_TYPE;
     if (status) {
-        RSUniRenderThread::Instance().DumpGpuMem(log);
+        RSUniRenderThread::Instance().DumpGpuMem(log, nodeTags);
     }
     if (status && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
-            subThreadManager->DumpGpuMem(log);
+            subThreadManager->DumpGpuMem(log, nodeTags);
         }
     }
     MemoryManager::DumpGpuNodeMemory(log);
@@ -4367,9 +4372,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         return false;
     }
     bool onlyGameNodeOnTree = frameRateMgr->IsGameNodeOnTree();
-    bool isNeedAdaptiveCompose = onlyGameNodeOnTree &&
-        context_->GetAnimatingNodeList().empty() &&
-        context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+    bool isNeedAdaptiveCompose = onlyGameNodeOnTree && hgmContext_.GetIsAdaptiveVsyncComposeReady();
     // in game adaptive sync mode and ignore animation scenario and mult-window scenario
     // selfdrawing node request next vsync as UrgentSelfdrawing
     return isNeedAdaptiveCompose;

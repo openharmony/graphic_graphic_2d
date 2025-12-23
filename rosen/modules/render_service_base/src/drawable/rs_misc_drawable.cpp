@@ -138,21 +138,18 @@ void RSChildrenDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSChildrenDrawable::CreateDrawFunc() const
+void RSChildrenDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSChildrenDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        for (size_t i = 0; i < ptr->childrenDrawableVec_.size(); i++) {
+    for (size_t i = 0; i < childrenDrawableVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
-            size_t prefetchIndex = i + 2;
-            if (prefetchIndex < ptr->childrenDrawableVec_.size()) {
-                __builtin_prefetch(&(ptr->childrenDrawableVec_[prefetchIndex]), 0, 1);
-            }
-#endif
-            const auto& drawable = ptr->childrenDrawableVec_[i];
-            drawable->Draw(*canvas);
+        size_t prefetchIndex = i + 2;
+        if (prefetchIndex < childrenDrawableVec_.size()) {
+            __builtin_prefetch(&(childrenDrawableVec_[prefetchIndex]), 0, 1);
         }
-    };
+#endif
+        const auto& drawable = childrenDrawableVec_[i];
+        drawable->Draw(*canvas);
+    }
 }
 
 // ==================== RSColorPickerDrawable =====================
@@ -186,19 +183,16 @@ void RSColorPickerDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSColorPickerDrawable::CreateDrawFunc() const
+void RSColorPickerDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSColorPickerDrawable>(shared_from_this());
-    return [ptr, this](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (colorPickerManager_) {
-            auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-            if (paintFilterCanvas != nullptr) {
-                auto color = colorPickerManager_->GetColorPicked(
-                    *paintFilterCanvas, rect, nodeId_, colorPicker_.strategy, colorPicker_.interval);
-                paintFilterCanvas->SetColorPicked(colorPicker_.placeholder, color);
-            }
+    if (colorPickerManager_) {
+        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+        if (paintFilterCanvas != nullptr) {
+            auto color = colorPickerManager_->GetColorPicked(
+                *paintFilterCanvas, rect, nodeId_, colorPicker_.strategy, colorPicker_.interval);
+            paintFilterCanvas->SetColorPicked(colorPicker_.placeholder, color);
         }
-    };
+    }
 }
 
 // ==================== RSCustomModifierDrawable ===================
@@ -277,81 +271,70 @@ void RSCustomModifierDrawable::OnPurge()
     }
 }
 
-Drawing::RecordingCanvas::DrawFunc RSCustomModifierDrawable::CreateDrawFunc() const
+void RSCustomModifierDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSCustomModifierDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSCUSTOMMODIFIERDRAWABLE);
 #endif
-        for (size_t i = 0; i < ptr->drawCmdListVec_.size(); i++) {
+    for (size_t i = 0; i < drawCmdListVec_.size(); i++) {
 #ifdef RS_ENABLE_PREFETCH
-            size_t prefetchIndex = i + 2;
-            if (prefetchIndex < ptr->drawCmdListVec_.size()) {
-                __builtin_prefetch(&(ptr->drawCmdListVec_[prefetchIndex]), 0, 1);
-            }
-#endif
-            const auto& drawCmdList = ptr->drawCmdListVec_[i];
-            Drawing::Matrix mat;
-            if (ptr->isCanvasNode_ &&
-                RSPropertyDrawableUtils::GetGravityMatrix(ptr->gravity_, *rect, drawCmdList->GetWidth(),
-                    drawCmdList->GetHeight(), mat)) {
-                canvas->ConcatMatrix(mat);
-            }
-            drawCmdList->Playback(*canvas, rect);
-            if (ptr->needClearOp_ && ptr->modifierTypeNG_ == ModifierNG::RSModifierType::CONTENT_STYLE) {
-                RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList);
-            }
+        size_t prefetchIndex = i + 2;
+        if (prefetchIndex < drawCmdListVec_.size()) {
+            __builtin_prefetch(&(drawCmdListVec_[prefetchIndex]), 0, 1);
         }
-    };
+#endif
+        const auto& drawCmdList = drawCmdListVec_[i];
+        Drawing::Matrix mat;
+        if (isCanvasNode_ &&
+            RSPropertyDrawableUtils::GetGravityMatrix(gravity_, *rect, drawCmdList->GetWidth(),
+                drawCmdList->GetHeight(), mat)) {
+            canvas->ConcatMatrix(mat);
+        }
+        drawCmdList->Playback(*canvas, rect);
+        if (needClearOp_ && modifierTypeNG_ == ModifierNG::RSModifierType::CONTENT_STYLE) {
+            RS_PROFILER_DRAWING_NODE_ADD_CLEAROP(drawCmdList);
+        }
+    }
 }
 
 // ============================================================================
 // Save and Restore
 RSSaveDrawable::RSSaveDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
-Drawing::RecordingCanvas::DrawFunc RSSaveDrawable::CreateDrawFunc() const
+void RSSaveDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    return [content = content_](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // Save and return save count
-        *content = paintFilterCanvas->Save();
-    };
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    // Save and return save count
+    *content_ = paintFilterCanvas->Save();
 }
 
 RSRestoreDrawable::RSRestoreDrawable(std::shared_ptr<uint32_t> content) : content_(std::move(content)) {}
-Drawing::RecordingCanvas::DrawFunc RSRestoreDrawable::CreateDrawFunc() const
+void RSRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    return [content = content_](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // return to previous save count
-        paintFilterCanvas->RestoreToCount(*content);
-    };
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    // return to previous save count
+    paintFilterCanvas->RestoreToCount(*content_);
 }
 
 RSCustomSaveDrawable::RSCustomSaveDrawable(
     std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content, RSPaintFilterCanvas::SaveType type)
     : content_(std::move(content)), type_(type)
 {}
-Drawing::RecordingCanvas::DrawFunc RSCustomSaveDrawable::CreateDrawFunc() const
+void RSCustomSaveDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    return [content = content_, type = type_](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // Save and return save count
-        *content = paintFilterCanvas->SaveAllStatus(type);
-    };
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    // Save and return save count
+    *content_ = paintFilterCanvas->SaveAllStatus(type_);
 }
 
 RSCustomRestoreDrawable::RSCustomRestoreDrawable(std::shared_ptr<RSPaintFilterCanvas::SaveStatus> content)
     : content_(std::move(content))
 {}
-Drawing::RecordingCanvas::DrawFunc RSCustomRestoreDrawable::CreateDrawFunc() const
+void RSCustomRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    return [content = content_](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // return to previous save count
-        paintFilterCanvas->RestoreStatus(*content);
-    };
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    // return to previous save count
+    paintFilterCanvas->RestoreStatus(*content_);
 }
 
 RSDrawable::Ptr RSBeginBlenderDrawable::OnGenerate(const RSRenderNode& node)
@@ -424,23 +407,20 @@ void RSBeginBlenderDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSBeginBlenderDrawable::CreateDrawFunc() const
+void RSBeginBlenderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSBeginBlenderDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (canvas->GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
-            return;
-        }
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    if (canvas->GetDrawingType() != Drawing::DrawingType::PAINT_FILTER) {
+        return;
+    }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
-            RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE);
+    RSTagTracker tagTracker(paintFilterCanvas->GetGPUContext(),
+        RSTagTracker::SOURCETYPE::SOURCE_RSBEGINBLENDERDRAWABLE);
 #endif
-        RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
-            ptr->propertyDescription_.c_str(), rect->ToString().c_str());
-        RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, ptr->blender_, ptr->blendApplyType_,
-            ptr->isDangerous_);
-    };
+    RS_OPTIONAL_TRACE_NAME_FMT_LEVEL(TRACE_LEVEL_TWO, "RSBeginBlenderDrawable:: %s, bounds: %s",
+        propertyDescription_.c_str(), rect->ToString().c_str());
+    RSPropertyDrawableUtils::BeginBlender(*paintFilterCanvas, blender_, blendApplyType_,
+        isDangerous_);
 }
 
 RSDrawable::Ptr RSEndBlenderDrawable::OnGenerate(const RSRenderNode& node)
@@ -475,13 +455,10 @@ void RSEndBlenderDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSEndBlenderDrawable::CreateDrawFunc() const
+void RSEndBlenderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSEndBlenderDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        RSPropertyDrawableUtils::EndBlender(*paintFilterCanvas, ptr->blendApplyType_);
-    };
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    RSPropertyDrawableUtils::EndBlender(*paintFilterCanvas, blendApplyType_);
 }
 
 // ============================================================================
@@ -517,14 +494,11 @@ void RSEnvFGColorDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSEnvFGColorDrawable::CreateDrawFunc() const
+void RSEnvFGColorDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSEnvFGColorDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        // planning: implement alpha offscreen
-        paintFilterCanvas->SetEnvForegroundColor(ptr->envFGColor_);
-    };
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    // planning: implement alpha offscreen
+    paintFilterCanvas->SetEnvForegroundColor(envFGColor_);
 }
 
 // ============================================================================
@@ -565,24 +539,21 @@ void RSEnvFGColorStrategyDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSEnvFGColorStrategyDrawable::CreateDrawFunc() const
+void RSEnvFGColorStrategyDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSEnvFGColorStrategyDrawable>(shared_from_this());
-    return [this, ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        switch (envFGColorStrategy_) {
-            case ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR: {
-                // calculate the color by screebshot
-                Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(*paintFilterCanvas, needClipToBounds_,
-                    boundsRect_, backgroundColor_);
-                paintFilterCanvas->SetEnvForegroundColor(color);
-                break;
-            }
-            default: {
-                break;
-            }
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    switch (envFGColorStrategy_) {
+        case ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR: {
+            // calculate the color by screebshot
+            Color color = RSPropertyDrawableUtils::GetInvertBackgroundColor(*paintFilterCanvas, needClipToBounds_,
+                boundsRect_, backgroundColor_);
+            paintFilterCanvas->SetEnvForegroundColor(color);
+            break;
         }
-    };
+        default: {
+            break;
+        }
+    }
 }
 
 RSDrawable::Ptr RSCustomClipToFrameDrawable::OnGenerate(const RSRenderNode& node)
@@ -614,12 +585,9 @@ void RSCustomClipToFrameDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSCustomClipToFrameDrawable::CreateDrawFunc() const
+void RSCustomClipToFrameDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSCustomClipToFrameDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        canvas->ClipRect(ptr->customClipRect_);
-    };
+    canvas->ClipRect(customClipRect_);
 }
 
 } // namespace DrawableV2

@@ -1203,7 +1203,7 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirror(RSLogicalDisplayRenderParams
 #ifdef RS_PROFILER_ENABLED
     RSCaptureRecorder::GetInstance().EndInstantCapture(SkpCaptureType::ON_CAPTURE);
 #endif
-    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, MultiScreenParam::GetMipmapMode()),
+    FinishOffscreenRender(Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE),
         mirroredScreenInfo.isSamplingOn);
     // Restore the initial state of the canvas to avoid state accumulation
     curCanvas_->RestoreToCount(0);
