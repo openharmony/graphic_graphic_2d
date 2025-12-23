@@ -2628,6 +2628,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
+        pipelineParam_.frameTimestamp = timestamp_;
         renderThreadParams_->SetTimestamp(pipelineParam_.frameTimestamp);
         renderThreadParams_->SetActualTimestamp(pipelineParam_.actualTimestamp);
         renderThreadParams_->SetVsyncId(pipelineParam_.vsyncId);
@@ -2643,7 +2644,6 @@ void RSMainThread::Render()
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif
-        pipelineParam_.frameTimestamp = timestamp_;
         // If use DoDirectComposition, we do not sync renderThreadParams,
         pipelineParam_.isForceRefresh = isForceRefresh_;
         isForceRefresh_ = false;

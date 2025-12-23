@@ -240,7 +240,8 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
 #endif
     unExecuteTaskNum_++;
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    delayTime_ = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
+    delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
+    delayTime_ = delayTime;
 }
 
 void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const PipelineParam& pipelineParam)
@@ -1355,6 +1356,6 @@ void RSRenderComposer::SetScreenPowerOnChanged(bool flag)
 
 int64_t RSRenderComposer::GetDelayTime()
 {
-    return delayTime_;
+    return delayTime_.load();
 }
 }

@@ -151,7 +151,7 @@ private:
     std::mutex surfaceMutex_;
     std::mutex preAllocMutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
-    int64_t delayTime_ = 0;
+    std::atomic<int64_t> delayTime_ = 0;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
     int64_t lastActualTime_ = 0;
