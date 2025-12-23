@@ -616,6 +616,21 @@ int32_t RSRenderPipelineClient::SetFocusAppInfo(const FocusAppInfo& info)
     return repCode;
 }
 
+int32_t RSRenderPipelineClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return RENDER_SERVICE_NULL;
+    }
+    int32_t resCode = SUCCESS;
+    auto err = clientToRender->GetBrightnessInfo(screenId, brightnessInfo);
+    if (err != SUCCESS) {
+        ROSEN_LOGE("RSRenderPipelineClient::GetBrightnessInfo err(%{public}d)!", err);
+        resCode = err;
+    }
+    return resCode;
+}
+
 int32_t RSRenderPipelineClient::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus)
 {
     auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
@@ -869,5 +884,35 @@ int32_t RSRenderPipelineClient::SubmitCanvasPreAllocatedBuffer(
     return clientToRender->SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
 }
 #endif // ROSEN_OHOS && RS_ENABLE_VK
+
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+    const std::shared_ptr<Media::PixelMap> &watermark,
+    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return WATER_MARK_RENDER_SERVICE_NULL;
+    }
+    return clientToRender->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
+}
+    
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+    const std::vector<NodeId> &nodeIdList)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return;
+    }
+    clientToRender->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+}
+    
+void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        return;
+    }
+    clientToRender->ClearSurfaceWatermark(pid, name);
+}
 } // namespace Rosen
 } // namespace OHOS

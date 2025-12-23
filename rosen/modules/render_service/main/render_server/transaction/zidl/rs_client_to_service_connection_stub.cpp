@@ -141,9 +141,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES),
-    static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_MEMORY_GRAPHIC),
@@ -302,43 +299,6 @@ std::shared_ptr<MessageParcel> CopyParcelIfNeed(MessageParcel& old, pid_t callin
     }
     return parcelCopied;
 }
-
-// bool CheckCreateNodeAndSurface(pid_t pid, RSSurfaceNodeType nodeType, SurfaceWindowType windowType)
-// {
-//     constexpr int nodeTypeMin = static_cast<int>(RSSurfaceNodeType::DEFAULT);
-//     constexpr int nodeTypeMax = static_cast<int>(RSSurfaceNodeType::NODE_MAX);
-
-//     int typeNum = static_cast<int>(nodeType);
-//     if (typeNum < nodeTypeMin || typeNum > nodeTypeMax) {
-//         RS_LOGW("CREATE_NODE_AND_SURFACE invalid RSSurfaceNodeType");
-//         return false;
-//     }
-//     if (windowType != SurfaceWindowType::DEFAULT_WINDOW && !IS_SCB_WINDOW_TYPE(windowType)) {
-//         RS_LOGW("CREATE_NODE_AND_SURFACE invalid SurfaceWindowType");
-//         return false;
-//     }
-
-//     bool isTokenTypeValid = true;
-//     bool isNonSystemAppCalling = false;
-//     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
-//     if (isNonSystemAppCalling) {
-//         if (nodeType != RSSurfaceNodeType::DEFAULT &&
-//             nodeType != RSSurfaceNodeType::APP_WINDOW_NODE &&
-//             nodeType != RSSurfaceNodeType::SELF_DRAWING_NODE &&
-//             nodeType != RSSurfaceNodeType::UI_EXTENSION_COMMON_NODE) {
-//             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid RSSurfaceNodeType %{public}d, pid %d",
-//                 typeNum, pid);
-//             return false;
-//         }
-//         if (windowType != SurfaceWindowType::DEFAULT_WINDOW) {
-//             RS_LOGW("CREATE_NODE_AND_SURFACE NonSystemAppCalling invalid SurfaceWindowType %{public}d, pid %d",
-//                 static_cast<int>(windowType), pid);
-//             return false;
-//         }
-//     }
-
-//     return true;
-// }
 
 bool IsValidCallingPid(pid_t pid, pid_t callingPid)
 {
@@ -501,89 +461,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE): {
-        //     uint64_t nodeId{0};
-        //     if (!data.ReadUint64(nodeId)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_NODE read nodeId failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     bool isNonSystemCalling = false;
-        //     bool isTokenTypeValid = true;
-        //     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
-        //     if (isNonSystemCalling && !IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-        //         RS_LOGW("CREATE_NODE invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]", nodeId, callingPid);
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     RS_PROFILER_PATCH_NODE_ID(data, nodeId);
-        //     std::string surfaceName;
-        //     if (!data.ReadString(surfaceName)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_NODE read surfaceName failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     RSSurfaceRenderNodeConfig config = {.id = nodeId, .name = surfaceName};
-        //     bool success;
-        //     if (CreateNode(config, success) != ERR_OK || !reply.WriteBool(success)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_NODE Write success failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE): {
-        //     uint64_t nodeId{0};
-        //     if (!data.ReadUint64(nodeId)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_NODE_AND_SURFACE read nodeId failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!IsValidCallingPid(ExtractPid(nodeId), callingPid)) {
-        //         RS_LOGW("CREATE_NODE_AND_SURFACE invalid nodeId[%" PRIu64 "] pid[%d]", nodeId, callingPid);
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     RS_PROFILER_PATCH_NODE_ID(data, nodeId);
-        //     std::string surfaceName;
-        //     uint8_t type { 0 };
-        //     bool isTextureExportNode { false };
-        //     bool isSync { false };
-        //     uint8_t surfaceWindowType { 0 };
-        //     bool unobscured { false };
-        //     if (!data.ReadString(surfaceName) || !data.ReadUint8(type) || !data.ReadBool(isTextureExportNode) ||
-        //         !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured)) {
-        //         RS_LOGE(
-        //             "RSClientToServiceConnectionStub::CREATE_NODE_AND_SURFACE read surfaceRenderNodeConfig failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!CheckCreateNodeAndSurface(callingPid, static_cast<RSSurfaceNodeType>(type),
-        //                                    static_cast<SurfaceWindowType>(surfaceWindowType))) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_NODE_AND_SURFACE CheckCreateNodeAndSurface failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     bool needGetBundleName = (type == static_cast<uint8_t>(RSSurfaceNodeType::SELF_DRAWING_NODE));
-        //     RSSurfaceRenderNodeConfig config = { .id = nodeId,
-        //         .name = surfaceName,
-        //         .nodeType = static_cast<RSSurfaceNodeType>(type),
-        //         .isTextureExportNode = isTextureExportNode,
-        //         .isSync = isSync,
-        //         .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
-        //         .bundleName = needGetBundleName ? GetBundleName(ExtractPid(nodeId)) : "" };
-        //     sptr<Surface> surface = nullptr;
-        //     ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
-        //     if ((err != ERR_OK) || (surface == nullptr)) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     auto producer = surface->GetProducer();
-        //     if (!reply.WriteRemoteObject(producer->AsObject())) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_NODE_AND_SURFACE read RemoteObject failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID): {
             uint64_t screenId = INVALID_SCREEN_ID;
             if (GetDefaultScreenId(screenId) != ERR_OK || !reply.WriteUint64(screenId)) {
@@ -872,26 +749,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             int32_t status = SetBrightnessInfoChangeCallback(callback);
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO): {
-            ScreenId screenId = INVALID_SCREEN_ID;
-            if (!data.ReadUint64(screenId)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_BRIGHTNESS_INFO Read screenId failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            BrightnessInfo brightnessInfo;
-            int32_t result = GetBrightnessInfo(screenId, brightnessInfo);
-            if (!reply.WriteInt32(result)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_BRIGHTNESS_INFO Write result failed!");
-                ret = ERR_INVALID_REPLY;
-                break;
-            }
-            if (!WriteBrightnessInfo(brightnessInfo, reply)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_BRIGHTNESS_INFO Write brightnessInfo failed!");
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -1330,22 +1187,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetScreenPowerStatus(id, static_cast<ScreenPowerStatus>(status));
             break;
         }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_APPLICATION_AGENT): {
-        //     pid_t pid = GetCallingPid();
-        //     RS_PROFILER_PATCH_PID(data, pid);
-        //     auto remoteObject = data.ReadRemoteObject();
-        //     if (remoteObject == nullptr) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     sptr<IApplicationAgent> app = iface_cast<IApplicationAgent>(remoteObject);
-        //     if (app == nullptr) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     RegisterApplicationAgent(pid, app);
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_VIRTUAL_SCREEN_RESOLUTION): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -1513,65 +1354,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetScreenBacklight(id, level);
             break;
         }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER): {
-        //     NodeId id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!accessible && (ExtractPid(id) != callingPid)) {
-        //         RS_LOGW("The SetBufferAvailableListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
-        //             id, callingPid);
-        //         break;
-        //     }
-        //     RS_PROFILER_PATCH_NODE_ID(data, id);
-        //     auto remoteObject = data.ReadRemoteObject();
-        //     bool isFromRenderThread{false};
-        //     if (!data.ReadBool(isFromRenderThread)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_BUFFER_AVAILABLE_LISTENER read "
-        //             "isFromRenderThread failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (remoteObject == nullptr) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     sptr<RSIBufferAvailableCallback> cb = iface_cast<RSIBufferAvailableCallback>(remoteObject);
-        //     if (cb == nullptr) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     RegisterBufferAvailableListener(id, cb, isFromRenderThread);
-        //     break;
-        // }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER): {
-        //     NodeId id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_BUFFER_CLEAR_LISTENER Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!accessible && (ExtractPid(id) != callingPid)) {
-        //         RS_LOGW("The SetBufferClearListener isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
-        //             id, callingPid);
-        //         break;
-        //     }
-        //     RS_PROFILER_PATCH_NODE_ID(data, id);
-        //     auto remoteObject = data.ReadRemoteObject();
-        //     if (remoteObject == nullptr) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     sptr<RSIBufferClearCallback> cb = iface_cast<RSIBufferClearCallback>(remoteObject);
-        //     if (cb == nullptr) {
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
-        //     RegisterBufferClearListener(id, cb);
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_GAMUTS): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -1755,20 +1537,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        // case static_cast<uint32_t>(
-        //     RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE): {
-        //     bool isDark{false};
-        //     if (!data.ReadBool(isDark)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_GLOBAL_DARK_COLOR_MODE Read parcel failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (SetGlobalDarkColorMode(isDark) != ERR_OK) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_GLOBAL_DARK_COLOR_MODE Write result failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_GAMUT_MAP): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -2150,62 +1918,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BITMAP): {
-        //     NodeId id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::GET_BITMAP Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
-        //         RS_LOGW("The GetBitmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
-        //             id, callingPid);
-        //         break;
-        //     }
-        //     RS_PROFILER_PATCH_NODE_ID(data, id);
-        //     Drawing::Bitmap bm;
-        //     bool success;
-        //     if (GetBitmap(id, bm, success) != ERR_OK || !reply.WriteBool(success)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::GET_BITMAP Write success failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //         break;
-        //     }
-        //     if (success) {
-        //         RSMarshallingHelper::Marshalling(reply, bm);
-        //     }
-        //     break;
-        // }
-        // case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_PIXELMAP): {
-        //     NodeId id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::GET_PIXELMAP Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
-        //         RS_LOGW("The GetPixelmap isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
-        //             id, callingPid);
-        //         break;
-        //     }
-        //     RS_PROFILER_PATCH_NODE_ID(data, id);
-        //     std::shared_ptr<Media::PixelMap> pixelmap =
-        //         std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-        //     Drawing::Rect rect;
-        //     RSMarshallingHelper::Unmarshalling(data, rect);
-        //     std::shared_ptr<Drawing::DrawCmdList> drawCmdList;
-        //     RSMarshallingHelper::Unmarshalling(data, drawCmdList);
-        //     bool success;
-        //     if (GetPixelmap(id, pixelmap, &rect, drawCmdList, success) != ERR_OK ||
-        //         !reply.WriteBool(success)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::GET_PIXELMAP Write id failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //         break;
-        //     }
-        //     if (success) {
-        //         RSMarshallingHelper::Marshalling(reply, pixelmap);
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NEED_REGISTER_TYPEFACE): {
             uint8_t result = Drawing::NO_REGISTER;
             uint64_t uniqueId{0};
@@ -2498,23 +2210,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetAppWindowNum(num);
             break;
         }
-        // case static_cast<uint32_t>(
-        //     RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES): {
-        //     uint32_t systemAnimatedScenes{0};
-        //     bool isRegularAnimation{false};
-        //     if (!data.ReadUint32(systemAnimatedScenes) || !data.ReadBool(isRegularAnimation)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_SYSTEM_ANIMATED_SCENES Read parcel failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     bool success;
-        //     if (SetSystemAnimatedScenes(static_cast<SystemAnimatedScenes>(systemAnimatedScenes),
-        //         isRegularAnimation, success) != ERR_OK || !reply.WriteBool(success)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_SYSTEM_ANIMATED_SCENES Write result failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK): {
             if (!RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
                 RS_LOGI("Current disenable water mark");
@@ -2533,93 +2228,9 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 break;
             }
             bool success;
-            if (SetWatermark(callingPid, name, watermark, success) != ERR_OK || !success) {
+            if (SetWatermark(name, watermark, success) != ERR_OK || !success) {
                 RS_LOGE("RSClientToServiceConnectionStub::SetWatermark failed");
             }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK): {
-            std::string name;
-            uint8_t watermarkType{0};
-            std::vector<NodeId> nodeIdList;
-            pid_t pid;
-            if (!data.ReadInt32(pid)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SURFACE_WATERMARK: Read pid err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadString(name)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SURFACE_WATERMARK Read name failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            bool hasPixelMap = false;
-            std::shared_ptr<Media::PixelMap> watermark = nullptr;
-            if (!data.ReadBool(hasPixelMap)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SURFACE_WATERMARK Read name failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (hasPixelMap) {
-                watermark = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-            }
-
-            if (!data.ReadUInt64Vector(&nodeIdList)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SURFACE_WATERMARK Read nodeIdList failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            bool invalidWatermarkType = (!data.ReadUint8(watermarkType) || watermarkType >=
-                static_cast<uint8_t>(SurfaceWatermarkType::INVALID_WATER_MARK));
-            if (!invalidWatermarkType) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SURFACE_WATERMARK Read watermarkType failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            auto errCode = SetSurfaceWatermark(pid, name, watermark, nodeIdList,
-                static_cast<SurfaceWatermarkType>(watermarkType));
-            if (!reply.WriteUint32(errCode)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_SURFACE_WATERMARK write errCode failed!");
-                ret = ERR_INVALID_DATA;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES): {
-            std::string name;
-            std::vector<NodeId> nodeIdList;
-            pid_t pid;
-            if (!data.ReadInt32(pid)) {
-                RS_LOGE("RSClientToServiceConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES: Read pid err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadString(name)) {
-                RS_LOGE("RSClientToServiceConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES Read name failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadUInt64Vector(&nodeIdList)) {
-                RS_LOGE("RSClientToServiceConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES Read nodeIdList failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
-            break;
-        }
-        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK): {
-            std::string name;
-            pid_t pid;
-            if (!data.ReadInt32(pid)) {
-                RS_LOGE("RSClientToServiceConnectionStub::CLEAR_SURFACE_WATERMARK: Read pid err.");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            if (!data.ReadString(name)) {
-                RS_LOGE("RSClientToServiceConnectionStub::CLEAR_SURFACE_WATERMARK Read name failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            ClearSurfaceWatermark(pid, name);
             break;
         }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK): {
@@ -3765,17 +3376,6 @@ bool RSClientToServiceConnectionStub::ReadGameStateDataRs(GameStateData& info, M
         !data.ReadInt32(info.state) || !data.ReadInt32(info.renderTid) ||
         !data.ReadString(info.bundleName)) {
         RS_LOGE("RSClientToServiceConnectionStub::ReadGameStateDataRs Read parcel failed!");
-        return false;
-    }
-    return true;
-}
-
-bool RSClientToServiceConnectionStub::WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
-        !data.WriteFloat(brightnessInfo.maxHeadroom) ||
-        !data.WriteFloat(brightnessInfo.sdrNits)) {
-        RS_LOGE("RSClientToServiceConnectionStub::WriteBrightnessInfo write brightnessInfo failed!");
         return false;
     }
     return true;

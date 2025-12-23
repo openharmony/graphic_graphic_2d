@@ -200,10 +200,10 @@ void RSDrawFrame::PostAndWait()
             unirenderInstance_.PostTask([this, renderFrameNumber]() {
                 unirenderInstance_.SetMainLooping(true);
                 RS_PROFILER_ON_PARALLEL_RENDER_BEGIN();
-                RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationBegin();
+                RSMainThread::Instance()->GetRPVsyncRateReduceManager().FrameDurationBegin();
                 RenderFrame();
                 unirenderInstance_.ClearResource();
-                RSMainThread::Instance()->GetRSVsyncRateReduceManager().FrameDurationEnd();
+                RSMainThread::Instance()->GetRPVsyncRateReduceManager().FrameDurationEnd();
                 RS_PROFILER_ON_PARALLEL_RENDER_END(renderFrameNumber);
                 unirenderInstance_.SetMainLooping(false);
             });

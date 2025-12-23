@@ -118,14 +118,6 @@ void RSVsyncManagerAgent::SetFrameIsRender(bool isRender)
     rsVsyncDistributor_->SetFrameIsRender(isRender);
 }
 
-void RSVsyncManagerAgent::SetHasNativeBuffer()
-{
-    if (rsVsyncDistributor_ == nullptr) {
-        return;
-    }
-    rsVsyncDistributor_->SetHasNativeBuffer();
-}
-
 int64_t RSVsyncManagerAgent::GetUiCommandDelayTime()
 {
     if (rsVsyncDistributor_ == nullptr) {

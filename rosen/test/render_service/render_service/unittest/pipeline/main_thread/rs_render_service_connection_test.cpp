@@ -164,7 +164,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
 
     // case 1: mainThread null
     {
-        sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
+        auto connection = new RSClientToRenderConnection(
             0, nullptr, nullptr, CreateOrGetScreenManager(), token->AsObject(), nullptr);
         BrightnessInfo brightnessInfo;
         ASSERT_EQ(connection->GetBrightnessInfo(0, brightnessInfo), SUCCESS);
@@ -175,7 +175,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
         RSMainThread* mainThread = new RSMainThread();
         mainThread->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
         mainThread->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread->runner_);
-        sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
+        auto connection = new RSClientToRenderConnection(
             0, nullptr, mainThread, CreateOrGetScreenManager(), token->AsObject(), nullptr);
         BrightnessInfo brightnessInfo;
         ASSERT_EQ(connection->GetBrightnessInfo(0, brightnessInfo), SUCCESS);

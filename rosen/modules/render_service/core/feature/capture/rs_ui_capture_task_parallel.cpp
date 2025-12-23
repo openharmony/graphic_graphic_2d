@@ -48,7 +48,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_client_to_service_connection.h"
 
 #ifdef RS_ENABLE_VK

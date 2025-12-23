@@ -55,7 +55,6 @@ private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
-    void CleanBrightnessInfoChangeCallbacks() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -124,6 +123,8 @@ private:
     ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
         float positionZ, float positionW) override;
 
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
+
     ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) override;
 
     ErrCode DropFrameByPid(const std::vector<int32_t> pidList) override;
@@ -151,7 +152,14 @@ private:
     int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override;
 #endif
-
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
+        
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+        const std::vector<NodeId>& nodeIdList) override;
+        
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

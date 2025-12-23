@@ -604,6 +604,34 @@ int32_t RSServiceToRenderConnectionProxy::RegisterOcclusionChangeCallback(
     return SUCCESS;
 }
 
+int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t pid,
+    sptr<RSIBrightnessInfoChangeCallback> callback)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInt32(static_cast<int32_t>(pid))) {
+        ROSEN_LOGE("dmulti_process %{public}s WriteInt32 failed.", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    if (!data.WriteRemoteObject(callback->AsObject())) {
+        ROSEN_LOGE("%{public}s WriteRemoteObject callback->AsObject() err.", __func__);
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(
+        RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return RS_CONNECTION_ERROR;
+    }
+    return SUCCESS;
+}
+
 int32_t RSServiceToRenderConnectionProxy::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
@@ -682,6 +710,9 @@ ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return ERR_INVALID_VALUE;
+    }
     if (!data.WriteUint64(pid)) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetPixelMapByProcessId: WriteUint64 pid err.");
         repCode = INVALID_ARGUMENTS;
@@ -789,7 +820,7 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
     }
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name, 
+ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name,
     std::shared_ptr<Media::PixelMap> watermark, bool& success)
 {
     MessageParcel data;
@@ -827,11 +858,14 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string> &argSets)
+void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>& argSets)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        return;
+    }
     std::vector<std::u16string> args(argSets.begin(), argSets.end());
     if (!data.WriteString16Vector(args)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::DoDump: WriteString16Vector failed");
@@ -935,7 +969,7 @@ void RSServiceToRenderConnectionProxy::ReportGameStateData(GameStateData info)
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::ReportGameStateData WriteString bundleName failed");
         return;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
+    option.SetFlags(MessageOption::TF_ASYNC);
 
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -1516,7 +1550,7 @@ HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInf
     MessageParcel reply;
     MessageOption option;
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE(
             "dmulti_process RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo: WriteInterfaceToken failed.");
         return hwcDisabledReasonInfos;

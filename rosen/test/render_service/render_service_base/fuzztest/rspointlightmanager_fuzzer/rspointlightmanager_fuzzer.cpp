@@ -30,9 +30,8 @@
 namespace OHOS {
 namespace Rosen {
 
-RSPointLightManager* instance = RSPointLightManager::Instance();
-
 namespace {
+auto& instance = RSPointLightManager::Instance(0);
 const uint8_t* g_data = nullptr;
 size_t g_size = 0;
 size_t g_pos;

@@ -3858,23 +3858,23 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo007, TestSize.Level2)
     parent->InitRenderParams();
     parent->AddChild(node);
 
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(parent, false);
     node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::BORDER_CONTENT));
     node->SetOldDirtyInSurface(RectI(0, 0, 10, 10));
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_TRUE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+    ASSERT_TRUE(RSPointLightManager::Instance(0)->GetChildHasVisibleIlluminated(parent));
 
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(parent, false);
     node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(node, true);
+    RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(node, true);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_TRUE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+    ASSERT_TRUE(RSPointLightManager::Instance(0)->GetChildHasVisibleIlluminated(parent));
 
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(parent, false);
+    RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(parent, false);
     node->GetMutableRenderProperties().SetIlluminatedType(static_cast<int>(IlluminatedType::NONE));
-    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(node, false);
+    RSPointLightManager::Instance(0)->SetChildHasVisibleIlluminated(node, false);
     rsUniRenderVisitor->CollectEffectInfo(*node);
-    ASSERT_FALSE(RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(parent));
+    ASSERT_FALSE(RSPointLightManager::Instance(0)->GetChildHasVisibleIlluminated(parent));
 }
 
 /**

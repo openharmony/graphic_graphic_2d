@@ -285,7 +285,8 @@ bool RSSurfaceRenderParams::IsInFixedRotation() const
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect)
+void RSSurfaceRenderParams::SetBuffer(const sptr<SurfaceBuffer>& buffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect)
 {
     buffer_ = buffer;
     damageRect_ = damageRect;
@@ -317,7 +318,8 @@ const Rect& RSSurfaceRenderParams::GetBufferDamage() const
     return damageRect_;
 }
 
-void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
+void RSSurfaceRenderParams::SetPreBuffer(const sptr<SurfaceBuffer>& preBuffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
 {
     preBuffer_ = preBuffer;
     if (preBufferOwnerCount) {
@@ -605,8 +607,8 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
             bufferSynced_ = offlineOriginBufferSynced_;
         } else {
             if (preBufferOwnerCount_ != nullptr && bufferSynced_ == false) {
-                RS_LOGI("RSBufferManager OnSync RSSurfaceRenderNode DecRef seqNum %{public}u", uint32_t(preBufferOwnerCount_->seqNum_));
-                RS_TRACE_NAME_FMT("RSBufferManager OnSync RSSurfaceRenderNode DecRef seqNum %u", uint32_t(preBufferOwnerCount_->seqNum_));
+                RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderParams::OnSync RSSurfaceRenderNode RSBufferManager::DecRef "
+                    "seqNum %u", uint32_t(preBufferOwnerCount_->seqNum_));
                 preBufferOwnerCount_->DecRef();
             }
             bufferSynced_ = true;

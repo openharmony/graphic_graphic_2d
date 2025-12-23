@@ -32,9 +32,9 @@ namespace Rosen {
 
 class RSSurfaceRCDLayer : public RSSurfaceLayer {
 public:
-    RSSurfaceRCDLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSLayerContext> rsLayerContext = nullptr);
+    RSSurfaceRCDLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSComposerContext> rsComposerContext = nullptr);
     virtual ~RSSurfaceRCDLayer() = default;
-    static std::shared_ptr<RSLayer> CreateRSLayer(const std::shared_ptr<RSRenderComposerClient>& client,
+    static std::shared_ptr<RSLayer> Create(const std::shared_ptr<RSComposerContext>& context,
         RSLayerId rsLayerId);
 
     virtual bool IsScreenRCDLayer() const override { return true; };

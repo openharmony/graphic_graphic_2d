@@ -1216,20 +1216,6 @@ HWTEST_F(RSServiceClientTest, SetBrightnessInfoChangeCallbackTest, TestSize.Leve
 }
 
 /**
- * @tc.name: GetBrightnessInfoTest
- * @tc.desc: GetBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(RSServiceClientTest, GetBrightnessInfoTest, TestSize.Level1)
-{
-    BrightnessInfo brightnessInfo = { 0 };
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), 0);
-    RSRenderServiceConnectHub::Destroy();
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
-    RSRenderServiceConnectHub::Init();
-}
-
-/**
  * @tc.name: SurfaceWatermarkTest01
  * @tc.desc: SurfaceWatermarkTest01
  * @tc.type: FUNC

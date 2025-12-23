@@ -30,7 +30,7 @@ namespace OHOS {
 namespace Rosen {
 class RSComposerAdapter;
 class RSRcdSurfaceRenderNode;
-class RSLayerContext;
+class RSComposerContext;
 class RSRenderComposerClient;
 namespace DrawableV2 {
 class RSScreenRenderNodeDrawable;

@@ -90,7 +90,7 @@ HWTEST_F(RSRenderComposerClientTest, LayerFuncTest, Function | SmallTest | Level
 
 /**
  * @tc.name: CommitRSLayerTest
- * @tc.desc: Test Func CommitRSLayer
+ * @tc.desc: Test Func CommitLayers
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
@@ -99,7 +99,7 @@ HWTEST_F(RSRenderComposerClientTest, CommitRSLayerTest, Function | SmallTest | L
     auto layer = std::make_shared<RSSurfaceLayer>();
     layer->SetTunnelHandleChange(true);
     client->AddRSLayer(layer);
-    client->CommitRSLayer();
+    client->CommitLayers();
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId]->unExecuteTaskNum_, 0);
 }

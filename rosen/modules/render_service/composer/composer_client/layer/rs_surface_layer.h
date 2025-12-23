@@ -30,20 +30,20 @@ namespace OHOS {
 namespace Rosen {
 class RSLayerTransactionHandler;
 class RSLayerParcel;
-class RSLayerContext;
+class RSComposerContext;
 class RSRenderLayerCmd;
 
 class RSSurfaceLayer : public RSLayer {
 public:
-    RSSurfaceLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSLayerContext> rsLayerContext = nullptr);
+    RSSurfaceLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSComposerContext> rsComposerContext = nullptr);
     virtual ~RSSurfaceLayer();
-    static std::shared_ptr<RSLayer> CreateRSLayer(const std::shared_ptr<RSRenderComposerClient>& client,
+    static std::shared_ptr<RSLayer> Create(const std::shared_ptr<RSComposerContext>& context,
         RSLayerId rsLayerId);
 
     RSLayerId GetRSLayerId() const override;
     void SetRSLayerId(RSLayerId rsLayerId) override;
-    std::shared_ptr<RSLayerContext> GetRSLayerContext() const override;
-    void SetRSLayerContext(std::shared_ptr<RSLayerContext> rsLayerContext) override;
+    std::shared_ptr<RSComposerContext> GetComposerContext() const override;
+    void SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext) override;
     void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override {}
 
     void SetAlpha(const GraphicLayerAlpha& alpha) override;
@@ -174,10 +174,8 @@ private:
 
     virtual void AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd);
 
-    std::shared_ptr<RSLayerTransactionHandler> GetRSLayerTransaction() const;
-
     // rs layer pipeline info
-    std::weak_ptr<RSLayerContext> rsLayerContext_;
+    std::weak_ptr<RSComposerContext> rsComposerContext_;
     std::map<RSLayerPropertyId, std::shared_ptr<RSLayerCmd>> commands_;
     std::map<RSLayerCmdType, std::shared_ptr<RSLayerCmd>> rsLayerCmds_;
     RSLayerId rsLayerId_;

@@ -78,7 +78,7 @@
 #include "graphic_feature_param_manager.h"
 // hpae offline
 #include "feature/hwc/hpae_offline/rs_hpae_offline_processor.h"
-// #include "rs_layer_context.h"
+// #include "rs_composer_context.h"
 // #include "rs_layer_factory.h"
 
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -1056,24 +1056,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSMagicPointerRenderManager::GetInstance().SetCacheImgForPointer(nullptr);
     }
 #endif
-    // {
-    //     auto surfacehandler = GetRSSurfaceHandlerOnDraw();
-    //     if (surfacehandler != nullptr) {
-    //         {
-    //             RS_TRACE_NAME_FMT("pengq yzy RSDisplayRenderNodeDrawable 18");
-    //         }
-    //         if (RSBaseRenderUtil::ConsumeAndUpdateBuffer(*surfacehandler)) {
-    //             {
-    //                 RS_TRACE_NAME_FMT("pengq yzy RSDisplayRenderNodeDrawable 18");
-    //             }
-    //             auto syncFence = surfacehandler->GetAcquireFence();
-    //             syncFence->Wait(200); // 3000ms
-    //             auto pre = surfacehandler->GetPreBuffer();
-    //             auto fence = surfacehandler->GetPreBufferReleaseFence();
-    //             surfacehandler->GetConsumer()->ReleaseBuffer(pre, fence);
-    //         }
-    //     }
-    // }
 }
 
 void RSScreenRenderNodeDrawable::UpdateSlrScale(ScreenInfo& screenInfo)

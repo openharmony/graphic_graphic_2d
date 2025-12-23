@@ -1,0 +1,344 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_output_path = "graphic_2d/graphic_2d/render_service/render_server"
+
+###############################################################################
+ohos_unittest("RenderServiceAgentTest") {
+    module_out_path = module_output_path
+
+    sources = [ "render_service_agent_test.cpp" ]
+
+    cflags = [
+        "-Dprivate=public",
+        "-Dprotected=public",
+    ]
+
+    include_dirs = [
+        "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+        "$graphic_2d_root/rosen/modules/render_service",
+        "$graphic_2d_root/rosen/modules/render_service/core",
+        "$graphic_2d_root/rosen/modules/render_service/core/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/main",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/test/include",
+        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+    ]
+
+    deps = [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$graphic_2d_root/rosen/modules/composer:libcomposer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+        "$graphic_2d_root/rosen/modules/render_service:librender_service",
+        "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    ]
+
+    external_deps = [
+        "c_utils:utils",
+        "eventhandler:libeventhandler",
+        "hilog:libhilog",
+        "hisysevent:libhisysevent",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+        "skia:skia_canvaskit",
+        "safwk:system_ability_fwk",
+    ]
+
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+        external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+ohos_unittest("RenderServiceTest") {
+    module_out_path = module_output_path
+    sources = [ "render_service_test.cpp" ]
+
+    cflags = [
+      "-Dprivate=public",
+      "-Dprotected=public",
+    ]
+
+
+    include_dirs = [
+        "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+        "$graphic_2d_root/rosen/modules/render_service",
+        "$graphic_2d_root/rosen/modules/render_service/core",
+        "$graphic_2d_root/rosen/modules/render_service/core/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/main",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/test/include",
+        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+    ]
+
+    deps = [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$graphic_2d_root/rosen/modules/composer:libcomposer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+        "$graphic_2d_root/rosen/modules/render_service:librender_service",
+        "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    ]
+
+    external_deps = [
+        "c_utils:utils",
+        "eventhandler:libeventhandler",
+        "hilog:libhilog",
+        "hisysevent:libhisysevent",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+        "skia:skia_canvaskit",
+        "safwk:system_ability_fwk",
+    ]
+
+    defines = []
+    if (graphic_2d_support_access_token) {
+        external_deps += [
+            "access_token:libnativetoken",
+            "access_token:libtoken_setproc",
+        ]
+        defines += [ "SUPPORT_ACCESS_TOKEN" ]
+    }
+
+    if (defined(input_ext_feature_magiccursor) && input_ext_feature_magiccursor) {
+        defines += [ "OHOS_BUILD_ENABLE_MAGICCURSOR" ]
+    }
+
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+        external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+ohos_unittest("RSRenderProcessManagerAgentTest") {
+    module_out_path = module_output_path
+    sources = [ "rs_render_process_manager_agent_test.cpp" ]
+
+    cflags = [
+      "-Dprivate=public",
+      "-Dprotected=public",
+    ]
+
+    include_dirs = [
+        "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+        "$graphic_2d_root/rosen/modules/render_service",
+        "$graphic_2d_root/rosen/modules/render_service/core",
+        "$graphic_2d_root/rosen/modules/render_service/core/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/main",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/test/include",
+        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+    ]
+
+    deps = [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$graphic_2d_root/rosen/modules/composer:libcomposer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+        "$graphic_2d_root/rosen/modules/render_service:librender_service",
+        "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    ]
+
+    external_deps = [
+        "c_utils:utils",
+        "eventhandler:libeventhandler",
+        "hilog:libhilog",
+        "hisysevent:libhisysevent",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "samgr:samgr_proxy",
+        "skia:skia_canvaskit",
+        "safwk:system_ability_fwk",
+    ]
+
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+        external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+ohos_unittest("RSRenderSingleProcessManagerTest") {
+    module_out_path = module_output_path
+    sources = [ "rs_render_single_process_manager_test.cpp" ]
+
+    cflags = [
+      "-Dprivate=public",
+      "-Dprotected=public",
+    ]
+
+    include_dirs = [
+        "../../../../../rosen/modules/platform",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+        "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+        "$graphic_2d_root/rosen/modules/render_service",
+        "$graphic_2d_root/rosen/modules/render_service/core",
+        "$graphic_2d_root/rosen/modules/render_service/core/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/main",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_server",
+        "$graphic_2d_root/rosen/modules/render_service/main/render_process",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+        "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/performance_feature",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/extend_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/xml_parser/performance_feature_parser",
+        "$graphic_2d_root/rosen/modules/render_service_base/src",
+        "$graphic_2d_root/rosen/test/include",
+        "../../../../../../../../../../base/account/os_account/services/accountmgr/test/mock/app_account",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/nativetoken/include",
+        "../../../../../../../../../../base/security/access_token/interfaces/innerkits/token_sptproc/include",
+    ]
+
+    deps = [
+        "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
+        "$graphic_2d_root/rosen/modules/composer:libcomposer",
+        "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+        "$graphic_2d_root/rosen/modules/render_service:librender_service",
+        "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+        "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
+    ]
+
+    external_deps = [
+        "c_utils:utils",
+        "eventhandler:libeventhandler",
+        "hilog:libhilog",
+        "hisysevent:libhisysevent",
+        "hitrace:hitrace_meter",
+        "init:libbegetutil",
+        "ipc:ipc_core",
+        "memmgr:memmgrclient",
+        "samgr:samgr_proxy",
+        "skia:skia_canvaskit",
+        "safwk:system_ability_fwk",
+    ]
+
+    if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+        external_deps += [ "sensor:sensor_interface_native" ]
+    }
+    subsystem_name = "graphic"
+}
+
+###############################################################################
+group("unittest") {
+    testonly = true
+
+    deps = [
+        ":RenderServiceAgentTest",
+        ":RenderServiceTest",
+        ":RSRenderProcessManagerAgentTest",
+        ":RSRenderSingleProcessManagerTest",
+    ]
+}

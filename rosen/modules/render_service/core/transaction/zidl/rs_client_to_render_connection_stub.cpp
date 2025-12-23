@@ -1203,6 +1203,26 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             SetHwcNodeBounds(id, positionX, positionY, positionZ, positionW);
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO): {
+            ScreenId screenId = INVALID_SCREEN_ID;
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_BRIGHTNESS_INFO Read screenId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            BrightnessInfo brightnessInfo;
+            int32_t result = GetBrightnessInfo(screenId, brightnessInfo);
+            if (!reply.WriteInt32(result)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_BRIGHTNESS_INFO Write result failed!");
+                ret = ERR_INVALID_REPLY;
+                break;
+            }
+            if (!WriteBrightnessInfo(brightnessInfo, reply)) {
+                RS_LOGE("RSClientToRenderConnectionStub::GET_BRIGHTNESS_INFO Write brightnessInfo failed!");
+                ret = ERR_INVALID_REPLY;
+            }
+            break;
+        }
         case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
@@ -1447,6 +1467,90 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK): {
+            std::string name;
+            uint8_t watermarkType{0};
+            std::vector<NodeId> nodeIdList;
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK: Read pid err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool hasPixelMap = false;
+            std::shared_ptr<Media::PixelMap> watermark = nullptr;
+            if (!data.ReadBool(hasPixelMap)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (hasPixelMap) {
+                watermark = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
+            }
+
+            if (!data.ReadUInt64Vector(&nodeIdList)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read nodeIdList failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            bool invalidWatermarkType = (!data.ReadUint8(watermarkType) || watermarkType >=
+                static_cast<uint8_t>(SurfaceWatermarkType::INVALID_WATER_MARK));
+            if (invalidWatermarkType) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK Read watermarkType failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            auto errCode = SetSurfaceWatermark(pid, name, watermark, nodeIdList,
+                static_cast<SurfaceWatermarkType>(watermarkType));
+            if (!reply.WriteUint32(errCode)) {
+                RS_LOGE("RSClientToRenderConnectionStub::SET_SURFACE_WATERMARK write errCode failed!");
+                ret = ERR_INVALID_DATA;
+            }
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES): {
+            std::string name;
+            std::vector<NodeId> nodeIdList;
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES: Read pid err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadUInt64Vector(&nodeIdList)) {
+                RS_LOGE("RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK_FOR_NODES Read nodeIdList failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
+            break;
+        }
+        case static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK): {
+            std::string name;
+            pid_t pid;
+            if (!data.ReadInt32(pid)) {
+                RS_LOGE("RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK: Read pid err.");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            if (!data.ReadString(name)) {
+                RS_LOGE("RSClientToRenderConnectionStub::CLEAR_SURFACE_WATERMARK Read name failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            ClearSurfaceWatermark(pid, name);
+            break;
+        }
 #endif
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -1467,6 +1571,17 @@ bool RSClientToRenderConnectionStub::ReadDataBaseRs(DataBaseRs& info, MessagePar
         !data.ReadString(info.abilityName) ||!data.ReadString(info.pageUrl) ||
         !data.ReadString(info.sourceType) || !data.ReadString(info.note)) {
         RS_LOGE("RSClientToRenderConnectionStub::ReadDataBaseRs Read parcel failed!");
+        return false;
+    }
+    return true;
+}
+
+bool RSClientToRenderConnectionStub::WriteBrightnessInfo(const BrightnessInfo& brightnessInfo, MessageParcel& data)
+{
+    if (!data.WriteFloat(brightnessInfo.currentHeadroom) ||
+        !data.WriteFloat(brightnessInfo.maxHeadroom) ||
+        !data.WriteFloat(brightnessInfo.sdrNits)) {
+        RS_LOGE("RSClientToRenderConnectionStub::WriteBrightnessInfo write brightnessInfo failed!");
         return false;
     }
     return true;

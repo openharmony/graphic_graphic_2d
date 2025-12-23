@@ -53,7 +53,6 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     foregroundPidAppMap_.clear();
     pidAppTypeMap_.clear();
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
-    std::unordered_set<pid_t> imageEnhancePidList = {};
     for (auto& param : pkgs_) {
         RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
         HGM_LOGI("pkg update:%{public}s", param.c_str());
@@ -61,7 +60,6 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
         // DISPLAY ENGINE
         RsCommonHook::Instance().SetCurrentPkgName(pkgName);
-        CheckImageEnhanceList(pkgName, pid, imageEnhancePidList);
 
         pidAppTypeMap_[pkgName] = { pid, appType };
         if (pid > DEFAULT_PID) {
@@ -69,7 +67,6 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
             backgroundPid_.Erase(pid);
         }
     }
-    RsCommonHook::Instance().SetImageEnhancePidList(imageEnhancePidList);
     if (auto configCallbackManager = HgmConfigCallbackManager::GetInstance(); configCallbackManager != nullptr) {
         configCallbackManager->SyncHgmConfigChangeCallback(foregroundPidAppMap_);
     }
@@ -431,18 +428,5 @@ void HgmMultiAppStrategy::OnStrategyChange()
         }
     }
 }
-
-void HgmMultiAppStrategy::CheckImageEnhanceList(
-    const std::string& pkgName, const pid_t pid, std::unordered_set<pid_t>& imageEnhancePidList) const
-{
-    const std::unordered_set<std::string>& imageEnhanceScene = HgmCore::Instance().GetImageEnhanceScene();
-    if (imageEnhanceScene.empty()) {
-        return;
-    }
-    if (imageEnhanceScene.find(pkgName) != imageEnhanceScene.end()) {
-        imageEnhancePidList.insert(pid);
-    }
-}
-
 } // namespace Rosen
 } // namespace OHOS

@@ -27,11 +27,9 @@
 #ifndef ROSEN_CROSS_PLATFORM
 #include <iconsumer_surface.h>
 #include <surface.h>
+#include "common/rs_optional_trace.h"
 #include "sync_fence.h"
 #endif
-
-#include "rs_trace.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,14 +42,12 @@ public:
     virtual ~RSSurfaceHandler() noexcept;
 
     struct BufferOwnerCount {
-        BufferOwnerCount() {
-            RS_TRACE_NAME_FMT("!!!RSBufferManager!!! BufferOwnerCount refCount_ %u", refCount_.load());
-        }
+        BufferOwnerCount() {}
 
         ~BufferOwnerCount() {
             if (bufferReleaseCb_ != nullptr && seqNum_ != 0) {
-                RS_TRACE_NAME_FMT("!!!RSBufferManager!!! ~BufferOwnerCount seqNum %u refCount_ %u", uint32_t(seqNum_), refCount_.load());
-                RS_LOGE("!!!RSBufferManager!!! ~BufferOwnerCount seqNum %{public}u refCount_ %{public}u", uint32_t(seqNum_), refCount_.load());
+                RS_OPTIONAL_TRACE_NAME_FMT("BufferOwnerCount::~BufferOwnerCount seqNum %u refCount_ %u",
+                    uint32_t(seqNum_), refCount_.load());
                 bufferReleaseCb_(seqNum_);
                 bufferReleaseCb_ = nullptr;
             }
@@ -60,31 +56,26 @@ public:
         void AddRef()
         {
             if (seqNum_ == 0) {
-                RS_TRACE_NAME_FMT("!!!RSBufferManager!!! AddRef seqNum %u ret %u", uint32_t(seqNum_), refCount_.load());
-                RS_LOGE("!!!RSBufferManager!!! AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_), refCount_.load());
+                RS_LOGE("BufferOwnerCount::AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
+                    refCount_.load());
                 return;
             }
             refCount_.fetch_add(1, std::memory_order_relaxed);
-            RS_TRACE_NAME_FMT("!!!RSBufferManager!!! AddRef seqNum %u ret %u", uint32_t(seqNum_), refCount_.load());
-            RS_LOGE("!!!RSBufferManager!!! AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_), refCount_.load());
         }
 
         void DecRef()
         {
             if (seqNum_ == 0) {
-                RS_TRACE_NAME_FMT("!!!RSBufferManager!!! AddRef seqNum %u ret %u", uint32_t(seqNum_), refCount_.load());
-                RS_LOGE("!!!RSBufferManager!!! AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_), refCount_.load());
+                RS_LOGE("BufferOwnerCount::AddRef seqNum %{public}u ret %{public}u", uint32_t(seqNum_),
+                    refCount_.load());
                 return;
             }
             auto ret = refCount_.fetch_sub(1, std::memory_order_acq_rel);
-            RS_TRACE_NAME_FMT("!!!RSBufferManager!!! DecRef seqNum %u refCount_ %u ret %u", uint32_t(seqNum_), refCount_.load(), ret);
-            RS_LOGE("!!!RSBufferManager!!! DecRef seqNum %{public}u refCount_ %{public}u ret %{public}u", uint32_t(seqNum_), refCount_.load(), ret);
             if (ret == 1) {
                 if (bufferReleaseCb_ == nullptr) {
-                    RS_LOGE("!!!RSBufferManager!!! DecRef bufferReleaseCb_ is nullptr");
+                    RS_LOGE("BufferOwnerCount::DecRef bufferReleaseCb_ is nullptr");
                     return;
                 }
-                RS_LOGE("!!!RSBufferManager!!! DecRef bufferReleaseCb_ is called");
                 bufferReleaseCb_(seqNum_);
                 bufferReleaseCb_ = nullptr;
             }
@@ -98,7 +89,7 @@ public:
         {
             std::lock_guard<std::mutex> lock(mapMutex_);
             uniOnDrawBufferMap_.erase(layerId);
-            uniOnDrawBufferMap_.insert({layerId, seqNum});
+            uniOnDrawBufferMap_[layerId] = seqNum;
         }
 
         void SetUniBufferOwner(uint64_t seqNum)

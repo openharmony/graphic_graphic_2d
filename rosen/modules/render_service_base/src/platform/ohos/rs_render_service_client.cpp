@@ -294,38 +294,8 @@ bool RSRenderServiceClient::SetWatermark(const std::string& name, std::shared_pt
         return false;
     }
     bool success;
-    clientToService->SetWatermark(0, name, watermark, success); // ??? todo
+    clientToService->SetWatermark(name, watermark, success);
     return success;
-}
-
-uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
-    const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return WATER_MARK_RENDER_SERVICE_NULL;
-    }
-    return clientToService->SetSurfaceWatermark(pid, name, watermark, nodeIdList, watermarkType);
-}
-    
-void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-    const std::vector<NodeId> &nodeIdList)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return;
-    }
-    clientToService->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList);
-}
-    
-void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return;
-    }
-    clientToService->ClearSurfaceWatermark(pid, name);
 }
 
 int32_t RSRenderServiceClient::SetVirtualScreenSecurityExemptionList(
@@ -545,16 +515,6 @@ int32_t RSRenderServiceClient::SetBrightnessInfoChangeCallback(const BrightnessI
     }
 
     return clientToService->SetBrightnessInfoChangeCallback(cb);
-}
-
-int32_t RSRenderServiceClient::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("RSRenderServiceClient::%{public}s clientToService is null", __func__);
-        return RENDER_SERVICE_NULL;
-    }
-    return clientToService->GetBrightnessInfo(screenId, brightnessInfo);
 }
 
 uint32_t RSRenderServiceClient::SetScreenActiveMode(ScreenId id, uint32_t modeId)
@@ -1906,8 +1866,8 @@ int32_t RSRenderServiceClient::SetOverlayDisplayMode(int32_t mode)
 }
 #endif
 
-void RSRenderServiceClient::NotifyPageName(const std::string &packageName,
-    const std::string &pageName, bool isEnter)
+void RSRenderServiceClient::NotifyPageName(const std::string& packageName,
+    const std::string& pageName, bool isEnter)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
     if (clientToService == nullptr) {

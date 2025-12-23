@@ -40,7 +40,6 @@ public:
     void InitHgmTaskHandleThread(
         const sptr<VSyncController>& rsVSyncController, const sptr<VSyncController>& appVSyncController,
         const sptr<VSyncGenerator>& vsyncGenerator);
-    void InitHfbcConfig();
     void ProcessHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo, sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
 
@@ -71,6 +70,7 @@ public:
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
     bool NotifySoftVsyncRateDiscountEvent(
         uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor);
+    void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
     void UpdateRenderProcessPid(ScreenId screenId, pid_t pid);
 
     FrameRateRange& GetRSCurrRangeRef()
@@ -99,16 +99,11 @@ public:
 
     void RemoveScreenFromHgm(ScreenId screenId);
 
-    bool SetVSyncRatesChangeStatus(bool newState)
-    {
-        return needPostTask_.exchange(newState);
-    }
-
 private:
     void InitHgmUpdateCallback();
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
-    void TransformNodeToLinkersRateMap(const sptr<HgmProcessToServiceInfo>& info);
+    void InitHfbcConfig();
     std::shared_ptr<AppExecFwk::EventHandler> renderServiceHandler_ = nullptr;
     std::shared_ptr<HgmFrameRateManager> frameRateManager_ = nullptr;
     HgmCore& hgmCore_;
@@ -128,13 +123,11 @@ private:
 
     bool isAdaptive_ = false;
     std::string gameNodeName_ = "";
+
     std::function<void(bool, ScreenId)> requestRSNextVsyncFunc_;
     mutable std::mutex hgmMutex_;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
-    std::map<uint64_t, int> linkersRateMap_;
-    std::atomic<bool> needPostTask_{ false };
-    std::map<NodeId, int> lastVSyncRateMap_;
 };
 } // namespace OHOS
 } // namespace Rosen

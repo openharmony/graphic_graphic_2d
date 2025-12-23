@@ -24,6 +24,7 @@
 #include "drawable/rs_render_node_drawable_adapter.h"
 #include "memory/rs_memory_track.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_surface_handler.h"
 #include "property/rs_properties.h"
 #include "screen_manager/screen_types.h"
 #include "utils/matrix.h"
@@ -34,8 +35,6 @@
 #include <surface.h>
 #include "sync_fence.h"
 #endif
-
-#include "pipeline/rs_surface_handler.h"
 
 namespace OHOS::Rosen {
 #define RENDER_BASIC_PARAM_TO_STRING(basicType) (std::string(#basicType "[") + std::to_string(basicType) + "] ")

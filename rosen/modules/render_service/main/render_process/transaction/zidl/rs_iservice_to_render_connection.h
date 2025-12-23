@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
-#define RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
+#ifndef RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
+#define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
 
 #include <screen_manager/rs_screen_property.h>
 #include "irs_render_to_composer_connection.h"
@@ -34,6 +34,7 @@ public:
 
     virtual int32_t NotifyScreenRefresh(ScreenId id) = 0;
     virtual int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) = 0;
+    virtual int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) = 0;
     virtual int32_t RegisterSurfaceOcclusionChangeCallback(
         NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) = 0;
     virtual int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) = 0;
@@ -102,4 +103,4 @@ public:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H
+#endif // RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_ZIDL_RS_ISERVICE_TO_RENDER_CONNECTION_H

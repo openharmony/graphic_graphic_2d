@@ -48,7 +48,7 @@
 #include "pipeline/hwc/rs_hwc_context.h"
 #include "feature/lpp/render_process/lpp_video_handler.h"
 #include "feature/image_detail_enhancer/rs_image_detail_enhancer_thread.h"
-#include "feature/vrate/rs_vsync_rate_reduce_manager.h"
+#include "feature/vrate/rp_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
 #include "screen_manager/rs_screen_node_listener.h"
@@ -61,15 +61,11 @@
 #endif
 
 #include "pipeline/render_thread/rs_uni_render_thread.h"
-#include "hgm_core.h"
-#include "feature/hyper_graphic_manager/hgm_client.h"
-#include "feature/hyper_graphic_manager/hgm_info_parcel.h"
 
 namespace OHOS::Rosen {
 #if defined(ACCESSIBILITY_ENABLE)
 class AccessibilityObserver;
 #endif
-class HgmClient;
 class HgmRPContext;
 class RSIRenderToServiceConnection;
 class RSUniRenderVisitor;
@@ -102,7 +98,8 @@ public:
     static RSMainThread* Instance();
 
     void Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler, const std::shared_ptr<VSyncReceiver>& receiver,
-        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
+        const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void OnScreenConnected(const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
@@ -370,9 +367,9 @@ public:
         return systemAnimatedScenesList_.empty();
     }
 
-    RSVsyncRateReduceManager& GetRSVsyncRateReduceManager()
+    RPVsyncRateReduceManager& GetRPVsyncRateReduceManager()
     {
-        return rsVsyncRateReduceManager_;
+        return rpVsyncRateReduceManager_;
     }
 
     bool IsFirstFrameOfOverdrawSwitch() const
@@ -488,6 +485,8 @@ public:
         return aibarNodes_;
     }
 
+    uint64_t GetVsyncId() const { return vsyncId_; }
+
 private:
     using TransactionDataIndexMap = std::unordered_map<pid_t,
         std::pair<uint64_t, std::vector<std::unique_ptr<RSTransactionData>>>>;
@@ -578,13 +577,10 @@ private:
     void TraverseCanvasDrawingNodes();
 
     void SetFocusLeashWindowId();
-    void ProcessHgmFrameRate(uint64_t timestamp);
     RSVisibleLevel GetRegionVisibleLevel(const Occlusion::Region& curRegion,
         const Occlusion::Region& visibleRegion);
     void PrintCurrentStatus();
     void UpdateGpuContextCacheSize();
-    // todo:存疑
-    void ProcessScreenHotPlugEvents();
 #ifdef RES_SCHED_ENABLE
     void SubScribeSystemAbility();
 #endif
@@ -635,8 +631,6 @@ private:
     void UpdateDirectCompositionByAnimate(bool animateNeedRequestNextVsync);
     void HandleTunnelLayerId(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-
-    void NotifyRpHgmFrameRate();
 
     bool isUniRender_ = RSUniRenderJudgement::IsUniRender();
     bool needWaitUnmarshalFinished_ = true;
@@ -876,7 +870,7 @@ private:
 #endif
     std::unique_ptr<RSRenderThreadParams> renderThreadParams_ = nullptr; // sync to render thread
     std::unordered_set<int32_t> surfacePidNeedDropFrame_;
-    RSVsyncRateReduceManager rsVsyncRateReduceManager_;
+    RPVsyncRateReduceManager rpVsyncRateReduceManager_;
     RSSurfaceWatermarkHelper surfaceWatermarkHelper_;
 
     // for record fastcompose time change
@@ -897,7 +891,6 @@ private:
 
     bool hasCanvasDrawingNodeCachedOp_ = false;
 
-    std::shared_ptr<HgmClient> hgmClient_ = nullptr;
     std::shared_ptr<HgmRPContext> hgmRPContext_ = nullptr;
 };
 } // namespace OHOS::Rosen

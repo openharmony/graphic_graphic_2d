@@ -38,7 +38,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
-#include "rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "screen_manager/screen_types.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
 #include "screen_manager/rs_screen.h"
@@ -397,6 +397,96 @@ HWTEST_F(RSClientToRenderConnectionStubTest, DropFrameByPid001, TestSize.Level2)
     data.WriteInt32Vector(pidList);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_DATA);
+}
+
+/**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: Test GetBrightnessInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Level2)
+{
+    sptr<RSClientToServiceConnectionStub> connectionStub =
+        new RSClientToServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
+
+    // case 1: no data
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_INVALID_DATA);
+    }
+
+    // case 2: valid screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(hdiOutput_->GetScreenId());
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+
+    // case 3: invalid screenId
+    {
+        MessageParcel data;
+        MessageParcel reply;
+        MessageOption option;
+        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteUint64(INVALID_SCREEN_ID);
+        auto interfaceCode = RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
+        EXPECT_EQ(res, ERR_NONE);
+    }
+}
+
+/**
+ * @tc.name: WriteBrightnessInfoTest
+ * @tc.desc: Test WriteBrightnessInfo
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, WriteBrightnessInfoTest, TestSize.Level2)
+{
+    // case 1: normal write
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        ASSERT_TRUE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 2: can't write any data
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        size_t desireCapacity = sizeof(float) * 0;
+        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
+        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 3: can write one float
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        size_t desireCapacity = sizeof(float) * 1;
+        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
+        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 4: can write two float
+    {
+        BrightnessInfo brightnessInfo;
+        MessageParcel data;
+        size_t desireCapacity = sizeof(float) * 2;
+        data.writeCursor_ = data.GetMaxCapacity() - desireCapacity;
+        ASSERT_FALSE(connectionStub_->WriteBrightnessInfo(brightnessInfo, data));
+    }
 }
 
 /**

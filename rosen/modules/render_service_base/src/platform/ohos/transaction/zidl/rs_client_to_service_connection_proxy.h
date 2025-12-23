@@ -68,16 +68,7 @@ public:
     
     ErrCode RemoveVirtualScreenBlackList(ScreenId id, std::vector<NodeId>& blackListVector, int32_t& repCode) override;
 
-    ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
-
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
-        
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-        const std::vector<NodeId>& nodeIdList) override;
-        
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
+    ErrCode SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<NodeId>& securityExemptionList) override;
@@ -107,10 +98,6 @@ public:
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
 
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
-
-    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
-
-    bool ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data);
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
@@ -331,7 +318,7 @@ public:
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback() override;
 
-    ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+    ErrCode NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter) override;
 
     ErrCode AvcodecVideoStart(const std::vector<uint64_t>& uniqueIdList,
         const std::vector<std::string>& surfaceNameList, uint32_t fps, uint64_t reportTime) override;

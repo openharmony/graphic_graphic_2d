@@ -141,6 +141,8 @@ public:
     virtual ErrCode SetHwcNodeBounds(
         int64_t rsNodeId, float positionX, float positionY, float positionZ, float positionW) = 0;
 
+    virtual int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) = 0;
+
     virtual ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode) = 0;
 
     virtual ErrCode DropFrameByPid(const std::vector<int32_t> pidList) = 0;
@@ -171,6 +173,14 @@ public:
     virtual int32_t SubmitCanvasPreAllocatedBuffer(
         NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) = 0;
 #endif
+    virtual uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) = 0;
+        
+    virtual void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList) = 0;
+        
+    virtual void ClearSurfaceWatermark(pid_t pid, const std::string &name) = 0;
 };
 
 } // namespace Rosen

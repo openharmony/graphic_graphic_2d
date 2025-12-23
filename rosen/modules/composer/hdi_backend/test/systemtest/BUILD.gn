@@ -36,8 +36,8 @@ ohos_systemtest("hdiscreen_sys_test") {
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
     "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/layer_backend",
-    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/render_layer",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/render_layer",
   ]
 
   cflags = [

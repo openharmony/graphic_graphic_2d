@@ -164,6 +164,8 @@ public:
 
     void SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
 
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
+
     int32_t GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus);
 
     void DropFrameByPid(const std::vector<int32_t> pidList);
@@ -187,6 +189,14 @@ public:
     int32_t SubmitCanvasPreAllocatedBuffer(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
 #endif
 
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
+        const std::shared_ptr<Media::PixelMap> &watermark,
+        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
+        
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+        const std::vector<NodeId> &nodeIdList);
+        
+    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
 private:
     void TriggerSurfaceCaptureCallback(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
         std::shared_ptr<Media::PixelMap> pixelmap, std::shared_ptr<Media::PixelMap> pixelmapHDR = nullptr);

@@ -58,13 +58,13 @@ void RSLayerContextTest::TearDown() {}
 
 /**
  * @tc.name: InitContextTest
- * @tc.desc: Test RSLayerContext
+ * @tc.desc: Test RSComposerContext
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
 HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
 {
-    auto context = std::make_shared<RSLayerContext>();
+    auto context = std::make_shared<RSComposerContext>();
     EXPECT_NE(context, nullptr);
 
     auto handle = context->GetRSLayerTransaction();
@@ -84,13 +84,13 @@ HWTEST_F(RSLayerContextTest, InitContextTest, Function | SmallTest | Level2)
 
 /**
  * @tc.name: LayerFuncTest
- * @tc.desc: Test Func CommitRSLayer AddRSLayer
+ * @tc.desc: Test Func CommitLayers AddRSLayer
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
 HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
 {
-    auto context = std::make_shared<RSLayerContext>();
+    auto context = std::make_shared<RSComposerContext>();
     EXPECT_NE(context, nullptr);
 
     context->rsLayerTransactionHandler_ = nullptr;
@@ -100,11 +100,11 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
         RSRenderComposerManager::GetInstance().rsComposerConnectionMap_[0]);
     auto layer = std::make_shared<RSSurfaceLayer>();
     context->AddRSLayer(layer);
-    context->CommitRSLayer();
+    context->CommitLayers();
     EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[0]->unExecuteTaskNum_, 0);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
-    context->CommitRSLayer();
+    context->CommitLayers();
     context->ClearAllLayers();
     EXPECT_EQ(RSRenderComposerManager::GetInstance().rsRenderComposerMap_[0]->unExecuteTaskNum_, 0);
 }

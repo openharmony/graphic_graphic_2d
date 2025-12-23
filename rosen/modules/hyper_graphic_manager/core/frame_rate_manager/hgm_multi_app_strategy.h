@@ -95,8 +95,6 @@ private:
     void UpdateStrategyByTouch(
         PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate = false);
     void OnStrategyChange();
-    void CheckImageEnhanceList(
-        const std::string& pkgName, const pid_t pid, std::unordered_set<pid_t>& imageEnhancePidList) const;
 
     std::vector<std::string> pkgs_;
     std::unordered_map<std::string, std::pair<pid_t, int32_t>> pidAppTypeMap_;

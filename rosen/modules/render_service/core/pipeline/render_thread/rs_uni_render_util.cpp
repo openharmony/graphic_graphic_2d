@@ -1096,7 +1096,8 @@ void RSUniRenderUtil::OptimizedFlushAndSubmit(std::shared_ptr<Drawing::Surface>&
                 ROSEN_LOGE("QueueSignalReleaseImageOHOS failed %{public}d", err);
                 return;
             }
-            acquireFence = SyncFence::MergeFence("OptimizedFlushAndSubmit", acquireFence, sptr<SyncFence>(new SyncFence(fenceFd)));
+            acquireFence = SyncFence::MergeFence("OptimizedFlushAndSubmit", acquireFence,
+                sptr<SyncFence>(new SyncFence(fenceFd)));
         }
 
         DestroySemaphoreInfo::DestroySemaphore(destroyInfo);

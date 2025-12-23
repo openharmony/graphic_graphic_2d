@@ -30,13 +30,14 @@ public:
     virtual ~RSServiceToRenderConnection() noexcept = default;
 
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
-    void DoDump(std::unordered_set<std::u16string> &argSets) override;
+    void DoDump(std::unordered_set<std::u16string>& argSets) override;
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
     ErrCode SetColorFollow(const std::string &nodeIdStr, bool isColorFollow) override;
     void SetFreeMultiWindowStatus(bool enable) override;
 
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) override;
+    int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) override;
     int32_t RegisterSurfaceOcclusionChangeCallback(
         NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;

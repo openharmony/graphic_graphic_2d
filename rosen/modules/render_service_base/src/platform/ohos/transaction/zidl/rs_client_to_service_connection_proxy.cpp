@@ -945,48 +945,6 @@ int32_t RSClientToServiceConnectionProxy::SetBrightnessInfoChangeCallback(
     return result;
 }
 
-int32_t RSClientToServiceConnectionProxy::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("GetBrightnessInfo: WriteInterfaceToken GetDescriptor err.");
-        return RS_CONNECTION_ERROR;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteUint64(screenId)) {
-        ROSEN_LOGE("GetBrightnessInfo: WriteUint64 screenId err.");
-        return WRITE_PARCEL_ERR;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return RS_CONNECTION_ERROR;
-    }
-    int32_t result{0};
-    if (!reply.ReadInt32(result)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::GetBrightnessInfo Read result failed");
-        return READ_PARCEL_ERR;
-    }
-    if (!ReadBrightnessInfo(brightnessInfo, reply)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ReadBrightnessInfo ReadBrightnessInfo failed!");
-        return READ_PARCEL_ERR;
-    }
-    return result;
-}
-
-bool RSClientToServiceConnectionProxy::ReadBrightnessInfo(BrightnessInfo& brightnessInfo, MessageParcel& data)
-{
-    if (!data.ReadFloat(brightnessInfo.currentHeadroom) ||
-        !data.ReadFloat(brightnessInfo.maxHeadroom) ||
-        !data.ReadFloat(brightnessInfo.sdrNits)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ReadBrightnessInfo read parcel failed!");
-        return false;
-    }
-    return true;
-}
-
 uint32_t RSClientToServiceConnectionProxy::SetScreenActiveMode(ScreenId id, uint32_t modeId)
 {
     MessageParcel data;
@@ -3392,7 +3350,7 @@ ErrCode RSClientToServiceConnectionProxy::SetAppWindowNum(uint32_t num)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::SetWatermark(pid_t callingPid, const std::string& name,
+ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
     std::shared_ptr<Media::PixelMap> watermark, bool& success)
 {
     MessageParcel data;
@@ -3423,123 +3381,6 @@ ErrCode RSClientToServiceConnectionProxy::SetWatermark(pid_t callingPid, const s
     }
     success = true;
     return ERR_OK;
-}
-
-uint32_t RSClientToServiceConnectionProxy::SetSurfaceWatermark(pid_t pid, const std::string &name,
-    const std::shared_ptr<Media::PixelMap> &watermark,
-    const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: WriteInterfaceToken GetDescriptor err.");
-        return WATER_MARK_WRITE_PARCEL_ERR;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: WriteInt32 pid err.");
-        return WATER_MARK_WRITE_PARCEL_ERR;
-    }
-    if (!data.WriteString(name)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: WriteString name err.");
-        return WATER_MARK_WRITE_PARCEL_ERR;
-    }
-
-    if (watermark != nullptr) {
-        if (!data.WriteBool(true)) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: pixelMap is not nullptr flag err.");
-            return WATER_MARK_WRITE_PARCEL_ERR;
-        }
-        if (!data.WriteParcelable(watermark.get())) {
-            ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: WriteParcelable watermark.get() err.");
-            return WATER_MARK_WRITE_PARCEL_ERR;
-        }
-    } else if (!data.WriteBool(false)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: pixelMap is not nullptr flag err.");
-        return WATER_MARK_WRITE_PARCEL_ERR;
-    }
-
-    if (!data.WriteUInt64Vector(nodeIdList)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: write nodeIdList error.");
-        return WATER_MARK_WRITE_PARCEL_ERR;
-    }
-    if (!data.WriteUint8(static_cast<uint8_t>(watermarkType))) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark: write watermarkType error.");
-        return WATER_MARK_WRITE_PARCEL_ERR;
-    }
-
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetWatermark: Send Request err.");
-        return WATER_MARK_IPC_ERROR;
-    }
-    uint32_t status{0};
-    if (!reply.ReadUint32(status)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetSurfaceWatermark Read status failed");
-        return WATER_MARK_READ_PARCEL_ERR;
-    }
-    return status;
-}
-
-void RSClientToServiceConnectionProxy::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
-    const std::vector<NodeId> &nodeIdList)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("ClearSurfaceWatermarkForNodes: WriteInterfaceToken GetDescriptor err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermarkForNodes: WriteInt32 pid err.");
-        return;
-    }
-    if (!data.WriteString(name)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermarkForNodes name err.");
-        return;
-    }
-    if (!data.WriteUInt64Vector(nodeIdList)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermarkForNodes: write nodeIdList error.");
-        return;
-    }
-
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermarkForNodes: Send Request err.");
-        return;
-    }
-}
-    
-void RSClientToServiceConnectionProxy::ClearSurfaceWatermark(pid_t pid, const std::string &name)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermark: WriteInterfaceToken GetDescriptor err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteInt32(pid)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermark: WriteInt32 pid err.");
-        return;
-    }
-    if (!data.WriteString(name)) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermark name err.");
-        return;
-    }
-
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ClearSurfaceWatermark: Send Request err.");
-        return;
-    }
 }
 
 void RSClientToServiceConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
@@ -4830,8 +4671,8 @@ ErrCode RSClientToServiceConnectionProxy::NotifyScreenSwitched(ScreenId id)
     return ERR_OK;
 }
 
-ErrCode RSClientToServiceConnectionProxy::NotifyPageName(const std::string &packageName,
-    const std::string &pageName, bool isEnter)
+ErrCode RSClientToServiceConnectionProxy::NotifyPageName(const std::string& packageName,
+    const std::string& pageName, bool isEnter)
 {
     MessageParcel data;
     MessageParcel reply;

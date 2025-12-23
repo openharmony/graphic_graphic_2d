@@ -75,7 +75,7 @@
 #include "rs_parallel_utils.h"
 #include "rs_parallel_manager.h"
 #endif
-#include "rs_layer_context.h"
+#include "rs_composer_context.h"
 
 namespace OHOS {
 namespace Rosen {

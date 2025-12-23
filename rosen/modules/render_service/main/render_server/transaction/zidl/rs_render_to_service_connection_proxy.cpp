@@ -66,32 +66,32 @@ sptr<HgmServiceToProcessInfo> RSRenderToServiceConnectionProxy::NotifyRpHgmFrame
         return nullptr;
     }
     if (!data.WriteUint64(timestamp)) {
-        RS_LOGI("dmulti_process RSRenderToServiceConnectionProxy::NotifyRenderServiceProcessHgmFrameRate writeuint64 failed");
+        RS_LOGE("%{public}s: writeuint64 failed", __func__);
         return nullptr;
     }
     if (!data.WriteUint64(vsyncId)) {
-        RS_LOGI("dmulti_process RSRenderToServiceConnectionProxy::NotifyRenderServiceProcessHgmFrameRate writeuint64 failed");
+        RS_LOGE("%{public}s: writeuint64 failed", __func__);
         return nullptr;
     }
     if (!data.WriteParcelable(processToServiceInfo.GetRefPtr())) {
-        RS_LOGI("dmulti_process RSRenderToServiceConnectionProxy::NotifyRenderServiceProcessHgmFrameRate writeParcelable failed");
+        RS_LOGE("%{public}s: writeParcelable failed", __func__);
         return nullptr;
     }
     auto size = screenIds.size();
     if (!data.WriteUint32(size)) {
-        RS_LOGI("dmulti_process RSRenderToServiceConnectionProxy::NotifyRenderServiceProcessHgmFrameRate write uint32 failed");
+        RS_LOGE("%{public}s: write uint32 failed", __func__);
         return nullptr;
     }
     for (auto screenId : screenIds) {
         if (!data.WriteUint64(screenId)) {
-            RS_LOGI("dmulti_process RSRenderToServiceConnectionProxy::NotifyRenderServiceProcessHgmFrameRate write uint64 failed");
+            RS_LOGE("%{public}s: write uint64 failed", __func__);
             return nullptr;
         }
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_PROCESS_FRAME_RATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s SendRequest failed, err is %{public}d.", __func__, err);
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
         return nullptr;
     }
     auto serviceToProcessInfo = sptr<HgmServiceToProcessInfo>(reply.ReadParcelable<HgmServiceToProcessInfo>());
@@ -110,12 +110,12 @@ void RSRenderToServiceConnectionProxy::NotifyScreenSwitchFinished(ScreenId scree
     }
     uint32_t code = static_cast<uint32_t>(RSIRenderToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCH_FINISHED);
     if (!data.WriteUint64(screenId)) {
-        RS_LOGI("RSRenderToServiceConnectionProxy::NotifyScreenSwitchFinished WriteUint64 failed");
+        RS_LOGE("%{public}s: WriteUint64 failed", __func__);
         return;
     }
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
-        ROSEN_LOGE("dmulti_process %{public}s SendRequest failed, err is %{public}d.", __func__, err);
+        RS_LOGE("%{public}s: SendRequest failed, err is %{public}d.", __func__, err);
     }
 }
 

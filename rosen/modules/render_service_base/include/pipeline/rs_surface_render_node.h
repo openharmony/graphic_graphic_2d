@@ -307,8 +307,10 @@ public:
     }
 
 #ifndef ROSEN_CROSS_PLATFORM
-    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
-        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
+    void UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+        const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount);
 #endif
 
     bool IsLastFrameHardwareEnabled() const
@@ -566,7 +568,7 @@ public:
     
     // hpae offline
     bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
-    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = false; /*enabled;*/ }
+    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = false; }
 
     bool GetCopybitTag() const
     {

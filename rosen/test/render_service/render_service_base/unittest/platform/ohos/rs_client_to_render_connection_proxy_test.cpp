@@ -25,7 +25,7 @@
 
 #include "feature/capture/rs_ui_capture.h"
 #include "file_ex.h"
-#include "platform/ohos/rs_client_to_render_connection_proxy.h"
+#include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_showing_command.h"
@@ -198,6 +198,62 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TakeUICaptureInRange, TestSize.Lev
     callback = iface_cast<RSISurfaceCaptureCallback>(remoteObject);
     proxy->TakeUICaptureInRange(id, callback, captureConfig);
     ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
+ * @tc.name: GetBrightnessInfoTest
+ * @tc.desc: test results of GetBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetBrightnessInfoTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    ScreenId screenId = 0;
+    BrightnessInfo brightnessInfo = { 0 };
+    ASSERT_NE(proxy->GetBrightnessInfo(screenId, brightnessInfo), SUCCESS);
+    screenId = INVALID_SCREEN_ID;
+    ASSERT_NE(proxy->GetBrightnessInfo(screenId, brightnessInfo), SUCCESS);
+}
+
+/**
+ * @tc.name: ReadBrightnessInfoTest
+ * @tc.desc: test results of ReadBrightnessInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, ReadBrightnessInfoTest, TestSize.Level1)
+{
+    ASSERT_NE(proxy, nullptr);
+    BrightnessInfo brightnessInfo = { 0 };
+
+    // case 1: valid data
+    {
+        MessageParcel data;
+        data.WriteFloat(1.0f);
+        data.WriteFloat(1.0f);
+        data.WriteFloat(1.0f);
+        ASSERT_TRUE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 2: invalid data
+    {
+        MessageParcel data;
+        data.WriteFloat(1.0f);
+        data.WriteFloat(1.0f);
+        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 3: invalid data
+    {
+        MessageParcel data;
+        data.WriteFloat(1.0f);
+        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
+
+    // case 4: invalid data
+    {
+        MessageParcel data;
+        ASSERT_FALSE(proxy->ReadBrightnessInfo(brightnessInfo, data));
+    }
 }
 
 /**

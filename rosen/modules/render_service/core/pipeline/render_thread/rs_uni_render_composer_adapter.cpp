@@ -81,9 +81,9 @@ bool RSUniRenderComposerAdapter::UpdateMirrorInfo(float mirrorAdaptiveCoefficien
 void RSUniRenderComposerAdapter::CommitLayers()
 {
     if (composerClient_ != nullptr) {
-        CommitLayerInfo commitLayerInfo;
-        commitLayerInfo.screenInfo = screenInfo_;
-        composerClient_->CommitRSLayer(commitLayerInfo);
+        ComposerInfo composerInfo;
+        composerInfo.screenInfo = screenInfo_;
+        composerClient_->CommitLayers(composerInfo);
         RSRealtimeRefreshRateManager::Instance().CountRealtimeFrame(screenInfo_.id);
     }
 }
@@ -143,8 +143,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(DrawableV2::RSScreenRen
     info.preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
     auto preBufferOwnerCount = surfaceHandler->GetPreBufferOwnerCount();
     if (surfaceHandler->IsCurrentFrameBufferConsumed() && preBufferOwnerCount) {
-        RS_TRACE_NAME_FMT("RSBufferManager BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf seqNum %u", uint32_t(preBufferOwnerCount->seqNum_));
-        RS_LOGI("RSBufferManager BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf seqNum %{public}u", uint32_t(preBufferOwnerCount->seqNum_));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSScreenRenderNodeDrawable DecRef preBuf "
+            "seqNum %u", uint32_t(preBufferOwnerCount->seqNum_));
         preBufferOwnerCount->DecRef();
     }
     RS_TRACE_NAME_FMT("pre:[%lu] cur[%lu]", info.preBuffer == nullptr ? -1 : info.preBuffer ->GetSeqNum(), info.buffer == nullptr ? -1 : info.buffer ->GetSeqNum());
@@ -215,7 +215,8 @@ ComposeInfo RSUniRenderComposerAdapter::BuildComposeInfo(RSRcdSurfaceRenderNode&
     info.brightnessRatio = NO_RATIO;
     info.bufferOwnerCount = node.GetBufferOwnerCount();
     if (info.bufferOwnerCount) {
-        RS_LOGI("RSBufferManager BuildComposeInfo RSRcdSurfaceRenderNode AddRef seqNum %{public}u", uint32_t(info.bufferOwnerCount->seqNum_));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSUniRenderComposerAdapter::BuildComposeInfo RSRcdSurfaceRenderNode AddRef "
+            "seqNum %u", uint32_t(info.bufferOwnerCount->seqNum_));
         info.bufferOwnerCount->AddRef();
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
@@ -287,8 +288,6 @@ void RSUniRenderComposerAdapter::SetComposeInfoToLayer(
     layer->SetSurfaceName(surface->GetName());
     layer->SetSurfaceUniqueId(surface->GetUniqueId());
     layer->SetIsNeedComposition(true);
-    RS_LOGI("RSBufferManager SetComposeInfoToLayer seqNum %{public}u", uint32_t(info.bufferOwnerCount->seqNum_));
-    RS_TRACE_NAME_FMT("RSBufferManager SetComposeInfoToLayer seqNum %u", uint32_t(info.bufferOwnerCount->seqNum_));
     layer->SetBufferOwnerCount(info.bufferOwnerCount);
 }
 
@@ -1106,7 +1105,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
-    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(composerClient_, surfaceHandler->GetNodeId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), surfaceHandler->GetNodeId());
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
         layer->SetUniRenderFlag(true);
@@ -1154,7 +1153,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
-    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(composerClient_, surfaceHandler->GetNodeId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), surfaceHandler->GetNodeId());
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
         layer->SetUniRenderFlag(true);
@@ -1184,7 +1183,7 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
             info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
     }
-    auto layer = RSSurfaceRCDLayer::CreateRSLayer(composerClient_, node.GetId());
+    auto layer = RSSurfaceRCDLayer::Create(composerClient_->GetComposerContext(), node.GetId());
     if (layer != nullptr) {
         auto rcdLayer = std::static_pointer_cast<RSSurfaceRCDLayer>(layer);
         rcdLayer->SetPixelMap(node.GetPixelMap());

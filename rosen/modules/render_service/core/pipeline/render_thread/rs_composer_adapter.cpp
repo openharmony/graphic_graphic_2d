@@ -532,7 +532,7 @@ RSLayerPtr RSComposerAdapter::CreateBufferLayer(RSSurfaceRenderNode& node) const
         info.srcRect.w, info.srcRect.h, info.buffer->GetWidth(), info.buffer->GetHeight(),
         info.buffer->GetSurfaceBufferWidth(), info.buffer->GetSurfaceBufferHeight(),
         surfaceHandler->GetGlobalZOrder(), info.zOrder, info.blendType);
-    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(nullptr, node.GetId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateBufferLayer failed to create layer");
         return nullptr;
@@ -562,7 +562,7 @@ RSLayerPtr RSComposerAdapter::CreateTunnelLayer(RSSurfaceRenderNode& node) const
     AppendFormat(traceInfo, "ProcessSurfaceNode:%s XYWH[%d %d %d %d]", node.GetName().c_str(),
         info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h);
     RS_TRACE_NAME(traceInfo.c_str());
-    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(nullptr, node.GetId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateTunnelLayer failed to create layer");
         return nullptr;
@@ -622,7 +622,7 @@ RSLayerPtr RSComposerAdapter::CreateLayer(RSScreenRenderNode& node) const
         node.GetId(), info.dstRect.x, info.dstRect.y, info.dstRect.w, info.dstRect.h, info.srcRect.w, info.srcRect.h,
         info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
         info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
-    RSLayerPtr layer = RSSurfaceLayer::CreateRSLayer(nullptr, node.GetId());
+    RSLayerPtr layer = RSSurfaceLayer::Create(nullptr, node.GetId());
     if (layer == nullptr) {
         RS_LOGE("RSComposerAdapter::CreateLayer failed to create layer");
         return nullptr;

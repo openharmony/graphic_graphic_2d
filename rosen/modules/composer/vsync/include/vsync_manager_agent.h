@@ -37,7 +37,6 @@ public:
     void PrintConnectionsStatus();
     void PrintGeneratorStatus();
     void SetFrameIsRender(bool isRender);
-    void SetHasNativeBuffer();
     int64_t GetUiCommandDelayTime();
     void SetVSyncTimeUpdated();
     bool NeedUpdateVSyncTime(int32_t& pid);

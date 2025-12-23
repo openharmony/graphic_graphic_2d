@@ -35,10 +35,6 @@ public:
     explicit RSRenderProcessManager(RSRenderService& renderService) : renderService_(renderService) {}
     virtual ~RSRenderProcessManager() noexcept = default;
 
-    virtual sptr<IRemoteObject> OnScreenConnected(ScreenId id, const ScreenEventData& data,
-        const sptr<RSScreenProperty>& property) override;
-    virtual void OnScreenDisconnected(ScreenId id) override;
-    virtual void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
     void OnVBlankIdle(ScreenId id, uint64_t ns) override;
     void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
     void OnActiveScreenIdChanged(ScreenId activeScreenId) override;

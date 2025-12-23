@@ -3034,7 +3034,7 @@ HWTEST_F(RSPropertiesTest, SetLightIntensity002, TestSize.Level1)
     EXPECT_NE(properties.GetEffect().lightSourcePtr_, nullptr);
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->lightSourceNodeMap_.clear();
     properties.SetLightIntensity(1.f);
     EXPECT_TRUE(instance->lightSourceNodeMap_.empty());
@@ -3142,7 +3142,7 @@ HWTEST_F(RSPropertiesTest, SetIlluminatedType002, TestSize.Level1)
 
     std::shared_ptr<RSRenderNode> node = nullptr;
     properties.backref_ = node;
-    auto instance = RSPointLightManager::Instance();
+    auto& instance = RSPointLightManager::Instance(0);
     instance->illuminatedNodeMap_.clear();
     properties.SetIlluminatedType(1);
     EXPECT_TRUE(instance->illuminatedNodeMap_.empty());
@@ -3184,23 +3184,23 @@ HWTEST_F(RSPropertiesTest, CalculateAbsLightPosition001, TestSize.Level1)
     properties.CalculateAbsLightPosition();
 
     ScreenRotation screenRotation = ScreenRotation::ROTATION_90;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
+    RSPointLightManager::Instance(0)->SetScreenRotation(screenRotation);
     properties.CalculateAbsLightPosition();
 
     screenRotation = ScreenRotation::ROTATION_180;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
+    RSPointLightManager::Instance(0)->SetScreenRotation(screenRotation);
     properties.CalculateAbsLightPosition();
 
     screenRotation = ScreenRotation::ROTATION_270;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
+    RSPointLightManager::Instance(0)->SetScreenRotation(screenRotation);
     properties.CalculateAbsLightPosition();
 
     screenRotation = ScreenRotation::INVALID_SCREEN_ROTATION;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
+    RSPointLightManager::Instance(0)->SetScreenRotation(screenRotation);
     properties.CalculateAbsLightPosition();
 
     screenRotation = ScreenRotation::ROTATION_0;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
+    RSPointLightManager::Instance(0)->SetScreenRotation(screenRotation);
     properties.CalculateAbsLightPosition();
     EXPECT_TRUE(true);
 }

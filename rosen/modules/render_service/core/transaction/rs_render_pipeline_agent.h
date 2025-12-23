@@ -17,7 +17,7 @@
 #define RS_RENDER_PIPELINE_AGENT_H
 
 #include "rs_render_pipeline.h"
- #include "ipc_callbacks/rs_iocclusion_change_callback.h"
+#include "ipc_callbacks/rs_iocclusion_change_callback.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -26,7 +26,88 @@ public:
     RSRenderPipelineAgent(std::shared_ptr<RSRenderPipeline>& rsRenderPipeline);
     ~RSRenderPipelineAgent() = default;
 
+    ErrCode CommitTransaction(pid_t callingPid, bool isTokenTypeValid, bool isNonSystemAppCalling,
+        std::unique_ptr<RSTransactionData>& transactionData);
+    ErrCode ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task);
+    
+    ErrCode CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+        bool& success);
+
+    ErrCode CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success);
+
+    void RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app);
+
+    ErrCode RegisterBufferClearListener(
+        NodeId id, sptr<RSIBufferClearCallback> callback);
+
+    ErrCode RegisterBufferAvailableListener(
+        NodeId id, sptr<RSIBufferAvailableCallback> callback, bool isFromRenderThread);
+
+    ErrCode SetGlobalDarkColorMode(bool isDark);
+
+    ErrCode SetSystemAnimatedScenes(
+        SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success);
+
+    ErrCode SetHardwareEnabled(NodeId id, bool isEnabled,
+        SelfDrawingNodeType selfDrawingType, bool dynamicHardwareEnable);
+
+    ErrCode SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent, uint32_t& resCode);
+
     bool GetHighContrastTextState();
+
+    ErrCode SetFocusAppInfo(const FocusAppInfo& info, int32_t& repCode);
+
+    void TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam,
+        const Drawing::Rect& specifiedAreaRect = Drawing::Rect(0.f, 0.f, 0.f, 0.f),
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions());
+
+    std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> TakeSurfaceCaptureSoloNode(
+        NodeId id, const RSSurfaceCaptureConfig& captureConfig,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions());
+
+    void TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool isSystemCalling);
+
+    ErrCode SetWindowFreezeImmediately(NodeId id, bool isFreeze, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, const RSSurfaceCaptureBlurParam& blurParam, bool isSystemCalling);
+
+    ErrCode TakeSurfaceCaptureWithAllWindows(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
+        const RSSurfaceCaptureConfig& captureConfig, bool checkDrmAndSurfaceLock,
+        RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions());
+
+    ErrCode FreezeScreen(NodeId id, bool isFreeze);
+
+    void TakeUICaptureInRange(
+        NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig);
+
+    ErrCode SetHwcNodeBounds(int64_t rsNodeId, float positionX, float positionY,
+        float positionZ, float positionW);
+
+    ErrCode GetScreenHDRStatus(ScreenId id, HdrStatus& hdrStatus, int32_t& resCode);
+
+    ErrCode DropFrameByPid(const std::vector<int32_t> pidList);
+
+    ErrCode SetAncoForceDoDirect(bool direct, bool& res);
+
+    ErrCode SetLayerTopForHWC(NodeId nodeId, bool isTop, uint32_t zOrder);
+
+    ErrCode RegisterSurfaceBufferCallback(pid_t pid, uint64_t uid,
+        sptr<RSISurfaceBufferCallback> callback);
+    ErrCode UnregisterSurfaceBufferCallback(pid_t pid, uint64_t uid);
+
+    void RegisterTransactionDataCallback(uint64_t token,
+        uint64_t timeStamp, sptr<RSITransactionDataCallback> callback);
+
+    ErrCode SetWindowContainer(NodeId nodeId, bool value);
+    void ClearUifirstCache(NodeId id);
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    void RegisterCanvasCallback(pid_t remotePid, sptr<RSICanvasSurfaceBufferCallback> callback);
+
+    int32_t SubmitCanvasPreAllocatedBuffer(
+        pid_t remotePid, NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex);
+#endif
     ErrCode SetCurtainScreenUsingStatus(bool isCurtainScreenOn);
     ErrCode GetBitmap(NodeId id, Drawing::Bitmap& bitmap, bool& success);
     ErrCode SetDiscardJankFrames(bool discardJankFrames);
@@ -42,7 +123,8 @@ public:
         const std::vector<std::string>& surfaceNameList, uint32_t fps);
     ErrCode CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc,
         bool unobscured = false);
-
+    int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback);
+    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback);
     int32_t RegisterSurfaceOcclusionChangeCallback(
         NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints);
@@ -50,12 +132,13 @@ public:
     ErrCode CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
         std::shared_ptr<Media::PixelMap> &pixelMap);  
     ErrCode GetMemoryGraphic(int pid, MemoryGraphic& memoryGraphic);
-    void NotifyPackageEvent(uint32_t listSize, const std::vector<std::string>& packageList);
+    void NotifyPackageEvent(const std::vector<std::string>& packageList);
     void HgmForceUpdateTask(bool flag, const std::string& fromWhom);
     ErrCode SetLayerTop(const std::string &nodeIdStr, bool isTop);
     ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize);
     ErrCode GetMemoryGraphics(std::vector<MemoryGraphic>& memoryGraphics);
     ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode);
+    float GetRotationInfoFromSurfaceBuffer(const sptr<SurfaceBuffer>& buffer);
     void SetVmaCacheStatus(bool flag);
     ErrCode SetWatermark(pid_t callingPid, const std::string& name, std::shared_ptr<Media::PixelMap> watermark, bool& success);
     ErrCode GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
@@ -63,7 +146,7 @@ public:
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
     void GetSurfaceRootNodeId(NodeId &windowNodeId);
     ErrCode SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh);
-    void DoDump(std::unordered_set<std::u16string> &argSets);
+    void DoDump(std::unordered_set<std::u16string>& argSets);
     void NotifyHwcEventToRender(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     ErrCode SetOverlayDisplayMode(int32_t mode);
@@ -97,7 +180,12 @@ public:
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
     void SetScreenFrameGravity(ScreenId id, Gravity gravity);
     int32_t NotifyScreenRefresh(ScreenId screenId);
-
+    uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
+        const std::shared_ptr<Media::PixelMap> &watermark, const std::vector<NodeId>& nodeIdList,
+        SurfaceWatermarkType watermarkType, bool isSystemCalling = false);
+    void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
+    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
+        const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
 private:
     // TODO: maybe do not use reference of a std::shared pointer
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;

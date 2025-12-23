@@ -260,12 +260,13 @@ public:
     void DumpSurfaceInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
 
-    RSBufferManager& GetBufferManager() 
+    RSBufferManager& GetBufferManager()
     {
         return bufferManager_;
     }
 
-    void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer, sptr<SyncFence> fence)
+    void AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer, sptr<OHOS::SurfaceBuffer> buffer,
+        sptr<SyncFence> fence)
     {
         bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
     }
@@ -280,7 +281,8 @@ public:
         bufferManager_.OnDrawStart();
     }
 
-    void OnDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
+    void OnDrawBuffer(sptr<IConsumerSurface> consumer, sptr<SurfaceBuffer> buffer,
+        std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount)
     {
         bufferManager_.OnDrawBuffer(consumer, buffer, bufferOwnerCount);
     }

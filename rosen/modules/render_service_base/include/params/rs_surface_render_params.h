@@ -32,9 +32,6 @@
 #endif
 #include "surface_type.h"
 
-
-#include "platform/common/rs_log.h"
-
 namespace OHOS::Rosen {
 class RSSurfaceRenderNode;
 struct RSLayerInfo {
@@ -441,7 +438,8 @@ public:
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> GetPreBufferOwnerCount() const override;
     inline void SetBufferSynced(bool bufferSynced)
     {
-        RS_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %u", bufferSynced, uint32_t(preBufferOwnerCount_ ? preBufferOwnerCount_->seqNum_ : 0));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager SetBufferSynced RSSurfaceRenderNode bufferSynced %d %u",
+            bufferSynced, uint32_t(preBufferOwnerCount_ ? preBufferOwnerCount_->seqNum_ : 0));
         bufferSynced_ = bufferSynced;
     }
     bool IsBufferSynced() const

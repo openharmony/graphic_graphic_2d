@@ -1571,8 +1571,10 @@ void RSSurfaceRenderNode::UpdateSurfaceDefaultSize(float width, float height)
 }
 
 #ifndef ROSEN_CROSS_PLATFORM
-void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
-    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer, std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
+void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount, const Rect& damageRect,
+    const sptr<SyncFence>& acquireFence, const sptr<SurfaceBuffer>& preBuffer,
+    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> preBufferOwnerCount)
 {
 #ifdef RS_ENABLE_GPU
     auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
@@ -1582,7 +1584,8 @@ void RSSurfaceRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buffer, st
             bufferOwnerCount->DecRef();
          }
     } else {
-        RS_TRACE_NAME_FMT("RSBufferManager UpdateBufferInfo SetPreBuffer %u", uint32_t(preBufferOwnerCount ? preBufferOwnerCount->seqNum_ : 0));
+        RS_OPTIONAL_TRACE_NAME_FMT("RSSurfaceRenderNode::UpdateBufferInfo SetPreBuffer %u",
+            uint32_t(preBufferOwnerCount ? preBufferOwnerCount->seqNum_ : 0));
         surfaceParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
     }
 

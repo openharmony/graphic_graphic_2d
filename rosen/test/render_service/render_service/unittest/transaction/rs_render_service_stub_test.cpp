@@ -19,7 +19,7 @@
 
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "rs_irender_service.h"
+#include "platform/ohos/transaction/zidl/rs_irender_service.h"
 #include "render_server/rs_render_service.h"
 #include "render_server/transaction/zidl/rs_render_service_stub.h"
 

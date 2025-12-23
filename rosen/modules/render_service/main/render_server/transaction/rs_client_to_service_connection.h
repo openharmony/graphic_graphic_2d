@@ -65,7 +65,7 @@ private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
     void CleanFrameRateLinkers() noexcept;
-    void CleanBrightnessInfoChangeCallbacks() noexcept;
+    void CleanBrightnessInfoChangeCallbacks();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void CleanCanvasCallbacksAndPendingBuffer() noexcept;
 #endif
@@ -146,8 +146,6 @@ private:
     int32_t SetScreenSwitchingNotifyCallback(sptr<RSIScreenSwitchingNotifyCallback> callback) override;
 
     int32_t SetBrightnessInfoChangeCallback(sptr<RSIBrightnessInfoChangeCallback> callback) override;
-
-    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo) override;
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId) override;
 
@@ -290,17 +288,8 @@ private:
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
-    ErrCode SetWatermark(pid_t callingPid, const std::string& name,
+    ErrCode SetWatermark(const std::string& name,
         std::shared_ptr<Media::PixelMap> watermark, bool& success) override;
-
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType) override;
-        
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-        const std::vector<NodeId> &nodeIdList) override;
-        
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
     
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height) override;
 
@@ -392,7 +381,7 @@ private:
     ErrCode SetOverlayDisplayMode(int32_t mode) override;
 #endif
 
-    ErrCode NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter) override;
+    ErrCode NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter) override;
 
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
 

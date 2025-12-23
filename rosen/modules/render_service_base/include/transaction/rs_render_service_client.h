@@ -139,15 +139,6 @@ public:
 
     bool SetWatermark(const std::string& name, std::shared_ptr<Media::PixelMap> watermark);
 
-    uint32_t SetSurfaceWatermark(pid_t pid, const std::string &name,
-        const std::shared_ptr<Media::PixelMap> &watermark,
-        const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType);
-        
-    void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
-        const std::vector<NodeId> &nodeIdList);
-        
-    void ClearSurfaceWatermark(pid_t pid, const std::string &name);
-
     void RemoveVirtualScreen(ScreenId id);
 
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
@@ -177,8 +168,6 @@ public:
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
 
     int32_t SetBrightnessInfoChangeCallback(const BrightnessInfoChangeCallback& callback);
-
-    int32_t GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo);
 
     uint32_t GetScreenCurrentRefreshRate(ScreenId id);
 
@@ -399,7 +388,7 @@ public:
 
     int32_t UnRegisterSelfDrawingNodeRectChangeCallback();
 
-    void NotifyPageName(const std::string &packageName, const std::string &pageName, bool isEnter);
+    void NotifyPageName(const std::string& packageName, const std::string& pageName, bool isEnter);
 
     bool SetBehindWindowFilterEnabled(bool enabled);
 

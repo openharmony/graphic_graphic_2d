@@ -24,8 +24,8 @@
 #include "pipeline/render_thread/rs_render_engine.h"
 #include "pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"
-#include "v2_1/cm_color_space.h"
 #include "rs_surface_layer.h"
+#include "v2_1/cm_color_space.h"
 
 using namespace testing;
 using namespace testing::ext;
