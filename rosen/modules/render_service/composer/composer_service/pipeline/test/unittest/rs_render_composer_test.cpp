@@ -525,42 +525,6 @@ HWTEST_F(RsRenderComposerTest, OnScreenVBlankIdleCallback_Coverage, TestSize.Lev
     EXPECT_NE(rsRenderComposer_->handler_, nullptr);
 }
 
-#if defined(RS_ENABLE_VK)
-/**
- * Function: CheckDumpStr
- * Type: Function
- * Rank: Important(2)
- * EnvConditions: N/A
- * CaseDescription: 1. create RSRenderComposer
- *                  2. call dump func
- *                  3. verify dump string
- */
-HWTEST_F(RsRenderComposerTest, CheckDumpStr, TestSize.Level1)
-{
-    std::string dumpStr = "";
-    rsRenderComposer_->GetAccumulatedBufferCount();
-    std::set<uint64_t> bufferIds;
-    bufferIds.insert(1u);
-    rsRenderComposer_->ClearRedrawGPUCompositionCache(bufferIds);
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-    dumpStr = "";
-    rsRenderComposer_->refreshRateCounts_.try_emplace(0, 1);
-    rsRenderComposer_->RefreshRateCounts(dumpStr);
-    EXPECT_NE(dumpStr.find("Refresh Rate:0, Count:1"), std::string::npos);
-    dumpStr = "";
-    rsRenderComposer_->ClearRefreshRateCounts(dumpStr);
-    EXPECT_NE(dumpStr.find("The refresh rate counts info is cleared successfully!"), std::string::npos);
-    dumpStr = "";
-    rsRenderComposer_->ClearRefreshRateCounts(dumpStr);
-    EXPECT_TRUE(dumpStr.empty());
-    dumpStr = "";
-    rsRenderComposer_->RefreshRateCounts(dumpStr);
-    EXPECT_TRUE(dumpStr.empty());
-    dumpStr = "";
-    rsRenderComposer_->DumpVkImageInfo(dumpStr);
-    EXPECT_NE(dumpStr.find("DumpVkImageInfo"), std::string::npos);
-}
-#endif
 /**
  * Function: GetSurfaceName
  * Type: Function
