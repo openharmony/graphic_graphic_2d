@@ -195,13 +195,13 @@ void RSUIContext::DetachFromUI()
         return;
     }
     uiPipelineNum_--;
-    ROSEN_LOGI("RSUIContext::DetachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
+    ROSEN_LOGI("RSUIContext::DetachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPipelineNum_);
 }
 
 void RSUIContext::AttachFromUI()
 {
     std::lock_guard<std::mutex> lock(uiPipelineNumMutex_);
-    ROSEN_LOGI("RSUIContext::AttachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
+    ROSEN_LOGI("RSUIContext::AttachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPipelineNum_);
     if (uiPipelineNum_ == UI_PiPLINE_NUM_UNDEFINED) {
         uiPipelineNum_ = 1;
         return;
