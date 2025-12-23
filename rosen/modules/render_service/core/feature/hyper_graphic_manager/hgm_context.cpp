@@ -127,8 +127,8 @@ void HgmContext::ProcessHgmFrameRate(
     if (frameRateMgr->AdaptiveStatus() == SupportASStatus::SUPPORT_AS) {
         frameRateMgr->HandleGameNode(rsContext.GetNodeMap());
         isAdaptiveVsyncComposeReady_ =
-            rsContext.GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM
-            && rsContext.GetAnimatingNodeList().empty();
+            rsContext.GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM &&
+            rsContext.GetAnimatingNodeList().empty();
     }
 
     // Check and processing refresh rate task.
