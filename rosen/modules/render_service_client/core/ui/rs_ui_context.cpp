@@ -182,30 +182,31 @@ void RSUIContext::DumpNodeTreeProcessor(NodeId nodeId, pid_t pid, uint32_t taskI
 
 int32_t RSUIContext::GetUiPiplineNum()
 {
-    std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
-    return uiPiplineNum_;
+    std::lock_guard<std::mutex> lock(uiPipelineNumMutex_);
+    return uiPipelineNum_;
 }
  
 void RSUIContext::DetachFromUI()
 {
-    std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
-    if (uiPiplineNum_ <= 0) {
-        ROSEN_LOGE("RSUIContext::DetachFromUI failed. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
+    std::lock_guard<std::mutex> lock(uiPipelineNumMutex_);
+    if (uiPipelineNum_ <= 0) {
+        ROSEN_LOGE("RSUIContext::DetachFromUI failed. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_,
+            uiPipelineNum_);
         return;
     }
-    uiPiplineNum_--;
+    uiPipelineNum_--;
     ROSEN_LOGI("RSUIContext::DetachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
 }
  
 void RSUIContext::AttachFromUI()
 {
-    std::lock_guard<std::mutex> lock(uiPiplineNumMutex_);
+    std::lock_guard<std::mutex> lock(uiPipelineNumMutex_);
     ROSEN_LOGI("RSUIContext::AttachFromUI. token: %{public}" PRIu64 " uiPiplineNum: %{public}d", token_, uiPiplineNum_);
-    if (uiPiplineNum_ == UI_PiPLINE_NUM_UNDEFINED) {
-        uiPiplineNum_ = 1;
+    if (uiPipelineNum_ == UI_PiPLINE_NUM_UNDEFINED) {
+        uiPipelineNum_ = 1;
         return;
     }
-    uiPiplineNum_++;
+    uiPipelineNum_++;
 }
 
 void RSUIContext::MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId)
