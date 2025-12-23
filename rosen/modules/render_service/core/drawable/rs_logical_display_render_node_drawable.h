@@ -86,7 +86,8 @@ private:
         bool useCanvasSize = true);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
-    void UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params = nullptr);
+    void UpdateSlrScale(ScreenInfo& screenInfo, float srcWidth, float srcHeight,
+        RSScreenRenderParams* params = nullptr);
     void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
     void ClearTransparentBeforeSaveLayer();
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
