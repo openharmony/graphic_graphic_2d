@@ -238,12 +238,9 @@ RSLayerTransactionData* RSLayerTransactionData::Unmarshalling(OHOS::MessageParce
 bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& parcel)
 {
     Clear();
-    // 0 : normal parcel
-    // 1 : ashmem parcel
-    int32_t isNormalParcel = 0;
     int32_t payloadSize = 0;
-    if (!parcel.ReadInt32(isNormalParcel) || !parcel.ReadInt32(payloadSize)) {
-        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel read isNormalParcel or payloadSize failed");
+    if (!parcel.ReadInt32(payloadSize)) {
+        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel read payloadSize failed");
         return false;
     }
     RSLayerId layerId = 0;
