@@ -61,7 +61,7 @@ void RSSurfaceLayerTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    sMgr = std::make_shared<RSRenderComposerManager>(handler);
+    sMgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(screenId);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();

@@ -72,7 +72,7 @@ void RSRenderComposerClientTest::TearDown() {}
 HWTEST_F(RSRenderComposerClientTest, ClientCreateTest, Function | SmallTest | Level2)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    auto mgr = std::make_shared<RSRenderComposerManager>(handler);
+    auto mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(screenId);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();

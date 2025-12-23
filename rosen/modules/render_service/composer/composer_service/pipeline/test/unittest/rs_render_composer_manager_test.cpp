@@ -60,7 +60,7 @@ void RsRenderComposerManagerTest::TearDown() {}
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_NullOutput_EarlyReturn, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     mgr->OnScreenConnected(nullptr, nullptr);
     EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
 }
@@ -78,7 +78,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_NullOutput_EarlyReturn, 
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(10u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -101,7 +101,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_InsertNew, TestSize.Leve
 HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_Existing_Forward, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(20u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -125,7 +125,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenConnected_Existing_Forward, TestSi
 HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_NotFound_EarlyReturn, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     mgr->OnScreenDisconnected(9999);
     EXPECT_TRUE(mgr->rsRenderComposerAgentMap_.empty());
 }
@@ -142,7 +142,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_NotFound_EarlyReturn,
 HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_Found_Path, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(30u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -164,7 +164,7 @@ HWTEST_F(RsRenderComposerManagerTest, OnScreenDisconnected_Found_Path, TestSize.
 HWTEST_F(RsRenderComposerManagerTest, GetRSComposerConnection_FoundAndNotFound, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     EXPECT_EQ(mgr->GetRSComposerConnection(1), nullptr);
     auto output = std::make_shared<HdiOutput>(40u);
     output->Init();
@@ -185,7 +185,7 @@ HWTEST_F(RsRenderComposerManagerTest, GetRSComposerConnection_FoundAndNotFound, 
 HWTEST_F(RsRenderComposerManagerTest, GetAccumulatedBufferCount_FoundAndNotFound, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     auto output = std::make_shared<HdiOutput>(1u);
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
@@ -208,7 +208,7 @@ HWTEST_F(RsRenderComposerManagerTest, GetAccumulatedBufferCount_FoundAndNotFound
 HWTEST_F(RsRenderComposerManagerTest, OnScreenVBlankIdleCallback_FoundAndNotFound, TestSize.Level1)
 {
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     EXPECT_EQ(mgr->rsRenderComposerAgentMap_.find(1), mgr->rsRenderComposerAgentMap_.end());
     auto output = std::make_shared<HdiOutput>(1u);
     output->Init();
@@ -234,7 +234,7 @@ HWTEST_F(RsRenderComposerManagerTest, RateCount_Operations, TestSize.Level1)
 {
     std::string dumpString = "";
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
     mgr->RefreshRateCounts(dumpString);
     EXPECT_TRUE(dumpString.empty());
     mgr->ClearRefreshRateCounts(dumpString);
@@ -273,7 +273,7 @@ HWTEST_F(RsRenderComposerManagerTest, Dump_Operations, TestSize.Level1)
     std::string layerName = "composer";
     std::string layerArg = "window_test";
     std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
-    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler);
+    std::shared_ptr<RSRenderComposerManager> mgr = std::make_shared<RSRenderComposerManager>(handler, nullptr);
 
     mgr->FpsDump(dumpString, layerName);
     EXPECT_EQ(dumpString.find("[Id:"), std::string::npos);
