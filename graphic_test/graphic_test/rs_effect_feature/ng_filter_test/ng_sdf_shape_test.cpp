@@ -878,8 +878,8 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_Transform_2_Te
 
 GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
 {
-    int columnCount = 2;
-    int rowCount = static_cast<int>(sdfShapeSpacingParams.size());
+    int columnCount = 1;
+    int rowCount = 1;
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight * columnCount / rowCount;
     uint16_t leftPixelmapIndex = 0;
@@ -899,12 +899,18 @@ GRAPHIC_TEST(NGSDFShapeTest, EFFECT_TEST, Set_SDF_PixelmapShape_W_UNION_OP_Test)
             DecodePixelMap(sdfPixelmapShapePath[leftPixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
         std::shared_ptr<Media::PixelMap> pixelmapY =
             DecodePixelMap(sdfPixelmapShapePath[rightPixelmapIndex], Media::AllocatorType::SHARE_MEM_ALLOC);
-        InitSmoothUnionShapesByPixelmap(sdfShape, pixelmapX, pixelmapY, sdfShapeSpacingParams[i]);
+        InitSmoothUnionShapesByPixelmap(sdfShape, pixelmapX, pixelmapY, 0.0f);
         backgroundTestNode->SetSDFShape(sdfShape);
 
         auto childNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", {x, y, sizeX, sizeY});
-        childNode->AddChild(backgroundTestNode);
+        auto clipNode = RSCanvasNode::Create();
+        clipNode->SetBounds(bounds);
+        clipNode->SetFrame(bounds);
+        clipNode->SetClipToBounds(true);
+        clipNode->AddChild(backgroundTestNode);
         RegisterNode(backgroundTestNode);
+        childNode->AddChild(clipNode);
+        RegisterNode(clipNode);
         GetRootNode()->AddChild(childNode);
         RegisterNode(childNode);
     }

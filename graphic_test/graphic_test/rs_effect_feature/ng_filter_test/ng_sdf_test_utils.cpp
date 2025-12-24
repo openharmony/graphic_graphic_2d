@@ -69,14 +69,7 @@ void InitSmoothUnionShapesByPixelmap(std::shared_ptr<RSNGShapeBase>& rootShape,
     auto childShapeY = CreateShape(RSNGEffectType::SDF_PIXELMAP_SHAPE);
     auto pixelmapChildShapeY = std::static_pointer_cast<RSNGSDFPixelmapShape>(childShapeY);
     pixelmapChildShapeY->Setter<SDFPixelmapShapeImageTag>(pixelmapY);
-
-    auto sdfShape = CreateShape(RSNGEffectType::SDF_TRANSFORM_SHAPE);
-    auto transformShape = std::static_pointer_cast<RSNGSDFTransformShape>(sdfShape);
-    auto translateX = pixelmapX ? pixelmapX->GetWidth() : 0.0f;
-    Matrix3f matrix{1.0f, 0.0f, translateX, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-    transformShape->Setter<SDFTransformShapeMatrixTag>(matrix);
-    transformShape->Setter<SDFTransformShapeShapeTag>(childShapeY);
-    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(sdfShape);
+    sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeShapeYTag>(childShapeY);
 
     sdfUnionRootShape->Setter<SDFSmoothUnionOpShapeSpacingTag>(spacing);
 }

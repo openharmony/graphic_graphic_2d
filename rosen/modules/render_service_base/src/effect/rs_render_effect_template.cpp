@@ -108,7 +108,7 @@ void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect
 void RSNGRenderEffectHelper::UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
     const std::string& desc, const Matrix3f& value)
 {
-    const auto matrixData = value.GetConstData();
+    const auto& matrixData = value.GetConstData();
     Drawing::Matrix drawingMatrix;
     drawingMatrix.SetMatrix(matrixData[Matrix3f::Index::SCALE_X], matrixData[Matrix3f::Index::SKEW_X],
                             matrixData[Matrix3f::Index::TRANS_X], matrixData[Matrix3f::Index::SKEW_Y],
@@ -201,7 +201,7 @@ void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, std::share
 
 void RSNGRenderEffectHelper::CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value)
 {
-    const auto matrixData = value.GetConstData();
+    const auto& matrixData = value.GetConstData();
     for (size_t i = 0; i < Matrix3f::MATRIX3_SIZE; i++) {
         hash = hashFunc_(&matrixData[i], sizeof(float), hash);
     }
