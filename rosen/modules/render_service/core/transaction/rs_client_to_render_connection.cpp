@@ -349,7 +349,7 @@ void RSClientToRenderConnection::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCa
                 RS_LOGE("TakeSurfaceCapture uicapture failed, nodeId:[%{public}" PRIu64
                         "], isSystemCalling: %{public}u, selfCapture: %{public}u",
                     id, isSystemCalling, selfCapture);
-                callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_PERMISSION);
+                callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_NO_SECURE_PERMISSION);
                 return;
             }
             if (RSUniRenderJudgement::IsUniRender()) {

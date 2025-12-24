@@ -321,6 +321,7 @@ enum class CaptureError : uint8_t {
     AUTO_NOT_SUPPORT,
     COLOR_SPACE_NOT_SUPPORT,
     DYNAMIC_RANGE_NOT_SUPPORT,
+    CAPTURE_NO_SECURE_PERMISSION,
     // please add new enum before this comment
     CAPTURE_ERROR_BOUNDARY_BUTT,
 };
