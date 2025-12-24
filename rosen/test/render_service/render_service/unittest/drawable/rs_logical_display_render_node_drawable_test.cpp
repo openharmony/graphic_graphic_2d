@@ -1880,7 +1880,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWiredMirrorOnDrawTest002, T
 
     mirroredDisplayDrawable_->renderParams_ = nullptr;
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType());
+    auto processor = RSProcessorFactory::CreateProcessor(renderParams->GetCompositeType(), nullptr);
     displayDrawable_->DrawWiredMirrorOnDraw(*mirroredDisplayDrawable_, *renderParams, processor);
     EXPECT_EQ(mirroredDisplayDrawable_->GetRenderParams(), nullptr);
 }
@@ -2158,7 +2158,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorScreenTest006, TestSi
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredScreenDrawable_, nullptr);
 
-    mirroredScreenDrawable_->cacheImgForCapture_ = std::make_shared<Drawing::Image>();
+    mirroredScreenDrawable_->cacheImageByCapture_ = std::make_shared<Drawing::Image>();
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     virtualProcesser->canvas_ = drawingFilterCanvas_;
@@ -2551,7 +2551,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawMirrorCopyTest011, TestSize
     ASSERT_NE(displayDrawable_, nullptr);
     ASSERT_NE(mirroredScreenDrawable_, nullptr);
 
-    mirroredScreenDrawable_->cacheImageByCapture_ = std::make_shared<Drawing::Image>();
+    mirroredScreenDrawable_->cachedImageByCapture_ = std::make_shared<Drawing::Image>();
     auto renderParams = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     virtualProcesser->canvas_ = drawingFilterCanvas_;
