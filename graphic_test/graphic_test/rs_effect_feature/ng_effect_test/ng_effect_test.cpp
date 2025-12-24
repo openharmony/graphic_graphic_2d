@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <cassert>
+
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
@@ -516,6 +518,8 @@ public:
  
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
+
+        assert(columnCount > 0 && rowCount > 0 && "columnCount or rowCount cannot be zero");
  
         // set effect child node
         auto effectChildNode = RSCanvasNode::Create();
