@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
+struct IGECacheProvider;
 class RSB_EXPORT RSDrawingFilter : public RSFilter {
 public:
     RSDrawingFilter() = default;
@@ -49,10 +50,12 @@ public:
     struct DrawImageRectParams {
         bool discardCanvas;
         bool offscreenDraw;
+        IGECacheProvider* geCacheProvider;
     };
 
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params = { false, false });
+        const Drawing::Rect& src, const Drawing::Rect& dst,
+        const DrawImageRectParams params = { false, false, nullptr });
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> GetShaderFilters() const;
     void InsertShaderFilter(std::shared_ptr<RSRenderFilterParaBase> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
@@ -126,6 +129,7 @@ private:
         Drawing::Rect dst;
         bool discardCanvas;
         float brushAlpha;
+        IGECacheProvider* geCacheProvider;
     };
     void DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const DrawImageRectAttributes& attr);

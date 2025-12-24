@@ -274,6 +274,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
         GenerateFilteredSnapshot(canvas, filter, dst);
     }
+
     // Keep a reference to the cached image, since CompactCache may invalidate it.
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     return cachedFilteredSnapshot;
@@ -350,7 +351,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     auto dst = Drawing::Rect(0, 0, offscreenRect.GetWidth(), offscreenRect.GetHeight());
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
-    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst, { false, true });
+    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst,
+        { false, true, cachedSnapshot_->geCacheProvider_.get() });
     filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
@@ -372,7 +374,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         }
     }
     cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect);
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect,
+                                                                cachedSnapshot_->geCacheProvider_);
     isHpaeCachedFilteredSnapshot_ = false;
 }
 
