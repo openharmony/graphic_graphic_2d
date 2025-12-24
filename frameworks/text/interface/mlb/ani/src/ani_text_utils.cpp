@@ -215,6 +215,10 @@ AniTextResult AniTextUtils::ReadFile(const std::string& filePath, size_t& dataLe
         TEXT_LOGE("Failed to get file length:%{public}s", filePath.c_str());
         file.close();
         return AniTextResult::Error(MLB::ERROR_FILE_SIZE_FAILED);
+    } else if (length == 0) {
+        TEXT_LOGE("File is empty: %{public}s", filePath.c_str());
+        file.close();
+        return AniTextResult::Error(MLB::ERROR_FILE_EMPTY);
     }
     dataLen = static_cast<size_t>(length);
     data = std::make_unique<uint8_t[]>(dataLen);

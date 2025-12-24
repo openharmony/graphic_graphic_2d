@@ -54,7 +54,11 @@ using NapiTextResult = OHOS::MLB::TextResult<napi_value>;
         (context)->status = specifyStatus;                                                                     \
         (context)->errCode = static_cast<int32_t>(code);                                                       \
         char buffer[MAX_LOG_SIZE] = { 0 };                                                                     \
-        snprintf_s(buffer, MAX_LOG_SIZE, MAX_LOG_SIZE - 1, fmt, ##__VA_ARGS__);                                \
+        int res = snprintf_s(buffer, MAX_LOG_SIZE, MAX_LOG_SIZE - 1, fmt, ##__VA_ARGS__);                      \
+        if (res < 0) {                                                                                         \
+            TEXT_LOGE("Snprintf err, errcode %{public}d", res);                                                \
+            retValue;                                                                                          \
+        }                                                                                                      \
         (context)->errMessage = buffer;                                                                        \
         statement;                                                                                             \
         TEXT_LOGE("Test (" #condition ") failed: %{public}s", buffer);                                         \
