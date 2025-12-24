@@ -87,10 +87,10 @@ public:
     static std::shared_ptr<RSSurfaceRenderNode> surfaceNode_;
 private:
     int OnRemoteRequestTest(uint32_t code);
-    static sptr<RSIConnectionToken> token_;
-    static sptr<RSClientToRenderConnectionStub> connectionStub_;
-    static sptr<RSRenderPipeline> renderPipeline_;
-    static sptr<RSRenderPipelineAgent> renderPipelineAgent_;
+    static inline sptr<RSIConnectionToken> token_;
+    static inline sptr<RSClientToRenderConnectionStub> connectionStub_;
+    static inline std::shared_ptr<RSRenderPipeline> renderPipeline_;
+    static inline sptr<RSRenderPipelineAgent> renderPipelineAgent_;
 
 };
 
@@ -105,7 +105,7 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
+    auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
@@ -243,7 +243,7 @@ void RSClientToRenderConnectionStubTest::SetUp()
         return;
     }
     auto runner_ = AppExecFwk::EventRunner::Create("RSClientToRenderConnectionStubTest");
-    if (!mainThread->runner_) {
+    if (runner_) {
         return;
     }
     mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
@@ -1018,7 +1018,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest001, Tes
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_INVALID_DATA);
@@ -1036,7 +1036,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest002, Tes
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint32(0);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -1055,7 +1055,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest003, Tes
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteBool(true);
     int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -1074,7 +1074,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest004, Tes
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint32(0);
     data.WriteBool(true);
@@ -1094,7 +1094,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest005, Tes
     MessageParcel reply;
     MessageOption option;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint32(0);
     data.WriteBool(true);

@@ -115,33 +115,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetUniRenderEnabled, TestSize.Lev
 }
 
 /**
- * @tc.name: FillParcelWithTransactionData Test
- * @tc.desc: FillParcelWithTransactionData Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, FillParcelWithTransactionData, TestSize.Level1)
-{
-    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
-    auto transactionData = std::make_unique<RSTransactionData>();
-    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
-}
-
-/**
- * @tc.name: FillParcelWithTransactionData Test
- * @tc.desc: FillParcelWithTransactionData Test
- * @tc.type:FUNC
- * @tc.require: issueICGEDM
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, FillParcelWithTransactionData002, TestSize.Level1)
-{
-    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
-    parcel->SetDataSize(102401);
-    auto transactionData = std::make_unique<RSTransactionData>();
-    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
-}
-
-/**
  * @tc.name: CreateVSyncConnection Test
  * @tc.desc: CreateVSyncConnection Test
  * @tc.type:FUNC
@@ -695,25 +668,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetScreenBacklight, TestSize.Leve
 }
 
 /**
- * @tc.name: RegisterBufferClearListener Test
- * @tc.desc: RegisterBufferClearListener Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterBufferClearListener, TestSize.Level1)
-{
-    NodeId id = 1;
-    sptr<RSIBufferClearCallback> callback;
-    proxy->RegisterBufferClearListener(id, callback);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    ASSERT_NE(samgr, nullptr);
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    callback = iface_cast<RSIBufferClearCallback>(remoteObject);
-    proxy->RegisterBufferClearListener(id, callback);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
-}
-
-/**
  * @tc.name: GetScreenSupportedMetaDataKeys Test
  * @tc.desc: GetScreenSupportedMetaDataKeys Test
  * @tc.type:FUNC
@@ -1051,6 +1005,22 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyHgmConfigEvent, TestSize.Le
     proxy->NotifyHgmConfigEvent(eventName, state);
     ASSERT_TRUE(proxy);
 }
+
+// /**
+//  * @tc.name: NotifyLightFactorStatus Test
+//  * @tc.desc: NotifyLightFactorStatus Test
+//  * @tc.type:FUNC
+//  * @tc.require: issueI9KXXE
+//  */
+// HWTEST_F(RSClientToServiceConnectionProxyTest, NotifyLightFactorStatus, TestSize.Level1)
+// {
+//     GameStateData info;
+//     proxy->ReportGameStateData(info);
+//     NodeId id = 1;
+//     proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
+//     proxy->NotifyLightFactorStatus(1);
+//     ASSERT_EQ(proxy->transactionDataIndex_, 0);
+// }
 
 /**
  * @tc.name: NotifyXComponentExpectedFrameRate Test

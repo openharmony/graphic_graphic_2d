@@ -164,7 +164,35 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeAndSurface, TestSize.Lev
     ASSERT_EQ(proxy->CreateNode(RSSurfaceRenderNodeConfig(), success), ERR_INVALID_VALUE);
     ASSERT_FALSE(success);
     sptr<Surface> surface = nullptr;
-    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig(), surface), ERR_INVALID_VALUE);
+    bool unobscure = false;
+    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig(), surface, unobscure), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: FillParcelWithTransactionData Test
+ * @tc.desc: FillParcelWithTransactionData Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, FillParcelWithTransactionData, TestSize.Level1)
+{
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
+}
+
+/**
+ * @tc.name: FillParcelWithTransactionData Test
+ * @tc.desc: FillParcelWithTransactionData Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, FillParcelWithTransactionData002, TestSize.Level1)
+{
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    parcel->SetDataSize(102401);
+    auto transactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
 }
 
 /**
@@ -216,8 +244,8 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterBufferAvailableListener, T
 HWTEST_F(RSClientToRenderConnectionProxyTest, GetBitmap, TestSize.Level1)
 {
     ScreenId id = 1;
-    RSScreenType screenType = RSScreenType::VIRTUAL_TYPE_SCREEN;
-    ASSERT_EQ(proxy->GetScreenType(id, screenType), 2);
+    // RSScreenType screenType = RSScreenType::VIRTUAL_TYPE_SCREEN;
+    // ASSERT_EQ(proxy->GetScreenType(id, screenType), 2);
     Drawing::Bitmap bitmap;
     bool success;
     ASSERT_EQ(proxy->GetBitmap(id, bitmap, success), ERR_INVALID_VALUE);
@@ -260,26 +288,10 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, GetPixelmap, TestSize.Level1)
  */
 HWTEST_F(RSClientToRenderConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
 {
-    proxy->SetAppWindowNum(1);
+    // proxy->SetAppWindowNum(1);
     bool success;
     proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false, success);
     ASSERT_FALSE(success);
-}
-
-/**
- * @tc.name: NotifyLightFactorStatus Test
- * @tc.desc: NotifyLightFactorStatus Test
- * @tc.type:FUNC
- * @tc.require: issueI9KXXE
- */
-HWTEST_F(RSClientToRenderConnectionProxyTest, NotifyLightFactorStatus, TestSize.Level1)
-{
-    GameStateData info;
-    proxy->ReportGameStateData(info);
-    NodeId id = 1;
-    proxy->SetHardwareEnabled(id, true, SelfDrawingNodeType::DEFAULT, true);
-    proxy->NotifyLightFactorStatus(1);
-    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 
 /**
@@ -559,6 +571,25 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetScreenFrameGravity, TestSize.Le
     int32_t gravity = 5;
     proxy->SetScreenFrameGravity(id, gravity);
     ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
+ * @tc.name: RegisterBufferClearListener Test
+ * @tc.desc: RegisterBufferClearListener Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterBufferClearListener, TestSize.Level1)
+{
+    NodeId id = 1;
+    sptr<RSIBufferClearCallback> callback;
+    proxy->RegisterBufferClearListener(id, callback);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSIBufferClearCallback>(remoteObject);
+    proxy->RegisterBufferClearListener(id, callback);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

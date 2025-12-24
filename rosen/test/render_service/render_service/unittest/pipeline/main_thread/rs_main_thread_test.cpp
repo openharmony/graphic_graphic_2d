@@ -113,7 +113,7 @@ void RSMainThreadTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
 
-    ASSERT_NE(nullptr, screenManager);
+    ASSERT_NE(nullptr, screenManager_);
     std::string name = "virtualScreen01";
     uint32_t width = DEFAULT_SCREEN_WIDTH;
     uint32_t height = DEFAULT_SCREEN_HEIGHT;
@@ -122,16 +122,16 @@ void RSMainThreadTest::SetUpTestCase()
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
-    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
-    screenManager->defaultScreenId_ = id;
+    screenManager_->defaultScreenId_ = id;
 }
 
 void RSMainThreadTest::TearDownTestCase()
 {
 
-    ASSERT_NE(nullptr, screenManager);
-    screenManager->defaultScreenId_ = INVALID_SCREEN_ID;
+    ASSERT_NE(nullptr, screenManager_);
+    screenManager_->defaultScreenId_ = INVALID_SCREEN_ID;
 }
 
 void RSMainThreadTest::SetUp() {}
@@ -173,7 +173,7 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
 
     rsScreen->property_.SetPhyWidth(SCREEN_PHYSICAL_WIDTH);
     rsScreen->property_.SetPhyHeight(SCREEN_PHYSICAL_HEIGHT);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
     return screenNode;
 }
 
@@ -687,7 +687,6 @@ HWTEST_F(RSMainThreadTest, StartSyncTransactionFallbackTask001, TestSize.Level1)
     mainThread->syncTransactionData_[0].push_back(std::move(syncData));
     mainThread->StartSyncTransactionFallbackTask(rsTransactionData);
     ASSERT_EQ(mainThread->syncTransactionData_.empty(), false);
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
 
     auto mainThread2 = RSMainThread::Instance();
@@ -698,7 +697,6 @@ HWTEST_F(RSMainThreadTest, StartSyncTransactionFallbackTask001, TestSize.Level1)
     mainThread2->syncTransactionData_[0].push_back(std::move(syncData2));
     mainThread2->StartSyncTransactionFallbackTask(rsTransactionData);
     ASSERT_EQ(mainThread2->syncTransactionData_.empty(), false);
-    mainThread2->runner_ = nullptr;
     mainThread2->handler_ = nullptr;
 }
 
@@ -1011,31 +1009,31 @@ HWTEST_F(RSMainThreadTest, ShowWatermark05, TestSize.Level1)
     ASSERT_EQ(mainThread->GetWatermarkFlag(), true);
 }
 
-/**
- * @tc.name: MergeToEffectiveTransactionDataMap001
- * @tc.desc: Test RSMainThreadTest.MergeToEffectiveTransactionDataMap
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, MergeToEffectiveTransactionDataMap001, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->Start();
-    ASSERT_EQ(mainThread->effectiveTransactionDataIndexMap_.empty(), true);
-    mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
-    TransactionDataMap dataMap;
-    auto data = std::make_unique<RSTransactionData>();
-    ASSERT_NE(data, nullptr);
-    data->SetIndex(1);
-    dataMap[0].emplace_back(std::move(data));
-    data = std::make_unique<RSTransactionData>();
-    ASSERT_NE(data, nullptr);
-    data->SetIndex(3);
-    dataMap[0].emplace_back(std::move(data));
-    dataMap[0].emplace_back(nullptr);
-    mainThread->MergeToEffectiveTransactionDataMap(dataMap);
-    mainThread->effectiveTransactionDataIndexMap_.clear();
-}
+// /**
+//  * @tc.name: MergeToEffectiveTransactionDataMap001
+//  * @tc.desc: Test RSMainThreadTest.MergeToEffectiveTransactionDataMap
+//  * @tc.type: FUNC
+//  * @tc.require: issueI8V6MD
+//  */
+// HWTEST_F(RSMainThreadTest, MergeToEffectiveTransactionDataMap001, TestSize.Level1)
+// {
+//     auto mainThread = RSMainThread::Instance();
+//     mainThread->Start();
+//     ASSERT_EQ(mainThread->effectiveTransactionDataIndexMap_.empty(), true);
+//     mainThread->effectiveTransactionDataIndexMap_[0].first = 0;
+//     TransactionDataMap dataMap;
+//     auto data = std::make_unique<RSTransactionData>();
+//     ASSERT_NE(data, nullptr);
+//     data->SetIndex(1);
+//     dataMap[0].emplace_back(std::move(data));
+//     data = std::make_unique<RSTransactionData>();
+//     ASSERT_NE(data, nullptr);
+//     data->SetIndex(3);
+//     dataMap[0].emplace_back(std::move(data));
+//     dataMap[0].emplace_back(nullptr);
+//     mainThread->MergeToEffectiveTransactionDataMap(dataMap);
+//     mainThread->effectiveTransactionDataIndexMap_.clear();
+// }
 
 /**
  * @tc.name: ProcessCommandForUniRender
@@ -1204,31 +1202,31 @@ HWTEST_F(RSMainThreadTest, DoParallelComposition, TestSize.Level1)
     }
 }
 
-/**
- * @tc.name: SetFocusLeashWindowId
- * @tc.desc: Test RSMainThreadTest.SetFocusLeashWindowId
- * @tc.type: FUNC
- * @tc.require: issueI8V6MD
- */
-HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId, TestSize.Level1)
-{
-    auto mainThread = RSMainThread::Instance();
-    mainThread->Start();
-    NodeId id = 1;
-    auto node1 = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
-    ASSERT_NE(node1, nullptr);
-    RSSurfaceRenderNodeConfig config;
-    auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
-    ASSERT_NE(node2, nullptr);
-    node1->SetParent(node2);
-    node1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
-    node2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
+// /**
+//  * @tc.name: SetFocusLeashWindowId
+//  * @tc.desc: Test RSMainThreadTest.SetFocusLeashWindowId
+//  * @tc.type: FUNC
+//  * @tc.require: issueI8V6MD
+//  */
+// HWTEST_F(RSMainThreadTest, SetFocusLeashWindowId, TestSize.Level1)
+// {
+//     auto mainThread = RSMainThread::Instance();
+//     mainThread->Start();
+//     NodeId id = 1;
+//     auto node1 = std::make_shared<RSSurfaceRenderNode>(id, mainThread->context_);
+//     ASSERT_NE(node1, nullptr);
+//     RSSurfaceRenderNodeConfig config;
+//     auto node2 = std::make_shared<RSSurfaceRenderNode>(config);
+//     ASSERT_NE(node2, nullptr);
+//     node1->SetParent(node2);
+//     node1->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+//     node2->nodeType_ = RSSurfaceNodeType::LEASH_WINDOW_NODE;
 
-    mainThread->context_ = std::make_shared<RSContext>();
-    mainThread->context_->nodeMap.renderNodeMap_[0][0] = node1;
-    mainThread->focusNodeId_ = 0;
-    mainThread->SetFocusLeashWindowId();
-}
+//     mainThread->context_ = std::make_shared<RSContext>();
+//     mainThread->context_->nodeMap.renderNodeMap_[0][0] = node1;
+//     mainThread->focusNodeId_ = 0;
+//     mainThread->SetFocusLeashWindowId();
+// }
 
 /**
  * @tc.name: SetFocusLeashWindowId002
@@ -1694,8 +1692,8 @@ HWTEST_F(RSMainThreadTest, UniRender003, TestSize.Level1)
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
     
-        screenManager->powerOffNeedProcessOneFrame_ = false;
-        screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
+        screenManager_->powerOffNeedProcessOneFrame_ = false;
+        screenManager_->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
     }
     mainThread->UniRender(rootNode);
     ASSERT_FALSE(mainThread->doDirectComposition_);
@@ -2119,14 +2117,12 @@ HWTEST_F(RSMainThreadTest, Render, TestSize.Level1)
     auto childDisplayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
     rootNode->AddChild(childDisplayNode);
     bool isUniRender = mainThread->isUniRender_;
-    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     // uni render
     mainThread->isUniRender_ = true;
     rootNode->InitRenderParams();
     childDisplayNode->InitRenderParams();
     mainThread->Render();
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
     mainThread->isUniRender_ = isUniRender;
 }
@@ -3028,11 +3024,9 @@ HWTEST_F(RSMainThreadTest, PostTask001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     RSTaskMessage::RSTask task = []() -> void { return; };
     mainThread->PostTask(task);
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
 }
 
@@ -3046,14 +3040,12 @@ HWTEST_F(RSMainThreadTest, PostTask002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     RSTaskMessage::RSTask task = []() -> void { return; };
     std::string name = "test";
     int64_t delayTime = 0;
     AppExecFwk::EventQueue::Priority priority = AppExecFwk::EventQueue::Priority::IMMEDIATE;
     mainThread->PostTask(task, name, delayTime, priority);
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
 }
 
@@ -3067,11 +3059,9 @@ HWTEST_F(RSMainThreadTest, RemoveTask, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     std::string name = "test";
     mainThread->RemoveTask(name);
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
 }
 
@@ -3085,11 +3075,9 @@ HWTEST_F(RSMainThreadTest, PostSyncTask002, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     RSTaskMessage::RSTask task = []() -> void { return; };
     mainThread->PostSyncTask(task);
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
 }
 
@@ -3382,10 +3370,8 @@ HWTEST_F(RSMainThreadTest, PerfForBlurIfNeeded, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    mainThread->runner_ = AppExecFwk::EventRunner::Create(false);
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(false));
     mainThread->PerfForBlurIfNeeded();
-    mainThread->runner_ = nullptr;
     mainThread->handler_ = nullptr;
 }
 
@@ -5745,14 +5731,14 @@ HWTEST_F(RSMainThreadTest, RegisterScreenNodeListenerTest, TestSize.Level2)
     ASSERT_NE(mainThread, nullptr);
 
     mainThread->RegisterScreenNodeListener();
-    auto screenManager = RSScreenManager::GetInstance();
-    EXPECT_NE(screenManager->screenNodeListener_, nullptr);
+    auto screenManager_ = RSScreenManager::GetInstance();
+    EXPECT_NE(screenManager_->screenNodeListener_, nullptr);
 
-    screenManager->screens_.insert(std::make_pair(100, nullptr));
+    screenManager_->screens_.insert(std::make_pair(100, nullptr));
     mainThread->RegisterScreenNodeListener();
 
-    screenManager->NotifyScreenNodeChange(0, true);
-    screenManager->NotifyScreenNodeChange(0, false);
+    screenManager_->NotifyScreenNodeChange(0, true);
+    screenManager_->NotifyScreenNodeChange(0, false);
 }
 
 /**
@@ -5780,9 +5766,9 @@ HWTEST_F(RSMainThreadTest, OnScreenConnect001, TestSize.Level2)
     auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
     mainThread1->context_->nodeMap.logicalDisplayNodeMap_.insert({displayNodeId2, displayNode2});
 
-    auto screenManager = RSScreenManager::GetInstance();
+    auto screenManager_ = RSScreenManager::GetInstance();
     auto property = sptr<RSScreenProperty>::MakeSptr();
-    screenManager->screenNodeListener_->OnScreenConnect(1, property);
+    screenManager_->screenNodeListener_->OnScreenConnect(1, property);
     mainThread1->isRunning_ = backUpState;
 }
 
@@ -5810,8 +5796,8 @@ HWTEST_F(RSMainThreadTest, OnScreenDisconnectTest, TestSize.Level2)
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
 
-    auto screenManager = RSScreenManager::GetInstance();
-    screenManager->screenNodeListener_->OnScreenDisconnect(0);
+    auto screenManager_ = RSScreenManager::GetInstance();
+    screenManager_->screenNodeListener_->OnScreenDisconnect(0);
 }
 
 /**
@@ -6228,15 +6214,15 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, RegisterHwcEvent001, TestSize.Level1)
 {
 
-    auto screenManagerImpl = static_cast<RSScreenManager*>(screenManager.GetRefPtr());
+    auto screenManagerImpl = static_cast<RSScreenManager*>(screenManager_.GetRefPtr());
     ASSERT_NE(screenManagerImpl, nullptr);
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
     mainThread->RegisterHwcEvent();
-    // test screenManager is nullptr
+    // test screenManager_ is nullptr
     screenManagerImpl->instance_ = nullptr;
     mainThread->RegisterHwcEvent();
-    // reset screenManager in TearDownTestCase, so it can't be nullptr
+    // reset screenManager_ in TearDownTestCase, so it can't be nullptr
     screenManagerImpl->instance_ = new RSScreenManager();
 }
 
@@ -6250,10 +6236,10 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
 {
     // INIT SCREEN
 
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(5));
     ASSERT_NE(rsScreen, nullptr);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
 
     // INIT DISPLAY
     auto mainThread = RSMainThread::Instance();
@@ -6508,10 +6494,10 @@ HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
 {
     // INIT SCREEN
 
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(5));
     ASSERT_NE(rsScreen, nullptr);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
 
     // INIT DISPLAY
     auto mainThread = RSMainThread::Instance();

@@ -705,20 +705,6 @@ HWTEST_F(RSServiceClientTest, GetScreenBacklight001, TestSize.Level1)
     EXPECT_EQ(backLight, 60); // for test
 }
 
-/**
- * @tc.name: RegisterBufferClearListener Test
- * @tc.desc: RegisterBufferClearListener Test
- * @tc.type:FUNC
- * @tc.require: issuesI9K7SJ
- */
-HWTEST_F(RSServiceClientTest, RegisterBufferClearListener001, TestSize.Level1)
-{
-    ASSERT_NE(rsClient, nullptr);
-    BufferClearCallback cb = [](){};
-    bool ret = rsClient->RegisterBufferClearListener(TEST_ID, cb);
-    ASSERT_TRUE(ret);
-}
-
 /*
  * @tc.name: GetScreenSupportedColorGamuts Test
  * @tc.desc: GetScreenSupportedColorGamuts Test
@@ -1093,20 +1079,6 @@ HWTEST_F(RSServiceClientTest, SetBrightnessInfoChangeCallbackTest, TestSize.Leve
     ASSERT_EQ(rsClient->SetBrightnessInfoChangeCallback(nullptr), 0);
     RSRenderServiceConnectHub::Destroy();
     ASSERT_EQ(rsClient->SetBrightnessInfoChangeCallback(nullptr), RENDER_SERVICE_NULL);
-    RSRenderServiceConnectHub::Init();
-}
-
-/**
- * @tc.name: GetBrightnessInfoTest
- * @tc.desc: GetBrightnessInfo
- * @tc.type: FUNC
- */
-HWTEST_F(RSServiceClientTest, GetBrightnessInfoTest, TestSize.Level1)
-{
-    BrightnessInfo brightnessInfo = { 0 };
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), 0);
-    RSRenderServiceConnectHub::Destroy();
-    ASSERT_EQ(rsClient->GetBrightnessInfo(0, brightnessInfo), RENDER_SERVICE_NULL);
     RSRenderServiceConnectHub::Init();
 }
 

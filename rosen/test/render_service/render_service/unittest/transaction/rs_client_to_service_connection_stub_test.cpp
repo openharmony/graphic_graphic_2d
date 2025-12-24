@@ -85,13 +85,13 @@ public:
     static std::shared_ptr<RSSurfaceRenderNode> surfaceNode_;
 private:
     int OnRemoteRequestTest(uint32_t code);
-    static sptr<RSIConnectionToken> token_;
-    static sptr<RSClientToServiceConnectionStub> connectionStub_;
-    static sptr<RSRenderServiceAgent> renderServiceAgent_;
-    static sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
-    static RSRenderService renderService_;
-    static sptr<RSScreenManagerAgent> screenManagerAgent_;
-    static sptr<VSyncDistributor> appVSyncDistributor_;
+    static inline sptr<RSIConnectionToken> token_;
+    static inline sptr<RSClientToServiceConnectionStub> connectionStub_;
+    static inline sptr<RSRenderServiceAgent> renderServiceAgent_;
+    static inline sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
+    static inline RSRenderService renderService_;
+    static inline sptr<RSScreenManagerAgent> screenManagerAgent_;
+    static inline sptr<VSyncDistributor> appVSyncDistributor_;
 };
 
 uint32_t RSClientToServiceConnectionStubTest::screenId_ = 0;
@@ -105,7 +105,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
+    auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
@@ -117,21 +117,16 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
 
     token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
 
-    OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
-    auto generator = OHOS::Rosen::CreateVSyncGenerator();
-    auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
-    appVSyncDistributor_ = new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-
     renderService_.Init();
     
-    renderServiceAgent_ = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    renderServiceAgent_ = sptr<RSRenderServiceAgent>::MakeSptr(renderService_);
     renderProcessManagerAgent_ = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService_.renderProcessManager_);
 
     screenManagerAgent_ = new RSScreenManagerAgent(screenManager_);
 
     connectionStub_ =
-        new RSClientToServiceConnection(0, renderService_, renderServiceAgent_,
-            renderProcessManagerAgent_, mainThread_, screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
+        new RSClientToServiceConnection(0, wptr<RSRenderService>(&renderService_), renderServiceAgent_,
+            renderProcessManagerAgent_, mainThread_, screenManagerAgent_, token_->AsObject(), nullptr);
 }
 
 void RSClientToServiceConnectionStubTest::TearDownTestCase()
@@ -154,7 +149,7 @@ void RSClientToServiceConnectionStubTest::SetUp()
     if (!mainThread) {
         return;
     }
-    runner_ = AppExecFwk::EventRunner::Create("RSClientToServiceConnectionStubTest");
+    auto runner_ = AppExecFwk::EventRunner::Create("RSClientToServiceConnectionStubTest");
     if (!runner_) {
         return;
     }
@@ -1532,8 +1527,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetScreenGamutMapTest004, TestSize
 HWTEST_F(RSClientToServiceConnectionStubTest, SetBrightnessInfoChangeCallbackTest, TestSize.Level2)
 {
     sptr<RSClientToServiceConnectionStub> connectionStub =
-        new RSClientToServiceConnection(0, renderService_, renderServiceAgent_, renderProcessManagerAgent_, mainThread_,
-            screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
+        new RSClientToServiceConnection(0, wptr<RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_, mainThread_,
+            screenManagerAgent_, token_->AsObject(), nullptr);
     ASSERT_NE(connectionStub, nullptr);
 
     // case 1: no data

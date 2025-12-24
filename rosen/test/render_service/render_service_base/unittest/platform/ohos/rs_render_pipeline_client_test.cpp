@@ -18,7 +18,7 @@
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_pipeline_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
-#include "platform/ohos/rs_client_to_render_connection_proxy.h"
+#include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "ui/rs_surface_node.h"
 #include "surface_utils.h"
 #include <iostream>
@@ -253,6 +253,20 @@ HWTEST_F(RSPipelineClientTest, UnregisterBufferAvailableListener_False, TestSize
     BufferAvailableCallback cb = [](){};
     bool ret = rsClient->UnregisterBufferAvailableListener(TEST_ID); // test a notfound number: 123
     ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: RegisterBufferClearListener Test
+ * @tc.desc: RegisterBufferClearListener Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSPipelineClientTest, RegisterBufferClearListener001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    BufferClearCallback cb = [](){};
+    bool ret = rsClient->RegisterBufferClearListener(TEST_ID, cb);
+    ASSERT_TRUE(ret);
 }
 
 /*
