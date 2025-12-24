@@ -198,7 +198,7 @@ uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, co
     return !fc->UnloadFont(fontFamily);
 }
 
-bool OH_Drawing_IsFontSupportedByPath(const char* fontPath)
+bool OH_Drawing_IsFontSupportedFromPath(const char* fontPath)
 {
     if (fontPath == nullptr) {
         return false;
@@ -206,7 +206,7 @@ bool OH_Drawing_IsFontSupportedByPath(const char* fontPath)
     return Drawing::Typeface::MakeFromFile(fontPath) != nullptr;
 }
 
-bool OH_Drawing_IsFontSupportedByBuffer(uint8_t* fontBuffer, size_t length)
+bool OH_Drawing_IsFontSupportedFromBuffer(uint8_t* fontBuffer, size_t length)
 {
     if (fontBuffer == nullptr || length == 0) {
         return false;

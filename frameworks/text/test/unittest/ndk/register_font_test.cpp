@@ -172,9 +172,9 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest007, TestSize.Level0)
  */
 HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest008, TestSize.Level0)
 {
-    OH_Drawing_IsFontSupportedByPath(nullptr);
-    EXPECT_FALSE(OH_Drawing_IsFontSupportedByPath(notExistFontPath_));
-    EXPECT_TRUE(OH_Drawing_IsFontSupportedByPath(existFontPath_));
+    OH_Drawing_IsFontSupportedFromPath(nullptr);
+    EXPECT_FALSE(OH_Drawing_IsFontSupportedFromPath(notExistFontPath_));
+    EXPECT_TRUE(OH_Drawing_IsFontSupportedFromPath(existFontPath_));
 }
 
 /*
@@ -184,12 +184,12 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest008, TestSize.Level0)
  */
 HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest009, TestSize.Level0)
 {
-    OH_Drawing_IsFontSupportedByBuffer(nullptr, 0);
-    EXPECT_FALSE(OH_Drawing_IsFontSupportedByBuffer(nullptr, 0));
-    EXPECT_FALSE(OH_Drawing_IsFontSupportedByBuffer(nullptr, 1));
+    OH_Drawing_IsFontSupportedFromBuffer(nullptr, 0);
+    EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(nullptr, 0));
+    EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(nullptr, 1));
     std::vector<char> buffer;
     LoadBufferFromFile(existFontPath_, buffer);
-    EXPECT_TRUE(OH_Drawing_IsFontSupportedByBuffer(reinterpret_cast<uint8_t*>(buffer.data()), buffer.size()));
-    EXPECT_FALSE(OH_Drawing_IsFontSupportedByBuffer(reinterpret_cast<uint8_t*>(buffer.data()), 0));
+    EXPECT_TRUE(OH_Drawing_IsFontSupportedFromBuffer(reinterpret_cast<uint8_t*>(buffer.data()), buffer.size()));
+    EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(reinterpret_cast<uint8_t*>(buffer.data()), 0));
 }
 } // namespace OHOS

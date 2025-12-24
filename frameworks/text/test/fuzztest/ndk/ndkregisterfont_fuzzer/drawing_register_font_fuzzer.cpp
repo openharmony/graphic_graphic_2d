@@ -53,13 +53,13 @@ void OHDrawingRegisterFontTest(const uint8_t* data, size_t size)
 void OHDrawingIsFontSupportedTest(const uint8_t* data, size_t size)
 {
     FuzzedDataProvider fdp(data, size);
-    OH_Drawing_IsFontSupportedByPath(nullptr);
-    OH_Drawing_IsFontSupportedByPath(fdp.ConsumeRandomLengthString().c_str());
-    OH_Drawing_IsFontSupportedByBuffer(nullptr, 0);
-    OH_Drawing_IsFontSupportedByBuffer(nullptr, 1);
+    OH_Drawing_IsFontSupportedFromPath(nullptr);
+    OH_Drawing_IsFontSupportedFromPath(fdp.ConsumeRandomLengthString().c_str());
+    OH_Drawing_IsFontSupportedFromBuffer(nullptr, 0);
+    OH_Drawing_IsFontSupportedFromBuffer(nullptr, 1);
     std::vector<uint8_t> buffer = fdp.ConsumeRemainingBytes<uint8_t>();
-    OH_Drawing_IsFontSupportedByBuffer(buffer.data(), buffer.size());
-    OH_Drawing_IsFontSupportedByBuffer(buffer.data(), 0);
+    OH_Drawing_IsFontSupportedFromBuffer(buffer.data(), buffer.size());
+    OH_Drawing_IsFontSupportedFromBuffer(buffer.data(), 0);
 }
 } // namespace OHOS::Rosen::Drawing
 

@@ -120,7 +120,7 @@ uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, co
  * @return Returns true if the font is supported; otherwise, returns false.
  * @since 23
  */
-bool OH_Drawing_IsFontSupportedByPath(const char* fontPath);
+bool OH_Drawing_IsFontSupportedFromPath(const char* fontPath);
 
 /**
  * @brief Checks if the font format specified by the buffer is supported.
@@ -130,7 +130,7 @@ bool OH_Drawing_IsFontSupportedByPath(const char* fontPath);
  * @return Returns true if the font is supported; otherwise, returns false.
  * @since 23
  */
-bool OH_Drawing_IsFontSupportedByBuffer(uint8_t* fontBuffer, size_t length);
+bool OH_Drawing_IsFontSupportedFromBuffer(uint8_t* fontBuffer, size_t length);
 #ifdef __cplusplus
 }
 #endif
