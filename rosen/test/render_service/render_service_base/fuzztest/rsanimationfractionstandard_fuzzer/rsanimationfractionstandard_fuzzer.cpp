@@ -60,7 +60,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
         }
         case FuzzMethod::GETANIMATIONFRACTION: {
             int64_t delayTime = FD.ConsumeIntegral<int64_t>();
-            fraction.GetAnimationFraction(FD.ConsumeIntegral<int64_t>(), delayTime);
+            fraction.GetAnimationFraction(FD.ConsumeIntegral<int64_t>(), delayTime, FD.ConsumeBool());
             break;
         }
         case FuzzMethod::UPDATEREMAINTIMEFRACTION: {
@@ -80,7 +80,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
             break;
         }
         case FuzzMethod::ISSTARTRUNNING: {
-            fraction.IsStartRunning(FD.ConsumeIntegral<int64_t>(), FD.ConsumeIntegral<int64_t>());
+            fraction.IsStartRunning(FD.ConsumeIntegral<int64_t>(), FD.ConsumeIntegral<int64_t>(), FD.ConsumeBool());
             break;
         }
         case FuzzMethod::UPDATEREVERSESTATE: {

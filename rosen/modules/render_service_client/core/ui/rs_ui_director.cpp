@@ -122,6 +122,7 @@ void RSUIDirector::Init(bool shouldCreateRenderThread, bool isMultiInstance, std
 
     GoForeground();
     RSInterpolator::Init();
+    RSAnimationFraction::Init();
 }
 
 void RSUIDirector::SetFlushEmptyCallback(FlushEmptyCallback flushEmptyCallback)

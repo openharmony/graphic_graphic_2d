@@ -45,7 +45,7 @@ protected:
     void UpdateFractionAfterContinue() override;
     void OnAnimate(float fraction) override;
     void InitValueEstimator() override;
-    void OnInitialize(int64_t time) override;
+    void OnInitialize(int64_t time, bool isCustom = false) override;
 
 private:
 #ifdef ROSEN_OHOS
