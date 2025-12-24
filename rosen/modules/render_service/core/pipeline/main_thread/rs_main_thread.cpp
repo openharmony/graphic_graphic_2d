@@ -3655,7 +3655,7 @@ void RSMainThread::SetAnimationOcclusionInfo(const std::string& sceneId, bool is
     if (!DirtyRegionParam::IsAnimationOcclusionEnable() || !RSSystemProperties::GetAnimationOcclusionEnabled()) {
         return;
     }
-    uint64_t curTime = static_cast<uint64_t>(
+    int64_t curTime = static_cast<int64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
     auto id = RSUifirstFrameRateControl::Instance().GetSceneId(sceneId);

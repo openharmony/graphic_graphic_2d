@@ -46,6 +46,8 @@
 namespace OHOS::Rosen::DrawableV2 {
 
 namespace {
+constexpr int32_t MAX_DAMAGE_REGION_INFO = 300;
+
 std::string RectVectorToString(const std::vector<RectI>& regionRects)
 {
     std::string results = "";
@@ -600,7 +602,8 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirty(
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {
         virtualProcesser->SetDirtyInfo(mappedDamageRegionRects);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
-            mappedDamageRegionRects.size(), RectVectorToString(mappedDamageRegionRects).c_str());
+            mappedDamageRegionRects.size(),
+            RectVectorToString(mappedDamageRegionRects).substr(0, MAX_DAMAGE_REGION_INFO).c_str());
     }
     return mappedDamageRegionRects;
 }
@@ -672,7 +675,8 @@ std::vector<RectI> RSLogicalDisplayRenderNodeDrawable::CalculateVirtualDirtyForW
     if (!uniParam->IsVirtualDirtyDfxEnabled()) {
         curScreenDrawable.SetDamageRegion(damageRegionRects);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
-            damageRegionRects.size(), RectVectorToString(damageRegionRects).c_str());
+            damageRegionRects.size(),
+            RectVectorToString(damageRegionRects).substr(0, MAX_DAMAGE_REGION_INFO).c_str());
     }
     return damageRegionRects;
 }
