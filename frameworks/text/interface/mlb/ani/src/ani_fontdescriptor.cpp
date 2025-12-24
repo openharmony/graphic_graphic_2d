@@ -45,7 +45,7 @@ const std::string GET_FONT_UNICODE_SET_SIGNATURE = std::string(FONT_PATH_IN_SIGN
 const std::string GET_FONT_COUNT_SIGNATURE = std::string(FONT_PATH_IN_SIGN) + ":i";
 const std::string GET_FONT_PATHS_BY_TYPE_SIGNATURE =
     "E{" + std::string(ANI_ENUM_SYSTEM_FONT_TYPE) + "}:C{" + std::string(ANI_ARRAY) + "}";
-const std::string IS_FONT_SUPPORTED_SIGNATURE = "X{C{global.resource.Resource}C{std.core.String}}:z";
+const std::string IS_FONT_SUPPORTED_SIGNATURE = "X{C{std.core.String}C{global.resource.Resource}}:z";
 } // namespace
 
 #define READ_OPTIONAL_FIELD(env, obj, method, field, type, fontDescPtr, error_var)                                     \
