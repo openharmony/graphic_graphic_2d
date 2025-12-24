@@ -90,8 +90,8 @@ public:
     bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
     bool CanPaintAllText() const override;
     std::string GetDumpInfo() const override;
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> GetTextPathImageByIndex(
-        size_t from, size_t to, bool fill) const override;
+    std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
+        size_t start, size_t end, const ImageOptions& options, bool fill) const override;
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

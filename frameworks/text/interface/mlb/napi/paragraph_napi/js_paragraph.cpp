@@ -21,7 +21,6 @@
 #include "napi_common.h"
 #include "paragraph_builder_napi/js_paragraph_builder.h"
 #include "path_napi/js_path.h"
-#include "pixel_map_napi.h"
 #include "recording/recording_canvas.h"
 #include "text_line_napi/js_text_line.h"
 #include "text_style.h"
@@ -130,7 +129,6 @@ bool JsParagraph::CreateConstructor(napi_env env)
         DECLARE_NAPI_FUNCTION("isStrutStyleEqual", JsParagraph::IsStrutStyleEqual),
         DECLARE_NAPI_FUNCTION("updateColor", JsParagraph::UpdateColor),
         DECLARE_NAPI_FUNCTION("updateDecoration", JsParagraph::UpdateDecoration),
-        DECLARE_NAPI_FUNCTION("getTextPathImageByIndex", JsParagraph::GetTextPathImageByIndex),
     };
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
@@ -954,56 +952,6 @@ napi_value JsParagraph::OnUpdateDecoration(napi_env env, napi_callback_info info
     GetDecorationFromJSForUpdate(env, argv[0], textStyleTemplate);
     paragraph_->UpdateAllTextStyles(textStyleTemplate);
     return NapiGetUndefined(env);
-}
-
-napi_value JsParagraph::GetTextPathImageByIndex(napi_env env, napi_callback_info info)
-{
-    JsParagraph* me = CheckParamsAndGetThis<JsParagraph>(env, info);
-    return (me != nullptr) ? me->OnGetTextPathImageByIndex(env, info) : nullptr;
-}
-
-napi_value JsParagraph::OnGetTextPathImageByIndex(napi_env env, napi_callback_info info)
-{
-    NAPI_CHECK_AND_THROW_ERROR(paragraph_ != nullptr, TextErrorCode::ERROR_INVALID_PARAM, "Paragraph is null");
-
-    size_t argc = ARGC_THREE;
-    napi_value argv[ARGC_THREE] = {nullptr};
-    napi_status status = napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-    if (status != napi_ok || argc < ARGC_THREE) {
-        TEXT_LOGE("Failed to get parameter, argc %{public}zu, ret %{public}d", argc, status);
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-
-    int startIndex = 0;
-    if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], startIndex))) {
-        TEXT_LOGE("Failed to convert");
-        return NapiGetUndefined(env);
-    }
-    int endIndex = 0;
-    if (!(argv[1] != nullptr && ConvertFromJsValue(env, argv[1], endIndex))) {
-        TEXT_LOGE("Failed to convert");
-        return NapiGetUndefined(env);
-    }
-    bool fill = false;
-    if (!(argv[2] != nullptr && ConvertFromJsValue(env, argv[2], fill))) {
-        TEXT_LOGE("Failed to convert");
-        return NapiGetUndefined(env);
-    }
-    if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex)
-    {
-        TEXT_LOGE("Invalid start or end index");
-        return NapiThrowError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
-    }
-
-    napi_value returnPixelMaps = nullptr;
-    NAPI_CALL(env, napi_create_array(env, &returnPixelMaps));
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = paragraph_->GetTextPathImageByIndex(
-        startIndex, endIndex, fill);
-    for (uint32_t index = 0; index < static_cast<uint32_t>(pixelMaps.size()); ++index) {
-        napi_value tempValue = OHOS::Media::PixelMapNapi::CreatePixelMap(env, pixelMaps[index]);
-        NAPI_CALL(env, napi_set_element(env, returnPixelMaps, index, tempValue));
-    }
-    return returnPixelMaps;
 }
 
 napi_value JsParagraph::IsStrutStyleEqual(napi_env env, napi_callback_info info)

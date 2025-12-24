@@ -77,6 +77,8 @@ template("skia_libtxt") {
     ]
 
     sources = [
+      "common_utils/path_util.cpp",
+      "common_utils/pixel_map_util.cpp",
       "common_utils/string_util.cpp",
       "impl/drawing_painter_impl.cpp",
       "impl/paragraph_builder_impl.cpp",

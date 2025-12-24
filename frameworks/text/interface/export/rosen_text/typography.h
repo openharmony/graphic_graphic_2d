@@ -119,6 +119,12 @@ struct TextBlobRecordInfo {
     SkPoint offset{0.0f, 0.0f};
     Drawing::Color color{Drawing::Color::COLOR_BLACK};
 };
+struct RS_EXPORT ImageOptions {
+    int32_t width{0};
+    int32_t height{0};
+    float offsetX{0.0f};
+    float offsetY{0.0f};
+};
 
 class Typography {
 public:
@@ -184,8 +190,8 @@ public:
     virtual std::vector<TextBlobRecordInfo> GetTextBlobRecordInfo() const = 0;
     virtual bool CanPaintAllText() const = 0;
     virtual std::string GetDumpInfo() const = 0;
-    virtual std::vector<std::shared_ptr<OHOS::Media::PixelMap>> GetTextPathImageByIndex(
-        size_t from, size_t to, bool fill) const = 0;
+    virtual std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
+        size_t start, size_t end, const ImageOptions& options, bool fill) const = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

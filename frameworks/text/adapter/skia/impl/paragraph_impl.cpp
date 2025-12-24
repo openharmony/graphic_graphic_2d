@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "common_utils/path_util.h"
+#include "common_utils/pixel_map_util.h"
 #include "convert.h"
 #include "drawing_painter_impl.h"
 #include "text_font_utils.h"
@@ -48,8 +50,6 @@ std::vector<TextBox> GetTxtTextBoxes(const std::vector<skt::TextBox>& skiaBoxes)
     }
     return boxes;
 }
-
-constexpr float EPSILON = 1e-6f;
 } // anonymous namespace
 
 ParagraphImpl::ParagraphImpl(std::unique_ptr<skt::Paragraph> paragraph, std::vector<PaintRecord>&& paints)
@@ -604,171 +604,36 @@ std::string ParagraphImpl::GetDumpInfo() const
     return paragraph_->GetDumpInfo();
 }
 
-std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(const Drawing::Path& path, const skt::Block& styleBlock) {
-    // Create a PixelMap from the RSPath
-    /**
-     * floor for left & top, ceil for right & bottom
-     * enable to fully draw the path
-     */
-    int32_t left = static_cast<int32_t>(std::floor(path.GetBounds().GetLeft()));
-    int32_t top = static_cast<int32_t>(std::floor(path.GetBounds().GetTop()));
-    int32_t right = static_cast<int32_t>(std::ceil(path.GetBounds().GetRight()));
-    int32_t bottom = static_cast<int32_t>(std::ceil(path.GetBounds().GetBottom()));
-    int32_t width_ = right - left;
-    int32_t height_ = bottom - top;
-
-    OHOS::Media::InitializationOptions opts;
-    opts.pixelFormat = OHOS::Media::PixelFormat::RGBA_8888;
-    opts.alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL;
-    opts.size.width = width_;
-    opts.size.height = height_;
-    opts.editable = true;
-    std::unique_ptr<OHOS::Media::PixelMap> pixelMap = OHOS::Media::PixelMap::Create(opts);
-    if (pixelMap == nullptr) {
-        TEXT_LOGE("Failed to create PixelMap");
+/**
+ * Get the text path image by index.
+ * This function retrieves the image representation of the text path within the specified range.
+ * @param start The starting index of the text path.
+ * @param end The ending index of the text path.
+ * @param options The image options to be applied.
+ * @param fill Whether to fill the path.
+ * @return A shared pointer to the pixel map representing the text path image.
+ */
+std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
+    size_t start, size_t end, const ImageOptions& options, bool fill) const
+{
+    if (start >= end) {
+        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", start, end);
         return nullptr;
     }
-    uint8_t* pixel = const_cast<uint8_t*>(pixelMap->GetPixels());
-    if (pixel == nullptr) {
-        TEXT_LOGE("Failed to get PixelMap pixels");
-        return nullptr;
-    }
-    std::shared_ptr<Drawing::Canvas> bitmapCanvas_ = std::make_shared<Drawing::Canvas>();
-
-    Drawing::Bitmap bitmap_;
-    Drawing::BitmapFormat format{Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL};
-    bitmap_.Build(width_, height_, format);
-    bitmap_.SetPixels(pixel);
-    bitmapCanvas_->Bind(bitmap_);
-
-    Drawing::Pen pen;
-    pen.SetAntiAlias(true);
-    pen.SetColor(styleBlock.fStyle.getColor());
-    bitmapCanvas_->AttachPen(pen);
-    Drawing::Brush brush;
-    brush.SetAntiAlias(true);
-    brush.SetColor(styleBlock.fStyle.getColor());
-    bitmapCanvas_->AttachBrush(brush);
-
-    bitmapCanvas_->Translate(-left, -top);
-    bitmapCanvas_->DrawPath(path);
-    bitmapCanvas_->Flush();
-    return std::move(pixelMap);
-}
-
-/**
- * Determine the orientation of the triplet (p1, p2, p3).
- * Attention: the y-axis order is reversed.
- * @return 1 if counter-clockwise, -1 if clockwise, 0 if collinear.
- */
-int ComputeOrientation(const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p3)
-{
-    float val = (p2.GetX() - p1.GetX()) * (p2.GetY() - p3.GetY()) - (p1.GetY() - p2.GetY()) * (p3.GetX() - p2.GetX());
     
-    if (val > EPSILON) {
-        return 1;  // Counter-clockwise
-    } else if (val < -EPSILON) {
-        return -1; // Clockwise
-    } else {
-        return 0;  // Collinear
-    }
-}
-
-/**
- * Check if the path is oriented clockwise.
- * @return if true: clockwise, else false: counter-clockwise.
- */
-bool IsPathClockwise(const Drawing::Path& path)
-{
-    if (path.CountPoints() < 2 || !path.IsClosed(false)) {
-        // Not enough points or not closed
-        return false;
-    }
-
-    /**
-     * Find the index of the minimum point in the path （Y is the smallest, X is the smallest inside）.
-     */
-    size_t index = 0;
-    Drawing::Point minPoint{FLT_MAX, FLT_MAX};
-    for (size_t i = 0; i < static_cast<size_t>(path.CountPoints() - 1); i++) {
-        const auto& point = path.GetPoint(i);
-        if (point.GetY() < minPoint.GetY()) {
-            minPoint = point;
-            index = i;
-        } else if (point.GetY() == minPoint.GetY()) {
-            if (point.GetX() < minPoint.GetX()) {
-                minPoint = point;
-                index = i;
-            }
-        }
-    }
-    Drawing::Point prePoint = path.GetPoint(index > 0 ? index - 1 : (path.CountPoints() - 2)); // 2 means the last point
-    Drawing::Point nextPoint =
-        path.GetPoint(index < (path.CountPoints() - 2) ? index + 1 : 0);  // 2 means the last point
-    int orientation = ComputeOrientation(prePoint, minPoint, nextPoint);
-    if (orientation > 0) {
-        return false;
-    } else if (orientation < 0) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Extract the outer path from a set of paths.
- */
-void ExtractOuterPath(const std::vector<Drawing::Path>& allPaths, Drawing::Path& outerPath)
-{
-    if (allPaths.empty()) {
-        return;
-    }
-    if (allPaths.size() == 1) {
-        // If there's only one path, it's the outer path
-        outerPath = allPaths[0];
-        TEXT_LOGD("Extracting outer path from single path");
-    } else {
-        for (size_t i = 0; i < allPaths.size(); i++) {
-            const auto& path = allPaths[i];
-            if (path.CountPoints() < 2 || !path.IsClosed(false) || IsPathClockwise(path)) {
-                outerPath.AddPath(path);
-                TEXT_LOGD("Extracting outer path %{public}zu", i);
-            }
-        }
-    }
-}
-
-/**
- * Get the outer path from a set of paths.
- * This function assumes that the paths are already decomposed into their outer contours.
- */
-std::vector<std::shared_ptr<OHOS::Media::PixelMap>> ParagraphImpl::GetTextPathImageByIndex(
-    size_t from, size_t to, bool fill) const
-{
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> images;
-    if (from >= to) {
-        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", from, to);
-        return images;
-    }
-    
-    skt::SkRange<size_t> range{from, to};
-    std::vector<skt::PathInfo> paths = paragraph_->getTextPathByClusterRange(range);
-    for (size_t i = 0; i < paths.size(); i++) {
-        const auto& pathInfo = paths[i];
-        Drawing::Path tempPath;
-        if (fill) {
+    skt::SkRange<size_t> range{start, end};
+    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
+    if (fill) {
+        for (size_t i = 0; i < pathInfos.size(); i++) {
+            auto& pathInfo = pathInfos[i];
+            Drawing::Path tempPath;
             std::vector<Drawing::Path> allPaths;
             Drawing::StaticFactory::PathOutlineDecompose(pathInfo.path, allPaths);
             ExtractOuterPath(allPaths, tempPath);
-        } else {
-            tempPath = pathInfo.path;
-        }
-        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = CreatePixelMap(tempPath, pathInfo.styleBlock);
-        if (pixelMap != nullptr) {
-            images.push_back(pixelMap);
+            pathInfo.path = tempPath;
         }
     }
-    return images;
+    return CreatePixelMap(options, pathInfos);
 }
 } // namespace SPText
 } // namespace Rosen

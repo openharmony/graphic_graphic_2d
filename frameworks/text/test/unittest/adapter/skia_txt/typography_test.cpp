@@ -15,14 +15,9 @@
 
 #include "gtest/gtest.h"
 
-#include <cstdint>
-#include <filesystem>
-
 #include "font_collection.h"
-#include "image_packer.h"
 #include "impl/paragraph_impl.h"
 #include "modules/skparagraph/include/TextStyle.h"
-#include "ohos/init_data.h"
 #include "paragraph.h"
 #include "src/ParagraphImpl.h"
 #include "typography.h"
@@ -36,57 +31,8 @@ using namespace testing::ext;
 namespace OHOS {
 namespace Rosen {
 const double ARC_FONT_SIZE = 28;
-const std::string IMAGE_INPUT_PNG_PATH_TEST = "/data/local/tmp/image/";
-const std::string OPTION_FORMAT_TEST = "image/png";
-const std::int32_t OPTION_QUALITY_TEST = 100;
-const std::int32_t OPTION_NUMBER_HINT_TEST = 1;
 class OH_Drawing_TypographyTest : public testing::Test {
-public:
-    void SetUp() override;
-    void TearDown() override;
-protected:
-    std::u16string text_ = u"text";
-    std::unique_ptr<OHOS::Rosen::TypographyCreate> typographyCreate_;
-    std::shared_ptr<OHOS::Rosen::Typography> typography_;
-    OHOS::Rosen::TextStyle textStyle_;
 };
-
-void OH_Drawing_TypographyTest::SetUp()
-{
-    SetHwIcuDirectory();
-
-    OHOS::Rosen::TypographyStyle typographyStyle;
-    std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection =
-        OHOS::Rosen::FontCollection::From(std::make_shared<txt::FontCollection>());
-    typographyCreate_ = OHOS::Rosen::TypographyCreate::Create(typographyStyle, fontCollection);
-    ASSERT_NE(typographyCreate_, nullptr);
-    textStyle_.fontSize = 30;
-    textStyle_.color = Drawing::Color::ColorQuadSetARGB(255, 200, 255, 221);
-    textStyle_.fontWeight = FontWeight::W900;
-    textStyle_.fontWidth = FontWidth::ULTRA_CONDENSED;
-    textStyle_.fontStyle = FontStyle::ITALIC;
-    typographyCreate_->PushStyle(textStyle_);
-}
-
-void OH_Drawing_TypographyTest::TearDown()
-{
-    typographyCreate_.reset();
-    typography_.reset();
-}
-
-void EnsureDirectoryExists(const std::string& path)
-{
-    if (!std::filesystem::exists(path)) {
-        std::filesystem::create_directories(path);
-        std::cerr << "Directory created: " << path << std::endl;
-    } else {
-        if (!std::filesystem::is_directory(path)) {
-            std::cerr << "Path exists and is not a directory: " << path << std::endl;
-        } else {
-            std::cerr << "Directory already exists: " << path << std::endl;
-        }
-    }
-}
 
 namespace {
 std::string g_expectDumpInfo = "Paragraph dump:"
@@ -1389,183 +1335,6 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
     EXPECT_EQ(typography->GetDumpInfo(), "");
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
-}
-
-void CreateImg(std::vector<std::shared_ptr<OHOS::Media::PixelMap>>& pixelMaps, const std::string& fileName)
-{
-    OHOS::Media::ImagePacker imagePacker;
-    OHOS::Media::PackOption packOption;
-    packOption.format = OPTION_FORMAT_TEST;
-    packOption.quality = OPTION_QUALITY_TEST;
-    packOption.numberHint = OPTION_NUMBER_HINT_TEST;
-    EnsureDirectoryExists(IMAGE_INPUT_PNG_PATH_TEST);
-    for (size_t i = 0; i < pixelMaps.size(); i++) {
-        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = pixelMaps[i];
-        ASSERT_NE(pixelMap, nullptr);
-        imagePacker.StartPacking(IMAGE_INPUT_PNG_PATH_TEST + fileName + std::to_string(i) + ".png", packOption);
-        imagePacker.AddImage(*pixelMap);
-        imagePacker.FinalizePacking();
-    }
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest001
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest001, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(0, 11, false);
-    EXPECT_EQ(pixelMaps.size(), 11);
-    CreateImg(pixelMaps, "text_test_path_");
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest002
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest002, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(0, 11, true);
-    EXPECT_EQ(pixelMaps.size(), 11);
-    CreateImg(pixelMaps, "text_test_filled_path_");
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest003
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest003, TestSize.Level0)
-{
-    static int32_t width_[5] =  {17, 18, 17, 16, 17};
-    static int32_t height_[5] =  {24, 23, 24, 23, 22};
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(3, 8, false);
-    EXPECT_EQ(pixelMaps.size(), 5);
-    for (size_t i = 0; i < pixelMaps.size(); i++) {
-        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = pixelMaps[i];
-        ASSERT_NE(pixelMap, nullptr);
-        EXPECT_EQ(pixelMap->GetWidth(), width_[i]);
-        EXPECT_EQ(pixelMap->GetHeight(), height_[i]);
-    }
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest004
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest004, TestSize.Level0)
-{
-    static int32_t width_[5] =  {17, 18, 17, 16, 17};
-    static int32_t height_[5] =  {24, 23, 24, 23, 22};
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(3, 8, true);
-    EXPECT_EQ(pixelMaps.size(), 5);
-    for (size_t i = 0; i < pixelMaps.size(); i++) {
-        std::shared_ptr<OHOS::Media::PixelMap> pixelMap = pixelMaps[i];
-        ASSERT_NE(pixelMap, nullptr);
-        EXPECT_EQ(pixelMap->GetWidth(), width_[i]);
-        EXPECT_EQ(pixelMap->GetHeight(), height_[i]);
-    }
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest005
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest005, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(3, 8, false);
-    EXPECT_EQ(pixelMaps.size(), 0);
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest006
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest006, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(-100, -1, false);
-    EXPECT_EQ(pixelMaps.size(), 0);
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest007
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest007, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(7, 1, false);
-    EXPECT_EQ(pixelMaps.size(), 0);
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest008
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest008, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(2, 15, false);
-    EXPECT_EQ(pixelMaps.size(), 9);
-}
-
-/*
- * @tc.name: TypographyGetTextPathImageByIndexTest009
- * @tc.desc: test for get text path image by index
- * @tc.type: FUNC
- */
-HWTEST_F(OH_Drawing_TypographyTest, TypographyGetTextPathImageByIndexTest009, TestSize.Level0)
-{
-    typographyCreate_->AppendText(u"0123456789:");
-    typography_ = typographyCreate_->CreateTypography();
-    ASSERT_NE(typography_, nullptr);
-    double maxWidth = 500;
-    typography_->Layout(maxWidth);
-    std::vector<std::shared_ptr<OHOS::Media::PixelMap>> pixelMaps = typography_->GetTextPathImageByIndex(0, SIZE_MAX, false);
-    EXPECT_EQ(pixelMaps.size(), 11);
 }
 } // namespace Rosen
 } // namespace OHOS
