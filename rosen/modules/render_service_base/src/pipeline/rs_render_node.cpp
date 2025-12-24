@@ -5302,18 +5302,13 @@ void RSRenderNode::ProcessUnionInfoOnTreeStateChanged()
     if (!GetRenderProperties().GetUseUnion()) {
         return;
     }
-    auto context = GetContext().lock();
-    if (!context) {
-        ROSEN_LOGE("RSRenderNode::ProcessUnionInfoOnTreeStateChanged: invalid context");
-        return;
-    }
-    auto unionNode = context->GetNodeMap().GetRenderNode<RSUnionRenderNode>(unionNodeId_);
+    auto unionNode = std::static_pointer_cast<RSUnionRenderNode>(FindClosestUnionAncestor());
     if (!unionNode) {
         ROSEN_LOGD("RSRenderNode::ProcessUnionInfoOnTreeStateChanged: invalid unionNode");
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::ProcessUnionInfoOnTreeStateChanged node[%llu], unionNode[%llu], "
-        "isOnTheTree[%d]", GetId(), unionNodeId_, isOnTheTree_);
+        "isOnTheTree[%d]", GetId(), unionNode->GetId(), isOnTheTree_);
     isOnTheTree_ ? unionNode->AddUnionChild(GetId()) : unionNode->RemoveUnionChild(GetId());
 }
 
@@ -5322,19 +5317,26 @@ void RSRenderNode::ProcessUnionInfoAfterApplyModifiers()
     if (!dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
         return;
     }
-    auto context = GetContext().lock();
-    if (!context) {
-        ROSEN_LOGE("RSRenderNode::ProcessUnionInfoAfterApplyModifiers: invalid context");
-        return;
-    }
-    auto unionNode = context->GetNodeMap().GetRenderNode<RSUnionRenderNode>(unionNodeId_);
+    auto unionNode = std::static_pointer_cast<RSUnionRenderNode>(FindClosestUnionAncestor());
     if (!unionNode) {
         ROSEN_LOGD("RSRenderNode::ProcessUnionInfoAfterApplyModifiers: invalid unionNode");
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::ProcessUnionInfoAfterApplyModifiers node[%llu], unionNode[%llu], "
-        "UseUnion[%d]", GetId(), unionNodeId_, GetRenderProperties().GetUseUnion());
+        "UseUnion[%d]", GetId(), unionNode->GetId(), GetRenderProperties().GetUseUnion());
     GetRenderProperties().GetUseUnion() ? unionNode->AddUnionChild(GetId()) : unionNode->RemoveUnionChild(GetId());
+}
+
+std::shared_ptr<RSRenderNode> RSRenderNode::FindClosestUnionAncestor() const
+{
+    auto curNode = shared_from_this();
+    while (auto parent = curNode->GetParent().lock()) {
+        if (parent->IsInstanceOf<RSUnionRenderNode>()) {
+            return parent;
+        }
+        curNode = parent;
+    }
+    return nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS
