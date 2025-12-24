@@ -18,6 +18,8 @@
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
 #include "ui_effect/property/include/rs_ui_shader_base.h"
+#include "ui/rs_effect_node.h"
+#include "../ng_filter_test/ng_sdf_test_utils.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -27,6 +29,7 @@ namespace {
 using MaskCreator = std::function<std::shared_ptr<RSNGMaskBase>()>;
 using MaskConvertor = std::function<std::shared_ptr<RSNGMaskBase>(std::shared_ptr<MaskPara>)>;
 const std::string g_foregroundImagePath = "/data/local/tmp/fg_test.jpg";
+const std::string g_backgroundImagePath = "/data/local/tmp/fg_test.jpg";
 
 static std::unordered_map<RSNGEffectType, MaskCreator> creatorMask = {
     {RSNGEffectType::DOUBLE_RIPPLE_MASK,
@@ -406,6 +409,43 @@ std::vector<std::array<std::variant<Vector4f, Vector2f, float>, ROUNDED_RECT_AIB
     }
 };
 
+// Frosted Glass Default values
+const float DEFAULT_BLUR_PARAMS = 1.0f; // K times downsample
+const Vector2f DEFAULT_WEIGHTS_EMBOSS = Vector2f(1.0f, 0.5f);
+const Vector2f DEFAULT_WEIGHTS_EDL = Vector2f(1.0f, 1.0f);
+// Background darken parameters
+const Vector2f DEFAULT_BG_RATES = Vector2f(-1.8792225f, 2.7626955f);
+const Vector3f DEFAULT_BG_KBS = Vector3f(0.0073494f, 0.0998859f, 1.2f);
+const Vector3f DEFAULT_BG_POS = Vector3f(0.3f, 0.5f, 0.5f);
+const Vector3f DEFAULT_BG_NEG = Vector3f(0.5f, 1.0f, 1.0f);
+// Refraction parameters
+const Vector3f DEFAULT_REFRACT_PARAMS = Vector3f(1.0f, 0.3f, 0.3f);
+// Inner shadow parameters
+const Vector3f DEFAULT_SD_PARAMS = Vector3f(-50.0f, 6.0f, 6.62f);
+const Vector2f DEFAULT_SD_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_SD_KBS = Vector3f(0.9f, 0.0f, 1.0f);
+const Vector3f DEFAULT_SD_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_SD_NEG = Vector3f(3.0f, 2.0f, 1.0f);
+// Env refraction parameters
+const Vector2f DEFAULT_ENV_LIGHT_PARAMS = Vector2f(20.0f, 5.0f); // envB, envS
+const Vector2f DEFAULT_ENV_LIGHT_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_ENV_LIGHT_KBS = Vector3f(0.8f, 0.27451f, 2.0f);
+const Vector3f DEFAULT_ENV_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_ENV_LIGHT_NEG = Vector3f(3.0f, 2.0f, 1.0f);
+// Edge highlights parameters
+const Vector2f DEFAULT_ED_LIGHT_PARAMS = Vector2f(2.0f, 2.0f);
+const Vector2f DEFAULT_ED_LIGHT_ANGLES = Vector2f(40.0f, 20.0f);
+const Vector2f DEFAULT_ED_LIGHT_DIR = Vector2f(2.5f, 2.5f);
+const Vector2f DEFAULT_ED_LIGHT_RATES = Vector2f(0.0f, 0.0f);
+const Vector3f DEFAULT_ED_LIGHT_KBS = Vector3f(0.6027f, 0.627451f, 2.0f);
+const Vector3f DEFAULT_ED_LIGHT_POS = Vector3f(1.0f, 1.7f, 1.5f);
+const Vector3f DEFAULT_ED_LIGHT_NEG = Vector3f(3.2f, 2.0f, 1.0f);
+const Vector4f DEFAULT_MATERIAL_COLOR = Vector4f(0.0f, 0.0f, 0.0f, 0.0f);
+ 
+// Blur parameters
+const float DEFAULT_BLUR_RADIUS = 48.0f;
+const float DEFAULT_BLUR_REFRACT_OUT_PX = 0.010834f;
+
 enum class TestDataGroupParamsType {
     INVALID_DATA_MIN,
     VALID_DATA1,
@@ -439,6 +479,60 @@ public:
     void BeforeEach() override
     {
         SetScreenSize(screenWidth, screenHeight);
+    }
+
+    std::shared_ptr<Rosen::RSCanvasNode> SetCommonBackgroundNode()
+    {
+        // set background node
+        auto backgroundTestNode = SetUpNodeBgImage(g_backgroundImagePath, {0, 0, screenWidth, screenHeight});
+        GetRootNode()->AddChild(backgroundTestNode);
+        RegisterNode(backgroundTestNode);
+        return backgroundTestNode;
+    }
+ 
+    std::shared_ptr<RSEffectNode> SetDefaultFrostedGlassBlurEffectNode()
+    {
+        auto effectNode = RSEffectNode::Create();
+        effectNode->SetBounds({0, 0, screenWidth, screenHeight});
+        effectNode->SetFrame({0, 0, screenWidth, screenHeight});
+ 
+        auto frostedGlassBlurFilter = std::make_shared<RSNGFrostedGlassBlurFilter>();
+        frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(DEFAULT_BLUR_RADIUS);
+        frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(DEFAULT_BLUR_REFRACT_OUT_PX);
+ 
+        effectNode->SetBackgroundNGFilter(frostedGlassBlurFilter);
+        effectNode->SetClipToBounds(true);
+        GetRootNode()->AddChild(effectNode);
+        RegisterNode(effectNode);
+ 
+        return effectNode;
+    }
+ 
+    void SetEffectChildNode(const int i, const int columnCount, const int rowCount,
+        std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
+    {
+        auto sizeX = (columnCount != 0) ? (screenWidth / columnCount) : screenWidth;
+        auto sizeY = (rowCount != 0) ? (screenHeight * columnCount / rowCount) : screenHeight;
+
+        int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+        int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
+ 
+        // set effect child node
+        auto effectChildNode = RSCanvasNode::Create();
+        effectChildNode->SetBounds(x, y, sizeX, sizeY);
+        effectChildNode->SetFrame(x, y, sizeX, sizeY);
+ 
+        //  apply sdf on effect effect child node
+        const RRect defaultRectParam = {RectT<float>{sizeX/4, sizeY/4, sizeX/2, sizeY/2}, sizeX/16, sizeX/16};
+        std::shared_ptr<RSNGShapeBase> sdfShape;
+        InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
+        effectChildNode->SetSDFShape(sdfShape);
+ 
+        // apply frostedGlassEffect on child node
+        effectChildNode->SetBackgroundNGShader(frostedGlassEffect);
+ 
+        effectNode->AddChild(effectChildNode);
+        RegisterNode(effectChildNode);
     }
 
 private:
@@ -587,6 +681,36 @@ static void SetAIBarRectHaloParams(const std::shared_ptr<RSNGAIBarRectHalo>& aiB
     aiBarRectHalo->Setter<AIBarRectHaloStrengthTag>(std::get<Vector4f>(aibarRectHaloParams[index][NUM_9]));
     aiBarRectHalo->Setter<AIBarRectHaloBrightnessTag>(std::get<float>(aibarRectHaloParams[index][NUM_10]));
     aiBarRectHalo->Setter<AIBarRectHaloProgressTag>(std::get<float>(aibarRectHaloParams[index][NUM_11]));
+}
+
+static void InitFrostedGlassEffect(std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
+{
+    frostedGlassEffect->Setter<FrostedGlassEffectBlurParamTag>(DEFAULT_BLUR_PARAMS);
+    frostedGlassEffect->Setter<FrostedGlassEffectWeightsEmbossTag>(DEFAULT_WEIGHTS_EMBOSS);
+    frostedGlassEffect->Setter<FrostedGlassEffectWeightsEdlTag>(DEFAULT_WEIGHTS_EDL);
+    frostedGlassEffect->Setter<FrostedGlassEffectBgRatesTag>(DEFAULT_BG_RATES);
+    frostedGlassEffect->Setter<FrostedGlassEffectBgKBSTag>(DEFAULT_BG_KBS);
+    frostedGlassEffect->Setter<FrostedGlassEffectBgPosTag>(DEFAULT_BG_POS);
+    frostedGlassEffect->Setter<FrostedGlassEffectBgNegTag>(DEFAULT_BG_NEG);
+    frostedGlassEffect->Setter<FrostedGlassEffectRefractParamsTag>(DEFAULT_REFRACT_PARAMS);
+    frostedGlassEffect->Setter<FrostedGlassEffectSdParamsTag>(DEFAULT_SD_PARAMS);
+    frostedGlassEffect->Setter<FrostedGlassEffectSdRatesTag>(DEFAULT_SD_RATES);
+    frostedGlassEffect->Setter<FrostedGlassEffectSdKBSTag>(DEFAULT_SD_KBS);
+    frostedGlassEffect->Setter<FrostedGlassEffectSdPosTag>(DEFAULT_SD_POS);
+    frostedGlassEffect->Setter<FrostedGlassEffectSdNegTag>(DEFAULT_SD_NEG);
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightParamsTag>(DEFAULT_ENV_LIGHT_PARAMS);
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightRatesTag>(DEFAULT_ENV_LIGHT_RATES);
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightKBSTag>(DEFAULT_ENV_LIGHT_KBS);
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightPosTag>(DEFAULT_ENV_LIGHT_POS);
+    frostedGlassEffect->Setter<FrostedGlassEffectEnvLightNegTag>(DEFAULT_ENV_LIGHT_NEG);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightParamsTag>(DEFAULT_ED_LIGHT_PARAMS);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightAnglesTag>(DEFAULT_ED_LIGHT_ANGLES);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightDirTag>(DEFAULT_ED_LIGHT_DIR);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightRatesTag>(DEFAULT_ED_LIGHT_RATES);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightKBSTag>(DEFAULT_ED_LIGHT_KBS);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightPosTag>(DEFAULT_ED_LIGHT_POS);
+    frostedGlassEffect->Setter<FrostedGlassEffectEdLightNegTag>(DEFAULT_ED_LIGHT_NEG);
+    frostedGlassEffect->Setter<FrostedGlassEffectMaterialColorTag>(DEFAULT_MATERIAL_COLOR);
 }
 
 GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Circle_Flowlight_Foreground_Test)
@@ -904,4 +1028,20 @@ GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_AIBAR_RECT_HALO_Foreground
         RegisterNode(node);
     }
 }
+
+// Frosted_Glass Effect tests
+GRAPHIC_TEST(NGEffectTest, EFFECT_TEST, Set_NG_Effect_Frosted_Glass_DefaultTest)
+{
+    const int columnCount = 2;
+    const int rowCount = 4;
+    auto backgroundTestNode = SetCommonBackgroundNode();
+    auto effectNode = SetDefaultFrostedGlassBlurEffectNode();
+ 
+    for (int i = 0; i < rowCount; i++) {
+        auto frostedGlassEffect = std::make_shared<RSNGFrostedGlassEffect>();
+        InitFrostedGlassEffect(frostedGlassEffect);
+        SetEffectChildNode(i, columnCount, rowCount, effectNode, frostedGlassEffect);
+    }
+}
+
 }  // namespace OHOS::Rosen
