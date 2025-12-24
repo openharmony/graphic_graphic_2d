@@ -148,7 +148,7 @@ private:
     bool needClear_ = false;
     mutable std::mutex hardwareThreadTaskMutex_;
     std::condition_variable hardwareThreadTaskCond_;
-    uint64_t prevFrameId_;
+    uint64_t prevFrameId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS
