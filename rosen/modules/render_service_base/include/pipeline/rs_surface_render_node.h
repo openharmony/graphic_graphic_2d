@@ -697,7 +697,7 @@ public:
     {
         return isCloneNode_;
     }
-    void SetClonedNodeInfo(NodeId id, bool needOffscreen);
+    void SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelatde);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree)
     {
@@ -973,7 +973,7 @@ public:
 
     void UpdateSurfaceDefaultSize(float width, float height);
 
-    void UpdateInfoForClonedNode(NodeId nodeId);
+    void UpdateInfoForClonedNode(bool isClonedNode);
 
     // Only SurfaceNode in RS calls "RegisterBufferAvailableListener"
     // to save callback method sent by RT or UI which depends on the value of "isFromRenderThread".
@@ -2099,6 +2099,7 @@ private:
 
     // [Attention] The variable only used for unlocking screen for PC currently
     bool isCloneNode_ = false;
+    bool isRelated_;
     NodeId clonedSourceNodeId_ = INVALID_NODEID;
     bool isClonedNodeOnTheTree_ = false;
     bool clonedSourceNodeNeedOffscreen_ = true;

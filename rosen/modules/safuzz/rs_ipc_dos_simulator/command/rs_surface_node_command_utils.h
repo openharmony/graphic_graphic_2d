@@ -70,7 +70,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetAncoSrcCrop, Uint64, Rect);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSurfaceNodeSetContainerWindowTransparent, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSSurfaceNodeSetClonedNodeId, Uint64, Uint64, Bool);
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool, Bool);
 };
 } // namespace Rosen
 } // namespace OHOS

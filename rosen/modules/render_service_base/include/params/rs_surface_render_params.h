@@ -626,6 +626,8 @@ public:
     // [Attention] The function only used for unlocking screen for PC currently
     bool IsCloneNode() const;
 
+    bool IsRelated() const;
+
     bool GetIsHwcEnabledBySolidLayer() const
     {
         return isHwcEnabledBySolidLayer_;
@@ -782,6 +784,7 @@ private:
     bool isClonedNodeOnTheTree_ = false;
     bool isCrossNode_ = false;
     bool isCloneNode_ = false;
+    bool isRelated_ = false;
     bool clonedSourceNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;

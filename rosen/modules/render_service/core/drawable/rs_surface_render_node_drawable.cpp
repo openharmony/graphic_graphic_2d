@@ -1384,11 +1384,13 @@ bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
     // [Attention] when drawing cloneNode, clonedNode skip will cause not drawing content
     clonedNodeSurfaceParams->SetOccludedByFilterCache(false);
     RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    if (surfaceParams.IsRelated()) {
+        canvas.ConcatMatrix(surfaceParams.GetMatrix());
+    }
     canvas.MultiplyAlpha(surfaceParams.GetAlpha());
     isCapture ? clonedNodeRenderDrawable->OnCapture(canvas) : clonedNodeRenderDrawable->OnDraw(canvas);
     uniParam.SetOpDropped(isOpDropped);
     clonedNodeSurfaceParams->SetOccludedByFilterCache(isOccludedByFilterCache);
-    clonedNodeRenderDrawable->subThreadCache_.GetRSDrawWindowCache().ClearCache();
     return true;
 }
 

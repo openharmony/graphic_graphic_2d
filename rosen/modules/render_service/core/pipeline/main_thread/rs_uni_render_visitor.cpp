@@ -1283,7 +1283,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     }
     isInFocusSurface_ = isInFocusSurface;
 #endif
-    node.UpdateInfoForClonedNode(clonedSourceNodeId_);
+    UpdateInfoForClonedNode(node);
     node.GetOpincCache().OpincSetInAppStateEnd(unchangeMarkInApp_);
     ResetCurSurfaceInfoAsUpperSurfaceParent(node);
     curCornerRadius_ = curCornerRadius;
@@ -1446,11 +1446,25 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
         return false;
     }
     node.SetIsClonedNodeOnTheTree(clonedNode->IsOnTheTree());
+    cloneNodeMap[node.GetClonedNodeId()] = node.GetId();
     clonedSourceNodeId_ = node.GetClonedNodeId();
     node.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
     node.UpdateRenderParams();
     node.AddToPendingSyncList();
+    UpdateInfoForClonedNode(*clonedNode);
     return true;
+}
+
+void RSUniRenderVisitor::UpdateInfoForClonedNode(RSSurfaceRenderNode& node)
+{
+    NodeId sourceId = node.GetId();
+    for (auto &[sid, cids] : cloneNodeMap) {
+        if (sourceId == sid) {
+            node.UpdateInfoForClonedNode(true);
+            return;
+        }
+    }
+    node.UpdateInfoForClonedNode(false);
 }
 
 void RSUniRenderVisitor::PrepareForCrossNode(RSSurfaceRenderNode& node)
