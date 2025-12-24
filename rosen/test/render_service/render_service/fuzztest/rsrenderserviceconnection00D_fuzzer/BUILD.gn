@@ -47,6 +47,10 @@ ohos_fuzztest("RSRenderServiceConnection00DFuzzTest") {
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
   ]
 
   deps = [
