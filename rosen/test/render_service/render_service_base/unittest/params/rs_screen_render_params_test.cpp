@@ -269,9 +269,17 @@ HWTEST_F(RSScreenRenderParamsTest, SetHasMirroredScreenChanged, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetHasMirroredScreenChanged
- * @tc.desc: test result of SetHasMirroredScreenChanged
+ * @tc.name: SetIsScreenValid
+ * @tc.desc: test result of SetIsScreenValid
  * @tc.type: FUNC
- * @tc.require: issue20471
+ * @tc.require: issue
  */
+HWTEST_F(RSScreenRenderParamsTest, SetIsScreenValid, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[0];
+    RSScreenRenderParams params(id);
+    params.SetIsScreenValid(false);
+    params.SetIsScreenValid(false);
+    ASSERT_FALSE(params.GetIsScreenValid());
+}
 } // namespace OHOS::Rosen
