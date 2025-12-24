@@ -42,7 +42,7 @@ public:
         radiusScaleK_ = radiusScaleK;
     }
 
-    void GetBlurRadiusScaleK() const
+    float GetBlurRadiusScaleK() const
     {
         return radiusScaleK_;
     }
