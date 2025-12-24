@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <cassert>
-
 #include "rs_graphic_test.h"
 #include "rs_graphic_test_img.h"
 #include "ui_effect/property/include/rs_ui_color_gradient_filter.h"
@@ -513,13 +511,11 @@ public:
     void SetEffectChildNode(const int i, const int columnCount, const int rowCount,
         std::shared_ptr<RSEffectNode>& effectNode, std::shared_ptr<RSNGFrostedGlassEffect>& frostedGlassEffect)
     {
-        auto sizeX = screenWidth / columnCount;
-        auto sizeY = screenHeight * columnCount / rowCount;
- 
-        int x = (i % columnCount) * sizeX;
-        int y = (i / columnCount) * sizeY;
+        auto sizeX = (columnCount != 0) ? (screenWidth / columnCount) : screenWidth;
+        auto sizeY = (rowCount != 0) ? (screenHeight * columnCount / rowCount) : screenHeight;
 
-        assert(columnCount > 0 && rowCount > 0 && "columnCount or rowCount cannot be zero");
+        int x = (columnCount != 0) ? (i % columnCount) * sizeX : 0;
+        int y = (columnCount != 0) ? (i / columnCount) * sizeY : 0;
  
         // set effect child node
         auto effectChildNode = RSCanvasNode::Create();
