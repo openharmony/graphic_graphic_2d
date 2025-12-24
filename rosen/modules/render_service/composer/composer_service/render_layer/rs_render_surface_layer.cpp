@@ -21,7 +21,7 @@ namespace Rosen {
 
 using RSLayerCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceLayer>,
     const std::shared_ptr<Rosen::RSRenderLayerPropertyBase>&)>;
-#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE)                                  \
+#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                            \
     {                                                                                                            \
         RSLayerCmdType::CMD_TYPE,                                                                                \
         [](std::shared_ptr<RSRenderSurfaceLayer> rsRenderLayer,                                                  \

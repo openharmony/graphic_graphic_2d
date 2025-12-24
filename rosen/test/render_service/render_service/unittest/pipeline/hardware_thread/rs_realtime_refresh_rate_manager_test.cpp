@@ -168,7 +168,8 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetScreenCurrentRefreshRate001, TestS
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
     OHOS::Rosen::ScreenSize screenSize = { 720, 1080, 685, 1218 };
     int32_t defaultMode = 0;
-    EXPECT_EQ(hgmCore.AddScreen(screenId, defaultMode, screenSize), EXEC_SUCCESS);
+    bool isSelfOwnedScreen = false;
+    EXPECT_EQ(hgmCore.AddScreen(screenId, defaultMode, screenSize, isSelfOwnedScreen), EXEC_SUCCESS);
     auto hgmscreen = hgmCore.GetScreen(screenId);
     ASSERT_NE(hgmscreen, nullptr);
     hgmscreen->SetSelfOwnedScreenFlag(true);
@@ -177,10 +178,5 @@ HWTEST_F(RSRealtimeRefreshRateManagerTest, GetScreenCurrentRefreshRate001, TestS
 
     hgmscreen->SetSelfOwnedScreenFlag(false);
     instance.GetScreenCurrentRefreshRate(screenId);
-    auto tmp = RSScreenManager::instance_;
-    RSScreenManager::instance_ = nullptr;
-    ASSERT_EQ(OHOS::Rosen::CreateOrGetScreenManager(), nullptr);
-    instance.GetScreenCurrentRefreshRate(screenId);
-    RSScreenManager::instance_ = tmp;
 }
 }

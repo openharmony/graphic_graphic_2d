@@ -67,11 +67,11 @@ struct HgmProcessToServiceInfo : public Parcelable {
     bool MarshallingFrameRateLinker(MessageParcel* message) const;
     bool MarshallingSurfaceData(MessageParcel* message) const;
     bool MarshallingEnergyData(MessageParcel* message) const;
-    bool MarshallingVRateMap(MessageParcel* message) const;
+    bool MarshallingVRateData(MessageParcel* message) const;
     bool UnmarshallingFrameRateLinker(MessageParcel* message);
     bool UnmarshallingSurfaceData(MessageParcel* message);
     bool UnmarshallingEnergyData(MessageParcel* message);
-    bool UnmarshallingVRateMap(MessageParcel* message);
+    bool UnmarshallingVRateData(MessageParcel* message);
 
     bool isGameNodeOnTree = false;
     std::unordered_set<FrameRateLinkerId> frameRateLinkerDestroyIds;
@@ -80,7 +80,8 @@ struct HgmProcessToServiceInfo : public Parcelable {
     std::vector<std::tuple<std::string, pid_t>> surfaceData;
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeNameMap;
     EnergyCommonDataMap energyCommonData;
-    std::map<NodeId, int> vRateMap;
+    std::unordered_map<NodeId, int> vRateMap;
+    bool isNeedRefreshVRate = false;
 };
 } // namespace Rosen
 } // namespace OHOS

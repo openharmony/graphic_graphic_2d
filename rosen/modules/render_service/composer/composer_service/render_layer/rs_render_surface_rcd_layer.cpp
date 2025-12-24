@@ -21,7 +21,7 @@ namespace Rosen {
 
 using RSRCDLayerCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceRCDLayer>,
     const std::shared_ptr<Rosen::RSRenderLayerPropertyBase>&)>;
-#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE)                                  \
+#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                            \
     {                                                                                                            \
         RSLayerCmdType::CMD_TYPE,                                                                                \
         [](std::shared_ptr<RSRenderSurfaceRCDLayer> rsRenderLayer,                                               \
@@ -35,7 +35,7 @@ using RSRCDLayerCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceR
 
 static std::unordered_map<RSLayerCmdType, RSRCDLayerCmdHandler> cmdHandlers_ = {
 #include "rs_layer_cmd_def.in"
-DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP, Overwrite, ZERO)
+DECLARE_RSLAYER_CMD(PixelMap, std::shared_ptr<Media::PixelMap>, PIXEL_MAP)
 };
 #undef DECLARE_RSLAYER_CMD
 

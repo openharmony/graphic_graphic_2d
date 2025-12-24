@@ -135,7 +135,7 @@ void DoNotifyLightFactorStatus()
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteInt32(lightFactorStatus);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -155,7 +155,7 @@ void DoNotifyPackageEvent()
     auto package = GetData<std::string>();
     dataP.WriteUint32(listSize);
     dataP.WriteString(package);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -182,7 +182,7 @@ void DoNotifyRefreshRateEvent()
     dataP.WriteUint32(maxRefreshRate);
     dataP.WriteString(description);
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_REFRESH_RATE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -200,7 +200,7 @@ void DoNotifyDynamicModeEvent()
     option.SetFlags(MessageOption::TF_SYNC);
     bool enableDynamicMode = GetData<bool>();
     dataP.WriteBool(enableDynamicMode);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_DYNAMIC_MODE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -221,7 +221,7 @@ void DoNotifySoftVsyncEvent()
     uint32_t rateDiscount = GetData<uint32_t>();
     dataP.WriteUint32(pid);
     dataP.WriteUint32(rateDiscount);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -246,7 +246,7 @@ void DoNotifyAppStrategyConfigChangeEvent()
     dataP.WriteString(configKey);
     dataP.WriteString(configValue);
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -266,7 +266,7 @@ void DoNotifyHgmConfigEvent()
     bool state = GetData<bool>();
     dataP.WriteString(eventName);
     dataP.WriteBool(state);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_PACKAGE_EVENT);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -282,7 +282,7 @@ void DoNotifyScreenSwitched()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -292,7 +292,7 @@ void DoNotifyScreenSwitched()
 void DoNotifySoftVsyncRateDiscountEvent()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SOFT_VSYNC_RATE_DISCOUNT_EVENT);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -327,7 +327,7 @@ void DoNotifySoftVsyncRateDiscountEvent()
 void DoSetBehindWindowFilterEnabled()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -354,7 +354,7 @@ void DoSetBehindWindowFilterEnabled()
 
 void DoSetLayerTopForHWC()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;

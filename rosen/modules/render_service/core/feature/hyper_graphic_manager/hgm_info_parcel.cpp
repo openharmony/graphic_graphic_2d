@@ -116,7 +116,7 @@ bool HgmProcessToServiceInfo::Marshalling(Parcel& data) const
     if (!MarshallingEnergyData(message)) {
         return false;
     }
-    if (!MarshallingVRateMap(message)) {
+    if (!MarshallingVRateData(message)) {
         return false;
     }
     return true;
@@ -136,7 +136,7 @@ HgmProcessToServiceInfo* HgmProcessToServiceInfo::Unmarshalling(Parcel& data)
     if (!result->UnmarshallingEnergyData(message)) {
         return nullptr;
     }
-    if (!result->UnmarshallingVRateMap(message)) {
+    if (!result->UnmarshallingVRateData(message)) {
         return nullptr;
     }
     return result;
@@ -249,14 +249,24 @@ bool HgmProcessToServiceInfo::MarshallingEnergyData(MessageParcel* message) cons
     return true;
 }
 
-bool HgmProcessToServiceInfo::MarshallingVRateMap(MessageParcel* message) const
+bool HgmProcessToServiceInfo::MarshallingVRateData(MessageParcel* message) const
 {
-    if (!message->WriteInt32(vRateMap.size())) {
-        return false;
-    }
-    for (const auto& [nodeID, rate] : vRateMap) {
-        if (!message->WriteUint64(nodeID) || !message->WriteInt32(rate)) {
+    if (vRateMap.size() > MAX_DATA_SIZE) {
+        RS_LOGE("HgmProcessToServiceInfo Marshalling VRateData Failed size:%{public}zu", vRateMap.size());
+        if (!message->WriteBool(0)) {
             return false;
+        }
+    } else {
+        if (!message->WriteBool(isNeedRefreshVRate)) {
+            return false;
+        }
+        if (!message->WriteInt32(vRateMap.size())) {
+            return false;
+        }
+        for (const auto& [nodeID, rate] : vRateMap) {
+            if (!message->WriteUint64(nodeID) || !message->WriteInt32(rate)) {
+                return false;
+            }
         }
     }
     return true;
@@ -391,8 +401,11 @@ bool HgmProcessToServiceInfo::UnmarshallingEnergyData(MessageParcel* message)
     return true;
 }
 
-bool HgmProcessToServiceInfo::UnmarshallingVRateMap(MessageParcel* message)
+bool HgmProcessToServiceInfo::UnmarshallingVRateData(MessageParcel* message)
 {
+    if (!message->ReadBool(isNeedRefreshVRate)){
+        return false;
+    }
     int32_t vRateMapSize;
     if (!message->ReadInt32(vRateMapSize)) {
         return false;

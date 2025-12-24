@@ -136,7 +136,7 @@ void DoSetScreenChangeCallback()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CHANGE_CALLBACK);
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
     sptr<RSIScreenChangeCallback> rsIScreenChangeCallback_ = iface_cast<RSIScreenChangeCallback>(remoteObject);
@@ -150,7 +150,7 @@ void DoSetScreenChangeCallback()
 void DoSetScreenActiveMode()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -164,7 +164,7 @@ void DoSetScreenActiveMode()
 
 void DoSetScreenRefreshRate()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_REFRESH_RATE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -181,7 +181,7 @@ void DoSetScreenRefreshRate()
 
 void DoSetRefreshRateMode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_REFRESH_RATE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -195,7 +195,7 @@ void DoSetRefreshRateMode()
 void CreateVSyncConnection(uint64_t id)
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -215,7 +215,7 @@ void CreateVSyncConnection(uint64_t id)
 
 void UnregisterFrameRateLinker(uint64_t id)
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -227,7 +227,7 @@ void UnregisterFrameRateLinker(uint64_t id)
 
 void DoSyncFrameRateRange()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SYNC_FRAME_RATE_RANGE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -275,7 +275,7 @@ void DoSyncFrameRateRange()
 
 void DoUnregisterFrameRateLinker()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_FRAME_RATE_LINKER);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -289,7 +289,7 @@ void DoUnregisterFrameRateLinker()
 
 void DoGetScreenCurrentRefreshRate()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_CURRENT_REFRESH_RATE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -302,7 +302,7 @@ void DoGetScreenCurrentRefreshRate()
 
 void DoGetCurrentRefreshRateMode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_CURRENT_REFRESH_RATE_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -312,7 +312,7 @@ void DoGetCurrentRefreshRateMode()
 
 void DoGetScreenSupportedRefreshRates()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_SUPPORTED_REFRESH_RATES);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -325,7 +325,7 @@ void DoGetScreenSupportedRefreshRates()
 
 void DoGetShowRefreshRateEnabled()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -336,7 +336,7 @@ void DoGetShowRefreshRateEnabled()
 
 void DoSetShowRefreshRateEnabled()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SHOW_REFRESH_RATE_ENABLED);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -351,7 +351,7 @@ void DoSetShowRefreshRateEnabled()
 
 void DoGetRealtimeRefreshRate()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -364,7 +364,7 @@ void DoGetRealtimeRefreshRate()
 
 void DoGetRefreshInfoFuzzer()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -377,7 +377,7 @@ void DoGetRefreshInfoFuzzer()
 
 void CreateSurfaceNode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -415,7 +415,7 @@ void DoGetRefreshInfoWithRenderDisable()
 
 void DoRegisterHgmRefreshRateUpdateCallback()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_UPDATE_CALLBACK);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -433,7 +433,7 @@ void DoRegisterHgmRefreshRateUpdateCallback()
 void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
+        RSIClientToServiceConnectionInterfaceCode::REGISTER_FRAME_RATE_LINKER_EXPECTED_FPS_CALLBACK);
 
     MessageOption option;
     MessageParcel dataParcel;
@@ -454,7 +454,7 @@ void DoRegisterFrameRateLinkerExpectedFpsUpdateCallback()
 void DoRegisterHgmRefreshRateModeChangeCallback()
 {
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
+        RSIClientToServiceConnectionInterfaceCode::REFRESH_RATE_MODE_CHANGE_CALLBACK);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -469,7 +469,7 @@ void DoRegisterHgmRefreshRateModeChangeCallback()
 
 void DoGetRefreshInfoToSP()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

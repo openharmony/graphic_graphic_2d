@@ -68,10 +68,9 @@ sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId scr
     const sptr<RSScreenProperty>& property)
 {
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
-    std::shared_ptr<RSRenderComposerClient> composerClient = RSRenderComposerClient::Create(false,
-        composerConn, composerToRenderConnection_, renderService_.rsVsyncManagerAgent_);
+    renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
+        renderService_.rsVsyncManagerAgent_);
     RSProcessDumpManager::GetInstance().SetRenderToServiceConnection(renderToServiceConnection_);
-    renderService_.renderPipeline_->OnScreenConnected(property, composerClient);
     return connectToRenderConnection_->AsObject();
 }
 
@@ -93,7 +92,7 @@ void RSSingleRenderProcessManager::OnScreenRefresh(ScreenId id)
 void RSSingleRenderProcessManager::OnVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId,
     const sptr<RSScreenProperty>& property)
 {
-    renderService_.renderPipeline_->OnScreenConnected(property, nullptr);
+    renderService_.renderPipeline_->OnScreenConnected(property, nullptr, nullptr, nullptr);
 }
 
 void RSSingleRenderProcessManager::OnVirtualScreenDisconnected(ScreenId id)

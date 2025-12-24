@@ -274,6 +274,7 @@ int32_t RSScreenManagerAgent::SetVirtualScreenTypeBlackList(ScreenId id, const s
 int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
     if (blackList.empty()) {
+        RS_LOGW("%{public}s blacklist is empty", __func__);
         return StatusCode::BLACKLIST_IS_EMPTY;
     }
     if (!screenManager_) {
@@ -359,6 +360,24 @@ int32_t RSScreenManagerAgent::SetVirtualScreenResolution(ScreenId id, uint32_t w
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetVirtualScreenResolution(id, width, height);
+}
+
+int32_t RSScreenManagerAgent::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->GetRogScreenResolution(id, width, height);
+}
+
+int32_t RSScreenManagerAgent::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetRogScreenResolution(id, width, height);
 }
 
 void RSScreenManagerAgent::SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status)
@@ -643,7 +662,8 @@ void RSScreenManagerAgent::SetScreenSwitchStatus(ScreenId id, bool status)
         RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
         return;
     }
-    screenManager_->SetScreenSwitchStatus(id, status);
+    // temporary: only for main screen
+    screenManager_->SetScreenSwitchStatus(0, status);
 }
 } // namespace Rosen
 } // namespace OHOS

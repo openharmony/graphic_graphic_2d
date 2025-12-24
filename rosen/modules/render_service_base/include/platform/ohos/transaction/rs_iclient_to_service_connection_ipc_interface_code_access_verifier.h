@@ -18,21 +18,21 @@
 
 #include "ipc_security/rs_ipc_interface_code_access_verifier_base.h"
 #include "platform/ohos/transaction/rs_irender_service_ipc_interface_code.h"
-#include "platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code.h"
+#include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h"
 namespace OHOS {
 namespace Rosen {
-class RSIRenderServiceConnectionInterfaceCodeAccessVerifier : public RSInterfaceCodeAccessVerifierBase {
+class RSIClientToServiceConnectionInterfaceCodeAccessVerifier : public RSInterfaceCodeAccessVerifierBase {
 public:
     /*
      * specify the enum class of the associated interface code (i.e. CodeEnumType) here
      * note that term **CodeEnumType** should not be changed
      */
-    using CodeEnumType = RSIRenderServiceConnectionInterfaceCode;
-    static inline const std::string codeEnumTypeName_ {"RSIRenderServiceConnectionInterfaceCode"};
+    using CodeEnumType = RSIClientToServiceConnectionInterfaceCode;
+    static inline const std::string codeEnumTypeName_ {"RSIClientToServiceConnectionInterfaceCode"};
 
     /* specify constructor and destructor here */
-    RSIRenderServiceConnectionInterfaceCodeAccessVerifier();
-    ~RSIRenderServiceConnectionInterfaceCodeAccessVerifier() noexcept override = default;
+    RSIClientToServiceConnectionInterfaceCodeAccessVerifier();
+    ~RSIClientToServiceConnectionInterfaceCodeAccessVerifier() noexcept override = default;
 #ifdef ENABLE_IPC_SECURITY
     bool IsAccessTimesVerificationPassed(CodeUnderlyingType code, uint32_t times) const override;
 #endif
@@ -42,14 +42,13 @@ protected:
     bool IsExclusiveVerificationPassed(CodeUnderlyingType code) override;
 
 private:
-    DISALLOW_COPY_AND_MOVE(RSIRenderServiceConnectionInterfaceCodeAccessVerifier);
+    DISALLOW_COPY_AND_MOVE(RSIClientToServiceConnectionInterfaceCodeAccessVerifier);
 #ifdef ENABLE_IPC_SECURITY
     void AddRSIRenderServiceConnectionInterfaceCodePermission();
     static std::vector<std::pair<CodeEnumType, PermissionType>>
         permissionRSIRenderServiceConnectionInterfaceMappings_;
     static inline const std::unordered_map<CodeEnumType, uint32_t>
         accessRSIRenderServiceConnectionInterfaceTimesRestrictions_ {
-            { CodeEnumType::REGISTER_APPLICATION_AGENT, 15 },
             { CodeEnumType::CREATE_VSYNC_CONNECTION, 256 },
         };
 #endif

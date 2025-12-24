@@ -80,6 +80,8 @@ public:
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) const;
+    int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
+    int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
 

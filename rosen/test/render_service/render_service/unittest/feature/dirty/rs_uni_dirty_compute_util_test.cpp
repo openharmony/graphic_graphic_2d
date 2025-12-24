@@ -46,6 +46,7 @@ public:
     void TearDown() override;
     static inline RectI DEFAULT_RECT1 {0, 0, 500, 500};
     static inline RectI DEFAULT_RECT2 {500, 500, 1000, 1000};
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 };
 
 RSScreenRenderNodeDrawable* GenerateScreenDrawableById(NodeId id,
@@ -268,7 +269,7 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     ASSERT_NE(params, nullptr);
     params->SetMainAndLeashSurfaceDirty(true);
     params->SetHDRStatusChanged(true);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, nullptr);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
     ASSERT_TRUE(params->GetAccumulatedDirty());
     ASSERT_TRUE(params->GetAccumulatedHdrStatusChanged());
 }
@@ -298,19 +299,19 @@ HWTEST_F(RSUniDirtyComputeUtilTest, UpdateVirtualExpandScreenAccumulatedParams00
     screenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
     sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
 
     std::unordered_set<NodeId> blackListVector({1, 2, 3});
     params->SetLastBlackList(blackListVector);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
     std::unordered_set<NodeId> blackListVector2({});
     params->SetLastBlackList(blackListVector2);
     params->SetLastSecExemption(true);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
     screenParams->logicalDisplayNodeDrawables_.emplace_back(nullptr);
     displayDrawable->renderParams_ = nullptr;
     params->SetLastSecExemption(false);
-    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable, screenManager);
+    RSUniDirtyComputeUtil::UpdateVirtualExpandScreenAccumulatedParams(*params, *screenDrawable);
 }
 
 /**
@@ -737,11 +738,10 @@ HWTEST_F(RSUniDirtyComputeUtilTest, CheckCurrentFrameHasDirtyInVirtual001, TestS
     ASSERT_NE(displayParams, nullptr);
     mirroredScreenParams->logicalDisplayNodeDrawables_.emplace_back(displayDrawable);
     
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     NodeType cursorType = 12;
     std::vector<NodeType> typeBlackList = {cursorType};
-    screenManager->SetVirtualScreenTypeBlackList(logicalScreenNodeId, typeBlackList);
+    screenManager_->SetVirtualScreenTypeBlackList(logicalScreenNodeId, typeBlackList);
 
     screenDrawable->syncDirtyManager_->typeHwcDirtyRegion_ =
         {{RSSurfaceNodeType::CURSOR_NODE, defaultDirtyRect}};

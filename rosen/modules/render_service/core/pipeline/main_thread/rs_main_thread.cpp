@@ -496,7 +496,7 @@ void RSMainThread::Init(const std::shared_ptr<AppExecFwk::EventHandler>& handler
         RSUifirstManager::Instance().PrepareCurrentFrameEvent();
 #endif
         hgmRPContext_->NotifyRpHgmFrameRate(vsyncId_, context_,
-            rpVsyncRateReduceManager_.GetVrateMap(), pipelineParam_);
+            rpVsyncRateReduceManager_.GetVrateMap(), rpVsyncRateReduceManager_.CheckNeedNotify(), pipelineParam_);
         RS_PROFILER_ON_RENDER_BEGIN();
         // cpu boost feature start
         ffrt_cpu_boost_start(CPUBOOST_START_POINT);
@@ -2468,7 +2468,6 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         RS_TRACE_NAME("DoDirectComposition skip, screen frozen");
         return true;
     }
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
     const auto& screenProperty = screenNode->GetScreenProperty();
     if (screenProperty.GetState() != ScreenState::HDI_OUTPUT_ENABLE) {
         RS_LOGE("DoDirectComposition: ScreenState error!");
@@ -2628,6 +2627,7 @@ void RSMainThread::Render()
     }
     if (isUniRender_) {
 #ifdef RS_ENABLE_GPU
+        pipelineParam_.frameTimestamp = timestamp_;
         renderThreadParams_->SetTimestamp(pipelineParam_.frameTimestamp);
         renderThreadParams_->SetActualTimestamp(pipelineParam_.actualTimestamp);
         renderThreadParams_->SetVsyncId(pipelineParam_.vsyncId);
@@ -2643,7 +2643,6 @@ void RSMainThread::Render()
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif
-        pipelineParam_.frameTimestamp = timestamp_;
         // If use DoDirectComposition, we do not sync renderThreadParams,
         pipelineParam_.isForceRefresh = isForceRefresh_;
         isForceRefresh_ = false;

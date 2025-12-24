@@ -115,7 +115,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoExecuteSynchronousTask()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -146,7 +146,7 @@ void DoNotifyTouchEvent()
     if (!dataP.WriteUint32(touchCnt)) {
         return;
     }
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_TOUCH_EVENT);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
@@ -159,7 +159,7 @@ void DoSetHardwareEnabled()
         return;
     }
     option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED);
     uint64_t id = static_cast<NodeId>(g_pid) << 32;
     bool isEnabled = GetData<bool>();
     uint8_t selfDrawingType = GetData<uint8_t>();

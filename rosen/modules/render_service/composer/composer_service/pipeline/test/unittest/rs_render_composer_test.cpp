@@ -53,6 +53,7 @@ public:
     void SetUp() override;
     void TearDown() override;
     static inline std::shared_ptr<RSRenderComposer> rsRenderComposer_ = nullptr;
+    static inline std::shared_ptr<RSScreenManager> screenManager_ = nullptr;
 };
 
 void RsRenderComposerTest::SetUpTestCase()
@@ -72,6 +73,7 @@ void RsRenderComposerTest::SetUpTestCase()
     output->Init();
     sptr<RSScreenProperty> property = new RSScreenProperty();
     rsRenderComposer_ = std::make_shared<RSRenderComposer>(output, property);
+    screenManager_ = std::make_shared<RSScreenManager>();
 }
 void RsRenderComposerTest::TearDownTestCase()
 {
@@ -657,8 +659,7 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_IsSuperFoldDisplay, TestSize.Lev
     layers.emplace_back(nullptr);
     EXPECT_FALSE(rsRenderComposer_->IsDropDirtyFrame(layers));
 
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     ScreenId screenId = rsRenderComposer_->screenId_;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
@@ -670,12 +671,10 @@ HWTEST_F(RsRenderComposerTest, IsDropDirtyFrame_IsSuperFoldDisplay, TestSize.Lev
     rsScreen->property_.SetActiveRect(RectI{0, 1008, 2232, 128});
     rsScreen->property_.SetReviseRect(RectI{0, 1008, 2232, 128});
     rsScreen->property_.SetMaskRect(RectI{0, 1008, 2232, 128});
-    screenManager->MockHdiScreenConnected(rsScreen);
-    auto screenInfo = screenManager->QueryScreenInfo(screenId);
-    const RectI& reviseRect = screenInfo.reviseRect;
+    const RectI& reviseRect = rsScreen->property_.GetReviseRect();
     EXPECT_GT(reviseRect.GetWidth(), 0);
     EXPECT_GT(reviseRect.GetHeight(), 0);
-    const RectI& maskRect = screenInfo.maskRect;
+    const RectI& maskRect = rsScreen->property_.GetMaskRect();
     EXPECT_GT(maskRect.GetWidth(), 0);
     EXPECT_GT(maskRect.GetHeight(), 0);
 
@@ -929,8 +928,7 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside, TestSize.Level1
 
     rsRenderComposer_->ChangeLayersForActiveRectOutside(layers);
 
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     ScreenId screenId = 3u;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
@@ -940,12 +938,10 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside, TestSize.Level1
 
     rsScreen->property_.SetReviseRect(RectI{0, 1008, 2232, 128});
     rsScreen->property_.SetMaskRect(RectI{0, 1008, 2232, 128});
-    screenManager->MockHdiScreenConnected(rsScreen);
-    auto screenInfo = screenManager->QueryScreenInfo(screenId);
-    const RectI& reviseRect = screenInfo.reviseRect;
+    const RectI& reviseRect = rsScreen->property_.GetReviseRect();
     EXPECT_GT(reviseRect.GetWidth(), 0);
     EXPECT_GT(reviseRect.GetHeight(), 0);
-    const RectI& maskRect = screenInfo.maskRect;
+    const RectI& maskRect = rsScreen->property_.GetMaskRect();
     EXPECT_GT(maskRect.GetWidth(), 0);
     EXPECT_GT(maskRect.GetHeight(), 0);
     rsRenderComposer_->ChangeLayersForActiveRectOutside(layers);
@@ -977,8 +973,7 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside002, TestSize.Lev
 {
     std::vector<RSLayerPtr> layers;
 
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     ScreenId screenId = 4u;
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
@@ -988,12 +983,11 @@ HWTEST_F(RsRenderComposerTest, ChangeLayersForActiveRectOutside002, TestSize.Lev
 
     rsScreen->property_.SetReviseRect(RectI{0, 1008, -2232, -128});
     rsScreen->property_.SetMaskRect(RectI{0, 1008, -2232, -128});
-    screenManager->MockHdiScreenConnected(rsScreen);
-    auto screenInfo = screenManager->QueryScreenInfo(screenId);
-    const RectI& reviseRect = screenInfo.reviseRect;
+
+    const RectI& reviseRect = rsScreen->property_.GetReviseRect();
     EXPECT_LT(reviseRect.GetWidth(), 0);
     EXPECT_LT(reviseRect.GetHeight(), 0);
-    const RectI& maskRect = screenInfo.maskRect;
+    const RectI& maskRect = rsScreen->property_.GetMaskRect();
     EXPECT_LT(maskRect.GetWidth(), 0);
     EXPECT_LT(maskRect.GetHeight(), 0);
     rsRenderComposer_->ChangeLayersForActiveRectOutside(layers);

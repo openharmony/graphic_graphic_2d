@@ -39,8 +39,8 @@ public:
 
     int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
         std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
-    void NotifyRpHgmFrameRate(uint64_t vsyncId,
-        const std::shared_ptr<RSContext>& rsContext, std::map<NodeId, int> vRateMap, PipelineParam& pipelineParam);
+    void NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_ptr<RSContext>& rsContext,
+        const std::unordered_map<NodeId, int>& vRateMap, bool isNeedRefreshVRate, PipelineParam& pipelineParam);
     void AddScreenId(ScreenId screenId);
     void RemoveScreenId(ScreenId screenId);
     void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,

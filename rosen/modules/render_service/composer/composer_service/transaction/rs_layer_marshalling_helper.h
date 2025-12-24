@@ -61,7 +61,7 @@ public:
 #undef DECLARE_MARSHALLING_BASIC
 
 // cmdtype marshalling & unmarshalling
-#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE, DELTA_OP, THRESHOLD_TYPE)              \
+#define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                     \
     static bool Marshalling##CMD_NAME(OHOS::MessageParcel& parcel,                           \
         std::shared_ptr<RSRenderLayerCmdProperty<TYPE>> val);                                \
     static bool Unmarshalling##CMD_NAME(OHOS::MessageParcel& parcel,                         \

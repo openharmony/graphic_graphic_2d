@@ -141,7 +141,7 @@ void RSRenderService::CoreComponentsInit()
     rsRenderComposerManager_ = std::make_shared<RSRenderComposerManager>(handler_, rsVsyncManagerAgent_);
 
     // screenManager init
-    screenManager_ = CreateOrGetScreenManager();
+    screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
     // hgm init
     HgmInit();
@@ -387,7 +387,7 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
         __func__, property->GetScreenId(), property->GetWidth(), property->GetHeight());
     renderService_.rsRenderComposerManager_->OnScreenConnected(data.output, property);
     if (const auto& hgmContext = renderService_.GetHgmContext()) {
-        hgmContext->AddScreenToHgm(screenId);
+        hgmContext->AddScreenToHgm(property);
     }
     uint64_t vsyncEnabledScreenId = renderService_.vsyncSampler_->JudgeVSyncEnabledScreenWhileHotPlug(screenId, true);
     renderService_.vsyncSampler_->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId,

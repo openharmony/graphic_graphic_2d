@@ -496,7 +496,8 @@ HWTEST_F(RSHardwareUnitTest, ExecuteSwitchRefreshRate, TestSize.Level1)
 
     //  设置屏幕尺寸为1080p，物理屏尺寸包含1080p即可
     ScreenSize sSize = {720, 1080, 685, 1218};
-    hgmCore.AddScreen(screenId_, 0, sSize);
+    bool isSelfOwnedScreen = false;
+    hgmCore.AddScreen(screenId_, 0, sSize, isSelfOwnedScreen);
     auto screen = hgmCore.GetScreen(screenId_);
     screen->SetSelfOwnedScreenFlag(true);
     hgmCore.SetScreenRefreshRateImme(1);

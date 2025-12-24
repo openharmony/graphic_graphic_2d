@@ -93,7 +93,9 @@ public:
     }
 
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient);
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<RSIComposerToRenderConnection>& composerToRenderConn,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     void OnScreenRefresh(ScreenId screenId);

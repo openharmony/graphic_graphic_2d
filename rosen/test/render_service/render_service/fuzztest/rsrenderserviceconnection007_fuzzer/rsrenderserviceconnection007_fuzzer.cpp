@@ -119,7 +119,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoSetScreenColorGamut()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -133,7 +133,7 @@ void DoSetScreenColorGamut()
 
 void DoSetScreenGamutMap()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_GAMUT_MAP);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -163,7 +163,7 @@ void DoSetScreenCorrection()
         return;
     }
 
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_CORRECTION);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -189,7 +189,7 @@ void DoSetVirtualMirrorScreenCanvasRotation()
     }
 
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION);
+        RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_CANVAS_ROTATION);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -214,7 +214,7 @@ void DoSetVirtualMirrorScreenScaleMode()
         return;
     }
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE);
+        RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_MIRROR_SCREEN_SCALE_MODE);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -223,7 +223,7 @@ void DoSetVirtualMirrorScreenScaleMode()
 
 void DoSetGlobalDarkColorMode()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -236,7 +236,7 @@ void DoSetGlobalDarkColorMode()
 
 void DoDropFrameByPid()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -254,7 +254,7 @@ void DoDropFrameByPid()
 void DoSetScreenSwitchingNotifyCallback()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
+        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_SWITCHING_NOTIFY_CALLBACK);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

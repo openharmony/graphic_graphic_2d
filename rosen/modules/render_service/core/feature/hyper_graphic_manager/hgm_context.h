@@ -19,6 +19,7 @@
 #include "hdi_backend.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "hgm_info_parcel.h"
+#include "screen_manager/rs_screen_property.h"
 #include "transaction/rp_hgm_config_data.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
@@ -95,7 +96,7 @@ public:
         lastForceUpdateVsyncId_ = currVsyncId;
     }
 
-    void AddScreenToHgm(ScreenId screenId);
+    void AddScreenToHgm(const sptr<RSScreenProperty>& property);
 
     void RemoveScreenFromHgm(ScreenId screenId);
 

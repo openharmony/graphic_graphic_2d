@@ -27,7 +27,6 @@ namespace Rosen {
 static constexpr int32_t MAX_RETRY_COUNT = 20;
 // static constexpr int32_t RETRY_INTERVAL = 1000; // 1000us = 1ms
 static constexpr int32_t RETRY_WAIT_TIME_US = 1000; // wait 1ms before retry SendRequest
-static constexpr size_t ASHMEM_SIZE_THRESHOLD = 100 * 1024; // cannot > 100K in TF_ASYNC mode
 
 RSRenderToComposerConnectionProxy::RSRenderToComposerConnectionProxy(const sptr<IRemoteObject>& impl) :
     IRemoteProxy<IRSRenderToComposerConnection>(impl) {}
@@ -67,30 +66,13 @@ bool RSRenderToComposerConnectionProxy::FillParcelWithTransactionData(
         RS_LOGE("FillParcelWithTransactionData WriteInterfaceToken failed");
         return false;
     }
-    // 0 : normal parcel
-    // 1 : ashmem parcel
-    if (!data->WriteInt32(0)) {
-        RS_LOGE("FillParcelWithTransactionData WriteInt32 failed");
+    RS_TRACE_NAME_FMT("MarshRSLayerTransactionData cmdCount: %lu, transactionFlag:[%d, %" PRIu64 "], "
+        "timestamp:%ld", transactionData->GetCommandCount(), pid_, transactionData->GetIndex(),
+        transactionData->GetTimestamp());
+    bool success = transactionData->Marshalling(data);
+    if (!success) {
+        RS_LOGE("TransactionData marshalling failed");
         return false;
-    }
-    {
-        RS_TRACE_NAME_FMT("MarshRSLayerTransactionData cmdCount: %lu, transactionFlag:[%d, %" PRIu64 "], "
-            "timestamp:%ld", transactionData->GetCommandCount(), pid_, transactionData->GetIndex(),
-            transactionData->GetTimestamp());
-        bool success = transactionData->Marshalling(data);
-        if (!success) {
-            RS_LOGE("TransactionData marshalling failed");
-            return false;
-        }
-    }
-    {
-        std::shared_ptr<MessageParcel> ashmemParcel = nullptr;
-        if (data->GetDataSize() > ASHMEM_SIZE_THRESHOLD) {
-            ashmemParcel = RSAshmemHelper::CreateAshmemParcel(data);
-        }
-        if (ashmemParcel != nullptr) {
-            data = ashmemParcel;
-        }
     }
     return true;
 }

@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
 
 namespace OHOS::Rosen {
 class RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest : public testing::Test {
@@ -39,7 +39,7 @@ void RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest::TearDown() {}
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsInterfaceCodeAccessibleTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = 0;
     ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
 }
@@ -53,7 +53,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsInterfa
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemCallingTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     const std::string callingCode = "test";
     ASSERT_EQ(verifier->IsSystemCalling(callingCode), true);
 }
@@ -67,7 +67,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemC
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemCallingTest002,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     const std::string callingCode = "debug";
     ASSERT_EQ(verifier->IsSystemCalling(callingCode), true);
 }
@@ -82,9 +82,9 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemC
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, CheckNativePermissionTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType interfaceName =
-        static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+        static_cast<CodeUnderlyingType>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     auto permissions = verifier->GetPermissions(interfaceName);
     auto tokenID = verifier->GetTokenID();
     for (auto& permission : permissions) {
@@ -101,9 +101,9 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, CheckNati
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, CheckHapPermissionTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType interfaceName =
-        static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+        static_cast<CodeUnderlyingType>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     auto permissions = verifier->GetPermissions(interfaceName);
     auto tokenID = verifier->GetTokenID();
     for (auto& permission : permissions) {
@@ -120,7 +120,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, CheckHapP
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, PermissionEnumToStringTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     PermissionType permission = PermissionType::CAPTURE_SCREEN;
     ASSERT_TRUE(verifier->PermissionEnumToString(permission) != "unknown");
 }
@@ -134,7 +134,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, Permissio
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, AddPermissionTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType interfaceName = 0;
     const std::string newPermission = "CAPTURE_SCREEN";
     ASSERT_EQ(verifier->AddPermission(interfaceName, newPermission), true);
@@ -149,7 +149,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, AddPermis
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, GetPermissionsTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType interfaceName = 0;
     const std::string newPermission = "CAPTURE_SCREEN";
     auto ret = verifier->GetPermissions(interfaceName);
@@ -168,7 +168,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, GetPermis
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, GetInterfacePermissionSizeTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     bool isPermissionSizeEmpty = (verifier->GetInterfacePermissionSize() == 0);
     EXPECT_FALSE(isPermissionSizeEmpty);
 }
@@ -182,7 +182,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, GetInterf
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemAppTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     ASSERT_EQ(verifier->IsSystemApp(), false);
 }
 #endif
@@ -196,7 +196,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsSystemA
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, CheckPermissionTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = 0;
     ASSERT_EQ(verifier->CheckPermission(code), true);
 }
@@ -210,7 +210,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, CheckPerm
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsStylusServiceCallingTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     const std::string callingCode = "test";
 #ifdef ENABLE_IPC_SECURITY
     ASSERT_EQ(verifier->IsStylusServiceCalling(callingCode), false);
@@ -228,7 +228,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsStylusS
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsCommonVerificationPassedTest001,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = 0;
     ASSERT_EQ(verifier->IsCommonVerificationPassed(code), true);
 }
@@ -242,7 +242,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsCommonV
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsAccessTimesVerificationPassedTest,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = 0;
     ASSERT_EQ(verifier->IsAccessTimesVerificationPassed(code, 0), true);
 }
@@ -256,7 +256,7 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsAccessT
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskManagerCallingTest,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     const std::string callingCode = "test";
     ASSERT_EQ(verifier->IsTaskManagerCalling(callingCode), false);
 }
@@ -270,9 +270,9 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsTaskMan
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TaskSurfaceCaptureWithAllWindows,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
     CodeUnderlyingType code = static_cast<CodeUnderlyingType>(
-        RSIRenderServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+        RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, false);
 }
@@ -286,8 +286,8 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, TaskSurfa
 HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, FreezeScreen,
     testing::ext::TestSize.Level1)
 {
-    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
-    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(RSIRenderServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    auto verifier = std::make_unique<RSIClientToServiceConnectionInterfaceCodeAccessVerifier>();
+    CodeUnderlyingType code = static_cast<CodeUnderlyingType>(RSIClientToServiceConnectionInterfaceCode::FREEZE_SCREEN);
     auto hasPermission = verifier->IsInterfaceCodeAccessible(code);
     ASSERT_EQ(hasPermission, true);
 }

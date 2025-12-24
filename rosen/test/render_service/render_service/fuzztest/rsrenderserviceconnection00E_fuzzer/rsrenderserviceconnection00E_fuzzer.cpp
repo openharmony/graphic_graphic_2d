@@ -114,7 +114,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoRegisterTypeface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_TYPEFACE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -128,7 +128,7 @@ void DoRegisterTypeface()
     RSMarshallingHelper::Marshalling(dataParcel, typeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 
-    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
     MessageParcel dataParcel1;
     MessageParcel replyParcel1;
     MessageOption option1;
@@ -147,7 +147,7 @@ void DoRegisterTypeface()
 
 void DoRegisterSharedTypeface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -164,7 +164,7 @@ void DoRegisterSharedTypeface()
 
 void DoUnRegisterTypeface()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_TYPEFACE);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;

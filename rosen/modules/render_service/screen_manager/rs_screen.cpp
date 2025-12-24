@@ -77,19 +77,14 @@ std::map<ScreenHDRFormat, GraphicHDRFormat> RSScreen::RS_TO_HDI_HDR_FORMAT_MAP {
 
 constexpr int MAX_LUM = 1000;
 
-RSScreen::RSScreen(std::shared_ptr<HdiOutput> output) : hdiOutput_(std::move(output))
+RSScreen::RSScreen(ScreenId id)
 {
-    ScreenId id = hdiOutput_ ? ToScreenId(hdiOutput_->GetScreenId()) : INVALID_SCREEN_ID;
     property_.SetId(id);
     property_.SetIsVirtual(false);
     hdrCapability_.formatCount = 0;
     std::string name = "Screen_" + std::to_string(id);
     property_.SetName(name);
-    if (hdiOutput_) {
-        property_.SetState(ScreenState::HDI_OUTPUT_ENABLE);
-    } else {
-        property_.SetState(ScreenState::DISABLED);
-    }
+    property_.SetState(ScreenState::HDI_OUTPUT_ENABLE);
     PhysicalScreenInit();
     HILOG_COMM_WARN("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
         "screenType: %{public}u}", id, property_.GetWidth(), property_.GetHeight(), property_.GetScreenType());
@@ -145,7 +140,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.", __func__, id);
     } else {
         std::string logString;
-        decltype(supportedModes_.size()) modeIndex = 0;
+        size_t modeIndex = 0;
         for (; modeIndex < supportedModes_.size(); ++modeIndex) {
             AppendFormat(logString, ";supportedMode[%zu]: %ux%u, refreshRate=%u, modeId=%d",
                          modeIndex, supportedModes_[modeIndex].width, supportedModes_[modeIndex].height,
@@ -574,7 +569,7 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
 {
-    decltype(supportedModes_.size()) modeIndex = 0;
+    size_t modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
         if (supportedModes_[modeIndex].id == modeId) {
             return static_cast<int32_t>(modeIndex);
@@ -685,11 +680,6 @@ ScreenPowerStatus RSScreen::GetPowerStatus()
     return static_cast<ScreenPowerStatus>(status);
 }
 
-std::shared_ptr<HdiOutput> RSScreen::GetOutput() const
-{
-    return hdiOutput_;
-}
-
 sptr<Surface> RSScreen::GetProducerSurface() const
 {
     return property_.GetProducerSurface();
@@ -710,7 +700,7 @@ void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 
 void RSScreen::ModeInfoDump(std::string& dumpString)
 {
-    decltype(supportedModes_.size()) modeIndex = 0;
+    size_t modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
         AppendFormat(dumpString, "supportedMode[%d]: %dx%d, refreshRate=%d\n",
                      modeIndex, supportedModes_[modeIndex].width,

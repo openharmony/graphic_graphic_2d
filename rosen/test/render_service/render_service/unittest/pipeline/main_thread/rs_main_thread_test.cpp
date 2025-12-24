@@ -77,6 +77,7 @@ public:
     static std::shared_ptr<RSScreenRenderNode> GetAndInitScreenRenderNode();
     static void ChangeHardwareEnabledNodesBufferData(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
 private:
     static inline BufferRequestConfig requestConfig = {
@@ -111,7 +112,7 @@ void RSMainThreadTest::SurfaceFlushBuffers(sptr<Surface> psurf1, const int32_t b
 void RSMainThreadTest::SetUpTestCase()
 {
     RSTestUtil::InitRenderNodeGC();
-    auto screenManager = CreateOrGetScreenManager();
+
     ASSERT_NE(nullptr, screenManager);
     std::string name = "virtualScreen01";
     uint32_t width = DEFAULT_SCREEN_WIDTH;
@@ -128,7 +129,7 @@ void RSMainThreadTest::SetUpTestCase()
 
 void RSMainThreadTest::TearDownTestCase()
 {
-    auto screenManager = CreateOrGetScreenManager();
+
     ASSERT_NE(nullptr, screenManager);
     screenManager->defaultScreenId_ = INVALID_SCREEN_ID;
 }
@@ -160,7 +161,7 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
     ScreenId screenId = 0xFFFF;
     NodeId displayId = 1;
     auto screenNode = std::make_shared<RSScreenRenderNode>(displayId, screenId, context);
-    auto screenManager = CreateOrGetScreenManager();
+
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     if (hdiOutput == nullptr) {
         return screenNode;
@@ -1694,7 +1695,7 @@ HWTEST_F(RSMainThreadTest, UniRender003, TestSize.Level1)
     childDisplayNode->InitRenderParams();
     if (RSSystemProperties::GetSkipDisplayIfScreenOffEnabled()) {
         ScreenId screenId = 1;
-        auto screenManager = CreateOrGetScreenManager();
+    
         screenManager->powerOffNeedProcessOneFrame_ = false;
         screenManager->screenPowerStatus_[screenId] = ScreenPowerStatus::POWER_STATUS_OFF;
     }
@@ -3900,9 +3901,14 @@ HWTEST_F(RSMainThreadTest, CreateVirtualScreen, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
+<<<<<<< HEAD
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr, nullptr,
         nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+=======
+    auto rsRenderServiceConnection = new RSClientToServiceConnection(
+        0, nullptr, mainThread, screenManager_, token->AsObject(), nullptr);
+>>>>>>> upstream/rsParallel_1201
 
     std::string name("name");
     uint32_t width = 1;
@@ -6228,7 +6234,7 @@ HWTEST_F(RSMainThreadTest, InitHgmTaskHandleThreadTest, TestSize.Level1)
  */
 HWTEST_F(RSMainThreadTest, RegisterHwcEvent001, TestSize.Level1)
 {
-    auto screenManager = CreateOrGetScreenManager();
+
     auto screenManagerImpl = static_cast<RSScreenManager*>(screenManager.GetRefPtr());
     ASSERT_NE(screenManagerImpl, nullptr);
     auto mainThread = RSMainThread::Instance();
@@ -6250,7 +6256,7 @@ HWTEST_F(RSMainThreadTest, RegisterHwcEvent001, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, DoDirectComposition004_BufferSync, TestSize.Level1)
 {
     // INIT SCREEN
-    auto screenManager = CreateOrGetScreenManager();
+
     ASSERT_NE(screenManager, nullptr);
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(5));
     ASSERT_NE(rsScreen, nullptr);
@@ -6508,7 +6514,7 @@ HWTEST_F(RSMainThreadTest, DoDirectComposition_Freeze, TestSize.Level1)
 HWTEST_F(RSMainThreadTest, DoDirectCompositionWithAIBar, TestSize.Level1)
 {
     // INIT SCREEN
-    auto screenManager = CreateOrGetScreenManager();
+
     ASSERT_NE(screenManager, nullptr);
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(5));
     ASSERT_NE(rsScreen, nullptr);

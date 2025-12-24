@@ -108,7 +108,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoGetHighContrastTextState()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;

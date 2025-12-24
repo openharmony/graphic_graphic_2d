@@ -240,7 +240,8 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
 #endif
     unExecuteTaskNum_++;
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    delayTime_ = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
+    delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
+    delayTime_ = delayTime;
 }
 
 void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const PipelineParam& pipelineParam)
@@ -682,9 +683,7 @@ void RSRenderComposer::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer)
     auto usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB | BUFFER_USAGE_PROTECTED |
         BUFFER_USAGE_DRM_REDRAW;
     rsSurface->SetSurfaceBufferUsage(usage);
-    auto screenManager = CreateOrGetScreenManager();
-    auto screenInfo = screenManager->QueryScreenInfo(screenId_);
-    auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo.phyWidth, screenInfo.phyHeight);
+    auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo_.phyWidth, screenInfo_.phyHeight);
     hdiOutput_->SetProtectedFrameBufferState(ret);
 #endif
 }
@@ -1355,6 +1354,6 @@ void RSRenderComposer::SetScreenPowerOnChanged(bool flag)
 
 int64_t RSRenderComposer::GetDelayTime()
 {
-    return delayTime_;
+    return delayTime_.load();
 }
 }

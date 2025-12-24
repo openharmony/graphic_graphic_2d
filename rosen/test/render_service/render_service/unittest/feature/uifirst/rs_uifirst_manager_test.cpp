@@ -1861,7 +1861,7 @@ HWTEST_F(RSUifirstManagerTest, CommonPendingNodePurgeTest, TestSize.Level1)
     auto iter = map.begin();
 
     ScreenId screenId = 1;
-    auto screenManager = CreateOrGetScreenManager();
+    auto screenManager = sptr<RSScreenManager>::MakeSptr();
     screenManager->powerOffNeedProcessOneFrame_ = false;
 
     bool powerStatus = screenManager->screenPowerStatus_[screenId];

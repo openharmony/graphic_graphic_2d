@@ -113,7 +113,7 @@ void CreateVirtualScreenStubbing(ScreenId screenId)
 
 void DoShowWatermark()
 {
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SHOW_WATERMARK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -135,7 +135,7 @@ void DoSetWatermark()
     }
     option.SetFlags(MessageOption::TF_SYNC);
     dataP.WriteString(name);
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_WATERMARK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK);
     if (toServiceConnectionStub_ == nullptr) {
         return;
     }
@@ -147,7 +147,7 @@ void DoRegisterTransactionDataCallback()
     MessageParcel dataP;
     MessageParcel reply;
     MessageOption option;
-    if (!dataP.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+    if (!dataP.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
         return;
     }
     uint64_t token = GetData<uint64_t>();
@@ -158,11 +158,11 @@ void DoRegisterTransactionDataCallback()
     dataP.WriteUint64(timeStamp);
     dataP.WriteRemoteObject(remoteObject);
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
-    if (toServiceConnectionStub_ == nullptr) {
+        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    if (toRenderConnectionStub_ == nullptr) {
         return;
     }
-    toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 } // namespace Rosen

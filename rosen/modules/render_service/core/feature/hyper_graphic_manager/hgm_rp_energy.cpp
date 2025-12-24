@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 #include "feature/hyper_graphic_manager/hgm_rp_energy.h"
+
 #include "rs_frame_rate_vote.h"
 #include "rs_trace.h"
 
 #include "common/rs_common_hook.h"
+#include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
 HgmRPEnergy::HgmRPEnergy()
 {
@@ -42,6 +44,10 @@ void HgmRPEnergy::SetTouchState(bool isIdle)
 
 void HgmRPEnergy::HgmConfigUpdateCallback(std::shared_ptr<RPHgmConfigData> configData)
 {
+    if (configData == nullptr) {
+        ROSEN_LOGE("%{public}s configData is null", __func__);
+        return;
+    }
     componentPowerConfig_ = configData->GetComponentPowerConfig();
     DelayedSingleton<RSFrameRateVote>::GetInstance()->SetVideoFrameRateSwtich(configData->GetVideoSwitch());
 }

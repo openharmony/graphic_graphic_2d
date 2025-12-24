@@ -42,6 +42,7 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 };
 
 void RSRenderServiceVisitorTest::SetUpTestCase()
@@ -848,8 +849,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode009, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(0));
     ASSERT_NE(rsScreen, nullptr);
     auto csurface = IConsumerSurface::Create();
@@ -857,7 +857,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode009, TestSize.Level1
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
 
     auto rsContext = std::make_shared<RSContext>();
     ScreenId screenId = 1;
@@ -875,8 +875,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode010, TestSize.Level1
 {
     constexpr NodeId nodeId = TestSrc::limitNumber::Uint64[0];
     RSRenderServiceVisitor rsRenderServiceVisitor(true);
-    auto screenManager = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager, nullptr);
+    ASSERT_NE(screenManager_, nullptr);
 
     auto rsScreen = std::make_shared<RSScreen>(HdiOutput::CreateHdiOutput(0));
     auto csurface = IConsumerSurface::Create();
@@ -884,7 +883,7 @@ HWTEST_F(RSRenderServiceVisitorTest, ProcessScreenRenderNode010, TestSize.Level1
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     rsScreen->SetProducerSurface(psurface);
     rsScreen->SetScreenSkipFrameInterval(1);
-    screenManager->MockHdiScreenConnected(rsScreen);
+    screenManager_->MockHdiScreenConnected(rsScreen);
 
     ScreenId screenId = 0;
     auto rsContext = std::make_shared<RSContext>();

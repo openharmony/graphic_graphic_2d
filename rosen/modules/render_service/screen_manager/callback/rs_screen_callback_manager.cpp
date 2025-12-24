@@ -56,12 +56,7 @@ void RSScreenCallbackManager::NotifyScreenPresenceChanged(const ScreenPresenceEv
         NotifyScreenConnectedToAgentListeners(event.id, event.reason, clientToRenderConnection);
         {
             std::lock_guard<std::mutex> lock(clientToRenderMtx_);
-            auto iter = clientToRenderConns_.find(event.id);
-            if (iter != clientToRenderConns_.end()) {
-                iter->second = clientToRenderConnection;
-            } else {
-                clientToRenderConns_[event.id] = clientToRenderConnection;
-            }
+            clientToRenderConns_[event.id] = clientToRenderConnection;
         }
     } else {
         if (coreListener_) {
@@ -72,10 +67,7 @@ void RSScreenCallbackManager::NotifyScreenPresenceChanged(const ScreenPresenceEv
         NotifyScreenDisconnectedToAgentListeners(event.id, event.reason);
         {
             std::lock_guard<std::mutex> lock(clientToRenderMtx_);
-            auto iter = clientToRenderConns_.find(event.id);
-            if (iter != clientToRenderConns_.end()) {
-                clientToRenderConns_.erase(iter);
-            }
+            clientToRenderConns_.erase(event.id);
         }
     }
 }

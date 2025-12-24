@@ -179,6 +179,7 @@ public:
     void UpdateSoftVSync(bool followRs);
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void SyncHgmConfigUpdateCallback();
     void SetAdaptiveVsyncUpdateCallback(std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback)
     {
         adaptiveVsyncUpdateCallback_ = adaptiveVsyncUpdateCallback;
@@ -261,7 +262,6 @@ private:
             hgmConfigUpdateCallback_(configData, ltpoEnabled, isDelayMode, pipelineOffsetPulseNum);
         }
     }
-    void SyncHgmConfigUpdateCallback();
     void TriggerAdaptiveVsyncUpdateCallback()
     {
         if (adaptiveVsyncUpdateCallback_ &&

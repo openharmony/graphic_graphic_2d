@@ -467,10 +467,10 @@ void RPVsyncRateReduceManager::ResetFrameValues(uint32_t rsRefreshRate)
     rsRefreshRate_ = rsRefreshRate;
 }
 
-void RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(
-    const std::map<NodeId, int>& vRateMap, sptr<VSyncDistributor> appVSyncDistributor)
+void RSVsyncRateReduceManager::TransformNodeToLinkersRateMap(const std::unordered_map<NodeId, int>& vRateMap,
+    bool isNeedRefreshVRate, sptr<VSyncDistributor> appVSyncDistributor)
 {
-    if (vRateMap.empty()) {
+    if (vRateMap.empty() || !isNeedRefreshVRate) {
         return;
     }
     linkersRateMap_.clear();

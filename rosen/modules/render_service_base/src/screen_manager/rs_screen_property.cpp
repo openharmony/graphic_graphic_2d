@@ -196,7 +196,7 @@ const std::unordered_set<NodeId>& RSScreenProperty::GetGlobalBlackList() const
     return globalBlackList_;
 }
 
-const std::unordered_set<NodeId> RSScreenProperty::GetMergeBlackList() const
+std::unordered_set<NodeId> RSScreenProperty::GetMergeBlackList() const
 {
     if (!skipWindow_) {
         return blackList_;

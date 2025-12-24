@@ -48,7 +48,7 @@ struct VirtualScreenConfigs {
 
 class RSScreen {
 public:
-    explicit RSScreen(std::shared_ptr<HdiOutput> output);
+    explicit RSScreen(ScreenId id);
     explicit RSScreen(const VirtualScreenConfigs& configs);
     ~RSScreen() = default;
 
@@ -84,9 +84,6 @@ public:
     uint32_t GetScreenExpectedRefreshRate() const;
     SkipFrameStrategy GetScreenSkipFrameStrategy() const;
     void SetScreenVsyncEnabled(bool enabled) const;
-
-    // physical screen
-    std::shared_ptr<HdiOutput> GetOutput() const;
 
     uint32_t SetActiveMode(uint32_t modeId);
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const;
@@ -210,7 +207,6 @@ private:
     ScreenId associatedScreenId_ = INVALID_SCREEN_ID;
     std::atomic<bool> isRogResolution_ = false;
 
-    std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
     std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};

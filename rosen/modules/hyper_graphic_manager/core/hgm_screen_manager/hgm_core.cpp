@@ -403,7 +403,7 @@ void HgmCore::NotifyScreenRectFrameRateChange(ScreenId id, const GraphicIRect& a
     }
 }
 
-int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize,
+int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenSize, bool& isSelfOwnedScreen,
     const std::vector<RSScreenModeInfo>& supportedModes)
 {
     // add a physical screen to hgm during hotplug event
@@ -424,6 +424,7 @@ int32_t HgmCore::AddScreen(ScreenId id, int32_t defaultMode, ScreenSize& screenS
         std::string curScreenName = "screen" + std::to_string(id) + "_" + (isLtpo ? "LTPO" : "LTPS");
         for (auto& strategyConfig : mPolicyConfigData_->screenStrategyConfigs_) {
             if (strategyConfig.first.find(curScreenName) == 0) {
+                isSelfOwnedScreen = true;
                 newScreen->SetSelfOwnedScreenFlag(true);
                 break;
             }

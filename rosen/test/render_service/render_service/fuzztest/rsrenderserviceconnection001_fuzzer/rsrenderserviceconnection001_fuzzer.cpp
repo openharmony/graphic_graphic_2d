@@ -120,7 +120,7 @@ void DoGetDefaultScreenId()
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
+        RSIClientToServiceConnectionInterfaceCode::GET_DEFAULT_SCREEN_ID);
     uint64_t screenId = GetData<uint64_t>();
     dataP.WriteUint64(screenId);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -136,7 +136,7 @@ void DoGetActiveScreenId()
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID);
+        RSIClientToServiceConnectionInterfaceCode::GET_ACTIVE_SCREEN_ID);
     uint64_t screenId = GetData<uint64_t>();
     dataP.WriteUint64(screenId);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
@@ -152,7 +152,7 @@ void DoGetAllScreenIds()
     }
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
-        RSIRenderServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
+        RSIClientToServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS);
     toServiceConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 } // namespace Rosen
