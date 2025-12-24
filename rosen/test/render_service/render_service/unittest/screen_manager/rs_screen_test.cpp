@@ -2530,4 +2530,95 @@ HWTEST_F(RSScreenTest, InitDisplayPropertyForHardCursorTest, TestSize.Level1)
     rsScreen->InitDisplayPropertyForHardCursor();
     EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
 }
+
+/*
+ * @tc.name: SetGlobalBlackListTest
+ * @tc.desc: SetGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetGlobalBlackListTest, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    rsScreen->hdiScreen_ = nullptr;
+    std::unordered_set<uint64_t> globalBlackLis = {};
+    rsScreen->SetGlobalBlackList(globalBlackLis);
+    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+}
+ 
+/*
+ * @tc.name: AddGlobalBlackListTest
+ * @tc.desc: AddGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, AddGlobalBlackListTest, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    rsScreen->hdiScreen_ = nullptr;
+    std::vector<uint64_t> globalBlackLis = {};
+    rsScreen->AddGlobalBlackList(globalBlackLis);
+    globalBlackLis.push_back(0);
+    rsScreen->AddGlobalBlackList(globalBlackLis);
+    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+}
+ 
+/*
+ * @tc.name: RemoveGlobalBlackListTest
+ * @tc.desc: RemoveGlobalBlackList Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, RemoveGlobalBlackListTest, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    rsScreen->hdiScreen_ = nullptr;
+    std::vector<uint64_t> globalBlackLis = {};
+    rsScreen->RemoveGlobalBlackList(globalBlackLis);
+    globalBlackLis.push_back(0);
+    rsScreen->RemoveGlobalBlackList(globalBlackLis);
+    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+}
+ 
+/*
+ * @tc.name: SetOnBacklightChangedCallbackTest
+ * @tc.desc: SetOnBacklightChangedCallback Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetOnBacklightChangedCallbackTest, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    rsScreen->hdiScreen_ = nullptr;
+    rsScreen->SetOnBacklightChangedCallback(nullptr);
+    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+}
+ 
+/*
+ * @tc.name: SetDisablePowerOffRenderControlTest
+ * @tc.desc: SetDisablePowerOffRenderControl Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetDisablePowerOffRenderControlTest, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    rsScreen->hdiScreen_ = nullptr;
+    rsScreen->SetDisablePowerOffRenderControl(false);
+    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+}
+ 
+/*
+ * @tc.name: SetScreenSwitchStatusTest
+ * @tc.desc: SetScreenSwitchStatus Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, SetScreenSwitchStatusTest, TestSize.Level1)
+{
+    auto rsScreen = std::make_shared<RSScreen>(0);
+    rsScreen->hdiScreen_ = nullptr;
+    rsScreen->SetScreenSwitchStatus(false);
+    EXPECT_EQ(rsScreen->hdiScreen_, nullptr);
+}
 } // namespace OHOS::Rosen
