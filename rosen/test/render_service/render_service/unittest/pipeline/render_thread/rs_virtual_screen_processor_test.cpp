@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,6 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest002, TestSize.Level1)
 {
     NodeId nodeId = 100;
     ScreenId screenId = 100;
-    ScreenId mirroredId = 0;
     int32_t offsetX = 0;
     int32_t offsetY = 0;
     RSScreenRenderNode rsScreenRenderNode(nodeId, screenId);
