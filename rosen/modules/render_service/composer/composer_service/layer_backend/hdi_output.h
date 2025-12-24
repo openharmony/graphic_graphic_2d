@@ -128,6 +128,7 @@ public:
         return thirdFrameAheadPresentTime_;
     }
     void UpdateThirdFrameAheadPresentFence(sptr<SyncFence> &fbFence);
+
 private:
     HdiDevice *device_ = nullptr;
     sptr<VSyncSampler> sampler_ = nullptr;

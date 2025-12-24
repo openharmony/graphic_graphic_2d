@@ -24,7 +24,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSB_EXPORT RSLayerPropertyBase {
 public:
     RSLayerPropertyBase() = default;

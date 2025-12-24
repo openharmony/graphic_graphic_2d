@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSLayerCmd : public std::enable_shared_from_this<RSLayerCmd> {
 public:
     RSLayerCmd() = default;

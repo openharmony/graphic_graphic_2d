@@ -30,6 +30,7 @@ std::vector<std::shared_ptr<RSLayer>> RSRenderComposerContext::GetRSLayersVec()
     }
     return layersVector;
 }
+
 std::shared_ptr<RSLayer> RSRenderComposerContext::GetRSRenderLayer(RSLayerId rsLayerId)
 {
     std::lock_guard<std::mutex> lock(mutex_);

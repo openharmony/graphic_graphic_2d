@@ -1105,6 +1105,10 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(DrawableV2::RSScreenRenderNod
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer composerClient is nullptr");
+        return nullptr;
+    }
     RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), surfaceHandler->GetNodeId());
     if (layer != nullptr) {
         layer->SetNodeId(surfaceHandler->GetNodeId());  // node id only for dfx
@@ -1153,6 +1157,10 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSScreenRenderNode& node)
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType,
             surfaceHandler->GetBuffer()->GetFormat());
     }
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer composerClient is nullptr");
+        return nullptr;
+    }
     RSLayerPtr layer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), surfaceHandler->GetNodeId());
     if (layer != nullptr) {
         layer->SetNodeId(node.GetId());
@@ -1182,6 +1190,10 @@ RSLayerPtr RSUniRenderComposerAdapter::CreateLayer(RSRcdSurfaceRenderNode& node)
             info.srcRect.x, info.srcRect.y, info.srcRect.w, info.srcRect.h,
             info.buffer->GetWidth(), info.buffer->GetHeight(), info.buffer->GetSurfaceBufferWidth(),
             info.buffer->GetSurfaceBufferHeight(), info.zOrder, info.blendType);
+    }
+    if (composerClient_ == nullptr) {
+        RS_LOGE("RSUniRenderComposerAdapter::CreateLayer composerClient is nullptr");
+        return nullptr;
     }
     auto layer = RSSurfaceRCDLayer::Create(composerClient_->GetComposerContext(), node.GetId());
     if (layer != nullptr) {

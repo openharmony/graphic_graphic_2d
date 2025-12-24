@@ -26,7 +26,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 struct ReleaseLayerBuffersInfo {
     uint64_t screenId = 0;
     std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>> timestampVec = {};
@@ -43,6 +42,7 @@ public:
 
     virtual int32_t ReleaseLayerBuffers(ReleaseLayerBuffersInfo &releaseLayerInfo) = 0;
     virtual int32_t NotifyLppLayerToRender(uint64_t vsyncId, const std::set<uint64_t> &lppNodeIds) = 0;
+
 protected:
     enum {
         ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS = 0,

@@ -60,6 +60,5 @@ int32_t RSComposerToRenderConnection::NotifyLppLayerToRender(uint64_t vsyncId, c
     }
     return COMPOSITOR_ERROR_OK;
 }
-
 } // namespace Rosen
 } // namespace OHOS

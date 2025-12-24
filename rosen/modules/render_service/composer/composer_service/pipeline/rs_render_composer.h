@@ -61,6 +61,7 @@ public:
     explicit RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     ~RSRenderComposer() = default;
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+
 protected:
     void ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam);
     void ComposerProcess(uint32_t currentRate, std::shared_ptr<RSLayerTransactionData> transactionData);

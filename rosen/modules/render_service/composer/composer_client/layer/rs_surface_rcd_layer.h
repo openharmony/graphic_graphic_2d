@@ -29,7 +29,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 class RSSurfaceRCDLayer : public RSSurfaceLayer {
 public:
     RSSurfaceRCDLayer(RSLayerId rsLayerId = 0, std::shared_ptr<RSComposerContext> rsComposerContext = nullptr);

@@ -184,7 +184,6 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
         return false;
     }
     parcel->SetMaxCapacity(PARCEL_MAX_CPACITY);
-    // size_t recordPosition = parcel->GetWritePosition();
     std::unique_lock<std::mutex> lock(rsLayerParcelMutex_);
     bool success = parcel->WriteInt32(static_cast<int32_t>(payload_.size()));
     while (marshallingIndex_ < payload_.size()) {
