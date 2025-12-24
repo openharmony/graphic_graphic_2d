@@ -146,12 +146,14 @@ public:
     static std::shared_ptr<RSSurfaceNode> surfaceNode_;
     static std::shared_ptr<RSSurfaceNode> CreateSurface(std::string surfaceName);
     static std::shared_ptr<RSCanvasNode> canvasNode_;
+    static sptr<RSScreenManager> screenManager_;
 };
 
 RSInterfaces* RSSurfaceCaptureTaskParallelTest::rsInterfaces_ = nullptr;
 std::shared_ptr<RSSurfaceNode> RSSurfaceCaptureTaskParallelTest::surfaceNode_ = nullptr;
 std::shared_ptr<CustomizedSurfaceCapture> RSSurfaceCaptureTaskParallelTest::surfaceCaptureCb_ = nullptr;
 std::shared_ptr<RSCanvasNode> RSSurfaceCaptureTaskParallelTest::canvasNode_ = nullptr;
+sptr<RSScreenManager> RSSurfaceCaptureTaskParallelTest::screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
 bool RSSurfaceCaptureTaskParallelTest::CheckSurfaceCaptureCallback()
 {

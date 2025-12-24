@@ -372,7 +372,8 @@ HWTEST_F(RSSurfaceCaptureTaskTest, CreatePixelMapByDisplayNode001, Function | Sm
     captureConfig.scaleX = 0.f;
     captureConfig.scaleY = 0.f;
     RSSurfaceCaptureTask task(id, captureConfig);
-    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr));
+    std::shared_ptr<Drawing::ColorSpace> colorSpace = nullptr;
+    ASSERT_EQ(nullptr, task.CreatePixelMapByDisplayNode(nullptr, false, colorSpace));
 }
 
 /*
@@ -864,7 +865,7 @@ HWTEST_F(RSSurfaceCaptureTaskTest, ProcessScreenRenderNode004, Function | SmallT
     int64_t timestamp = 0;
     Rect damage;
     sptr<OHOS::SurfaceBuffer> buffer = new SurfaceBufferImpl(0);
-    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(buffer, acquireFence, damage, timestamp, nullptr);
     visitor_->ProcessScreenRenderNode(*node);
 }
 
