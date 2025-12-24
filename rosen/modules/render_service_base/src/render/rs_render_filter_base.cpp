@@ -18,74 +18,23 @@
 
 namespace OHOS {
 namespace Rosen {
+RSUIFilterType RSRenderFilterParaBase::GetType() const
+{
+    return type_;
+}
 
-    RSUIFilterType RSRenderFilterParaBase::GetType() const
-    {
-        return type_;
-    }
-
-    bool RSRenderFilterParaBase::IsValid() const
-    {
-        return type_ != RSUIFilterType::NONE;
-    }
-
-    void RSRenderFilterParaBase::Dump(std::string& out) const
-    {
-        GetDescription(out);
-        out += ": [";
-        std::string splitStr = "] ";
-        char buffer[UINT8_MAX] = { 0 };
-        for (const auto& [key, value] : properties_) {
-            if (sprintf_s(buffer, UINT8_MAX, "[Type:%d Value:", static_cast<int>(key))) {
-                out.append(buffer);
-            }
-            if (value) {
-                value->Dump(out);
-            } else {
-                out += "nullptr";
-            }
-            out += splitStr;
-        }
-    }
-
-    bool RSRenderFilterParaBase::WriteToParcel(Parcel& parcel)
-    {
-        return true;
-    }
-
-    bool RSRenderFilterParaBase::ReadFromParcel(Parcel& parcel)
-    {
-        return true;
-    }
-
-    std::shared_ptr<RSRenderPropertyBase> RSRenderFilterParaBase::GetRenderProperty(RSUIFilterType type) const
-    {
-        auto it = properties_.find(type);
-        if (it != properties_.end()) {
-            return it->second;
-        }
-        return nullptr;
-    }
-
-    std::vector<std::shared_ptr<RSRenderPropertyBase>> RSRenderFilterParaBase::GetLeafRenderProperties()
-    {
-        return {};
-    }
-
-    void RSRenderFilterParaBase::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
-    {
-        auto dst = canvas.GetDeviceClipBounds();
-        geoWidth_ = std::ceil(geoWidth);
-        geoHeight_ = std::ceil(geoHeight);
-        tranX_ = dst.GetLeft();
-        tranY_ = dst.GetTop();
-        mat_ = canvas.GetTotalMatrix();
-    }
-
-    Drawing::CanvasInfo RSRenderFilterParaBase::GetFilterCanvasInfo() const
-    {
-        return Drawing::CanvasInfo { geoWidth_, geoHeight_, tranX_, tranY_, mat_ };
-    }
-
+bool RSRenderFilterParaBase::IsValid() const
+{
+    return type_ != RSUIFilterType::NONE;
+}
+void RSRenderFilterParaBase::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
+{
+    auto dst = canvas.GetDeviceClipBounds();
+    geoWidth_ = std::ceil(geoWidth);
+    geoHeight_ = std::ceil(geoHeight);
+    tranX_ = dst.GetLeft();
+    tranY_ = dst.GetTop();
+    mat_ = canvas.GetTotalMatrix();
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -253,7 +253,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling001, TestSize.Level1
     EXPECT_FALSE(ret);
     // Test Unmarshalling none type
     Parcel noneParcel;
-    RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSUIFilterTypeUnderlying>(RSNGEffectType::NONE));
+    RSMarshallingHelper::Marshalling(noneParcel, static_cast<RSNGEffectTypeUnderlying>(RSNGEffectType::NONE));
     std::shared_ptr<RSNGRenderFilterBase> noneFilter;
     ret = RSNGRenderFilterBase::Unmarshalling(noneParcel, noneFilter);
     EXPECT_FALSE(ret);
@@ -293,7 +293,7 @@ HWTEST_F(RSRenderFilterBaseTest, MarshallingAndUnmarshalling002, TestSize.Level1
     auto filter = std::make_shared<RSNGRenderBlurFilter>();
     ret = (filter->Marshalling(parcel2));
     EXPECT_TRUE(ret);
-    RSUIFilterTypeUnderlying val = 0;
+    RSNGEffectTypeUnderlying val = 0;
     ret = RSMarshallingHelper::Unmarshalling(parcel2, val);
     EXPECT_TRUE(ret);
     current = filter;

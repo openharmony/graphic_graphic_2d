@@ -343,7 +343,6 @@ ohos_source_set("render_service_base_src") {
     "src/render/rs_shader.cpp",
     "src/render/rs_shadow.cpp",
     "src/render/rs_skia_filter.cpp",
-    "src/render/rs_sound_wave_filter.cpp",
     "src/render/rs_spherize_effect_filter.cpp",
     "src/render/rs_typeface_cache.cpp",
 

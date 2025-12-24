@@ -50,7 +50,6 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "transaction/rs_ashmem_helper.h"
 
-#include "render/rs_shader_filter.h"
 #include "ge_shader_filter.h"
 
 namespace OHOS::Rosen {

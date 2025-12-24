@@ -51,40 +51,18 @@ enum class RSUIFilterType : int16_t {
     ALWAYS_SNAPSHOT,
 };
 
-using RSUIFilterTypeUnderlying = std::underlying_type<RSUIFilterType>::type;
-
-class RSB_EXPORT RSRenderFilterParaBase : public RSRenderPropertyBase,
-    public std::enable_shared_from_this<RSRenderFilterParaBase> {
+class RSB_EXPORT RSRenderFilterParaBase : public std::enable_shared_from_this
+<RSRenderFilterParaBase> {
 public:
     RSRenderFilterParaBase() = default;
     RSRenderFilterParaBase(RSUIFilterType type) : type_(type) {}
     virtual ~RSRenderFilterParaBase() = default;
-
-    virtual std::shared_ptr<RSRenderFilterParaBase> DeepCopy() const
-    {
-        return nullptr;
-    }
 
     RSUIFilterType GetType() const;
 
     virtual bool IsValid() const;
 
     virtual void GetDescription(std::string& out) const {}
-
-    void Dump(std::string& out) const override;
-
-    virtual bool WriteToParcel(Parcel& parcel);
-
-    virtual bool ReadFromParcel(Parcel& parcel);
-
-    std::shared_ptr<RSRenderPropertyBase> GetRenderProperty(RSUIFilterType type) const;
-
-    virtual std::vector<std::shared_ptr<RSRenderPropertyBase>> GetLeafRenderProperties();
-
-    virtual bool ParseFilterValues()
-    {
-        return false;
-    }
 
     virtual void PreProcess(std::shared_ptr<Drawing::Image>& image) {};
     virtual std::shared_ptr<Drawing::Image> ProcessImage(Drawing::Canvas& canvas,
@@ -102,12 +80,8 @@ public:
     {
         return hash_;
     }
-    RSPropertyType GetPropertyType() const override {return RSPropertyType::INVALID;}
-    size_t GetSize() const override {return sizeof(*this);}
-    bool Marshalling(Parcel& parcel) override {return false;}
 
     virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
-    Drawing::CanvasInfo GetFilterCanvasInfo() const;
     virtual RectF CalcRect(const RectF& bound, EffectRectType type) const { return bound; }
 
 protected:
