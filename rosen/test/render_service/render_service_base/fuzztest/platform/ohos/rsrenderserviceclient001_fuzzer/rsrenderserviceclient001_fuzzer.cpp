@@ -152,7 +152,7 @@ bool DoGetTotalAppMemSize()
 
 bool DoCreateNode()
 {
-    std::shared_ptr<RSRenderServiceClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     RSDisplayNodeConfig displayNodeConfig = {
         .screenId = GetData<uint64_t>(),
         .isMirrored = GetData<bool>(),

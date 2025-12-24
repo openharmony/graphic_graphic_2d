@@ -61,7 +61,7 @@ const uint8_t TARGET_SIZE = 13;
 auto g_pid = getpid();
 sptr<RSIConnectionToken> g_token = nullptr;
 sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
-sptr<RSClientToServiceConnectionStub> g_toRenderConnectionStub = nullptr;
+sptr<RSClientToRenderConnectionStub> g_toRenderConnectionStub = nullptr;
 std::string g_originTag = "";
 
 void WriteUnirenderConfig(std::string& tag)

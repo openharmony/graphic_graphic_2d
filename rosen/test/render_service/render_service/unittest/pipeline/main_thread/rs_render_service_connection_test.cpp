@@ -427,8 +427,8 @@ HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
     ASSERT_NE(mainThread, nullptr);
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = new RSRenderPipelineAgent(renderPipeline_);
+    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     auto rsRenderServiceConnection =
         new RSClientToRenderConnection(g_pid, nullptr, renderPipelineAgent_, token_->AsObject());
 
@@ -559,8 +559,8 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
 
     sptr<RSIConnectionToken> token2 = new IRemoteStub<RSIConnectionToken>();
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = new RSRenderPipelineAgent(renderPipeline_);
+    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     auto clientToRenderConnection =
         new RSClientToRenderConnection(g_pid, nullptr, renderPipelineAgent_, token2_->AsObject());
     ASSERT_NE(clientToRenderConnection, nullptr);
@@ -588,8 +588,8 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
 
     sptr<RSIConnectionToken> token4 = new IRemoteStub<RSIConnectionToken>();
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr);
-    renderPipelineAgent_ = new RSRenderPipelineAgent(renderPipeline_);
+    renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     auto clientToRenderConnectionWithNullThread = new RSClientToRenderConnection(
         testPid, nullptr, renderPipelineAgent_, token4->AsObject());
     ASSERT_NE(clientToRenderConnectionWithNullThread, nullptr);

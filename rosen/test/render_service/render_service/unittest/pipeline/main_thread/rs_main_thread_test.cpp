@@ -6604,8 +6604,8 @@ HWTEST_F(RSMainThreadTest, CreateNodeAndSurfaceTest001, TestSize.Level1)
 {
     auto mainThread = RSMainThread::Instance();
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
-    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr);
-    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = new RSRenderPipelineAgent(renderPipeline_);
+    std::shared_ptr<RSRenderPipeline> renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    sptr<RSRenderPipelineAgent> renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     sptr<RSClientToRenderConnection> connection = new RSClientToRenderConnection(
         0, mainThread, renderPipelineAgent_, nullptr);
     RSSurfaceRenderNodeConfig config;

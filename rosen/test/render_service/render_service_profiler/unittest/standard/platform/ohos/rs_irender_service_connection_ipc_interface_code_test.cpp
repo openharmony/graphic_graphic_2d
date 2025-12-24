@@ -17,6 +17,7 @@
 
 #include "gtest/hwext/gtest-tag.h"
 #include "transaction/rs_iclient_to_service_connection_ipc_interface_code.h"
+#include "transaction/rs_iclient_to_render_connection_ipc_interface_code.h"
 
 namespace OHOS::Rosen {
 class RSIRenderServiceConnectionInterfaceCodeTest : public testing::Test {

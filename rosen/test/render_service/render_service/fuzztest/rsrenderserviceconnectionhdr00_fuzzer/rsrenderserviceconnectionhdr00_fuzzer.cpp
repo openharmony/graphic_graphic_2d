@@ -64,7 +64,8 @@ sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::R
 sptr<RSIConnectionToken> g_token = nullptr;
 sptr<RSClientToServiceConnectionStub> g_toServiceConnectionStub = nullptr;
 sptr<RSClientToServiceConnection> g_toServiceConnection = nullptr;
-sptr<RSClientToServiceConnectionStub> g_toRenderConnectionStub = nullptr;
+sptr<RSClientToRenderConnection> g_toRenderConnection = nullptr;
+sptr<RSClientToRenderConnectionStub> g_toRenderConnectionStub = nullptr;
 std::string g_originTag = "";
 
 void WriteUnirenderConfig(std::string& tag)
@@ -342,9 +343,10 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         OHOS::wptr<OHOS::Rosen::RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_,
         OHOS::Rosen::g_mainThread, screenManagerAgent_, OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
 
-    OHOS::Rosen::g_toRenderConnectionStub_ =
+    OHOS::Rosen::g_toRenderConnection =
         new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr, renderPipelineAgent_, OHOS::Rosen::g_token->AsObject());
     OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
+    OHOS::Rosen::g_toRenderConnectionStub = OHOS::Rosen::g_toRenderConnection;
 
 
 #ifdef RS_ENABLE_VK

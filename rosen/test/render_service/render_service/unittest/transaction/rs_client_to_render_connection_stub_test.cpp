@@ -112,12 +112,11 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     mainThread_ = new RSMainThread();
-    runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner_);
+    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
     auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
     token_ = new IRemoteStub<RSIConnectionToken>();
-    renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr);
-    renderPipelineAgent_ = new RSRenderPipelineAgent(renderPipeline_);
+    renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     connectionStub_ = new RSClientToRenderConnection(0, nullptr, renderPipelineAgent_, token_->AsObject());
 }
 
@@ -169,7 +168,6 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
 HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, TestSize.Level1)
 {
     auto newPid = getpid();
-    auto mainThread = RSMainThread::Instance();
 
     connectionStub_ =
         new RSClientToRenderConnection(newPid, nullptr, renderPipelineAgent_, token_->AsObject());
@@ -244,12 +242,12 @@ void RSClientToRenderConnectionStubTest::SetUp()
     if (!mainThread) {
         return;
     }
-    mainThread->runner_ = AppExecFwk::EventRunner::Create("RSClientToRenderConnectionStubTest");
+    auto runner_ = AppExecFwk::EventRunner::Create("RSClientToRenderConnectionStubTest");
     if (!mainThread->runner_) {
         return;
     }
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
-    mainThread->runner_->Run();
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
 }
 void RSClientToRenderConnectionStubTest::TearDown() {}
 int RSClientToRenderConnectionStubTest::OnRemoteRequestTest(uint32_t code)
@@ -644,13 +642,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     auto mainThread = connection->mainThread_;
@@ -702,7 +699,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -792,13 +788,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_OK);
 
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     auto mainThread = connection->mainThread_;
@@ -830,7 +825,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -844,13 +838,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 {
     constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
     ASSERT_NE(connectionStub_, nullptr);
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("FreezeScreenTest002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("FreezeScreenTest002");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     NodeId displayNodeId = 896;
@@ -874,7 +867,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -887,13 +879,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest004, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest004");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest004");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
 
@@ -928,7 +919,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 

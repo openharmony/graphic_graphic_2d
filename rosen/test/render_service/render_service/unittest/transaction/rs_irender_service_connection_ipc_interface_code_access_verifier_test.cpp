@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.h"
+#include "platform/ohos/transaction/rs_iclient_to_render_connection_ipc_interface_code_access_verifier.h"
 
 namespace OHOS::Rosen {
 class RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest : public testing::Test {
