@@ -79,7 +79,10 @@ ohos_unittest("RSScreenRenderNodeDrawableTest") {
     "$graphic_2d_root/rosen/modules/render_service_base/src/pipeline/rs_canvas_render_node.cpp",
     "rs_screen_render_node_drawable_test.cpp",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
