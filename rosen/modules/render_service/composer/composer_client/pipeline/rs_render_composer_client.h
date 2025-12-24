@@ -46,7 +46,7 @@ public:
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
     bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc);
-    std::shared_ptr<RSComposerContext> GetComposerContext() const;
+    std::shared_ptr<RSComposerContext> GetComposerContext();
     inline bool IsMultiProcess() const
     {
         return isMultiProcess_;

@@ -20,7 +20,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 HdiBackend* HdiBackend::GetInstance()
 {
     static HdiBackend instance;

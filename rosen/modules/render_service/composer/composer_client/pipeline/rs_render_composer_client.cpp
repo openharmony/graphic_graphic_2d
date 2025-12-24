@@ -97,11 +97,11 @@ void RSRenderComposerClient::ReleaseLayerBuffers(uint64_t screenId,
         NotifyComposerThreadCanExecuteTask();
     }
     rsComposerContext_->ReleaseLayerBuffers(screenId, timestampVec, releaseBufferFenceVec);
-
 }
 
-std::shared_ptr<RSComposerContext> RSRenderComposerClient::GetComposerContext() const
+std::shared_ptr<RSComposerContext> RSRenderComposerClient::GetComposerContext()
 {
+    std::unique_lock<std::mutex> lock(clientMutex_);
     return rsComposerContext_;
 }
 

@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 using RSLayerId = uint64_t;
 using RSLayerPropertyId = uint64_t;
 

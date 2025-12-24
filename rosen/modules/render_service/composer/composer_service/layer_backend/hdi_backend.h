@@ -27,7 +27,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 using OutputPtr = std::shared_ptr<HdiOutput>;
 
 using OnScreenHotplugFunc = std::function<void(OutputPtr& output, bool connected, void* data)>;

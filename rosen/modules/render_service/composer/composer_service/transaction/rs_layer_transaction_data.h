@@ -112,6 +112,7 @@ public:
     {
         pipelineParam_ = pipelineParam;
     }
+
 private:
     bool UnmarshallingRsLayerParcel(OHOS::MessageParcel& parcel);
     bool UnMarshallingRectI(OHOS::MessageParcel& parcel, RectI& rectI);
