@@ -29,72 +29,72 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
-bool RSRenderServiceClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};
 }
 
-bool RSRenderServiceClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
+bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 {
     return {};
 }
 
-std::shared_ptr<RSSurface> RSRenderServiceClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
+std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
     bool unobscured)
 {
     return std::make_shared<RSSurfaceDarwin>(reinterpret_cast<OnRenderFunc>(config.additionalData));
 }
 
-bool RSRenderServiceClient::RegisterBufferAvailableListener(
+bool RSRenderPipelineClient::RegisterBufferAvailableListener(
     NodeId id, const BufferAvailableCallback &callback, bool isFromRenderThread)
 {
     return {};
 }
 
-bool RSRenderServiceClient::RegisterBufferClearListener(
+bool RSRenderPipelineClient::RegisterBufferClearListener(
         NodeId id, const BufferClearCallback& callback)
 {
     return {};
 }
 
-bool RSRenderServiceClient::UnregisterBufferAvailableListener(NodeId id)
+bool RSRenderPipelineClient::UnregisterBufferAvailableListener(NodeId id)
 {
     return {};
 }
 
-bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
+bool RSRenderPipelineClient::SetGlobalDarkColorMode(bool isDark)
 {
     return {};
 }
 
-bool RSRenderServiceClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
+bool RSRenderPipelineClient::GetBitmap(NodeId id, Drawing::Bitmap& bitmap)
 {
     return {};
 }
 
-bool RSRenderServiceClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
+bool RSRenderPipelineClient::GetPixelmap(NodeId id, const std::shared_ptr<Media::PixelMap> pixelmap,
     const Drawing::Rect* rect, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)
 {
     return {};
 }
 
-bool RSRenderServiceClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
+bool RSRenderPipelineClient::SetSystemAnimatedScenes(SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation)
 {
     return {};
 }
 
 
-void RSRenderServiceClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
+void RSRenderPipelineClient::SetHardwareEnabled(NodeId id, bool isEnabled, SelfDrawingNodeType selfDrawingType,
     bool dynamicHardwareEnable)
 {
 }
 
-uint32_t RSRenderServiceClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
+uint32_t RSRenderPipelineClient::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
 {
     return {};
 }
 
-bool RSRenderServiceClient::GetHighContrastTextState()
+bool RSRenderPipelineClient::GetHighContrastTextState()
 {
     return false;
 }
@@ -216,19 +216,19 @@ void RSRenderPipelineClient::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
 }
 
-uint32_t RSRenderServiceClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
+uint32_t RSRenderPipelineClient::SetSurfaceWatermark(pid_t pid, const std::string &name,
     const std::shared_ptr<Media::PixelMap> &watermark,
     const std::vector<NodeId> &nodeIdList, SurfaceWatermarkType watermarkType)
 {
     return 0;
 }
     
-void RSRenderServiceClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
+void RSRenderPipelineClient::ClearSurfaceWatermarkForNodes(pid_t pid, const std::string &name,
     const std::vector<NodeId> &nodeIdList)
 {
 }
     
-void RSRenderServiceClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
+void RSRenderPipelineClient::ClearSurfaceWatermark(pid_t pid, const std::string &name)
 {
 }
 

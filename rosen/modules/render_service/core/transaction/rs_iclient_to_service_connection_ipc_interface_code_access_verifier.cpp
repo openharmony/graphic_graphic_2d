@@ -131,10 +131,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REPAINT_EVERYTHING");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_OCCLUSION_CHANGE_CALLBACK): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_OCCLUSION_CHANGE_CALLBACK");
             break;
@@ -339,14 +335,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHICS): {
             hasPermission = CheckPermission(code);
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_MEMORY_GRAPHIC): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_MEMORY_GRAPHIC");
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_REFRESH_INFO");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_REFRESH_INFO_TO_SP): {

@@ -112,7 +112,6 @@ const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 // all these pointers are valid, so will not check them.
 RSClientToServiceConnection::RSClientToServiceConnection(
     pid_t remotePid,
-    wptr<RSRenderService> renderService,
     sptr<RSRenderServiceAgent> renderServiceAgent,
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
     RSMainThread* mainThread,
@@ -120,13 +119,9 @@ RSClientToServiceConnection::RSClientToServiceConnection(
     sptr<IRemoteObject> token,
     sptr<VSyncDistributor> distributor)
     : remotePid_(remotePid),
-      renderService_(renderService),
       renderServiceAgent_(renderServiceAgent),
       renderProcessManagerAgent_(renderProcessManagerAgent),
       mainThread_(mainThread),
-#ifdef RS_ENABLE_GPU
-      renderThread_(RSUniRenderThread::Instance()),
-#endif
       screenManagerAgent_(screenManagerAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
@@ -135,9 +130,6 @@ RSClientToServiceConnection::RSClientToServiceConnection(
 {
     if (token_ == nullptr || !token_->AddDeathRecipient(connDeathRecipient_)) {
         RS_LOGW("RSClientToServiceConnection: Failed to set death recipient.");
-    }
-    if (renderService_ == nullptr) {
-        RS_LOGW("RSClientToServiceConnection: renderService_ is nullptr");
     }
     if (renderServiceAgent_ == nullptr) {
         RS_LOGE("RSClientToServiceConnection: renderServiceAgent_ is nullptr");
@@ -289,13 +281,8 @@ void RSClientToServiceConnection::CleanAll(bool toDelete) noexcept
         pidToBundleName_.clear();
     }
     if (toDelete) {
-        auto renderService = renderService_.promote();
-        if (renderService == nullptr) {
-            RS_LOGW("CleanAll() RenderService is dead.");
-        } else {
-            auto token = iface_cast<RSIConnectionToken>(GetToken());
-            renderService->RemoveConnection(token);
-        }
+        auto token = iface_cast<RSIConnectionToken>(GetToken());
+        renderServiceAgent_->RemoveToken(token);
     }
 
     RS_LOGD("CleanAll() end.");
@@ -760,9 +747,9 @@ void RSClientToServiceConnection::CleanBrightnessInfoChangeCallbacks()
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 void RSClientToServiceConnection::CleanCanvasCallbacksAndPendingBuffer() noexcept
 {
-    // auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
-    // bufferCache.RegisterCanvasCallback(remotePid_, nullptr);
-    // bufferCache.ClearPendingBufferByPid(remotePid_);
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    bufferCache.RegisterCanvasCallback(remotePid_, nullptr);
+    bufferCache.ClearPendingBufferByPid(remotePid_);
 }
 #endif
 
@@ -961,28 +948,6 @@ ErrCode RSClientToServiceConnection::MarkPowerOffNeedProcessOneFrame()
     }
     screenManagerAgent_->MarkPowerOffNeedProcessOneFrame();
     return ERR_OK;
-}
-
-ErrCode RSClientToServiceConnection::ForceRefreshOneFrameWithNextVSync()
-{
-    // if (!mainThread_) {
-    //     RS_LOGE("%{public}s mainThread_ is nullptr, return", __func__);
-    //     return ERR_INVALID_VALUE;
-    // }
-
-    // auto task = [weakThis = wptr<RSClientToServiceConnection>(this)]() -> void {
-    //     sptr<RSClientToServiceConnection> connection = weakThis.promote();
-    //     if (connection == nullptr || connection->mainThread_ == nullptr) {
-    //         return;
-    //     }
-
-    //     RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
-    //     connection->mainThread_->SetDirtyFlag();
-    //     connection->mainThread_->RequestNextVSync();
-    // };
-    // mainThread_->PostTask(task);
-    // return ERR_OK;
-    return ERR_OK; // ??? todo
 }
 
 ErrCode RSClientToServiceConnection::RepaintEverything()
@@ -1516,7 +1481,7 @@ ErrCode RSClientToServiceConnection::SetScreenActiveRect(ScreenId id, const Rect
         .w = activeRect.w,
         .h = activeRect.h,
     };
-    if (!mainThread_) {
+    if (!renderServiceAgent_) {
         repCode = StatusCode::INVALID_ARGUMENTS;
         return ERR_INVALID_VALUE;
     }
@@ -1527,7 +1492,7 @@ ErrCode RSClientToServiceConnection::SetScreenActiveRect(ScreenId id, const Rect
         }
         screenManager->SetScreenActiveRect(id, dstActiveRect);
     };
-    mainThread_->ScheduleTask(task).wait();
+    renderServiceAgent_->ScheduleTask(std::move(task)).wait();
 
     HgmTaskHandleThread::Instance().PostTask([id, dstActiveRect]() {
         HgmCore::Instance().NotifyScreenRectFrameRateChange(id, dstActiveRect);
@@ -1656,24 +1621,6 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
         return -1;
     }
     return hgmContext_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(remotePid_, dstPid, callback);
-}
-
-ErrCode RSClientToServiceConnection::SetAppWindowNum(uint32_t num)
-{
-    // 遗漏
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
-    auto task = [weakThis = wptr<RSClientToServiceConnection>(this), num]() -> void {
-        sptr<RSClientToServiceConnection> connection = weakThis.promote();
-        if (!connection || !connection->mainThread_) {
-            return;
-        }
-        connection->mainThread_->SetAppWindowNum(num);
-    };
-    mainThread_->PostTask(task);
-
-    return ERR_OK; 
 }
 
 void RSClientToServiceConnection::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

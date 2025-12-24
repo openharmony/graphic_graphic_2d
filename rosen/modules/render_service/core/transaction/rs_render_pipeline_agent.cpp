@@ -163,6 +163,46 @@ ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNode
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
+{
+    if (!rsRenderPipeline_) {
+        RS_LOGE("%{public}s rsRenderPipeline_ is nullptr, return", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    auto task = [weakThis = wptr<RSRenderPipelineAgent>(this)]() -> void {
+        sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+        if (agent == nullptr || agent->rsRenderPipeline_ == nullptr ||
+                agent->rsRenderPipeline_->mainThread_ == nullptr) {
+            return;
+        }
+
+        RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
+        agent->rsRenderPipeline_->mainThread_->SetDirtyFlag();
+        agent->rsRenderPipeline_->mainThread_->RequestNextVSync();
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSRenderPipelineAgent::SetAppWindowNum(uint32_t num)
+{
+    if (!rsRenderPipeline_) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weakThis = wptr<RSRenderPipelineAgent>(this), num]() -> void {
+        sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+        if (agent == nullptr || agent->rsRenderPipeline_ == nullptr ||
+                agent->rsRenderPipeline_->mainThread_ == nullptr) {
+            return;
+        }
+        agent->rsRenderPipeline_->mainThread_->SetAppWindowNum(num);
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+
+    return ERR_OK; 
+}
+
 ErrCode RSRenderPipelineAgent::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
 {
     if (!rsRenderPipeline_->mainThread_) {

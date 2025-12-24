@@ -63,9 +63,6 @@
 
 namespace OHOS {
 namespace Rosen {
-// namespace {
-//     static constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
-// }
 
 class RSIClientToRenderConnection : public IRemoteBroker {
 public:
@@ -134,6 +131,10 @@ public:
         RSSurfaceCapturePermissions permissions = RSSurfaceCapturePermissions()) = 0;
 
     virtual ErrCode FreezeScreen(NodeId id, bool isFreeze) = 0;
+
+    virtual ErrCode ForceRefreshOneFrameWithNextVSync() = 0;
+
+    virtual ErrCode SetAppWindowNum(uint32_t num) = 0;
 
     virtual void TakeUICaptureInRange(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
         const RSSurfaceCaptureConfig& captureConfig) = 0;

@@ -51,6 +51,10 @@ ErrCode RSClientToServiceConnectionProxy::GetUniRenderEnabled(bool& enable)
     MessageOption option;
 
     option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetUniRenderEnabled: WriteInterfaceToken RSIClientToServiceConnection::GetDescriptor() err.");
+        return false;
+    }
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -74,6 +78,12 @@ ErrCode RSClientToServiceConnectionProxy::CreateVSyncConnection(sptr<IVSyncConne
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("CreateVSyncConnection: WriteInterfaceToken RSIClientToServiceConnection::GetDescriptor() err.");
+        vsyncConn = nullptr;
+        return ERR_INVALID_VALUE;
+    }
 
     if (!data.WriteString(name)) {
         ROSEN_LOGE("CreateVSyncConnection: WriteString name err.");
@@ -122,6 +132,11 @@ ErrCode RSClientToServiceConnectionProxy::GetPixelMapByProcessId(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("GetPixelMapByProcessId: WriteInterfaceToken RSIClientToServiceConnection::GetDescriptor() err.");
+        repCode = WRITE_PARCEL_ERR;
+        return ERR_INVALID_VALUE;
+    }
     if (!data.WriteUint64(pid)) {
         ROSEN_LOGE("GetPixelMapByProcessId: WriteUint64 pid err.");
         repCode = WRITE_PARCEL_ERR;
@@ -1497,26 +1512,6 @@ ErrCode RSClientToServiceConnectionProxy::RepaintEverything()
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code =
         static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPAINT_EVERYTHING);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        return ERR_INVALID_VALUE;
-    }
-    return ERR_OK;
-}
-
-ErrCode RSClientToServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync()
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         return ERR_INVALID_VALUE;
@@ -3324,30 +3319,6 @@ int32_t RSClientToServiceConnectionProxy::RegisterFrameRateLinkerExpectedFpsUpda
         return READ_PARCEL_ERR;
     }
     return result;
-}
-
-ErrCode RSClientToServiceConnectionProxy::SetAppWindowNum(uint32_t num)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
-        return ERR_INVALID_VALUE;
-    }
-    option.SetFlags(MessageOption::TF_ASYNC);
-    if (!data.WriteUint32(num)) {
-        ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
-        return ERR_INVALID_VALUE;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetAppWindowNum: Send Request err.");
-        return ERR_INVALID_VALUE;
-    }
-
-    return ERR_OK;
 }
 
 ErrCode RSClientToServiceConnectionProxy::SetWatermark(const std::string& name,
