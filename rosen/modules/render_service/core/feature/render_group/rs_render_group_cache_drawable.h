@@ -37,9 +37,17 @@ public:
     static void SetDrawExcludedSubTreeForCache(bool value);
     static bool IsDrawingExcludedSubTreeForCache();
 
+    void SetLastFrameCacheRootHasExcludedChild(bool hasFilter);
+    bool IsLastFrameCacheRootHasExcludedChild() const
+    {
+        return isLastFrameCacheRootHasExcludedChild_;
+    }
+
 private:
     static thread_local bool drawBlurForCache_;
     static thread_local bool drawExcludedSubTreeForCache_;
+
+    bool isLastFrameCacheRootHasExcludedChild_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

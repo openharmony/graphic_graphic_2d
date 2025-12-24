@@ -432,7 +432,7 @@ HWTEST_F(RSRenderNodeDrawableTest, DrawCachedImageTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
+HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest001, TestSize.Level1)
 {
     auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
     Drawing::Canvas canvas;
@@ -481,6 +481,27 @@ HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest, TestSize.Level1)
     updateTimes = 0;
     result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
     ASSERT_TRUE(result);
+}
+
+/**
+ * @tc.name: CheckIfNeedUpdateCacheTest002
+ * @tc.desc: Test If CheckIfNeedUpdateCache Can Run
+ * @tc.type: FUNC
+ * @tc.require: #I9NVOG
+ */
+HWTEST_F(RSRenderNodeDrawableTest, CheckIfNeedUpdateCacheTest002, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+    int32_t updateTimes = 0;
+    auto result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
+    EXPECT_FALSE(result);
+
+    drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    params.SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    result = drawable->CheckIfNeedUpdateCache(params, updateTimes);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -553,7 +574,6 @@ HWTEST_F(RSRenderNodeDrawableTest, TraverseSubTreeAndDrawFilterWithClipTest, Tes
     drawable->TraverseSubTreeAndDrawFilterWithClip(canvas, params);
     ASSERT_FALSE(drawable->filterInfoVec_.empty());
 }
-
 
 /**
  * @tc.name: DrawWithoutNodeGroupCache
@@ -633,6 +653,46 @@ HWTEST_F(RSRenderNodeDrawableTest, ClearDrawingCacheContiUpdateTimeMapTest, Test
     drawable1->ClearDrawingCacheContiUpdateTimeMap();
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(id), 0);
     EXPECT_EQ(RSRenderNodeDrawable::drawingCacheContinuousUpdateTimeMap_.count(drawable2->GetId()), 1);
+}
+
+/**
+ * @tc.name: UpdateCurRenderGroupCacheRootFilterStateTest
+ * @tc.desc: Test If UpdateCurRenderGroupCacheRootFilterState Can Run
+ * @tc.type: FUNC
+ * @tc.require: issueIAEDYI
+ */
+HWTEST_F(RSRenderNodeDrawableTest, UpdateCurRenderGroupCacheRootFilterStateTest, TestSize.Level1)
+{
+    auto drawable = RSRenderNodeDrawableTest::CreateDrawable();
+    RSRenderParams params(RSRenderNodeDrawableTest::id);
+
+    ASSERT_EQ(drawable->renderGroupCache_, nullptr);
+    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    auto rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    ASSERT_NE(drawable->renderGroupCache_, nullptr);
+    EXPECT_FALSE(rst);
+
+    params.SetChildHasVisibleFilter(true);
+    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_TRUE(rst);
+
+    params.SetChildHasVisibleFilter(false);
+    params.SetChildHasVisibleEffect(true);
+    EXPECT_FALSE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_TRUE(rst);
+
+    params.SetChildHasVisibleEffect(false);
+    params.SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_TRUE(rst);
+
+    params.SetHasChildExcludedFromNodeGroup(false);
+    EXPECT_TRUE(drawable->IsCurRenderGroupCacheRootExcludedStateChanged(params));
+    rst = drawable->UpdateCurRenderGroupCacheRootFilterState(params);
+    EXPECT_FALSE(rst);
 }
 
 /**

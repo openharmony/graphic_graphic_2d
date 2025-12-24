@@ -39,5 +39,9 @@ bool RSRenderGroupCacheDrawable::IsDrawingExcludedSubTreeForCache()
     return drawExcludedSubTreeForCache_;
 }
 
+void RSRenderGroupCacheDrawable::SetLastFrameCacheRootHasExcludedChild(bool hasFilter)
+{
+    isLastFrameCacheRootHasExcludedChild_ = hasFilter;
+}
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -227,8 +227,7 @@ CM_INLINE void RSRenderNodeDrawable::GenerateCacheIfNeed(
     // reset drawing cache changed false for render param if drawable is visited this frame
     // if this drawble is skipped due to occlusion skip of app surface node, this flag should be kept for next frame
     params.SetDrawingCacheChanged(false, true);
-    bool hasFilter =
-        params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
+    bool hasFilter = UpdateCurRenderGroupCacheRootFilterState(params);
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE || (!needUpdateCache && !hasFilter))
         && !GetOpincDrawCache().OpincGetCachedMark() && !params.GetRSFreezeFlag()) {
         return;
@@ -306,6 +305,23 @@ void RSRenderNodeDrawable::TraverseSubTreeAndDrawFilterWithClip(Drawing::Canvas&
     isOpDropped_ = isOpDropped;
     SetDrawBlurForCache(false);
     curDrawingCacheRoot_ = root;
+}
+
+bool RSRenderNodeDrawable::UpdateCurRenderGroupCacheRootFilterState(const RSRenderParams& params)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCacheDrawable>();
+    }
+    renderGroupCache_->SetLastFrameCacheRootHasExcludedChild(params.HasChildExcludedFromNodeGroup());
+    return params.ChildHasVisibleFilter() || params.ChildHasVisibleEffect() || params.HasChildExcludedFromNodeGroup();
+}
+
+bool RSRenderNodeDrawable::IsCurRenderGroupCacheRootExcludedStateChanged(const RSRenderParams& params) const
+{
+    if (!renderGroupCache_) {
+        return false;
+    }
+    return renderGroupCache_->IsLastFrameCacheRootHasExcludedChild() != params.HasChildExcludedFromNodeGroup();
 }
 
 bool RSRenderNodeDrawable::SkipDrawByWhiteList(Drawing::Canvas& canvas)
@@ -942,7 +958,6 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
     if (params.GetRSFreezeFlag()) {
         return updateTimes == 0;
     }
-
     if ((params.GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE && params.NeedFilter() &&
         params.GetDrawingCacheIncludeProperty()) || ROSEN_LE(params.GetCacheSize().x_, 0.f) ||
         ROSEN_LE(params.GetCacheSize().y_, 0.f)) {
@@ -950,12 +965,13 @@ bool RSRenderNodeDrawable::CheckIfNeedUpdateCache(RSRenderParams& params, int32_
         ClearCachedSurface();
         return false;
     }
-
     if (NeedInitCachedSurface(params.GetCacheSize())) {
         ClearCachedSurface();
         return true;
     }
-
+    if (IsCurRenderGroupCacheRootExcludedStateChanged(params)) {
+        return true;
+    }
     if (updateTimes == 0 || params.GetDrawingCacheChanged()) {
         return true;
     }

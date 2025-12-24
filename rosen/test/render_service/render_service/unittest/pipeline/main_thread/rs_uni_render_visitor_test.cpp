@@ -4038,6 +4038,110 @@ HWTEST_F(RSUniRenderVisitorTest, CollectEffectInfo009, TestSize.Level2)
     EXPECT_TRUE(rsUniRenderVisitor->childHasProtectedNodeSet_.count(nodeId));
 }
 
+/**
+ * @tc.name: SetRenderGroupSubTreeDirtyIfNeedTest
+ * @tc.desc: Test SetRenderGroupSubTreeDirtyIfNeed
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, SetRenderGroupSubTreeDirtyIfNeedTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+
+    auto node1 = std::make_shared<RSRenderNode>(1);
+    auto node2 = std::make_shared<RSRenderNode>(2);
+    node2->SetDirty();
+    auto cacheRoot = std::make_shared<RSCanvasRenderNode>(10);
+    cacheRoot->SetDrawingCacheType(RSDrawingCacheType::FORCED_CACHE);
+
+    // renderGroupCacheRoots_ is empty
+    rsUniRenderVisitor->SetRenderGroupSubTreeDirtyIfNeed(*node1);
+    EXPECT_FALSE(cacheRoot->IsRenderGroupSubTreeDirty());
+    EXPECT_FALSE(rsUniRenderVisitor->hasMarkedRenderGroupSubTreeDirty_);
+
+    // renderGroupCacheRoots_ is not empty, but subTree node is not dirty
+    rsUniRenderVisitor->AddRenderGroupCacheRoot(*cacheRoot);
+    rsUniRenderVisitor->SetRenderGroupSubTreeDirtyIfNeed(*node1);
+    EXPECT_FALSE(cacheRoot->IsRenderGroupSubTreeDirty());
+    EXPECT_FALSE(rsUniRenderVisitor->hasMarkedRenderGroupSubTreeDirty_);
+
+    // subtree node dirty but excluded
+    rsUniRenderVisitor->curExcludedRootNodeId_ = 10086;
+    EXPECT_TRUE(rsUniRenderVisitor->IsOnRenderGroupExcludedSubTree());
+    rsUniRenderVisitor->SetRenderGroupSubTreeDirtyIfNeed(*node2);
+    EXPECT_FALSE(cacheRoot->IsRenderGroupSubTreeDirty());
+    EXPECT_FALSE(rsUniRenderVisitor->hasMarkedRenderGroupSubTreeDirty_);
+
+    // normal case
+    rsUniRenderVisitor->curExcludedRootNodeId_ = INVALID_NODEID;
+    rsUniRenderVisitor->SetRenderGroupSubTreeDirtyIfNeed(*node2);
+    EXPECT_TRUE(cacheRoot->IsRenderGroupSubTreeDirty());
+    EXPECT_TRUE(rsUniRenderVisitor->hasMarkedRenderGroupSubTreeDirty_);
+
+    // already marked dirty
+    rsUniRenderVisitor->SetRenderGroupSubTreeDirtyIfNeed(*node2);
+    EXPECT_TRUE(cacheRoot->IsRenderGroupSubTreeDirty());
+    EXPECT_TRUE(rsUniRenderVisitor->hasMarkedRenderGroupSubTreeDirty_);
+
+    // pop cache root
+    rsUniRenderVisitor->PopRenderGroupCacheRoot(*cacheRoot);
+    EXPECT_TRUE(rsUniRenderVisitor->renderGroupCacheRoots_.empty());
+}
+
+/**
+ * @tc.name: IsCurrentSubTreeForcePrepareTest
+ * @tc.desc: Test IsCurrentSubTreeForcePrepare
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsCurrentSubTreeForcePrepareTest001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->isDrawingCacheEnabled_ = true;
+    bool& forcePrepare = rsUniRenderVisitor->isCurSubTreeForcePrepare_;
+
+    RSCanvasRenderNode canvasNode(1);
+    node1->SetRenderGroupExcludedStateChanged(true);
+    {
+        RSSubTreePrepareController controller(
+            forcePrepare, rsUniRenderVisitor->IsCurrentSubTreeForcePrepare(canvasNode));
+        EXPECT_TRUE(forcePrepare);
+    }
+    EXPECT_FALSE(forcePrepare);
+    EXPECT_FALSE(canvasNode.IsRenderGroupExcludedStateChanged());
+    {
+        RSSubTreePrepareController controller(
+            forcePrepare, rsUniRenderVisitor->IsCurrentSubTreeForcePrepare(canvasNode));
+        EXPECT_FALSE(forcePrepare);
+    }
+}
+
+/**
+ * @tc.name: ForcePrepareSubTreeTest
+ * @tc.desc: Test ForcePrepareSubTree
+ * @tc.type: FUNC
+ * @tc.require: issueIASE3Z
+ */
+HWTEST_F(RSUniRenderVisitorTest, ForcePrepareSubTreeTest, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    bool result = rsUniRenderVisitor->ForcePrepareSubTree();
+    EXPECT_FALSE(result);
+
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = true;
+    result = rsUniRenderVisitor->ForcePrepareSubTree();
+    EXPECT_TRUE(result);
+
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = false;
+    rsUniRenderVisitor->isCurSubTreeForcePrepare_ = true;
+    result = rsUniRenderVisitor->ForcePrepareSubTree();
+    EXPECT_TRUE(result);
+}
+
 /*
  * @tc.name: CheckIsGpuOverDrawBufferOptimizeNode001
  * @tc.desc: Verify function CheckIsGpuOverDrawBufferOptimizeNode while node has no child
@@ -7541,6 +7645,7 @@ HWTEST_F(RSUniRenderVisitorTest, RenderGroupCacheTypeTest016, TestSize.Level2)
     RSDrawingCacheType drawingcacheType = rsUnionRenderNode->GetDrawingCacheType();
     EXPECT_EQ(drawingcacheType, RSDrawingCacheType::DISABLED_CACHE);
 }
+
 
 /**
  * @tc.name: DisableOccludedHwcNodeInSkippedSubTreeTest001
