@@ -97,12 +97,9 @@ void RSScreenRenderNodeDrawableTest::SetUp()
         return;
     }
     // init RSScreen
-    auto output = std::make_shared<HdiOutput>(renderNode_->GetScreenId());
-    auto rsScreen = std::make_shared<RSScreen>(output);
+    auto rsScreen = std::make_shared<RSScreen>(renderNode_->GetScreenId());
     screenManager_->MockHdiScreenConnected(rsScreen);
-    auto mirroredOutput = std::make_shared<HdiOutput>(mirroredNode_->GetScreenId());
-    auto output2 = std::make_shared<HdiOutput>(mirroredNode_->GetScreenId());
-    auto mirroredRsScreen = std::make_shared<RSScreen>(output2);
+    auto mirroredRsScreen = std::make_shared<RSScreen>(mirroredNode_->GetScreenId());
     screenManager_->MockHdiScreenConnected(mirroredRsScreen);
 
     renderNode_->AddChild(displayRenderNode_);
@@ -229,7 +226,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameTest, TestSize.Level1)
     ASSERT_NE(screenDrawable_->renderParams_, nullptr);
 
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
     auto result = screenDrawable_->RequestFrame(*params, processor);
     ASSERT_EQ(result, nullptr);
 
@@ -282,7 +279,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkipTest, TestSize.Level
 
     auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
     ASSERT_NE(params, nullptr);
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
     auto result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     ASSERT_EQ(result, true);
@@ -833,7 +830,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CalculateVirtualDirtyTest, TestSize.Lev
         mirroredNode_->renderDrawable_ = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(mirroredNode_);
     }
     params->mirrorSourceDrawable_ = mirroredNode_->GetRenderDrawable();
-    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType());
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), nullptr);
     auto virtualProcesser = std::make_shared<RSUniRenderVirtualProcessor>();
     Drawing::Matrix matrix;
     sleep(1);
@@ -2052,7 +2049,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrame_NullRenderEngine, TestSize
     // ensure render engine is null
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
     auto renderFrame = screenDrawable_->RequestFrame(*params, processor);
     EXPECT_EQ(renderFrame, nullptr);
 }
@@ -2073,7 +2070,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkip_DirtyFrame, TestSiz
     // set dirty flag
     RSMainThread::Instance()->SetDirtyFlag(true);
 
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
     bool result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     EXPECT_FALSE(result);
 
@@ -2097,7 +2094,7 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckScreenNodeSkip_HDRStausChanged, Te
     // set hdr status changed
     params->isHDRStatusChanged_ = true;
 
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
     bool result = screenDrawable_->CheckScreenNodeSkip(*params, processor);
     EXPECT_FALSE(result);
 }

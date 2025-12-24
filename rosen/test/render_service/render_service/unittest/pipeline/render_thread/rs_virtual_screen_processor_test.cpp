@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ void RSVirtualScreenProcessorTest::TearDown() {}
 HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 {
     // The best way to create RSSoftwareProcessor.
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto p = RSProcessorFactory::CreateProcessor(CompositeType::SOFTWARE_COMPOSITE, client);
     ASSERT_NE(p, nullptr);
 }
@@ -63,7 +63,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy001, TestSize.Level1)
 HWTEST_F(RSVirtualScreenProcessorTest, CreateAndDestroy002, TestSize.Level1)
 {
     RSProcessorFactory factory;
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto p = factory.CreateProcessor(CompositeType::SOFTWARE_COMPOSITE, client);
     EXPECT_NE(p.get(), nullptr);
 }
@@ -82,14 +82,14 @@ HWTEST_F(RSVirtualScreenProcessorTest, Init, TestSize.Level1)
     int32_t offsetY = 0;
     auto rsContext = std::make_shared<RSContext>();
     RSScreenRenderNode rsScreenRenderNode(id, 0, rsContext->weak_from_this());
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     auto& uniRenderThread = RSUniRenderThread::Instance();
     uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
     auto renderEngine = uniRenderThread.GetRenderEngine();
     ASSERT_NE(nullptr, rsSoftwareProcessor);
-    ASSERT_EQ(false, rsSoftwareProcessor->Init(rsDisplayRenderNode, offsetX, offsetY, renderEngine));
+    ASSERT_EQ(false, rsSoftwareProcessor->Init(rsScreenRenderNode, offsetX, offsetY, renderEngine));
 
     RSSurfaceRenderNodeConfig sConfig;
     RSSurfaceRenderNode rsSurfaceRenderNode(sConfig);
@@ -106,14 +106,16 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest002, TestSize.Level1)
 {
     NodeId nodeId = 100;
     ScreenId screenId = 100;
-    ScreenId mirroredId = 0;
     int32_t offsetX = 0;
     int32_t offsetY = 0;
     RSScreenRenderNode rsScreenRenderNode(nodeId, screenId);
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
-    ASSERT_EQ(false, virtualScreenProcessor->Init(rsScreenRenderNode, offsetX, offsetY, mirroredId, renderEngine));
+    auto& uniRenderThread = RSUniRenderThread::Instance();
+    uniRenderThread.uniRenderEngine_ = std::make_shared<RSUniRenderEngine>();
+    auto renderEngine = uniRenderThread.GetRenderEngine();
+    ASSERT_EQ(false, virtualScreenProcessor->Init(rsScreenRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**
@@ -124,7 +126,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest002, TestSize.Level1)
  */
 HWTEST_F(RSVirtualScreenProcessorTest, InitTest003, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(nullptr, virtualScreenProcessor);
@@ -144,7 +146,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest003, TestSize.Level1)
     auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId, context->weak_from_this());
     rsScreenRenderNode->AddChild(rsSurfaceRenderNode);
     ASSERT_EQ(rsScreenRenderNode->GetChildrenCount(), 1);
-    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**
@@ -155,7 +157,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest003, TestSize.Level1)
  */
 HWTEST_F(RSVirtualScreenProcessorTest, InitTest004, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(nullptr, virtualScreenProcessor);
@@ -177,7 +179,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest004, TestSize.Level1)
         context->weak_from_this());
     rsScreenRenderNode->AddChild(rsLogicalDisplayRenderNode);
     ASSERT_EQ(rsScreenRenderNode->GetChildrenCount(), 1);
-    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**
@@ -188,7 +190,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest004, TestSize.Level1)
  */
 HWTEST_F(RSVirtualScreenProcessorTest, InitTest005, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(nullptr, virtualScreenProcessor);
@@ -211,7 +213,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest005, TestSize.Level1)
     rsLogicalDisplayRenderNode->SetBootAnimation(true);
     rsScreenRenderNode->AddChild(rsLogicalDisplayRenderNode);
     ASSERT_EQ(rsScreenRenderNode->GetChildrenCount(), 1);
-    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**
@@ -222,7 +224,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest005, TestSize.Level1)
  */
 HWTEST_F(RSVirtualScreenProcessorTest, InitTest006, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto virtualScreenProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(nullptr, virtualScreenProcessor);
@@ -248,7 +250,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, InitTest006, TestSize.Level1)
     rsScreenRenderNode->AddChild(rsLogicalDisplayRenderNode1);
     rsScreenRenderNode->AddChild(rsLogicalDisplayRenderNode2);
     ASSERT_EQ(rsScreenRenderNode->GetChildrenCount(), 2);
-    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, INVALID_SCREEN_ID, renderEngine));
+    ASSERT_FALSE(virtualScreenProcessor->Init(*rsScreenRenderNode, offsetX, offsetY, renderEngine));
 }
 
 /**
@@ -262,7 +264,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessSurface001, TestSize.Level1)
 {
     RSSurfaceRenderNodeConfig config;
     RSSurfaceRenderNode rsSurfaceRenderNode(config);
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(rsSoftwareProcessor, nullptr);
@@ -281,7 +283,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessScreenSurface, TestSize.Level1)
     NodeId id = 0;
     auto rsContext = std::make_shared<RSContext>();
     RSScreenRenderNode rsDisplayRenderNode(id, 0, rsContext->weak_from_this());
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(nullptr, rsSoftwareProcessor);
@@ -297,7 +299,7 @@ HWTEST_F(RSVirtualScreenProcessorTest, ProcessScreenSurface, TestSize.Level1)
  */
 HWTEST_F(RSVirtualScreenProcessorTest, PostProcess001, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr);
+    std::shared_ptr<RSRenderComposerClient> client = RSRenderComposerClient::Create(true, nullptr, nullptr, nullptr);
     auto rsSoftwareProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         SOFTWARE_COMPOSITE, client);
     ASSERT_NE(rsSoftwareProcessor, nullptr);

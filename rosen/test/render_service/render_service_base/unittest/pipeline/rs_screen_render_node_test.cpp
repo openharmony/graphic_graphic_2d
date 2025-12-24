@@ -268,26 +268,6 @@ HWTEST_F(RSScreenRenderNodeTest, SetIsMirrorScreenTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetReleaseTaskTest
- * @tc.desc: test result for SetReleaseTask
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenRenderNodeTest, SetReleaseTaskTest, TestSize.Level1)
-{
-    auto node = std::make_shared<RSScreenRenderNode>(id, 0, context);
-    EXPECT_NE(node, nullptr);
-    node->releaseScreenDmaBufferTask_ = nullptr;
-    node->SetReleaseTask([](ScreenId id) {});
-    node->SetReleaseTask(nullptr);
-
-    auto task = [](ScreenId id) {};
-    node->releaseScreenDmaBufferTask_ = task;
-    node->SetReleaseTask([](ScreenId id) {});
-    node->SetReleaseTask(task);
-}
-
-/**
  * @tc.name: ResetMirrorSourceTest
  * @tc.desc: test results of ResetMirrorSource
  * @tc.type:FUNC
@@ -1101,5 +1081,19 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest005, TestSize.Level1)
     screenNode->screenProperty_.producerSurface_ = psurface;
     screenNode->CheckSurfaceChanged();
     EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
+}
+
+/**
+ * @tc.name: SetIsScreenValidTest
+ * @tc.desc: test results of SetIsScreenValid
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetIsScreenValidTest, TestSize.Level1)
+{
+    NodeId id = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->SetIsScreenValid(false);
+    screenNode->IsVirtualSurfaceChanged();
 }
 } // namespace OHOS::Rosen
