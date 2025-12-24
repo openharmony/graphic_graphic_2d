@@ -54,24 +54,27 @@ void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visit
     visitor->QuickPrepareUnionRenderNode(*this);
 }
 
-void RSUnionRenderNode::UpdateVisibleUnionChildren(RSRenderNode& childNode)
+void RSUnionRenderNode::AddUnionChild(NodeId id)
 {
-    if (childNode.GetRenderProperties().GetUseUnion() && !childNode.GetOldDirtyInSurface().IsEmpty()) {
-        visibleUnionChildren_.emplace(childNode.GetId());
-    }
+    unionChildren_.emplace(id);
 }
 
-void RSUnionRenderNode::ResetVisibleUnionChildren()
+void RSUnionRenderNode::RemoveUnionChild(NodeId id)
 {
-    visibleUnionChildren_.clear();
+    unionChildren_.erase(id);
+}
+
+void RSUnionRenderNode::ResetUnionChildren()
+{
+    unionChildren_.clear();
 }
 
 void RSUnionRenderNode::ProcessSDFShape()
 {
-    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, visibleUnionChildren_[%lu], UnionSpacing[%f]",
-        visibleUnionChildren_.size(), GetRenderProperties().GetUnionSpacing());
+    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f]",
+        unionChildren_.size(), GetRenderProperties().GetUnionSpacing());
     std::shared_ptr<RSNGRenderShapeBase> root;
-    if (visibleUnionChildren_.empty()) {
+    if (unionChildren_.empty()) {
         if (GetRenderProperties().GetSDFShape() &&
             GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
             return;
@@ -175,12 +178,5 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape
     childShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     return childShape;
 }
-
-void RSUnionRenderNode::ResetChildRelevantFlags()
-{
-    visibleUnionChildren_.clear();
-    RSRenderNode::ResetChildRelevantFlags();
-}
-
 } // namespace Rosen
 } // namespace OHOS

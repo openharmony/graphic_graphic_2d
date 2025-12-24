@@ -52,6 +52,7 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_union_render_node.h"
 #include "pipeline/sk_resource_manager.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "platform/common/rs_log.h"
@@ -3156,6 +3157,7 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT))) {
         ProcessBehindWindowAfterApplyModifiers();
     }
+    ProcessUnionInfoAfterApplyModifiers();
 
     RS_LOGI_IF(DEBUG_NODE,
         "RSRenderNode::apply modifiers RenderProperties's sandBox's hasValue is %{public}d"
@@ -3765,6 +3767,7 @@ void RSRenderNode::OnTreeStateChanged()
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
         ProcessBehindWindowOnTreeStateChanged();
     }
+    ProcessUnionInfoOnTreeStateChanged();
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -5292,6 +5295,46 @@ void RSRenderNode::ResetFilterInfo()
 {
     // reset filterRegionInfo_ and will regenerate in postPrepare if need
     filterRegionInfo_ = nullptr;
+}
+
+void RSRenderNode::ProcessUnionInfoOnTreeStateChanged()
+{
+    if (!GetRenderProperties().GetUseUnion()) {
+        return;
+    }
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSRenderNode::ProcessUnionInfoOnTreeStateChanged: invalid context");
+        return;
+    }
+    auto unionNode = context->GetNodeMap().GetRenderNode<RSUnionRenderNode>(unionNodeId_);
+    if (!unionNode) {
+        ROSEN_LOGD("RSRenderNode::ProcessUnionInfoOnTreeStateChanged: invalid unionNode");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::ProcessUnionInfoOnTreeStateChanged node[%llu], unionNode[%llu], "
+        "isOnTheTree[%d]", GetId(), unionNodeId_, isOnTheTree_);
+    isOnTheTree_ ? unionNode->AddUnionChild(GetId()) : unionNode->RemoveUnionChild(GetId());
+}
+
+void RSRenderNode::ProcessUnionInfoAfterApplyModifiers()
+{
+    if (!dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
+        return;
+    }
+    auto context = GetContext().lock();
+    if (!context) {
+        ROSEN_LOGE("RSRenderNode::ProcessUnionInfoAfterApplyModifiers: invalid context");
+        return;
+    }
+    auto unionNode = context->GetNodeMap().GetRenderNode<RSUnionRenderNode>(unionNodeId_);
+    if (!unionNode) {
+        ROSEN_LOGD("RSRenderNode::ProcessUnionInfoAfterApplyModifiers: invalid unionNode");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::ProcessUnionInfoAfterApplyModifiers node[%llu], unionNode[%llu], "
+        "UseUnion[%d]", GetId(), unionNodeId_, GetRenderProperties().GetUseUnion());
+    GetRenderProperties().GetUseUnion() ? unionNode->AddUnionChild(GetId()) : unionNode->RemoveUnionChild(GetId());
 }
 } // namespace Rosen
 } // namespace OHOS

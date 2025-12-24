@@ -28,6 +28,7 @@
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "render/rs_drawing_filter.h"
+#include "render/rs_render_linear_gradient_blur_filter.h"
 #include "ge_visual_effect_container.h"
 
 using namespace testing;
@@ -1078,28 +1079,6 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate002, Test
 }
 
 /**
- * @tc.name: RSMaterialFilterDrawableOnUpdate003
- * @tc.desc: Test OnUpdate
- * @tc.type:FUNC
- */
-HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate003, TestSize.Level1)
-{
-    NodeId id = 1;
-    RSRenderNode node(id);
-    auto emptyShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
-    node.GetMutableRenderProperties().SetSDFShape(emptyShape);
-    auto renderFilter = RSNGRenderFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
-    const auto& filter = std::static_pointer_cast<RSNGRenderFrostedGlassFilter>(renderFilter);
-    EXPECT_EQ(filter->Getter<FrostedGlassShapeRenderTag>()->stagingValue_, nullptr);
-    auto drawingFilter = std::make_shared<RSDrawingFilter>();
-    drawingFilter->SetNGRenderFilter(renderFilter);
-    node.GetMutableRenderProperties().GetEffect().materialFilter_ = drawingFilter;
-
-    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
-    ASSERT_FALSE(drawable->OnUpdate(node));
-}
-
-/**
  * @tc.name: RSMaterialFilterDrawableGetAbsRenderEffectRect001
  * @tc.desc: Test GetAbsRenderEffectRect
  * @tc.type:FUNC
@@ -1151,5 +1130,78 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCalVisibleRect001
     ASSERT_NE(drawable->stagingVisibleRectInfo_, nullptr);
     EXPECT_EQ(drawable->stagingVisibleRectInfo_->snapshotRect_, snapshotRect.ConvertTo<int>());
     EXPECT_EQ(drawable->stagingVisibleRectInfo_->totalRect_, totalRect.ConvertTo<int>());
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnSync001
+ * @tc.desc: needSync == false
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnSync001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    drawable->needSync_ = false;
+    drawable->stagingEmptyShape_ = true;
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->emptyShape_);
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnSync002
+ * @tc.desc: needSync == true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnSync002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    drawable->needSync_ = true;
+    drawable->stagingEmptyShape_ = true;
+    drawable->OnSync();
+    ASSERT_TRUE(drawable->emptyShape_);
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableCreateDrawFunc001
+ * @tc.desc: emptyShape_ == true
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCreateDrawFunc001, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    drawable->emptyShape_ = true;
+    Drawing::Canvas canvas;
+    Drawing::Rect rect(0.0f, 0.0f, 1.0f, 1.0f);
+
+    drawable->OnDraw(&canvas, &rect);
+    ASSERT_TRUE(drawable->emptyShape_);
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableCreateDrawFunc002
+ * @tc.desc: filter->SetGeoMetry
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCreateDrawFunc002, TestSize.Level1)
+{
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    drawable->needSync_ = true;
+
+    Drawing::Canvas canvas;
+    std::vector<std::pair<float, float>> fractionStops;
+    auto para = std::make_shared<RSLinearGradientBlurPara>(1.f, fractionStops, GradientDirection::LEFT);
+    auto shaderFilter = std::make_shared<RSLinearGradientBlurShaderFilter>(para, 1.f, 1.f);
+    drawable->stagingFilter_ = std::make_shared<RSDrawingFilter>(shaderFilter);
+    drawable->stagingFilter_->SetFilterType(RSFilter::LINEAR_GRADIENT_BLUR);
+    drawable->OnSync();
+
+    // Test rect == nullptr
+    drawable->OnDraw(&canvas, nullptr);
+    auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(drawable->filter_);
+    ASSERT_NE(drawingFilter->visualEffectContainer_, nullptr);
+
+    // Test rect != nullptr
+    Drawing::Rect rect(0.0f, 0.0f, 10.0f, 10.0f);
+    drawable->OnDraw(&canvas, &rect);
+    ASSERT_NE(drawingFilter->visualEffectContainer_, nullptr);
 }
 } // namespace OHOS::Rosen

@@ -40,10 +40,10 @@ public:
 
     void QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visitor) override;
 
-    void UpdateVisibleUnionChildren(RSRenderNode& childNode);
-    void ResetVisibleUnionChildren();
+    void AddUnionChild(NodeId id);
+    void RemoveUnionChild(NodeId id);
+    void ResetUnionChildren();
     void ProcessSDFShape();
-    void ResetChildRelevantFlags() override;
 
 private:
     explicit RSUnionRenderNode(NodeId id, const std::weak_ptr<RSContext>& context = {},
@@ -56,7 +56,7 @@ private:
         auto root = CreateSDFOpShapeWithBaseInitialization(Type);
         shapeQueue.push(root);
         // one Op can have two leaf shape, now we have a root Op
-        auto count = visibleUnionChildren_.size();
+        auto count = unionChildren_.size();
         if (count <= ROOT_VOLUME) {
             return root;
         } else {
@@ -85,7 +85,7 @@ private:
             RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf GetContext fail");
             return;
         }
-        for (auto& childId : visibleUnionChildren_) {
+        for (auto& childId : unionChildren_) {
             auto child = context->GetNodeMap().GetRenderNode<RSRenderNode>(childId);
             if (!child) {
                 RS_LOGE("RSUnionRenderNode::GenerateSDFLeaf, child[%{public}" PRIu64 "] Get fail", childId);
@@ -114,7 +114,7 @@ private:
         std::shared_ptr<RSRenderNode>& child, std::shared_ptr<RSNGRenderShapeBase>& childShape);
     std::shared_ptr<RSNGRenderShapeBase> GetOrCreateChildSDFShape(std::shared_ptr<RSRenderNode>& child);
 
-    std::unordered_set<NodeId> visibleUnionChildren_;
+    std::unordered_set<NodeId> unionChildren_;
     
     friend class UnionNodeCommandHelper;
 };
