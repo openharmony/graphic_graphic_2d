@@ -86,6 +86,7 @@ napi_value JsFontDescriptor::Init(napi_env env, napi_value exportObj)
         DECLARE_NAPI_STATIC_FUNCTION("getFontUnicodeSet", JsFontDescriptor::GetFontUnicodeSet),
         DECLARE_NAPI_STATIC_FUNCTION("getFontCount", JsFontDescriptor::GetFontCount),
         DECLARE_NAPI_STATIC_FUNCTION("getFontPathsByType", JsFontDescriptor::GetFontPathsByType),
+        DECLARE_NAPI_STATIC_FUNCTION("isFontSupported", JsFontDescriptor::IsFontSupported),
     };
     
     NAPI_CHECK_AND_THROW_ERROR(
@@ -473,5 +474,39 @@ napi_value JsFontDescriptor::GetFontPathsByType(napi_env env, napi_callback_info
     FontDescriptorMgrInstance.GetFontPathsByType(fontType, fontPaths);
 
     return CreateFontList(env, fontPaths);
+}
+
+
+
+napi_value JsFontDescriptor::IsFontSupported(napi_env env, napi_callback_info info)
+{
+    size_t argc = ARGC_ONE;
+    napi_value argv[ARGC_ONE] = { nullptr };
+    if (napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr) != napi_ok || argc != ARGC_ONE ||
+        argv[0] == nullptr) {
+        TEXT_LOGE("Failed to get argument, argc %{public}zu", argc);
+        return NapiThrowError(env, MLB::ERROR_INVALID_PARAM, "Invalid argument");
+    }
+    std::string fontPath;
+
+    auto checkFilePath = [](std::string& path) {
+        return SplitAbsolutePath(path) && Drawing::Typeface::MakeFromFile(path.c_str()) != nullptr;
+    };
+    if (ConvertFromJsValue(env, argv[0], fontPath)) {
+        return CreateJsValue(env, checkFilePath(fontPath));
+    }
+
+    ResourceInfo resourceInfo;
+    if (ParseResourceType(env, argv[0], resourceInfo)) {
+        auto checkFileStream = [](const void* data, size_t size) {
+            auto stream = std::make_unique<Drawing::MemoryStream>(data, size);
+            return Drawing::Typeface::MakeFromStream(std::move(stream)) != nullptr;
+        };
+
+        bool ok = ProcessResource(resourceInfo, checkFilePath, checkFileStream).success;
+        return CreateJsValue(env, ok);
+    }
+
+    return CreateJsValue(env, false);
 }
 }
