@@ -6097,6 +6097,47 @@ HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInSkippedSubTreeNeedClearCache00
 }
 
 /*
+ * @tc.name: CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache001
+ * @tc.desc: Test CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache
+ * @tc.type: FUNC
+ * @tc.require: issues21301
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+
+    auto rsRootRenderNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext->weak_from_this());
+    rsRootRenderNode->InitRenderParams();
+
+    auto canvasNode1 = std::make_shared<RSCanvasRenderNode>(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(canvasNode1);
+    canvasNode1->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    canvasNode1->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode1);
+    rsRootRenderNode->UpdateVisibleEffectChild(*canvasNode1);
+
+    auto canvasNode2 = std::make_shared<RSCanvasRenderNode>(2);
+    canvasNode2->GetMutableRenderProperties().GetEffect().useEffect_ = true;
+    canvasNode2->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*canvasNode2);
+    rsRootRenderNode->UpdateVisibleEffectChild(*canvasNode1);
+
+    auto effectNode = std::make_shared<RSEffectRenderNode>(3);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(effectNode);
+    effectNode->GetMutableRenderProperties().GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
+    effectNode->GetMutableRenderProperties().needFilter_ = true;
+    rsRootRenderNode->UpdateVisibleFilterChild(*effectNode);
+
+    RSDirtyRegionManager dirtyManager;
+    rsUniRenderVisitor->CheckFilterNodeInOccludedSkippedSubTreeNeedClearCache(*rsRootRenderNode, dirtyManager);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(3);
+
+    EXPECT_FALSE(dirtyManager.GetFilterCollector().GetFilterDirtyRegionInfoList(false).empty());
+}
+
+/*
  * @tc.name: TryNotifyUIBufferAvailable
  * @tc.desc: Test RSUniRenderVisitorTest.TryNotifyUIBufferAvailable test
  * @tc.type: FUNC
