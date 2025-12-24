@@ -188,7 +188,10 @@ ani_object AniFont::GetMetrics(ani_env* env, ani_object obj)
     }
 
     FontMetrics metrics;
-    aniFont->GetFont()->GetMetrics(&metrics);
+    std::shared_ptr<Font> font = aniFont->GetFont();
+    std::shared_ptr<Font> themeFont = GetThemeFont(font);
+    std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
+    realFont->GetMetrics(&metrics);
     return CreateAniFontMetrics(env, metrics);
 }
 
