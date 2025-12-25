@@ -544,12 +544,14 @@ HWTEST_F(RsRenderComposerTest, GetSurfaceName, TestSize.Level1)
     RSLayerPtr l1 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(1, false, "L1"));
     sptr<IConsumerSurface> cSurface = IConsumerSurface::Create("surface1");
     l1->SetSurface(cSurface);
+    l1->SetSurfaceName("surface1");
     layers.emplace_back(l1);
 
     // set layer with max zorder
     RSLayerPtr l2 = std::static_pointer_cast<RSLayer>(std::make_shared<FakeRSLayer>(2, true, "L2"));
     sptr<IConsumerSurface> cSurface2 = IConsumerSurface::Create("surface2");
     l2->SetSurface(cSurface2);
+    l2->SetSurfaceName("surface2");
     l2->SetZorder(maxZorder);
     EXPECT_EQ(l2->GetZorder(), maxZorder);
     layers.emplace_back(l2);
