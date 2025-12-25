@@ -527,13 +527,10 @@ void HgmFrameRateManager::FrameRateReport()
         slideModeChange_ = false;
     }
 
-    if (renderProcessPid_ != 0) {
-        rates[renderProcessPid_] = currRefreshRate_;
-    }
-    HGM_LOGD("FrameRateReport: RS(%{public}d) RP(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
-        GetRealPid(), renderProcessPid_, rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
+        GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) RP(%d) = %d, APP(%d) = %d",
-        GetRealPid(), renderProcessPid_, rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+        GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
     schedulePreferredFpsChange_ = false;
@@ -1606,11 +1603,13 @@ void HgmFrameRateManager::SyncHgmConfigUpdateCallback()
         hgmCore.GetLtpoEnabled(), hgmCore.IsDelayMode(), hgmCore.GetPipelineOffsetPulseNum());
 }
 
-void HgmFrameRateManager::UpdateRenderProcessPid(ScreenId screenId, pid_t pid)
+void HgmFrameRateManager::TriggerAdaptiveVsyncUpdateCallback()
 {
-    auto screenIds = HgmCore::Instance().GetScreenIds();
-    if (find(screenIds.begin(), screenIds.end(), screenId) != screenIds.end()) {
-        renderProcessPid_ = pid;
+    if (adaptiveVsyncUpdateCallback_ &&
+        (lastIsAdaptive_.load() != isAdaptive_.load() || lastGameNodeName_ != curGameNodeName_)) {
+        lastIsAdaptive_.store(isAdaptive_.load());
+        lastGameNodeName_ = curGameNodeName_;
+        adaptiveVsyncUpdateCallback_(lastIsAdaptive_, lastGameNodeName_);
     }
 }
 } // namespace Rosen
