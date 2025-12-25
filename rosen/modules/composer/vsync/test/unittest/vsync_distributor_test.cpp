@@ -770,6 +770,9 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest005, Function | MediumTest| Lev
         ASSERT_EQ(vsyncDistributor->RemoveConnection(conns[i]), VSYNC_ERROR_OK);
     }
     vsyncDistributor->vsyncMode_ = vsyncMode;
+
+    // pid not found
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(1, 2, false), VSYNC_ERROR_OK)
 }
 
 /**
