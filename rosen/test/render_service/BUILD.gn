@@ -59,9 +59,6 @@ group("test") {
     "render_service/unittest/screen_manager:unittest",
     "render_service/unittest/system:unittest",
     "render_service/unittest/transaction:unittest",
-    "render_service/fuzztest/composer/composer_service/layer_backend:fuzztest",
-    "render_service/systemtest/composer/composer_service/layer_backend:systemtest",
-    "render_service/unittest/composer:unittest",
     "render_service_base/fuzztest/bufferclearcallbackstub_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefps_fuzzer:fuzztest",
     "render_service_base/fuzztest/gfx/fps_info/rssurfacefpsmanager_fuzzer:fuzztest",
@@ -212,5 +209,59 @@ group("test") {
     "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rswindowkeyframerendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rswindowkeyframenodecommand_fuzzer:fuzztest",
+    "render_service/fuzztest/composer/composer_service/layer_backend:fuzztest",
+    "render_service/systemtest/composer/composer_service/layer_backend:systemtest",
+    "render_service/unittest/composer:unittest",
   ]
+
+
+  if (graphic_2d_modifier_ng_enable) {
+    deps += [
+      "render_service_base/fuzztest/modifier_ng/rsappearancerendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsbackgroundrendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsforegroundrendermodifier_fuzzer:fuzztest",
+      "render_service_base/fuzztest/modifier_ng/rsgeometryrendermodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsappearancemodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsbackgroundmodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rscustommodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsforegroundmodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsgeometrymodifier_fuzzer:fuzztest",
+      "render_service_client/fuzztest/modifier_ng/rsoverlaymodifier_fuzzer:fuzztest",
+      "render_service_base/unittest/modifier_ng:unittest",
+      "render_service_base/unittest/modifier_ng/appearance:unittest",
+      "render_service_base/unittest/modifier_ng/background:unittest",
+      "render_service_base/unittest/modifier_ng/foreground:unittest",
+      "render_service_base/unittest/modifier_ng/geometry:unittest",
+      "render_service_client/unittest/modifier_ng:unittest",
+      "render_service_client/unittest/modifier_ng/appearance:unittest",
+      "render_service_client/unittest/modifier_ng/background:unittest",
+      "render_service_client/unittest/modifier_ng/custom:unittest",
+      "render_service_client/unittest/modifier_ng/foreground:unittest",
+      "render_service_client/unittest/modifier_ng/geometry:unittest",
+      "render_service_client/unittest/modifier_ng/overlay:unittest",
+    ]
+  }
+
+  if (graphic_2d_feature_enable_vulkan) {
+    deps += [
+      "render_service/fuzztest/rsvkimagemanager_fuzzer:fuzztest",
+      "render_service_base/fuzztest/nativebufferutils_fuzzer:fuzztest",
+      "render_service_base/fuzztest/rssurfaceohosvulkan_fuzzer:fuzztest",
+      "render_service_base/fuzztest/rsvulkancontext_fuzzer:fuzztest",
+      "render_service_client/unittest/modifier_render_thread:unittest",
+    ]
+  }
+
+  if (graphic_2d_feature_enable_rspipeline) {
+    deps += [ "render_service/unittest/drawable:unittest" ]
+  }
+
+  if (graphic_2d_feature_rs_enable_profiler) {
+    deps += [ "render_service_profiler/unittest:unittest" ]
+  }
+
+  if (defined(graphic_2d_feature_subtree_parallel_enable) && graphic_2d_feature_subtree_parallel_enable
+      && defined(graphic_2d_subtree_configs.subtree_root)) {
+    deps += [ "render_service/unittest/subtree:unittest" ]
+  }
 }
