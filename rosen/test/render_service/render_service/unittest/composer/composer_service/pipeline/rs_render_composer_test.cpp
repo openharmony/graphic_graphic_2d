@@ -825,6 +825,10 @@ HWTEST_F(RsRenderComposerTest, RecordTimestamp, TestSize.Level1)
     layers.emplace_back(l3);
     ASSERT_EQ(layers.size(), 4);
     uint64_t vsyncId = 1;
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    rsRenderComposer_->hdiOutput_ = output;
+    ASSERT_NE(rsRenderComposer_->hdiOutput_, nullptr);
     rsRenderComposer_->RecordTimestamp(vsyncId, layers);
     ASSERT_EQ(layers.size(), 4);
     
