@@ -33,7 +33,6 @@
 #include "ui_effect/filter/include/filter_distort_para.h"
 #include "ui_effect/filter/include/filter_fly_out_para.h"
 #include "ui_effect/filter/include/filter_hdr_para.h"
-#include "ui_effect/filter/include/filter_magnifier_para.h"
 #include "ui_effect/filter/include/filter_pixel_stretch_para.h"
 #include "ui_effect/filter/include/filter_radius_gradient_blur_para.h"
 #include "ui_effect/filter/include/filter_water_ripple_para.h"

@@ -162,6 +162,9 @@ private:
         const std::string& desc, const Matrix3f& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const RSColor& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<Drawing::Image> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, int value);
@@ -193,6 +196,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value);
 
 #ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;

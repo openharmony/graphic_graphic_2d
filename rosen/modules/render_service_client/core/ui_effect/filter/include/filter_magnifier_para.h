@@ -162,7 +162,7 @@ public:
         gradientMaskColor1_ = gradientMaskColor1;
     }
 
-    float GetGradientMaskColor1() const
+    uint32_t GetGradientMaskColor1() const
     {
         return gradientMaskColor1_;
     }
@@ -172,7 +172,7 @@ public:
         gradientMaskColor2_ = gradientMaskColor2;
     }
 
-    float GetGradientMaskColor2() const
+    uint32_t GetGradientMaskColor2() const
     {
         return gradientMaskColor2_;
     }
@@ -182,7 +182,7 @@ public:
         outerContourColor1_ = outerContourColor1;
     }
 
-    float GetOuterContourColor1() const
+    uint32_t GetOuterContourColor1() const
     {
         return outerContourColor1_;
     }
@@ -192,7 +192,7 @@ public:
         outerContourColor2_ = outerContourColor2;
     }
 
-    float GetOuterContourColor2() const
+    uint32_t GetOuterContourColor2() const
     {
         return outerContourColor2_;
     }

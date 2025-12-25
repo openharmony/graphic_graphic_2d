@@ -377,6 +377,10 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
 std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara> filterPara)
 {
     auto filter = RSNGFilterBase::Create(RSNGEffectType::MAGNIFIER);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertMagnifierPara filter or filterPara is nullptr");
+        return nullptr;
+    }
     auto magnifierFilter = std::static_pointer_cast<RSNGMagnifierFilter>(filter);
     auto magnifierFilterPara = std::static_pointer_cast<MagnifierPara>(filterPara);
     magnifierFilter->Setter<MagnifierFactorTag>(magnifierFilterPara->GetFactor());
@@ -392,10 +396,10 @@ std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara>
     magnifierFilter->Setter<MagnifierShadowOffsetYTag>(magnifierFilterPara->GetShadowOffsetY());
     magnifierFilter->Setter<MagnifierShadowSizeTag>(magnifierFilterPara->GetShadowSize());
     magnifierFilter->Setter<MagnifierShadowStrengthTag>(magnifierFilterPara->GetShadowStrength());
-    magnifierFilter->Setter<MagnifierGradientMaskColor1Tag>(magnifierFilterPara->GetGradientMaskColor1());
-    magnifierFilter->Setter<MagnifierGradientMaskColor2Tag>(magnifierFilterPara->GetGradientMaskColor2());
-    magnifierFilter->Setter<MagnifierOuterContourColor1Tag>(magnifierFilterPara->GetOuterContourColor1());
-    magnifierFilter->Setter<MagnifierOuterContourColor2Tag>(magnifierFilterPara->GetOuterContourColor2());
+    magnifierFilter->Setter<MagnifierGradientMaskColor1Tag>(RSColor(magnifierFilterPara->GetGradientMaskColor1()));
+    magnifierFilter->Setter<MagnifierGradientMaskColor2Tag>(RSColor(magnifierFilterPara->GetGradientMaskColor2()));
+    magnifierFilter->Setter<MagnifierOuterContourColor1Tag>(RSColor(magnifierFilterPara->GetOuterContourColor1()));
+    magnifierFilter->Setter<MagnifierOuterContourColor2Tag>(RSColor(magnifierFilterPara->GetOuterContourColor2()));
     return magnifierFilter;
 }
 } // namespace
