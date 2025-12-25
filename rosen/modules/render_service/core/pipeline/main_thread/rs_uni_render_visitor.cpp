@@ -3151,10 +3151,10 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
         nodeParent->UpdateVisibleEffectChild(node);
         nodeParent->SetChildHasVisibleEffect(!nodeParent->GetVisibleEffectChild().empty());
     }
-    if (auto& illuminated = node.GetRenderProperties().GetIlluminated();
-        (node.ShouldPaint() && (illuminated && illuminated->IsIlluminatedValid())) ||
-        RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(node.shared_from_this())) {
-        RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(nodeParent, true);
+    auto instance = RSPointLightManager::Instance();
+    if (node.ShouldPaint() && (instance->HasVisibleIlluminated(node.shared_from_this()) ||
+        instance->GetChildHasVisibleIlluminated(node.shared_from_this()))) {
+        instance->SetChildHasVisibleIlluminated(nodeParent, true);
     }
     if (node.GetSharedTransitionParam() || node.ChildHasSharedTransition()) {
         nodeParent->SetChildHasSharedTransition(true);

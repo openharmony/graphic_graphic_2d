@@ -794,7 +794,9 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     }
     stagingLightSourcesAndPosVec_.clear();
     stagingLightSourcesAndPosVec_.reserve(lightSourcesAndPosMap.size());
-    stagingLightSourcesAndPosVec_.assign(lightSourcesAndPosMap.begin(), lightSourcesAndPosMap.end());
+    for (auto& [lightSourcePtr, pos] : lightSourcesAndPosMap) {
+        stagingLightSourcesAndPosVec_.emplace_back(std::move(*lightSourcePtr), std::move(pos));
+    }
     stagingIlluminatedType_ = illuminatedPtr->GetIlluminatedType();
     stagingBorderWidth_ = std::max(0.0f, std::ceil(properties.GetIlluminatedBorderWidth()));
     stagingRRect_ = RRect(properties.GetRRect());
@@ -810,7 +812,7 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     auto begin = stagingLightSourcesAndPosVec_.begin();
     auto end = begin + std::min(static_cast<size_t>(MAX_LIGHT_SOURCES), stagingLightSourcesAndPosVec_.size());
     stagingEnableEDREffect_ = stagingIlluminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT &&
-        std::any_of(begin, end, [](const auto& pair) { return ROSEN_GNE(pair.first->GetLightIntensity(), 1.0f); });
+        std::any_of(begin, end, [](const auto& pair) { return ROSEN_GNE(pair.first.GetLightIntensity(), 1.0f); });
     needSync_ = true;
     return true;
 }
@@ -818,6 +820,7 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
 void RSPointLightDrawable::OnSync()
 {
     if (!needSync_) {
+        lightSourcesAndPosVec_.clear();
         return;
     }
     lightSourcesAndPosVec_ = std::move(stagingLightSourcesAndPosVec_);
@@ -1011,8 +1014,8 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     bool needToneMapping = NeedToneMapping(displayHeadroom_);
     while (iter != lightSourcesAndPosVec_.end() && cnt < MAX_LIGHT_SOURCES) {
         auto lightPos = iter->second;
-        auto lightIntensity = iter->first->GetLightIntensity();
-        auto lightColor = iter->first->GetLightColor();
+        auto lightIntensity = iter->first.GetLightIntensity();
+        auto lightColor = iter->first.GetLightColor();
         Vector4f lightColorVec =
             Vector4f(lightColor.GetRed(), lightColor.GetGreen(), lightColor.GetBlue(), lightColor.GetAlpha());
         for (int i = 0; i < vectorLen; i++) {
@@ -1035,8 +1038,9 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-    ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d displayHeadroom_:%{public}f",
-        illuminatedType_, displayHeadroom_);
+    ROSEN_LOGD("DrawLight type:%{public}d intensity:%{public}f enableEDR:%{public}d nodeId:%{public}" PRIu64 "",
+        illuminatedType_, lightIntensityArray[0], enableEDREffect_, nodeId_);
+    RS_OPTIONAL_TRACE_FMT("DrawLight intensity:%{public}f nodeId:%{public}" PRIu64 "", lightIntensityArray[0], nodeId_);
     if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT)) {
