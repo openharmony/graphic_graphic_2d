@@ -73,6 +73,7 @@ public:
         uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor);
     void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
 
+    FrameRateRange& GetRSCurrRangeRef() { return rsCurrRange_; }
     std::shared_ptr<RSRenderFrameRateLinker> GetRSFrameRateLinker() const { return rsFrameRateLinker_; }
 
     uint64_t GetCurrVsyncId() { return currVsyncId_; }
