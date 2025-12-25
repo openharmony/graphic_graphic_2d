@@ -230,7 +230,8 @@ private:
         COLOR_GAMUT_DCI_P3,
         COLOR_GAMUT_ADOBE_RGB,
         COLOR_GAMUT_DISPLAY_P3,
-        COLOR_GAMUT_BT2100_HLG };
+        COLOR_GAMUT_BT2100_HLG,
+        COLOR_GAMUT_NATIVE };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;

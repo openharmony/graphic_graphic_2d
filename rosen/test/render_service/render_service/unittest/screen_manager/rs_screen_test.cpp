@@ -1792,7 +1792,7 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_002, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(nullptr);
     ASSERT_NE(nullptr, rsScreen);
 
-    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_COLORSPACE_NONE;
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_SMPTE_C_LIMIT;
     ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::INVALID_ARGUMENTS);
 }
 

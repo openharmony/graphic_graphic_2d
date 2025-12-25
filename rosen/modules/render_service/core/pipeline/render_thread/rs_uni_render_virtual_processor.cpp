@@ -70,6 +70,7 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
     renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto mirroredScreenDrawable =
         std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(params->GetMirrorSourceDrawable().lock());
+    auto virtualScreenColorSpace = params->GetNewColorSpace();
     if (mirroredScreenDrawable) {
         mirroredScreenNodeId_ = mirroredScreenDrawable->GetId();
         auto childDrawables = params->GetDisplayDrawables();
@@ -90,15 +91,17 @@ bool RSUniRenderVirtualProcessor::InitForRenderThread(DrawableV2::RSScreenRender
         auto mirroredScreenParams = static_cast<RSScreenRenderParams*>(mirroredScreenDrawable->GetRenderParams().get());
         screenRotation_ = mirroredDisplayParams->GetScreenRotation();
         screenCorrection_ = mirroredScreenParams->GetScreenProperty().GetScreenCorrection();
-        if (params->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB &&
-            mirroredScreenParams->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+        auto mainScreenColorSpace = mirroredScreenParams->GetNewColorSpace();
+        auto virtualScreenFixedP3 = virtualScreenColorSpace == GRAPHIC_COLOR_GAMUT_NATIVE;
+        if (virtualScreenFixedP3 || (virtualScreenColorSpace != GRAPHIC_COLOR_GAMUT_SRGB &&
+            mainScreenColorSpace != GRAPHIC_COLOR_GAMUT_SRGB)) {
             renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
             RS_LOGD("RSUniRenderVirtualProcessor::Init Set virtual screen buffer colorGamut to P3.");
         }
         mirrorScreenHDR = RSHdrUtil::IsHDRCast(params, renderFrameConfig_);
         RS_LOGD("RSUniRenderVirtualProcessor::Init HDRCast mirrorScreenHDR: %{public}d", mirrorScreenHDR);
     } else {
-        if (params->GetNewColorSpace() != GRAPHIC_COLOR_GAMUT_SRGB) {
+        if (virtualScreenColorSpace != GRAPHIC_COLOR_GAMUT_SRGB) {
             renderFrameConfig_.colorGamut = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
         }
         expandScreenHDR = RSHdrUtil::IsHDRCast(params, renderFrameConfig_);

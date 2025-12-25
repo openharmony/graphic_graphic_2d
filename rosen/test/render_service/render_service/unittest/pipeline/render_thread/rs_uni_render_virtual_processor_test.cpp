@@ -118,6 +118,22 @@ sptr<SurfaceBuffer> RSUniRenderVirtualProcessorTest::RSSurfaceOhosRasterTest::Ge
     return new SurfaceBufferImpl();
 }
 
+RSLogicalDisplayRenderNodeDrawable* GenerateLogicalscreenDrawableById(
+    NodeId id, const std::weak_ptr<RSContext>& context)
+{
+    RSDisplayNodeConfig config;
+    std::shared_ptr<RSLogicalDisplayRenderNode> renderNode =
+        std::make_shared<RSLogicalDisplayRenderNode>(id, config, context);
+    if (!renderNode) {
+        return nullptr;
+    }
+    RSRenderNodeDrawableAdapter* displayAdapter = RSLogicalDisplayRenderNodeDrawable::OnGenerate(renderNode);
+    if (!displayAdapter) {
+        return nullptr;
+    }
+    return static_cast<RSLogicalDisplayRenderNodeDrawable*>(displayAdapter);
+}
+
 /**
  * @tc.name: CreateAndDestroy
  * @tc.desc:
@@ -171,6 +187,8 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
+    NodeId mainId = 3;
+    NodeId virtualId = 4;
     auto mainNode = std::make_shared<RSScreenRenderNode>(mainNodeId, screenNodeId_, context_);
     mainNode->InitRenderParams();
     auto virtualNode = std::make_shared<RSScreenRenderNode>(virtualNodeId, screenNodeId_, context_);
@@ -189,26 +207,53 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, InitForRenderThread001, TestSize.Level
     ASSERT_NE(mainRenderParams, nullptr);
     ASSERT_NE(virtualRenderParams, nullptr);
     virtualRenderParams->mirrorSourceDrawable_ = mainNode->renderDrawable_;
-    virtualRenderParams->screenInfo_.id = screenId;
-    virtualRenderParams->screenProperty_.producerSurface_ = surface;
+    virtualRenderParams->screenInfo_.id = -1;
+    std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    std::shared_ptr<RSContext> mainContext = std::make_shared<RSContext>();
+    std::shared_ptr<RSLogicalDisplayRenderNodeDrawable> virtualDisplayDrawable =
+        std::shared_ptr<RSLogicalDisplayRenderNodeDrawable>(GenerateLogicalscreenDrawableById(virtualId, context));
+    std::shared_ptr<RSLogicalDisplayRenderNodeDrawable> mainDisplayDrawable =
+        std::shared_ptr<RSLogicalDisplayRenderNodeDrawable>(GenerateLogicalscreenDrawableById(mainId, mainContext));
+    ASSERT_NE(virtualDisplayDrawable, nullptr);
+    ASSERT_NE(mainDisplayDrawable, nullptr);
+
+    virtualDisplayDrawable->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(virtualId);
+    mainDisplayDrawable->renderParams_ = std::make_unique<RSLogicalDisplayRenderParams>(mainId);
+    auto virtualDisplayParams =
+        static_cast<RSLogicalDisplayRenderParams*>(virtualDisplayDrawable->GetRenderParams().get());
+    ASSERT_NE(virtualDisplayParams, nullptr);
+    virtualDisplayParams->mirrorSourceDrawable_ = mainDisplayDrawable;
+    virtualRenderParams->logicalDisplayNodeDrawables_.emplace_back(virtualDisplayDrawable);
 
     auto& uniRenderThread = RSUniRenderThread::Instance();
     auto renderEngine = uniRenderThread.GetRenderEngine();
+    ASSERT_NE(renderEngine, nullptr);
 
-    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
-    mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_NATIVE;
     auto processor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto virtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(processor);
     ASSERT_NE(virtualProcessor, nullptr);
     virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+    EXPECT_EQ(virtualProcessor->renderFrameConfig_.colorGamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+    EXPECT_EQ(virtualProcessor->renderFrameConfig_.colorGamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    virtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+    EXPECT_EQ(virtualProcessor->renderFrameConfig_.colorGamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    virtualRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
     mainRenderParams->newColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
     auto newProcessor = RSProcessorFactory::CreateProcessor(CompositeType::
         UNI_RENDER_MIRROR_COMPOSITE);
     auto newVirtualProcessor = std::static_pointer_cast<RSUniRenderVirtualProcessor>(newProcessor);
     ASSERT_NE(newVirtualProcessor, nullptr);
     newVirtualProcessor->InitForRenderThread(*virtualRenderDrawable, renderEngine);
+    EXPECT_EQ(newVirtualProcessor->renderFrameConfig_.colorGamut, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
 }
 
 /**
