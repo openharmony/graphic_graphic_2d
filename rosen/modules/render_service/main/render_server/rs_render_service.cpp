@@ -310,7 +310,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
         renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
-        new RSClientToRenderConnection(remotePid, mainThread_, renderPipelineAgent, tokenObj));
+        new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj));
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.

@@ -46,6 +46,18 @@ public:
 
     bool Init();
     void Run();
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
+        sptr<RSIConnectionToken>& token) override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        auto tokenObj = token->AsObject();
+        auto iter = connections_.find(tokenObj);
+        if (iter == connections_.end()) {
+            RS_LOGE("GetConnection: connections_ cannot find token");
+            return {nullptr, nullptr};
+        }
+        return iter->second;
+    }
 
 private:
     class ScreenManagerListener : public RSIScreenManagerListener {
@@ -112,16 +124,16 @@ private:
     // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
-
+    mutable std::mutex mutex_;
+    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
+        connections_;
+    
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
     friend class RSSingleRenderProcessManager;
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
-    mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
-        connections_;
 
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;

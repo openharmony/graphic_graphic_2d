@@ -45,6 +45,8 @@ public:
 
     ErrCode SetGlobalDarkColorMode(bool isDark);
 
+    void SetScreenFrameGravity(ScreenId id, int32_t gravity);
+
     ErrCode SetSystemAnimatedScenes(
         SystemAnimatedScenes systemAnimatedScenes, bool isRegularAnimation, bool& success);
 
@@ -178,7 +180,7 @@ public:
     ErrCode GetHdrOnDuration(int64_t& hdrOnDuration);
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
-    void SetScreenFrameGravity(ScreenId id, Gravity gravity);
+
     int32_t NotifyScreenRefresh(ScreenId screenId);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         const std::shared_ptr<Media::PixelMap> &watermark, const std::vector<NodeId>& nodeIdList,

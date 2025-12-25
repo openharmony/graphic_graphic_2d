@@ -35,7 +35,7 @@ class HgmFrameRateManager;
 class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
-    pid_t remotePid, RSMainThread* mainThread,
+    pid_t remotePid,
     sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
@@ -165,7 +165,6 @@ private:
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
-    RSMainThread* mainThread_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_;
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;

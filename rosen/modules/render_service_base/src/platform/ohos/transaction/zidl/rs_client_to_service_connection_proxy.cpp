@@ -3504,14 +3504,14 @@ ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankStart(AppInfo info)
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportRsSceneJankStart: WriteInterfaceToken GetDescriptor err.");
-        return -1; // ??? todo
+        return ERR_INVALID_VALUE;
     }
     WriteAppInfo(data, reply, option, info);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_START);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportRsSceneJankStart: Send Request err.");
-        return -1; // ??? todo
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }
@@ -3523,14 +3523,14 @@ ErrCode RSClientToServiceConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
     MessageOption option;
     if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportRsSceneJankEnd: WriteInterfaceToken GetDescriptor err.");
-        return -1; // ??? todo
+        return ERR_INVALID_VALUE;
     }
     WriteAppInfo(data, reply, option, info);
     uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPORT_RS_SCENE_JANK_END);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::ReportRsSceneJankEnd: Send Request err.");
-        return -1; // ??? todo
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }

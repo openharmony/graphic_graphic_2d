@@ -297,7 +297,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_TRACE_NAME_FMT("ccc: RSClientToRenderConnectionStub::CLEAN_RESOURCE pid is %d", pid);
             CleanResources(pid);
             break;
         }

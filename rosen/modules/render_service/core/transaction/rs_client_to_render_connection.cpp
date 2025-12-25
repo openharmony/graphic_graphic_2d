@@ -113,11 +113,9 @@ const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 // all these pointers are valid, so will not check them.
 RSClientToRenderConnection::RSClientToRenderConnection(
     pid_t remotePid,
-    RSMainThread* mainThread,
     sptr<RSRenderPipelineAgent> renderPipelineAgent,
     sptr<IRemoteObject> token)
     : remotePid_(remotePid),
-      mainThread_(mainThread),
       renderPipelineAgent_(renderPipelineAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
@@ -125,9 +123,6 @@ RSClientToRenderConnection::RSClientToRenderConnection(
 {
     if (token_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
-    }
-    if (mainThread_ == nullptr) {
-        RS_LOGW("RSClientToRenderConnection: mainThread_ is nullptr");
     }
 
     if (renderPipelineAgent_ == nullptr) {
@@ -141,13 +136,6 @@ RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
 
 void RSClientToRenderConnection::CleanRenderNodes() noexcept
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& nodeMap = context.GetMutableNodeMap();
-
-    nodeMap.FilterNodeByPid(remotePid_);
 }
 
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
@@ -173,9 +161,6 @@ void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemo
 
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
     pid_t callingPid = GetCallingPid();
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
@@ -480,19 +465,7 @@ ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value
 
 void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), id, gravity]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = connection->mainThread_->GetContext();
-        context.GetNodeMap().TraverseScreenNodes([id, gravity](auto& node) {
-            if (node && node->GetScreenId() == id) {
-                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
-            }
-        });
-    };
-    mainThread_->PostTask(task);
+    renderPipelineAgent_->SetScreenFrameGravity(id, gravity);
 }
 
 void RSClientToRenderConnection::ClearUifirstCache(NodeId id)

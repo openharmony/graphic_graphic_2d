@@ -114,14 +114,12 @@ ErrCode RSServiceToRenderConnectionProxy::CleanResources(pid_t pid)
     MessageOption option;
     RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d", pid);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d GetDescriptor err", pid);
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInterfaceToken failed.");
         return RS_CONNECTION_ERROR;
     }
 
     option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInt32(pid)) {
-        RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d WriteUint64 err", pid);
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::CleanResources: WriteInt32 failed.");
         return RS_CONNECTION_ERROR;
     }
