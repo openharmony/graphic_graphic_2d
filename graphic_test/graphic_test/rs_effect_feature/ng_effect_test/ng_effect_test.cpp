@@ -523,8 +523,9 @@ public:
         effectChildNode->SetFrame(x, y, sizeX, sizeY);
  
         //  apply sdf on effect effect child node
-        const RRect defaultRectParam =
-            {RectT<float>{sizeX / 4, sizeY / 4, sizeX / 2, sizeY / 2}, sizeX / 16, sizeX / 16};
+        const RRect defaultRectParam = {
+            RectT<float>{sizeX / 4, sizeY / 4, sizeX / 2, sizeY / 2}, sizeX / 16, sizeX / 16
+        };
         std::shared_ptr<RSNGShapeBase> sdfShape;
         InitSmoothUnionShapes(sdfShape, defaultRectParam, defaultRectParam, 0.0);
         effectChildNode->SetSDFShape(sdfShape);
