@@ -379,7 +379,7 @@ void RSRenderComposer::ProcessComposerFrame(RefreshRateParam param, uint32_t cur
     RSMainThread::Instance()->SetTaskEndWithTime(SystemTime() - lastActualTime_);
     lastActualTime_ = param.actualTimestamp;
     int64_t endTime = GetCurTimeCount();
-    uint64_t frameTime = endTime - startTime;
+    uint64_t frameTime = static_cast<uint64_t>(endTime - startTime);
     uint32_t missedFrames = frameTime / REFRESH_PERIOD;
     uint16_t frameRate = currentRate;
     if (missedFrames >= HARD_JANK_TWO_TIME &&
