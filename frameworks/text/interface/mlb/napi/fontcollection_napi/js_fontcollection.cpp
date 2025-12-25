@@ -503,7 +503,7 @@ NapiTextResult JsFontCollection::OnUnloadFontAsync(napi_env env, napi_callback_i
         NAPI_CHECK_ARGS(context, FontCollectionMgr::GetInstance().CheckInstanceIsValid(
                 static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env)), fontCollection->fontcollection_),
             napi_generic_failure, TextErrorCode::ERROR_INVALID_PARAM, return,
-            "Failed to check local instance, familyName %{public}s", context->familyName.c_str());
+            "Failed to check local instance, familyName %s", context->familyName.c_str());
         fontCollection->fontcollection_->UnloadFont(context->familyName);
     };
 

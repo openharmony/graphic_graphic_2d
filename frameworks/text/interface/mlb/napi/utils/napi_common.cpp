@@ -1056,6 +1056,10 @@ std::shared_ptr<Global::Resource::ResourceManager> GetResourceManager(const std:
     } else {
         std::shared_ptr<Global::Resource::ResourceManager> manager(Global::Resource::CreateResourceManager(false));
         std::string hapPath = FontCollectionMgr::GetInstance().GetHapPath(bundleName, moduleName);
+        if (manager == nullptr) {
+            TEXT_LOGE("Failed to create Resource Mangager");
+            return nullptr;
+        }
         manager->AddResource(hapPath.c_str());
         TEXT_LOGI("Create Resource Mangager, bundle: %{public}s, module: %{public}s, hap path: %{public}s",
             bundleName.c_str(), moduleName.c_str(), hapPath.c_str());
