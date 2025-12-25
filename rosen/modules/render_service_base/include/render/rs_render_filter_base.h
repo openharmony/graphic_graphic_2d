@@ -51,8 +51,8 @@ enum class RSUIFilterType : int16_t {
     ALWAYS_SNAPSHOT,
 };
 
-class RSB_EXPORT RSRenderFilterParaBase : public std::enable_shared_from_this
-<RSRenderFilterParaBase> {
+class RSB_EXPORT RSRenderFilterParaBase :
+public std::enable_shared_from_this<RSRenderFilterParaBase> {
 public:
     RSRenderFilterParaBase() = default;
     RSRenderFilterParaBase(RSUIFilterType type) : type_(type) {}
