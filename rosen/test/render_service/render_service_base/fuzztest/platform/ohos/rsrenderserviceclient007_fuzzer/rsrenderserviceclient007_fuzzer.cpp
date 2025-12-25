@@ -200,6 +200,7 @@ bool DoForceRefreshOneFrameWithNextVSync()
 bool DoRegisterTypeface()
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     ScreenId screenId = GetData<ScreenId>();
     RSScreenType screenType = RSScreenType::BUILT_IN_TYPE_SCREEN;
     Drawing::Bitmap bm;
@@ -210,8 +211,8 @@ bool DoRegisterTypeface()
     std::shared_ptr<Drawing::Typeface> typeface;
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     renderServiceClient->GetScreenType(screenId, screenType);
-    renderServiceClient->GetBitmap(nodeId, bm);
-    renderServiceClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
+    renderPipelineClient->GetBitmap(nodeId, bm);
+    renderPipelineClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     renderServiceClient->RegisterTypeface(typeface);
     renderServiceClient->RegisterTypeface(typeface, GetData<uint32_t>());
     if (typeface) {

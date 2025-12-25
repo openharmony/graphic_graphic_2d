@@ -18,7 +18,7 @@
 #include "feature/capture/rs_ui_capture.h"
 #include "transaction/rs_render_pipeline_client.h"
 #include "platform/ohos/rs_render_service_connect_hub.h"
-#include "platform/ohos/rs_client_to_render_connection_proxy.h"
+#include "platform/ohos/transaction/zidl/rs_client_to_render_connection_proxy.h"
 #include "ui/rs_surface_node.h"
 #include "surface_utils.h"
 #include <iostream>
@@ -145,6 +145,139 @@ HWTEST_F(RSPipelineClientTest, TakeUICaptureInRangeTest, TestSize.Level1)
     std::shared_ptr<TestSurfaceCaptureCallback> cb = std::make_shared<TestSurfaceCaptureCallback>();
     ret = rsClient->TakeUICaptureInRange(TEST_ID, cb, captureConfig);
     ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: CreateNode Test
+ * @tc.desc: CreateNode Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, CreateNode_Test, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSSurfaceRenderNodeConfig config;
+    bool ret = rsClient->CreateNode(config);
+    ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: CreateNodeAndSurface Test
+ * @tc.desc: CreateNodeAndSurface Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSPipelineClientTest, CreateNodeAndSurface001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    RSSurfaceRenderNodeConfig config = {.id=0, .name="testSurface"};
+    ASSERT_EQ(rsClient->CreateNodeAndSurface(config), nullptr);
+}
+
+/**
+ * @tc.name: RegisterApplicationAgent Test nullptr
+ * @tc.desc: RegisterApplicationAgent Test nullptr
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, RegisterApplicationAgent_Nullptr, TestSize.Level1)
+{
+    auto renderService = RSRenderServiceConnectHub::GetRenderService().second;
+    ASSERT_NE(renderService, nullptr);
+    renderService->RegisterApplicationAgent(TEST_ID, nullptr); // pid: 123
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask Test
+ * @tc.desc: Test ExecuteSynchronousTask
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSPipelineClientTest, ExecuteSynchronousTask001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->ExecuteSynchronousTask(nullptr);
+
+    auto task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(0, nullptr);
+    ASSERT_NE(task, nullptr);
+    rsClient->ExecuteSynchronousTask(task);
+}
+
+/**
+ * @tc.name: RegisterBufferAvailableListener Test a notfound id True
+ * @tc.desc: RegisterBufferAvailableListener Test a notfound id True
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, RegisterBufferAvailableListener_True, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    BufferAvailableCallback cb = [](){};
+    rsClient->RegisterBufferAvailableListener(TEST_ID, cb, true); // test a notfound number: 123
+}
+
+/**
+ * @tc.name: RegisterBufferAvailableListener Test a notfound id False
+ * @tc.desc: RegisterBufferAvailableListener Test a notfound id False
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, RegisterBufferAvailableListener_False, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    BufferAvailableCallback cb = [](){};
+    rsClient->RegisterBufferAvailableListener(TEST_ID, cb, false); // test a notfound number: 123
+}
+
+/**
+ * @tc.name: RegisterBufferAvailableListener Test nullptr
+ * @tc.desc: RegisterBufferAvailableListener Test nullptr
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, RegisterBufferAvailableListener_Nullptr, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    rsClient->RegisterBufferAvailableListener(TEST_ID, nullptr, false); // NodeId: 123
+}
+
+/**
+ * @tc.name: UnregisterBufferAvailableListener Test a notfound id
+ * @tc.desc: UnregisterBufferAvailableListener Test a notfound id
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, UnregisterBufferAvailableListener_False, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    BufferAvailableCallback cb = [](){};
+    bool ret = rsClient->UnregisterBufferAvailableListener(TEST_ID); // test a notfound number: 123
+    ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: RegisterBufferClearListener Test
+ * @tc.desc: RegisterBufferClearListener Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+ */
+HWTEST_F(RSPipelineClientTest, RegisterBufferClearListener001, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    BufferClearCallback cb = [](){};
+    bool ret = rsClient->RegisterBufferClearListener(TEST_ID, cb);
+    ASSERT_TRUE(ret);
+}
+
+/*
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issuesI9K7SJ
+*/
+HWTEST_F(RSPipelineClientTest, SetGlobalDarkColorMode001, TestSize.Level1)
+{
+    EXPECT_EQ(rsClient->SetGlobalDarkColorMode(true), true);
 }
 
 /**
@@ -393,6 +526,44 @@ HWTEST_F(RSPipelineClientTest, FreezeScreen, TestSize.Level1)
     RSRenderServiceConnectHub::instance_ = renderServiceConnectHub;
     ret = rsClient->FreezeScreen(TEST_ID, false);
     ASSERT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenesTest
+ * @tc.desc: test SetSystemAnimatedScenes when rsRenderServiceClient is nullptr or not
+ * @tc.type: FUNC
+ * @tc.require:issues20726
+ */
+HWTEST_F(RSPipelineClientTest, SetSystemAnimatedScenesTest, TestSize.Level1)
+{
+    ASSERT_NE(rsClient, nullptr);
+    bool ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
+    ASSERT_EQ(ret, true);
+    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false);
+    ASSERT_EQ(ret, true);
+ 
+    auto instance = RSRenderServiceConnectHub::GetInstance();
+    RSRenderServiceConnectHub::instance_ = nullptr;
+    ret = rsClient->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, true);
+    ASSERT_EQ(ret, false);
+
+    RSRenderServiceConnectHub::instance_ = instance;
+}
+
+/**
+ * @tc.name: SurfaceWatermarkTest01
+ * @tc.desc: SurfaceWatermarkTest01
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPipelineClientTest, SurfaceWatermarkTest01, TestSize.Level1)
+{
+    RSRenderServiceConnectHub::Destroy();
+    EXPECT_EQ(rsClient->SetSurfaceWatermark(0, "WATERMARK", nullptr, {},
+        SurfaceWatermarkType::CUSTOM_WATER_MARK), SurfaceWatermarkStatusCode::WATER_MARK_RENDER_SERVICE_NULL);
+    rsClient->ClearSurfaceWatermark(0, "WATERMARK");
+    rsClient->ClearSurfaceWatermarkForNodes(0, "WATERMARK", {});
+    RSRenderServiceConnectHub::Init();
 }
 
 } // namespace Rosen

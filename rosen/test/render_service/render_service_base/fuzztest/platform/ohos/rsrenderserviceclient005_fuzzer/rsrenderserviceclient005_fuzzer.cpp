@@ -146,21 +146,21 @@ public:
 
 bool DoSetHardwareEnabled()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId id = GetData<NodeId>();
     bool isEnabled = GetData<bool>();
     SelfDrawingNodeType selfDrawingType = static_cast<SelfDrawingNodeType>(GetData<uint8_t>() % SELF_DRAWING_TYPE_SIZE);
     bool dynamicHardwareEnable = GetData<bool>();
-    renderServiceClient->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
+    renderPipelineClient->SetHardwareEnabled(id, isEnabled, selfDrawingType, dynamicHardwareEnable);
     return true;
 }
 
 bool DoSetHidePrivacyContent()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId id = GetData<NodeId>();
     bool needHidePrivacyContent = GetData<bool>();
-    renderServiceClient->SetHidePrivacyContent(id, needHidePrivacyContent);
+    renderPipelineClient->SetHidePrivacyContent(id, needHidePrivacyContent);
     return true;
 }
 

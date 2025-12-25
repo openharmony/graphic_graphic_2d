@@ -43,13 +43,10 @@
 namespace OHOS {
 namespace Rosen {
 int32_t g_pid;
-sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = nullptr;
+sptr<OHOS::Rosen::RSScreenManager> screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
 RSMainThread* mainThread_ = RSMainThread::Instance();
 sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = nullptr;
 sptr<RSClientToRenderConnectionStub> toRenderConnectionStub_ = nullptr;
-sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-sptr<RSClientToServiceConnectionStub> rsToServiceConnStub_ = nullptr;
-sptr<RSClientToRenderConnectionStub> rsToRenderConnStub_ = nullptr;
 const std::string CONFIG_FILE = "/etc/unirender.config";
 std::string g_originTag = "";
 
@@ -135,9 +132,7 @@ bool Init(const uint8_t* data, size_t size)
     DATA = data;
     g_size = size;
     g_pos = 0;
-    rsToServiceConnStub_ =
-        new RSClientToServiceConnection(g_pid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
-    rsToRenderConnStub_ = new RSClientToRenderConnection(g_pid, nullptr, nullptr, nullptr, token_->AsObject(), nullptr);
+
     g_originTag = ReadUnirenderConfig();
     bool enableForAll = GetData<bool>();
     std::string tag = enableForAll ? "ENABLED_FOR_ALL" : "DISABLED";
@@ -220,7 +215,7 @@ void DoSetPixelFormat()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(pixel);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetPixelFormat()
@@ -232,7 +227,7 @@ void DoGetPixelFormat()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenSupportedHDRFormats()
@@ -244,7 +239,7 @@ void DoGetScreenSupportedHDRFormats()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenHDRFormat()
@@ -256,7 +251,7 @@ void DoGetScreenHDRFormat()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetScreenHDRFormat()
@@ -270,7 +265,7 @@ void DoSetScreenHDRFormat()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(modeIdx);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenSupportedColorSpaces()
@@ -282,7 +277,7 @@ void DoGetScreenSupportedColorSpaces()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenColorSpace()
@@ -294,7 +289,7 @@ void DoGetScreenColorSpace()
     ScreenId id = GetData<uint64_t>();
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoSetScreenColorSpace()
@@ -308,7 +303,7 @@ void DoSetScreenColorSpace()
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
     dataParcel.WriteInt32(color);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetScreenType()
@@ -341,7 +336,7 @@ void DoSetScreenSkipFrameInterval()
 
 void DoGetBitmap()
 {
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_BITMAP);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_BITMAP);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -349,7 +344,7 @@ void DoGetBitmap()
     NodeId id = static_cast<NodeId>(g_pid) << 32;
     dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToRenderConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoGetPixelmap()
@@ -363,23 +358,23 @@ void DoGetPixelmap()
         return;
     }
     dataP.WriteUint64(nodeId);
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP);
-    if (rsToRenderConnStub_ == nullptr) {
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_PIXELMAP);
+    if (toRenderConnectionStub_ == nullptr) {
         return;
     }
-    rsToRenderConnStub_->OnRemoteRequest(code, dataP, reply, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataP, reply, option);
 }
 
 void DoGetScreenHDRStatus()
 {
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     ScreenId id = GetData<uint64_t>();
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     dataParcel.WriteUint64(id);
-    rsToServiceConnStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 } // namespace Rosen
 } // namespace OHOS
@@ -388,22 +383,39 @@ void DoGetScreenHDRStatus()
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
     OHOS::Rosen::g_pid = getpid();
-    OHOS::Rosen::screenManagerPtr_ = OHOS::Rosen::RSScreenManager::GetInstance();
+    OHOS::Rosen::screenManagerPtr_ = OHOS::sptr<OHOS::Rosen::RSScreenManager>::MakeSptr();
     OHOS::Rosen::mainThread_ = OHOS::Rosen::RSMainThread::Instance();
-    OHOS::Rosen::mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
     OHOS::Rosen::mainThread_->handler_ =
-        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::Rosen::mainThread_->runner_);
-    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+        std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
+    OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
+    OHOS::Rosen::mainThread_->mainLoop_ = []() {};
 
     OHOS::Rosen::DVSyncFeatureParam dvsyncParam;
     auto generator = OHOS::Rosen::CreateVSyncGenerator();
     auto appVSyncController = new OHOS::Rosen::VSyncController(generator, 0);
     OHOS::sptr<OHOS::Rosen::VSyncDistributor> appVSyncDistributor_ =
         new OHOS::Rosen::VSyncDistributor(appVSyncController, "app", dvsyncParam);
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
-    OHOS::Rosen::toRenderConnectionStub_ = new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr,
-        OHOS::Rosen::mainThread_, OHOS::Rosen::screenManagerPtr_, token->AsObject(), appVSyncDistributor_);
+
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
+    auto renderPipeline_ = OHOS::Rosen::RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent> renderPipelineAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
+
+    OHOS::Rosen::RSRenderService renderService_;
+    renderService_.Init();
+
+    auto renderServiceAgent_ = OHOS::sptr<OHOS::Rosen::RSRenderServiceAgent>::MakeSptr(renderService_);
+    OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent> renderProcessManagerAgent_ =
+        OHOS::sptr<OHOS::Rosen::RSRenderProcessManagerAgent>::MakeSptr(renderService_.renderProcessManager_);
+
+    OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
+        new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
+
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid,
+        OHOS::wptr<OHOS::Rosen::RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_,
+        OHOS::Rosen::mainThread_, screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
+    OHOS::Rosen::toRenderConnectionStub_ =
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr, renderPipelineAgent_, token_->AsObject());
 #ifdef RS_ENABLE_VK
     OHOS::Rosen::RsVulkanContext::GetSingleton().InitVulkanContextForUniRender("");
 #endif

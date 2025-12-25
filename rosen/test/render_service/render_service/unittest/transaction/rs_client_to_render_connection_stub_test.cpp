@@ -87,15 +87,14 @@ public:
     static std::shared_ptr<RSSurfaceRenderNode> surfaceNode_;
 private:
     int OnRemoteRequestTest(uint32_t code);
-    static sptr<RSIConnectionToken> token_;
-    static sptr<RSClientToRenderConnectionStub> connectionStub_;
+    static inline sptr<RSIConnectionToken> token_;
+    static inline sptr<RSClientToRenderConnectionStub> connectionStub_;
+    static inline std::shared_ptr<RSRenderPipeline> renderPipeline_;
+    static inline sptr<RSRenderPipelineAgent> renderPipelineAgent_;
+
 };
 
 uint32_t RSClientToRenderConnectionStubTest::screenId_ = 0;
-sptr<RSIConnectionToken> RSClientToRenderConnectionStubTest::token_ = new IRemoteStub<RSIConnectionToken>();
-sptr<RSClientToRenderConnectionStub> RSClientToRenderConnectionStubTest::connectionStub_ =
-    new RSClientToRenderConnection(
-        0, nullptr, RSMainThread::Instance(), screenManager_, token_->AsObject(), nullptr);
 std::shared_ptr<RSSurfaceRenderNode> RSClientToRenderConnectionStubTest::surfaceNode_ =
     std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(10003, std::make_shared<RSContext>(), true),
     RSRenderNodeGC::NodeDestructor);
@@ -106,15 +105,19 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     RsVulkanContext::SetRecyclable(false);
 #endif
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    auto rsScreen = std::make_shared<RSScreen>(hdiOutput_);
+    auto rsScreen = std::make_shared<RSScreen>(screenId_);
     screenManager_->MockHdiScreenConnected(rsScreen);
     hdiDeviceMock_ = Mock::HdiDeviceMock::GetInstance();
     EXPECT_CALL(*hdiDeviceMock_, RegHotPlugCallback(_, _)).WillRepeatedly(testing::Return(0));
     EXPECT_CALL(*hdiDeviceMock_, RegHwcDeadCallback(_, _)).WillRepeatedly(testing::Return(false));
     EXPECT_CALL(*hdiDeviceMock_, RegRefreshCallback(_, _)).WillRepeatedly(testing::Return(0));
     mainThread_ = new RSMainThread();
-    mainThread_->runner_ = OHOS::AppExecFwk::EventRunner::Create(true);
-    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(mainThread_->runner_);
+    mainThread_->handler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
+    auto handler = std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(false));
+    token_ = new IRemoteStub<RSIConnectionToken>();
+    renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
+    renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
+    connectionStub_ = new RSClientToRenderConnection(0, nullptr, renderPipelineAgent_, token_->AsObject());
 }
 
 class RSSurfaceCaptureCallbackStubMock : public RSSurfaceCaptureCallbackStub {
@@ -165,12 +168,9 @@ void g_WriteSurfaceCaptureConfigMock(RSSurfaceCaptureConfig& captureConfig, Mess
 HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, TestSize.Level1)
 {
     auto newPid = getpid();
-    auto screenManagerPtr = RSScreenManager::GetInstance();
-    auto mainThread = RSMainThread::Instance();
 
-    sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
-    sptr<RSClientToRenderConnectionStub> connectionStub_ =
-        new RSClientToRenderConnection(newPid, nullptr, mainThread, screenManagerPtr, token_->AsObject(), nullptr);
+    connectionStub_ =
+        new RSClientToRenderConnection(newPid, nullptr, renderPipelineAgent_, token_->AsObject());
     ASSERT_EQ(connectionStub_ != nullptr, true);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_EQ(callback != nullptr, true);
@@ -179,7 +179,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
     MessageParcel reply;
     MessageOption option;
 
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE);
     NodeId id = surfaceNode_->GetId();
     // Test0 Abnormal condition, isClientPixelMap = true, but no clientPixelMap
     RSSurfaceCaptureConfig captureConfig;
@@ -242,12 +242,12 @@ void RSClientToRenderConnectionStubTest::SetUp()
     if (!mainThread) {
         return;
     }
-    mainThread->runner_ = AppExecFwk::EventRunner::Create("RSClientToRenderConnectionStubTest");
-    if (!mainThread->runner_) {
+    auto runner_ = AppExecFwk::EventRunner::Create("RSClientToRenderConnectionStubTest");
+    if (runner_) {
         return;
     }
-    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(mainThread->runner_);
-    mainThread->runner_->Run();
+    mainThread->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
+    runner_->Run();
 }
 void RSClientToRenderConnectionStubTest::TearDown() {}
 int RSClientToRenderConnectionStubTest::OnRemoteRequestTest(uint32_t code)
@@ -302,18 +302,30 @@ void RSClientToRenderConnectionStubTest::CreateComposerAdapterWithScreenInfo(uin
 HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub001, TestSize.Level1)
 {
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK)),
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_SURFACE_BUFFER_CALLBACK)),
         ERR_INVALID_DATA);
     EXPECT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK)),
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_BUFFER_CALLBACK)),
         ERR_INVALID_DATA);
     if (RSUniRenderJudgement::IsUniRender()) {
         EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-                      RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
+                      RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER)),
             ERR_INVALID_DATA);
     }
     EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK)), ERR_NULL_OBJECT);
+        RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK)), ERR_NULL_OBJECT);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_GLOBAL_DARK_COLOR_MODE)), ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT)), ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE)), ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_APPLICATION_AGENT)), ERR_NULL_OBJECT);
+    EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
+        RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_AVAILABLE_LISTENER)), ERR_INVALID_DATA);
+    EXPECT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_BUFFER_CLEAR_LISTENER)), ERR_INVALID_DATA);
 }
 
 /**
@@ -325,15 +337,46 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
 HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub002, TestSize.Level1)
 {
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)), ERR_INVALID_STATE);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_ANCO_FORCE_DO_DIRECT)), ERR_INVALID_STATE);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WINDOW_CONTAINER)), ERR_INVALID_DATA);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_WINDOW_CONTAINER)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FOCUS_APP_INFO)), ERR_INVALID_DATA);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_FOCUS_APP_INFO)), ERR_INVALID_DATA);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE)), ERR_NULL_OBJECT);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE)), ERR_NULL_OBJECT);
     ASSERT_EQ(OnRemoteRequestTest(
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)), ERR_NULL_OBJECT);
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::TAKE_UI_CAPTURE_IN_RANGE)), ERR_NULL_OBJECT);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES)), ERR_INVALID_DATA);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::EXECUTE_SYNCHRONOUS_TASK)), ERR_INVALID_STATE);
+    ASSERT_EQ(OnRemoteRequestTest(
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_HARDWARE_ENABLED)), ERR_INVALID_DATA);
+
+}
+
+/**
+ * @tc.name: TestRSRenderServiceConnectionStub001
+ * @tc.desc: Test if data has no content.
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, TestRSRenderServiceConnectionStub001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    int res;
+    uint32_t code;
+
+    code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::COMMIT_TRANSACTION);
+    res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_DATA);
 }
 
 /**
@@ -349,7 +392,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SetLayerTopForHWCTest, TestSize.Lev
         MessageParcel reply;
         MessageOption option;
         uint32_t code =
-            static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
+            static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_LAYER_TOP_FOR_HARDWARE_COMPOSER);
         data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
         data.WriteUint64(0);
         data.WriteBool(true);
@@ -371,7 +414,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, ClearUifirstCacheTest, TestSize.Lev
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_UIFIRST_CACHE);
     data.WriteUint64(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
@@ -391,7 +434,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, DropFrameByPid001, TestSize.Level2)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DROP_FRAME_BY_PID);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::DROP_FRAME_BY_PID);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteInt32Vector(pidList);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -406,16 +449,16 @@ HWTEST_F(RSClientToRenderConnectionStubTest, DropFrameByPid001, TestSize.Level2)
  */
 HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Level2)
 {
-    sptr<RSClientToServiceConnectionStub> connectionStub =
-        new RSClientToServiceConnection(0, nullptr, mainThread_, screenManager_, token_->AsObject(), nullptr);
+    sptr<RSClientToRenderConnectionStub> connectionStub =
+        new RSClientToRenderConnection(0, nullptr, renderPipelineAgent_, token_->AsObject());
 
     // case 1: no data
     {
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-        auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+        auto interfaceCode = RSIClientToRenderConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_INVALID_DATA);
     }
@@ -425,9 +468,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Lev
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
         data.WriteUint64(hdiOutput_->GetScreenId());
-        auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto interfaceCode = RSIClientToRenderConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_NONE);
     }
@@ -437,9 +480,9 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Lev
         MessageParcel data;
         MessageParcel reply;
         MessageOption option;
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+        data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
         data.WriteUint64(INVALID_SCREEN_ID);
-        auto interfaceCode = RSIClientToServiceConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
+        auto interfaceCode = RSIClientToRenderConnectionInterfaceCode::GET_BRIGHTNESS_INFO;
         auto res = connectionStub->OnRemoteRequest(static_cast<uint32_t>(interfaceCode), data, reply, option);
         EXPECT_EQ(res, ERR_NONE);
     }
@@ -499,7 +542,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetScreenHDRStatus001, TestSize.Lev
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint64(0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -517,7 +560,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetScreenHDRStatus002, TestSize.Lev
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint64(~0);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -535,7 +578,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, GetScreenHDRStatus003, TestSize.Lev
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_SCREEN_HDR_STATUS);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteBool(false);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -558,7 +601,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+        RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data.WriteUint64(displayNodeId);
     data.WriteBool(checkDrmAndSurfaceLock);
@@ -599,13 +642,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest002, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     auto mainThread = connection->mainThread_;
@@ -657,7 +699,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -674,7 +715,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     MessageParcel reply;
     MessageOption option;
     uint32_t code = static_cast<uint32_t>(
-        RSIClientToServiceConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
+        RSIClientToRenderConnectionInterfaceCode::TAKE_SURFACE_CAPTURE_WITH_ALL_WINDOWS);
     data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data1.WriteBool(false);
     int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
@@ -728,7 +769,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     MessageParcel data1;
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FREEZE_SCREEN);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FREEZE_SCREEN);
     data1.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     data1.WriteBool(false);
     int res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
@@ -747,13 +788,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
     ASSERT_EQ(res, ERR_OK);
 
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest002");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     auto mainThread = connection->mainThread_;
@@ -785,7 +825,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest001, TestSize.Level
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -799,13 +838,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 {
     constexpr uint32_t TIME_OF_FREEZE_TASK = 100000;
     ASSERT_NE(connectionStub_, nullptr);
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("FreezeScreenTest002");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("FreezeScreenTest002");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
     NodeId displayNodeId = 896;
@@ -829,7 +867,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
     usleep(TIME_OF_FREEZE_TASK);
     ASSERT_EQ(res, ERR_OK);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -842,13 +879,12 @@ HWTEST_F(RSClientToRenderConnectionStubTest, FreezeScreenTest002, TestSize.Level
 HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTest004, TestSize.Level2)
 {
     constexpr uint32_t TIME_OF_CAPTURE_TASK = 100000;
-    auto runner = RSMainThread::Instance()->runner_;
     auto handler = RSMainThread::Instance()->handler_;
-    RSMainThread::Instance()->runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest004");
-    ASSERT_NE(RSMainThread::Instance()->runner_, nullptr);
-    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(RSMainThread::Instance()->runner_);
+    auto runner_ = AppExecFwk::EventRunner::Create("TaskSurfaceCaptureWithAllWindowsTest004");
+    ASSERT_NE(runner_, nullptr);
+    RSMainThread::Instance()->handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     ASSERT_NE(RSMainThread::Instance()->handler_, nullptr);
-    RSMainThread::Instance()->runner_->Run();
+    runner_->Run();
     sptr<RSClientToRenderConnection> connection = iface_cast<RSClientToRenderConnection>(connectionStub_);
     ASSERT_NE(connection, nullptr);
 
@@ -883,7 +919,6 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TakeSurfaceCaptureWithAllWindowsTes
     usleep(TIME_OF_CAPTURE_TASK);
     EXPECT_EQ(ret, ERR_NONE);
 
-    RSMainThread::Instance()->runner_ = runner;
     RSMainThread::Instance()->handler_ = handler;
 }
 
@@ -899,7 +934,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     data.WriteUint64(123);
     data.WriteUint64(456);
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
@@ -925,7 +960,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, TestRSClientToRenderConnectionStub0
     MessageParcel reply;
     MessageOption option;
     data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_TRANSACTION_DATA_CALLBACK);
     data.WriteUint64(123);
     data.WriteUint64(456);
     sptr<RSTransactionDataCallbackStubMock> callback = new RSTransactionDataCallbackStubMock();
@@ -945,7 +980,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSiz
 {
     MessageParcel reply;
     MessageOption option;
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::REGISTER_CANVAS_CALLBACK);
 
     // Scenario 1: Cannot read enableReadRemoteObject - should fail with ERR_INVALID_DATA
     MessageParcel data1;
@@ -970,4 +1005,237 @@ HWTEST_F(RSClientToRenderConnectionStubTest, RegisterCanvasCallbackTest, TestSiz
     ASSERT_EQ(res, ERR_NONE);
 }
 #endif
+
+/**
+ * @tc.name: SetSystemAnimatedScenesTest001
+ * @tc.desc: Test SetSystemAnimatedScenes when ReadBool and ReadUint32 fail
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest002
+ * @tc.desc: Test SetSystemAnimatedScenes when data is ReadBool fail
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint32(0);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest003
+ * @tc.desc: Test SetSystemAnimatedScenes when ReadUint32 fail
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest003, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteBool(true);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_INVALID_DATA);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest004
+ * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ isn't nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint32(0);
+    data.WriteBool(true);
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+}
+ 
+/**
+ * @tc.name: SetSystemAnimatedScenesTest005
+ * @tc.desc: Test SetSystemAnimatedScenes when mainThread_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20726
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetSystemAnimatedScenesTest005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SYSTEM_ANIMATED_SCENES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data.WriteUint32(0);
+    data.WriteBool(true);
+    sptr<RSClientToRenderConnection> clientToRenderConnection =
+        iface_cast<RSClientToRenderConnection>(connectionStub_);
+    ASSERT_NE(clientToRenderConnection, nullptr);
+    auto mainThread = clientToRenderConnection->mainThread_;
+    clientToRenderConnection->mainThread_ = nullptr;
+    int ret = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(ret, ERR_NONE);
+ 
+    clientToRenderConnection->mainThread_ = mainThread;
+}
+
+/**
+ * @tc.name: SetSurfaceWatermarkSub001
+ * @tc.desc: Test SetSurfaceWatermarkSub001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, SetSurfaceWatermarkSub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name = "watermark";
+    int width = 10;
+    int height = 10;
+    Media::InitializationOptions opts;
+    opts.size.width = width;
+    opts.size.height = height;
+    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
+    std::vector<NodeId> nodeList;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_SURFACE_WATERMARK);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data0;
+    data0.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data0.WriteInt32(2);
+    res = connectionStub_->OnRemoteRequest(code, data0, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data20;
+    data20.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data20.WriteInt32(2);
+    data20.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data20, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteInt32(2);
+    data2.WriteString(name);
+    data2.WriteBool(false);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteInt32(2);
+    data3.WriteString(name);
+    data3.WriteBool(true);
+    data3.WriteParcelable(pixelmap.get());
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data4;
+    data4.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data4.WriteInt32(2);
+    data4.WriteString(name);
+    data4.WriteBool(true);
+    data4.WriteParcelable(pixelmap.get());
+    data4.WriteUInt64Vector(nodeList);
+    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data5;
+    data5.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data5.WriteInt32(2);
+    data5.WriteString(name);
+    data5.WriteBool(true);
+    data5.WriteParcelable(pixelmap.get());
+    data5.WriteUInt64Vector(nodeList);
+    data5.WriteUint8(static_cast<uint8_t>(0));
+    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
+}
+
+/**
+ * @tc.name: ClearSurfaceWatermarkForNodesStub001
+ * @tc.desc: Test ClearSurfaceWatermarkForNodesStub001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkForNodesStub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name = "watermark";
+    std::vector<NodeId> nodeList;
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+
+    MessageParcel data3;
+    data3.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data3.WriteString(name);
+    data3.WriteUInt64Vector(nodeList);
+    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
+}
+/**
+ * @tc.name: ClearSurfaceWatermarkStub001
+ * @tc.desc: Test ClearSurfaceWatermarkStub001
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionStubTest, ClearSurfaceWatermarkStub001, TestSize.Level1)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    std::string name = "watermark";
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
+    data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
+    EXPECT_EQ(res, ERR_INVALID_DATA);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    data2.WriteString(name);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+}
 } // namespace OHOS::Rosen
