@@ -120,28 +120,21 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
 }
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-bool RegisterCanvasCallbackFuzzTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    sptr<RSICanvasSurfaceBufferCallback> callback = new TestRSCanvasSurfaceBufferCallback();
-    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
-    rsRenderInterfaces.RegisterCanvasCallback(callback);
-    return true;
-}
-
 bool SubmitCanvasPreAllocatedBufferFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
         return false;
     }
 
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
+    sptr<RSICanvasSurfaceBufferCallback> callback = new TestRSCanvasSurfaceBufferCallback();
+    rsRenderInterfaces.RegisterCanvasCallback(callback);
     NodeId nodeId = GetData<NodeId>();
     uint32_t resetSurfaceIndex = GetData<uint32_t>();
     sptr<SurfaceBuffer> buffer = SurfaceBuffer::Create();
-    auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
     rsRenderInterfaces.SubmitCanvasPreAllocatedBuffer(nodeId, buffer, resetSurfaceIndex);
     return true;
 }
@@ -154,7 +147,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     OHOS::Rosen::RSPhysicalScreenFuzzTest(data, size);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    OHOS::Rosen::RegisterCanvasCallbackFuzzTest(data, size);
     OHOS::Rosen::SubmitCanvasPreAllocatedBufferFuzzTest(data, size);
 #endif
     return 0;
