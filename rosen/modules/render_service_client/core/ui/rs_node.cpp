@@ -1961,16 +1961,6 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval)
 {
-    if (placeholder == ColorPlaceholder::NONE || ColorPickStrategyType::NONE == strategy) {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COLOR_PICKER);
-        if (modifier != nullptr) {
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY);
-        }
-        return;
-    }
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerPlaceholder>(placeholder);
     SetPropertyNG<ModifierNG::RSColorPickerModifier,

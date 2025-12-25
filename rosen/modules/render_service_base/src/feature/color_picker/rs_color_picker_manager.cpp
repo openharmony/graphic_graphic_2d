@@ -55,7 +55,7 @@ Drawing::ColorQuad RSColorPickerManager::GetColorPicked(RSPaintFilterCanvas& can
         RSColorPickerThread::Instance().NotifyNodeDirty(nodeId); // continue animation
     }
 
-    if (currTime >= interval + lastUpdateTime_) { // cooldown check
+    if (strategy != ColorPickStrategyType::NONE && currTime >= interval + lastUpdateTime_) { // cooldown check
         ScheduleColorPick(canvas, rect, nodeId, strategy);
     }
     return res;
