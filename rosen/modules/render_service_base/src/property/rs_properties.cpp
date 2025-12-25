@@ -339,15 +339,6 @@ bool RSProperties::UpdateGeometry(
         parentMatrix = &(sandbox_->matrix_.value());
     }
     boundsGeo_->UpdateMatrix(parentMatrix, offset);
-    const auto& lightSourcePtr = GetLightSource();
-    if (lightSourcePtr && lightSourcePtr ->IsLightSourceValid()) {
-        CalculateAbsLightPosition();
-        RSPointLightManager::Instance()->AddDirtyLightSource(backref_);
-    }
-    const auto& illuminatedPtr = GetIlluminated();
-    if (illuminatedPtr && illuminatedPtr->IsIlluminatedValid()) {
-        RSPointLightManager::Instance()->AddDirtyIlluminated(backref_);
-    }
     if (RSSystemProperties::GetSkipGeometryNotChangeEnabled()) {
         auto rect = boundsGeo_->GetAbsRect();
         if (!lastRect_.has_value()) {
@@ -3860,37 +3851,6 @@ Vector4f RSProperties::GetLightPosition() const
 int RSProperties::GetIlluminatedType() const
 {
     return GetIlluminated() ? static_cast<int>(GetIlluminated()->GetIlluminatedType()) : 0;
-}
-
-void RSProperties::CalculateAbsLightPosition()
-{
-    auto lightSourceAbsRect = boundsGeo_->GetAbsRect();
-    auto rotation = RSPointLightManager::Instance()->GetScreenRotation();
-    Vector4f lightAbsPosition = Vector4f();
-    auto lightPos = GetLightSource()->GetLightPosition();
-    switch (rotation) {
-        case ScreenRotation::ROTATION_0:
-            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetLeft() + lightPos.x_);
-            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetTop() + lightPos.y_);
-            break;
-        case ScreenRotation::ROTATION_90:
-            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetBottom() - lightPos.x_);
-            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetLeft() + lightPos.y_);
-            break;
-        case ScreenRotation::ROTATION_180:
-            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetRight() - lightPos.x_);
-            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetBottom() - lightPos.y_);
-            break;
-        case ScreenRotation::ROTATION_270:
-            lightAbsPosition.x_ = static_cast<int>(lightSourceAbsRect.GetTop() + lightPos.x_);
-            lightAbsPosition.y_ = static_cast<int>(lightSourceAbsRect.GetRight() - lightPos.y_);
-            break;
-        default:
-            break;
-    }
-    lightAbsPosition.z_ = lightPos.z_;
-    lightAbsPosition.w_ = lightPos.w_;
-    GetLightSource()->SetAbsLightPosition(lightAbsPosition);
 }
 
 void RSProperties::SetBrightness(const std::optional<float>& brightness)

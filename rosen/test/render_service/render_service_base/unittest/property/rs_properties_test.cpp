@@ -3201,45 +3201,6 @@ HWTEST_F(RSPropertiesTest, SetBloom001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CalculateAbsLightPosition001
- * @tc.desc: test results of CalculateAbsLightPosition
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesTest, CalculateAbsLightPosition001, TestSize.Level1)
-{
-    RSProperties properties;
-    float x = -1.0;
-    float y = -1.0;
-    float z = -1.0;
-    float w = 1.0;
-    Vector4f stretchSize(x, y, z, w);
-    properties.SetLightPosition(stretchSize);
-    properties.CalculateAbsLightPosition();
-
-    ScreenRotation screenRotation = ScreenRotation::ROTATION_90;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
-    properties.CalculateAbsLightPosition();
-
-    screenRotation = ScreenRotation::ROTATION_180;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
-    properties.CalculateAbsLightPosition();
-
-    screenRotation = ScreenRotation::ROTATION_270;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
-    properties.CalculateAbsLightPosition();
-
-    screenRotation = ScreenRotation::INVALID_SCREEN_ROTATION;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
-    properties.CalculateAbsLightPosition();
-
-    screenRotation = ScreenRotation::ROTATION_0;
-    RSPointLightManager::Instance()->SetScreenRotation(screenRotation);
-    properties.CalculateAbsLightPosition();
-    EXPECT_TRUE(true);
-}
-
-/**
  * @tc.name: GenerateColorFilter001
  * @tc.desc: test results of GenerateColorFilter
  * @tc.type:FUNC

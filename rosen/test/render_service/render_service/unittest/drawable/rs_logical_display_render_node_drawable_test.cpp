@@ -3958,23 +3958,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, DrawWatermarkIfNeedTest, TestSi
 }
 
 /**
- * @tc.name: SetScreenRotationForPointLight
- * @tc.desc: Test SetScreenRotationForPointLight
- * @tc.type: FUNC
- * @tc.require: #I9NVOG
- */
-HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, SetScreenRotationForPointLight, TestSize.Level1)
-{
-    ASSERT_NE(renderNode_, nullptr);
-    ASSERT_NE(displayDrawable_, nullptr);
-    ASSERT_NE(displayDrawable_->renderParams_, nullptr);
-
-    auto params = static_cast<RSLogicalDisplayRenderParams*>(displayDrawable_->GetRenderParams().get());
-    ASSERT_NE(params, nullptr);
-    displayDrawable_->SetScreenRotationForPointLight(*params);
-}
-
-/**
  * @tc.name: DrawWatermarkIfNeed001
  * @tc.desc: Test DrawWatermarkIfNeed001
  * @tc.type: FUNC

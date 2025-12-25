@@ -815,7 +815,6 @@ public:
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
 
-    void CalculateAbsLightPosition();
     inline const std::shared_ptr<RSLightSource>& GetLightSource() const
     {
         static const std::shared_ptr<RSLightSource> defaultValue = nullptr;

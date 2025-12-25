@@ -27,7 +27,7 @@ compile_check_file = [
     ('rs_render_node_drawable.cpp', '::OnDraw(Drawing::Canvas& canvas)', 'RSParallelManager::Singleton().OnDrawNodeDrawable'),
 ]
 compile_check_groundtruth = [
-    ['rs_logical_display_render_node_drawable.cpp', 120, 255],
+    ['rs_logical_display_render_node_drawable.cpp', 122, 255],
     ['rs_surface_render_node_drawable.cpp', 577, 702],
     ['rs_canvas_render_node_drawable.cpp', 79, 121],
     ['rs_effect_render_node_drawable.cpp', 36, 75],
