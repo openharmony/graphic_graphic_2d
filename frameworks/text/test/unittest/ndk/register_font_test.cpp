@@ -184,7 +184,6 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest008, TestSize.Level0)
  */
 HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest009, TestSize.Level0)
 {
-    OH_Drawing_IsFontSupportedFromBuffer(nullptr, 0);
     EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(nullptr, 0));
     EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(nullptr, 1));
     std::vector<char> buffer;
