@@ -527,10 +527,10 @@ void HgmFrameRateManager::FrameRateReport()
         slideModeChange_ = false;
     }
 
-    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
-        GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
-    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) RP(%d) = %d, APP(%d) = %d",
-        GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+    HGM_LOGD("%{public}s: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
+        __func__, GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
+    RS_TRACE_NAME_FMT("%s: RS(%d) RP(%d) = %d, APP(%d) = %d",
+        __func__, GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
     schedulePreferredFpsChange_ = false;
