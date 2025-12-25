@@ -41,7 +41,10 @@ void RSServiceDumpManager::InitProcessDumpTask(int32_t processCount)
 {
     processCount_ = processCount;
     completionCount_ = 0;
-    dumpDataList_.clear();
+    {
+        std::unique_lock<std::mutex> lock(collectDumpMutex_);
+        dumpDataList_.clear();
+    }
 }
 
 void RSServiceDumpManager::WaitForDump(std::string& dumpString)
@@ -56,10 +59,13 @@ void RSServiceDumpManager::WaitForDump(std::string& dumpString)
 
     dumpString += "\n-----RSProcessDump-----";
     RS_TRACE_NAME_FMT("RSServiceDumpManager::WaitForDump Finish wait");
-    for (const auto& dumpData : dumpDataList_) {
-        if (dumpData != "") {
-            dumpString += "\n";
-            dumpString += dumpData;
+    {
+        std::unique_lock<std::mutex> lock(collectDumpMutex_);
+        for (const auto& dumpData : dumpDataList_) {
+            if (dumpData != "") {
+                dumpString += "\n";
+                dumpString += dumpData;
+            }
         }
     }
     RS_LOGI("RSServiceDumpManager::WaitForDump Finish wait");
