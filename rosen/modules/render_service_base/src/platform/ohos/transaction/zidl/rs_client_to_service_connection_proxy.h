@@ -137,8 +137,6 @@ public:
 
     ErrCode RepaintEverything() override;
 
-    ErrCode ForceRefreshOneFrameWithNextVSync() override;
-
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
@@ -228,7 +226,6 @@ public:
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;

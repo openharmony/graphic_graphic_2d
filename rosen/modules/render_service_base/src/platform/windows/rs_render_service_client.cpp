@@ -279,10 +279,6 @@ void RSRenderServiceClient::RepaintEverything()
 {
 }
 
-void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
-{
-}
-
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
 {
 }
@@ -534,10 +530,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
     int32_t dstPid, const FrameRateLinkerExpectedFpsUpdateCallback& callback)
 {
     return {};
-}
-
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
 }
 
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

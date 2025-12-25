@@ -65,6 +65,17 @@ public:
         RSSurfaceCaptureConfig captureConfig = {});
 
     /**
+     * @brief Set appWindow number.
+     * @param num winodw number.
+     */
+    void SetAppWindowNum(uint32_t num);
+
+    /**
+     * @brief Call RequestNextVsync to force refresh one frame with the interface.
+     */
+    void ForceRefreshOneFrameWithNextVSync();
+
+    /**
      * @brief Get snapshot of surfaceNode or displayNode by NodeId.
      * @param id The id of surfaceNode or displayNode.
      * @param callback When the snapshot is complete, the callback will be triggered.

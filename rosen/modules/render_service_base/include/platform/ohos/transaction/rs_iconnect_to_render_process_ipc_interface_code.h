@@ -22,7 +22,7 @@ namespace OHOS {
 namespace Rosen {
 
 enum class RSIConnectToRenderProcessInterfaceCode : CodeUnderlyingType {
-    FORK_CONNECTION = 0,
+    CREATE_CONNECTION = 0,
 };
 
 } // namespace Rosen

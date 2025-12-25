@@ -40,7 +40,6 @@ class RSClientToServiceConnection : public RSClientToServiceConnectionStub {
 public:
     RSClientToServiceConnection(
         pid_t remotePid,
-        wptr<RSRenderService> renderService,
         sptr<RSRenderServiceAgent> renderServiceAgent,
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
         RSMainThread* mainThread,
@@ -64,7 +63,6 @@ public:
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
-    void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void CleanCanvasCallbacksAndPendingBuffer() noexcept;
@@ -185,8 +183,6 @@ private:
 
     ErrCode RepaintEverything() override;
 
-    ErrCode ForceRefreshOneFrameWithNextVSync() override;
-
     void DisablePowerOffRenderControl(ScreenId id) override;
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) override;
@@ -283,8 +279,6 @@ private:
 
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
-
-    ErrCode SetAppWindowNum(uint32_t num) override;
 
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
@@ -404,14 +398,10 @@ private:
     std::string GetBundleName(pid_t pid) override;
 
     pid_t remotePid_;
-    wptr<RSRenderService> renderService_;
     sptr<RSRenderServiceAgent> renderServiceAgent_;
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_ = nullptr;
     RSMainThread* mainThread_ = nullptr;
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
-#ifdef RS_ENABLE_GPU
-    RSUniRenderThread& renderThread_;
-#endif
     sptr<RSScreenManagerAgent> screenManagerAgent_;
     sptr<IRemoteObject> token_;
 

@@ -473,6 +473,25 @@ bool RSRenderPipelineClient::TakeSelfSurfaceCapture(NodeId id, std::shared_ptr<S
     return true;
 }
 
+void RSRenderPipelineClient::ForceRefreshOneFrameWithNextVSync()
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender == nullptr) {
+        ROSEN_LOGE("ForceRefreshOneFrameWithNextVSync clientToRender is nullptr, return");
+        return;
+    }
+
+    clientToRender->ForceRefreshOneFrameWithNextVSync();
+}
+
+void RSRenderPipelineClient::SetAppWindowNum(uint32_t num)
+{
+    auto clientToRender = RSRenderServiceConnectHub::GetClientToRenderConnection();
+    if (clientToRender != nullptr) {
+        clientToRender->SetAppWindowNum(num);
+    }
+}
+
 bool RSRenderPipelineClient::SetWindowFreezeImmediately(NodeId id, bool isFreeze,
     std::shared_ptr<SurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const RSSurfaceCaptureBlurParam& blurParam)

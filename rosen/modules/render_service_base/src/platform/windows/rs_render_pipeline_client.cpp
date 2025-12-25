@@ -29,6 +29,14 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
+void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
+{
+}
+
+void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
+{
+}
+
 bool RSRenderPipelineClient::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
 {
     return {};

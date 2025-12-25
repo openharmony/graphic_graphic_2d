@@ -297,8 +297,6 @@ public:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         const FrameRateLinkerExpectedFpsUpdateCallback& callback);
 
-    void SetAppWindowNum(uint32_t num);
-
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow);
 
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
@@ -380,8 +378,6 @@ public:
     void SetFreeMultiWindowStatus(bool enable);
 
     void NotifyScreenSwitched();
-
-    void ForceRefreshOneFrameWithNextVSync();
 
     int32_t RegisterSelfDrawingNodeRectChangeCallback(
         const RectConstraint& constraint, const SelfDrawingNodeRectChangeCallback& callback);

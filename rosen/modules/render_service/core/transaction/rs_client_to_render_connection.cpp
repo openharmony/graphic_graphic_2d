@@ -150,17 +150,6 @@ void RSClientToRenderConnection::CleanRenderNodes() noexcept
     nodeMap.FilterNodeByPid(remotePid_);
 }
 
-void RSClientToRenderConnection::CleanFrameRateLinkers() noexcept
-{
-    // if (mainThread_ == nullptr) {
-    //     return;
-    // }
-    // auto& context = mainThread_->GetContext();
-    // auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-
-    // frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
-}
-
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
 {
 }
@@ -198,6 +187,22 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
 ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     return renderPipelineAgent_->ExecuteSynchronousTask(task);
+}
+
+ErrCode RSClientToRenderConnection::ForceRefreshOneFrameWithNextVSync()
+{
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->ForceRefreshOneFrameWithNextVSync();
+}
+
+ErrCode RSClientToRenderConnection::SetAppWindowNum(uint32_t num)
+{
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->SetAppWindowNum(num);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,

@@ -27,6 +27,7 @@
 #include "securec.h"
 #include "sys_binder.h"
 #include "sandbox_utils.h"
+#include "platform/ohos/transaction/zidl/rs_iclient_to_render_connection.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -413,6 +414,7 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::CreateAshmemParcel(std::shared_pt
     // 1. save data
     int fd = ashmemAllocator->GetFd();
     std::shared_ptr<MessageParcel> ashmemParcel = std::make_shared<MessageParcel>();
+    ashmemParcel->WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
     ashmemParcel->WriteInt32(1); // 1: indicate ashmem parcel
     ashmemParcel->WriteUint32(dataSize);
     ashmemParcel->WriteFileDescriptor(fd);
@@ -478,6 +480,11 @@ std::shared_ptr<MessageParcel> RSAshmemHelper::ParseFromAshmemParcel(MessageParc
         dataParcel->InjectOffsets(reinterpret_cast<binder_size_t>(offsets), offsetSize);
         // restore all fds
         InjectFileDescriptor(dataParcel, ashmemParcel, ashmemFdWorker, callingPid);
+    }
+
+    auto token = dataParcel->ReadInterfaceToken();
+    if (token != RSIClientToRenderConnection::GetDescriptor()) {
+        return nullptr;
     }
 
     if (dataParcel->ReadInt32() != 0) { // identify normal parcel

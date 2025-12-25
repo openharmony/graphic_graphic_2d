@@ -181,6 +181,10 @@ public:
 
     void SetScreenFrameGravity(ScreenId id, int32_t gravity);
 
+    void ForceRefreshOneFrameWithNextVSync();
+
+    void SetAppWindowNum(uint32_t num);
+
     bool RegisterTransactionDataCallback(uint64_t token, uint64_t timeStamp, std::function<void()> callback);
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)

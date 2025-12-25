@@ -119,6 +119,10 @@ ErrCode RSClientToRenderConnectionProxy::CommitTransaction(std::unique_ptr<RSTra
 bool RSClientToRenderConnectionProxy::FillParcelWithTransactionData(
     std::unique_ptr<RSTransactionData>& transactionData, std::shared_ptr<MessageParcel>& data)
 {
+    if (!data->WriteInterfaceToken(RSClientToRenderConnectionProxy::GetDescriptor())) {
+        ROSEN_LOGE("FillParcelWithTransactionData WriteInterfaceToken failed");
+        return false;
+    }
     // write a flag at the begin of parcel to identify parcel type
     // 0: indicate normal parcel
     // 1: indicate ashmem parcel
@@ -163,6 +167,49 @@ bool RSClientToRenderConnectionProxy::FillParcelWithTransactionData(
     return true;
 }
 
+ErrCode RSClientToRenderConnectionProxy::ForceRefreshOneFrameWithNextVSync()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::ForceRefreshOneFrameWithNextVSync: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    uint32_t code =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        return ERR_INVALID_VALUE;
+    }
+    return ERR_OK;
+}
+
+ErrCode RSClientToRenderConnectionProxy::SetAppWindowNum(uint32_t num)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetAppWindowNum: WriteInterfaceToken GetDescriptor err.");
+        return ERR_INVALID_VALUE;
+    }
+    option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteUint32(num)) {
+        ROSEN_LOGE("SetAppWindowNum: WriteUint32 num err.");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::SET_APP_WINDOW_NUM);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetAppWindowNum: Send Request err.");
+        return ERR_INVALID_VALUE;
+    }
+
+    return ERR_OK;
+}
 
 ErrCode RSClientToRenderConnectionProxy::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
@@ -249,6 +296,12 @@ ErrCode RSClientToRenderConnectionProxy::CreateNode(const RSSurfaceRenderNodeCon
     MessageParcel reply;
     MessageOption option;
 
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNode: WriteInterfaceToken err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+
     if (!data.WriteUint64(config.id)) {
         ROSEN_LOGE("CreateNode: WriteUint64 Config.id err.");
         success =  false;
@@ -283,6 +336,11 @@ ErrCode RSClientToRenderConnectionProxy::CreateNodeAndSurface(const RSSurfaceRen
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNodeAndSurface: WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
 
     if (!data.WriteUint64(config.id)) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNodeAndSurface: WriteUint64 config.id err.");
@@ -338,6 +396,11 @@ ErrCode RSClientToRenderConnectionProxy::RegisterApplicationAgent(uint32_t pid, 
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
+
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::RegisterApplicationAgent: WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
     if (!data.WriteRemoteObject(app->AsObject())) {
         ROSEN_LOGE("%{public}s WriteRemoteObject failed", __func__);
         return ERR_INVALID_VALUE;
@@ -637,6 +700,10 @@ bool RSClientToRenderConnectionProxy::GetHighContrastTextState()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::GetHighContrastTextState: WriteInterfaceToken err.");
+        return false;
+    }
     uint32_t code = static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE);
     int32_t err = SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -709,6 +776,10 @@ void RSClientToRenderConnectionProxy::TakeSurfaceCapture(NodeId id, sptr<RSISurf
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::TakeSurfaceCapture: WriteInterfaceToken err.");
+        return;
+    }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s write id failed", __func__);
         return;
@@ -747,6 +818,10 @@ RSClientToRenderConnectionProxy::TakeSurfaceCaptureSoloNode(
     MessageOption option;
     std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> pixelMapIdPairVector;
     option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::TakeSurfaceCaptureSoloNode: WriteInterfaceToken err.");
+        return pixelMapIdPairVector;
+    }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s write id failed", __func__);
         return pixelMapIdPairVector;
@@ -780,6 +855,10 @@ void RSClientToRenderConnectionProxy::TakeSelfSurfaceCapture(NodeId id, sptr<RSI
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::TakeSelfSurfaceCapture: WriteInterfaceToken err.");
+        return;
+    }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s write id failed", __func__);
         return;
@@ -809,6 +888,10 @@ ErrCode RSClientToRenderConnectionProxy::SetWindowFreezeImmediately(NodeId id, b
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetWindowFreezeImmediately: WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s write id failed", __func__);
         return ERR_INVALID_VALUE;
@@ -927,6 +1010,10 @@ void RSClientToRenderConnectionProxy::TakeUICaptureInRange(
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::TakeUICaptureInRange: WriteInterfaceToken err.");
+        return;
+    }
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s write id failed", __func__);
         return;
@@ -1001,6 +1088,10 @@ ErrCode RSClientToRenderConnectionProxy::SetHwcNodeBounds(int64_t rsNodeId, floa
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_ASYNC);
+    if (!data.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::SetHwcNodeBounds: WriteInterfaceToken err.");
+        return ERR_INVALID_VALUE;
+    }
     if (!data.WriteUint64(rsNodeId)) {
         ROSEN_LOGE("SetHwcNodeBounds write id failed");
         return ERR_INVALID_VALUE;

@@ -113,6 +113,10 @@ public:
 
     void RegisterTransactionDataCallback(uint64_t token,
         uint64_t timeStamp, sptr<RSITransactionDataCallback> callback) override;
+    
+    ErrCode ForceRefreshOneFrameWithNextVSync() override;
+
+    ErrCode SetAppWindowNum(uint32_t num) override;
 
     ErrCode SetWindowContainer(NodeId nodeId, bool value) override;
 

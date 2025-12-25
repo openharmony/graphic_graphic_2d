@@ -186,8 +186,9 @@ public:
     void ClearSurfaceWatermark(pid_t pid, const std::string& name, bool isSystemCalling);
     void ClearSurfaceWatermarkForNodes(pid_t pid, const std::string& name,
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
+    ErrCode ForceRefreshOneFrameWithNextVSync();
+    ErrCode SetAppWindowNum(uint32_t num);
 private:
-    // TODO: maybe do not use reference of a std::shared pointer
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
 };
 

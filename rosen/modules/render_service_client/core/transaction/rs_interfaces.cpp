@@ -494,7 +494,7 @@ void RSInterfaces::RepaintEverything()
 
 void RSInterfaces::ForceRefreshOneFrameWithNextVSync()
 {
-    renderServiceClient_->ForceRefreshOneFrameWithNextVSync();
+    renderInterface_->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSInterfaces::DisablePowerOffRenderControl(ScreenId id)
@@ -766,7 +766,7 @@ int32_t RSInterfaces::UnRegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t
 
 void RSInterfaces::SetAppWindowNum(uint32_t num)
 {
-    renderServiceClient_->SetAppWindowNum(num);
+    renderInterface_->SetAppWindowNum(num);
 }
 
 /**

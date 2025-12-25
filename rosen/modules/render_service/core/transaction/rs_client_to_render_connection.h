@@ -53,7 +53,6 @@ public:
 
 private:
     void CleanRenderNodes() noexcept;
-    void CleanFrameRateLinkers() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -159,6 +158,11 @@ private:
         const std::vector<NodeId>& nodeIdList) override;
         
     void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
+
+    ErrCode ForceRefreshOneFrameWithNextVSync() override;
+
+    ErrCode SetAppWindowNum(uint32_t num) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
     RSMainThread* mainThread_ = nullptr;

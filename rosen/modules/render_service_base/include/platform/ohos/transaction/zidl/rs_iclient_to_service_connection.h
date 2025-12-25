@@ -184,8 +184,6 @@ public:
 
     virtual ErrCode RepaintEverything() = 0;
 
-    virtual ErrCode ForceRefreshOneFrameWithNextVSync() = 0;
-
     virtual void DisablePowerOffRenderControl(ScreenId id) = 0;
 
     virtual void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status) = 0;
@@ -277,8 +275,6 @@ public:
     virtual int32_t RegisterHgmConfigChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 
     virtual int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
-
-    virtual ErrCode SetAppWindowNum(uint32_t num) = 0;
 
     virtual int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) = 0;
 

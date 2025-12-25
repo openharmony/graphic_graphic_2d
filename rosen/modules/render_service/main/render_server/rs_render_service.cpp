@@ -304,9 +304,10 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     auto tokenObj = token->AsObject();
     sptr<RSScreenManagerAgent> screenManagerAgent = new RSScreenManagerAgent(screenManager_);
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(*this);
-    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent = sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
-    sptr<RSIClientToServiceConnection> newConn(
-        new RSClientToServiceConnection(remotePid, this, renderServiceAgent, renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
+        sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
+    sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(remotePid, renderServiceAgent,
+        renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, mainThread_, renderPipelineAgent, tokenObj));

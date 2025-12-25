@@ -133,7 +133,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_RECT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_OFFSET),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_OCCLUSION_CHANGE_CALLBACK),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SHOW_WATERMARK),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::RESIZE_VIRTUAL_SCREEN),
@@ -202,6 +201,9 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_OPEN_FILE),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_SERVICE_POPULATE_FILES),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::PROFILER_IS_SECURE_SCREEN),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_UNI_RENDER_ENABLED),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VSYNC_CONNECTION),
+    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_PIXELMAP_BY_PROCESSID),
 };
 
 void CopyFileDescriptor(MessageParcel& old, MessageParcel& copied)
@@ -1063,10 +1065,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REPAINT_EVERYTHING): {
             RepaintEverything();
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC): {
-            ForceRefreshOneFrameWithNextVSync();
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN): {
@@ -2108,16 +2106,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM): {
-            uint32_t num{0};
-            if (!data.ReadUint32(num)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_APP_WINDOW_NUM Read num failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            SetAppWindowNum(num);
-            break;
-        }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_WATERMARK): {
             if (!RSSystemProperties::GetSurfaceNodeWatermarkEnabled()) {
                 RS_LOGI("Current disenable water mark");
@@ -2232,72 +2220,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             ReportGameStateData(info);
             break;
         }
-        // case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HARDWARE_ENABLED) : {
-        //     uint64_t id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_HARDWARE_ENABLED Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     if (!IsValidCallingPid(ExtractPid(id), callingPid)) {
-        //         RS_LOGW("The SetHardwareEnabled isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
-        //             id, callingPid);
-        //         break;
-        //     }
-        //     bool isEnabled{false};
-        //     uint8_t selfDrawingType{static_cast<uint8_t>(SelfDrawingNodeType::DEFAULT)};
-        //     bool dynamicHardwareEnable{false};
-        //     if (!data.ReadBool(isEnabled) ||
-        //         !data.ReadUint8(selfDrawingType) ||
-        //         !data.ReadBool(dynamicHardwareEnable)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_HARDWARE_ENABLED Read parcel failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     SetHardwareEnabled(id, isEnabled, static_cast<SelfDrawingNodeType>(selfDrawingType), dynamicHardwareEnable);
-        //     break;
-        // }
-        // case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_HIDE_PRIVACY_CONTENT) : {
-        //     uint64_t id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-        //         RSIClientToServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
-        //         "::SET_HIDE_PRIVACY_CONTENT");
-        //     if (!isSystemCalling) {
-        //         if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NONSYSTEM_CALLING))) {
-        //             RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT Write isSystemCalling failed!");
-        //             ret = ERR_INVALID_REPLY;
-        //         }
-        //         break;
-        //     }
-        //     if (ExtractPid(id) != callingPid) {
-        //         RS_LOGW("The SetHidePrivacyContent isn't legal, nodeId:%{public}" PRIu64 ", callingPid:%{public}d",
-        //             id, callingPid);
-        //         if (!reply.WriteUint32(static_cast<uint32_t>(RSInterfaceErrorCode::NOT_SELF_CALLING))) {
-        //             RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT Write ErrorCode failed!");
-        //             ret = ERR_INVALID_REPLY;
-        //         }
-        //         break;
-        //     }
-        //     bool needHidePrivacyContent{false};
-        //     if (!data.ReadBool(needHidePrivacyContent)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT read "
-        //             "needHidePrivacyContent failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     uint32_t resCode;
-        //     if (SetHidePrivacyContent(id, needHidePrivacyContent, resCode) != ERR_OK ||
-        //         !reply.WriteUint32(resCode)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::SET_HIDE_PRIVACY_CONTENT Write resCode failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_LIGHT_FACTOR_STATUS) : {
             int32_t lightFactorStatus{0};
             if (!data.ReadInt32(lightFactorStatus)) {
@@ -2865,47 +2787,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             SetVmaCacheStatus(flag);
             break;
         }
-        // case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_DISPLAY_NODE) : {
-        //     uint64_t id{0};
-        //     if (!data.ReadUint64(id)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_DISPLAY_NODE Read id failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     bool isNonSystemCalling = false;
-        //     bool isTokenTypeValid = true;
-        //     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemCalling);
-        //     if (isNonSystemCalling && !IsValidCallingPid(ExtractPid(id), callingPid)) {
-        //         RS_LOGW("CREATE_DISPLAY_NODE invalid nodeId[%{public}" PRIu64 "] pid[%{public}d]", id, callingPid);
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     uint64_t mirroredId{0};
-        //     uint64_t screenId{0};
-        //     bool isMirror{false};
-        //     uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
-        //     if (!data.ReadUint64(mirroredId) ||
-        //         !data.ReadUint64(screenId) ||
-        //         !data.ReadBool(isMirror) ||
-        //         !data.ReadUint32(mirrorSourceRotation)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_DISPLAY_NODE Read config failed!");
-        //         ret = ERR_INVALID_DATA;
-        //         break;
-        //     }
-        //     RSDisplayNodeConfig config = {
-        //         .screenId = screenId,
-        //         .isMirrored = isMirror,
-        //         .mirrorNodeId = mirroredId,
-        //         .isSync = true,
-        //         .mirrorSourceRotation = mirrorSourceRotation,
-        //     };
-        //     bool success;
-        //     if (CreateNode(config, id, success) != ERR_OK || reply.WriteBool(success)) {
-        //         RS_LOGE("RSClientToServiceConnectionStub::CREATE_DISPLAY_NODE Write success failed!");
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_FREE_MULTI_WINDOW_STATUS) : {
             bool enable{false};
             if (!data.ReadBool(enable)) {
@@ -3056,13 +2937,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
 #endif
-        // case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_HIGH_CONTRAST_TEXT_STATE) : {
-        //     bool highContrast = GetHighContrastTextState();
-        //     if (!reply.WriteBool(highContrast)) {
-        //         ret = ERR_INVALID_REPLY;
-        //     }
-        //     break;
-        // }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_BEHIND_WINDOW_FILTER_ENABLED): {
             bool enabled { false };
             if (!data.ReadBool(enabled)) {

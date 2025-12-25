@@ -41,7 +41,7 @@ public:
 
 protected:
     static std::shared_ptr<RSIRenderClient> client_;
-    static std::shared_ptr<RSIRenderClient> renderClient_; // ??? todo
+    static std::shared_ptr<RSIRenderClient> renderClient_;
 };
 
 } // namespace Rosen

@@ -59,19 +59,18 @@ sptr<IRemoteObject> RSRenderServiceAgent::GetConnectToRenderToken(ScreenId scree
     if (auto remoteObj = renderProcessManager->GetConnectToRenderConnection(screenId)) {
         return remoteObj->AsObject();
     }
-    RS_LOGE("ccc: RSRenderServiceAgent::GetConnectToRenderToken nullptr");
     return nullptr;
 }
 
 void RSRenderServiceAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
 {
-    RS_LOGI("dmulti_process RSRenderServiceAgent::GetRefreshInfoToSP");
+    RS_LOGI("RSRenderServiceAgent::GetRefreshInfoToSP");
     renderService_.GetRefreshInfoToSP(dumpString, nodeId);
 }
 
 void RSRenderServiceAgent::FpsDump(std::string& dumpString, std::string& arg)
 {
-    RS_LOGI("dmulti_process RSRenderServiceAgent::FpsDump");
+    RS_LOGI("RSRenderServiceAgent::FpsDump");
     renderService_.FpsDump(dumpString, arg);
 }
 
