@@ -109,6 +109,7 @@ public:
             case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
             case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
             case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
+            case RSNGEffectType::MAGNIFIER: return "Magnifier";
             default: return "UNKNOWN";
         }
     }

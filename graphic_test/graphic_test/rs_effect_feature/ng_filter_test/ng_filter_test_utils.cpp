@@ -64,6 +64,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorFilter = {
      [] {
          return std::make_shared<RSNGSoundWaveFilter>();
      }},
+    {RSNGEffectType::MAGNIFIER,
+     [] {
+         return std::make_shared<RSNGMagnifierFilter>();
+     }}
 };
 
 std::shared_ptr<RSNGMaskBase> CreateMask(RSNGEffectType type)
