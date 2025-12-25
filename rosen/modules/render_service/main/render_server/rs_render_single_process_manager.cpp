@@ -64,8 +64,8 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
         new RSConnectToRenderProcess(renderService.mainThread_, renderPipelineAgent));
 }
 
-sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId, const ScreenEventData& data,
-    const sptr<RSScreenProperty>& property)
+sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId,
+    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     auto composerConn = renderService_.rsRenderComposerManager_->GetRSComposerConnection(property->GetScreenId());
     renderService_.renderPipeline_->OnScreenConnected(property, composerConn, composerToRenderConnection_,
@@ -77,6 +77,19 @@ sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId scr
 void RSSingleRenderProcessManager::OnScreenDisconnected(ScreenId id)
 {
     renderService_.renderPipeline_->OnScreenDisconnected(id);
+}
+
+void RSSingleRenderProcessManager::OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+    const sptr<RSScreenProperty>& property)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
+    renderService_.rsRenderComposerManager_->OnHwcRestored(output, property);
+}
+
+void RSSingleRenderProcessManager::OnHwcDead(ScreenId id)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
+    renderService_.rsRenderComposerManager_->OnHwcDead(id);
 }
 
 void RSSingleRenderProcessManager::OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property)

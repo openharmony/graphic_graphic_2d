@@ -133,6 +133,7 @@ void RSScreenPreprocessor::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void*
 
 bool RSScreenPreprocessor::Init() noexcept
 {
+    RS_TRACE_FUNC();
     composer_ = HdiBackend::GetInstance();
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     isFoldScreenFlag_ = system::GetParameter("const.window.foldscreen.type", "") != "";
@@ -165,6 +166,7 @@ bool RSScreenPreprocessor::Init() noexcept
     if (composer_->RegScreenVBlankIdleCallback(&RSScreenPreprocessor::OnScreenVBlankIdle, this) != 0) {
         RS_LOGW("%{public}s: Not support register OnScreenVBlankIdle Func to composer", __func__);
     }
+    ProcessScreenHotPlugEvents();
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     InitFoldSensor();
 #endif
@@ -306,57 +308,64 @@ void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bo
         RS_LOGE("%{public}s: screen %{public}" PRIu64 "is %{public}s, event has been saved", __func__, id,
             connected ? "connected" : "disconnected");
     }
-
-    auto task = [this]() {
-        std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents;
-        {
-            std::lock_guard<std::mutex> lock(hotPlugMutex_);
-            pendingHotPlugEvents.swap(pendingHotPlugEvents_);
+    if (isHwcDead_) {
+        RS_LOGE("%{public}s: hotPlugEvent should be processed after Init() on hwc dead.", __func__);
+        return;
+    }
+    ScheduleTask([this]() {
+        ProcessScreenHotPlugEvents();
+    });
+}
+void RSScreenPreprocessor::ProcessScreenHotPlugEvents()
+{
+    std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents;
+    {
+        std::lock_guard<std::mutex> lock(hotPlugMutex_);
+        pendingHotPlugEvents.swap(pendingHotPlugEvents_);
+    }
+    for (auto& [_, event] : pendingHotPlugEvents) {
+        if (event.output == nullptr) {
+            RS_LOGE("%{public}s: output is nullptr.", __func__);
+            continue;
         }
-        for (auto& [_, event] : pendingHotPlugEvents) {
-            if (event.output == nullptr) {
-                RS_LOGE("%{public}s: output is nullptr", __func__);
-                continue;
-            }
-            if (event.connected) {
-                ConfigureScreenConnected(event.output);
-            } else {
-                ConfigureScreenDisconnected(event.output);
-            }
+        if (event.connected) {
+            ConfigureScreenConnected(event.output);
+        } else {
+            ConfigureScreenDisconnected(event.output);
         }
-        if (auto screenManager = screenManager_.promote()) {
-            screenManager->ProcessPendingConnections();
-        }
-        isHwcDead_ = false;
-    };
-    ScheduleTask(task);
+    }
+    if (auto screenManager = screenManager_.promote()) {
+        screenManager->ProcessPendingConnections();
+    } else {
+        RS_LOGE("%{public}s: screenManager is nullptr.", __func__);
+    }
+    isHwcDead_ = false;
 }
 
 void RSScreenPreprocessor::ConfigureScreenConnected(std::shared_ptr<HdiOutput>& output)
 {
     ScreenId id = ToScreenId(output->GetScreenId());
-    RS_LOGI("%{public}s: The screen for id %{public}" PRIu64 "connected.", __func__, id);
+    RS_LOGI("%{public}s The screen for id %{public}" PRIu64 ", connected.", __func__, id);
 
-    ScreenChangeReason reason = ScreenChangeReason::DEFAULT;
-    if (isHwcDead_ && id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
-        reason = ScreenChangeReason::HWCDEAD;
-    }
     if (auto screenManager = screenManager_.promote()) {
         // 第一步：检查物理屏是否已经连接，已经连接先通知屏幕断开消息
         if (screenManager->GetScreen(id)) {
-            RS_LOGW("dmulti_process %{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
+            RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
             if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                ScreenPresenceEvent event = {.id = id, .connected = false, .reason = reason, .output = output};
-                callbackMgr->NotifyScreenPresenceChanged(event);
+                callbackMgr->NotifyScreenDisconnected(id);
             }
         }
         // 第二步: 配置连接消息
         screenManager->ProcessScreenConnected(id);
         // 第三步: 通知屏幕连接消息
         if (auto callbackMgr = callbackMgrWeak_.lock()) {
-            ScreenPresenceEvent event = {.id = id, .connected = true, .reason = reason,
-                .output = output, .property = screenManager->QueryScreenProperty(id)};
-            callbackMgr->NotifyScreenPresenceChanged(event);
+            ScreenPresenceEvent event = {.id = id, .output = output,
+                                         .property = screenManager->QueryScreenProperty(id)};
+            if (isHwcDead_) {
+                callbackMgr->NotifyHwcRestored(event);
+            } else {
+                callbackMgr->NotifyScreenConnected(event);
+            }
         }
     }
 }
@@ -366,17 +375,12 @@ void RSScreenPreprocessor::ConfigureScreenDisconnected(std::shared_ptr<HdiOutput
     ScreenId id = ToScreenId(output->GetScreenId());
     RS_LOGI("%{public}s: The screen for id %{public}" PRIu64 "disconnected.", __func__, id);
 
-    ScreenChangeReason reason = ScreenChangeReason::DEFAULT;
-    if (isHwcDead_ && id != 0 && MultiScreenParam::IsRsReportHwcDead()) {
-        reason = ScreenChangeReason::HWCDEAD;
-    }
     if (auto screenManager = screenManager_.promote()) {
         // 第一步：检查物理屏是否已经连接，已经连接通知屏幕断开消息
         if (screenManager->GetScreen(id)) {
-            RS_LOGW("dmulti_process %{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
+            RS_LOGW("%{public}s: The screen for id %{public}" PRIu64 "already existed.", __func__, id);
             if (auto callbackMgr = callbackMgrWeak_.lock()) {
-                ScreenPresenceEvent event = {.id = id, .connected = false, .reason = reason, .output = output};
-                callbackMgr->NotifyScreenPresenceChanged(event);
+                callbackMgr->NotifyScreenDisconnected(id);
             }
         }
         // 第二步: 配置断开屏幕
@@ -391,13 +395,16 @@ void RSScreenPreprocessor::OnRefreshEvent(ScreenId id)
     }
 }
 
-// 统一改成直接通知屏幕断开 加上hwcdead标记位 ,内部的
-// 异常断开 合成模块清理合成管线，保证不再使用hdi相关接口，
-// 异常处理：渲染正常送合成 合成模块在hdi为空的时候要异常处理。
-// 先通知异常断开，再做恢复重新初始化流程 ?task是不是可以用move优化下？
+/**
+ * @brief Composer exception handling:
+ * The composer module reset composer resource to ensure that hdi interfaces are no longer used.
+ * Render pipeline exception handling: Rendering proceeds normally to Composer.
+ */
 void RSScreenPreprocessor::OnHwcDeadEvent()
 {
     auto task = [this] () {
+        RS_TRACE_NAME("RSScreenPreprocessor::OnHwcDeadEvent");
+        RS_LOGI("RSScreenPreprocessor::OnHwcDeadEvent.");
         isHwcDead_ = true;
         if (auto screenManager = screenManager_.promote()) {
             screenManager->OnHwcDeadEvent();
@@ -436,6 +443,5 @@ void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
         mainHandler_->PostTask(task, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
-
 } // namespace OHOS
 } // namespace Rosen

@@ -50,6 +50,7 @@ std::shared_ptr<HdiOutput> HdiOutput::CreateHdiOutput(uint32_t screenId)
 HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
 {
     // DISPLAYENGINE ARSR_PRE FLAG
+    HLOGI("HdiOutput(screenId_:%{public}" PRIu32 ")", screenId);
     arsrPreEnabled_ = system::GetBoolParameter("const.display.enable_arsr_pre", true);
     arsrPreEnabledForVm_ = system::GetBoolParameter("const.display.enable_arsr_pre_for_vm", false);
     vmArsrWhiteList_ = system::GetParameter("const.display.vmlayer.whitelist", "unknown");
@@ -57,6 +58,7 @@ HdiOutput::HdiOutput(uint32_t screenId) : screenId_(screenId)
 
 HdiOutput::~HdiOutput()
 {
+    HLOGI("~HdiOutput screenId_:%{public}" PRIu32, screenId_);
     ClearBufferCache();
 }
 

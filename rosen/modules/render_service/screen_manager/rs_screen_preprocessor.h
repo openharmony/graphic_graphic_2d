@@ -66,6 +66,7 @@ private:
     void HandlePostureData(const SensorEvent* const event);
 #endif
 
+    void ProcessScreenHotPlugEvents();
     void ScheduleTask(std::function<void()> task);
 
     std::atomic<bool> isHwcDead_ = false;

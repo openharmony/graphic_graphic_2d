@@ -155,12 +155,11 @@ bool HdiBackend::GetVsyncSamplerEnabled(const OutputPtr& output)
 
 void HdiBackend::ResetDevice()
 {
+    RS_TRACE_NAME("HdiBackend ResetDevice");
     if (device_) {
+        HLOGI("HdiBackend::%{public}s: Reset HdiClient in HdiDevice.", __func__);
         device_->Destroy();
         device_ = nullptr;
-    }
-    for (auto [id, output] : outputs_) {
-        output->ResetDevice();
     }
     outputs_.clear();
 }

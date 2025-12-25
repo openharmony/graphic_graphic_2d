@@ -132,7 +132,7 @@ void RSRenderComposerAgent::OnHwcRestored(const std::shared_ptr<HdiOutput>& outp
         return;
     }
     std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
-    rsRenderComposer_->PostTask(
+    rsRenderComposer_->PostSyncTask(
         [weakThis, output, property]() {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
@@ -149,7 +149,7 @@ void RSRenderComposerAgent::OnHwcDead()
         return;
     }
     std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
-    rsRenderComposer_->PostTask(
+    rsRenderComposer_->PostSyncTask(
         [weakThis]() {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {

@@ -182,7 +182,6 @@ public:
     
     void ExecuteCallback(const sptr<RSIScreenChangeCallback>& callback) const;
 
-    void RegisterHwcEvent(std::function<void()> func);
     bool UpdateVsyncEnabledScreenId(ScreenId screenId);
     uint64_t JudgeVSyncEnabledScreenWhilePowerStatusChanged(ScreenId screenId, ScreenPowerStatus status, uint64_t enabledScreenId);
     void UpdateFoldScreenConnectStatusLocked(ScreenId screenId, bool connected);
@@ -256,8 +255,6 @@ private:
     uint64_t frameId_ = 0; // only used by SetScreenConstraint, called in hardware thread per frame
 
     std::atomic<bool> powerOffNeedProcessOneFrame_ = false;
-
-    std::function<void()> registerHwcEventFunc_ = nullptr;
 
     mutable std::mutex renderControlMutex_;
     std::unordered_set<ScreenId> disableRenderControlScreens_ = {};

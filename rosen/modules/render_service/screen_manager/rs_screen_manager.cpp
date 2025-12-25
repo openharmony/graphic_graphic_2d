@@ -184,6 +184,7 @@ void RSScreenManager::OnRefreshEvent(ScreenId id)
 void RSScreenManager::OnHwcDeadEvent()
 {
     RS_TRACE_FUNC();
+    RS_LOGW("%{public}s.", __func__);
     // Only clean the physical screen when hwc dead
     std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens;
     {
@@ -197,9 +198,11 @@ void RSScreenManager::OnHwcDeadEvent()
             }
         }
     }
-    // isHwcDead_ = true;
     defaultScreenId_ = INVALID_SCREEN_ID;
 #ifdef RS_ENABLE_GPU
+// The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
+// It may take a long time due to task accumulation, which can result in holding the screenMapMutex lock for too long.
+// That is why it is necessary to handle this notification independently.
     for (const auto& [id, _] : screens) {
         if (callbackMgr_) {
             callbackMgr_->NotifyHwcDead(id);
@@ -251,6 +254,9 @@ void RSScreenManager::ProcessPendingConnections()
         }
         if (rotation != ScreenRotation::INVALID_SCREEN_ROTATION) {
             screen->SetScreenCorrection(rotation);
+        }
+        if (backLightLevel != INVALID_BACKLIGHT_VALUE) {
+            screen->SetScreenBacklight(backLightLevel);
         }
     }
 }
@@ -930,9 +936,8 @@ uint32_t RSScreenManager::SetScreenActiveMode(ScreenId id, uint32_t modeId)
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return StatusCode::SCREEN_NOT_FOUND;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "], modeId:[%" PRIu32 "]", __func__, id,
-                               modeId);
-    RS_LOGI("dmulti_process RSScreenManager::SetScreenActiveMode triggered");
+    RS_OPTIONAL_TRACE_NAME_FMT("RSScreenManager::%s, id:[%" PRIu64 "], modeId:[%" PRIu32 "]", __func__, id, modeId);
+    RS_LOGI("%{public}s, id:[%{public}" PRIu64 "], modeId:[%{public}" PRIu32 "]", __func__, id, modeId);
     return screen->SetActiveMode(modeId);
 }
 
@@ -1621,11 +1626,6 @@ void RSScreenManager::NotifySwitchingCallback(bool status) const
 
     RS_LOGI("%{public}s: status: %{public}d", __func__, status);
     screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
-}
-
-void RSScreenManager::RegisterHwcEvent(std::function<void()> func)
-{
-    registerHwcEventFunc_ = std::move(func);
 }
 
 std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) const

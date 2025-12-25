@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "graphic_feature_param_manager.h"
 #include "rs_screen_manager_agent.h"
 #include <cstdint>
 
@@ -69,8 +70,16 @@ int32_t RSScreenManagerAgent::SetScreenChangeCallback(const sptr<RSIScreenChange
 void RSScreenManagerAgent::OnScreenConnected(ScreenId id,
     ScreenChangeReason reason, sptr<IRemoteObject> remoteConn)
 {
+    if (!screenChangeCallback_) {
+        return;
+    }
+    if (reason == ScreenChangeReason::HWCDEAD && (id == 0 || !MultiScreenParam::IsRsReportHwcDead())) {
+        RS_LOGI("RSScreenManagerAgent::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
+                __func__, id);
+        return;
+    }
     std::shared_lock<std::shared_mutex> lock(screenChangeCallbackMutex_);
-    RS_LOGI("%{public}s id:%{public}" PRIu64 "event connected reason %{public}u", __func__, id,
+    RS_LOGI("%{public}s id:%{public}" PRIu64 "event connected reason %{public}u.", __func__, id,
         static_cast<uint8_t>(reason));
     
     if (screenChangeCallback_) {
@@ -80,10 +89,17 @@ void RSScreenManagerAgent::OnScreenConnected(ScreenId id,
 
 void RSScreenManagerAgent::OnScreenDisconnected(ScreenId id, ScreenChangeReason reason)
 {
+    if (!screenChangeCallback_) {
+        return;
+    }
+    if (reason == ScreenChangeReason::HWCDEAD) {
+        RS_LOGI("RSScreenManagerAgent::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
+                __func__, id);
+        return;
+    }
     std::shared_lock<std::shared_mutex> lock(screenChangeCallbackMutex_);
-    RS_LOGE("%{public}s: id:%{public}" PRIu64 "event disconnected reason %{public}u", __func__, id,
+    RS_LOGI("%{public}s: id:%{public}" PRIu64 "event disconnected reason %{public}u.", __func__, id,
         static_cast<uint8_t>(reason));
-    
     if (screenChangeCallback_) {
         screenChangeCallback_->OnScreenChanged(id, ScreenEvent::DISCONNECTED, reason);
     }

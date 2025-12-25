@@ -1143,7 +1143,6 @@ void RSRenderComposer::ReInit(const std::shared_ptr<HdiOutput>& output,
         OnPrepareComplete(surface, param, data);
     };
     hdiOutput_->RegPrepareComplete(onPrepareCompleteFunc, this);
-    rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
 }
 
 void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
@@ -1153,6 +1152,7 @@ void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& outpu
     RS_LOGI("RSRenderComposer::OnScreenConnected screenId: %{public}" PRIu64, screenId_);
     isDisconnected_ = false;
     ReInit(output, property);
+    rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
 }
 
 void RSRenderComposer::OnScreenDisconnected()
@@ -1183,6 +1183,9 @@ void RSRenderComposer::OnHwcDead()
     RS_LOGI("RSRenderComposer::OnHwcDead screenId: %{public}" PRIu64, screenId_);
     ClearFrameBuffersInner();
     isHwcDead_ = true;
+    if (hdiOutput_) {
+        hdiOutput_->ResetDevice();
+    }
 }
 
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)

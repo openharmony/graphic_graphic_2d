@@ -43,32 +43,33 @@ void RSScreenCallbackManager::RemoveAgentListener(const sptr<RSIScreenManagerAge
     }
 }
 
-void RSScreenCallbackManager::NotifyScreenPresenceChanged(const ScreenPresenceEvent& event)
+void RSScreenCallbackManager::NotifyScreenConnected(const ScreenPresenceEvent& event)
 {
-    if (event.connected) {
-        sptr<IRemoteObject> clientToRenderConnection = nullptr;
-        if (coreListener_) {
-            clientToRenderConnection = coreListener_->
-                OnScreenConnected(event.id, {event.output, event.reason}, event.property);
-        } else {
-            RS_LOGI("%{public}s: coreListener is nullptr", __func__);
-        }
-        NotifyScreenConnectedToAgentListeners(event.id, event.reason, clientToRenderConnection);
-        {
-            std::lock_guard<std::mutex> lock(clientToRenderMtx_);
-            clientToRenderConns_[event.id] = clientToRenderConnection;
-        }
+    sptr<IRemoteObject> clientToRenderConnection = nullptr;
+    if (coreListener_) {
+        clientToRenderConnection = coreListener_->
+            OnScreenConnected(event.id, event.output, event.property);
     } else {
-        if (coreListener_) {
-            coreListener_->OnScreenDisconnected(event.id);
-        } else {
-            RS_LOGI("%{public}s: coreListener is nullptr", __func__);
-        }
-        NotifyScreenDisconnectedToAgentListeners(event.id, event.reason);
-        {
-            std::lock_guard<std::mutex> lock(clientToRenderMtx_);
-            clientToRenderConns_.erase(event.id);
-        }
+        RS_LOGI("%{public}s: coreListener is nullptr", __func__);
+    }
+    NotifyScreenConnectedToAgentListeners(event.id, ScreenChangeReason::DEFAULT, clientToRenderConnection);
+    {
+        std::lock_guard<std::mutex> lock(clientToRenderMtx_);
+        clientToRenderConns_[event.id] = clientToRenderConnection;
+    }
+}
+
+void RSScreenCallbackManager::NotifyScreenDisconnected(ScreenId screenId)
+{
+    if (coreListener_) {
+        coreListener_->OnScreenDisconnected(screenId);
+    } else {
+        RS_LOGI("%{public}s: coreListener is nullptr", __func__);
+    }
+    NotifyScreenDisconnectedToAgentListeners(screenId, ScreenChangeReason::DEFAULT);
+    {
+        std::lock_guard<std::mutex> lock(clientToRenderMtx_);
+        clientToRenderConns_.erase(screenId);
     }
 }
 
@@ -90,13 +91,25 @@ void RSScreenCallbackManager::NotifyScreenRefresh(ScreenId id)
     }
 }
 
-void RSScreenCallbackManager::NotifyHwcDead(ScreenId id)
+void RSScreenCallbackManager::NotifyHwcRestored(const ScreenPresenceEvent& event)
 {
     if (coreListener_) {
-        coreListener_->OnScreenDisconnected(id);
+        coreListener_->OnHwcRestored(event.id, event.output, event.property);
     } else {
         RS_LOGI("%{public}s: coreListener is nullptr", __func__);
     }
+    NotifyScreenConnectedToAgentListeners(event.id, ScreenChangeReason::HWCDEAD,
+                                          GetClientToRenderConnection(event.id));
+}
+
+void RSScreenCallbackManager::NotifyHwcDead(ScreenId id)
+{
+    if (coreListener_) {
+        coreListener_->OnHwcDead(id);
+    } else {
+        RS_LOGI("%{public}s: coreListener is nullptr", __func__);
+    }
+    NotifyScreenDisconnectedToAgentListeners(id, ScreenChangeReason::HWCDEAD);
 }
 
 void RSScreenCallbackManager::NotifyHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)

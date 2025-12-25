@@ -53,9 +53,12 @@ private:
         explicit ScreenManagerListener(RSRenderService& renderService) : renderService_(renderService) {}
         ~ScreenManagerListener() noexcept override = default;
 
-        sptr<IRemoteObject> OnScreenConnected(ScreenId id,
-            const ScreenEventData& data, const sptr<RSScreenProperty>& property) override;
+        sptr<IRemoteObject> OnScreenConnected(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+                                              const sptr<RSScreenProperty>& property) override;
         void OnScreenDisconnected(ScreenId id) override;
+        void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+                           const sptr<RSScreenProperty>& property) override;
+        void OnHwcDead(ScreenId id) override;
         void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
         void OnScreenRefresh(ScreenId id) override;
         void OnVBlankIdle(ScreenId id, uint64_t ns) override;

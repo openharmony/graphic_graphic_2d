@@ -382,11 +382,11 @@ void RSRenderService::FpsDump(std::string& dumpString, std::string& arg)
 }
 
 sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(ScreenId screenId,
-    const ScreenEventData& data, const sptr<RSScreenProperty>& property)
+    const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property)
 {
     RS_LOGD("%{public}s: rsScreenProperty.id[%{public}" PRIu64 "] .width[%{public}d] .height[%{public}d]",
         __func__, property->GetScreenId(), property->GetWidth(), property->GetHeight());
-    renderService_.rsRenderComposerManager_->OnScreenConnected(data.output, property);
+    renderService_.rsRenderComposerManager_->OnScreenConnected(output, property);
     if (const auto& hgmContext = renderService_.GetHgmContext()) {
         hgmContext->AddScreenToHgm(property);
     }
@@ -394,7 +394,7 @@ sptr<IRemoteObject> RSRenderService::ScreenManagerListener::OnScreenConnected(Sc
     renderService_.vsyncSampler_->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId,
         renderService_.handler_);
     renderService_.screenManager_->SetScreenVsyncEnableById(vsyncEnabledScreenId, screenId, false);
-    return renderService_.renderProcessManager_->OnScreenConnected(screenId, data, property);
+    return renderService_.renderProcessManager_->OnScreenConnected(screenId, output, property);
 }
 
 void RSRenderService::ScreenManagerListener::OnScreenDisconnected(ScreenId id)
@@ -408,6 +408,17 @@ void RSRenderService::ScreenManagerListener::OnScreenDisconnected(ScreenId id)
     renderService_.vsyncSampler_->RegSetScreenVsyncEnabledCallbackForRenderService(vsyncEnabledScreenId,
         renderService_.handler_);
     renderService_.renderProcessManager_->OnScreenDisconnected(id);
+}
+
+void RSRenderService::ScreenManagerListener::OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+                                                           const sptr<RSScreenProperty>& property)
+{
+    renderService_.renderProcessManager_->OnHwcRestored(id, output, property);
+}
+
+void RSRenderService::ScreenManagerListener::OnHwcDead(ScreenId id)
+{
+    renderService_.renderProcessManager_->OnHwcDead(id);
 }
 
 void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(ScreenId id,
