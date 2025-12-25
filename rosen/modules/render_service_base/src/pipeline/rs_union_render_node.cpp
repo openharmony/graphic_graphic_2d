@@ -114,10 +114,6 @@ bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relat
         return false;
     }
     relativeMatrix.PostConcat(invertUnionAbsMatrix);
-    // GE need inverted matrix
-    Drawing::Matrix invertMat;
-    relativeMatrix.Invert(invertMat);
-    relativeMatrix = invertMat;
     return true;
 }
 

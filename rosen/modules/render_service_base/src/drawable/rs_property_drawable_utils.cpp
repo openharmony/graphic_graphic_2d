@@ -1734,7 +1734,7 @@ bool RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter(const RSProperti
     auto sdfRRectShape = std::static_pointer_cast<RSNGRenderSDFRRectShape>(
         RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
     ROSEN_LOGD("RSPropertyDrawableUtils::ApplySDFShapeToFrostedGlassFilter, rrect %{public}s, node %{public}" PRIu64,
-        sdfRRect.rect_.ToString().c_str(), nodeId);
+        sdfRRect.ToString().c_str(), nodeId);
     sdfRRectShape->Setter<SDFRRectShapeRRectRenderTag>(sdfRRect);
     filter->Setter<FrostedGlassShapeRenderTag>(sdfRRectShape);
     return true;
