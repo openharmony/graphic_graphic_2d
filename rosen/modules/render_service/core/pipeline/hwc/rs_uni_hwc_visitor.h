@@ -104,6 +104,7 @@ private:
     RSUniRenderVisitor& uniRenderVisitor_;
 
     // Functions
+    bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
     bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);

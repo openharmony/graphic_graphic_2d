@@ -69,4 +69,14 @@ void HWCParam::SetSolidLayerInMultiWindowEnable(bool isEnable)
 {
     isSolidLayerInMultiWindowEnable_ = isEnable;
 }
+
+void HWCParam::IsDisableHwcInScaleScene()
+{
+    return isDisableHwcInScaleScene_;
+}
+
+void HWCParam::SetDisableHwcInScaleScene(bool isEnable)
+{
+    isDisableHwcInScaleScene_ = isEnable;
+}
 } // namespace OHOS::Rosen
