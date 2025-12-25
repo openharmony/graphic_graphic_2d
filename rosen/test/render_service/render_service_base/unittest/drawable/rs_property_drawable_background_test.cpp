@@ -1079,6 +1079,44 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnUpdate002, Test
 }
 
 /**
+ * @tc.name: RSMaterialFilterDrawableOnSync001
+ * @tc.desc: needSync_ == true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnSync001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSFilter> filter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    drawable->stagingEmptyShape_ = true;
+    drawable->needSync_ = true;
+    drawable->OnSync();
+    ASSERT_TRUE(drawable->emptyShape_);
+}
+
+/**
+ * @tc.name: RSMaterialFilterDrawableOnSync002
+ * @tc.desc: needSync_ == false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnSync002, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    std::shared_ptr<RSFilter> filter =
+        std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    node.GetMutableRenderProperties().GetEffect().materialFilter_ = filter;
+    auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    drawable->stagingEmptyShape_ = true;
+    drawable->needSync_ = false;
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->emptyShape_);
+}
+
+/**
  * @tc.name: RSMaterialFilterDrawableGetAbsRenderEffectRect001
  * @tc.desc: Test GetAbsRenderEffectRect
  * @tc.type:FUNC
@@ -1161,11 +1199,11 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnSync002, TestSi
 }
 
 /**
- * @tc.name: RSMaterialFilterDrawableCreateDrawFunc001
+ * @tc.name: RSMaterialFilterDrawableOnDraw001
  * @tc.desc: emptyShape_ == true
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
-HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCreateDrawFunc001, TestSize.Level1)
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw001, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     drawable->emptyShape_ = true;
@@ -1177,11 +1215,11 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCreateDrawFunc001
 }
 
 /**
- * @tc.name: RSMaterialFilterDrawableCreateDrawFunc002
+ * @tc.name: RSMaterialFilterDrawableOnDraw002
  * @tc.desc: filter->SetGeoMetry
- * @tc.type:FUNC
+ * @tc.type: FUNC
  */
-HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableCreateDrawFunc002, TestSize.Level1)
+HWTEST_F(RSRSBinarizationDrawableTest, RSMaterialFilterDrawableOnDraw002, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     drawable->needSync_ = true;

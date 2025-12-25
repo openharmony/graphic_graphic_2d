@@ -406,6 +406,9 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         return;
     }
     if (canvas && filter_) {
+        auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
+        RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
+
         RectF bound = (rect != nullptr ?
             RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
         Drawing::RectI snapshotRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
@@ -413,7 +416,6 @@ void RSFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
         RectF snapshotRelativeRect = GetRenderRelativeRect(EffectRectType::SNAPSHOT, bound);
         RS_TRACE_NAME_FMT("RSFilterDrawable::CreateDrawFunc node[%llu] ", renderNodeId_);
         if (rect) {
-            auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
             filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
                 snapshotRelativeRect.GetWidth(), snapshotRelativeRect.GetHeight());
         }

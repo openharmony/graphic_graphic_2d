@@ -742,115 +742,51 @@ HWTEST_F(RSUnionRenderNodeTest, QuickPrepare001, TestSize.Level1)
 }
 
 /**
- * @tc.name: ResetVisibleUnionChildren001
- * @tc.desc: test ResetVisibleUnionChildren
- * @tc.type:FUNC
+ * @tc.name: AddUnionChild
+ * @tc.desc: test AddUnionChild
+ * @tc.type: FUNC
  */
-HWTEST_F(RSUnionRenderNodeTest, ResetVisibleUnionChildren001, TestSize.Level1)
-{
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
-    NodeId id = 1;
-    unionNode->unionChildren_.emplace(id);
-    ASSERT_FALSE(unionNode->unionChildren_.empty());
-    unionNode->ResetVisibleUnionChildren();
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-}
-
-/**
- * @tc.name: UpdateVisibleUnionChildren001
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
- */
-HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren001, TestSize.Level1)
+HWTEST_F(RSUnionRenderNodeTest, AddUnionChild, TestSize.Level1)
 {
     auto sContext = std::make_shared<RSContext>();
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
-    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    NodeId childId = 1;
+    unionNode->AddUnionChild(childId);
 
-    child1->renderProperties_.useUnion_ = true;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
-
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-    unionNode->UpdateVisibleUnionChildren(*child1);
     ASSERT_FALSE(unionNode->unionChildren_.empty());
 }
 
 /**
- * @tc.name: UpdateVisibleUnionChildren002
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
+ * @tc.name: RemoveUnionChild
+ * @tc.desc: test RemoveUnionChild
+ * @tc.type: FUNC
  */
-HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren002, TestSize.Level1)
+HWTEST_F(RSUnionRenderNodeTest, RemoveUnionChild, TestSize.Level1)
 {
     auto sContext = std::make_shared<RSContext>();
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
-    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    NodeId childId = 1;
+    unionNode->AddUnionChild(childId);
+    EXPECT_FALSE(unionNode->unionChildren_.empty());
 
-    child1->renderProperties_.useUnion_ = false;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 10, 10);
-
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-    unionNode->UpdateVisibleUnionChildren(*child1);
+    unionNode->RemoveUnionChild(childId);
     ASSERT_TRUE(unionNode->unionChildren_.empty());
 }
 
 /**
- * @tc.name: UpdateVisibleUnionChildren003
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
+ * @tc.name: ResetUnionChildren
+ * @tc.desc: test ResetUnionChildren
+ * @tc.type: FUNC
  */
-HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren003, TestSize.Level1)
+HWTEST_F(RSUnionRenderNodeTest, ResetUnionChildren, TestSize.Level1)
 {
     auto sContext = std::make_shared<RSContext>();
     auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
-    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
+    NodeId childId = 1;
+    unionNode->AddUnionChild(childId);
+    EXPECT_FALSE(unionNode->unionChildren_.empty());
 
-    child1->renderProperties_.useUnion_ = true;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 0, 0);
-
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-    unionNode->UpdateVisibleUnionChildren(*child1);
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-}
-
-/**
- * @tc.name: UpdateVisibleUnionChildren004
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
- */
-HWTEST_F(RSUnionRenderNodeTest, UpdateVisibleUnionChildren004, TestSize.Level1)
-{
-    auto sContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
-    auto child1 = std::make_shared<RSRenderNode>(id + 1, context);
-
-    child1->renderProperties_.useUnion_ = false;
-    child1->oldDirtyInSurface_ = RectI(0, 0, 0, 0);
-
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-    unionNode->UpdateVisibleUnionChildren(*child1);
-    ASSERT_TRUE(unionNode->unionChildren_.empty());
-}
-
-/**
- * @tc.name: ResetChildRelevantFlags001
- * @tc.desc: test UpdateVisibleUnionChildren
- * @tc.type:FUNC
- */
-HWTEST_F(RSUnionRenderNodeTest, ResetChildRelevantFlags001, TestSize.Level1)
-{
-    auto sContext = std::make_shared<RSContext>();
-    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
-    unionNode->unionChildren_.emplace(id + 1);
-    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
-    ASSERT_NE(stagingRenderParams, nullptr);
-    unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
-
-    unionNode->ResetChildRelevantFlags();
+    unionNode->ResetUnionChildren();
     ASSERT_TRUE(unionNode->unionChildren_.empty());
 }
 } // namespace Rosen

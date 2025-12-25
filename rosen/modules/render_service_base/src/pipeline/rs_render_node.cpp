@@ -5324,7 +5324,8 @@ void RSRenderNode::ProcessUnionInfoAfterApplyModifiers()
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode::ProcessUnionInfoAfterApplyModifiers node[%llu], unionNode[%llu], "
         "UseUnion[%d]", GetId(), unionNode->GetId(), GetRenderProperties().GetUseUnion());
-    GetRenderProperties().GetUseUnion() ? unionNode->AddUnionChild(GetId()) : unionNode->RemoveUnionChild(GetId());
+    (GetRenderProperties().GetUseUnion() && isOnTheTree_) ?
+        unionNode->AddUnionChild(GetId()) : unionNode->RemoveUnionChild(GetId());
 }
 
 std::shared_ptr<RSRenderNode> RSRenderNode::FindClosestUnionAncestor() const
