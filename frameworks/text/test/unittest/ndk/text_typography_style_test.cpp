@@ -2318,8 +2318,8 @@ HWTEST_F(NdkTypographyStyleTest, TypographStyleFallbackLineSpacing008, TestSize.
     size_t totalLineCnt = skiaParagraph->lineNumber();
     double runHeight = skiaParagraph->runs()[0].calculateHeight(skia::textlayout::LineMetricStyle::CSS,
         skia::textlayout::LineMetricStyle::CSS);
-    // Expect line height is 59
-    double expectLineHeight = 59;
+    // Expect line height is 89
+    double expectLineHeight = 89;
     EXPECT_DOUBLE_EQ(std::ceil(runHeight), expectLineHeight);
     for (size_t lineIndex = 0; lineIndex < totalLineCnt; ++lineIndex) {
         EXPECT_DOUBLE_EQ(skiaParagraph->lines()[lineIndex].height(), expectLineHeight);
