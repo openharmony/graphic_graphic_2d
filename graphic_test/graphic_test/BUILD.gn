@@ -78,6 +78,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/effect_pixel_stretch_test.cpp",
   "rs_effect_feature/effect_distort_chroma_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_effect_test.cpp",
+  "rs_effect_feature/ng_effect_test/ng_substracted_rect_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_sdf_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_test_utils.cpp",
