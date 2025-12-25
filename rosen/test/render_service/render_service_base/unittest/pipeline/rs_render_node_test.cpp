@@ -2924,33 +2924,33 @@ HWTEST_F(RSRenderNodeTest, InvalidateHierarchyTest018, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, UpdateDrawableVecV2Test019, TestSize.Level1)
 {
-    std::shared_ptr<RSRenderNode> nodeTest = std::make_shared<RSRenderNode>(0);
-    EXPECT_NE(nodeTest, nullptr);
+    std::shared_ptr<RSRenderNode> renderNodeTest = std::make_shared<RSRenderNode>(0);
+    EXPECT_NE(renderNodeTest, nullptr);
 
-    nodeTest->UpdateDrawableVecV2();
+    renderNodeTest->UpdateDrawableVecV2();
 
-    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
-    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+    renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
     std::shared_ptr<DrawableTest> drawableTest1 = std::make_shared<DrawableTest>();
-    nodeTest->GetDrawableVec(__func__).at(1) = drawableTest1;
-    EXPECT_TRUE(nodeTest->dirtySlots_.empty());
+    renderNodeTest->GetDrawableVec(__func__).at(1) = drawableTest1;
+    EXPECT_TRUE(renderNodeTest->dirtySlots_.empty());
 
-    nodeTest->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
-    nodeTest->UpdateDrawableVecV2();
-    auto sum = nodeTest->dirtySlots_.size();
-    EXPECT_NE(nodeTest->dirtySlots_.size(), 2);
+    renderNodeTest->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+    renderNodeTest->UpdateDrawableVecV2();
+    auto sum = renderNodeTest->dirtySlots_.size();
+    EXPECT_NE(renderNodeTest->dirtySlots_.size(), 2);
 
-    nodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
+    renderNodeTest->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::TRANSFORM), true);
     std::shared_ptr<DrawableTest> drawableTest2 = std::make_shared<DrawableTest>();
-    nodeTest->GetDrawableVec(__func__).at(4) = drawableTest2;
+    renderNodeTest->GetDrawableVec(__func__).at(4) = drawableTest2;
     RSShadow rsShadow;
     std::optional<RSShadow> shadow(rsShadow);
     shadow->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
-    nodeTest->renderProperties_.GetEffect().shadow_ = shadow;
+    renderNodeTest->renderProperties_.GetEffect().shadow_ = shadow;
     RRect rrect;
-    nodeTest->renderProperties_.rrect_ = rrect;
-    nodeTest->UpdateDrawableVecV2();
-    EXPECT_EQ(nodeTest->dirtySlots_.size(), sum);
+    renderNodeTest->renderProperties_.rrect_ = rrect;
+    renderNodeTest->UpdateDrawableVecV2();
+    EXPECT_EQ(renderNodeTest->dirtySlots_.size(), sum);
 }
 
 /**
