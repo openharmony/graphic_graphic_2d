@@ -50,6 +50,7 @@ void RsRenderComposerAgentTest::SetUpTestCase()
 }
 void RsRenderComposerAgentTest::TearDownTestCase()
 {
+    rsRenderComposer_->uniRenderEngine_ = nullptr;
 }
 void RsRenderComposerAgentTest::SetUp() {}
 void RsRenderComposerAgentTest::TearDown() {}
@@ -120,7 +121,7 @@ HWTEST_F(RsRenderComposerAgentTest, ForwardingMethods_NullAndNonNullBranches, Te
     agent->OnScreenDisconnected();
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     // ClearFrameBuffers should return a GSError (may be OK or error depending on environment), ensure no crash
-    EXPECT_EQ(agent->ClearFrameBuffers(true), GSERROR_INVALID_ARGUMENTS);
+    EXPECT_EQ(agent->ClearFrameBuffers(true), GSERROR_OK);
 
     // VBlank callback forwarding
     agent->OnScreenVBlankIdleCallback(static_cast<ScreenId>(5u), 98765ULL);

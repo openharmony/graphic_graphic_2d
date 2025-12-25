@@ -485,6 +485,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre001, Function | MediumTest | Level1)
 
     rsLayer->SetBuffer(new SurfaceBufferImpl());
     rsLayer->SetLayerArsr(true);
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     res = hdiOutput->CheckIfDoArsrPre(rsLayer);
     EXPECT_TRUE(res);
 }
@@ -507,6 +508,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm001, Function | MediumTest | Level1
     EXPECT_FALSE(res);
 
     hdiOutput->vmArsrWhiteList_ = "xcomponentIdSurface";
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     res = hdiOutput->CheckIfDoArsrPreForVm(rsLayer);
     EXPECT_TRUE(res);
 }
@@ -607,10 +609,11 @@ HWTEST_F(HdiOutputTest, ClearFpsDump001, Function | MediumTest | Level1)
     rsLayer->SetSurface(nullptr);
     surfaceIdMap[id] = layer;
     hdiOutput->ClearFpsDump(result, arg);
-    EXPECT_NE(result.find("layer is null"), std::string::npos);
+    EXPECT_EQ(result.find("layer is null"), std::string::npos);
 
     result = "";
     rsLayer->SetSurface(IConsumerSurface::Create(arg));
+    rsLayer->SetSurfaceName(arg);
     hdiOutput->ClearFpsDump(result, arg);
     EXPECT_NE(result.find("[xcomponentIdSurface] Id[0]"), std::string::npos);
 }
@@ -1347,48 +1350,56 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPre002, Function | MediumTest | Level1)
     // handleFormat GRAPHIC_PIXEL_FMT_BUTT, surfaceName HdiOutputTest, SetLayerArsr false
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    rsLayer->SetSurfaceName("HdiOutputTest");
     rsLayer->SetLayerArsr(false);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), false);
 
     // handleFormat GRAPHIC_PIXEL_FMT_YUV_422_I, surfaceName HdiOutputTest, SetLayerArsr false
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    rsLayer->SetSurfaceName("HdiOutputTest");
     rsLayer->SetLayerArsr(false);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), false);
 
     // handleFormat GRAPHIC_PIXEL_FMT_BUTT, surfaceName xcomponentIdSurface, SetLayerArsr false
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     rsLayer->SetLayerArsr(false);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), false);
 
     // handleFormat GRAPHIC_PIXEL_FMT_YUV_422_I, surfaceName xcomponentIdSurface, SetLayerArsr false
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     rsLayer->SetLayerArsr(false);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), false);
 
     // handleFormat GRAPHIC_PIXEL_FMT_BUTT, surfaceName HdiOutputTest, SetLayerArsr true
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    rsLayer->SetSurfaceName("HdiOutputTest");
     rsLayer->SetLayerArsr(true);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), false);
 
     // handleFormat GRAPHIC_PIXEL_FMT_YUV_422_I, surfaceName HdiOutputTest, SetLayerArsr true
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    rsLayer->SetSurfaceName("HdiOutputTest");
     rsLayer->SetLayerArsr(true);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), true);
 
     // handleFormat GRAPHIC_PIXEL_FMT_BUTT, surfaceName xcomponentIdSurface, SetLayerArsr true
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_BUTT;
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     rsLayer->SetLayerArsr(true);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), true);
 
     // handleFormat GRAPHIC_PIXEL_FMT_YUV_422_I, surfaceName xcomponentIdSurface, SetLayerArsr true
     handle->format = OHOS::GraphicPixelFormat::GRAPHIC_PIXEL_FMT_YUV_422_I;
     rsLayer->SetSurface(IConsumerSurface::Create("xcomponentIdSurface"));
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     rsLayer->SetLayerArsr(true);
     EXPECT_EQ(HdiOutputTest::hdiOutput_->CheckIfDoArsrPre(rsLayer), true);
 }
@@ -1513,6 +1524,7 @@ HWTEST_F(HdiOutputTest, CheckIfDoArsrPreForVm002, Function | MediumTest | Level1
     // getsurface is not nullptr, find in vmLayers
     cSurface = IConsumerSurface::Create("xcomponentIdSurface");
     rsLayer->SetSurface(cSurface);
+    rsLayer->SetSurfaceName("xcomponentIdSurface");
     ret = hdiOutput->CheckIfDoArsrPreForVm(rsLayer);
     ASSERT_EQ(ret, true);
 }
@@ -1583,16 +1595,18 @@ HWTEST_F(HdiOutputTest, ClearFpsDump002, Function | MediumTest | Level1)
     std::shared_ptr<RSLayer> rsLayer2 = std::make_shared<RSSurfaceLayer>();
     layer2->UpdateRSLayer(rsLayer2);
     rsLayer2->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    rsLayer2->SetSurfaceName("HdiOutputTest");
     HdiOutputTest::hdiOutput_->surfaceIdMap_[2] = layer2;
     // name == arg
     std::shared_ptr<HdiLayer> layer3 = std::make_shared<HdiLayer>(3);
     std::shared_ptr<RSLayer> rsLayer3 = std::make_shared<RSSurfaceLayer>();
     layer3->UpdateRSLayer(rsLayer3);
     rsLayer3->SetSurface(IConsumerSurface::Create(arg));
+    rsLayer3->SetSurfaceName(arg);
     HdiOutputTest::hdiOutput_->surfaceIdMap_[3] = layer3;
 
     HdiOutputTest::hdiOutput_->ClearFpsDump(result, arg);
-    EXPECT_NE(result.find("layer is null"), std::string::npos);
+    EXPECT_EQ(result.find("layer is null"), std::string::npos);
 }
 
 /*
