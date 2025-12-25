@@ -27,6 +27,7 @@ bool RSRenderFilterParaBase::IsValid() const
 {
     return type_ != RSUIFilterType::NONE;
 }
+
 void RSRenderFilterParaBase::SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight)
 {
     auto dst = canvas.GetDeviceClipBounds();
