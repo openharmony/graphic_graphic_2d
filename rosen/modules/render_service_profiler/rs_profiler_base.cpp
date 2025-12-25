@@ -1114,6 +1114,7 @@ static std::shared_ptr<ModifierNG::RSRenderModifier> UnmarshalRenderModifier(
         }
         errReason += ", size=" + std::to_string(buffer.size());
     }
+    parcel->~Parcel();
 
     return ptr;
 }
