@@ -507,38 +507,6 @@ HWTEST_F(RSNodeTest, SetandGetBoundsHeight005, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSNodeTest001
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, RSNodeTest001, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create(false, false, nullptr);
-    ASSERT_NE(rsNode, nullptr);
-
-    rsNode->SetBorderLightShader(nullptr);
-    SUCCEED();
-}
-
-/**
- * @tc.name: RSNodeTest002
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeTest, RSNodeTest002, TestSize.Level1)
-{
-    auto rsNode = RSCanvasNode::Create(false, false, nullptr);
-    ASSERT_NE(rsNode, nullptr);
-
-    auto effectPara = std::make_shared<BorderLightEffectPara>();
-    effectPara->SetLightPosition(Vector3f { 1.1f, 2.2f, 3.3f });
-    effectPara->SetLightColor(Vector4f { 0.1f, 0.2f, 0.3f, 0.4f });
-    effectPara->SetLightIntensity(0.75f);
-    effectPara->SetLightWidth(4.5f);
-
-    rsNode->SetBorderLightShader(effectPara);
-    SUCCEED();
-}
-
-/**
  * @tc.name: SetandGetFrame001
  * @tc.desc:
  * @tc.type:FUNC

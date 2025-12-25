@@ -1339,7 +1339,6 @@ public:
      */
     void SetBgBrightnessNegCoeff(const Vector4f& coeff);
     void SetBgBrightnessFract(const float& fract);
-    void SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara);
 
     /**
      * @brief Sets the grey coefficient.
