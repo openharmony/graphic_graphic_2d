@@ -32,7 +32,6 @@
 #include "pixel_map.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include <ffrt.h>
 #include <mutex>
 #include "surface_buffer.h"
 #endif
@@ -188,7 +187,7 @@ private:
     // - Only the buffer with the latest resetSurfaceIndex is kept
     sptr<SurfaceBuffer> canvasSurfaceBuffer_ = nullptr;
 
-    mutable ffrt::mutex surfaceBufferMutex_;
+    mutable std::mutex surfaceBufferMutex_;
 
     uint32_t resetSurfaceIndex_ = 0;
 #endif
