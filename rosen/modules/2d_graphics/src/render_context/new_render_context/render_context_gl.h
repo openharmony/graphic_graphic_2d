@@ -75,6 +75,7 @@ public:
     bool UpdateStorageSizeIfNecessary();
     bool ResourceMakeCurrent();
     void AddSurface();
+    void DeleteSurface();
     void DestroySharedSource();
     void SetCleanUpHelper(std::function<void()> func);
     static const EGLContext GetResourceContext();
@@ -91,7 +92,7 @@ protected:
     uint32_t colorbuffer_ = 0;
     int32_t storage_width_ = 0;
     int32_t storage_height_ = 0;
-    int32_t surface_count_ = 0;
+    std::atomic<int32_t> surface_count_ = 0;
     bool valid_ = false;
     std::function<void()> cleanUpHelper_ = nullptr;
 #endif
