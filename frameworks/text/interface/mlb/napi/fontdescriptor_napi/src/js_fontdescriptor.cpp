@@ -476,8 +476,6 @@ napi_value JsFontDescriptor::GetFontPathsByType(napi_env env, napi_callback_info
     return CreateFontList(env, fontPaths);
 }
 
-
-
 napi_value JsFontDescriptor::IsFontSupported(napi_env env, napi_callback_info info)
 {
     size_t argc = ARGC_ONE;
