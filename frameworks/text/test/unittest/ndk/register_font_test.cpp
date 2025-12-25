@@ -190,5 +190,9 @@ HWTEST_F(NdkRegisterFontTest, NdkRegisterFontTest009, TestSize.Level0)
     LoadBufferFromFile(existFontPath_, buffer);
     EXPECT_TRUE(OH_Drawing_IsFontSupportedFromBuffer(reinterpret_cast<uint8_t*>(buffer.data()), buffer.size()));
     EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(reinterpret_cast<uint8_t*>(buffer.data()), 0));
+    for (size_t i = 0; i < buffer.size() / 2; i++) {
+        buffer[i] = 0;
+    }
+    EXPECT_FALSE(OH_Drawing_IsFontSupportedFromBuffer(reinterpret_cast<uint8_t*>(buffer.data()), buffer.size()));
 }
 } // namespace OHOS
