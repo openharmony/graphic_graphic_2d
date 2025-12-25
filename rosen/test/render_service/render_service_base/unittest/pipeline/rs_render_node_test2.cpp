@@ -1129,6 +1129,40 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
 }
 
 /**
+ * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree001
+ * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is equal to filterRect
+ * @tc.type: FUNC
+ * @tc.require: issue21301
+ */
+HWTEST_F(RSRenderNodeTest2, FilterRectMergeDirtyRectInSkippedSubtree001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect{0, 0, 1000, 1000};
+    node.lastFilterRegion_ = filterRect;
+    node.FilterRectMergeDirtyRectInSkippedSubtree(*rsDirtyManager, filterRect);
+    EXPECT_FALSE(node.isDirtyRegionUpdated_);
+    EXPECT_TRUE(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree002
+ * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is not equal to filterRect
+ * @tc.type: FUNC
+ * @tc.require: issue21301
+ */
+HWTEST_F(RSRenderNodeTest2, FilterRectMergeDirtyRectInSkippedSubtree002, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect{1000, 1000, 1500, 1500};
+    node.lastFilterRegion_ = RectI(0, 0, 500, 500);
+    node.FilterRectMergeDirtyRectInSkippedSubtree(*rsDirtyManager, filterRect);
+    EXPECT_TRUE(node.isDirtyRegionUpdated_);
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), filterRect);
+}
+
+/**
  * @tc.name: CheckBlurFilterCacheNeedForceClearOrSave
  * @tc.desc: test
  * @tc.type: FUNC

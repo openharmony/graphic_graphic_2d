@@ -2510,6 +2510,10 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     auto totalRect = RSObjAbsGeometry::MapRect(boundsRect, absMatrix);
     CalVisibleFilterRect(totalRect, absMatrix, clipRect);
     filterRect = GetFilterRegionInfo().filterRegion_;
+}
+
+void RSRenderNode::FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager, const RectI& filterRect)
+{
     if (filterRect == lastFilterRegion_) {
         return;
     }
