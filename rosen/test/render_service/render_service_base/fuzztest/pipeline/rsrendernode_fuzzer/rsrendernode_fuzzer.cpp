@@ -463,9 +463,9 @@ bool RSSurfaceHandleFuzzerTest(const uint8_t* data, size_t size)
     sptr<SurfaceBuffer> surfaceBuffer;
     sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
     buffer.buffer = surfaceBuffer;
-    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->SetBuffer(surfaceBuffer, acquireFence, damage, timestamp, nullptr);
     surfaceHandler->ConsumeAndUpdateBufferInner(buffer);
-    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp);
+    surfaceHandler->UpdateBuffer(surfaceBuffer, acquireFence, damage, timestamp, nullptr);
     return true;
 }
 

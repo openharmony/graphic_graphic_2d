@@ -1093,7 +1093,7 @@ HWTEST_F(RSAnimationTest, AnimationSupplementTest023, TestSize.Level1)
     node->RemoveChild(child);
     node->ClearChildren();
 
-    auto rsUiDirector = RSUIDirector::Create(nullptr);
+    auto rsUiDirector = RSUIDirector::Create();
     rsUiDirector->FlushAnimationStartTime(1);
     rsUiDirector->HasUIRunningAnimation();
 

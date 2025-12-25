@@ -23,7 +23,6 @@
 #include "rs_screen_manager.h"
 #include "rs_screen.h"
 #include "hdi_output.h"
-#include "screen_manager/rs_screen_node_listener.h"
 #include "transaction/rs_interfaces.h"
 #include "mock_hdi_device.h"
 #ifdef RS_ENABLE_VK

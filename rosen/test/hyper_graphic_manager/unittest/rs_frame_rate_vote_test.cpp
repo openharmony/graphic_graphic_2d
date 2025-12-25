@@ -277,35 +277,5 @@ HWTEST_F(RSFrameRateVoteTest, CancelVoteRate001, Function | SmallTest | Level0)
     DelayedSingleton<RSFrameRateVote>::GetInstance()->CancelVoteRate(DEFAULT_PID, "VOTER_VIDEO");
     ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
 }
-
-/**
- * @tc.name: NotifyRefreshRateEvent001
- * @tc.desc: Verify the result of NotifyRefreshRateEvent function
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSFrameRateVoteTest, NotifyRefreshRateEvent001, Function | SmallTest | Level0)
-{
-    EventInfo eventInfo1 = {
-        .eventName = "VOTER_VIDEO",
-        .eventStatus = true,
-        .minRefreshRate = 60,
-        .maxRefreshRate = 60,
-    };
-    if (DelayedSingleton<RSFrameRateVote>::GetInstance() == nullptr) {
-        return;
-    }
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo1);
-    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    EventInfo eventInfo2 = {
-        .eventName = "VOTER_VIDEO",
-        .eventStatus = false,
-    };
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
-    ASSERT_FALSE(DelayedSingleton<RSFrameRateVote>::GetInstance()->isVoted_);
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(DEFAULT_PID, eventInfo2);
-    pid_t pid1 = 1;
-    DelayedSingleton<RSFrameRateVote>::GetInstance()->NotifyRefreshRateEvent(pid1, eventInfo2);
-}
 } // namespace Rosen
 } // namespace OHOS

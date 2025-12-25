@@ -38,8 +38,7 @@ std::shared_ptr<RSUIContext> GetRSUIContext()
 {
     static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
     if (rsUIContext == nullptr) {
-        sptr<IRemoteObject> remoteObject = nullptr;
-        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+        rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     }
     return rsUIContext;
 }

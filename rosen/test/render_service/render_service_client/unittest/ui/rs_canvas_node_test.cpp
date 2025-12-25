@@ -2893,7 +2893,7 @@ HWTEST_F(RSCanvasNodeTest, NotifyTransition001, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     ASSERT_NE(canvasNode, nullptr);
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     canvasNode->NotifyTransition(uiContext, RSTransitionEffect::Create(), true);
 }
@@ -2907,7 +2907,7 @@ HWTEST_F(RSCanvasNodeTest, NotifyTransition002, TestSize.Level1)
 {
     RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
     ASSERT_NE(canvasNode, nullptr);
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     canvasNode->NotifyTransition(uiContext, RSTransitionEffect::Create(), true);
 }
@@ -3820,8 +3820,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest001, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
-        auto uiDirector2 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
+        auto uiDirector2 = RSUIDirector::Create();
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3845,8 +3845,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest002, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
-        auto uiDirector2 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
+        auto uiDirector2 = RSUIDirector::Create();
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3869,8 +3869,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest003, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
-        auto uiDirector2 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
+        auto uiDirector2 = RSUIDirector::Create();
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);
@@ -3893,8 +3893,8 @@ HWTEST_F(RSCanvasNodeTest, SetRSUIContextTest004, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
-        auto uiDirector2 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
+        auto uiDirector2 = RSUIDirector::Create();
         auto node = RSCanvasNode::Create();
         ASSERT_EQ(node->GetRSUIContext(), nullptr);
         ASSERT_NE(uiDirector1->GetRSUIContext(), nullptr);

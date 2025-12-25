@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "consumer_surface.h"
-#include "feature/lpp/lpp_video_handler.h"
+#include "feature/lpp/render_process/lpp_video_handler.h"
 #include "gtest/gtest.h"
 #include "rs_surface_layer.h"
 
