@@ -85,8 +85,8 @@ OH_Drawing_ErrorCode OH_Drawing_LatticeCreate(const int* xDivs, const int* yDivs
     Lattice* lattice = new Lattice();
     GetLatticeDividers(xDivs, xCount, lattice->fXDivs);
     GetLatticeDividers(yDivs, yCount, lattice->fYDivs);
-    lattice->fXCount = xCount;
-    lattice->fYCount = yCount;
+    lattice->fXCount = static_cast<int>(xCount);
+    lattice->fYCount = static_cast<int>(yCount);
     const Rect* bounds = CastToRect(cBounds);
     if (bounds != nullptr) {
         lattice->fBounds.push_back(RectI(bounds->GetLeft(), bounds->GetTop(), bounds->GetRight(), bounds->GetBottom()));
