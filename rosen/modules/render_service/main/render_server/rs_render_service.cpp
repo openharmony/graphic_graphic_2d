@@ -155,11 +155,11 @@ void RSRenderService::HgmInit()
 void RSRenderService::FeatureComponentInit()
 {
     // vk init
-    #ifdef RS_ENABLE_VK
+#ifdef RS_ENABLE_VK
     if (Drawing::SystemProperties::IsUseVulkan()) {
         RsVulkanContext::SetRecyclable(false);
     }
-    #endif
+#endif
 
     // touch screen init
 #ifdef TP_FEATURE_ENABLE
@@ -359,12 +359,12 @@ void RSRenderService::HandleTouchEvent(int32_t touchStatus, int32_t touchCnt)
     rsVSyncDistributor_->HandleTouchEvent(touchStatus, touchCnt);
 }
 
-void RSRenderService::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+void RSRenderService::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
     rsRenderComposerManager_->GetRefreshInfoToSP(dumpString, nodeId);
 }
 
-void RSRenderService::FpsDump(std::string& dumpString, std::string& arg)
+void RSRenderService::FpsDump(std::string& dumpString, const std::string& arg)
 {
     rsRenderComposerManager_->FpsDump(dumpString, arg);
 }

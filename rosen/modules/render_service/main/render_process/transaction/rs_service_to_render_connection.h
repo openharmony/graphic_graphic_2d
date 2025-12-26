@@ -18,7 +18,6 @@
 
 #include "render_server/rs_render_service_agent.h"
 #include "rs_render_pipeline_agent.h"
-
 #include "zidl/rs_service_to_render_connection_stub.h"
 
 namespace OHOS {
@@ -27,7 +26,10 @@ class RSServiceToRenderConnection : public RSServiceToRenderConnectionStub {
 public:
     explicit RSServiceToRenderConnection(sptr<RSRenderPipelineAgent> renderPipelineAgent)
         : renderPipelineAgent_(renderPipelineAgent) {}
-    virtual ~RSServiceToRenderConnection() noexcept = default;
+    ~RSServiceToRenderConnection() noexcept = default;
+
+    RSServiceToRenderConnection(const RSServiceToRenderConnection&) = delete;
+    RSServiceToRenderConnection& operator=(const RSServiceToRenderConnection&) = delete;
 
     // Screen Manager
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
@@ -71,7 +73,7 @@ public:
     // Vrate
     ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) override;
 
-    // Front
+    // Font
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
@@ -109,7 +111,7 @@ public:
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
-    // others
+    // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
     ErrCode RepaintEverything() override;
     ErrCode CleanResources(pid_t pid) override;

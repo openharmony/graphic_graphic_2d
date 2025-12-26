@@ -2459,6 +2459,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             break;
         }
     }
+    
     if (!screenNode || screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
         RS_LOGE("DoDirectComposition screenNode state error");
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenNode state error");

@@ -273,7 +273,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP): {    
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP): {
             std::string nodeIdStr;
             bool isTop{false};
             if (!data.ReadString(nodeIdStr) ||
@@ -326,7 +326,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS): {    
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS): {
             bool flag{false};
             if (!data.ReadBool(flag)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_VMA_CACHE_STATUS read flag failed!");
@@ -394,7 +394,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FORCE_REFRESH): {    
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FORCE_REFRESH): {
             std::string nodeIdStr;
             bool isForceRefresh{false};
             if (!data.ReadString(nodeIdStr) ||
@@ -450,7 +450,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE): {    
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE): {
             RS_LOGI("RSServiceToRenderConnectionStub::OnRemoteRequest SET_OVERLAY_DISPLAY_MODE");
             int32_t mode{0};
             if (!data.ReadInt32(mode)) {
@@ -857,7 +857,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetGpuCrcDirtyEnabledPidList(pidList);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {    
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
                 RS_LOGE("RSClientToRenderConnectionStub::GET_ACTIVE_DIRTY_REGION_INFO Write activeDirtyRegionInfosSize "
@@ -878,7 +878,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO): {    
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO): {
             const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
             if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
@@ -890,7 +890,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO): {   
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO): {
             const auto& layerComposeInfo = GetLayerComposeInfo();
             if (!reply.WriteInt32(layerComposeInfo.uniformRenderFrameNumber) ||
                 !reply.WriteInt32(layerComposeInfo.offlineComposeFrameNumber) ||
@@ -931,7 +931,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_HDR_ON_DURATION): {   
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_HDR_ON_DURATION): {
             int64_t hdrOnDuration = 0;
             auto errCode = GetHdrOnDuration(hdrOnDuration);
             if (errCode != ERR_OK || !reply.WriteInt64(hdrOnDuration)) {

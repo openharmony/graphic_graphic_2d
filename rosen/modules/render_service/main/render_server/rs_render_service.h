@@ -104,8 +104,8 @@ private:
 
     // Dfx related
     int Dump(int fd, const std::vector<std::u16string>& args) override;
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
-    void FpsDump(std::string& dumpString, std::string& arg);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
+    void FpsDump(std::string& dumpString, const std::string& arg);
 
     // Hgm related
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }

@@ -35,14 +35,14 @@ public:
     int32_t NotifyScreenRefresh(ScreenId screenId) override;
     void HandleHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level) override;
-    
+
     // Partial Render
     int32_t RegisterOcclusionChangeCallback(pid_t pid, sptr<RSIOcclusionChangeCallback> callback) override;
     int32_t SetBrightnessInfoChangeCallback(pid_t pid, sptr<RSIBrightnessInfoChangeCallback> callback) override;
     int32_t RegisterSurfaceOcclusionChangeCallback( NodeId id, pid_t pid,
         sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints) override;
     int32_t UnRegisterSurfaceOcclusionChangeCallback(NodeId id) override;
-    
+
     // Performance Logging
     ErrCode SetDiscardJankFrames(bool discardJankFrames) override;
     ErrCode ReportJankStats() override;
@@ -73,7 +73,7 @@ public:
     // Vrate
     ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) override;
 
-    // Front
+    // Font
     bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) override;
     bool UnRegisterTypeface(uint64_t globalUniqueId) override;
 
@@ -106,12 +106,12 @@ public:
 
     // Game
     void ReportGameStateData(GameStateData info) override;
-    
+
     // Behind Window Filter
     ErrCode SetBehindWindowFilterEnabled(bool enabled) override;
     ErrCode GetBehindWindowFilterEnabled(bool& enabled) override;
 
-    // others
+    // Others
     ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) override;
     ErrCode RepaintEverything() override;
     ErrCode CleanResources(pid_t pid) override;

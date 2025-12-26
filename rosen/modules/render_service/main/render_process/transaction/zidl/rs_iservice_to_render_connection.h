@@ -73,7 +73,7 @@ public:
     // Vrate
     virtual ErrCode GetSurfaceRootNodeId(NodeId& windowNodeId) = 0;
 
-    // Front
+    // Font
     virtual bool RegisterTypeface(uint64_t globalUniqueId, std::shared_ptr<Drawing::Typeface>& typeface) = 0;
     virtual bool UnRegisterTypeface(uint64_t globalUniqueId) = 0;
 
@@ -111,7 +111,7 @@ public:
     virtual ErrCode SetBehindWindowFilterEnabled(bool enabled) = 0;
     virtual ErrCode GetBehindWindowFilterEnabled(bool& enabled) = 0;
 
-    // others
+    // Others
     virtual ErrCode SetColorFollow(const std::string& nodeIdStr, bool isColorFollow) = 0;
     virtual ErrCode RepaintEverything() = 0;
     virtual ErrCode CleanResources(pid_t pid) = 0;

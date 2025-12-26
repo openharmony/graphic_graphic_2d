@@ -141,7 +141,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetLayerTop(const std::string& nodeIdS
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: write token err.");
         return ERR_INVALID_VALUE;
     }
-    if (data.WriteString(nodeIdStr)& & data.WriteBool(isTop)) {
+    if (data.WriteString(nodeIdStr) && data.WriteBool(isTop)) {
         uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP);
         int32_t err = Remote()->SendRequest(code, data, reply, option);
         if (err != NO_ERROR) {
@@ -411,7 +411,7 @@ int32_t RSServiceToRenderConnectionProxy::RegisterUIExtensionCallback(pid_t pid,
         ROSEN_LOGE("RegisterUIExtensionCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
-    if (data.WriteInt32(pid)& & data.WriteUint64(userId)& & data.WriteRemoteObject(callback->AsObject())& & data.WriteBool(unobscured)) {
+    if (data.WriteInt32(pid) && data.WriteUint64(userId) && data.WriteRemoteObject(callback->AsObject()) && data.WriteBool(unobscured)) {
         uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
         int32_t err = Remote()->SendRequest(code, data, reply, option);
         if (err != NO_ERROR) {
