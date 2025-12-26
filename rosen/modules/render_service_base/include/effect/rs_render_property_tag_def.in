@@ -390,7 +390,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle6, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle7, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, RotationAngle8, Vector2f);
 
-DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BlurParam, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, BgRates, Vector2f);
@@ -419,8 +418,8 @@ DECLARE_NONANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, Shape, std::shared_ptr<RS
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassEffect, MaterialColor, Vector4f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, Radius, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RadiusScaleK, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(FrostedGlassBlur, RefractOutPx, float);
-
 DECLARE_ANIMATABLE_PROPERTY_TAG(DistortChroma, Progress, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortChroma, TurbulentMask, MASK_PTR);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(DistortChroma, Mask, MASK_PTR);

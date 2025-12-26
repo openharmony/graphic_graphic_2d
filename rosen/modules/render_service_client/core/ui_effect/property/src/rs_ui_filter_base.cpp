@@ -365,6 +365,7 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
     auto frostedGlassBlurFilter = std::static_pointer_cast<RSNGFrostedGlassBlurFilter>(filter);
     auto frostedGlassBlurFilterPara = std::static_pointer_cast<FrostedGlassBlurPara>(filterPara);
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassBlurFilterPara->GetBlurRadius());
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(frostedGlassBlurFilterPara->GetBlurRadiusScaleK());
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(frostedGlassBlurFilterPara->GetRefractOutPx());
     return frostedGlassBlurFilter;
 }

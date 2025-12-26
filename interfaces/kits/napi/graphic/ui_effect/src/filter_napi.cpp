@@ -419,7 +419,7 @@ napi_value FilterNapi::SetContentLight(napi_env env, napi_callback_info info)
     float lightIntensity = 0.f;
     lightIntensity = GetSpecialValue(env, argValue[NUM_2]);
     para->SetLightIntensity(lightIntensity);
-    
+
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
@@ -952,7 +952,7 @@ napi_value FilterNapi::SetHDRBrightnessRatio(napi_env env, napi_callback_info in
             "The SetHDRBrightnessRatio is only accessible to system applications.");
         return nullptr;
     }
-    
+
     static const size_t requireArgc = NUM_1;
     size_t realArgc = NUM_1;
     napi_value result = nullptr;
@@ -1147,7 +1147,7 @@ napi_value FilterNapi::SetVariableRadiusBlur(napi_env env, napi_callback_info in
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && requireArgc == realArgc, nullptr,
         FILTER_LOG_E("FilterNapi SetVariableRadiusBlur parsing input fail"));
-    
+
     auto para = std::make_shared<VariableRadiusBlurPara>();
     double blurRadius = 0.0;
     if (UIEffectNapiUtils::GetType(env, argv[NUM_0]) != napi_number ||
@@ -1182,12 +1182,12 @@ bool FilterNapi::FillFrostedGlassCommon(napi_env env, napi_value* argv, std::sha
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_0], blurParams), false,
         FILTER_LOG_E("FillFrostedGlassCommon: blurParams parse fail"));
     para->SetBlurParams(blurParams);
- 
+
     Vector2f weightsEmboss;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_1], weightsEmboss), false,
         FILTER_LOG_E("FillFrostedGlassCommon: weightsEmboss parse fail"));
     para->SetWeightsEmboss(weightsEmboss);
- 
+
     Vector2f weightsEdl;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_2], weightsEdl), false,
         FILTER_LOG_E("FillFrostedGlassCommon: weightsEdl parse fail"));
@@ -1201,22 +1201,22 @@ bool FilterNapi::FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_
         FILTER_LOG_E("FillFrostedGlassInner: para is nullptr");
         return false;
     }
- 
+
     Vector2f bgRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_3], bgRates), false,
         FILTER_LOG_E("FillFrostedGlassCommon: bgRates parse fail"));
     para->SetBgRates(bgRates);
- 
+
     Vector3f bgKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_4], bgKBS), false,
         FILTER_LOG_E("FillFrostedGlassInner: bgKBS parse fail"));
     para->SetBgKBS(bgKBS);
- 
+
     Vector3f bgPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_5], bgPos), false,
         FILTER_LOG_E("FillFrostedGlassInner: bgPos parse fail"));
     para->SetBgPos(bgPos);
- 
+
     Vector3f bgNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_6], bgNeg), false,
         FILTER_LOG_E("FillFrostedGlassInner: bgNeg parse fail"));
@@ -1226,42 +1226,42 @@ bool FilterNapi::FillFrostedGlassBg(napi_env env, napi_value* argv, std::shared_
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_7], refractParams), false,
         FILTER_LOG_E("FillFrostedGlassInner: refractParams parse fail"));
     para->SetRefractParams(refractParams);
- 
+
     return true;
 }
- 
+
 bool FilterNapi::FillFrostedGlassSd(napi_env env, napi_value* argv, std::shared_ptr<FrostedGlassPara>& para)
 {
     if (!para) {
         FILTER_LOG_E("FillFrostedGlassInner: para is nullptr");
         return false;
     }
- 
+
     Vector3f sdParams;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_8], sdParams), false,
         FILTER_LOG_E("FillFrostedGlassCommon: sdParams parse fail"));
     para->SetSdParams(sdParams);
- 
+
     Vector2f sdRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_9], sdRates), false,
         FILTER_LOG_E("FillFrostedGlassInner: sdRates parse fail"));
     para->SetSdRates(sdRates);
- 
+
     Vector3f sdKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_10], sdKBS), false,
         FILTER_LOG_E("FillFrostedGlassInner: sdKBS parse fail"));
     para->SetSdKBS(sdKBS);
- 
+
     Vector3f sdPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_11], sdPos), false,
         FILTER_LOG_E("FillFrostedGlassInner: sdPos parse fail"));
     para->SetSdPos(sdPos);
- 
+
     Vector3f sdNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_12], sdNeg), false,
         FILTER_LOG_E("FillFrostedGlassInner: sdPos parse fail"));
     para->SetSdNeg(sdNeg);
- 
+
     return true;
 }
 
@@ -1276,22 +1276,22 @@ bool FilterNapi::FillFrostedGlassEnv(napi_env env, napi_value* argv, std::shared
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_13], envLightParams), false,
         FILTER_LOG_E("FillFrostedGlassInner: envLightParams parse fail"));
     para->SetEnvLightParams(envLightParams);
-    
+
     Vector2f envLightRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_14], envLightRates), false,
         FILTER_LOG_E("FillFrostedGlassInner: envLightRates parse fail"));
     para->SetEnvLightRates(envLightRates);
- 
+
     Vector3f envLightKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_15], envLightKBS), false,
         FILTER_LOG_E("FillFrostedGlassInner: envLightKBS parse fail"));
     para->SetEnvLightKBS(envLightKBS);
- 
+
     Vector3f envLightPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_16], envLightPos), false,
         FILTER_LOG_E("FillFrostedGlassInner: envLightPos parse fail"));
     para->SetEnvLightPos(envLightPos);
- 
+
     Vector3f envLightNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_17], envLightNeg), false,
         FILTER_LOG_E("FillFrostedGlassInner: envLightNeg parse fail"));
@@ -1311,7 +1311,7 @@ bool FilterNapi::FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_18], edLightParams), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightParams parse fail"));
     para->SetEdLightParams(edLightParams);
- 
+
     Vector2f edLightAngles;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_19], edLightAngles), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightAngles parse fail"));
@@ -1321,22 +1321,22 @@ bool FilterNapi::FillFrostedGlassEdl(napi_env env, napi_value* argv, std::shared
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_20], edLightDir), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightDir parse fail"));
     para->SetEdLightDir(edLightDir);
- 
+
     Vector2f edLightRates;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector2f(env, argv[NUM_21], edLightRates), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightRates parse fail"));
     para->SetEdLightRates(edLightRates);
- 
+
     Vector3f edLightKBS;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_22], edLightKBS), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightKBS parse fail"));
     para->SetEdLightKBS(edLightKBS);
- 
+
     Vector3f edLightPos;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_23], edLightPos), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightPos parse fail"));
     para->SetEdLightPos(edLightPos);
- 
+
     Vector3f edLightNeg;
     UIEFFECT_NAPI_CHECK_RET_D(ParseJsVector3f(env, argv[NUM_24], edLightNeg), false,
         FILTER_LOG_E("FillFrostedGlassEnv: edLightNeg parse fail"));
@@ -1427,30 +1427,34 @@ napi_value FilterNapi::SetFrostedGlass(napi_env env, napi_callback_info info)
 
 napi_value FilterNapi::SetFrostedGlassBlur(napi_env env, napi_callback_info info)
 {
-    constexpr size_t requireArgc = NUM_2;
- 
+    constexpr size_t requireArgc = NUM_3;
+
     napi_status status;
     napi_value thisVar = nullptr;
     napi_value argv[requireArgc] = {0};
     size_t realArgc = requireArgc;
- 
+
     UIEFFECT_JS_ARGS(env, info, status, realArgc, argv, thisVar);
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == requireArgc, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass parsing input fail"));
- 
+
     std::shared_ptr<FrostedGlassBlurPara> para = std::make_shared<FrostedGlassBlurPara>();
     float radius = 0.f;
     radius = GetSpecialValue(env, argv[NUM_0]);
     para->SetBlurRadius(radius);
 
+    float radiusScaleK = 0.f;
+    radiusScaleK = GetSpecialValue(env, argv[NUM_1]);
+    para->SetBlurRadiusScaleK(radiusScaleK);
+
     float refractOutPx = 0.f;
-    refractOutPx = GetSpecialValue(env, argv[NUM_1]);
+    refractOutPx = GetSpecialValue(env, argv[NUM_2]);
     para->SetRefractOutPx(refractOutPx);
     Filter* filterObj = nullptr;
     status = napi_unwrap(env, thisVar, reinterpret_cast<void**>(&filterObj));
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && filterObj != nullptr, nullptr,
         FILTER_LOG_E("FilterNapi::SetFrostedGlass napi_unwrap fail"));
- 
+
     filterObj->AddPara(para);
     return thisVar;
 }

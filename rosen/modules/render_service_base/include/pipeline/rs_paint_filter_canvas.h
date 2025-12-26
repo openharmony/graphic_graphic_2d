@@ -34,6 +34,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSFilter;
+struct IGECacheProvider;
 
 class RSB_EXPORT RSPaintFilterCanvasBase : public Drawing::Canvas {
 public:
@@ -351,13 +352,15 @@ public:
     // effect cache data relate
     struct CachedEffectData {
         CachedEffectData() = default;
-        CachedEffectData(std::shared_ptr<Drawing::Image>&& image, const Drawing::RectI& rect);
-        CachedEffectData(const std::shared_ptr<Drawing::Image>& image, const Drawing::RectI& rect);
+        CachedEffectData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI& rect);
+        CachedEffectData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI& rect,
+                         std::shared_ptr<IGECacheProvider> cacheProvider);
         ~CachedEffectData() = default;
         std::string GetInfo() const;
         std::shared_ptr<Drawing::Image> cachedImage_ = nullptr;
         Drawing::RectI cachedRect_ = {};
         Drawing::Matrix cachedMatrix_ = Drawing::Matrix();
+        std::shared_ptr<IGECacheProvider> geCacheProvider_ = nullptr;
     };
     void SetEffectData(const std::shared_ptr<CachedEffectData>& effectData);
     const std::shared_ptr<CachedEffectData>& GetEffectData() const;

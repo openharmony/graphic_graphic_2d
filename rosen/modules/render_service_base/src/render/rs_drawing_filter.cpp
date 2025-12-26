@@ -504,7 +504,7 @@ bool RSDrawingFilter::ApplyHpsImageEffect(Drawing::Canvas& canvas, const std::sh
     auto maskColor = maskColorForHPS.AsArgbInt();
     GraphicsEffectEngine::GERender::HpsGEImageEffectContext context = {
         image, attr.src, attr.dst, Drawing::SamplingOptions(), brush.GetColor().GetAlphaF() * attr.brushAlpha,
-        brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_};
+        brush.GetFilter().GetColorFilter(), maskColor, saturationForHPS_, brightnessForHPS_, attr.geCacheProvider};
 
     auto [hasDrawnOnCanvas, kawaseHpsProcess] = geRender->ApplyHpsGEImageEffect(canvas, *visualEffectContainer_,
         context, outImage, brush);
@@ -526,7 +526,7 @@ void RSDrawingFilter::DrawKawaseEffect(Drawing::Canvas& canvas, const std::share
     tmpFilter->GenerateGEVisualEffect(effectContainer);
     auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
     auto blurImage = geRender->ApplyImageEffect(
-        canvas, *effectContainer, outImage, attr.src, attr.src, Drawing::SamplingOptions());
+        canvas, *effectContainer, {outImage, attr.src, attr.src}, Drawing::SamplingOptions());
     if (blurImage == nullptr) {
         ROSEN_LOGE("RSDrawingFilter::DrawImageRect blurImage is null");
         return;
@@ -571,8 +571,8 @@ void RSDrawingFilter::ApplyImageEffect(Drawing::Canvas& canvas, const std::share
     visualEffectContainer->RemoveFilterWithType(
         static_cast<int32_t>(Drawing::GEVisualEffectImpl::FilterType::KAWASE_BLUR));
     if (outImage == nullptr) {
-        outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer, image, attr.src, attr.src,
-            Drawing::SamplingOptions());
+        outImage = geRender->ApplyImageEffect(canvas, *visualEffectContainer,
+            {image, attr.src, attr.src, attr.geCacheProvider}, Drawing::SamplingOptions());
         ProfilerLogImageEffect(visualEffectContainer, image, attr.src, outImage);
         if (outImage == nullptr) {
             ROSEN_LOGE("RSDrawingFilter::DrawImageRect outImage is null");
@@ -656,7 +656,7 @@ void RSDrawingFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_p
     const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params)
 {
     float canvasAlpha = canvas.GetAlpha();
-    DrawImageRectAttributes attr = { src, dst, params.discardCanvas, 1.0f };
+    DrawImageRectAttributes attr = { src, dst, params.discardCanvas, 1.0f, params.geCacheProvider };
     if (params.offscreenDraw || ROSEN_EQ(canvasAlpha, 1.0f) || ROSEN_EQ(canvasAlpha, 0.0f)) {
         DrawImageRectInternal(canvas, image, attr);
         return;
