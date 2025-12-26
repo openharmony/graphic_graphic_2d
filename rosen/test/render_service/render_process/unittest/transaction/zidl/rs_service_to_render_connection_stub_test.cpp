@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include "parameters.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_service.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "transaction/zidl/rs_service_to_render_connection_stub.h"
