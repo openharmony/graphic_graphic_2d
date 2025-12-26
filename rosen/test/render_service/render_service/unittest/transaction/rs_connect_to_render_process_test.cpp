@@ -48,7 +48,7 @@ void RSConnectToRenderProcessTest::SetUpTestCase()
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    connectionStub_ = sptr<RSConnectionToRenderProcess>::MakeSptr(renderService.mainThread_, renderPipelineAgent);
+    connectionStub_ = sptr<RSConnectToRenderProcess>::MakeSptr(renderService.mainThread_, renderPipelineAgent);
 }
 void RSConnectToRenderProcessTest::TearDownTestCase() {}
 void RSConnectToRenderProcessTest::SetUp() {}
