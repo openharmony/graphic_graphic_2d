@@ -1303,12 +1303,12 @@ void RSRenderComposer::SurfaceDump(std::string& dumpString)
     hdiOutput_->Dump(dumpString);
 }
 
-void RSRenderComposer::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+void RSRenderComposer::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
     RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
 }
 
-void RSRenderComposer::FpsDump(std::string& dumpString, std::string& layerName)
+void RSRenderComposer::FpsDump(std::string& dumpString, const std::string& layerName)
 {
     if (hdiOutput_ == nullptr) {
         RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);

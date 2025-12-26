@@ -28,10 +28,14 @@ public:
     explicit RSRenderToServiceConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSRenderToServiceConnectionProxy() noexcept = default;
 
+    // Dfx
     void ReplyDumpResultToService(std::string& dumpString) override;
+
+    // Hgm
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-        const std::unordered_set<ScreenId>& screenIds,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo) override;
+    
+    // Screen Manager
     void NotifyScreenSwitchFinished(ScreenId screenId) override;
 
 private:

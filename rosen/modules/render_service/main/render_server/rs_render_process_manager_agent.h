@@ -22,14 +22,14 @@ namespace OHOS {
 namespace Rosen {
 class RSRenderProcessManagerAgent : public RefBase {
 public:
-    RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager);
-    ~RSRenderProcessManagerAgent() = default;
+    explicit RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager);
+    ~RSRenderProcessManagerAgent() noexcept = default;
 
     sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const;
-    std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns();
+    std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const;
 
 private:
-    sptr<RSRenderProcessManager> renderProcessManager_;
+    const sptr<RSRenderProcessManager> renderProcessManager_;
 };
 
 } // namespace Rosen

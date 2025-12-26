@@ -103,7 +103,6 @@ struct ScreenInfo {
         return powerStatus == ScreenPowerStatus::POWER_STATUS_SUSPEND || powerStatus == ScreenPowerStatus::POWER_STATUS_OFF;
     }
 
-
     // dfx
     std::string ToString() const
     {

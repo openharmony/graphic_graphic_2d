@@ -77,7 +77,7 @@ void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_ptr<
     info->vRateMap = vRateMap;
     info->isNeedRefreshVRate = isNeedRefreshVRate;
     auto serviceToProcessInfo =
-        renderToServiceConnection_->NotifyRpHgmFrameRate(pipelineParam.frameTimestamp, vsyncId, screenIds_, info);
+        renderToServiceConnection_->NotifyRpHgmFrameRate(pipelineParam.frameTimestamp, vsyncId, info);
     SetServiceToProcessInfo(serviceToProcessInfo,
         &pipelineParam.pendingScreenRefreshRate, &pipelineParam.pendingConstraintRelativeTime);
     hgmRPEnergy_->ClearEnergyCommonData();

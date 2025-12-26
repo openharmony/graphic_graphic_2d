@@ -16,10 +16,10 @@
 #ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_RS_RENDER_TO_SERVICE_CONNECTION_H
 #define RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_RS_RENDER_TO_SERVICE_CONNECTION_H
 
-#include "transaction/zidl/rs_render_to_service_connection_stub.h"
-#include "render_server/rs_render_service_agent.h"
 #include "render_server/rs_render_process_manager_agent.h"
+#include "render_server/rs_render_service_agent.h"
 #include "screen_manager/public/rs_screen_manager_agent.h"
+#include "transaction/zidl/rs_render_to_service_connection_stub.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -27,18 +27,25 @@ class RSRenderToServiceConnection : public RSRenderToServiceConnectionStub {
 public:
     RSRenderToServiceConnection(sptr<RSRenderServiceAgent> renderServiceAgent,
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent);
-    virtual ~RSRenderToServiceConnection() noexcept = default;
+    ~RSRenderToServiceConnection() noexcept = default;
 
+    RSRenderToServiceConnection(const RSRenderToServiceConnection&) = delete;
+    RSRenderToServiceConnection& operator=(const RSRenderToServiceConnection&) = delete;
+
+    // Dfx
     void ReplyDumpResultToService(std::string& dumpString) override;
+
+    // Hgm
     sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-        const std::unordered_set<ScreenId>& screenIds,
         const sptr<HgmProcessToServiceInfo>& processToServiceInfo) override;
+
+    // Screen Manager
     void NotifyScreenSwitchFinished(ScreenId screenId) override;
         
 private:
-    sptr<RSRenderServiceAgent> renderServiceAgent_ = nullptr;
-    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_ = nullptr;
-    sptr<RSScreenManagerAgent> screenManagerAgent_ = nullptr;
+    const sptr<RSRenderServiceAgent> renderServiceAgent_;
+    const sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_;
+    const sptr<RSScreenManagerAgent> screenManagerAgent_;
 };
 } // namespace Rosen
 } // namespace OHOS
