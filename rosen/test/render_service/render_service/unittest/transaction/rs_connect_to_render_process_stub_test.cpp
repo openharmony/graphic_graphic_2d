@@ -29,7 +29,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSConnectionToRenderProcessStub> connectionStub_ = nullptr;
+static inline sptr<RSConnectToRenderProcessStub> connectionStub_ = nullptr;
 }
 class RSConnectToRenderProcessStubTest : public testing::Test {
 public:
@@ -44,7 +44,7 @@ void RSConnectToRenderProcessStubTest::SetUpTestCase()
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    connectionStub_ = sptr<RSConnectionToRenderProcessStub>::MakeSptr();
+    connectionStub_ = sptr<RSConnectToRenderProcessStub>::MakeSptr();
 }
 void RSConnectToRenderProcessStubTest::TearDownTestCase() {}
 void RSConnectToRenderProcessStubTest::SetUp() {}
