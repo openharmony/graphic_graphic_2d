@@ -25,7 +25,6 @@
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
 #include "feature/hwc/rs_uni_hwc_prevalidate_util.h"
 #ifdef RS_ENABLE_GPU
-
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_frame_rate_control.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
