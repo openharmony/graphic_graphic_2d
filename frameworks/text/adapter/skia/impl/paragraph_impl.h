@@ -161,8 +161,10 @@ public:
 
     std::string GetDumpInfo() const override;
 
+#ifdef ENABLE_OHOS_ENHANCE
     std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
         size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+#endif
 
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,

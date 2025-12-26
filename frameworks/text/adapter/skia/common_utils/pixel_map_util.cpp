@@ -72,6 +72,8 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(
         bitmapCanvas->Translate(pathInfo.point.GetX() - prefX, pathInfo.point.GetY() - prefY);
         bitmapCanvas->DrawPath(pathInfo.path);
         bitmapCanvas->Flush();
+        bitmapCanvas->DetachPen();
+        bitmapCanvas->DetachBrush();
         prefX = pathInfo.point.GetX();
         prefY = pathInfo.point.GetY();
     }

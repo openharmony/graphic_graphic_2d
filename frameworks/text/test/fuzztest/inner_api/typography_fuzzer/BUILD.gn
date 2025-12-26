@@ -19,6 +19,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("TypographyFuzzTest") {
+  defines = [ "ENABLE_OHOS_ENHANCE" ]
   module_out_path = text_fuzz_out_path
   fuzz_config_file = "."
 

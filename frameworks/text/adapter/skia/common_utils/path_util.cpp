@@ -26,7 +26,7 @@ constexpr int MIN_POINTS_FOR_CLOSED_PATH = 3;
 /**
  * Determine the orientation of the triplet (p1, p2, p3).
  * Attention: the y-axis order is reversed.
- * @return 1 if counter-clockwise, -1 if clockwise, 0 if collinear.
+ * @return COUNTER_CLOCKWISE if counter-clockwise, CLOCKWISE if clockwise, COLLINEAR if collinear.
  */
 Orientation ComputeOrientation(const Drawing::Point& p1, const Drawing::Point& p2, const Drawing::Point& p3)
 {
@@ -74,11 +74,7 @@ bool IsPathClockwise(const Drawing::Path& path)
     Drawing::Point nextPoint =
         path.GetPoint(index < (pointsCount - 2) ? index + 1 : 0);  // - 2 means the last point
     Orientation orientation = ComputeOrientation(prePoint, minPoint, nextPoint);
-    if (orientation == Orientation::CLOCKWISE) {
-        return true;
-    } else {
-        return false;
-    }
+    return orientation == Orientation::CLOCKWISE;
 }
 
 /**

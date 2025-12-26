@@ -37,7 +37,6 @@ void TypographyFuzzTest(const uint8_t* data, size_t size)
     if (pixelMap == nullptr) {
         return;
     }
-    
 }
 } // namespace Rosen
 } // namespace OHOS

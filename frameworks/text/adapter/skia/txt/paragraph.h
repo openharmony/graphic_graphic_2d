@@ -27,7 +27,9 @@
 #include "text_line_base.h"
 #include "txt/text_style.h"
 #include "utils.h"
+#ifdef ENABLE_OHOS_ENHANCE
 #include "pixel_map.h"
+#endif
 
 class SkCanvas;
 

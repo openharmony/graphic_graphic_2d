@@ -14,7 +14,7 @@
  */
 #ifndef SPTEXT_PIXEL_MAP_UTIL_H
 #define SPTEXT_PIXEL_MAP_UTIL_H
-
+#ifdef ENABLE_OHOS_ENHANCE
 #include <memory>
 
 #include "pixel_map.h"
@@ -31,5 +31,5 @@ std::shared_ptr<OHOS::Media::PixelMap> CreatePixelMap(
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
-
+#endif // ENABLE_OHOS_ENHANCE
 #endif // SPTEXT_PIXEL_MAP_UTIL_H

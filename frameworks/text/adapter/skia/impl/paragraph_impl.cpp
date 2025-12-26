@@ -27,7 +27,9 @@
 #include "modules/skparagraph/include/Paragraph.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_builder_impl.h"
+#ifdef ENABLE_OHOS_ENHANCE
 #include "pixel_map.h"
+#endif
 #include "skia_adapter/skia_convert_utils.h"
 #include "static_factory.h"
 #include "symbol_engine/hm_symbol_run.h"
@@ -604,6 +606,7 @@ std::string ParagraphImpl::GetDumpInfo() const
     return paragraph_->GetDumpInfo();
 }
 
+#ifdef ENABLE_OHOS_ENHANCE
 /**
  * Get the text path image by index.
  * This function retrieves the image representation of the text path within the specified range.
@@ -635,6 +638,7 @@ std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
     }
     return CreatePixelMap(options, pathInfos);
 }
+#endif
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "draw/path.h"
-#include "pixel_map.h"
 
 namespace OHOS::Rosen::SPText {
 
