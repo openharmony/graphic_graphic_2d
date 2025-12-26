@@ -32,13 +32,18 @@
 #include "pixel_map.h"
 
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-#include <mutex>
 #include "surface_buffer.h"
 #endif
 
 #include "ui/rs_canvas_node.h"
 
 class SkCanvas;
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+namespace ffrt {
+class mutex;
+}
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -187,7 +192,7 @@ private:
     // - Only the buffer with the latest resetSurfaceIndex is kept
     sptr<SurfaceBuffer> canvasSurfaceBuffer_ = nullptr;
 
-    mutable std::mutex surfaceBufferMutex_;
+    std::shared_ptr<ffrt::mutex> surfaceBufferMutex_ = nullptr;
 
     uint32_t resetSurfaceIndex_ = 0;
 #endif
