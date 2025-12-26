@@ -160,6 +160,15 @@ ohos_unittest("vsync_sampler_test") {
   ]
 
   deps = [ ":vsync_test_common" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+
 }
 
 ## UnitTest vsync_sampler_test }}}
