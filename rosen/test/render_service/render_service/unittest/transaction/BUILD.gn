@@ -157,7 +157,6 @@ ohos_unittest("RSConnectToRenderProcessTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -177,7 +176,6 @@ ohos_unittest("RSConnectToRenderProcessProxyTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
@@ -197,7 +195,6 @@ ohos_unittest("RSConnectToRenderProcessStubTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
-    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   external_deps = []
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {

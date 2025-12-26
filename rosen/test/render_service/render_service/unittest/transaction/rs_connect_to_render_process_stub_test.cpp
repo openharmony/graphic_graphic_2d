@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include <hdi_backend>
+#include <hdi_backend.h>
 #include <iremote_broker.h>
 #include <iremote_stub.h>
 
