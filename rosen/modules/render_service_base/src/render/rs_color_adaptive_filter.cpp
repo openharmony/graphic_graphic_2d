@@ -17,10 +17,12 @@
 
 #include "effect/runtime_effect.h"
 #include "effect/shader_effect.h"
+#include "platform/common/rs_log.h"
 namespace OHOS::Rosen {
-std::shared_ptr<Drawing::RuntimeEffect> GetRuntimeEffect()
+namespace {
+std::shared_ptr<Drawing::RuntimeShaderBuilder> GetEffectBuilder()
 {
-    static std::shared_ptr<Drawing::RuntimeEffect> runtimeEffect = Drawing::RuntimeEffect::CreateForShader(R"(
+    static auto runtimeEffect = Drawing::RuntimeEffect::CreateForShader(R"(
             uniform shader img;
             uniform float color;
 
@@ -35,16 +37,22 @@ std::shared_ptr<Drawing::RuntimeEffect> GetRuntimeEffect()
                 return c;
             }
         )");
-    return runtimeEffect;
+    if (!runtimeEffect) {
+        ROSEN_LOGE("RSColorAdaptiveFilter::GetEffectBuilder runtimeEffect create failed");
+        return nullptr;
+    }
+    auto effectBuilder = std::make_shared<Drawing::RuntimeShaderBuilder>(runtimeEffect);
+    return effectBuilder;
 }
-
+} // namespace
 void RSColorAdaptiveFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
-    auto effect = GetRuntimeEffect();
-
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
-        std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    auto effectBuilder = GetEffectBuilder();
+    if (!effectBuilder) {
+        ROSEN_LOGE("RSColorAdaptiveFilter::DrawImageRect effectBuilder is null");
+        return;
+    }
     effectBuilder->SetChild("img", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
                                        Drawing::TileMode::CLAMP, Drawing::SamplingOptions {}, Drawing::Matrix {}));
     effectBuilder->SetUniform("color", grayScale_);
@@ -58,9 +66,14 @@ void RSColorAdaptiveFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sh
 std::shared_ptr<Drawing::Image> RSColorAdaptiveFilter::ApplyFilter(
     std::shared_ptr<Drawing::GPUContext> ctx, std::shared_ptr<Drawing::Image> image, float grayScale)
 {
-    auto effect = GetRuntimeEffect();
-    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
-        std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    if (!ctx || !image) {
+        return image;
+    }
+    auto effectBuilder = GetEffectBuilder();
+    if (!effectBuilder) {
+        ROSEN_LOGE("RSColorAdaptiveFilter::ApplyFilter effectBuilder is null");
+        return image;
+    }
     effectBuilder->SetChild("img", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
                                        Drawing::TileMode::CLAMP, Drawing::SamplingOptions {}, Drawing::Matrix {}));
     effectBuilder->SetUniform("color", grayScale);

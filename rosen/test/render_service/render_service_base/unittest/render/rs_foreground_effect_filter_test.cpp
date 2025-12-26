@@ -764,6 +764,9 @@ HWTEST_F(RSForegroundEffectFilterTest, DrawImageRectTest, TestSize.Level1)
     Drawing::Rect dst;
     rsForegroundEffectFilter->DrawImageRect(canvas, image, src, dst);
     EXPECT_NE(rsForegroundEffectFilter->blurEffect_, nullptr);
+    rsForegroundEffectFilter->colorPreprocess_ = true;
+    rsForegroundEffectFilter->DrawImageRect(canvas, image, src, dst);
+    EXPECT_NE(rsForegroundEffectFilter->blurEffect_, nullptr);
 }
 
 /**

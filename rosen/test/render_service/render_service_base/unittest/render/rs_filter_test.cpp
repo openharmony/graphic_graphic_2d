@@ -241,5 +241,8 @@ HWTEST_F(RSFilterTest, ColorAdaptiveFilter001, TestSize.Level1)
     Drawing::Rect src(0.f, 0.f, 10.f, 10.f);
     Drawing::Rect dst(0.f, 0.f, 10.f, 10.f);
     filter->DrawImageRect(canvas, image, src, dst);
+
+    auto res = RSColorAdaptiveFilter::ApplyFilter(nullptr, nullptr, 0.0f);
+    EXPECT_FALSE(res);
 }
 } // namespace OHOS::Rosen
