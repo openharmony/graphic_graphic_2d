@@ -24,7 +24,6 @@
 #include "rs_mhc_manager.h"
 #endif
 #if defined(ROSEN_OHOS)
-#include "cpp/ffrt_dynamic_graph.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
 #include "hpae_base/rs_hpae_scheduler.h"
 #include "hpae_base/rs_hpae_log.h"

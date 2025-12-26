@@ -106,7 +106,7 @@ bool RSHDRPatternManager::MHCDlOpen()
         return true;
     }
     if (MHCLibFrameworkHandle_ == nullptr) {
-        MHCLibFrameworkHandle_ = dlopen("/vendor/lib64/libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
+        MHCLibFrameworkHandle_ = dlopen("libmhc_framework.so", RTLD_LAZY | RTLD_NODELETE);
         if (!MHCLibFrameworkHandle_) {
             RS_LOGW("[hdrHetero]:RSHDRPatternManager MHCDlOpen dlopen MHC failed");
             return false;
