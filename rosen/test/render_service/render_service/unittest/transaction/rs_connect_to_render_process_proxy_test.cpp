@@ -18,23 +18,32 @@
 #include <iremote_broker.h>
 #include <iremote_stub.h>
 
+#include "parameters.h"
 #include "platform/ohos/transaction/zidl/rs_connect_to_render_process_proxy.h"
+#include "render_server/rs_render_service.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+RSRenderService renderService;
+static inline sptr<RSConnectToRenderProcessProxy> rsConn_ = nullptr;
+}
 class RSConnectToRenderProcessProxyTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static inline sptr<RSConnectToRenderProcessProxy> rsConn_ = nullptr;
 };
 
 void RSConnectToRenderProcessProxyTest::SetUpTestCase()
 {
+    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
+    renderService.Init();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<IRemoteBroker> impl = nullptr;
     rsConn_ = sptr<RSConnectToRenderProcess>::MakeSptr(impl);
 }

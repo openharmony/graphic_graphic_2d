@@ -33,7 +33,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSIServiceToRenderConnection> rsConn_ = nullptr;
+static inline sptr<RSServiceToRenderConnection> rsConn_ = nullptr;
 }
 class RSServiceToRenderConnectionTest : public testing::Test {
 public:

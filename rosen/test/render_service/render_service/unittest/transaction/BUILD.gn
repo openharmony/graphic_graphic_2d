@@ -163,6 +163,9 @@ ohos_unittest("RSConnectToRenderProcessTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  external_deps += [
+    "safwk:system_ability_fwk",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -180,6 +183,9 @@ ohos_unittest("RSConnectToRenderProcessProxyTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  external_deps += [
+    "safwk:system_ability_fwk",
+  ]
   defines = []
   defines += gpu_defines
 }
@@ -197,6 +203,9 @@ ohos_unittest("RSConnectToRenderProcessStubTest") {
   if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
     external_deps += [ "sensor:sensor_interface_native" ]
   }
+  external_deps += [
+    "safwk:system_ability_fwk",
+  ]
   defines = []
   defines += gpu_defines
 }
