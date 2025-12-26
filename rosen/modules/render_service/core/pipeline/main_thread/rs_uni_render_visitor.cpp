@@ -854,7 +854,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
     QuickPrepareChildren(node);
-    UpdateScreenValidity(node);
     TryNotifyUIBufferAvailable();
 
     PostPrepare(node);
@@ -906,24 +905,12 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     if (mirrorSourceScreenNode) {
         curScreenNode_->SetIsMirrorScreen(true);
         curScreenNode_->SetMirrorSource(mirrorSourceScreenNode);
-        isScreenHasMirrorDisplay_ = true;
     } else {
         curScreenNode_->SetIsMirrorScreen(false);
         curScreenNode_->ResetMirrorSource();
     }
     curScreenNode_->GetLogicalDisplayNodeDrawables().push_back(curLogicalDisplayNode_->GetRenderDrawable());
     return true;
-}
-
-void RSUniRenderVisitor::UpdateScreenValidity(RSScreenRenderNode& node)
-{
-    if (isScreenHasMirrorDisplay_ && node.GetChildrenCount() > 1) {
-        // for mirror screen, only one logical display is allowed
-        node.SetIsScreenValid(false);
-    } else {
-        node.SetIsScreenValid(true);
-    }
-    isScreenHasMirrorDisplay_ = false;  // reset visitor's screen node flag
 }
 
 void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)

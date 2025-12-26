@@ -238,7 +238,7 @@ void RSRenderService::RenderProcessManagerInit()
     renderProcessManager_ = RSRenderProcessManager::Create(*this);
     auto screenManagerListener = sptr<ScreenManagerListener>::MakeSptr(*this);
     screenManager_->RegisterCoreListener(screenManagerListener);
-    if (screenManager_->Init_V2(handler_)) {
+    if (screenManager_->Init(handler_)) {
         RS_LOGE("ScreenManager initV2 Success");
     }
 }

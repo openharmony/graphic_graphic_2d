@@ -25,12 +25,14 @@ class RSScreenManagerAgent;
 // This class is designed to notify external modules (such as DMS and SCB) of screen events.
 class RSScreenManagerAgentListener : public RSIScreenManagerAgentListener {
 public:
-    explicit RSScreenManagerAgentListener(wptr<RSScreenManagerAgent> screenManagerAgent);
+    RSScreenManagerAgentListener() = default;
     void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> remoteConn);
     void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason);
+    void SetScreenChangeCallback(sptr<RSIScreenChangeCallback> callback);
 
 private:
-    wptr<RSScreenManagerAgent> screenManagerAgent_;
+    std::mutex mutex_;
+    sptr<RSIScreenChangeCallback> screenChangeCallback_;
 };
 
 class RSScreenManagerAgent : public RefBase {
@@ -80,7 +82,6 @@ public:
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height);
     int32_t ResizeVirtualScreen(ScreenId id, uint32_t width, uint32_t height);
     RSVirtualScreenResolution GetVirtualScreenResolution(ScreenId id) const;
-    int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
     void SetScreenPowerStatus(ScreenId id, ScreenPowerStatus status);
@@ -116,15 +117,10 @@ public:
     void SetScreenSwitchStatus(ScreenId id, bool status);
 
 private:
-    void OnScreenConnected(ScreenId id, ScreenChangeReason reason, sptr<IRemoteObject> obj);
-    void OnScreenDisconnected(ScreenId id, ScreenChangeReason reason);
-
     sptr<RSScreenManager> screenManager_;
     sptr<RSScreenManagerAgentListener> agentListener_;
-    sptr<RSIScreenChangeCallback> screenChangeCallback_;
-    mutable std::shared_mutex screenChangeCallbackMutex_;
-
     std::unordered_set<ScreenId> virtualScreenIds_;
+    std::mutex mutex_;
 
     friend class RSScreenManagerAgentListener;
 };

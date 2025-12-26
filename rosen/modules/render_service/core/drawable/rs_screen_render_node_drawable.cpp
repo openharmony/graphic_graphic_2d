@@ -569,14 +569,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
     }
 
-    if (!params->GetIsScreenValid()) {
-        RS_LOGE("RSScreenRenderNodeDrawable::%{public}s screen node is invalid, screenId: %{public}" PRIu64,
-            __func__, params->GetScreenId());
-        RS_TRACE_NAME_FMT("RSScreenRenderNodeDrawable::%s screen node is invalid, screenId: %" PRIu64,
-            __func__, params->GetScreenId());
-        return;
-    }
-
     // if screen power off, skip on draw, needs to draw one more frame.
     isRenderSkipIfScreenOff_ = RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(params->GetScreenId());
     if (isRenderSkipIfScreenOff_) {

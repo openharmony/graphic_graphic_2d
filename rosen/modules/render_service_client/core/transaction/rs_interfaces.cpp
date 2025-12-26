@@ -442,11 +442,6 @@ int32_t RSInterfaces::SetRogScreenResolution(ScreenId id, uint32_t width, uint32
     return renderServiceClient_->SetRogScreenResolution(id, width, height);
 }
 
-int32_t RSInterfaces::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
-{
-    return renderServiceClient_->GetRogScreenResolution(id, width, height);
-}
-
 #ifndef ROSEN_ARKUI_X
 int32_t RSInterfaces::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {

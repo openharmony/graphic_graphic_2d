@@ -22,27 +22,51 @@
 
 namespace OHOS {
 namespace Rosen {
-RSScreenManagerAgentListener::RSScreenManagerAgentListener(wptr<RSScreenManagerAgent> screenManagerAgent)
-    : screenManagerAgent_(screenManagerAgent) {}
-
 void RSScreenManagerAgentListener::OnScreenConnected(ScreenId id,
     ScreenChangeReason reason, sptr<IRemoteObject> remoteConn)
 {
-    if (auto screenManagerAgent = screenManagerAgent_.promote()) {
-        screenManagerAgent->OnScreenConnected(id, reason, remoteConn);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenChangeCallback_) {
+        RS_LOGW("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
+        return;
     }
+    if (reason == ScreenChangeReason::HWCDEAD && (id == 0 || !MultiScreenParam::IsRsReportHwcDead())) {
+        RS_LOGI("RSScreenManagerAgentListener::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
+                __func__, id);
+        return;
+    }
+    RS_LOGI("%{public}s id:%{public}" PRIu64 "event connected reason %{public}u.", __func__, id,
+        static_cast<uint8_t>(reason));
+    screenChangeCallback_->OnScreenChanged(id, ScreenEvent::CONNECTED, reason, remoteConn);
 }
 
 void RSScreenManagerAgentListener::OnScreenDisconnected(ScreenId id, ScreenChangeReason reason)
 {
-    if (auto screenManagerAgent = screenManagerAgent_.promote()) {
-        screenManagerAgent->OnScreenDisconnected(id, reason);
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!screenChangeCallback_) {
+        RS_LOGW("RSScreenManagerAgentListener::%{public}s screenChangeCallback is nullptr.", __func__);
+        return;
     }
+
+    if (reason == ScreenChangeReason::HWCDEAD) {
+        RS_LOGI("RSScreenManagerAgentListener::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
+                __func__, id);
+        return;
+    }
+    RS_LOGI("%{public}s: id:%{public}" PRIu64 "event disconnected reason %{public}u.", __func__, id,
+        static_cast<uint8_t>(reason));
+    screenChangeCallback_->OnScreenChanged(id, ScreenEvent::DISCONNECTED, reason);
+}
+
+void RSScreenManagerAgentListener::SetScreenChangeCallback(sptr<RSIScreenChangeCallback> screenChangeCallback)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    screenChangeCallback_ = screenChangeCallback;
 }
 
 RSScreenManagerAgent::RSScreenManagerAgent(sptr<RSScreenManager> screenManager) : screenManager_(screenManager)
 {
-    agentListener_ = sptr<RSScreenManagerAgentListener>::MakeSptr(wptr<RSScreenManagerAgent>(this));
+    agentListener_ = sptr<RSScreenManagerAgentListener>::MakeSptr();
     if (screenManager_ && agentListener_) {
         screenManager_->RegisterAgentListener(agentListener_);
     }
@@ -60,49 +84,8 @@ int32_t RSScreenManagerAgent::SetScreenChangeCallback(const sptr<RSIScreenChange
     if (screenManager_ && callback) {
         screenManager_->ExecuteCallback(callback);
     }
-    {
-        std::lock_guard<std::shared_mutex> lock(screenChangeCallbackMutex_);
-        screenChangeCallback_ = callback;
-    }
+    agentListener_->SetScreenChangeCallback(callback);
     return SUCCESS;
-}
-
-void RSScreenManagerAgent::OnScreenConnected(ScreenId id,
-    ScreenChangeReason reason, sptr<IRemoteObject> remoteConn)
-{
-    if (!screenChangeCallback_) {
-        return;
-    }
-    if (reason == ScreenChangeReason::HWCDEAD && (id == 0 || !MultiScreenParam::IsRsReportHwcDead())) {
-        RS_LOGI("RSScreenManagerAgent::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
-                __func__, id);
-        return;
-    }
-    std::shared_lock<std::shared_mutex> lock(screenChangeCallbackMutex_);
-    RS_LOGI("%{public}s id:%{public}" PRIu64 "event connected reason %{public}u.", __func__, id,
-        static_cast<uint8_t>(reason));
-    
-    if (screenChangeCallback_) {
-        screenChangeCallback_->OnScreenChanged(id, ScreenEvent::CONNECTED, reason, remoteConn);
-    }
-}
-
-void RSScreenManagerAgent::OnScreenDisconnected(ScreenId id, ScreenChangeReason reason)
-{
-    if (!screenChangeCallback_) {
-        return;
-    }
-    if (reason == ScreenChangeReason::HWCDEAD) {
-        RS_LOGI("RSScreenManagerAgent::%{public}s don't invoke callback, screenId:%{public}" PRIu64,
-                __func__, id);
-        return;
-    }
-    std::shared_lock<std::shared_mutex> lock(screenChangeCallbackMutex_);
-    RS_LOGI("%{public}s: id:%{public}" PRIu64 "event disconnected reason %{public}u.", __func__, id,
-        static_cast<uint8_t>(reason));
-    if (screenChangeCallback_) {
-        screenChangeCallback_->OnScreenChanged(id, ScreenEvent::DISCONNECTED, reason);
-    }
 }
 
 void RSScreenManagerAgent::CleanVirtualScreens()
@@ -111,6 +94,7 @@ void RSScreenManagerAgent::CleanVirtualScreens()
         RS_LOGW("RSScreenManagerAgent::CleanVirtualScreens screenManager_ is nullptr");
         return;
     }
+    std::lock_guard<std::mutex> lock(mutex_);
     for (const auto id : virtualScreenIds_) {
         screenManager_->RemoveVirtualScreen(id);
     }
@@ -158,6 +142,7 @@ ScreenId RSScreenManagerAgent::CreateVirtualScreen(const std::string &name, uint
     auto screenId = screenManager_->CreateVirtualScreen(
         name, width, height, surface, associatedScreenId, flags, whiteList);
     if (screenId != INVALID_SCREEN_ID) {
+        std::lock_guard<std::mutex> lock(mutex_);
         virtualScreenIds_.insert(screenId);
     }
     return screenId;
@@ -170,6 +155,7 @@ void RSScreenManagerAgent::RemoveVirtualScreen(ScreenId id)
         return;
     }
     screenManager_->RemoveVirtualScreen(id);
+    std::lock_guard<std::mutex> lock(mutex_);
     virtualScreenIds_.erase(id);
 }
 
@@ -376,15 +362,6 @@ int32_t RSScreenManagerAgent::SetVirtualScreenResolution(ScreenId id, uint32_t w
         return StatusCode::SCREEN_NOT_FOUND;
     }
     return screenManager_->SetVirtualScreenResolution(id, width, height);
-}
-
-int32_t RSScreenManagerAgent::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
-{
-    if (!screenManager_) {
-        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManager_->GetRogScreenResolution(id, width, height);
 }
 
 int32_t RSScreenManagerAgent::SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height)

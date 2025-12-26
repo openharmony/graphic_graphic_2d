@@ -534,21 +534,6 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetRogScreenResolution, TestSize.
 }
 
 /**
- * @tc.name: GetRogScreenResolution Test
- * @tc.desc: GetRogScreenResolution Test
- * @tc.type: FUNC
- */
-HWTEST_F(RSClientToServiceConnectionProxyTest, GetRogScreenResolution, TestSize.Level1)
-{
-    ScreenId id = INVALID_SCREEN_ID;
-    uint32_t width = 0;
-    uint32_t height = 0;
-    auto ret = proxy->GetRogScreenResolution(id, width, height);
-    // SendRequest failed
-    EXPECT_EQ(ret, StatusCode::RS_CONNECTION_ERROR);
-}
-
-/**
  * @tc.name: SetVirtualScreenResolution Test
  * @tc.desc: SetVirtualScreenResolution Test
  * @tc.type:FUNC

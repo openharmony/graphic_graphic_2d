@@ -179,7 +179,6 @@ private:
     }
     bool InitScreenInfo(RSScreenRenderNode& node);
     bool InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node);
-    void UpdateScreenValidity(RSScreenRenderNode& node);
 
     void UpdateCompositeType(RSScreenRenderNode& node);
     bool BeforeUpdateSurfaceDirtyCalc(RSSurfaceRenderNode& node);
@@ -502,8 +501,6 @@ private:
 
     // used for finding the first effect render node to check to need to enabled debug
     bool hasEffectNodeInParent_ = false;
-
-    bool isScreenHasMirrorDisplay_ = false;
 };
 } // namespace Rosen
 } // namespace OHOS

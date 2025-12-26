@@ -61,7 +61,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ALL_SCREEN_IDS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_ROG_SCREEN_RESOLUTION),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_PHYSICAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_RESOLUTION),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_SURFACE),
@@ -982,22 +981,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             if (!reply.WriteInt32(status)) {
                 RS_LOGE("RSClientToServiceConnectionStub::SET_ROG_SCREEN_RESOLUTION Write status failed!");
                 ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION): {
-            ScreenId id{INVALID_SCREEN_ID};
-            if (!data.ReadUint64(id)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_ROG_SCREEN_RESOLUTION Read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            uint32_t width{0};
-            uint32_t height{0};
-            int32_t status = GetRogScreenResolution(id, width, height);
-            if (!reply.WriteInt32(status) || !reply.WriteUint32(width) || !reply.WriteUint32(height)) {
-                RS_LOGE("RSClientToServiceConnectionStub::GET_ROG_SCREEN_RESOLUTION Write parcel failed!");
-                ret = IPC_STUB_WRITE_PARCEL_ERR;
             }
             break;
         }
@@ -2834,7 +2817,13 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::NOTIFY_SCREEN_SWITCHED) : {
-            NotifyScreenSwitched(0); // ??? todo
+            ScreenId screenId;
+            if (!data.ReadUint64(screenId)) {
+                RS_LOGE("RSClientToServiceConnectionStub::NOTIFY_SCREEN_SWITCHED ReadBool failed");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            NotifyScreenSwitched(screenId);
             break;
         }
         case static_cast<uint32_t>(

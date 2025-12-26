@@ -31,8 +31,10 @@ constexpr uint16_t SENSOR_EVENT_FIRST_DATA = 0;
 const std::string BOOTEVENT_BOOT_COMPLETED = "bootevent.boot.completed";
 std::function<void(SensorEvent*)> sensorCallback = nullptr;
 RSScreenPreprocessor::RSScreenPreprocessor(wptr<RSScreenManager> screenManager,
-    std::shared_ptr<RSScreenCallbackManager> callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler)
-    : screenManager_(screenManager), callbackMgrWeak_(callbackMgr), mainHandler_(handler) {}
+    std::shared_ptr<RSScreenCallbackManager> callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler,
+    bool isFoldScreen)
+    : screenManager_(screenManager), callbackMgrWeak_(callbackMgr), mainHandler_(handler),
+      isFoldScreenFlag_(isFoldScreen) {}
 
 void RSScreenPreprocessor::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data)
 {
@@ -135,9 +137,6 @@ bool RSScreenPreprocessor::Init() noexcept
 {
     RS_TRACE_FUNC();
     composer_ = HdiBackend::GetInstance();
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    isFoldScreenFlag_ = system::GetParameter("const.window.foldscreen.type", "") != "";
-#endif
     if (composer_ == nullptr) {
         RS_LOGE("%{public}s: Failed to get composer.", __func__);
         return false;
@@ -158,7 +157,7 @@ bool RSScreenPreprocessor::Init() noexcept
     }
 
     if (composer_->RegHwcEventCallback(&RSScreenPreprocessor::OnHwcEvent, this) != 0) {
-        RS_LOGE("%{public}s: Failed to register OnHwcDead Func to composer", __func__);
+        RS_LOGE("%{public}s: Failed to register OnHwcEvent Func to composer", __func__);
         return false;
     }
 
@@ -301,11 +300,12 @@ void RSScreenPreprocessor::OnHotPlugEvent(std::shared_ptr<HdiOutput>& output, bo
     {
         std::lock_guard<std::mutex> lock(hotPlugMutex_);
         ScreenId id = ToScreenId(output->GetScreenId());
-        if (pendingHotPlugEvents_.find(id) != pendingHotPlugEvents_.end()) {
+        if (auto iter = pendingHotPlugEvents_.find(id);
+            iter != pendingHotPlugEvents_.end() && iter->second.connected == connected) {
             RS_LOGE("%{public}s: screen %{public}" PRIu64 "is covered.", __func__, id);
         }
         pendingHotPlugEvents_[id] = ScreenHotPlugEvent{output, connected};
-        RS_LOGE("%{public}s: screen %{public}" PRIu64 "is %{public}s, event has been saved", __func__, id,
+        RS_LOGI("%{public}s: screen %{public}" PRIu64 "is %{public}s, event has been saved", __func__, id,
             connected ? "connected" : "disconnected");
     }
     if (isHwcDead_) {

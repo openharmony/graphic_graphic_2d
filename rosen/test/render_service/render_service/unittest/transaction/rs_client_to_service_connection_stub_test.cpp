@@ -1419,32 +1419,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetRogScreenResolutionTest001, Tes
 }
 
 /**
- * @tc.name: GetRogScreenResolutionTest001
- * @tc.desc: Test GetRogScreenResolution
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, GetRogScreenResolutionTest001, TestSize.Level1)
-{
-    constexpr uint64_t SCREEN_ID = 0;
-    int32_t status{0};
-    uint32_t width{0};
-    uint32_t height{0};
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_ROG_SCREEN_RESOLUTION);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_SYNC);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data.WriteUint64(SCREEN_ID);
-
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_EQ(res, ERR_OK);
-    ASSERT_EQ(reply.ReadInt32(status), static_cast<bool>(true));
-    ASSERT_EQ(reply.ReadUint32(width), static_cast<bool>(true));
-    ASSERT_EQ(reply.ReadUint32(height), static_cast<bool>(true));
-}
-
-/**
  * @tc.name: SetScreenGamutMapTest001
  * @tc.desc: Test SetScreenGamutMap when ReadUint64 failed
  * @tc.type: FUNC

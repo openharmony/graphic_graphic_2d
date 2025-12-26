@@ -165,35 +165,6 @@ HWTEST_F(RSInterfacesTest, SetRogScreenResolution001, Function | SmallTest | Lev
 }
 
 /*
- * @tc.name: GetRogScreenResolution001
- * @tc.desc: Test GetRogScreenResolution with valid screenId
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetRogScreenResolution001, Function | SmallTest | Level2)
-{
-    auto screenId = rsInterfaces->GetDefaultScreenId();
-    EXPECT_NE(screenId, INVALID_SCREEN_ID);
-    uint32_t width{0};
-    uint32_t height{0};
-    auto ret = rsInterfaces->GetRogScreenResolution(screenId, width, height);
-    EXPECT_EQ(ret, StatusCode::SUCCESS);
-}
-
-/*
- * @tc.name: GetRogScreenResolution002
- * @tc.desc: Test GetRogScreenResolution with invalid screenId
- * @tc.type: FUNC
- */
-HWTEST_F(RSInterfacesTest, GetRogScreenResolution002, Function | SmallTest | Level2)
-{
-    auto screenId = INVALID_SCREEN_ID;
-    uint32_t width{0};
-    uint32_t height{0};
-    auto ret = rsInterfaces->GetRogScreenResolution(screenId, width, height);
-    EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
-}
-
-/*
  * @tc.name: SetPhysicalScreenResolution001
  * @tc.desc: Test SetPhysicalScreenResolution
  * @tc.type: FUNC

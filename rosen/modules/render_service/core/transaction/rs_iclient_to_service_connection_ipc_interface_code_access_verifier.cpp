@@ -227,10 +227,6 @@ bool RSIClientToServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerific
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_ROG_SCREEN_RESOLUTION");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_ROG_SCREEN_RESOLUTION): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_ROG_SCREEN_RESOLUTION");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_PHYSICAL_SCREEN_RESOLUTION): {
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_PHYSICAL_SCREEN_RESOLUTION");
             break;

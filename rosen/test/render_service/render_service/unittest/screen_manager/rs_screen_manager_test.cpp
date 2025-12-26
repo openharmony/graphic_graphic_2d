@@ -1762,53 +1762,6 @@ HWTEST_F(RSScreenManagerTest, SetRogScreenResolution_001, TestSize.Level2)
 // }
 
 /*
- * @tc.name: GetRogScreenResolution_001
- * @tc.desc: Test GetRogScreenResolution, with INVALID_SCREEN_ID
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenManagerTest, GetRogScreenResolution_001, TestSize.Level1)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    ScreenId screenId = INVALID_SCREEN_ID;
-    uint32_t width{0};
-    uint32_t height{0};
-    ASSERT_EQ(screenManager_->GetRogScreenResolution(screenId, width, height), SCREEN_NOT_FOUND);
-}
-
-/*
- * @tc.name: GetRogScreenResolution_002
- * @tc.desc: Test GetRogScreenResolution, with mock HDI device
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSScreenManagerTest, GetRogScreenResolution_002, TestSize.Level1)
-{
-    ASSERT_NE(nullptr, screenManager_);
-    ScreenId screenId = mockScreenId_;
-    uint32_t width{0};
-    uint32_t height{0};
-    uint32_t setWidth{1920};
-    uint32_t setHeight{1080};
-    auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
-    auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
-
-    ASSERT_NE(nullptr, hdiDeviceMock_);
-    ASSERT_NE(nullptr, rsScreen);
-    ASSERT_NE(nullptr, rsScreen->hdiScreen_);
-
-    rsScreen->hdiScreen_->device_ = hdiDeviceMock_;
-    screenManager_->MockHdiScreenConnected(rsScreen);
-
-    // case 1: GetRogResolution without prior setup
-    ASSERT_EQ(screenManager_->GetRogScreenResolution(screenId, width, height), StatusCode::INVALID_ARGUMENTS);
-
-    // case 2: GetRogResolution with prior setup
-    rsScreen->SetRogResolution(setWidth, setHeight);
-    ASSERT_EQ(screenManager_->GetRogScreenResolution(screenId, width, height), StatusCode::SUCCESS);
-}
-
-/*
  * @tc.name: SetVirtualMirrorScreenCanvasRotation_001
  * @tc.desc: Test SetVirtualMirrorScreenCanvasRotation while don't have any screen
  * @tc.type: FUNC

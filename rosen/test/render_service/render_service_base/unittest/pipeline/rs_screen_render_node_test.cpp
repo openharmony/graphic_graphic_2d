@@ -1082,18 +1082,4 @@ HWTEST_F(RSScreenRenderNodeTest, CheckSurfaceChangedTest005, TestSize.Level1)
     screenNode->CheckSurfaceChanged();
     EXPECT_FALSE(screenNode->isVirtualSurfaceChanged_);
 }
-
-/**
- * @tc.name: SetIsScreenValidTest
- * @tc.desc: test results of SetIsScreenValid
- * @tc.type: FUNC
- */
-HWTEST_F(RSScreenRenderNodeTest, SetIsScreenValidTest, TestSize.Level1)
-{
-    NodeId id = 1;
-    auto screenNode = std::make_shared<RSScreenRenderNode>(id, 1, context);
-    ASSERT_NE(screenNode, nullptr);
-    screenNode->SetIsScreenValid(false);
-    screenNode->IsVirtualSurfaceChanged();
-}
 } // namespace OHOS::Rosen

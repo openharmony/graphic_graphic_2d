@@ -1738,13 +1738,6 @@
     "messageOption": "TF_ASYNC"
   },
   {
-    "testCaseDesc": "GET_ROG_SCREEN_RESOLUTION_TEST_001",
-    "interfaceName": "GET_ROG_SCREEN_RESOLUTION",
-    "inputParams": "WriteUint64",
-    "writeInterfaceToken": true,
-    "messageOption": "TF_ASYNC"
-  },
-  {
     "testCaseDesc": "TAKE_SURFACE_CAPTURE_TEST_001",
     "interfaceName": "TAKE_SURFACE_CAPTURE",
     "inputParams": "WriteUint64;WriteSurfaceCaptureCallbackSptr;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteUint8;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteBool;WriteBool;WriteFloat;WriteFloat;WriteFloat;WriteFloat;WriteFloat",

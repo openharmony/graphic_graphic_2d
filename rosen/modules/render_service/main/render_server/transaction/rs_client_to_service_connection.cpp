@@ -933,14 +933,6 @@ int32_t RSClientToServiceConnection::SetRogScreenResolution(ScreenId id, uint32_
     return screenManagerAgent_->SetRogScreenResolution(id, width, height);
 }
 
-int32_t RSClientToServiceConnection::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
-{
-    if (!screenManagerAgent_) {
-        return StatusCode::SCREEN_NOT_FOUND;
-    }
-    return screenManagerAgent_->GetRogScreenResolution(id, width, height);
-}
-
 ErrCode RSClientToServiceConnection::MarkPowerOffNeedProcessOneFrame()
 {
     if (!screenManagerAgent_) {
