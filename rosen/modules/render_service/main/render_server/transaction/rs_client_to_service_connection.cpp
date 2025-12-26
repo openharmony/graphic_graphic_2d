@@ -841,7 +841,6 @@ int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, cons
     }
     if (blackList.empty()) {
         RS_LOGW("%{public}s: blackList is empty.", __func__);
-        return StatusCode::BLACKLIST_IS_EMPTY;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (screenManager_ == nullptr) {

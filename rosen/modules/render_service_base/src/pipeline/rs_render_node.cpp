@@ -1080,6 +1080,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         }
         out += ", AbsRotation: " + std::to_string(surfaceNode->GetAbsRotation());
 #endif
+        out += ", persistId [" + std::to_string(surfaceNode->GetLeashPersistentId()) + "]";
     }
     if (sharedTransitionParam_) {
         out += sharedTransitionParam_->Dump();
