@@ -2459,7 +2459,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
             break;
         }
     }
-    
+
     if (!screenNode || screenNode->GetCompositeType() != CompositeType::UNI_RENDER_COMPOSITE) {
         RS_LOGE("DoDirectComposition screenNode state error");
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by screenNode state error");
@@ -2510,7 +2510,7 @@ bool RSMainThread::DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNod
         auto surfaceHandler = nullptr;
 #endif
 #ifdef RS_ENABLE_GPU
-        ScreenInfo screenInfo = screenProperty.GetScreenInfo();
+        ScreenInfo screenInfo = screenNode->GetScreenInfo();
         if (RSAncoManager::Instance()->AncoOptimizeScreenNode(surfaceHandler, hardwareEnabledNodes_,
             ScreenRotation::ROTATION_0, screenInfo.GetRotatedPhyWidth(), screenInfo.GetRotatedPhyHeight())) {
             RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by ancoOptimizeScreenNode");
