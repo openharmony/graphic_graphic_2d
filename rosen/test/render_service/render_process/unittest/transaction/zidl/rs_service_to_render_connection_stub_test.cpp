@@ -39,8 +39,10 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
 RSRenderService renderService;
 static inline sptr<RSServiceToRenderConnectionStub> connectionStub_ = nullptr;
+}
 }
 class RSServiceToRenderConnectionStubTest : public testing::Test {
 public:
