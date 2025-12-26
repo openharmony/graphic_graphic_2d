@@ -504,23 +504,25 @@ std::string RSRenderNodeMap::GetSelfDrawSurfaceNameByPidAndUniqueId(pid_t nodePi
     auto selfDrawingNodeVector = GetSelfDrawingNodeInProcess(nodePid);
     for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
         auto node = GetRenderNode(*iter);
-        if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
-            if (surfaceNode->IsRosenWeb()) {
-                continue;
-            }
-#ifndef ROSEN_CROSS_PLATFORM
-            auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
-            if (!surfaceHandler) {
-                continue;
-            }
-            auto consumer = surfaceHandler->GetConsumer();
-            if (consumer && consumer->GetUniqueId() == uniqueId) {
-                return consumer->GetName();
-            }
-#else
-            return surfaceNode->GetName();
-#endif
+        if (!node) {
+            continue;
         }
+        auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (!surfaceNode || surfaceNode->IsRosenWeb()) {
+            continue;
+        }
+#ifndef ROSEN_CROSS_PLATFORM
+        auto surfaceHandler = surfaceNode->GetMutableRSSurfaceHandler();
+        if (!surfaceHandler) {
+            continue;
+        }
+        auto consumer = surfaceHandler->GetConsumer();
+        if (consumer && consumer->GetUniqueId() == uniqueId) {
+            return consumer->GetName();
+        }
+#else
+        return surfaceNode->GetName();
+#endif
     }
     return "";
 }
