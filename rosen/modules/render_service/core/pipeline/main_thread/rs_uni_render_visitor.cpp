@@ -1128,6 +1128,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
             isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
+        CollectOcclusionInfoForWMS(node);
+        RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
 #endif
