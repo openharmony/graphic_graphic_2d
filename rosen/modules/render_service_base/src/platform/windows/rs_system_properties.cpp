@@ -646,6 +646,11 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;

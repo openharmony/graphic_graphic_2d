@@ -62,6 +62,7 @@
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
+#include "render/rs_filter_cache_memory_controller.h"
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_frame_report.h"
@@ -893,6 +894,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOpincDrawCache::SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     }
 #endif
+    RSFilterCacheMemoryController::Instance().SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     UpdateSurfaceDrawRegion(curCanvas_, params);
 
     // canvas draw

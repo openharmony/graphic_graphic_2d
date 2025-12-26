@@ -38,7 +38,7 @@ class RSHpaeFilterCacheManager;
 class RSB_EXPORT RSFilterCacheManager final {
 public:
     RSFilterCacheManager();
-    ~RSFilterCacheManager() = default;
+    ~RSFilterCacheManager();
     RSFilterCacheManager(const RSFilterCacheManager&) = delete;
     RSFilterCacheManager(const RSFilterCacheManager&&) = delete;
     RSFilterCacheManager& operator=(const RSFilterCacheManager&) = delete;
@@ -146,6 +146,8 @@ public:
     void ClearEffectCacheWithDrawnRegion(const RSPaintFilterCanvas& canvas, const Drawing::RectI& filterBound);
 
     void MarkDebugEnabled();
+    bool IsFilterCacheMemExceedThreshold() const;
+
 private:
     void TakeSnapshot(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSDrawingFilter>& filter,
         const Drawing::RectI& srcRect);
@@ -169,6 +171,10 @@ private:
     void ClearFilterCache();
 
     void PrintDebugInfo(NodeId nodeID);
+
+    void ReplaceCachedEffectData(std::shared_ptr<Drawing::Image> image, const Drawing::RectI& rect,
+        std::shared_ptr<RSPaintFilterCanvas::CachedEffectData>& targetCache,
+        std::shared_ptr<IGECacheProvider> cacheProvider = nullptr);
 
     // We keep both the snapshot and filtered snapshot in the cache, and clear unneeded one in next frame.
     // Note: rect in cachedSnapshot_ and cachedFilteredSnapshot_ is in device coordinate.

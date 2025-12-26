@@ -1297,6 +1297,13 @@ bool RSSystemProperties::GetOpincCacheMemThresholdEnabled()
     return opincCacheMemThresholdEnabled;
 }
 
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
+{
+    static bool filterCacheMemThresholdEnabled =
+        (std::atoi(system::GetParameter("persist.rosen.filter.cacheMemThreshold", "1").c_str()) != 0);
+    return filterCacheMemThresholdEnabled;
+}
+
 DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
 {
     return ddgrOpincDfxType_;
