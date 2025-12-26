@@ -29,6 +29,7 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "parameters.h"
 #include "rs_render_service.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "transaction/zidl/rs_service_to_render_connection_stub.h"
