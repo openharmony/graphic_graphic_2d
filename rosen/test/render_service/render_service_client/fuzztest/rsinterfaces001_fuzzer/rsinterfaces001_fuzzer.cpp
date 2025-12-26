@@ -83,10 +83,6 @@ bool RSPhysicalScreenFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
-
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     float darkBuffer = GetData<float>();
     float brightBuffer = GetData<float>();
@@ -126,9 +122,6 @@ bool SubmitCanvasPreAllocatedBufferFuzzTest(const uint8_t* data, size_t size)
         return false;
     }
 
-    g_data = data;
-    g_size = size;
-    g_pos = 0;
     auto& rsRenderInterfaces = RSRenderInterface::GetInstance();
     sptr<RSICanvasSurfaceBufferCallback> callback = new TestRSCanvasSurfaceBufferCallback();
     rsRenderInterfaces.RegisterCanvasCallback(callback);
@@ -145,6 +138,10 @@ bool SubmitCanvasPreAllocatedBufferFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
+    g_data = data;
+    g_size = size;
+    g_pos = 0;
+
     OHOS::Rosen::RSPhysicalScreenFuzzTest(data, size);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     OHOS::Rosen::SubmitCanvasPreAllocatedBufferFuzzTest(data, size);
