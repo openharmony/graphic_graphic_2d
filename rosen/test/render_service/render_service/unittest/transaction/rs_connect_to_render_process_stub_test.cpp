@@ -19,7 +19,7 @@
 #include <iremote_stub.h>
 
 #include "parameters.h"
-#include "/transaction/zidl/rs_connect_to_render_process_stub.h"
+#include "transaction/zidl/rs_connect_to_render_process_stub.h"
 #include "render_server/rs_render_service.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 
