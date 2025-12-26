@@ -28,7 +28,6 @@ const xmlChar NODE_NAME_SINGLE_PARAM[] = "FeatureSingleParam";
 
 const xmlChar NODE_NAME_SWITCH[] = "FeatureSwitch";
 const xmlChar SOLIDLAYER_IN_MULTI_WINDOW_ENABLED[] = "SolidLayerInMultiWindowEnabled";
-
 const xmlChar DISABLE_IN_SCALE_SCENE[] = "IsDisableInScaleScene";
 
 const xmlChar ATTRIBUTE_NAME[] = "name";

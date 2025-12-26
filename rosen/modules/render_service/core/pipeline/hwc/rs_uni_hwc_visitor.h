@@ -97,14 +97,13 @@ public:
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
-    bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
+    
 
 private:
     friend class RSUniRenderVisitor;
     RSUniRenderVisitor& uniRenderVisitor_;
 
     // Functions
-    bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
     bool IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, const RSRenderNode& rootNode);
     void UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
         Drawing::Rect& childRectMapped);
@@ -112,6 +111,10 @@ private:
         Drawing::Matrix& accumulatedMatrix);
     void UpdateHwcNodeClipRectAndMatrix(const std::shared_ptr<RSSurfaceRenderNode>& hwcNodePtr,
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
+
+    // Solid Layer
+    bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
+    bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
 
     // indicates if hardware composer is totally disabled
     bool isHardwareForcedDisabled_ = false;
