@@ -269,10 +269,7 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         size:%{public}zu, %{public}s", currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
 
-    // todo : yangxiaopeng
-    // bool isScreenPoweringOff = RSSystemProperties::IsFoldDeviceOfOldDss() && screenInfo_.IsScreenPowerOff();
     bool shouldDropFrame = IsDropDirtyFrame(layers);
-    // if (!(shouldDropFrame || isScreenPoweringOff)) {
     if (!shouldDropFrame) {
         hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_);
     }
