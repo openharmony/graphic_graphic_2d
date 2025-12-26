@@ -243,7 +243,7 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
 bool RSSystemProperties::GetTestModeEnabled()
 {
     bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
-    return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug;
+    return isOpenTestModeTraceDebug;
 }
 
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
