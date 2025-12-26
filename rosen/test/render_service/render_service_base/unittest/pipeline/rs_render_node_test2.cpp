@@ -3260,19 +3260,9 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers001
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(1024);
-    drawCmdList->SetHeight(1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    auto modifier1 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    modifier1->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
-    EXPECT_NE(modifier1, nullptr);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
     node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
-    RSRootRenderNode::ModifierNGContainer modifiers { modifier1 };
-    node->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
-    node->isFullChildrenListValid_ = true;
-    node->AddDirtyType(ModifierNG::RSModifierType::BOUNDS);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
     ASSERT_FALSE(node->renderProperties_.useUnion_);
@@ -3287,19 +3277,8 @@ HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002
 {
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSRenderNode>(0, rsContext);
-    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
-    drawCmdList->SetWidth(1024);
-    drawCmdList->SetHeight(1090);
-    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
-    property->GetRef() = drawCmdList;
-    auto modifier1 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
-    modifier1->AttachProperty(ModifierNG::RSPropertyType::CONTENT_STYLE, property);
-    EXPECT_NE(modifier1, nullptr);
-    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT), true);
-    RSRootRenderNode::ModifierNGContainer modifiers { modifier1 };
-    node->modifiersNG_.emplace(ModifierNG::RSModifierType::CONTENT_STYLE, modifiers);
-    node->isFullChildrenListValid_ = true;
-    node->AddDirtyType(ModifierNG::RSModifierType::USE_EFFECT);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
 
     node->ApplyModifiers();
     ASSERT_FALSE(node->renderProperties_.useUnion_);

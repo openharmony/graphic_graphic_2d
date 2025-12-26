@@ -875,7 +875,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoAfterApplyModifiers001, TestSize
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
     node->isOnTheTree_ = false;
 
-    RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
+    RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);
     ASSERT_FALSE(node->isOnTheTree_);
 }
 
@@ -889,7 +889,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoAfterApplyModifiers002, TestSize
     std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(0);
     node->isOnTheTree_ = true;
 
-    RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
+    RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);
     ASSERT_TRUE(node->isOnTheTree_);
 }
 
@@ -909,7 +909,7 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessUnionInfoAfterApplyModifiers003, TestSize
     node->renderProperties_.useUnion_ = true;
     node->isOnTheTree_ = true;
 
-    RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(node);
+    RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(node);
     ASSERT_FALSE(unionNode->unionChildren_.empty());
 }
 } // namespace Rosen
