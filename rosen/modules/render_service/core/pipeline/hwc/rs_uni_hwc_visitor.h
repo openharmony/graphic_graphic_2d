@@ -97,7 +97,6 @@ public:
 
     void IncreaseSolidLayerHwcEnableCount() { solidLayerHwcEnableCount_++; }
     size_t GetSolidLayerHwcEnableCount() const { return solidLayerHwcEnableCount_; }
-    
 
 private:
     friend class RSUniRenderVisitor;
