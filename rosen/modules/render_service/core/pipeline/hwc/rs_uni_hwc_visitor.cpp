@@ -439,7 +439,8 @@ bool RSUniHwcVisitor::IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node)
 
 void RSUniHwcVisitor::UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node)
 {
-    if (!(node.IsRosenWeb() || IsScaleSceneHwcEnabled(node)) || node.IsHardwareForcedDisabled() || !node.GetRSSurfaceHandler()) {
+    if (!(node.IsRosenWeb() || IsScaleSceneHwcEnabled(node)) || 
+        node.IsHardwareForcedDisabled() || !node.GetRSSurfaceHandler()) {
         return;
     }
     auto surfaceHandler = node.GetRSSurfaceHandler();

@@ -29,7 +29,7 @@ const xmlChar NODE_NAME_SINGLE_PARAM[] = "FeatureSingleParam";
 const xmlChar NODE_NAME_SWITCH[] = "FeatureSwitch";
 const xmlChar SOLIDLAYER_IN_MULTI_WINDOW_ENABLED[] = "SolidLayerInMultiWindowEnabled";
 
-const xmlChar DISABLE_HWC_IN_SCALE_SCENE[] = "IsDisableInScaleScene";
+const xmlChar DISABLE_IN_SCALE_SCENE[] = "IsDisableInScaleScene";
 
 const xmlChar ATTRIBUTE_NAME[] = "name";
 const xmlChar ATTRIBUTE_VALUE[] = "value";
@@ -214,7 +214,7 @@ HWTEST_F(HwcParamParseTest, TestParseHwcInternal004, TestSize.Level1)
     node.type = XML_ELEMENT_NODE;
 
     xmlAttribute attrVal = CreateXmlAttribute(ATTRIBUTE_VALUE, TV_PLAYER_BUNDLE_NAME_VALUE, nullptr);
-    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, DISABLE_HWC_IN_SCALE_SCENE, &attrVal);
+    xmlAttribute attrName = CreateXmlAttribute(ATTRIBUTE_NAME, DISABLE_IN_SCALE_SCENE, &attrVal);
     node.properties = reinterpret_cast<xmlAttrPtr>(&attrName);
 
     FeatureParamMapType featureParam;
