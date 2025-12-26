@@ -28,6 +28,9 @@ group("unittest") {
     ":RSClientToRenderConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
+    ":RSConnectRenderProcessTest",
+    ":RSConnectToRenderProcessProxyTest",
+    ":RSConnectToRenderProcessStubTest",
   ]
 }
 
@@ -147,6 +150,57 @@ ohos_unittest("RSRenderServiceStubTest") {
   defines += gpu_defines
 }
 
+## Build RSConnectRenderProcessTest
+ohos_unittest("RSConnectRenderProcessTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_connect_render_process_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = []
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSConnectToRenderProcessProxyTest
+ohos_unittest("RSConnectToRenderProcessProxyTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_connect_to_render_process_proxy_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = []
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+}
+
+## Build RSConnectToRenderProcessStubTest
+ohos_unittest("RSConnectToRenderProcessStubTest") {
+  module_out_path = module_output_path
+  sources = [ "rs_connect_to_render_process_stub_test.cpp" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
+  external_deps = []
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+}
+
 ## Build rs_test_common.a {{{
 config("rs_test_common_public_config") {
   include_dirs = [
@@ -158,7 +212,9 @@ config("rs_test_common_public_config") {
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service/main",
+    "$graphic_2d_root/rosen/modules/render_service/main/render_process",
     "$graphic_2d_root/rosen/modules/render_service/core",
+    "$graphic_2d_root/rosen/modules/render_service/core/transaction",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param",
     "$graphic_2d_root/rosen/modules/render_service/core/feature_cfg/feature_param/extend_feature",
