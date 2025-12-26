@@ -154,7 +154,8 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 std::once_flag flag_;
 } // namespace
 
-const std::array<std::pair<uint16_t, uint16_t>, 2> RSNode::lazyLoadCommandTypes_{{
+const std::array<std::pair<uint16_t, uint16_t>, 3> RSNode::lazyLoadCommandTypes_{{
+    {RSCommandType::RS_NODE, RSNodeCommandType::ADD_MODIFIER_NG},
     {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY},
     {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY}
 }};
@@ -2999,22 +3000,6 @@ void RSNode::LoadRenderNodeIfNeed() const
         }
         ++index;
     }
-
-    for (auto [_, modifier] : modifiersNG_) {
-        if (modifier == nullptr) {
-            continue;
-        }
-        if (modifier->IsCustom()) {
-            std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
-        }
-        std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
-        AddCommandInner(command, IsRenderServiceNode(), GetFollowType(), id_);
-        if (NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> cmdForRemote =
-                std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
-            AddCommandInner(cmdForRemote, true, GetFollowType(), id_);
-        }
-    }
     NotifyPageNodeChanged();
 }
 
@@ -4288,9 +4273,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
-        if (lazyLoad_) {
-            return;
-        }
     }
     if (modifier->IsCustom()) {
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();

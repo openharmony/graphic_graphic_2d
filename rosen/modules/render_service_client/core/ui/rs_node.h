@@ -2032,7 +2032,7 @@ private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
 
-    static const std::array<std::pair<uint16_t, uint16_t>, 2> lazyLoadCommandTypes_; // <CommandType, CommandSubType>
+    static const std::array<std::pair<uint16_t, uint16_t>, 3> lazyLoadCommandTypes_; // <CommandType, CommandSubType>
     static const std::array<std::pair<uint16_t, uint16_t>, 4> childOpCommandTypes_; // <CommandType, CommandSubType>
     NodeId id_;
     WeakPtr parent_;
