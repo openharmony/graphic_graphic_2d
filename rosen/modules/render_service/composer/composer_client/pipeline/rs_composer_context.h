@@ -69,6 +69,7 @@ private:
     mutable std::mutex rsLayerMutex_;
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers_;
     sptr<IRSRenderToComposerConnection> rsComposerConnection_;
+    std::vector<RSLayerId> lastCommitLayersId_;
 
     OnBufferReleaseFunc onBufferReleaseFunc_ = nullptr;
     friend class RSRenderComposerClient;
