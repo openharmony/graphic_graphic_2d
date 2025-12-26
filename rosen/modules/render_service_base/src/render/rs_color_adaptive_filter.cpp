@@ -14,12 +14,13 @@
  */
 
 #include "render/rs_color_adaptive_filter.h"
-namespace OHOS::Rosen {
 
-void RSColorAdaptiveFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
-    const Drawing::Rect& src, const Drawing::Rect& dst) const
+#include "effect/runtime_effect.h"
+#include "effect/shader_effect.h"
+namespace OHOS::Rosen {
+std::shared_ptr<Drawing::RuntimeEffect> GetRuntimeEffect()
 {
-    auto effect = Drawing::RuntimeEffect::CreateForShader(R"(
+    static std::shared_ptr<Drawing::RuntimeEffect> runtimeEffect = Drawing::RuntimeEffect::CreateForShader(R"(
             uniform shader img;
             uniform float color;
 
@@ -34,16 +35,35 @@ void RSColorAdaptiveFilter::DrawImageRect(Drawing::Canvas& canvas, const std::sh
                 return c;
             }
         )");
+    return runtimeEffect;
+}
+
+void RSColorAdaptiveFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
+    const Drawing::Rect& src, const Drawing::Rect& dst) const
+{
+    auto effect = GetRuntimeEffect();
 
     std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
         std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
     effectBuilder->SetChild("img", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
-                                        Drawing::TileMode::CLAMP, Drawing::SamplingOptions {}, Drawing::Matrix {}));
+                                       Drawing::TileMode::CLAMP, Drawing::SamplingOptions {}, Drawing::Matrix {}));
     effectBuilder->SetUniform("color", grayScale_);
     Drawing::Brush brush;
     brush.SetShaderEffect(effectBuilder->MakeShader(nullptr, false));
     canvas.AttachBrush(brush);
     canvas.DrawRect(dst);
     canvas.DetachBrush();
+}
+
+std::shared_ptr<Drawing::Image> RSColorAdaptiveFilter::ApplyFilter(
+    std::shared_ptr<Drawing::GPUContext> ctx, std::shared_ptr<Drawing::Image> image, float grayScale)
+{
+    auto effect = GetRuntimeEffect();
+    std::shared_ptr<Drawing::RuntimeShaderBuilder> effectBuilder =
+        std::make_shared<Drawing::RuntimeShaderBuilder>(effect);
+    effectBuilder->SetChild("img", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
+                                       Drawing::TileMode::CLAMP, Drawing::SamplingOptions {}, Drawing::Matrix {}));
+    effectBuilder->SetUniform("color", grayScale);
+    return effectBuilder->MakeImage(ctx.get(), nullptr, image->GetImageInfo(), false);
 }
 } // namespace OHOS::Rosen

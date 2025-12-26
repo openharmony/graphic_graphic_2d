@@ -57,6 +57,9 @@ public:
         return nullptr;
     }
 
+    static std::shared_ptr<Drawing::Image> ApplyFilter(
+        std::shared_ptr<Drawing::GPUContext>, std::shared_ptr<Drawing::Image> image, float grayScale);
+
 private:
     float grayScale_; // gray color scale in range [0.0, 1.0]
 };

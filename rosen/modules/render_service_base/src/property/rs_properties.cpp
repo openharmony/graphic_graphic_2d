@@ -4949,6 +4949,7 @@ void RSProperties::UpdateForegroundFilter()
         }
     } else if (IsForegroundEffectRadiusValid()) {
         auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(GetForegroundEffectRadius());
+        foregroundEffectFilter->SetColorPreprocess(GetColorAdaptive());
         if (IS_UNI_RENDER) {
             GetEffect().foregroundFilterCache_ = foregroundEffectFilter;
         } else {
