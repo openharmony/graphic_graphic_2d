@@ -568,7 +568,7 @@ public:
     
     // hpae offline
     bool GetDeviceOfflineEnable() const { return deviceOfflineEnable_; }
-    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = false; }
+    void SetDeviceOfflineEnable(bool enabled) { deviceOfflineEnable_ = enabled; }
 
     bool GetCopybitTag() const
     {
