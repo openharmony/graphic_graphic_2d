@@ -307,7 +307,7 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
         reinterpret_cast<ani_long>(colorPicker.release()));
 }
 
-ani_object AniColorPicker::GetAlphaZeroTransparentProportion(ani_env* env, ani_object obj)
+ani_ref AniColorPicker::GetAlphaZeroTransparentProportion(ani_env* env, ani_object obj)
 {
     AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
     if (!thisColorPicker) {
