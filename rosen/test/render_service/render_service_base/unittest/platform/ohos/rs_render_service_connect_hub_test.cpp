@@ -29,8 +29,6 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
-    static inline std::shared_ptr<RSRenderServiceClient> rsClient = nullptr;
 };
 
 void RSRenderServiceConnectHubTest::SetUpTestCase() {}
@@ -47,7 +45,8 @@ void RSRenderServiceConnectHubTest::TearDown() {}
 HWTEST_F(RSRenderServiceConnectHubTest, GetRenderService, TestSize.Level1)
 {
     auto renderService = RSRenderServiceConnectHub::GetRenderService();
-    ASSERT_NE(renderService, nullptr);
+    ASSERT_NE(renderService.first, nullptr);
+    ASSERT_NE(renderService.second, nullptr);
 }
 
 /**
@@ -58,10 +57,12 @@ HWTEST_F(RSRenderServiceConnectHubTest, GetRenderService, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceConnectHubTest, GetRenderServiceConnectionTest, TestSize.Level1)
 {
-    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection(), nullptr);
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection().first, nullptr);
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection().second, nullptr);
     RSRenderServiceConnectHub::GetInstance()->conn_ = nullptr;
     RSRenderServiceConnectHub::GetInstance()->renderService_ = nullptr;
-    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection(), nullptr);
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection().first, nullptr);
+    EXPECT_NE(RSRenderServiceConnectHub::GetInstance()->GetRenderServiceConnection().second, nullptr);
 }
 
 /**
@@ -76,6 +77,19 @@ HWTEST_F(RSRenderServiceConnectHubTest, ConnectDiedTest, TestSize.Level1)
     RSRenderServiceConnectHub::GetInstance()->conn_ = nullptr;
     RSRenderServiceConnectHub::GetInstance()->ConnectDied();
     EXPECT_NE(RSRenderServiceConnectHub::GetInstance(), nullptr);
+}
+
+/**
+ * @tc.name: RSRenderServiceConnectHubContructAndDestructTest001
+ * @tc.desc: Verify RenderServiceConnectHub Contruct And Destruct
+ * @tc.type:FUNC
+ * @tc.require: issueI9TOXM
+ */
+HWTEST_F(RSRenderServiceConnectHubTest, RSRenderServiceConnectHubContructAndDestructTest001, TestSize.Level1)
+{
+    auto connHub = RSRenderServiceConnectHub::GetInstance();
+    ASSERT_EQ(connHub->renderService_, nullptr);
+    connHub->Destroy();
 }
 } // namespace Rosen
 } // namespace OHOS

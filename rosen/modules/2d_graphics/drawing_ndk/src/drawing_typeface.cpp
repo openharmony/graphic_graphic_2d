@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,12 @@
 
 #include "drawing_typeface.h"
 
+#include <cerrno>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <mutex>
+#include <unistd.h>
 #include <unordered_map>
 #include <vector>
 
@@ -51,6 +56,56 @@ struct FontArgumentsHelper {
 
     int fontCollectionIndex_ = 0;
     std::vector<Coordinate> coordinates_;
+};
+
+struct MappedFile {
+    const void* data = nullptr;
+    size_t size = 0;
+    int fd = -1;
+
+    MappedFile() = default;
+
+    explicit MappedFile(const std::string& path)
+    {
+        fd = open(path.c_str(), O_RDONLY);
+        if (fd < 0) {
+            g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+            LOGE("Map file failed, file path is %{public}s.", path.c_str());
+            return;
+        }
+
+        struct stat st {};
+        if (fstat(fd, &st) < 0) {
+            g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+            LOGE("Map file fstat failed, file path is %{public}s.", path.c_str());
+            close(fd);
+            fd = -1;
+            return;
+        }
+        size = static_cast<size_t>(st.st_size);
+
+        void* ptr = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+        if (ptr == MAP_FAILED) {
+            g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+            LOGE("Map file mmap failed, file path is %{public}s.", path.c_str());
+            close(fd);
+            fd = -1;
+            return;
+        }
+        data = ptr;
+    }
+
+    ~MappedFile()
+    {
+        if (data != nullptr && data != MAP_FAILED) {
+            munmap(const_cast<void*>(data), size);
+        }
+        if (fd >= 0) {
+            close(fd);
+        }
+    }
+    MappedFile(const MappedFile&) = delete;
+    MappedFile& operator=(const MappedFile&) = delete;
 };
 
 static MemoryStream* CastToMemoryStream(OH_Drawing_MemoryStream* cMemoryStream)
@@ -115,7 +170,17 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFile(const char* path, int ind
         g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
         return nullptr;
     }
-    std::shared_ptr<Typeface> typeface = Typeface::MakeFromFile(path, index);
+    std::shared_ptr<Typeface> typeface = nullptr;
+    MappedFile mappedFile(path);
+    if (mappedFile.data && mappedFile.size > 0) {
+        typeface = Typeface::MakeFromAshmem(
+            static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0, "0", index);
+    } else {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        LOGE("OH_Drawing_TypefaceCreateFromFile: read typeface file failed, path is %{public}s, index is %{public}d.",
+            path, index);
+        return nullptr;
+    }
     if (typeface == nullptr) {
         return nullptr;
     }
@@ -143,7 +208,18 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromFileWithArguments(const char* 
     }
     FontArguments fontArguments;
     ConvertToDrawingFontArguments(*fontArgumentsHelper, fontArguments);
-    return RegisterAndConvertTypeface(Typeface::MakeFromFile(path, fontArguments));
+
+    std::shared_ptr<Typeface> typeface = nullptr;
+    MappedFile mappedFile(path);
+    if (mappedFile.data && mappedFile.size > 0) {
+        typeface = Typeface::MakeFromAshmem(
+            static_cast<const uint8_t*>(mappedFile.data), mappedFile.size, 0, "0", fontArguments);
+    } else {
+        g_drawingErrorCode = OH_DRAWING_ERROR_INVALID_PARAMETER;
+        LOGE("OH_Drawing_TypefaceCreateFromFileWithArguments: read typeface file failed, path is %{public}s.", path);
+        return nullptr;
+    }
+    return RegisterAndConvertTypeface(typeface);
 }
 
 OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromCurrent(const OH_Drawing_Typeface* cCurrentTypeface,
@@ -156,10 +232,12 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromCurrent(const OH_Drawing_Typef
     }
     FontArguments fontArguments;
     ConvertToDrawingFontArguments(*fontArgumentsHelper, fontArguments);
-    std::shared_ptr<Typeface> typeface = currentTypeface->MakeClone(fontArguments);
-    if (typeface == nullptr || currentTypeface->GetUniqueID() == typeface->GetUniqueID()) {
+    int currentTypefaceSize = const_cast<Typeface*>(currentTypeface)->GetSize();
+    if (fontArguments.GetCollectionIndex() == 0 && fontArguments.GetVariationDesignPosition().coordinateCount == 0) {
         return nullptr;
     }
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromAshmem(
+        currentTypeface->GetFd(), currentTypefaceSize, currentTypeface->GetHash(), fontArguments);
     return RegisterAndConvertTypeface(typeface);
 }
 
@@ -170,7 +248,7 @@ OH_Drawing_Typeface* OH_Drawing_TypefaceCreateFromStream(OH_Drawing_MemoryStream
         return nullptr;
     }
     std::unique_ptr<MemoryStream> memoryStream(CastToMemoryStream(cMemoryStream));
-    std::shared_ptr<Typeface> typeface = Typeface::MakeFromStream(std::move(memoryStream), index);
+    std::shared_ptr<Typeface> typeface = Typeface::MakeFromAshmem(std::move(memoryStream), index);
     if (typeface == nullptr) {
         return nullptr;
     }
@@ -220,5 +298,25 @@ OH_Drawing_ErrorCode OH_Drawing_FontArgumentsDestroy(OH_Drawing_FontArguments* c
         return OH_DRAWING_ERROR_INVALID_PARAMETER;
     }
     delete CastToFontArgumentsHelper(cFontArguments);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_TypefaceIsBold(const OH_Drawing_Typeface* cTypeface, bool* isBold)
+{
+    const Typeface* typeface = CastToTypeface(cTypeface);
+    if (typeface == nullptr || isBold == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isBold = typeface->GetBold();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_TypefaceIsItalic(const OH_Drawing_Typeface* cTypeface, bool* isItalic)
+{
+    const Typeface* typeface = CastToTypeface(cTypeface);
+    if (typeface == nullptr || isItalic == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isItalic = typeface->GetItalic();
     return OH_DRAWING_SUCCESS;
 }

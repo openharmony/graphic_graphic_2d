@@ -24,6 +24,13 @@
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
 #include "ipc_callbacks/pointer_render/pointer_luminance_callback_stub.h"
 #endif
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "surface_buffer.h"
+#include "ipc_callbacks/rs_canvas_surface_buffer_callback_stub.h"
+#include "ui/rs_canvas_callback_router.h"
+#include "ui/rs_canvas_drawing_node.h"
+#endif
+#include "ipc_callbacks/rs_first_frame_commit_callback_stub.h"
 #include "ipc_callbacks/rs_frame_rate_linker_expected_fps_update_callback_stub.h"
 #include "ipc_callbacks/rs_occlusion_change_callback_stub.h"
 #include "ipc_callbacks/rs_self_drawing_node_rect_change_callback_stub.h"
@@ -35,6 +42,7 @@
 #include "ipc_callbacks/surface_capture_callback_stub.h"
 #include "ipc_callbacks/rs_transaction_data_callback_stub.h"
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -196,7 +204,7 @@ private:
 
 class SurfaceBufferCallbackDirector : public RSSurfaceBufferCallbackStub {
 public:
-    explicit SurfaceBufferCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    explicit SurfaceBufferCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~SurfaceBufferCallbackDirector() noexcept override = default;
     void OnFinish(const FinishCallbackRet& ret) override
     {
@@ -209,7 +217,7 @@ public:
     }
 
 private:
-    RSRenderServiceClient* client_;
+    RSRenderPipelineClient* client_;
 };
 
 class CustomSurfaceOcclusionChangeCallback : public RSSurfaceOcclusionChangeCallbackStub {
@@ -250,7 +258,7 @@ public:
     ~CustomScreenChangeCallback() override {};
 
     void OnScreenChanged(ScreenId id, ScreenEvent event,
-        ScreenChangeReason reason) override
+        ScreenChangeReason reason, sptr<IRemoteObject> obj = nullptr) override
     {
         if (cb_ != nullptr) {
             cb_(id, event, reason);
@@ -277,20 +285,36 @@ class CustomScreenSwitchingNotifyCallback : public RSScreenSwitchingNotifyCallba
         ScreenSwitchingNotifyCallback cb_;
     };
 
+class CustomFirstFrameCommitCallback : public RSFirstFrameCommitCallbackStub {
+    public:
+        explicit CustomFirstFrameCommitCallback(const FirstFrameCommitCallback &callback) : cb_(callback) {}
+        ~CustomFirstFrameCommitCallback() override {};
+    
+        void OnFirstFrameCommit(uint64_t screenId, int64_t timestamp) override
+        {
+            if (cb_ != nullptr) {
+                cb_(screenId, timestamp);
+            }
+        }
+    
+    private:
+        FirstFrameCommitCallback cb_;
+};
+
 class SurfaceCaptureCallbackDirector : public RSSurfaceCaptureCallbackStub {
 public:
-    explicit SurfaceCaptureCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    explicit SurfaceCaptureCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~SurfaceCaptureCallbackDirector() override {};
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
-        Media::PixelMap* pixelmapHDR = nullptr) override
+        CaptureError captureErrorCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
     {
         std::shared_ptr<Media::PixelMap> surfaceCapture(pixelmap);
         std::shared_ptr<Media::PixelMap> surfaceCaptureHDR(pixelmapHDR);
-        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, surfaceCaptureHDR);
+        client_->TriggerSurfaceCaptureCallback(id, captureConfig, surfaceCapture, captureErrorCode, surfaceCaptureHDR);
     };
 
 private:
-    RSRenderServiceClient* client_;
+    RSRenderPipelineClient* client_;
 };
 
 class BrightnessInfoChangeCallbackDirector : public RSBrightnessInfoChangeCallbackStub {
@@ -311,7 +335,7 @@ private:
 
 class TransactionDataCallbackDirector : public RSTransactionDataCallbackStub {
 public:
-    explicit TransactionDataCallbackDirector(RSRenderServiceClient* client) : client_(client) {}
+    explicit TransactionDataCallbackDirector(RSRenderPipelineClient* client) : client_(client) {}
     ~TransactionDataCallbackDirector() noexcept override = default;
     void OnAfterProcess(uint64_t token, uint64_t timeStamp) override
     {
@@ -320,7 +344,7 @@ public:
     }
 
 private:
-    RSRenderServiceClient* client_;
+    RSRenderPipelineClient* client_;
 };
 
 class CustomSelfDrawingNodeRectChangeCallback : public RSSelfDrawingNodeRectChangeCallbackStub {
@@ -339,6 +363,22 @@ public:
 private:
     SelfDrawingNodeRectChangeCallback cb_;
 };
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+class CustomCanvasSurfaceBufferCallback : public RSCanvasSurfaceBufferCallbackStub {
+public:
+    void OnCanvasSurfaceBufferChanged(NodeId nodeId, sptr<SurfaceBuffer> buffer, uint32_t resetSurfaceIndex) override
+    {
+        auto node = RSCanvasCallbackRouter::GetInstance().RouteToNode(nodeId);
+        if (node == nullptr) {
+            RS_LOGE("GlobalCanvasSurfaceBufferCallback: Node not found or destroyed, nodeId=%{public}" PRIu64, nodeId);
+            return;
+        }
+
+        node->OnSurfaceBufferChanged(buffer, resetSurfaceIndex);
+    }
+};
+#endif
 } // namespace Rosen
 } // namespace OHOS
 

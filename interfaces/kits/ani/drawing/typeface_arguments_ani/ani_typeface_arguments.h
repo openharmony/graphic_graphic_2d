@@ -43,6 +43,8 @@ public:
     TypefaceArgumentsHelper& GetTypefaceArgumentsHelper();
     static void ConvertToFontArguments(const TypefaceArgumentsHelper& typefaceArgumentsHelper,
         FontArguments fontArguments);
+    static uint32_t ConvertAxisToNumber(const std::string& axis);
+    static void AddVariation(ani_env* env, ani_object obj, ani_string aniAxis, ani_double value);
 private:
     TypefaceArgumentsHelper typefaceArgumentsHelper_;
 };

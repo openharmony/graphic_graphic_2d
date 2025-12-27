@@ -50,6 +50,7 @@ public:
     static void CalculateDrawBufferRectMatrix(const RSSurfaceRenderParams* surfaceParams, MDCRectT& hpaeDstRect,
         bool isFixedDstBuffer, BufferDrawParam& param);
 
+    static std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> GetSurfaceDrawableByID(NodeId nodeId);
     static bool ValidateSurface(RSSurfaceRenderParams* surfaceParams);
 private:
     RSHeteroHDRUtil() = default;

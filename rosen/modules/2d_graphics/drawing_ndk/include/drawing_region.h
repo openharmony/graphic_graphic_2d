@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -171,6 +171,115 @@ void OH_Drawing_RegionDestroy(OH_Drawing_Region*);
  * @version 1.0
  */
 OH_Drawing_ErrorCode OH_Drawing_RegionEmpty(OH_Drawing_Region* region);
+
+/**
+ * @brief Set the path to the boundary of the region. If the region is empty, the path will also be empty.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param path Indicates the pointer to an <b>OH_Drawing_Path</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or path is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionGetBoundaryPath(const OH_Drawing_Region* region, OH_Drawing_Path* path);
+
+/**
+ * @brief Obtains the minimum bounding rectangle that encloses this path.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param rect Indicates the pointer to an <b>OH_Drawing_Rect</b> object.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or rect is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionGetBounds(const OH_Drawing_Region* region, OH_Drawing_Rect* rect);
+
+/**
+ * @brief Checks if the region contains more than one rectangle.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param isComplex Indicates if the region is complex.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or isComplex is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionIsComplex(const OH_Drawing_Region* region, bool* isComplex);
+
+/**
+ * @brief Checks if the region is empty.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param isEmpty Indicates if the region is empty.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or isEmpty is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionIsEmpty(const OH_Drawing_Region* region, bool* isEmpty);
+
+/**
+ * @brief Checks if the region is equivalent to a single rectangle.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param isRect Indicates if the region contains a single rectangle.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or isRect is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionIsRect(const OH_Drawing_Region* region, bool* isRect);
+
+/**
+ * @brief Checks if the region is equivalent to a single rectangle and it contains the specified rectangle.
+ * A false indicates that the region is not equivalent to a single rectangle or the rectangle is not contained by
+ * this region. A true is a guarantee that the rectangle is contained by this region.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param left Indicates the left position of the rect.
+ * @param top Indicates the top position of the rect.
+ * @param right Indicates the right position of the rect.
+ * @param bottom Indicates the bottom position of the rect.
+ * @param isContained Indicates if the specified rectangle is contained in the region.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or isContained is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionQuickContains(const OH_Drawing_Region* region,
+    int32_t left, int32_t top, int32_t right, int32_t bottom, bool* isContained);
+
+/**
+ * @brief Checks if the region is empty, or if the specified rectangle does not intersect the region.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param left Indicates the left position of the rect.
+ * @param top Indicates the top position of the rect.
+ * @param right Indicates the right position of the rect.
+ * @param bottom Indicates the bottom position of the rect.
+ * @param isReject Indicates if the specified rectangle does not intersect the region.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region or isReject is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionQuickReject(const OH_Drawing_Region* region,
+    int32_t left, int32_t top, int32_t right, int32_t bottom, bool* isReject);
+
+/**
+ * @brief Translates the region by dx, dy. If the region is empty, do nothing.
+ *
+ * @param region Indicates the pointer to an <b>OH_Drawing_Region</b> object.
+ * @param dx Indicates the distance to translate on x-axis in pixels.
+ * @param dy Indicates the distance to translate on y-axis in pixels.
+ * @return Returns the error code.
+ *         Returns {@link OH_DRAWING_SUCCESS} if the operation is successful.
+ *         Returns {@link OH_DRAWING_ERROR_INCORRECT_PARAMETER} if region is nullptr.
+ * @since 23
+ */
+OH_Drawing_ErrorCode OH_Drawing_RegionTranslate(OH_Drawing_Region* region, int32_t dx, int32_t dy);
 
 #ifdef __cplusplus
 }

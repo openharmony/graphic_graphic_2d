@@ -19,120 +19,9 @@ group("systemtest") {
   testonly = true
 
   deps = [
-    ":hdibackend_sys_test",
-    ":hdilayer_sys_test",
-    ":hdioutput_sys_test",
     ":hdiscreen_sys_test",
   ]
 }
-
-## SystemTest hdibackend_sys_test {{{
-ohos_systemtest("hdibackend_sys_test") {
-  module_out_path = module_out_path
-  sources = [
-    "hdibackend_test.cpp",
-    "hdilayer_context_systest.cpp",
-    "mock_hdi_device_systest.cpp",
-  ]
-
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
-  ]
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-  ]
-
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "graphic_surface:surface",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
-}
-
-## SystemTest hdibackend_sys_test }}}
-
-## SystemTest hdilayer_sys_test {{{
-ohos_systemtest("hdilayer_sys_test") {
-  module_out_path = module_out_path
-
-  sources = [ "hdilayer_test.cpp" ]
-
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
-  ]
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-  ]
-
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "graphic_surface:surface",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
-}
-
-## SystemTest hdilayer_sys_test }}}
-
-## SystemTest hdioutput_sys_test {{{
-ohos_systemtest("hdioutput_sys_test") {
-  module_out_path = module_out_path
-  sources = [
-    "hdilayer_context_systest.cpp",
-    "hdioutput_test.cpp",
-    "mock_hdi_device_systest.cpp",
-  ]
-
-  include_dirs = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
-    "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
-  ]
-
-  cflags = [
-    "-Wall",
-    "-Werror",
-    "-g3",
-  ]
-
-  deps = [
-    "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
-    "//foundation/graphic/graphic_2d/utils:socketpair",
-  ]
-
-  external_deps = [
-    "c_utils:utils",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "graphic_surface:surface",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-  ]
-}
-
-## SystemTest hdioutput_sys_test }}}
 
 ## SystemTest hdiscreen_sys_test {{{
 ohos_systemtest("hdiscreen_sys_test") {
@@ -146,6 +35,9 @@ ohos_systemtest("hdiscreen_sys_test") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics/include",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/render_layer",
   ]
 
   cflags = [

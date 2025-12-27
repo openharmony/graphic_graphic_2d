@@ -64,8 +64,9 @@ void DoNotifyTouchEvent()
 {
     int32_t touchStatus = GetData<int32_t>();
     int32_t touchCnt = GetData<int32_t>();
+    int32_t sourceType = GetData<int32_t>();
     auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.NotifyTouchEvent(touchStatus, touchCnt);
+    rsInterfaces.NotifyTouchEvent(touchStatus, touchCnt, sourceType);
 }
 
 } // namespace Rosen

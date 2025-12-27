@@ -629,9 +629,7 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
 
     auto screenManager = CreateOrGetScreenManager();
     ASSERT_NE(screenManager, nullptr);
-    OHOS::Rosen::impl::RSScreenManager& screenManagerImpl =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager);
-    screenManagerImpl.screens_[screenId] = std::make_shared<impl::RSScreen>(screenId, true, nullptr, nullptr);
+    screenManager->screens_[screenId] = std::make_shared<RSScreen>(nullptr);
     int32_t result = screenManager->AddVirtualScreenBlackList(screenId, blockList);
     ASSERT_EQ(result, SCREEN_NOT_FOUND);
 

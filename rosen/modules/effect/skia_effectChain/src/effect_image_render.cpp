@@ -14,7 +14,6 @@
  */
 
 #include "effect_image_render.h"
-
 #include "effect_utils.h"
 #include "rs_trace.h"
 
@@ -35,6 +34,14 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Blur(float radius, Drawing
     return std::make_shared<EffectImageBlurFilter>(radius, tileMode);
 }
 
+std::shared_ptr<EffectImageFilter> EffectImageFilter::EllipticalGradientBlur(float blurRadius, float centerX,
+    float centerY, float maskRadiusX, float maskRadiusY, const std::vector<float> &positions,
+    const std::vector<float> &degrees)
+{
+    return std::make_shared<EffectImageEllipticalGradientBlurFilter>(
+        blurRadius, centerX, centerY, maskRadiusX, maskRadiusY, positions, degrees);
+}
+
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Brightness(float degree)
 {
     if (degree < BRIGHTNESS_MIN_THRESHOLD || degree > BRIGHTNESS_MAX_THRESHOLD) {
@@ -52,6 +59,16 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Brightness(float degree)
     return std::make_shared<EffectImageDrawingFilter>(filter);
 }
 
+DrawingError EffectImageEllipticalGradientBlurFilter::Apply(const std::shared_ptr<EffectImageChain> &image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+
+    return image->ApplyEllipticalGradientBlur(
+        blurRadius_, centerX_, centerY_, maskRadiusX_, maskRadiusY_, positions_, degrees_);
+}
+
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Grayscale()
 {
     float matrix[20] = {
@@ -63,6 +80,11 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Grayscale()
     auto colorFilter = Drawing::ColorFilter::CreateFloatColorFilter(matrix, Drawing::Clamp::NO_CLAMP);
     auto filter = Drawing::ImageFilter::CreateColorFilterImageFilter(*colorFilter, nullptr);
     return std::make_shared<EffectImageDrawingFilter>(filter);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::CreateSDF(int spreadFactor, bool generateDerivs)
+{
+    return std::make_shared<EffectImageSdfFromImageFilter>(spreadFactor, generateDerivs);
 }
 
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Invert()
@@ -106,6 +128,14 @@ DrawingError EffectImageBlurFilter::Apply(const std::shared_ptr<EffectImageChain
     return image->ApplyBlur(radius_, tileMode_);
 }
 
+DrawingError EffectImageSdfFromImageFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplySDFCreation(spreadFactor_, generateDerivs_);
+}
+
 DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters, bool forceCPU,
     std::shared_ptr<Media::PixelMap>& dstPixelMap)
@@ -143,6 +173,7 @@ DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& s
         }
 
         dstPixelMap = effectImage->GetPixelMap();
+        dstPixelMap->MarkDirty();
     } while (false);
 
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);

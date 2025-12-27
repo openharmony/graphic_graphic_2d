@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 
 #ifdef RS_ENABLE_VK
+#include <parameter.h>
+#include <parameters.h>
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #else
 #include "feature/gpuComposition/rs_egl_image_manager.h"
@@ -25,7 +27,7 @@
 #include "pipeline/rs_test_util.h"
 #include "recording/recording_canvas.h"
 #include "v2_1/cm_color_space.h"
-
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -62,7 +64,36 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+#ifdef RS_ENABLE_VK
+    static std::set<uint64_t> CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+        uint32_t imageNums);
+#endif
 };
+
+#ifdef RS_ENABLE_VK
+std::set<uint64_t> RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(std::shared_ptr<RSRenderEngine> renderEngine,
+    uint32_t imageNums)
+{
+    std::set<uint64_t> bufferIdCache;
+    for (uint32_t i = 0; i < imageNums; i++) {
+        auto drawingRecordingCanvas = std::make_unique<Drawing::RecordingCanvas>(100, 100);
+        drawingRecordingCanvas->SetGrRecordingContext(renderEngine->GetRenderContext()->GetSharedDrGPUContext());
+        auto recordingCanvas = std::make_shared<RSPaintFilterCanvas>(drawingRecordingCanvas.get());
+        if (!recordingCanvas) {
+            return bufferIdCache;
+        }
+
+        BufferDrawParam params;
+        VideoInfo videoInfo;
+        params.buffer = CreateBuffer();
+        if (params.buffer && renderEngine->imageManager_ && recordingCanvas) {
+            bufferIdCache.insert(params.buffer->GetBufferId());
+            renderEngine->CreateImageFromBuffer(*recordingCanvas, params, videoInfo);
+        }
+    }
+    return bufferIdCache;
+}
+#endif
 
 void RSBaseRenderEngineUnitTest::SetUpTestCase()
 {
@@ -86,7 +117,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ResetCurrentContextTest, TestSize.Level1)
     auto renderEngine = std::make_shared<RSRenderEngine>();
     renderEngine->ResetCurrentContext();
     ASSERT_EQ(renderEngine->renderContext_, nullptr);
-    renderEngine->renderContext_ = std::make_shared<RenderContext>();
+    renderEngine->renderContext_ = RenderContext::Create();
     renderEngine->ResetCurrentContext();
     ASSERT_NE(renderEngine->renderContext_, nullptr);
 }
@@ -128,13 +159,13 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU001, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     layers.emplace_back(nullptr);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
 
     layers.clear();
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layers.emplace_back(layer);
     ret = RSBaseRenderEngine::NeedForceCPU(layers);
     ASSERT_EQ(false, ret);
@@ -151,8 +182,8 @@ HWTEST_F(RSBaseRenderEngineUnitTest, NeedForceCPU002, TestSize.Level1)
     auto node = RSTestUtil::CreateSurfaceNodeWithBuffer();
     auto buffer = node->GetRSSurfaceHandler()->GetBuffer();
 
-    std::vector<LayerInfoPtr> layers;
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    std::vector<RSLayerPtr> layers;
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetBuffer(buffer, node->GetRSSurfaceHandler()->GetAcquireFence());
     layers.emplace_back(layer);
     bool ret = RSBaseRenderEngine::NeedForceCPU(layers);
@@ -660,7 +691,7 @@ HWTEST_F(RSBaseRenderEngineUnitTest, DumpVkImageInfoTest, TestSize.Level1)
     string dumpString = "dumpString";
 #ifdef RS_ENABLE_VK
     renderEngine->DumpVkImageInfo(dumpString);
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     renderEngine->Init();
     renderEngine->DumpVkImageInfo(dumpString);
 #endif
@@ -680,5 +711,51 @@ HWTEST_F(RSBaseRenderEngineUnitTest, ShrinkCachesIfNeededTest002, TestSize.Level
     renderEngine->Init();
     renderEngine->ShrinkCachesIfNeeded();
     EXPECT_NE(renderEngine, nullptr);
+}
+
+/**
+ * @tc.name: ClearCacheSet001
+ * @tc.desc: Test ClearCacheSet
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSBaseRenderEngineUnitTest, ClearCacheSet001, TestSize.Level1)
+{
+#ifdef RS_ENABLE_VK
+    constexpr const char *paramStr = "persist.sys.graphic.release.image.onebyone.flag";
+    if (RSSystemProperties::IsUseVulkan()) {
+        const uint32_t imageNums = 40;
+        const bool flag = RSSystemProperties::GetReleaseImageOneByOneFlag();
+        {
+            auto renderEngine = std::make_shared<RSRenderEngine>();
+            renderEngine->Init();
+            EXPECT_NE(renderEngine->imageManager_, nullptr);
+            auto unmappedCache = RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(renderEngine, imageNums);
+            auto vkImageManager = std::static_pointer_cast<RSVkImageManager>(renderEngine->imageManager_);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), imageNums);
+
+            system::SetParameter(paramStr, "0");
+            renderEngine->ClearCacheSet(unmappedCache);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
+            system::SetParameter(paramStr, flag ? "1" : "0");
+            EXPECT_EQ(flag, RSSystemProperties::GetReleaseImageOneByOneFlag());
+        }
+
+        {
+            auto renderEngine = std::make_shared<RSRenderEngine>();
+            renderEngine->Init();
+            EXPECT_NE(renderEngine->imageManager_, nullptr);
+            auto unmappedCache = RSBaseRenderEngineUnitTest::CreateImagesFromBufferTest(renderEngine, imageNums);
+            auto vkImageManager = std::static_pointer_cast<RSVkImageManager>(renderEngine->imageManager_);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), imageNums);
+
+            system::SetParameter(paramStr, "1");
+            renderEngine->ClearCacheSet(unmappedCache);
+            EXPECT_EQ(vkImageManager->imageCacheSeqs_.size(), 0);
+            system::SetParameter(paramStr, flag ? "1" : "0");
+            EXPECT_EQ(flag, RSSystemProperties::GetReleaseImageOneByOneFlag());
+        }
+    }
+#endif
 }
 }

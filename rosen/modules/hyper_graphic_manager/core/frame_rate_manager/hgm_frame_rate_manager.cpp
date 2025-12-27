@@ -27,7 +27,6 @@
 #include "hgm_core.h"
 #include "hgm_energy_consumption_policy.h"
 #include "hgm_event.h"
-#include "hgm_hfbc_config.h"
 #include "hgm_log.h"
 #include "hgm_screen_info.h"
 #include "parameters.h"
@@ -64,6 +63,16 @@ constexpr int DISPLAY_SUCCESS = 1;
 constexpr int32_t VIRTUAL_KEYBOARD_FINGERS_MIN_CNT = 8;
 constexpr uint32_t FRAME_RATE_REPORT_MAX_RETRY_TIMES = 3;
 constexpr uint32_t FRAME_RATE_REPORT_DELAY_TIME = 20000;
+
+bool IsMouseOrTouchPadEvent(int32_t touchStatus, int32_t sourceType)
+{
+    if (sourceType != TouchSourceType::SOURCE_TYPE_MOUSE &&
+        sourceType != TouchSourceType::SOURCE_TYPE_TOUCHPAD) {
+        return false;
+    }
+    return touchStatus == TOUCH_MOVE || touchStatus == TOUCH_BUTTON_DOWN || touchStatus == TOUCH_BUTTON_UP ||
+           touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END;
+}
 }
 
 HgmFrameRateManager::HgmFrameRateManager()
@@ -115,8 +124,6 @@ void HgmFrameRateManager::Init(sptr<VSyncController> rsController,
         std::string strategy, const bool isAddVoter) {
         ProcessPageUrlVote(pid, strategy, isAddVoter);
     });
-    HgmHfbcConfig& hfbcConfig = hgmCore.GetHfbcConfig();
-    hfbcConfig.HandleHfbcConfig({""});
     FrameRateReportTask(FRAME_RATE_REPORT_MAX_RETRY_TIMES);
     userDefine_.Init();
 }
@@ -296,21 +303,21 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
         hgmCore.SetPendingScreenRefreshRate(*pendingRefreshRate_);
         lastPendingRefreshRate_ = *pendingRefreshRate_;
         pendingRefreshRate_.reset();
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %u", lastPendingRefreshRate_);
     } else {
         if (lastPendingConstraintRelativeTime_ != 0) {
             hgmCore.SetPendingConstraintRelativeTime(lastPendingConstraintRelativeTime_);
         }
         if (lastPendingRefreshRate_ != 0) {
             hgmCore.SetPendingScreenRefreshRate(lastPendingRefreshRate_);
-            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d", lastPendingRefreshRate_);
+            RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %u", lastPendingRefreshRate_);
         }
     }
 
     if (hgmCore.GetLtpoEnabled() && IsLtpo() && rsRate > OLED_10_HZ &&
         isUiDvsyncOn && isLtpoScreenStrategyId_.load()) {
         hgmCore.SetPendingScreenRefreshRate(rsRate);
-        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %d ui-dvsync", rsRate);
+        RS_TRACE_NAME_FMT("ProcessHgmFrameRate pendingRefreshRate: %u ui-dvsync", rsRate);
     }
     SetChangeGeneratorRateValid(true);
 }
@@ -391,10 +398,10 @@ void HgmFrameRateManager::ProcessLtpoVote(const FrameRateRange& finalRange)
     frameVoter_.SetDragScene(finalRange.type_ & ACE_COMPONENT_FRAME_RATE_TYPE);
     if (finalRange.IsValid()) {
         auto refreshRate = UpdateFrameRateWithDelay(CalcRefreshRate(curScreenId_.load(), finalRange));
-        HGM_LOGD("ltpo type: %{public}s", finalRange.GetAllTypeDescription().c_str());
-        RS_TRACE_NAME_FMT("ltpo type: %s", finalRange.GetAllTypeDescription().c_str());
-        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%d]",
-            frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_);
+        auto allTypeDescription = finalRange.GetAllTypeDescription();
+        HGM_LOGD("ltpo desc: %{public}s", allTypeDescription.c_str());
+        RS_TRACE_NAME_FMT("ProcessLtpoVote isDragScene_: [%d], refreshRate: [%d], lastLTPORefreshRate_: [%u],"
+            " desc: [%s]", frameVoter_.IsDragScene(), refreshRate, lastLTPORefreshRate_, allTypeDescription.c_str());
         DeliverRefreshRateVote(
             {"VOTER_LTPO", refreshRate, refreshRate, DEFAULT_PID, finalRange.GetExtInfo()}, ADD_VOTE);
     } else {
@@ -470,7 +477,7 @@ void HgmFrameRateManager::UpdateSoftVSync(bool followRs)
     }
     // max used here
     finalRange = {lastVoteInfo_.max, lastVoteInfo_.max, lastVoteInfo_.max};
-    RS_TRACE_NAME_FMT("VoteRes: %s[%d, %d]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
+    RS_TRACE_NAME_FMT("VoteRes: %s[%u, %u]", lastVoteInfo_.voterName.c_str(), lastVoteInfo_.min, lastVoteInfo_.max);
     bool needChangeDssRefreshRate = false;
     auto refreshRate = CalcRefreshRate(curScreenId_.load(), finalRange);
     if (currRefreshRate_.load() != refreshRate) {
@@ -526,9 +533,9 @@ void HgmFrameRateManager::FrameRateReport()
         rates[UNI_APP_PID] = OLED_60_HZ;
         slideModeChange_ = false;
     }
-    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}d, APP(%{public}d) = %{public}d",
+    HGM_LOGD("FrameRateReport: RS(%{public}d) = %{public}u, APP(%{public}d) = %{public}u",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
-    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) = %d, APP(%d) = %d",
+    RS_TRACE_NAME_FMT("FrameRateReport: RS(%d) = %u, APP(%d) = %u",
         GetRealPid(), rates[GetRealPid()], UNI_APP_PID, rates[UNI_APP_PID]);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRates(rates);
     FRAME_TRACE::FrameRateReport::GetInstance().SendFrameRatesToRss(rates);
@@ -749,9 +756,6 @@ void HgmFrameRateManager::HandlePackageEvent(pid_t pid, const std::vector<std::s
         cleanPidCallback_[pid].insert(CleanPidCallbackType::PACKAGE_EVENT);
     }
     isLowPowerSlide_ = false;
-    // check whether to enable HFBC
-    HgmHfbcConfig& hfbcConfig = HgmCore::Instance().GetHfbcConfig();
-    hfbcConfig.HandleHfbcConfig(packageList);
     multiAppStrategy_.HandlePkgsEvent(packageList);
     HgmEventDistributor::Instance()->HandlePackageEvent(packageList);
     MarkVoteChange("VOTER_SCENE");
@@ -778,7 +782,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
         return;
     }
 
-    HGM_LOGI("%{public}s(%{public}d) [%{public}d %{public}d] %{public}d %{public}s", eventName.c_str(), pid,
+    HGM_LOGI("%{public}s(%{public}d) [%{public}u %{public}u] %{public}d %{public}s", eventName.c_str(), pid,
         eventInfo.minRefreshRate, eventInfo.maxRefreshRate, eventInfo.eventStatus, eventInfo.description.c_str());
     if (eventName == "VOTER_SCENE") {
         HandleSceneEvent(pid, eventInfo);
@@ -794,7 +798,7 @@ void HgmFrameRateManager::HandleRefreshRateEvent(pid_t pid, const EventInfo& eve
     }
 }
 
-void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt)
+void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32_t touchCnt, int32_t sourceType)
 {
     HGM_LOGD("HandleTouchEvent status:%{public}d", touchStatus);
     if (frameVoter_.GetVoterGamesEffective() && touchManager_.GetState() == TouchState::DOWN_STATE) {
@@ -804,9 +808,8 @@ void HgmFrameRateManager::HandleTouchEvent(pid_t pid, int32_t touchStatus, int32
         (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP)) {
         return;
     }
-    HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt]() {
-        if (touchStatus ==  TOUCH_MOVE || touchStatus ==  TOUCH_BUTTON_DOWN || touchStatus ==  TOUCH_BUTTON_UP ||
-            touchStatus == AXIS_BEGIN || touchStatus == AXIS_UPDATE || touchStatus == AXIS_END) {
+    HgmTaskHandleThread::Instance().PostTask([this, pid, touchStatus, touchCnt, sourceType]() {
+        if (IsMouseOrTouchPadEvent(touchStatus, sourceType)) {
             HandlePointerTask(pid, touchStatus, touchCnt);
         } else {
             HandleTouchTask(pid, touchStatus, touchCnt);
@@ -953,8 +956,8 @@ void HgmFrameRateManager::HandleScreenPowerStatus(ScreenId id, ScreenPowerStatus
 
 void HgmFrameRateManager::HandleScreenRectFrameRate(ScreenId id, const GraphicIRect& activeRect)
 {
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%d activeRect(%d, %d, %d, %d)",
-        id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleScreenRectFrameRate screenId:%{public}" PRIu64
+        " activeRect(%d, %d, %d, %d)", id, activeRect.x, activeRect.y, activeRect.w, activeRect.h);
     auto& hgmScreenInfo = HgmScreenInfo::GetInstance();
     auto& hgmCore = HgmCore::Instance();
     auto screen = hgmCore.GetScreen(id);
@@ -1321,7 +1324,8 @@ void HgmFrameRateManager::CleanVote(pid_t pid)
                     HandlePackageEvent(DEFAULT_PID, {}); // handle empty pkg
                     break;
                 case CleanPidCallbackType::TOUCH_EVENT:
-                    HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, LAST_TOUCH_CNT);
+                    HandleTouchEvent(DEFAULT_PID, TouchStatus::TOUCH_UP, LAST_TOUCH_CNT,
+                        TouchSourceType::SOURCE_TYPE_TOUCHSCREEN);
                     break;
                 case CleanPidCallbackType::GAMES:
                     DeliverRefreshRateVote({"VOTER_GAMES"}, false);
@@ -1420,21 +1424,23 @@ bool HgmFrameRateManager::HandleGameNode(const RSRenderNodeMap& nodeMap)
     bool isOtherSelfNodeOnTree = false;
     std::string gameNodeName = GetGameNodeName();
     nodeMap.TraverseSurfaceNodes(
-        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree]
+        [&isGameSelfNodeOnTree, &gameNodeName, &isOtherSelfNodeOnTree, &nodeMap]
         (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
             if (surfaceNode == nullptr) {
                 return;
             }
             if (surfaceNode->IsOnTheTree() &&
                 surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
+                auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                    nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
                 if (gameNodeName == surfaceNode->GetName()) {
                     isGameSelfNodeOnTree = true;
-                } else {
+                } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
                     isOtherSelfNodeOnTree = true;
                 }
             }
         });
-    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other node no tree: %d",
+    RS_TRACE_NAME_FMT("HgmFrameRateManager::HandleGameNode, game node on tree: %d, other visible node on tree: %d",
                       isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
     isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
     return isGameSelfNodeOnTree && !isOtherSelfNodeOnTree;
@@ -1559,7 +1565,7 @@ void HgmFrameRateManager::FrameRateReportTask(uint32_t leftRetryTimes)
     HgmTaskHandleThread::Instance().PostTask(
         [this, leftRetryTimes]() {
             if (leftRetryTimes == 1 || system::GetBoolParameter("bootevent.boot.completed", false)) {
-                HGM_LOGI("FrameRateReportTask run and left retry:%{public}d", leftRetryTimes);
+                HGM_LOGI("FrameRateReportTask run and left retry:%{public}u", leftRetryTimes);
                 schedulePreferredFpsChange_ = true;
                 FrameRateReport();
                 return;

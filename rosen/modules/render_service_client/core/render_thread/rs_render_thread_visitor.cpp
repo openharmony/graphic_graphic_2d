@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/drawing/rs_surface.h"
+#include "render_context/new_render_context/render_context_gl.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_surface_extractor.h"
 #include "ui/rs_surface_node.h"
@@ -423,19 +424,36 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
     }
 
 #if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
-    RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
+    auto rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
+    rsSurface->SetCleanUpHelper([]() {
+        RSRenderThread::Instance().PostTask([]() {
+            RSRenderThread::Instance().TrimMemory();
+        });
+    });
+
+#ifdef ROSEN_IOS
+    if (rc == nullptr) {
+        return;
+    }
+    
+    auto renderContextGL = std::static_pointer_cast<RenderContextGL>(rc);
+    if (renderContextGL == nullptr) {
+        return;
+    }
+    auto cleanupTask = [renderContextGL]() {
+        RSRenderThread::Instance().PostSyncTask([renderContextGL]() {
+            //release egl source
+            renderContextGL->DestroySharedSource();
+        });
+    };
+
+    renderContextGL->SetCleanUpHelper(cleanupTask);
+#endif
 #endif
 
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        std::static_pointer_cast<RSSurfaceOhosVulkan>(rsSurface)->SetCleanUpHelper(
-            [](std::unordered_map<NativeWindowBuffer*, NativeBufferUtils::NativeSurfaceInfo>& mSurfaceMap) {
-                RSRenderThread::Instance().PostSyncTask([&mSurfaceMap]() mutable {
-                    mSurfaceMap.clear();
-                    RSRenderThread::Instance().TrimMemory();
-                });
-            });
         auto skContext = RsVulkanContext::GetSingleton().CreateDrawingContext();
         if (skContext == nullptr) {
             ROSEN_LOGE("RSRenderThreadVisitor::ProcessRootRenderNode CreateDrawingContext is null");
@@ -849,7 +867,8 @@ void RSRenderThreadVisitor::ProcessSurfaceRenderNode(RSSurfaceRenderNode& node)
     } else {
         ROSEN_LOGE("RSRenderThreadVisitor::ProcessSurfaceRenderNode, invertMatrix failed");
     }
-    if (!RSUniRenderJudgement::IsUniRender() && !node.GetIsTextureExportNode()) {
+    if (!RSUniRenderJudgement::IsUniRender() && !node.GetIsTextureExportNode()
+        && node.GetSurfaceNodeType() != RSSurfaceNodeType::SURFACE_TEXTURE_NODE) {
         node.SetContextMatrix(contextMatrix);
         node.SetContextAlpha(canvas_->GetAlpha());
     }
@@ -1025,6 +1044,8 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
     auto height = std::floor(node.GetRenderProperties().GetBoundsHeight() - (2 * pixel)); // height decrease 2 pixels
 
     canvas_->Save();
+    Drawing::Brush brush;
+    canvas_->AttachBrush(brush);
     Drawing::Rect originRect = Drawing::Rect(x, y, width + x, height + y);
 
     if (node.IsNotifyRTBufferAvailable()) {
@@ -1035,6 +1056,7 @@ void RSRenderThreadVisitor::ProcessTextureSurfaceRenderNode(RSSurfaceRenderNode&
             canvas_->Clear(backgroundColor.AsArgbInt());
         }
     }
+    canvas_->DetachBrush();
     canvas_->Restore();
 }
 #endif

@@ -29,7 +29,7 @@
 #include <GL/glcorearb.h>
 #include <GL/glext.h>
 #endif
-
+#include "window.h"
 namespace OHOS {
 #undef CALL_HOOK_API
 #define CALL_HOOK_API(...)

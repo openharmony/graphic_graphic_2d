@@ -19,6 +19,7 @@
 #include <iostream>
 #include "image/pixmap.h"
 #include "draw/color.h"
+#include "property/rs_properties_def.h"
 #include "rs_color_extract.h"
 
 namespace OHOS {

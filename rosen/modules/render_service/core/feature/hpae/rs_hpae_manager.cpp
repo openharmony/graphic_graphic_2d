@@ -133,6 +133,7 @@ void RSHpaeManager::OnActive()
     // can also use: HianimationAlgoInit
     HianimationManager::GetInstance().AlgoInitAsync(stagingHpaeStatus_.bufferWidth,
         stagingHpaeStatus_.bufferHeight, HPAE_MAX_SIGMA, format);
+    RSHpaeFfrtPatternManager::Instance().MHCGraphPatternWarmup();
 }
 
 void RSHpaeManager::OnDeActive()
@@ -179,7 +180,7 @@ void RSHpaeManager::HandleHpaeStateChange()
         case HpaeFrameState::SWITCH_BLUR: {
             RS_TRACE_NAME("HPAE::SWITCH_BLUR");
             HPAE_LOGI("SWITCH_BLUR");
-            RSHpaeFfrtPatternManager::Instance().MHCReleaseAll();
+            RSHpaeFfrtPatternManager::Instance().MHCReleaseAll(false);
             break;
         }
         default:
@@ -392,7 +393,7 @@ void RSHpaeManager::SetUpHpaeSurface(GraphicPixelFormat pixelFormat, GraphicColo
     bufferConfig.colorGamut = colorSpace;
     bufferConfig.format = pixelFormat;
     bufferConfig.usage = BUFFER_USAGE_HW_RENDER | BUFFER_USAGE_HW_TEXTURE | BUFFER_USAGE_GRAPHIC_2D_ACCEL |
-        BUFFER_USAGE_MEM_DMA;
+        BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_ALLOC_NO_IPC;
     bufferConfig.timeout = 0;
 
     if (hpaeFrameState_ != HpaeFrameState::ALLOC_BUF && UpdateBufferIfNeed(bufferConfig, isHebc)) {

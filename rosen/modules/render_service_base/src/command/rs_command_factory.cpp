@@ -31,6 +31,8 @@
 #include "command/rs_proxy_node_command.h"
 #include "command/rs_root_node_command.h"
 #include "command/rs_surface_node_command.h"
+#include "command/rs_union_node_command.h"
+#include "feature/window_keyframe/rs_window_keyframe_node_command.h"
 // animation
 #include "command/rs_animation_command.h"
 // read showing property commands

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,6 +82,20 @@ HWTEST_F(SkiaTypefaceTest, GetTableData001, TestSize.Level1)
     tableData = std::make_unique<char[]>(size);
     auto retTableData = typeface1->GetTableData(tag, 0, size, tableData.get());
     ASSERT_TRUE(retTableData == size);
+}
+
+/**
+ * @tc.name: GetBold001
+ * @tc.desc: Test GetBold
+ * @tc.type: FUNC
+ * @tc.require:20650
+ */
+HWTEST_F(SkiaTypefaceTest, GetBold001, TestSize.Level1)
+{
+    auto typeface1 = SkiaTypeface::MakeDefault();
+    ASSERT_TRUE(!typeface1->GetBold());
+    auto typeface2 = std::make_shared<SkiaTypeface>(nullptr);
+    ASSERT_TRUE(!typeface2->GetBold());
 }
 
 /**
@@ -456,6 +470,91 @@ HWTEST_F(SkiaTypefaceTest, Serialize001, TestSize.Level1)
     auto typeface = SkiaTypeface::MakeDefault();
     ASSERT_NE(typeface, nullptr);
     ASSERT_TRUE(typeface->Serialize() != nullptr);
+}
+
+/**
+ * @tc.name: GetVariationDesignPosition001
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(SkiaTypefaceTest, GetVariationDesignPosition001, TestSize.Level1)
+{
+    auto typeface = SkiaTypeface::MakeDefault();
+    ASSERT_NE(typeface, nullptr);
+    uint32_t axis = 10;
+    float coValue = 10;
+    int coordinateCount = 2;
+    FontArguments::VariationPosition::Coordinate coordinates[] = {
+        {axis, coValue},
+        {axis, coValue}
+    };
+    int result = typeface->GetVariationDesignPosition(coordinates, coordinateCount);
+    ASSERT_EQ(result, 1);
+}
+
+/**
+ * @tc.name: GetFontIndex001
+ * @tc.desc: Test for get font index
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetFontIndex001, TestSize.Level1)
+{
+    std::string TEST_TTC_PATH = "/system/fonts/NotoSansCJK-Regular.ttc";
+    auto typeface = SkiaTypeface::MakeFromFile(TEST_TTC_PATH.c_str(), 1);
+    EXPECT_EQ(typeface->GetFontIndex(), 1);
+
+    // improved the test case coverage rate
+    SkiaTypeface emptyTypeface(nullptr);
+    EXPECT_EQ(emptyTypeface.GetTypeface(), nullptr);
+    EXPECT_EQ(emptyTypeface.GetFontIndex(), 0);
+}
+
+/**
+ * @tc.name: GetVariationDesignPositionTest001
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest001, TestSize.Level1)
+{
+    auto typeface = SkiaTypeface::MakeDefault();
+    std::vector<FontArguments::VariationPosition::Coordinate> coordinates;
+    int coordinateCount = 0;
+    int result = typeface->GetVariationDesignPosition(coordinates.data(), coordinateCount);
+
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(coordinates.size(), 0);
+}
+
+/**
+ * @tc.name: GetVariationDesignPositionTest002
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ */
+HWTEST_F(SkiaTypefaceTest, GetVariationDesignPositionTest002, TestSize.Level1)
+{
+    auto skTypeface = SkiaTypeface::MakeDefault();
+    FontArguments args;
+    FontArguments::VariationPosition variationPos;
+    std::vector<FontArguments::VariationPosition::Coordinate> coordinates = { {2003265652, 100.0}, {2003072104, 62.5} };
+    variationPos.coordinates = coordinates.data();
+    variationPos.coordinateCount = coordinates.size();
+    args.SetCollectionIndex(10);
+    args.SetVariationDesignPosition(variationPos);
+
+
+    auto typeface = skTypeface->MakeClone(args);
+
+    std::vector<FontArguments::VariationPosition::Coordinate> newCoords;
+    int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
+    typeface->GetVariationDesignPosition(newCoords.data(), coordsCount);
+
+    EXPECT_EQ(coordsCount, 2);
+    EXPECT_EQ(newCoords.size(), coordsCount);
+    EXPECT_EQ(newCoords[0].axis, 2003265652);
+    EXPECT_EQ(newCoords[0].value, 100.0);
+    EXPECT_EQ(newCoords[1].axis, 2003072104);
+    EXPECT_EQ(newCoords[1].value, 62.5);
 }
 } // namespace Drawing
 } // namespace Rosen

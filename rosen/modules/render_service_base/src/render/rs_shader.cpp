@@ -17,7 +17,6 @@
 #include "platform/common/rs_log.h"
 #include "render/rs_border_light_shader.h"
 #include "render/rs_complex_shader.h"
-#include "render/rs_dot_matrix_shader.h"
 #include "render/rs_flow_light_sweep_shader.h"
 #include "ge_visual_effect_impl.h"
 #include "effect/shader_effect_lazy.h"
@@ -40,10 +39,6 @@ std::shared_ptr<RSShader> RSShader::CreateRSShader(const ShaderType& type)
 {
     std::shared_ptr<RSShader> shader = nullptr;
     switch (type) {
-        case ShaderType::DOT_MATRIX: {
-            shader = std::make_shared<RSDotMatrixShader>();
-            break;
-        }
         case ShaderType::FLOW_LIGHT_SWEEP: {
             shader = std::make_shared<RSFlowLightSweepShader>();
             break;

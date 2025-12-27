@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <sstream>
 
 #include "tools/common_utils.h"
@@ -28,6 +29,38 @@ std::vector<std::string> CommonUtils::SplitString(const std::string& str, const 
         res.push_back(token);
     }
     return res;
+}
+
+std::optional<float> CommonUtils::StringToFloat(const std::string& str)
+{
+    char* end = nullptr;
+    errno = 0;
+    float val = strtof(str.c_str(), &end);
+    if (end == str) {
+        SAFUZZ_LOGE("Conversion failed: No valid number.");
+        return std::nullopt;
+    }
+    if (errno == ERANGE) {
+        SAFUZZ_LOGE("Conversion overflow or underflow.");
+        return std::nullopt;
+    }
+    return val;
+}
+
+std::optional<double> CommonUtils::StringToDouble(const std::string& str)
+{
+    char* end = nullptr;
+    errno = 0;
+    float val = strtod(str.c_str(), &end);
+    if (end == str) {
+        SAFUZZ_LOGE("Conversion failed: No valid number.");
+        return std::nullopt;
+    }
+    if (errno == ERANGE) {
+        SAFUZZ_LOGE("Conversion overflow or underflow.");
+        return std::nullopt;
+    }
+    return val;
 }
 } // namespace Rosen
 } // namespace OHOS

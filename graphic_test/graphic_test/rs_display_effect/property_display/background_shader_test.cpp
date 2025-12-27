@@ -17,8 +17,9 @@
 #include "rs_graphic_test_img.h"
 
 #include "effect/shader_effect.h"
-#include "render/rs_dot_matrix_shader.h"
+#include "ge_shader_filter_params.h"
 #include "render/rs_flow_light_sweep_shader.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -46,7 +47,7 @@ public:
     std::vector<uint32_t> bgColorList;
     std::vector<float> progressList;
     std::vector<std::vector<Drawing::Color>> effectColorList;
-    std::vector<std::vector<float>> colorFractionsList;
+    std::vector<Vector2f> colorFractionsList;
     std::vector<std::vector<Drawing::Point>> startPointsList;
     std::vector<float> pathWidthList;
     std::vector<bool> inverseEffectList;
@@ -110,6 +111,32 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_Shader_Test)
     }
 }
 
+void SetNormalParams(Rosen::RSNGDotMatrixShader& shader, Drawing::Color dotColor,
+    float dotSpacing, float dotRadius, Drawing::Color bgColor)
+{
+    Vector4f DotColor = {dotColor.GetRedF(), dotColor.GetGreenF(), dotColor.GetBlueF(), dotColor.GetAlphaF()};
+    Vector4f BgColor = {bgColor.GetRedF(), bgColor.GetGreenF(), bgColor.GetBlueF(), bgColor.GetAlphaF()};
+    shader.Setter<Rosen::DotMatrixShaderDotColorTag>(DotColor);
+    shader.Setter<Rosen::DotMatrixShaderDotSpacingTag>(dotSpacing);
+    shader.Setter<Rosen::DotMatrixShaderDotRadiusTag>(dotRadius);
+    shader.Setter<Rosen::DotMatrixShaderBgColorTag>(BgColor);
+    shader.Setter<Rosen::DotMatrixShaderEffectTypeTag>(0);
+}
+
+void IniDotMatrixData(std::vector<Drawing::Color>& dotColorList, std::vector<float>& dotRadiusList,
+    std::vector<float>& dotSpacingList, std::vector<Drawing::Color>& bgColorList)
+{
+    dotColorList = { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_RED,
+        Drawing::Color::COLOR_RED, Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_GREEN,
+        Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_BLUE };
+    dotRadiusList = { -0.7, 0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 1.0, 10.0 };
+    dotSpacingList = { -10.0, 10.0, 50.0, 20.0, 40.0, 60.0, 10.0, 50.0, 100.0 };
+    bgColorList = { Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
+        Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
+        Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
+        Drawing::Color::COLOR_BLACK };
+}
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_NoEffect_Test)
 {
@@ -118,31 +145,45 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_N
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<uint32_t> dotColorList = { 0xffff0000, 0xffff0000, 0xffff0000, 0xff00ff00, 0xff00ff00, 0xff00ff00,
-        0xff0000ff, 0xff0000ff, 0xff0000ff };
-    std::vector<float> dotRadiusList = { -0.7, 0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 1.0, 10.0 };
-    std::vector<float> dotSpacingList = { -10.0, 10.0, 50.0, 20.0, 40.0, 60.0, 10.0, 50.0, 100.0 };
-    std::vector<uint32_t> bgColorList = { 0xffffffff, 0xff888888, 0xff000000, 0xffffffff, 0xff888888, 0xff000000,
-        0xffffffff, 0xff888888, 0xff000000 };
+    std::vector<Drawing::Color> dotColorList = {};
+    std::vector<float> dotRadiusList = {};
+    std::vector<float> dotSpacingList = {};
+    std::vector<Drawing::Color> bgColorList = {};
+    IniDotMatrixData(dotColorList, dotRadiusList, dotSpacingList, bgColorList);
 
     for (int i = 0; i < dotColorList.size(); i++) {
-        auto dotMatShader = std::make_shared<Rosen::RSDotMatrixShader>();
+        auto dotMatShader = std::make_shared<Rosen::RSNGDotMatrixShader>();
         if (dotMatShader == nullptr) {
             return;
         }
-        dotMatShader->SetNormalParams(dotColorList[i], dotSpacingList[i], dotRadiusList[i], bgColorList[i]);
-        dotMatShader->SetNoneEffect();
+        SetNormalParams(*dotMatShader, dotColorList[i], dotSpacingList[i], dotRadiusList[i], bgColorList[i]);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
-        testNodeBackGround->SetBackgroundShader(dotMatShader);
-        testNodeBackGround->SetBackgroundShaderProgress(1.0);
+        testNodeBackGround->SetFrame({ x, y, sizeX - 10, sizeY - 10 });
+        dotMatShader->Setter<Rosen::DotMatrixShaderProgressTag>(1.0f);
+        testNodeBackGround->SetBackgroundNGShader(dotMatShader);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }
 }
+
+void SetRotateEffect(Rosen::RSNGDotMatrixShader& shader,
+    Rosen::Drawing::DotMatrixDirection pathDirection, std::vector<Drawing::Color> effectColors)
+{
+    std::vector<Vector4f> EffectColors;
+    for (uint32_t i = 0; i < effectColors.size(); i++) {
+        Vector4f color = {effectColors[i].GetRedF(), effectColors[i].GetGreenF(),
+            effectColors[i].GetBlueF(), effectColors[i].GetAlphaF()};
+        EffectColors.emplace_back(color);
+    }
+    shader.Setter<Rosen::DotMatrixShaderPathDirectionTag>((int)pathDirection);
+    shader.Setter<Rosen::DotMatrixShaderEffectColorsTag>(EffectColors);
+    shader.Setter<Rosen::DotMatrixShaderEffectTypeTag>(1);
+}
+
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_RotateEffect_Test)
 {
@@ -151,40 +192,68 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_R
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
-    std::vector<uint32_t> dotColorList = { 0xffff0000, 0xffff0000, 0xffff0000, 0xff00ff00, 0xff00ff00, 0xff00ff00,
-        0xff0000ff, 0xff0000ff, 0xff0000ff };
-    std::vector<float> dotRadiusList = { -0.7, 0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 1.0, 10.0 };
-    std::vector<float> dotSpacingList = { -10.0, 10.0, 50.0, 20.0, 40.0, 60.0, 10.0, 50.0, 100.0 };
-    std::vector<uint32_t> bgColorList = { 0xffffffff, 0xff888888, 0xff000000, 0xffffffff, 0xff888888, 0xff000000,
-        0xffffffff, 0xff888888, 0xff000000 };
-    std::vector<std::vector<Drawing::Color>> effectColorList = { { 0xffffff00, 0xffffff00, 0xff00ffff, 0xff00ffff },
-        { 0xffff00ff, 0xffff00ff, 0xffffff00, 0xffffff00 }, { 0xff00ffff, 0xff00ffff, 0xff0000ff, 0xff0000ff },
-        { 0xffff0000, 0xffff0000, 0xffffff00, 0xffffff00 }, { 0xff0000ff, 0xff0000ff, 0xff00ffff, 0xff00ffff },
-        { 0xff00ffff, 0xff00ffff, 0xffff00ff, 0xffff00ff }, { 0xffff0000, 0xff00ff00, 0xff0000ff, 0xffffffff },
-        { 0xffffffff, 0xff888888, 0xff000000, 0xff888888 }, { 0xff0000ff, 0xff00ff00, 0xff0000ff, 0xffff0000 } };
+    std::vector<Drawing::Color> dotColorList = {};
+    std::vector<float> dotRadiusList = {};
+    std::vector<float> dotSpacingList = {};
+    std::vector<Drawing::Color> bgColorList = {};
+    IniDotMatrixData(dotColorList, dotRadiusList, dotSpacingList, bgColorList);
+    std::vector<std::vector<Drawing::Color>> effectColorList = {
+        { Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN }, { Drawing::Color::COLOR_MAGENTA, Drawing::Color::COLOR_MAGENTA,
+        Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW }, { Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE },
+        { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_RED, Drawing::Color::COLOR_YELLOW,
+        Drawing::Color::COLOR_YELLOW }, { Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_CYAN }, { Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_MAGENTA, Drawing::Color::COLOR_MAGENTA },
+        { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_WHITE }, { Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
+        Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_GRAY }, { Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_RED } };
     std::vector<float> progressList = { -18.6, 0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 2.0, 20.0 };
 
     for (int i = 0; i < dotColorList.size(); i++) {
-        auto dotMatShader = std::make_shared<Rosen::RSDotMatrixShader>();
+        auto dotMatShader = std::make_shared<Rosen::RSNGDotMatrixShader>();
         if (dotMatShader == nullptr) {
             return;
         }
-        dotMatShader->SetNormalParams(dotColorList[i], dotSpacingList[i], dotRadiusList[i], bgColorList[i]);
-
-        RotateEffectParams rotateEffectParams;
-        rotateEffectParams.effectColors_ = effectColorList[i]; // vector size == 4
-        rotateEffectParams.pathDirection_ = static_cast<DotMatrixDirection>(i);
-        dotMatShader->SetRotateEffect(rotateEffectParams);
+        SetNormalParams(*dotMatShader, dotColorList[i], dotSpacingList[i], dotRadiusList[i], bgColorList[i]);
+        SetRotateEffect(*dotMatShader, static_cast<Drawing::DotMatrixDirection>(i), effectColorList[i]);
 
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
-        testNodeBackGround->SetBackgroundShader(dotMatShader);
-        testNodeBackGround->SetBackgroundShaderProgress(progressList[i]);
+        testNodeBackGround->SetFrame({ x, y, sizeX - 10, sizeY - 10 });
+        dotMatShader->Setter<Rosen::DotMatrixShaderProgressTag>(progressList[i]);
+        testNodeBackGround->SetBackgroundNGShader(dotMatShader);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }
+}
+
+void SetRippleEffect(Rosen::RSNGDotMatrixShader& shader,
+    std::vector<Drawing::Color> effectColors, Vector2f colorFractions,
+    std::vector<Drawing::Point> startPoints, float pathWidth, bool inverseEffect)
+{
+    std::vector<Vector4f> EffectColors;
+    for (uint32_t i = 0; i < effectColors.size(); i++) {
+        Vector4f color = {effectColors[i].GetRedF(), effectColors[i].GetGreenF(),
+            effectColors[i].GetBlueF(), effectColors[i].GetAlphaF()};
+        EffectColors.emplace_back(color);
+    }
+    std::vector<Vector2f> StartPoints;
+    for (uint32_t i = 0; i < startPoints.size(); i++) {
+        Vector2f point = {startPoints[i].GetX(), startPoints[i].GetY()};
+        StartPoints.emplace_back(point);
+    }
+    int rippleType = 2;
+    shader.Setter<Rosen::DotMatrixShaderEffectColorsTag>(EffectColors);
+    shader.Setter<Rosen::DotMatrixShaderColorFractionsTag>(colorFractions);
+    shader.Setter<Rosen::DotMatrixShaderStartPointsTag>(StartPoints);
+    shader.Setter<Rosen::DotMatrixShaderPathWidthTag>(pathWidth);
+    shader.Setter<Rosen::DotMatrixShaderInverseEffectTag>(inverseEffect);
+    shader.Setter<Rosen::DotMatrixShaderEffectTypeTag>(rippleType);
 }
 
 GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_RippleEffect_Test)
@@ -194,30 +263,44 @@ GRAPHIC_TEST(BackgroundTest, CONTENT_DISPLAY_TEST, BackGround_DotMatrix_Shader_R
     auto sizeX = screenWidth / columnCount;
     auto sizeY = screenHeight / rowCount;
 
+    std::vector<Drawing::Color> dotColorList = {};
+    std::vector<float> dotRadiusList = {};
+    std::vector<float> dotSpacingList = {};
+    std::vector<Drawing::Color> bgColorList = {};
+    IniDotMatrixData(dotColorList, dotRadiusList, dotSpacingList, bgColorList);
+    std::vector<std::vector<Drawing::Color>> effectColorList = {
+        { Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN }, { Drawing::Color::COLOR_MAGENTA, Drawing::Color::COLOR_MAGENTA,
+        Drawing::Color::COLOR_YELLOW, Drawing::Color::COLOR_YELLOW }, { Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE },
+        { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_RED, Drawing::Color::COLOR_YELLOW,
+        Drawing::Color::COLOR_YELLOW }, { Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_CYAN }, { Drawing::Color::COLOR_CYAN,
+        Drawing::Color::COLOR_CYAN, Drawing::Color::COLOR_MAGENTA, Drawing::Color::COLOR_MAGENTA },
+        { Drawing::Color::COLOR_RED, Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_WHITE }, { Drawing::Color::COLOR_WHITE, Drawing::Color::COLOR_GRAY,
+        Drawing::Color::COLOR_BLACK, Drawing::Color::COLOR_GRAY }, { Drawing::Color::COLOR_BLUE,
+        Drawing::Color::COLOR_GREEN, Drawing::Color::COLOR_BLUE, Drawing::Color::COLOR_RED } };
+    std::vector<float> progressList = { -18.6, 0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 2.0, 20.0 };
+
     DotMatrixTestParam testParam;
     testParam.InitRippleEffectParam();
-
     for (int i = 0; i < columnCount * rowCount; i++) {
-        auto dotMatShader = std::make_shared<Rosen::RSDotMatrixShader>();
+        auto dotMatShader = std::make_shared<Rosen::RSNGDotMatrixShader>();
         if (dotMatShader == nullptr) {
             return;
         }
-        dotMatShader->SetNormalParams(testParam.dotColorList[i], testParam.dotSpacingList[i],
-            testParam.dotRadiusList[i], testParam.bgColorList[i]);
-
-        RippleEffectParams rippleEffectParams;
-        rippleEffectParams.effectColors_ = testParam.effectColorList[i]; // vector size >= 2
-        rippleEffectParams.colorFractions_ = testParam.colorFractionsList[i];
-        rippleEffectParams.startPoints_ = testParam.startPointsList[i];
-        rippleEffectParams.pathWidth_ = testParam.pathWidthList[i];
-        rippleEffectParams.inverseEffect_ = testParam.inverseEffectList[i];
-        dotMatShader->SetRippleEffect(rippleEffectParams);
+        SetNormalParams(*dotMatShader, dotColorList[i], dotSpacingList[i],
+            dotRadiusList[i], bgColorList[i]);
+        SetRippleEffect(*dotMatShader, effectColorList[i], testParam.colorFractionsList[i],
+            testParam.startPointsList[i], testParam.pathWidthList[i], testParam.inverseEffectList[i]);
         int x = (i % columnCount) * sizeX;
         int y = (i / columnCount) * sizeY;
         auto testNodeBackGround = RSCanvasNode::Create();
         testNodeBackGround->SetBounds({ x, y, sizeX - 10, sizeY - 10 });
-        testNodeBackGround->SetBackgroundShader(dotMatShader);
-        testNodeBackGround->SetBackgroundShaderProgress(testParam.progressList[i]);
+        testNodeBackGround->SetFrame({x, y, sizeX - 10, sizeY - 10});
+        dotMatShader->Setter<Rosen::DotMatrixShaderProgressTag>(progressList[i]);
+        testNodeBackGround->SetBackgroundNGShader(dotMatShader);
         GetRootNode()->AddChild(testNodeBackGround);
         RegisterNode(testNodeBackGround);
     }

@@ -85,6 +85,7 @@ size_t CmdList::AddImageData(const void* data, size_t size)
 
 const void* CmdList::GetImageData(size_t offset, size_t size) const
 {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     return imageAllocator_.OffsetToAddr(offset, size);
 }
 
@@ -482,12 +483,12 @@ std::shared_ptr<ExtendDrawFuncObj> CmdList::GetDrawFuncObj(uint32_t id)
 
 void CmdList::SetNoImageMarshallingFlag(bool flag)
 {
-    noImageMarshallingFlag = flag;
+    noImageMarshallingFlag_ = flag;
 }
 
-bool CmdList::GetNoImageMarshallingFlag()
+bool CmdList::GetNoImageMarshallingFlag() const
 {
-    return noImageMarshallingFlag;
+    return noImageMarshallingFlag_;
 }
 
 } // namespace Drawing

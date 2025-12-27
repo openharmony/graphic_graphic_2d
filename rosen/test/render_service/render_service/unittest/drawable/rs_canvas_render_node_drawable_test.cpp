@@ -78,11 +78,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest, TestSize.Level1)
     drawable->isOpDropped_ = false;
     drawable->isDrawingCacheEnabled_ = true;
     RSOpincManager::Instance().SetOPIncSwitch(false);
-    drawable->drawBlurForCache_ = false;
+    drawable->SetDrawBlurForCache(false);
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 
-    drawable->drawBlurForCache_ = true;
+    drawable->SetDrawBlurForCache(true);
     drawable->OnDraw(canvas);
     ASSERT_TRUE(drawable->isDrawingCacheEnabled_);
 }
@@ -128,6 +128,11 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest001, TestSize.Level1)
  */
 HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
 {
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
     NodeId nodeId = 0;
     auto node = std::make_shared<RSRenderNode>(nodeId);
     auto drawable = std::make_shared<RSCanvasRenderNodeDrawable>(std::move(node));
@@ -152,6 +157,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
     RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    RSUniRenderThread::GetCaptureParam().captureFinished_ = true;
     drawable->OnCapture(canvas);
     ASSERT_TRUE(drawable->ShouldPaint());
     
@@ -358,6 +364,62 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest003, TestSize.Level2)
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
     canvasDrawable->OnDraw(canvas);
+    ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw004
+ * @tc.desc: Test OnDraw while renderThreadParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest004, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+    canvasDrawable->renderParams_->startingWindowFlag_ = false;
+
+    // set render thread param
+    RSUniRenderThread::Instance().Sync(nullptr);
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnDraw(canvas);
+    ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnCapture005
+ * @tc.desc: Test OnCapture while renderThreadParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST(RSCanvasRenderNodeDrawableTest, OnCapture005, TestSize.Level2)
+{
+    NodeId nodeId = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    auto canvasDrawable = static_cast<RSCanvasRenderNodeDrawable*>(RSCanvasRenderNodeDrawable::OnGenerate(canvasNode));
+    ASSERT_NE(canvasDrawable, nullptr);
+    canvasDrawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    canvasDrawable->renderParams_->shouldPaint_ = true;
+
+    RSUniRenderThread::Instance().Sync(nullptr);
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->OnCapture(canvas);
     ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
 
     // restore

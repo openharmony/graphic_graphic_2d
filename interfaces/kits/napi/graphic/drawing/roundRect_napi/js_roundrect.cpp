@@ -21,17 +21,18 @@ namespace OHOS::Rosen {
 namespace Drawing {
 thread_local napi_ref JsRoundRect::constructor_ = nullptr;
 const std::string CLASS_NAME = "RoundRect";
+static const napi_property_descriptor g_properties[] = {
+    DECLARE_NAPI_FUNCTION("setCorner", JsRoundRect::SetCorner),
+    DECLARE_NAPI_FUNCTION("getCorner", JsRoundRect::GetCorner),
+    DECLARE_NAPI_FUNCTION("offset", JsRoundRect::Offset),
+    DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsRoundRect::RoundRectTransferDynamic),
+};
+
 napi_value JsRoundRect::Init(napi_env env, napi_value exportObj)
 {
-    napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("setCorner", JsRoundRect::SetCorner),
-        DECLARE_NAPI_FUNCTION("getCorner", JsRoundRect::GetCorner),
-        DECLARE_NAPI_FUNCTION("offset", JsRoundRect::Offset),
-    };
-
     napi_value constructor = nullptr;
     napi_status status = napi_define_class(env, CLASS_NAME.c_str(), NAPI_AUTO_LENGTH, Constructor, nullptr,
-                                           sizeof(properties) / sizeof(properties[0]), properties, &constructor);
+                                           sizeof(g_properties) / sizeof(g_properties[0]), g_properties, &constructor);
     if (status != napi_ok) {
         ROSEN_LOGE("JsRoundRect::Init Failed to define RoundRect class");
         return nullptr;
@@ -73,7 +74,9 @@ napi_value JsRoundRect::Constructor(napi_env env, napi_callback_info info)
     if (argCount == ARGC_ONE) {
         JsRoundRect* otherRoundRect = nullptr;
         GET_UNWRAP_PARAM(ARGC_ZERO, otherRoundRect);
-        const RoundRect& rrect = otherRoundRect->GetRoundRect();
+        std::shared_ptr<RoundRect> other = otherRoundRect->GetRoundRectPtr();
+        std::shared_ptr<RoundRect> rrect = other == nullptr ? std::make_shared<RoundRect>() :
+            std::make_shared<RoundRect>(*other);
         jsRoundRect = new JsRoundRect(rrect);
     } else {
         double ltrb[ARGC_FOUR] = {0};
@@ -127,7 +130,7 @@ napi_value JsRoundRect ::OnSetCorner(napi_env env, napi_callback_info info)
     double y = 0;
     GET_DOUBLE_PARAM(ARGC_TWO, y);
 
-    m_roundRect.SetCornerRadius(static_cast<RoundRect::CornerPos>(pos), x, y);
+    m_roundRect->SetCornerRadius(static_cast<RoundRect::CornerPos>(pos), x, y);
 
     return nullptr;
 }
@@ -144,7 +147,7 @@ napi_value JsRoundRect ::OnGetCorner(napi_env env, napi_callback_info info)
     CHECK_PARAM_NUMBER_WITHOUT_OPTIONAL_PARAMS(argv, ARGC_ONE);
     int32_t pos = 0;
     GET_ENUM_PARAM(ARGC_ZERO, pos, 0, static_cast<int32_t>(RoundRect::CornerPos::BOTTOM_LEFT_POS));
-    auto point = m_roundRect.GetCornerRadius(static_cast<RoundRect::CornerPos>(pos));
+    auto point = m_roundRect->GetCornerRadius(static_cast<RoundRect::CornerPos>(pos));
     return ConvertPointToJsValue(env, point);
 }
 
@@ -163,14 +166,60 @@ napi_value JsRoundRect ::OnOffset(napi_env env, napi_callback_info info)
     double dy = 0;
     GET_DOUBLE_PARAM(ARGC_ONE, dy);
 
-    m_roundRect.Offset(dx, dy);
+    m_roundRect->Offset(dx, dy);
 
     return nullptr;
 }
 
+napi_value JsRoundRect::CreateJsRoundRectDynamic(napi_env env, const std::shared_ptr<RoundRect> roundRect)
+{
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    if (result == nullptr) {
+        ROSEN_LOGE("JsRoundRect::CreateJsRoundRectDynamic Create roundRect object failed!");
+        return nullptr;
+    }
+    JsRoundRect* jsRoundRect = new JsRoundRect(roundRect);
+    napi_status status = napi_wrap(env, result, jsRoundRect, JsRoundRect::Destructor, nullptr, nullptr);
+    if (status != napi_ok) {
+        delete jsRoundRect;
+        return nullptr;
+    }
+    napi_define_properties(env, result, sizeof(g_properties) / sizeof(g_properties[0]), g_properties);
+    return result;
+}
+
+napi_value JsRoundRect::RoundRectTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv;
+    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_number) {
+        return nullptr;
+    }
+
+    int64_t addr = 0;
+    napi_get_value_int64(env, argv, &addr);
+    std::shared_ptr<RoundRect> roundRect = *reinterpret_cast<std::shared_ptr<RoundRect>*>(addr);
+    if (roundRect == nullptr) {
+        return nullptr;
+    }
+    return CreateJsRoundRectDynamic(env, roundRect);
+}
+
 const RoundRect& JsRoundRect::GetRoundRect()
 {
-    return m_roundRect;
+    return *m_roundRect;
+}
+
+JsRoundRect::~JsRoundRect()
+{
+    m_roundRect = nullptr;
 }
 } // namespace Drawing
 } // namespace OHOS::Rosen

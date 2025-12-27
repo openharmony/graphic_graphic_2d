@@ -165,7 +165,10 @@ ohos_shared_library("GLESv1") {
     "opengles:libGLES",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "graphic_surface:surface",
+  ]
 
   output_name = "GLESv1"
   output_extension = "so"
@@ -205,7 +208,10 @@ ohos_shared_library("GLESv2") {
     "opengles:libGLES",
   ]
 
-  external_deps = [ "hilog:libhilog" ]
+  external_deps = [
+    "hilog:libhilog",
+    "graphic_surface:surface",
+  ]
 
   output_name = "GLESv2"
   output_extension = "so"
@@ -251,7 +257,10 @@ if (current_os != "ohos") {
       "opengles:libGLES",
     ]
 
-    external_deps = [ "hilog:libhilog" ]
+    external_deps = [
+      "hilog:libhilog",
+      "graphic_surface:surface",
+    ]
 
     output_name = "GLESv3"
     output_extension = "so"
@@ -307,6 +316,7 @@ if (current_os != "ohos" || !graphic_2d_feature_enable_opengl_to_vulkan) {
     external_deps = [
       "hilog:libhilog",
       "mesa3d:zink_opengl",
+      "graphic_surface:surface",
     ]
 
     output_name = "GLv4"

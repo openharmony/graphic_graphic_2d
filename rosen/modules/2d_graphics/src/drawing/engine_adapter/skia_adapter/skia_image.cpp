@@ -136,7 +136,8 @@ bool SkiaImage::BuildFromBitmap(const Bitmap& bitmap, bool ignoreAlpha)
 }
 
 #ifdef RS_ENABLE_GPU
-std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+    const std::shared_ptr<ColorSpace>& colorSpace)
 {
     if (!memory) {
         LOGD("memory nullprt, %{public}s, %{public}d",  __FUNCTION__, __LINE__);
@@ -155,10 +156,17 @@ std::shared_ptr<Image> SkiaImage::MakeFromYUVAPixmaps(GPUContext& gpuContext, co
                                  SkiaYUVInfo::ConvertToSkDataType(info.GetDataType()),
                                  nullptr);
     auto skYUVAPixmaps = SkYUVAPixmaps::FromExternalMemory(pixmapInfo, memory);
+    sk_sp<SkColorSpace> skColorSpace = nullptr;
+    if (colorSpace != nullptr) {
+        auto colorSpaceImpl = colorSpace->GetImpl<SkiaColorSpace>();
+        skColorSpace = colorSpaceImpl ? colorSpaceImpl->GetColorSpace() : SkColorSpace::MakeSRGB();
+    }
 #ifdef USE_M133_SKIA
-    auto skImage = SkImages::TextureFromYUVAPixmaps(grContext.get(), skYUVAPixmaps);
+    auto skImage = SkImages::TextureFromYUVAPixmaps(grContext.get(), skYUVAPixmaps, skgpu::Mipmapped::kNo, false,
+        skColorSpace);
 #else
-    auto skImage = SkImage::MakeFromYUVAPixmaps(grContext.get(), skYUVAPixmaps);
+    auto skImage = SkImage::MakeFromYUVAPixmaps(grContext.get(), skYUVAPixmaps, GrMipmapped::kNo, false,
+        skColorSpace);
 #endif
     if (skImage == nullptr) {
         LOGD("skImage nullptr, %{public}s, %{public}d", __FUNCTION__, __LINE__);

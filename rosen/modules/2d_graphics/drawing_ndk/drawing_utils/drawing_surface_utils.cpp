@@ -224,7 +224,7 @@ std::shared_ptr<Drawing::Surface> DrawingSurfaceUtils::CreateFromWindow(Drawing:
             return nullptr;
         }
 
-        std::shared_ptr<RenderContext> renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+        auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
         if (renderContext == nullptr) {
             LOGE("CreateFromWindow: get renderContext failed.");
             return nullptr;
@@ -273,7 +273,7 @@ bool DrawingSurfaceUtils::FlushSurface(Drawing::Surface* surface)
             surface->GetCanvas()->Flush();
         }
 
-        std::shared_ptr<RenderContext> renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+        auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
         if (renderContext == nullptr) {
             LOGE("FlushSurface: get renderContext failed.");
             return false;
@@ -322,6 +322,13 @@ void DrawingSurfaceUtils::RemoveSurface(Drawing::Surface* surface)
         auto iter = g_eglSurfaceMap.find(surface);
         if (iter == g_eglSurfaceMap.end()) {
             return;
+        }
+        auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+        if (renderContext != nullptr) {
+            EGLSurface eglSurface = (iter->second).second;
+            renderContext->DestroyEGLSurface(eglSurface);
+        } else {
+            LOGD("RemoveSurface: get renderContext failed.");
         }
         g_eglSurfaceMap.erase(iter);
     }

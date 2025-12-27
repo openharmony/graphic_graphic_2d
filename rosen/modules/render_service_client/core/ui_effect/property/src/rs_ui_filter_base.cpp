@@ -24,6 +24,8 @@
 #include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_frosted_glass_blur_para.h"
+#include "ui_effect/filter/include/filter_frosted_glass_para.h"
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
@@ -100,7 +102,19 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     {RSNGEffectType::GASIFY, [] {
             return std::make_shared<RSNGGasifyFilter>();
         }
-    }
+    },
+    {RSNGEffectType::FROSTED_GLASS, [] {
+            return std::make_shared<RSNGFrostedGlassFilter>();
+        }
+    },
+    {RSNGEffectType::GRID_WARP, [] {
+            return std::make_shared<RSNGGridWarpFilter>();
+        }
+    },
+    {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
+            return std::make_shared<RSNGFrostedGlassBlurFilter>();
+        }
+    },
 };
 
 namespace {
@@ -282,7 +296,80 @@ std::shared_ptr<RSNGFilterBase> ConvertContentLightFilterPara(std::shared_ptr<Fi
     contentLightFilter->Setter<ContentLightIntensityTag>(contentLightFilterPara->GetLightIntensity());
     return contentLightFilter;
 }
+
+void ConvertOptionalAdaptivePara(FrostedGlassPara const* para, RSNGFrostedGlassFilter* frostedGlassFilter)
+{
+    if (auto darkMode = para->GetDarkAdaptiveParams(); darkMode) {
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBlurParamsTag>(darkMode->blurParams);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeWeightsEmbossTag>(darkMode->weightsEmboss);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgRatesTag>(darkMode->bgRates);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgKBSTag>(darkMode->bgKBS);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgPosTag>(darkMode->bgPos);
+        frostedGlassFilter->Setter<FrostedGlassDarkModeBgNegTag>(darkMode->bgNeg);
+    }
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertFrostedGlassPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto frostedGlassFilter = std::static_pointer_cast<RSNGFrostedGlassFilter>(filter);
+    auto frostedGlassFilterPara = std::static_pointer_cast<FrostedGlassPara>(filterPara);
+    frostedGlassFilter->Setter<FrostedGlassBlurParamsTag>(frostedGlassFilterPara->GetBlurParams());
+    frostedGlassFilter->Setter<FrostedGlassWeightsEmbossTag>(frostedGlassFilterPara->GetWeightsEmboss());
+    frostedGlassFilter->Setter<FrostedGlassWeightsEdlTag>(frostedGlassFilterPara->GetWeightsEdl());
+    frostedGlassFilter->Setter<FrostedGlassBgRatesTag>(frostedGlassFilterPara->GetBgRates());
+    frostedGlassFilter->Setter<FrostedGlassBgKBSTag>(frostedGlassFilterPara->GetBgKBS());
+    frostedGlassFilter->Setter<FrostedGlassBgPosTag>(frostedGlassFilterPara->GetBgPos());
+    frostedGlassFilter->Setter<FrostedGlassBgNegTag>(frostedGlassFilterPara->GetBgNeg());
+    frostedGlassFilter->Setter<FrostedGlassRefractParamsTag>(frostedGlassFilterPara->GetRefractParams());
+    frostedGlassFilter->Setter<FrostedGlassSdParamsTag>(frostedGlassFilterPara->GetSdParams());
+    frostedGlassFilter->Setter<FrostedGlassSdRatesTag>(frostedGlassFilterPara->GetSdRates());
+    frostedGlassFilter->Setter<FrostedGlassSdKBSTag>(frostedGlassFilterPara->GetSdKBS());
+    frostedGlassFilter->Setter<FrostedGlassSdPosTag>(frostedGlassFilterPara->GetSdPos());
+    frostedGlassFilter->Setter<FrostedGlassSdNegTag>(frostedGlassFilterPara->GetSdNeg());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightParamsTag>(frostedGlassFilterPara->GetEnvLightParams());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightRatesTag>(frostedGlassFilterPara->GetEnvLightRates());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightKBSTag>(frostedGlassFilterPara->GetEnvLightKBS());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightPosTag>(frostedGlassFilterPara->GetEnvLightPos());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightNegTag>(frostedGlassFilterPara->GetEnvLightNeg());
+    frostedGlassFilter->Setter<FrostedGlassEdLightParamsTag>(frostedGlassFilterPara->GetEdLightParams());
+    frostedGlassFilter->Setter<FrostedGlassEdLightAnglesTag>(frostedGlassFilterPara->GetEdLightAngles());
+    frostedGlassFilter->Setter<FrostedGlassEdLightDirTag>(frostedGlassFilterPara->GetEdLightDir());
+    frostedGlassFilter->Setter<FrostedGlassEdLightRatesTag>(frostedGlassFilterPara->GetEdLightRates());
+    frostedGlassFilter->Setter<FrostedGlassEdLightKBSTag>(frostedGlassFilterPara->GetEdLightKBS());
+    frostedGlassFilter->Setter<FrostedGlassEdLightPosTag>(frostedGlassFilterPara->GetEdLightPos());
+    frostedGlassFilter->Setter<FrostedGlassEdLightNegTag>(frostedGlassFilterPara->GetEdLightNeg());
+    frostedGlassFilter->Setter<FrostedGlassBaseVibrancyEnabledTag>(frostedGlassFilterPara->GetBaseVibrancyEnabled());
+    frostedGlassFilter->Setter<FrostedGlassBaseMaterialTypeTag>(frostedGlassFilterPara->GetBaseMaterialType());
+    frostedGlassFilter->Setter<FrostedGlassMaterialColorTag>(frostedGlassFilterPara->GetMaterialColor());
+    frostedGlassFilter->Setter<FrostedGlassRefractEnabledTag>(frostedGlassFilterPara->GetRefractEnabled());
+    frostedGlassFilter->Setter<FrostedGlassInnerShadowEnabledTag>(frostedGlassFilterPara->GetInnerShadowEnabled());
+    frostedGlassFilter->Setter<FrostedGlassEnvLightEnabledTag>(frostedGlassFilterPara->GetEnvLightEnabled());
+    frostedGlassFilter->Setter<FrostedGlassHighLightEnabledTag>(frostedGlassFilterPara->GetHighLightEnabled());
+    frostedGlassFilter->Setter<FrostedGlassSamplingScaleTag>(frostedGlassFilterPara->GetSamplingScale());
+    ConvertOptionalAdaptivePara(frostedGlassFilterPara.get(), frostedGlassFilter.get());
+    return frostedGlassFilter;
+}
+
+std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::FROSTED_GLASS_BLUR);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertFrostedGlassPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto frostedGlassBlurFilter = std::static_pointer_cast<RSNGFrostedGlassBlurFilter>(filter);
+    auto frostedGlassBlurFilterPara = std::static_pointer_cast<FrostedGlassBlurPara>(filterPara);
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusTag>(frostedGlassBlurFilterPara->GetBlurRadius());
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRadiusScaleKTag>(frostedGlassBlurFilterPara->GetBlurRadiusScaleK());
+    frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(frostedGlassBlurFilterPara->GetRefractOutPx());
+    return frostedGlassBlurFilter;
+}
+} // namespace
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
     { FilterPara::ParaType::DISPLACEMENT_DISTORT, ConvertDisplacementDistortFilterPara },
@@ -297,6 +384,8 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::GASIFY_SCALE_TWIST, ConvertGasifyScaleTwistPara },
     { FilterPara::ParaType::GASIFY_BLUR, ConvertGasifyBlurPara },
     { FilterPara::ParaType::GASIFY, ConvertGasifyPara },
+    { FilterPara::ParaType::FROSTED_GLASS, ConvertFrostedGlassPara },
+    { FilterPara::ParaType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)

@@ -59,6 +59,8 @@ void RSMagnifierShaderFilter::GenerateGEVisualEffect(
     magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_);
     magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_);
     magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_);
+    magnifierFilter->SetParam("ZOOMOFFSETX", magnifierPara_->zoomOffsetX_);
+    magnifierFilter->SetParam("ZOOMOFFSETY", magnifierPara_->zoomOffsetY_);
     magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_);
     magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_);
     magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_);

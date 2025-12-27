@@ -56,6 +56,8 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
         const FontArguments& fontArguments);
+    static std::unique_ptr<MemoryStream> GenerateAshMemoryStream(std::unique_ptr<MemoryStream> memoryStream,
+        const void*& dataPtr, size_t& size, int32_t& fd);
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static std::vector<std::shared_ptr<Typeface>> GetSystemFonts();
     static void RegisterOnTypefaceDestroyed(std::function<void(uint32_t)> cb);
@@ -69,7 +71,8 @@ public:
         TextureOrigin origin, int sampleCnt, ColorType colorType,
         std::shared_ptr<ColorSpace> colorSpace, void (*deleteVkImage)(void *), void* cleanHelper);
     static std::shared_ptr<Surface> MakeRenderTarget(GPUContext* gpuContext, bool budgeted, const ImageInfo& imageInfo);
-    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory);
+    static std::shared_ptr<Image> MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+        const std::shared_ptr<ColorSpace>& colorSpace = nullptr);
 #endif
     static std::shared_ptr<Surface> MakeRaster(const ImageInfo& imageInfo);
     static std::shared_ptr<Surface> MakeRasterDirect(const ImageInfo& imageInfo, void* pixels, size_t rowBytes);

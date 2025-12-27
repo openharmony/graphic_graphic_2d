@@ -57,13 +57,7 @@ int32_t RPHgmXMLParser::Parse()
     }
 
     int32_t setResult = EXEC_SUCCESS;
-    xmlNode* currNode = root->xmlChildrenNode;
-    if (currNode == nullptr) {
-        HGM_LOGE("%{public}s stop parsing internal, no children nodes", __func__);
-        return XML_PARSE_INTERNAL_FAIL;
-    }
-
-    for (; currNode; currNode = currNode->next) {
+    for (xmlNode* currNode = root->xmlChildrenNode; currNode; currNode = currNode->next) {
         if (currNode->type != XML_ELEMENT_NODE) {
             continue;
         }
@@ -74,6 +68,9 @@ int32_t RPHgmXMLParser::Parse()
             setResult = ParseNode(*currNode, sourceTuningConfig_);
         } else if (paramName == RS_SOLID_COLOR_LAYER_CONFIG) {
             setResult = ParseNode(*currNode, solidLayerConfig_);
+        }
+        if (setResult != EXEC_SUCCESS) {
+            return XML_PARSE_INTERNAL_FAIL;
         }
     }
     return setResult;

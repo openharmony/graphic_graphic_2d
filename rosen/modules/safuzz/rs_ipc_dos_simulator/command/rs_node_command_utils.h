@@ -24,6 +24,9 @@ namespace OHOS {
 namespace Rosen {
 class RSNodeCommandUtils {
 public:
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSAddModifierNG, Uint64, RSRenderModifierSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRemoveModifierNG, Uint64, RSModifierType, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_1(RSRemoveAllModifiersNG, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyBool, Uint64, Bool, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyFloat, Uint64, Float, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyInt, Uint64, Int, Uint64, PropertyUpdateType);
@@ -48,6 +51,10 @@ public:
                                     PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleNoiseFields, Uint64, ParticleNoiseFieldsSharedPtr, Uint64,
                                     PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleRippleFields, Uint64, ParticleRippleFieldsSharedPtr, Uint64,
+                                    PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyParticleVelocityFields, Uint64, ParticleVelocityFieldsSharedPtr,
+                                    Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShader, Uint64, RSShaderSharedPtr, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector2f, Uint64, Vector2f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVector3f, Uint64, Vector3f, Uint64, PropertyUpdateType);
@@ -57,31 +64,54 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyRRect, Uint64, RRect, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyDrawCmdList,
                                     Uint64, DrawingDrawCmdListPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUpdatePropertyDrawCmdListNG,
+                                    Uint64, DrawingDrawCmdListPtr, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorFloat,
                                     Uint64, FloatVector, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorVector2f,
                                     Uint64, VectorVector2f, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyVectorVector4f,
+                                    Uint64, SmallVectorVector4f, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyPixelMap,
                                     Uint64, PixelMap, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShadowBlenderPara,
                                     Uint64, RSShadowBlenderPara, Uint64, PropertyUpdateType);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyShort,
                                     Uint64, Short, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGFilterBase,
+                                    Uint64, RSNGFilterPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGMaskBase,
+                                    Uint64, RSNGMaskPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGShaderBase,
+                                    Uint64, RSNGShaderPtr, Uint64, PropertyUpdateType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSUpdatePropertyNGShapeBase,
+                                    Uint64, RSNGShapePtr, Uint64, PropertyUpdateType);
+
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetFreeze, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNodeName, Uint64, String);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSMarkNodeGroup, Uint64, Bool, Bool, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSExcludedFromNodeGroup, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSMarkNodeSingleFrameComposer, Uint64, Bool, Pid);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSMarkSuggestOpincNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkUifirstNode, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSForceUifirstNode, Uint64, Bool, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIFirstSwitch, Uint64, RSUIFirstSwitch);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawRegion, Uint64, RectFSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_1(RSSetTakeSurfaceForUIFlag, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetOutOfParent, Uint64, OutOfParentType);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetNeedUseCmdlistDrawRegion, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRegisterGeometryTransitionNodePair, Uint64, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnregisterGeometryTransitionNodePair, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSDumpClientNodeTree, Uint64, Pid, Uint64, Uint32);
     ADD_RANDOM_COMMAND_WITH_PARAM_4(RSCommitDumpClientNodeTree, Uint64, Pid, Uint32, String);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetUIContextToken, Uint64, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSMarkRepaintBoundary, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_5(RSModifierNGAttachProperty,
+                                    Uint64, Uint64, RSModifierType, RSPropertyType, RSRenderPropertyBaseSharedPtr);
+    ADD_RANDOM_COMMAND_WITH_PARAM_4(RSModifierNGDetachProperty,
+                                    Uint64, Uint64, RSModifierType, RSPropertyType);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUpdateOcclusionCullingStatus, Uint64, Bool, Uint64);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSSetDrawNodeType, Uint64, DrawNodeType);
 };
 } // namespace Rosen
 } // namespace OHOS

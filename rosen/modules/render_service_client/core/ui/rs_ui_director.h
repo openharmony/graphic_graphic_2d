@@ -365,7 +365,6 @@ private:
     inline static std::unordered_map<RSUIDirector*, std::function<void()>> requestVsyncCallbacks_;
     inline static std::mutex uiTaskRunnersVisitorMutex_;
 
-    std::mutex mutex_;
     NodeId root_ = 0;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;
 
@@ -377,15 +376,13 @@ private:
     uint32_t index_ = 0;
     std::string abilityName_;
     std::weak_ptr<RSSurfaceNode> surfaceNode_;
-    int surfaceWidth_ = 0;
-    int surfaceHeight_ = 0;
     std::string cacheDir_;
-    static std::function<void()> requestVsyncCallback_;
     bool isHgmConfigChangeCallbackReg_ = false;
     std::shared_ptr<RSUIContext> rsUIContext_ = nullptr;
     std::weak_ptr<RSRootNode> rootNode_;
     bool dvsyncUpdate_ = false;
     uint64_t dvsyncTime_ = 0;
+    bool skipDestroyUIContext_ = false;
 
     friend class RSApplicationAgentImpl;
     friend class RSRenderThread;

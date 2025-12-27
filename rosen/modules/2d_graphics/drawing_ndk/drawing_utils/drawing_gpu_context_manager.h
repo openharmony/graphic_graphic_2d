@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,7 +34,7 @@ public:
 
     static DrawingGpuContextManager& GetInstance();
 
-    std::shared_ptr<RenderContext> GetRenderContext();
+    std::shared_ptr<RenderContextGL> GetRenderContext();
 
     std::shared_ptr<Drawing::GPUContext> CreateDrawingContext();
 
@@ -44,7 +45,7 @@ public:
 private:
     DrawingGpuContextManager();
 
-    std::shared_ptr<RenderContext> renderContext_ = nullptr;
+    std::shared_ptr<RenderContextGL> renderContext_ = nullptr;
     std::unordered_map<void*, std::shared_ptr<Drawing::GPUContext>> gpuContext_;
     std::mutex mutex_;
 };

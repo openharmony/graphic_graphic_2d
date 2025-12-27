@@ -193,6 +193,12 @@ public:
         return id | (static_cast<uint64_t>(1) << bits);
     }
 
+    static constexpr uint64_t PatchSelfDrawingImageId(uint64_t id)
+    {
+        constexpr uint32_t bits = 63u;
+        return PatchNodeId(id) | (static_cast<uint64_t>(1) << bits);
+    }
+
     static constexpr bool IsNodeIdPatched(uint64_t id)
     {
         constexpr uint32_t bits = 62u;

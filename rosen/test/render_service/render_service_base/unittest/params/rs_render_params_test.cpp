@@ -431,6 +431,28 @@ HWTEST_F(RSRenderParamsTest, SetChildHasVisibleEffect_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: SetChildHasVisibleHDRContentTest001
+ * @tc.desc: Test function SetChildHasVisibleHDRContent
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetChildHasVisibleHDRContentTest001, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    bool val = true;
+    renderParams->SetChildHasVisibleEffect(val);
+    EXPECT_EQ(renderParams->ChildHasVisibleEffect(), val);
+    EXPECT_TRUE(renderParams->needSync_);
+    renderParams->needSync_ = false;
+
+    renderParams->SetChildHasVisibleEffect(val);
+    EXPECT_FALSE(renderParams->needSync_);
+}
+
+/**
  * @tc.name: GetNeedUpdateCache_001
  * @tc.desc: Test function GetNeedUpdateCache
  * @tc.type:FUNC
@@ -445,6 +467,77 @@ HWTEST_F(RSRenderParamsTest, GetNeedUpdateCache_001, TestSize.Level2)
     renderParams->isNeedUpdateCache_ = false;
 
     EXPECT_FALSE(renderParams->GetNeedUpdateCache());
+}
+
+/**
+ * @tc.name: SetForceDisableNodeGroupTest
+ * @tc.desc: Test function SetForceDisableNodeGroup
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, SetForceDisableNodeGroupTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->IsForceDisableNodeGroup());
+    renderParams->SetForceDisableNodeGroup(true);
+    EXPECT_TRUE(renderParams->IsForceDisableNodeGroup());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: ExcludedFromNodeGroupTest
+ * @tc.desc: Test ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, ExcludedFromNodeGroupTest, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->IsExcludedFromNodeGroup());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->ExcludedFromNodeGroup(false);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_FALSE(renderParams->IsExcludedFromNodeGroup());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    renderParams->ExcludedFromNodeGroup(true);
+    EXPECT_TRUE(renderParams->IsExcludedFromNodeGroup());
+    EXPECT_TRUE(renderParams->needSync_);
+}
+
+/**
+ * @tc.name: SetHasChildExcludedFromNodeGroupTest
+ * @tc.desc: Test SetHasChildExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issues/20738
+ */
+HWTEST_F(RSRenderParamsTest, SetHasChildExcludedFromNodeGroup, TestSize.Level1)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+
+    EXPECT_FALSE(renderParams->HasChildExcludedFromNodeGroup());
+    ASSERT_EQ(renderParams->renderGroupCache_, nullptr);
+
+    renderParams->SetHasChildExcludedFromNodeGroup(false);
+    ASSERT_NE(renderParams->renderGroupCache_, nullptr);
+    EXPECT_FALSE(renderParams->HasChildExcludedFromNodeGroup());
+    EXPECT_FALSE(renderParams->needSync_);
+
+    renderParams->SetHasChildExcludedFromNodeGroup(true);
+    EXPECT_TRUE(renderParams->HasChildExcludedFromNodeGroup());
+    EXPECT_TRUE(renderParams->needSync_);
 }
 
 /**
@@ -571,6 +664,30 @@ HWTEST_F(RSRenderParamsTest, SetHDRBrightnessTest, TestSize.Level2)
     renderParams->SetHDRBrightness(hdrBrightness);
     EXPECT_TRUE(renderParams->needSync_);
     EXPECT_EQ(renderParams->hdrBrightness_, hdrBrightness);
+}
+
+/**
+ * @tc.name: HDRStatusTest
+ * @tc.desc: Test function GetHDRStatus UpdateHDRStatus ClearHDRVideoStatus
+ * @tc.type:FUNC
+ * @tc.require:issueIB1KXV
+ */
+HWTEST_F(RSRenderParamsTest, HDRStatusTest, TestSize.Level2)
+{
+    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
+    std::unique_ptr<RSRenderParams> target = std::make_unique<RSRenderParams>(id);
+    RSRenderParams params(id);
+    auto renderParams = static_cast<RSRenderParams*>(target.get());
+    EXPECT_EQ(renderParams->GetHDRStatus(), HdrStatus::NO_HDR);
+    HdrStatus hdrStatus = HdrStatus::HDR_VIDEO;
+    renderParams->needSync_ = false;
+
+    renderParams->UpdateHDRStatus(hdrStatus, true);
+    EXPECT_TRUE(renderParams->needSync_);
+    EXPECT_EQ(renderParams->GetHDRStatus(), hdrStatus);
+
+    renderParams->ClearHDRVideoStatus();
+    EXPECT_EQ(renderParams->GetHDRStatus(), HdrStatus::NO_HDR);
 }
 
 /**
@@ -782,38 +899,6 @@ HWTEST_F(RSRenderParamsTest, GetLayerInfo_001, TestSize.Level2)
 }
 
 /**
- * @tc.name: EnableWindowKeyFrame
- * @tc.desc: Test EnableWindowKeyFrame
- * @tc.type: FUNC
- * @tc.require:#IBPVN9
- */
-HWTEST_F(RSRenderParamsTest, EnableWindowKeyFrame, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
-
-    renderParams->EnableWindowKeyFrame(true);
-    EXPECT_TRUE(renderParams->IsWindowKeyFrameEnabled());
-    EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
- * @tc.name: SetNeedSwapBuffer
- * @tc.desc: Test SetNeedSwapBuffer
- * @tc.type: FUNC
- * @tc.require:#IBPVN9
- */
-HWTEST_F(RSRenderParamsTest, SetNeedSwapBuffer, TestSize.Level2)
-{
-    constexpr NodeId id = TestSrc::limitNumber::Uint64[4];
-    std::unique_ptr<RSRenderParams> renderParams = std::make_unique<RSRenderParams>(id);
-
-    renderParams->SetNeedSwapBuffer(true);
-    EXPECT_TRUE(renderParams->GetNeedSwapBuffer());
-    EXPECT_TRUE(renderParams->needSync_);
-}
-
-/**
  * @tc.name: SetVirtualScreenWhiteListInfo
  * @tc.desc: Test SetVirtualScreenWhiteListInfo
  * @tc.type: FUNC
@@ -831,5 +916,21 @@ HWTEST_F(RSRenderParamsTest, SetVirtualScreenWhiteListInfo, TestSize.Level2)
     info[screenId] = true;
     renderParams->SetVirtualScreenWhiteListInfo(info);
     ASSERT_EQ(renderParams->GetVirtualScreenWhiteListInfo(), info);
+}
+
+/**
+ * @tc.name: SetCanvasDrawingResetSurfaceIndexTest
+ * @tc.desc: Test SetCanvasDrawingResetSurfaceIndex
+ * @tc.type: FUNC
+ * @tc.require:#issueICF7P6
+ */
+HWTEST_F(RSRenderParamsTest, SetCanvasDrawingResetSurfaceIndexTest, TestSize.Level2)
+{
+    auto renderParams = std::make_unique<RSRenderParams>(1);
+    renderParams->canvasDrawingResetSurfaceIndex_ = 1;
+    renderParams->SetCanvasDrawingResetSurfaceIndex(1);
+    ASSERT_FALSE(renderParams->needSync_);
+    renderParams->SetCanvasDrawingResetSurfaceIndex(2);
+    ASSERT_TRUE(renderParams->needSync_);
 }
 } // namespace OHOS::Rosen

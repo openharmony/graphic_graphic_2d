@@ -51,7 +51,7 @@ HWTEST_F(RSSurfaceCaptureCallbackProxyTest, OnSurfaceCapture001, TestSize.Level1
     ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
     RSSurfaceCaptureConfig captureConfig;
     std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
-    rsSurfaceCaptureCallbackProxy->OnSurfaceCapture(1, captureConfig, pixelMap.get());
+    rsSurfaceCaptureCallbackProxy->OnSurfaceCapture(1, captureConfig, pixelMap.get(), CaptureError::CAPTURE_OK);
     ASSERT_EQ(
         remoteMocker->receivedCode_, static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE));
 }
@@ -71,7 +71,7 @@ HWTEST_F(RSSurfaceCaptureCallbackProxyTest, OnSurfaceCapture002, TestSize.Level1
     ASSERT_TRUE(rsSurfaceCaptureCallbackProxy != nullptr);
     RSSurfaceCaptureConfig captureConfig;
     std::shared_ptr<Media::PixelMap> pixelMap = std::make_shared<Media::PixelMap>();
-    rsSurfaceCaptureCallbackProxy->OnSurfaceCapture(1, captureConfig, pixelMap.get());
+    rsSurfaceCaptureCallbackProxy->OnSurfaceCapture(1, captureConfig, pixelMap.get(), CaptureError::CAPTURE_OK);
     ASSERT_EQ(
         remoteMocker->receivedCode_, static_cast<uint32_t>(RSISurfaceCaptureCallbackInterfaceCode::ON_SURFACE_CAPTURE));
 }

@@ -67,11 +67,11 @@ shared_ptr<RSCanvasNode> canvasNode2;
 shared_ptr<RSSurfaceNode> surfaceNode1;
 shared_ptr<RSSurfaceNode> surfaceNode2;
 shared_ptr<RSEffectNode> effectNode;
-shared_ptr<RSCanvasDrawingNode> canvasDrawingNode;
+shared_ptr<RSCanvasNode> canvasNode3;
 shared_ptr<RSNode> myLittleRootNode;
 
 #ifdef RS_ENABLE_GPU
-    RenderContext* rc_ = nullptr;
+    std::shared_ptr<RenderContext> rc_ = nullptr;
 #endif
 
 bool WriteToPng(const string &fileName, const WriteToPngParam &param)
@@ -126,10 +126,10 @@ void RenderContextInit()
 #ifdef RS_ENABLE_GPU
     cout << "RS_ENABLE_GPU is true" << endl;
     cout << "Init RenderContext start" << endl;
-    rc_ = RenderContextFactory::GetInstance().CreateEngine();
+    rc_ = RenderContext::Create();
     if (rc_) {
         cout << "Init RenderContext success" << endl;
-        rc_->InitializeEglContext();
+        rc_->Init();
     } else {
         cout << "Init RenderContext failed, RenderContext is nullptr" << endl;
     }
@@ -310,11 +310,11 @@ void Init(shared_ptr<RSUIDirector> rsUiDirector, int width, int height)
     myLittleRootNode->SetBackgroundColor(SK_ColorYELLOW);
     surfaceNode1->AddChild(myLittleRootNode, -1);
 
-    canvasDrawingNode = RSCanvasDrawingNode::Create();
-    canvasDrawingNode->SetBounds(5, 5, 100, 300);
-    canvasDrawingNode->SetFrame(5, 5, 100, 300);
-    canvasDrawingNode->SetBackgroundColor(SK_ColorGREEN);
-    myLittleRootNode->AddChild(canvasDrawingNode, -1);
+    canvasNode3 = RSCanvasNode::Create();
+    canvasNode3->SetBounds(5, 5, 100, 300);
+    canvasNode3->SetFrame(5, 5, 100, 300);
+    canvasNode3->SetBackgroundColor(SK_ColorGREEN);
+    myLittleRootNode->AddChild(canvasNode3, -1);
 }
 
 class MyOffscreenRenderCallback : public SurfaceCaptureCallback {
@@ -373,34 +373,40 @@ int main()
         std::make_shared<MySurfaceCaptureCallback>();
     cout << "rootNode id is " << rootNode->GetId() << endl;
 
-    // 1. red, yellow
-    RSInterfaces::GetInstance().TakeUICaptureInRange(
-        rootNode, canvasNode, true, mySurfaceCaptureCallback, 1, 1, false);
-    cout << "1. red, yellow, start: root -> end: canvas1" << endl;
-    sleep(2);
-
-    // 2. red, yellow, blue
+    // 1. rootNode->canvasNode2: red yellow; true
     RSInterfaces::GetInstance().TakeUICaptureInRange(
         rootNode, canvasNode2, true, mySurfaceCaptureCallback, 1, 1, false);
-    cout << "2. red, yellow, blue, start: root -> canvas1 -> end: canvas2" << endl;
-    sleep(2);
+    cout << "1. rootNode->canvasNode2: red yellow; true" << endl;
+    sleep(1);
 
-    // 3. yellow...
+    // 2. rootNode->canvasNode2: blue yellow green; false
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        rootNode, canvasNode2, false, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "2. rootNode->canvasNode2: blue yellow green; false" << endl;
+    sleep(1);
+
+    // 3. canvasNode->rootNode: yellow blue yellow green; true
     RSInterfaces::GetInstance().TakeUICaptureInRange(
         canvasNode, rootNode, true, mySurfaceCaptureCallback, 1, 1, false);
-    cout << "3. yellow..., start: canvas1 -> end: root" << endl;
-    sleep(2);
+    cout << "3. canvasNode->rootNode: yellow blue yellow green; true" << endl;
+    sleep(1);
 
-    // 4. blue
+    // 4. canvasNode2->canvasNode2: transparent; true
     RSInterfaces::GetInstance().TakeUICaptureInRange(
         canvasNode2, canvasNode2, true, mySurfaceCaptureCallback, 1, 1, false);
-    cout << "4.blue, start: canvas2 -> end: canvas2" << endl;
-    sleep(2);
+    cout << "4. canvasNode2->canvasNode2: transparent; true" << endl;
+    sleep(1);
 
-    // 5. red...
+    // 5. canvasNode2->canvasNode2: transparent; false
+    RSInterfaces::GetInstance().TakeUICaptureInRange(
+        canvasNode2, canvasNode2, false, mySurfaceCaptureCallback, 1, 1, false);
+    cout << "5. canvasNode2->canvasNode2: transparent; false" << endl;
+    sleep(1);
+
+    // 6. red, yellow, blue, yellow, green, start: root -> end: nullptr
     RSInterfaces::GetInstance().TakeUICaptureInRange(
         rootNode, nullptr, true, mySurfaceCaptureCallback, 1, 1, false);
-    cout << "5. red, yellow, blue, yellow, green, start: root -> end: nullptr" << endl;
-    sleep(2);
+    cout << "6. red, yellow, blue, yellow, green, start: root -> end: nullptr" << endl;
+    sleep(1);
     return 0;
 }

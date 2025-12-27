@@ -15,8 +15,14 @@
 
 #include <gtest/gtest.h>
 #include "platform/ohos/rs_irender_service_connection_ipc_interface_code_access_verifier.h"
+#include "mock/mock_accesstoken_kit.h"
 
 namespace OHOS::Rosen {
+namespace {
+    constexpr uint32_t ROOT_UID = 0;
+    constexpr uint32_t EXFUSION_UID = 7015;
+    constexpr const char* EXFUSION_SERVICE_PROCESS_NAME = "exfusion_display_service";
+}
 class RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -217,6 +223,37 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsStylusS
 #else
     ASSERT_EQ(verifier->IsStylusServiceCalling(callingCode), true);
 #endif
+}
+
+/**
+ * @tc.name: IsExfusionServiceCallingTest001
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require: issue#IAS6LQ
+ */
+HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsExfusionServiceCallingTest001,
+    testing::ext::TestSize.Level1)
+{
+    auto verifier = std::make_unique<RSIRenderServiceConnectionInterfaceCodeAccessVerifier>();
+    const std::string callingCode = "exfusion_test";
+#ifdef ENABLE_IPC_SECURITY
+    ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), false);
+    MockAccessTokenKit::MockAccessTokenKitRet(0);
+    MockAccessTokenKit::MockTokenType(true);
+    MockAccessTokenKit::MockProcessName(EXFUSION_SERVICE_PROCESS_NAME);
+    ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), false);
+    setuid(EXFUSION_UID);
+    ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), true);
+#else
+    ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), false);
+    MockAccessTokenKit::MockAccessTokenKitRet(0);
+    MockAccessTokenKit::MockTokenType(true);
+    MockAccessTokenKit::MockProcessName(EXFUSION_SERVICE_PROCESS_NAME);
+    ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), false);
+    setuid(EXFUSION_UID);
+    ASSERT_EQ(verifier->IsExfusionServiceCalling(callingCode), true);
+#endif
+    setuid(ROOT_UID);
 }
 
 /**

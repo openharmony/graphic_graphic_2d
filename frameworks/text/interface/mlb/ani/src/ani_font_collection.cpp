@@ -34,9 +34,11 @@ namespace {
 const std::string FONT_COLLECTION_INSTANCE_SIGN = ":C{" + std::string(ANI_CLASS_FONT_COLLECTION) + "}";
 const std::string LOAD_FONT_SYNC_SIGN = "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}:";
 const std::string UNLOAD_FONT_SYNC_SIGN = "C{std.core.String}:";
+const std::string LOAD_FONT_SYNC_WITH_CHECK_SIGN =
+    "C{std.core.String}X{C{global.resource.Resource}C{std.core.String}}C{std.core.Int}:";
 
-void LoadString(
-    ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
+AniTextResult LoadString(ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection,
+    std::string familyName, uint32_t index = 0)
 {
     std::unique_ptr<uint8_t[]> data;
     size_t dataLen = 0;
@@ -44,27 +46,39 @@ void LoadString(
     std::string pathStr;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
     if (ret != ANI_OK) {
-        return;
+        return AniTextResult::Invalid();
     }
-    if (!AniTextUtils::SplitAbsoluteFontPath(pathStr) || !AniTextUtils::ReadFile(pathStr, dataLen, data)) {
+    if (!AniTextUtils::SplitAbsoluteFontPath(pathStr)) {
         TEXT_LOGE("Failed to split absolute font path");
-        return;
+        return AniTextResult::Invalid("The file format is like 'file:///system/fonts...'");
     }
-    fontCollection->LoadFont(familyName, data.get(), dataLen);
+    auto result = AniTextUtils::ReadFile(pathStr, dataLen, data);
+    if (!result.success) {
+        return result;
+    }
+    if (fontCollection->LoadFont(familyName, data.get(), dataLen, index) == nullptr) {
+        TEXT_LOGE("Failed to load font");
+        return AniTextResult::Error(MLB::ERROR_FILE_CORRUPTED);
+    }
+    return AniTextResult::Success();
 }
 
-void LoadResource(
-    ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection, std::string familyName)
+AniTextResult LoadResource(ani_env* env, ani_object path, std::shared_ptr<OHOS::Rosen::FontCollection> fontCollection,
+    std::string familyName, uint32_t index = 0)
 {
     std::unique_ptr<uint8_t[]> data;
     size_t dataLen = 0;
 
     AniResource resource = AniResourceParser::ParseResource(env, path);
-    if (!AniResourceParser::ResolveResource(resource, dataLen, data)) {
-        TEXT_LOGE("Failed to resolve resource");
-        return;
+    auto result = AniResourceParser::ResolveResource(resource, dataLen, data);
+    if (!result.success) {
+        return result;
     }
-    fontCollection->LoadFont(familyName, data.get(), dataLen);
+    if (fontCollection->LoadFont(familyName, data.get(), dataLen, index) == nullptr) {
+        TEXT_LOGE("Failed to load font");
+        return AniTextResult::Error(MLB::ERROR_FILE_CORRUPTED);
+    }
+    return AniTextResult::Success();
 }
 } // namespace
 
@@ -77,23 +91,19 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_FONT_COLLECTION, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
-        return ret;
-    }
-
     std::array methods = {
-        ani_native_function{"constructorNative", ":", reinterpret_cast<void*>(Constructor)},
-        ani_native_function{"loadFontSync", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync)},
-        ani_native_function{"unloadFontSync", UNLOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(UnloadFontSync)},
-        ani_native_function{"clearCaches", ":", reinterpret_cast<void*>(ClearCaches)},
+        ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(Constructor) },
+        ani_native_function { "loadFontSync", LOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(LoadFontSync) },
+        ani_native_function {
+            "unloadFontSync", UNLOAD_FONT_SYNC_SIGN.c_str(), reinterpret_cast<void*>(UnloadFontSync) },
+        ani_native_function { "clearCaches", ":", reinterpret_cast<void*>(ClearCaches) },
+        ani_native_function { "loadFontSyncWithCheck", LOAD_FONT_SYNC_WITH_CHECK_SIGN.c_str(),
+            reinterpret_cast<void*>(LoadFontSyncWithCheck) },
     };
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(AniGlobalClass::GetInstance().fontCollection, methods.data(), methods.size());
     if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to bind methods for FontCollection: %{public}s, ret %{public}d",
-            ANI_CLASS_FONT_COLLECTION, ret);
+        TEXT_LOGE(
+            "Failed to bind methods for FontCollection: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
         return ret;
     }
 
@@ -107,7 +117,8 @@ ani_status AniFontCollection::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{
             "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
-    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    ret = env->Class_BindStaticNativeMethods(
+        AniGlobalClass::GetInstance().fontCollection, staticMethods.data(), staticMethods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind static methods: %{public}s, ret %{public}d", ANI_CLASS_FONT_COLLECTION, ret);
         return ret;
@@ -124,7 +135,7 @@ void AniFontCollection::Constructor(ani_env* env, ani_object object)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
     ani_status ret = env->Object_CallMethodByName_Void(
-        object, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
+        object, TEXT_BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
@@ -137,10 +148,9 @@ ani_object AniFontCollection::GetGlobalInstance(ani_env* env, ani_class cls)
 {
     AniFontCollection* aniFontCollection = new AniFontCollection();
     aniFontCollection->fontCollection_ = FontCollection::Create();
-    ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":");
-    ani_status ret = env->Object_CallMethodByName_Void(
-        obj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
-    if (ret != ANI_OK) {
+    ani_object obj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontCollection,
+        AniGlobalMethod::GetInstance().fontCollection, reinterpret_cast<ani_long>(aniFontCollection));
+    if (AniTextUtils::IsUndefined(env, obj)) {
         TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
         aniFontCollection = nullptr;
@@ -162,68 +172,75 @@ ani_object AniFontCollection::GetLocalInstance(ani_env* env, ani_class cls)
         FontCollectionMgr::GetInstance().InsertLocalInstance(envAddress, aniFontCollection->fontCollection_);
     }
 
-    ani_object obj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":");
-    ani_status ret = env->Object_CallMethodByName_Void(
-        obj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
+    ani_object obj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontCollection,
+        AniGlobalMethod::GetInstance().fontCollection, reinterpret_cast<ani_long>(aniFontCollection));
+    if (AniTextUtils::IsUndefined(env, obj)) {
+        TEXT_LOGE("Failed to create ani font collection obj");
         delete aniFontCollection;
         return nullptr;
     }
     return obj;
 }
 
-void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
+AniTextResult AniFontCollection::OnLoadFontSync(
+    ani_env* env, ani_object obj, ani_string name, ani_object path, int32_t index)
 {
     std::string familyName;
     ani_status ret = AniTextUtils::AniToStdStringUtf8(env, name, familyName);
     if (ret != ANI_OK) {
-        return;
+        return AniTextResult::Invalid();
     }
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
+        env, obj, AniGlobalMethod::GetInstance().fontCollectionGetNative);
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
-        return;
+        return AniTextResult::Invalid();
     }
 
     uint64_t envAddress = static_cast<uint64_t>(reinterpret_cast<uintptr_t>(env));
     if (!FontCollectionMgr::GetInstance().CheckInstanceIsValid(envAddress, aniFontCollection->fontCollection_)) {
         TEXT_LOGE("Failed to check local instance, familyName %{public}s", familyName.c_str());
-        return;
-    }
-
-    ani_class stringClass = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, "std.core.String", stringClass);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to found std.core.String, ret %{public}d", ret);
-        return;
+        return AniTextResult::Invalid();
     }
 
     ani_boolean isString = false;
-    env->Object_InstanceOf(path, stringClass, &isString);
+    env->Object_InstanceOf(path, AniGlobalClass::GetInstance().aniString, &isString);
 
     if (isString) {
-        LoadString(env, path, aniFontCollection->fontCollection_, familyName);
-        return;
+        return LoadString(env, path, aniFontCollection->fontCollection_, familyName, index);
     }
 
-    ani_class resourceClass = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, "global.resource.Resource", resourceClass);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to found global.resource.Resource, ret %{public}d", ret);
-        return;
-    }
     ani_boolean isResource = false;
-    env->Object_InstanceOf(path, resourceClass, &isResource);
+    env->Object_InstanceOf(path, AniGlobalClass::GetInstance().globalResource, &isResource);
     if (isResource) {
-        LoadResource(env, path, aniFontCollection->fontCollection_, familyName);
-        return;
+        return LoadResource(env, path, aniFontCollection->fontCollection_, familyName, index);
+    }
+    return AniTextResult::Invalid();
+}
+
+void AniFontCollection::LoadFontSync(ani_env* env, ani_object obj, ani_string name, ani_object path)
+{
+    OnLoadFontSync(env, obj, name, path);
+}
+
+void AniFontCollection::LoadFontSyncWithCheck(
+    ani_env* env, ani_object obj, ani_string name, ani_object path, ani_object index)
+{
+    int32_t nativeIndex = 0;
+    ani_boolean isUndefined = false;
+    if (env->Reference_IsUndefined(index, &isUndefined) == ANI_OK && !isUndefined) {
+        env->Object_CallMethod_Int(index, AniGlobalMethod::GetInstance().intGet, &nativeIndex);
+    }
+    auto result = OnLoadFontSync(env, obj, name, path, nativeIndex);
+    if (!result.success) {
+        AniTextUtils::ThrowBusinessError(env, static_cast<TextErrorCode>(result.errorCode), result.ToString().c_str());
     }
 }
 
 void AniFontCollection::ClearCaches(ani_env* env, ani_object obj)
 {
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
+        env, obj, AniGlobalMethod::GetInstance().fontCollectionGetNative);
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
@@ -243,7 +260,8 @@ void AniFontCollection::UnloadFontSync(ani_env* env, ani_object obj, ani_string 
     if (ret != ANI_OK) {
         return;
     }
-    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(env, obj);
+    auto aniFontCollection = AniTextUtils::GetNativeFromObj<AniFontCollection>(
+        env, obj, AniGlobalMethod::GetInstance().fontCollectionGetNative);
     if (aniFontCollection == nullptr || aniFontCollection->fontCollection_ == nullptr) {
         TEXT_LOGE("Null font collection");
         return;
@@ -265,18 +283,17 @@ std::shared_ptr<FontCollection> AniFontCollection::GetFontCollection()
 ani_object AniFontCollection::NativeTransferStatic(ani_env* env, ani_class cls, ani_object input)
 {
     return AniTransferUtils::TransferStatic(env, input, [](ani_env* env, void* unwrapResult) {
-        JsFontCollection* jsFontcollection = reinterpret_cast<JsFontCollection*>(unwrapResult);
-        if (jsFontcollection == nullptr) {
-            TEXT_LOGE("Null jsFontcollection");
+        JsFontCollection* jsFontCollection = reinterpret_cast<JsFontCollection*>(unwrapResult);
+        if (jsFontCollection == nullptr) {
+            TEXT_LOGE("Null jsFontCollection");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT_COLLECTION, ":");
         AniFontCollection* aniFontCollection = new AniFontCollection();
-        aniFontCollection->fontCollection_ = jsFontcollection->GetFontCollection();
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniFontCollection));
-        if (ret != ANI_OK) {
-            TEXT_LOGE("Failed to create ani font collection obj, ret %{public}d", ret);
+        aniFontCollection->fontCollection_ = jsFontCollection->GetFontCollection();
+        ani_object staticObj = AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().fontCollection,
+            AniGlobalMethod::GetInstance().fontCollection, reinterpret_cast<ani_long>(aniFontCollection));
+        if (AniTextUtils::IsUndefined(env, staticObj)) {
+            TEXT_LOGE("Failed to create ani font collection obj");
             delete aniFontCollection;
             aniFontCollection = nullptr;
             return AniTextUtils::CreateAniUndefined(env);

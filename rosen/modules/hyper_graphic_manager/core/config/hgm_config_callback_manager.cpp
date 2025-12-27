@@ -107,14 +107,14 @@ void HgmConfigCallbackManager::RegisterHgmRefreshRateUpdateCallback(
     if (callback == nullptr) {
         if (refreshRateUpdateCallbacks_.find(pid) != refreshRateUpdateCallbacks_.end()) {
             refreshRateUpdateCallbacks_.erase(pid);
-            HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", pid);
+            HGM_LOGD("refreshRateUpdateCallbacks unregister succ, remove pid %{public}d", pid);
         }
         return;
     }
     refreshRateUpdateCallbacks_[pid] = callback;
     uint32_t currentRefreshRate =
         HgmCore::Instance().GetScreenCurrentRefreshRate(HgmCore::Instance().GetActiveScreenId());
-    HGM_LOGD("%{public}s : currentRefreshRate = %{public}d", __func__, currentRefreshRate);
+    HGM_LOGD("%{public}s : currentRefreshRate = %{public}u", __func__, currentRefreshRate);
     callback->OnHgmRefreshRateUpdate(currentRefreshRate);
 }
 
@@ -126,7 +126,7 @@ void HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback(pid_t
         if (auto iter = xcomponentExpectedFrameRateCallbacks_.find(dstPid);
             iter != xcomponentExpectedFrameRateCallbacks_.end()) {
             iter->second.erase(listenerPid);
-            HGM_LOGI("refreshRateUpdateCallbacks unregister succ, remove pid %{public}u", listenerPid);
+            HGM_LOGI("refreshRateUpdateCallbacks unregister succ, remove pid %{public}d", listenerPid);
         }
         return;
     }

@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <fstream>
 #include "memory/rs_memory_track.h"
 
 namespace OHOS::Rosen {
@@ -468,6 +469,37 @@ HWTEST_F(RSMemoryTrackTest, KillProcessByPid, testing::ext::TestSize.Level1)
     EXPECT_EQ(test1.CountFdRecordOfPid(1234), 1);
     MemoryTrack::Instance().KillProcessByPid(pid, reason);
     EXPECT_EQ(test1.CountFdRecordOfPid(1234), 0);
+}
+
+/**
+ * @tc.name: FdOverReport
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, FdOverReport, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 1234;
+    std::string hidumperReport = "report";
+    MemoryTrack::Instance().FdOverReport(pid, "RENDER_MEMORY_OVER_WARNING", hidumperReport);
+    std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
+    ASSERT_TRUE(std::ifstream(filePath).good());
+}
+
+/**
+ * @tc.name: WriteInfoToFile
+ * @tc.desc: test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryTrackTest, WriteInfoToFile, testing::ext::TestSize.Level1)
+{
+    std::string filePath = "";
+    std::string memInfo = "info";
+    std::string hidumperReport = "";
+    std::string filePath = "/data/service/el0/render_service/renderservice_fdmem.txt";
+    MemoryTrack::Instance().WriteInfoToFile(filePath, memInfo, hidumperReport);
+    ASSERT_TRUE(std::ifstream(filePath).good());
 }
 
 /**

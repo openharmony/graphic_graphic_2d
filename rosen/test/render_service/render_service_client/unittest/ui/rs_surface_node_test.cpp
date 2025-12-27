@@ -234,6 +234,28 @@ HWTEST_F(RSSurfaceNodeTest, SetandGetBounds005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LoadRenderNodeIfNeed001
+ * @tc.desc: Test LoadRenderNodeIfNeed func with RSSurfaceNode
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSSurfaceNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
+{
+    RSSurfaceNodeConfig config;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(config);
+    surfaceNode->lazyLoad_ = true;
+    surfaceNode->isTextureExportNode_ = true;
+
+    Vector4f quaternion(0, 0,
+        TestSrc::limitNumber::floatLimit[2], TestSrc::limitNumber::floatLimit[0]);
+    surfaceNode->SetBounds(quaternion);
+    surfaceNode->modifiersNG_.emplace(0, nullptr);
+
+    surfaceNode->LoadRenderNodeIfNeed();
+    EXPECT_EQ(surfaceNode->lazyLoad_, false);
+}
+
+/**
  * @tc.name: SetandGetBounds006
  * @tc.desc:
  * @tc.type:FUNC
@@ -1736,22 +1758,6 @@ HWTEST_F(RSSurfaceNodeTest, SetIsTextureExportNode, TestSize.Level1)
 }
 
 /**
- * @tc.name: SplitSurfaceNodeName Test
- * @tc.desc: SplitSurfaceNodeName
- * @tc.type: FUNC
- * @tc.require:SR000HSUII
- */
-HWTEST_F(RSSurfaceNodeTest, SplitSurfaceNodeName, TestSize.Level1)
-{
-    RSSurfaceNodeConfig c;
-    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
-    std::string surfaceNodeName = "0#1";
-    std::pair<std::string, std::string> res = surfaceNode->SplitSurfaceNodeName(surfaceNodeName);
-    EXPECT_EQ(res.first, "0");
-    EXPECT_EQ(res.second, "1");
-}
-
-/**
  * @tc.name: SetColorSpace Test
  * @tc.desc: Test
  * @tc.type: FUNC
@@ -1775,6 +1781,9 @@ HWTEST_F(RSSurfaceNodeTest, SetSkipDraw, TestSize.Level1)
 {
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    surfaceNode->SetSkipDraw(false);
+    EXPECT_FALSE(surfaceNode->GetSkipDraw());
+
     surfaceNode->SetSkipDraw(true);
     EXPECT_TRUE(surfaceNode->GetSkipDraw());
 
@@ -1937,5 +1946,19 @@ HWTEST_F(RSSurfaceNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
     if (transactionProxy != nullptr) {
         transactionProxy->FlushImplicitTransaction();
     }
+}
+
+/**
+ * @tc.name: SetContainerWindowTransparentTest
+ * @tc.desc: Test function SetContainerWindowTransparent
+ * @tc.type: FUNC
+ * @tc.require: issue21291
+ */
+HWTEST_F(RSSurfaceNodeTest, SetContainerWindowTransparentTest, TestSize.Level1)
+{
+    RSSurfaceNodeConfig c;
+    RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetContainerWindowTransparent(true);
 }
 } // namespace OHOS::Rosen

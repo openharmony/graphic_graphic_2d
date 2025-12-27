@@ -321,12 +321,12 @@ HWTEST_F(RSSubThreadCacheTest, UpdateUifirstDirtyManagerTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: CalculateUifirstDirtyRegionTest
+ * @tc.name: CalculateUifirstDirtyRegionTest001
  * @tc.desc: Test CalculateUifirstDirtyRegion
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest001, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     RectI dirtyRegion = {0, 0, 10, 10};
@@ -346,6 +346,85 @@ HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest, TestSize.Level1)
     ASSERT_EQ(isCalculateSucc, false);
     surfaceDrawable_->syncDirtyManager_->Clear();
     surfaceDrawable_->GetRsSubThreadCache().syncUifirstDirtyManager_->Clear();
+}
+
+/**
+ * @tc.name: CalculateUifirstDirtyRegionTest002
+ * @tc.desc: Test calculate dirty region when drawable is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    Drawing::RectI visibleFilterRect = {};
+    ASSERT_FALSE(subCache.CalculateUifirstDirtyRegion(nullptr, dirtyRect, false, visibleFilterRect));
+}
+
+/**
+ * @tc.name: CalculateUifirstDirtyRegionTest003
+ * @tc.desc: Test calculate dirty region when dirtymanager is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    Drawing::RectI visibleFilterRect = {};
+    subCache.syncUifirstDirtyManager_ = nullptr;
+    ASSERT_FALSE(subCache.CalculateUifirstDirtyRegion(surfaceDrawable_.get(), dirtyRect, false, visibleFilterRect));
+}
+
+/**
+ * @tc.name: CalculateUifirstDirtyRegionTest004
+ * @tc.desc: Test calculate dirty region when render param is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    Drawing::RectI visibleFilterRect = {};
+    subCache.syncUifirstDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+
+    bool isUifirstRootNode = false;
+    surfaceDrawable_->renderParams_ = nullptr;
+    // render params is null
+    ASSERT_FALSE(
+        subCache.CalculateUifirstDirtyRegion(surfaceDrawable_.get(), dirtyRect, isUifirstRootNode, visibleFilterRect));
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+
+    isUifirstRootNode = true;
+    surfaceDrawable_->uifirstRenderParams_ = nullptr;
+    // uifirst render params is null
+    ASSERT_FALSE(
+        subCache.CalculateUifirstDirtyRegion(surfaceDrawable_.get(), dirtyRect, isUifirstRootNode, visibleFilterRect));
+    surfaceDrawable_->uifirstRenderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+}
+
+/**
+ * @tc.name: CalculateUifirstDirtyRegionTest005
+ * @tc.desc: Test calculate dirty region when latest dirty rect is empty
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, CalculateUifirstDirtyRegionTest005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RectI dirtyRegion = { 0, 0, 10, 10 };
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    Drawing::RectI visibleFilterRect = {};
+    subCache.syncUifirstDirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    subCache.syncUifirstDirtyManager_->historyHead_ = -1;
+    ASSERT_TRUE(
+        subCache.CalculateUifirstDirtyRegion(surfaceDrawable_.get(), dirtyRect, false, visibleFilterRect));
 }
 
 /**
@@ -385,12 +464,12 @@ HWTEST_F(RSSubThreadCacheTest, UpadteAllSurfaceUifirstDirtyEnableState, TestSize
 }
 
 /**
- * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest001
  * @tc.desc: Test MergeUifirstAllSurfaceDirtyRegion
  * @tc.type: FUNC
  * @tc.require: #I9NVOG
  */
-HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest001, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
@@ -428,6 +507,96 @@ HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest, TestSize.L
         surfaceDrawable_.get(), dirtyRect);
     ASSERT_EQ(dirtyEnableFlag, false);
     uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::SINGLE));
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest002
+ * @tc.desc: Test merge dirty region when surface drawable is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    ASSERT_FALSE(subCache.MergeUifirstAllSurfaceDirtyRegion(nullptr, dirtyRect));
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest003
+ * @tc.desc: Test merge dirty region when surface drawable is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    ASSERT_FALSE(subCache.MergeUifirstAllSurfaceDirtyRegion(nullptr, dirtyRect));
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest004
+ * @tc.desc: Test merge dirty region when render param is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest004, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+    surfaceDrawable_->uifirstRenderParams_ = nullptr;
+    ASSERT_FALSE(subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect));
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest005
+ * @tc.desc: Test merge dirty region when render param is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest005, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+
+    auto surfaceParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    // app window
+    surfaceParam->SetWindowInfo(false, true, false);
+    surfaceDrawable_->uifirstRenderParams_ = std::move(surfaceParam);
+    ASSERT_FALSE(subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect));
+}
+
+/**
+ * @tc.name: MergeUifirstAllSurfaceDirtyRegionTest006
+ * @tc.desc: Test merge dirty region
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, MergeUifirstAllSurfaceDirtyRegionTest006, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    Drawing::RectI dirtyRect = {};
+    uifirstManager_.SetUiFirstType(static_cast<int>(UiFirstCcmType::MULTI));
+
+    auto surfaceParam = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    // leash window
+    surfaceParam->SetWindowInfo(false, true, false);
+    surfaceDrawable_->uifirstRenderParams_ = std::move(surfaceParam);
+    subCache.isDirtyRecordCompletated_ = false;
+    ASSERT_FALSE(subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect));
+
+    subCache.isDirtyRecordCompletated_ = true;
+    ASSERT_TRUE(subCache.MergeUifirstAllSurfaceDirtyRegion(surfaceDrawable_.get(), dirtyRect));
 }
 
 /**
@@ -623,12 +792,12 @@ HWTEST_F(RSSubThreadCacheTest, InitCacheSurfaceTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: ClearCacheSurfaceOnly
+ * @tc.name: ClearCacheSurfaceOnlyTest001
  * @tc.desc: Test If ClearCacheSurfaceOnly Can Run
  * @tc.type: FUNC
  * @tc.require: issueIAH6OI
  */
-HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceOnlyTest, TestSize.Level1)
+HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceOnlyTest001, TestSize.Level1)
 {
     ASSERT_NE(surfaceDrawable_, nullptr);
     DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func;
@@ -645,6 +814,30 @@ HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceOnlyTest, TestSize.Level1)
     surfaceDrawable_->GetRsSubThreadCache().clearCacheSurfaceFunc_ = func;
     surfaceDrawable_->GetRsSubThreadCache().ClearCacheSurfaceOnly();
     ASSERT_TRUE(surfaceDrawable_->GetRsSubThreadCache().clearCacheSurfaceFunc_);
+}
+
+/**
+ * @tc.name: ClearCacheSurfaceOnlyTest002
+ * @tc.desc: Test ClearCacheSurfaceOnly with clear func
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, ClearCacheSurfaceOnlyTest002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    DrawableV2::RsSubThreadCache::ClearCacheSurfaceFunc func;
+    func = [](std::shared_ptr<Drawing::Surface>&& oldSurface, std::shared_ptr<Drawing::Surface>&& newSurface,
+               uint32_t width, uint32_t height) {};
+    auto& subCache = surfaceDrawable_->GetRsSubThreadCache();
+    subCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    subCache.clearCacheSurfaceFunc_ = func;
+    subCache.ClearCacheSurfaceOnly();
+    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().cacheSurface_);
+
+    subCache.clearCacheSurfaceFunc_ = nullptr;
+    subCache.cacheSurface_ = std::make_shared<Drawing::Surface>();
+    subCache.ClearCacheSurfaceOnly();
+    ASSERT_FALSE(surfaceDrawable_->GetRsSubThreadCache().cacheSurface_);
 }
 
 /**
@@ -710,23 +903,6 @@ HWTEST_F(RSSubThreadCacheTest, DrawUIFirstDfx, TestSize.Level1)
         *surfaceParams, true);
     surfaceDrawable_->GetRsSubThreadCache().DrawUIFirstDfx(paintFilterCanvas, MultiThreadCacheType::LEASH_WINDOW,
         *surfaceParams, false);
-}
-
-/**
- * @tc.name: BufferFormatNeedUpdate
- * @tc.desc: Test BufferFormatNeedUpdate
- * @tc.type: FUNC
- * @tc.require: issueIAEDYI
- */
-HWTEST_F(RSSubThreadCacheTest, BufferFormatNeedUpdateTest, TestSize.Level1)
-{
-    ASSERT_NE(surfaceDrawable_, nullptr);
-    std::shared_ptr<Drawing::Surface> surface = Drawing::Surface::MakeRasterN32Premul(100, 100);
-    ASSERT_NE(surface, nullptr);
-    RSPaintFilterCanvas paintFilterCanvas(surface.get());
-    surfaceDrawable_->curCanvas_ = &paintFilterCanvas;
-    EXPECT_TRUE(surfaceDrawable_->GetRsSubThreadCache().BufferFormatNeedUpdate(surface, true));
-    EXPECT_FALSE(surfaceDrawable_->GetRsSubThreadCache().BufferFormatNeedUpdate(surface, false));
 }
 
 /**
@@ -1278,5 +1454,85 @@ HWTEST_F(RSSubThreadCacheTest, GetSubAppNodeIdTest, TestSize.Level1)
     surfaceParams->allSubSurfaceNodeIds_.insert(102);
     NodeId nodeId1 = subCache.GetSubAppNodeId(surfaceDrawable.get());
     ASSERT_EQ(nodeId1, 102);
+}
+
+/**
+ * @tc.name: CacheReuseCountTest
+ * @tc.desc: Test uifirst cache reuse count
+ * @tc.type: FUNC
+ * @tc.require: issues20692
+ */
+HWTEST_F(RSSubThreadCacheTest, CacheReuseCountTest, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.ResetCacheReuseCount();
+    subCache.AddCacheReuseCount();
+    subCache.AddCacheReuseCount();
+    ASSERT_EQ(subCache.GetCacheReuseCount(), 2);
+
+    subCache.ResetCacheReuseCount();
+    ASSERT_EQ(subCache.GetCacheReuseCount(), 0);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceInfo001
+ * @tc.desc: Test UpdateCacheSurfaceInfo when drawable is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo001, TestSize.Level1)
+{
+    RsSubThreadCache subCache;
+    subCache.cacheSurfaceInfo_.processedSurfaceCount = 0;
+    subCache.cacheSurfaceInfo_.processedNodeCount = 0;
+    subCache.totalProcessedSurfaceCount_ = 3;
+    subCache.UpdateCacheSurfaceInfo(nullptr);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 0);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 0);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceInfo002
+ * @tc.desc: Test UpdateCacheSurfaceInfo when render param is null
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo002, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RsSubThreadCache subCache;
+    subCache.cacheSurfaceInfo_.processedSurfaceCount = 0;
+    subCache.cacheSurfaceInfo_.processedNodeCount = 0;
+    subCache.totalProcessedSurfaceCount_ = 3;
+    surfaceDrawable_->renderParams_ = nullptr;
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 0);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 0);
+}
+
+/**
+ * @tc.name: UpdateCacheSurfaceInfo003
+ * @tc.desc: Test UpdateCacheSurfaceInfo
+ * @tc.type: FUNC
+ * @tc.require: issue21071
+ */
+HWTEST_F(RSSubThreadCacheTest, UpdateCacheSurfaceInfo003, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    RsSubThreadCache subCache;
+    subCache.cacheSurfaceInfo_.processedSurfaceCount = 0;
+    subCache.cacheSurfaceInfo_.processedNodeCount = 0;
+    subCache.cacheSurfaceInfo_.alpha = -1.f;
+    subCache.totalProcessedSurfaceCount_ = 1;
+    surfaceDrawable_->renderParams_ = std::make_unique<RSSurfaceRenderParams>(surfaceDrawable_->GetId());
+    surfaceDrawable_->renderParams_->SetGlobalAlpha(0);
+    RSRenderNodeDrawable::ClearProcessedNodeCount();
+    RSRenderNodeDrawable::ProcessedNodeCountInc();
+    RSRenderNodeDrawable::ProcessedNodeCountInc();
+
+    subCache.UpdateCacheSurfaceInfo(surfaceDrawable_);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedSurfaceCount, 1);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.processedNodeCount, 2);
+    ASSERT_EQ(subCache.cacheSurfaceInfo_.alpha, 0);
 }
 }

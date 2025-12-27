@@ -16,7 +16,6 @@
 #include "ani_resource_parser.h"
 
 #include "ability.h"
-#include "ani.h"
 #include "ani_common.h"
 #include "ani_text_utils.h"
 
@@ -33,15 +32,16 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     ani_ref aniBundleName = nullptr;
     ani_ref aniModuleName = nullptr;
     ani_int aniType = 0;
-    env->Object_GetPropertyByName_Long(obj, "id", &aniId);
-    env->Object_GetPropertyByName_Ref(obj, "bundleName", &aniBundleName);
-    env->Object_GetPropertyByName_Ref(obj, "moduleName", &aniModuleName);
-    AniTextUtils::ReadOptionalArrayField(env, obj, "params", result.params, [](ani_env* env, ani_ref ref) {
-        std::string utf8Str;
-        AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
-        return utf8Str;
-    });
-    AniTextUtils::ReadOptionalIntField(env, obj, "type", aniType);
+    env->Object_CallMethod_Long(obj, AniGlobalMethod::GetInstance().globalResourceId, &aniId);
+    env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().globalResourceBundleName, &aniBundleName);
+    env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().globalResourceModuleName, &aniModuleName);
+    AniTextUtils::ReadOptionalArrayField(
+        env, obj, AniGlobalMethod::GetInstance().globalResourceParams, result.params, [](ani_env* env, ani_ref ref) {
+            std::string utf8Str;
+            AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(ref), utf8Str);
+            return utf8Str;
+        });
+    AniTextUtils::ReadOptionalIntField(env, obj, AniGlobalMethod::GetInstance().globalResourceType, aniType);
 
     result.type = static_cast<int32_t>(aniType);
     result.id = static_cast<int32_t>(aniId);
@@ -55,10 +55,11 @@ AniResource AniResourceParser::ParseResource(ani_env* env, ani_object obj)
     return result;
 }
 
-bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dataLen, std::unique_ptr<uint8_t[]>& data)
+AniTextResult AniResourceParser::ResolveResource(
+    const AniResource& resource, size_t& dataLen, std::unique_ptr<uint8_t[]>& data)
 {
     auto context = AbilityRuntime::ApplicationContext::GetApplicationContext();
-    TEXT_ERROR_CHECK(context != nullptr, return false, "Failed to get application context");
+    TEXT_ERROR_CHECK(context != nullptr, return AniTextResult::Invalid(), "Failed to get application context");
     auto moduleContext = context->CreateModuleContext(resource.bundleName, resource.moduleName);
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager;
     if (moduleContext != nullptr) {
@@ -68,22 +69,30 @@ bool AniResourceParser::ResolveResource(const AniResource& resource, size_t& dat
             context->GetBundleName().c_str(), resource.moduleName.c_str());
         resourceManager = context->GetResourceManager();
     }
-    TEXT_ERROR_CHECK(resourceManager != nullptr, return false, "Failed to get resource manager");
+    TEXT_ERROR_CHECK(resourceManager != nullptr, return AniTextResult::Invalid(), "Failed to get resource manager");
 
     if (resource.type == RESOURCE_STRING) {
         std::string rPath;
         if (resourceManager->GetStringById(static_cast<uint32_t>(resource.id), rPath) !=
             Global::Resource::RState::SUCCESS) {
-            return false;
+            return AniTextResult::Invalid("Failed to get string");
         }
-        return AniTextUtils::SplitAbsoluteFontPath(rPath) && AniTextUtils::ReadFile(rPath, dataLen, data);
+        if (!AniTextUtils::SplitAbsoluteFontPath(rPath)) {
+            TEXT_LOGE("Failed to split absolute font path");
+            return AniTextResult::Invalid("The file format is like 'file:///system/fonts...'");
+        }
+        return AniTextUtils::ReadFile(rPath, dataLen, data);
     } else if (resource.type == RESOURCE_RAWFILE) {
         TEXT_ERROR_CHECK(!resource.params.empty(), return false, "Failed to get raw file path");
-        return resourceManager->GetRawFileFromHap(resource.params[0], dataLen, data) ==
-               Global::Resource::RState::SUCCESS;
+        if (resourceManager->GetRawFileFromHap(resource.params[0], dataLen, data) ==
+            Global::Resource::RState::SUCCESS) {
+            return AniTextResult::Success();
+        } else {
+            return AniTextResult::Invalid("Failed to get raw file");
+        }
     }
 
     TEXT_LOGE("Unsupported resource type");
-    return false;
+    return AniTextResult::Invalid("Unsupported resource type");
 }
 } // namespace OHOS::Text::ANI

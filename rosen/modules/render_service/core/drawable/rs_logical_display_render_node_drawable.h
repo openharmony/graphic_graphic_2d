@@ -39,9 +39,6 @@ public:
     void OnDraw(Drawing::Canvas& canvas) override;
     void OnCapture(Drawing::Canvas& canvas) override;
 
-    int32_t GetSpecialLayerType(RSLogicalDisplayRenderParams& mainDisplayParams,
-        RSLogicalDisplayRenderParams* mirrorDisplayParams = nullptr, bool isSecLayerInVisibleRect = true);
-
     void SetOriginScreenRotation(const ScreenRotation& rotate)
     {
         originScreenRotation_ = rotate;
@@ -89,7 +86,8 @@ private:
         bool useCanvasSize = true);
     void FinishOffscreenRender(const Drawing::SamplingOptions& sampling,
         bool isSamplingOn = false, float hdrBrightnessRatio = 1.0f);
-    void UpdateSlrScale(ScreenInfo& screenInfo, RSScreenRenderParams* params = nullptr);
+    void UpdateSlrScale(ScreenInfo& screenInfo, float srcWidth, float srcHeight,
+        RSScreenRenderParams* params = nullptr);
     void ScaleCanvasIfNeeded(const ScreenInfo& screenInfo);
     void ClearTransparentBeforeSaveLayer();
     std::vector<RectI> CalculateVirtualDirtyForWiredScreen(
@@ -102,9 +100,10 @@ private:
     std::shared_ptr<Drawing::ShaderEffect> MakeBrightnessAdjustmentShader(const std::shared_ptr<Drawing::Image>& image,
         const Drawing::SamplingOptions& sampling, float hdrBrightnessRatio);
 
-    void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSLogicalDisplayRenderParams& params);
-    void DrawAdditionalContent(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas = false);
-    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas, bool isOffScreenCanvas = false);
+    void DrawHardwareEnabledNodes(Drawing::Canvas& canvas, RSLogicalDisplayRenderParams& params,
+        sptr<SurfaceBuffer> virtualBuffer = nullptr, sptr<SyncFence> virtualFence = nullptr);
+    void DrawAdditionalContent(RSPaintFilterCanvas& canvas);
+    void DrawWatermarkIfNeed(RSPaintFilterCanvas& canvas);
 
     void MirrorRedrawDFX(bool mirrorRedraw, ScreenId screenId);
 
@@ -135,6 +134,7 @@ private:
     bool lastSecExemption_ = false;
     bool virtualDirtyNeedRefresh_ = false;
     bool enableVisibleRect_ = false;
+    bool lastEnableVisibleRect_ = false;
     Drawing::RectI curVisibleRect_;
     Drawing::RectI lastVisibleRect_;
     std::shared_ptr<RSSLRScaleFunction> scaleManager_ = nullptr;

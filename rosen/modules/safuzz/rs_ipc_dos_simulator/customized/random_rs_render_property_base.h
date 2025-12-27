@@ -26,6 +26,7 @@
 #include "customized/random_rs_path.h"
 #include "customized/random_rs_render_particle.h"
 #include "customized/random_rs_shader.h"
+#include "customized/random_rs_ng_shape.h"
 #include "random/random_data.h"
 
 namespace OHOS {
@@ -40,14 +41,17 @@ public:
     template<typename T, bool isAnimatable>
     static std::shared_ptr<RSRenderPropertyBase> GetRandom();
 
+    template<typename T>
+    static T GetRandomValue();
+
 private:
-#define DECLARE_RENDER_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                                \
+#define DECLARE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                                \
     static std::shared_ptr<RSRenderPropertyBase> GetRandom##FUNC_NAME##PropertyBase()           \
     {                                                                                           \
         return std::make_shared<RSRenderProperty<TYPE>>(                                        \
             RANDOM_FACTORY::GetRandom##FUNC_NAME(), RandomDataBasicType::GetRandomUint64());    \
     }
-#define DECLARE_ANIMATABLE_RENDER_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                     \
+#define DECLARE_ANIMATABLE_PROPERTY(TYPE, RANDOM_FACTORY, FUNC_NAME)                     \
     static std::shared_ptr<RSRenderPropertyBase> GetRandomAnimatable##FUNC_NAME##PropertyBase() \
     {                                                                                           \
         return std::make_shared<RSRenderAnimatableProperty<TYPE>>(                              \
@@ -56,8 +60,8 @@ private:
 
 #include "customized/rs_render_property.in"
 
-#undef DECLARE_RENDER_PROPERTY
-#undef DECLARE_ANIMATABLE_RENDER_PROPERTY
+#undef DECLARE_PROPERTY
+#undef DECLARE_ANIMATABLE_PROPERTY
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -261,6 +261,20 @@ HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: RegisterVulkanErrorCallback002
+ * @tc.desc: Test RegisterVulkanErrorCallback
+ * @tc.type: FUNC
+ * @tc.require: issue#20675
+ */
+HWTEST_F(SkiaGPUContextTest, RegisterVulkanErrorCallback002, TestSize.Level1)
+{
+    auto gpuContext = std::make_shared<SkiaGPUContext>();
+    ASSERT_TRUE(gpuContext != nullptr);
+    auto vulkanErrorCallback = [](const std::vector<pid_t>&, const std::string&, bool) {};
+    gpuContext->RegisterVulkanErrorCallback(vulkanErrorCallback);
+}
+
+/**
  * @tc.name: RegisterDrawOpOverCallbackTest
  * @tc.desc: Test RegisterDrawOpOverCallback
  * @tc.type: FUNC

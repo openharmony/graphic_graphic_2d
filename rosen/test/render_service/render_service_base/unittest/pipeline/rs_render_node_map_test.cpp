@@ -19,6 +19,7 @@
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_logical_display_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -360,5 +361,26 @@ HWTEST_F(RSRenderNodeMapTest, AttachToDisplayTest, TestSize.Level1)
     ScreenId screenId = 1;
     RSRenderNodeMap rsRenderNodeMap;
     rsRenderNodeMap.AttachToDisplay(node, screenId, false);
+}
+
+/**
+ * @tc.name: FilterNodeByPid003
+ * @tc.desc: test results of FilterNodeByPid
+ * @tc.type:FUNC
+ * @tc.require: issueI9VAI2
+ */
+HWTEST_F(RSRenderNodeMapTest, FilterNodeByPid003, TestSize.Level1)
+{
+    auto pid = getpid();
+    uint32_t curId = 1;
+    NodeId id = ((NodeId)pid << 32) | curId;
+
+    RSRenderNodeMap rsRenderNodeMap;
+    rsRenderNodeMap.FilterNodeByPid(1);
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id, config);
+    rsRenderNodeMap.logicalDisplayNodeMap_[id] = displayNode;
+    rsRenderNodeMap.FilterNodeByPid(pid);
+    EXPECT_FALSE(!rsRenderNodeMap.logicalDisplayNodeMap_.empty());
 }
 } // namespace OHOS::Rosen

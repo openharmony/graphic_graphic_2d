@@ -57,8 +57,7 @@ std::vector<ani_native_function> AniRun::InitMethods(ani_env* env)
         ani_native_function{"getGlyphs", RETURN_ARRAY_SIGN.c_str(), reinterpret_cast<void*>(GetGlyphs)},
         ani_native_function{
             "nativeGetGlyphs", NATIVE_GET_GLYPHS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetGlyphsByRange)},
-        ani_native_function{
-            "getPositions", RETURN_ARRAY_SIGN.c_str(), reinterpret_cast<void*>(GetPositions)},
+        ani_native_function{"getPositions", RETURN_ARRAY_SIGN.c_str(), reinterpret_cast<void*>(GetPositions)},
         ani_native_function{
             "nativeGetPositions", NATIVE_GET_POSITIONS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetPositionsByRange)},
         ani_native_function{"getOffsets", GET_OFFSETS_SIGNATURE.c_str(), reinterpret_cast<void*>(GetOffsets)},
@@ -89,15 +88,8 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
         return ret;
     }
 
-    ani_class cls = nullptr;
-    ret = AniTextUtils::FindClassWithCache(env, ANI_CLASS_RUN, cls);
-    if (ret != ANI_OK) {
-        TEXT_LOGE("Failed to find class, ret %{public}d", ret);
-        return ret;
-    }
-
     std::vector<ani_native_function> methods = InitMethods(env);
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ret = env->Class_BindNativeMethods(AniGlobalClass::GetInstance().run, methods.data(), methods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind methods for Run, ret %{public}d", ret);
         return ret;
@@ -109,7 +101,8 @@ ani_status AniRun::AniInit(ani_vm* vm, uint32_t* result)
         ani_native_function{
             "nativeTransferDynamic", "l:C{std.interop.ESValue}", reinterpret_cast<void*>(NativeTransferDynamic)},
     };
-    ret = env->Class_BindStaticNativeMethods(cls, staticMethods.data(), staticMethods.size());
+    ret = env->Class_BindStaticNativeMethods(
+        AniGlobalClass::GetInstance().run, staticMethods.data(), staticMethods.size());
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to bind static methods: %{public}s, ret %{public}d", ANI_CLASS_RUN, ret);
         return ret;
@@ -125,9 +118,10 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
     }
     AniRun* aniRun = new AniRun();
     aniRun->run_ = std::shared_ptr<Rosen::Run>(run);
-    ani_object runObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
-    ani_status ret = env->Object_CallMethodByName_Void(
-        runObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
+    ani_object runObj =
+        AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().run, AniGlobalMethod::GetInstance().run);
+    ani_status ret =
+        env->Object_CallMethodByName_Void(runObj, TEXT_BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set type set run");
         delete aniRun;
@@ -139,7 +133,7 @@ ani_object AniRun::CreateRun(ani_env* env, Rosen::Run* run)
 
 ani_int AniRun::GetGlyphCount(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -150,7 +144,7 @@ ani_int AniRun::GetGlyphCount(ani_env* env, ani_object object)
 
 ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -166,9 +160,9 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
-    for (const auto& glpyh : glyphs) {
-        ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+    for (const auto& glyph : glyphs) {
+        ani_status ret = env->Object_CallMethod_Void(
+            arrayObj, AniGlobalMethod::GetInstance().arraySet, index, AniTextUtils::CreateAniIntObj(env, glyph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -180,7 +174,7 @@ ani_object AniRun::GetGlyphs(ani_env* env, ani_object object)
 
 ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object range)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -198,7 +192,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
         TEXT_LOGE("Invalid range, start %{public}" PRId64 ", end %{public}" PRId64, rectRange.start, rectRange.end);
         return AniTextUtils::CreateAniUndefined(env);
     }
-    
+
     std::vector<uint16_t> glyphs = aniRun->run_->GetGlyphs(rectRange.start, rectRange.end);
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, glyphs.size());
     ani_boolean isUndefined;
@@ -208,9 +202,9 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
         return AniTextUtils::CreateAniUndefined(env);
     }
     ani_size index = 0;
-    for (const auto& glpyh : glyphs) {
-        ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, glpyh));
+    for (const auto& glyph : glyphs) {
+        ret = env->Object_CallMethod_Void(
+            arrayObj, AniGlobalMethod::GetInstance().arraySet, index, AniTextUtils::CreateAniIntObj(env, glyph));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set glyphs item %{public}zu", index);
             continue;
@@ -222,7 +216,7 @@ ani_object AniRun::GetGlyphsByRange(ani_env* env, ani_object object, ani_object 
 
 ani_object AniRun::GetPositions(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -245,7 +239,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -257,7 +251,7 @@ ani_object AniRun::GetPositions(ani_env* env, ani_object object)
 
 ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_object range)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -292,7 +286,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -304,7 +298,7 @@ ani_object AniRun::GetPositionsByRange(ani_env* env, ani_object object, ani_obje
 
 ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -328,7 +322,7 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iC{std.core.Object}:", index, aniObj);
+        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -340,16 +334,22 @@ ani_object AniRun::GetOffsets(ani_env* env, ani_object object)
 
 ani_object AniRun::GetFont(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
-    Drawing::AniFont* aniFont = new Drawing::AniFont(aniRun->run_->GetFont());
-    ani_object fontObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_FONT, ":");
-    ani_status ret = env->Object_SetFieldByName_Long(
-        fontObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
+    std::shared_ptr<Drawing::Font> fontPtr = std::make_shared<Drawing::Font>(aniRun->run_->GetFont());
+    if (!fontPtr) {
+        AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid nullptr params.");
+        return AniTextUtils::CreateAniUndefined(env);
+    }
+
+    Drawing::AniFont* aniFont = new Drawing::AniFont(fontPtr);
+    ani_object fontObj =
+        AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().font, AniGlobalMethod::GetInstance().fontCtor);
+    ani_status ret = env->Object_SetFieldByName_Long(fontObj, TEXT_NATIVE_OBJ, reinterpret_cast<ani_long>(aniFont));
     if (ret != ANI_OK) {
         TEXT_LOGE("Failed to set font field");
         delete aniFont;
@@ -360,13 +360,14 @@ ani_object AniRun::GetFont(ani_env* env, ani_object object)
 
 void AniRun::Paint(ani_env* env, ani_object object, ani_object canvas, ani_double x, ani_double y)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    Drawing::AniCanvas* aniCanvas = AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas);
+    Drawing::AniCanvas* aniCanvas =
+        AniTextUtils::GetNativeFromObj<Drawing::AniCanvas>(env, canvas, AniGlobalMethod::GetInstance().canvasGetNative);
     if (aniCanvas == nullptr || aniCanvas->GetCanvas() == nullptr) {
         TEXT_LOGE("Failed to get canvas");
         return;
@@ -377,7 +378,7 @@ void AniRun::Paint(ani_env* env, ani_object object, ani_object canvas, ani_doubl
 
 ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object range)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -400,7 +401,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
         TEXT_LOGE("Invalid range, start %{public}" PRId64 ", end %{public}" PRId64, rectRange.start, rectRange.end);
         return AniTextUtils::CreateAniUndefined(env);
     }
-    
+
     std::vector<uint64_t> stringIndices = aniRun->run_->GetStringIndices(rectRange.start, rectRange.end);
     ani_object arrayObj = AniTextUtils::CreateAniArray(env, stringIndices.size());
     ani_boolean isUndefined;
@@ -411,8 +412,8 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
     }
     ani_size index = 0;
     for (const auto& stringIndex : stringIndices) {
-        ani_status ret = env->Object_CallMethodByName_Void(
-            arrayObj, "$_set", "iC{std.core.Object}:", index, AniTextUtils::CreateAniIntObj(env, stringIndex));
+        ani_status ret = env->Object_CallMethod_Void(
+            arrayObj, AniGlobalMethod::GetInstance().arraySet, index, AniTextUtils::CreateAniIntObj(env, stringIndex));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to set stringIndices item %{public}zu", index);
             continue;
@@ -424,7 +425,7 @@ ani_object AniRun::GetStringIndices(ani_env* env, ani_object object, ani_object 
 
 ani_object AniRun::GetStringRange(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -444,7 +445,7 @@ ani_object AniRun::GetStringRange(ani_env* env, ani_object object)
 
 ani_object AniRun::GetTypographicBounds(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -467,7 +468,7 @@ ani_object AniRun::GetTypographicBounds(ani_env* env, ani_object object)
 
 ani_object AniRun::GetImageBounds(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -484,21 +485,21 @@ ani_object AniRun::GetImageBounds(ani_env* env, ani_object object)
 
 ani_object AniRun::GetTextDirection(ani_env* env, ani_object object)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return AniTextUtils::CreateAniUndefined(env);
     }
     TextDirection textDirection = aniRun->run_->GetTextDirection();
-    ani_enum_item textDirectionEnum = AniTextUtils::CreateAniEnum(
-        env, ANI_ENUM_TEXT_DIRECTION, static_cast<int>(textDirection));
+    ani_enum_item textDirectionEnum = AniTextUtils::CreateAniEnum(env, AniGlobalEnum::GetInstance().textDirection,
+        aniGetEnumIndex(AniTextEnum::textDirection, static_cast<uint32_t>(textDirection)).value_or(0));
     return static_cast<ani_object>(textDirectionEnum);
 }
 
 ani_object AniRun::GetAdvances(ani_env* env, ani_object object, ani_object range)
 {
-    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object);
+    AniRun* aniRun = AniTextUtils::GetNativeFromObj<AniRun>(env, object, AniGlobalMethod::GetInstance().runGetNative);
     if (aniRun == nullptr || aniRun->run_ == nullptr) {
         TEXT_LOGE("Run is null");
         AniTextUtils::ThrowBusinessError(env, TextErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
@@ -530,7 +531,7 @@ ani_object AniRun::GetAdvances(ani_env* env, ani_object object, ani_object range
             TEXT_LOGE("Failed to create point ani obj, index %{public}zu, status %{public}d", index, status);
             continue;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniObj);
+        status = env->Object_CallMethod_Void(arrayObj, AniGlobalMethod::GetInstance().arraySet, index, aniObj);
         if (ANI_OK != status) {
             TEXT_LOGE("Failed to set points item, index %{public}zu, status %{public}d", index, status);
             continue;
@@ -548,7 +549,8 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
             TEXT_LOGE("Null jsRun");
             return AniTextUtils::CreateAniUndefined(env);
         }
-        ani_object staticObj = AniTextUtils::CreateAniObject(env, ANI_CLASS_RUN, ":");
+        ani_object staticObj =
+            AniTextUtils::CreateAniObject(env, AniGlobalClass::GetInstance().run, AniGlobalMethod::GetInstance().run);
         std::shared_ptr<Rosen::Run> runPtr = jsRun->GetRun();
         if (runPtr == nullptr) {
             TEXT_LOGE("Failed to get run");
@@ -556,8 +558,8 @@ ani_object AniRun::NativeTransferStatic(ani_env* env, ani_class cls, ani_object 
         }
         AniRun* aniRun = new AniRun();
         aniRun->run_ = runPtr;
-        ani_status ret = env->Object_CallMethodByName_Void(
-            staticObj, BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
+        ani_status ret =
+            env->Object_CallMethodByName_Void(staticObj, TEXT_BIND_NATIVE, "l:", reinterpret_cast<ani_long>(aniRun));
         if (ret != ANI_OK) {
             TEXT_LOGE("Failed to create ani run obj, ret %{public}d", ret);
             delete aniRun;

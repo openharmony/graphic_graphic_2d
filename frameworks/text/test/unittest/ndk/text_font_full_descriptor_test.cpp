@@ -27,6 +27,7 @@ namespace {
 constexpr const char* SYMBOL_FILE = "/system/fonts/HMSymbolVF.ttf";
 constexpr const char* SYMBOL_CONFIG_FILE = "/system/fonts/hm_symbol_config_next.json";
 constexpr const char* CJK_FILE = "/system/fonts/NotoSansCJK-Regular.ttc";
+constexpr const char* NOTO_SANS_FILE = "/system/fonts/NotoSans[wdth,wght].ttf";
 
 #define CJK_SANS_DESC(lower, upper)                                                                                    \
     {                                                                                                                  \
@@ -54,6 +55,29 @@ FontDesc SYMBOL_DESC = { .path = "",
     .monoSpace = false,
     .symbolic = false };
 
+FontDesc NOTO_SANS_DESC = {
+    .path = "",
+    .postScriptName = "NotoSans-Regular",
+    .fullName = "Noto Sans Regular",
+    .fontFamily = "Noto Sans",
+    .fontSubfamily = "Regular",
+    .weight = 400,
+    .width = 5,
+    .italic = false,
+    .monoSpace = false,
+    .symbolic = false,
+    .localPostscriptName = "NotoSans-Regular",
+    .localFullName = "Noto Sans Regular",
+    .localFamilyName = "Noto Sans",
+    .localSubFamilyName = "Regular",
+    .version = "Version 2.010",
+    .manufacture = "Monotype Imaging Inc.",
+    .copyright = "Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)",
+    .license = "This Font Software is licensed under the SIL Open Font License,"
+        " Version 1.1. This license is available with a FAQ at: https://scripts.sil.org/OFL",
+    .index = 0
+};
+
 std::vector<FontDesc> CJK_DESCS {
     CJK_SANS_DESC(jp, JP),
     CJK_SANS_DESC(kr, KR),
@@ -77,7 +101,10 @@ class NdkFontFullDescriptorTest : public testing::Test {};
  */
 HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest001, TestSize.Level0)
 {
-    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(nullptr, 0);
+    std::vector<char> content;
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(nullptr, 1);
+    EXPECT_EQ(fontFullDescArr, nullptr);
+    fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromStream(content.data(), content.size());
     EXPECT_EQ(fontFullDescArr, nullptr);
     size_t num = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
     EXPECT_EQ(num, 0);
@@ -222,5 +249,72 @@ HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest005, TestSize.Level
         OH_Drawing_GetFontFullDescriptorAttributeBool(desc, FULL_DESCRIPTOR_ATTR_B_SYMBOLIC, &boolAttr);
         EXPECT_EQ(CJK_DESCS[i].symbolic, boolAttr);
     }
+}
+
+/*
+ * @tc.name: NdkFontFullDescriptorTest006
+ * @tc.desc: test for OH_Drawing_GetFontFullDescriptorAttributeString with local attribute id
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFullDescriptorTest, NdkFontFullDescriptorTest006, TestSize.Level0)
+{
+    OH_Drawing_Array* fontFullDescArr = OH_Drawing_GetFontFullDescriptorsFromPath(NOTO_SANS_FILE);
+    EXPECT_NE(fontFullDescArr, nullptr);
+    size_t size = OH_Drawing_GetDrawingArraySize(fontFullDescArr);
+    EXPECT_EQ(size, 1);
+    auto desc = OH_Drawing_GetFontFullDescriptorByIndex(fontFullDescArr, 0);
+    EXPECT_NE(desc, nullptr);
+
+    OH_Drawing_String str;
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_LOCAL_POSTSCRIPT_NAME, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.localPostscriptName,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_LOCAL_FULL_NAME, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.localFullName,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_LOCAL_FAMILY_NAME, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.localFamilyName,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_LOCAL_SUB_FAMILY_NAME, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.localSubFamilyName,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_VERSION, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.version,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_MANUFACTURE, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.manufacture,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_COPYRIGHT, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.copyright,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_TRADEMARK, &str);
+    std::string trademarkRes =
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t)));
+    const int notoSansTrademarkSize = 34;
+    EXPECT_EQ(trademarkRes.size(), notoSansTrademarkSize);
+    free(str.strData);
+
+    OH_Drawing_GetFontFullDescriptorAttributeString(desc, FULL_DESCRIPTOR_ATTR_S_LICENSE, &str);
+    EXPECT_EQ(NOTO_SANS_DESC.license,
+        OHOS::Str16ToStr8(std::u16string(reinterpret_cast<char16_t*>(str.strData), str.strLen / sizeof(char16_t))));
+    free(str.strData);
+
+    int32_t intAttr;
+    OH_Drawing_GetFontFullDescriptorAttributeInt(desc, FULL_DESCRIPTOR_ATTR_I_INDEX, &intAttr);
+    EXPECT_EQ(NOTO_SANS_DESC.index, intAttr);
 }
 } // namespace OHOS

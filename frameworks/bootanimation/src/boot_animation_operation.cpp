@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,7 +62,7 @@ void BootAnimationOperation::StartEventHandler(const BootAnimationConfig& config
     mainHandler_->PostTask([this] { this->StopBootAnimation(); }, duration_);
 #ifdef PLAYER_FRAMEWORK_ENABLE
     if (IsBootVideoEnabled(config)) {
-        mainHandler_->PostTask([this, &config] { this->PlayVideo(config.videoDefaultPath); });
+        mainHandler_->PostTask([this, &config] { this->PlayVideo(config); });
         runner_->Run();
         LOGI("runner run has ended.");
         return;
@@ -152,14 +152,14 @@ bool BootAnimationOperation::InitRsSurfaceNode(int32_t degree)
     return true;
 }
 
-void BootAnimationOperation::PlayVideo(const std::string& path)
+void BootAnimationOperation::PlayVideo(const BootAnimationConfig& config)
 {
     LOGI("boot animation play video");
     PlayerParams params;
 #ifdef PLAYER_FRAMEWORK_ENABLE
     params.surface = rsSurfaceNode_ ? rsSurfaceNode_->GetSurface() : nullptr;
 #endif
-    params.resPath = path;
+    params.resPath = config.videoDefaultPath;
     callback_ = {
         .userData = this,
         .callback = [this](void*) { this->StopBootAnimation(); },
@@ -167,6 +167,7 @@ void BootAnimationOperation::PlayVideo(const std::string& path)
     params.callback = &callback_;
     params.screenId = currentScreenId_;
     params.soundEnabled = isSoundEnabled_;
+    params.isFrameRateEnable = config.isFrameRateEnable;
     videoPlayer_ = std::make_shared<BootVideoPlayer>(params);
     videoPlayer_->Play();
 }
@@ -213,13 +214,13 @@ bool BootAnimationOperation::InitRsSurface()
 #ifdef ACE_ENABLE_GL
     LOGI("init egl context start");
     if (Rosen::RSSystemProperties::GetGpuApiType() == OHOS::Rosen::GpuApiType::OPENGL) {
-        OHOS::Rosen::RenderContext* rc = OHOS::Rosen::RenderContextFactory::GetInstance().CreateEngine();
+        auto rc = OHOS::Rosen::RenderContext::Create();
         if (rc == nullptr) {
             LOGE("init egl context failed");
             return false;
         } else {
             LOGI("init egl context success");
-            rc->InitializeEglContext();
+            rc->Init();
             rsSurface_->SetRenderContext(rc);
         }
     }

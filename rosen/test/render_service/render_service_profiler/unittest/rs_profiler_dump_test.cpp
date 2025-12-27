@@ -344,40 +344,6 @@ HWTEST(RSProfilerDumpTest, DumpNodeDrawCmdModifiers, TestSize.Level1)
     EXPECT_EQ(out.GetDumpString(), expected);
 }
 
-HWTEST(RSProfilerDumpTest, DumpNodeDrawCmdModifiersWithCustomDrawCmdList, TestSize.Level1)
-{
-    NodeId nodeId = 42;
-    auto node = std::make_shared<RSRenderNode>(nodeId++);
-    const auto property = std::make_shared<RSRenderProperty<int>>(1, 0);
-    auto modifier =
-        ModifierNG::RSRenderModifier::MakeRenderModifier(ModifierNG::RSModifierType::TRANSITION_STYLE, property);
-    Drawing::DrawCmdListPtr cmdList = Drawing::DrawCmdList::CreateFromData(Drawing::CmdListData { "1234", 4 }, true);
-
-    auto opItem1 = std::make_shared<Drawing::HybridRenderPixelMapSizeOpItem>(100, 200);
-    auto opItem2 = std::make_shared<Drawing::RotateOpItem>(90, 10, 20);
-    cmdList->drawOpItems_.emplace_back(opItem1);
-    cmdList->drawOpItems_.emplace_back(opItem2);
-
-    std::shared_ptr<RSRenderProperty<Drawing::DrawCmdListPtr>> property2 =
-        std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>(cmdList, 0);
-    node->AddModifier(modifier);
-
-    JsonWriter out1;
-    RSProfiler::DumpNodeDrawCmdModifiers(*node, out1);
-    std::string expected1 { "\"DrawCmdModifiers\":[{\"type\":25,\"modifiers\":[{\"drawCmdList\":[]}]}]" };
-    expected1.append(1, '\0');
-    EXPECT_EQ(out1.GetDumpString(), expected1);
-
-    modifier->AttachProperty(ModifierNG::RSPropertyType::TRANSITION_STYLE, property2);
-
-    JsonWriter out2;
-    RSProfiler::DumpNodeDrawCmdModifiers(*node, out2);
-    std::string expected2 { "\"DrawCmdModifiers\":[{\"type\":25,\"modifiers\":[{\"drawCmdList\":"
-                            "[\"HYBRID_RENDER_PIXELMAP_SIZE_OPITEM\",\"ROTATE_OPITEM\"]}]}]" };
-    expected2.append(1, '\0');
-    EXPECT_EQ(out2.GetDumpString(), expected2);
-}
-
 HWTEST(RSProfilerDumpTest, DumpNodeDrawCmdModifiersWithPropertyForegroundColor, TestSize.Level1)
 {
     NodeId nodeId = 42;
@@ -568,7 +534,7 @@ HWTEST(RSProfilerDumpTest, DumpNodePropertiesShadow, TestSize.Level1)
 
     RSProfiler::DumpNodePropertiesShadow(node->GetRenderProperties(), out);
 
-    std::string expected { "\"ShadowColor\":\"#ff020304 (ARGB)\","
+    std::string expected { "\"ShadowColor\":\"#5020304 (ARGB)\","
                            "\"ShadowOffsetX\":12,"
                            "\"ShadowOffsetY\":14,"
                            "\"ShadowElevation\":16,"

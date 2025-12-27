@@ -26,7 +26,8 @@
 namespace OHOS {
 namespace Rosen {
 
-using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<LayerInfoPtr>& layers)>;
+class RSRenderComposerClient;
+using FallbackCallback = std::function<void(const sptr<Surface>& surface, const std::vector<RSLayerPtr>& layers)>;
 class RSComposerAdapter {
 public:
     RSComposerAdapter() = default;
@@ -41,9 +42,9 @@ public:
     bool Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo, const ScreenInfo& mirroredScreenInfo,
         float mirrorAdaptiveCoefficient, const FallbackCallback& cb);
 
-    LayerInfoPtr CreateLayer(RSSurfaceRenderNode& node) const;
-    LayerInfoPtr CreateLayer(RSScreenRenderNode& node) const;
-    void CommitLayers(const std::vector<LayerInfoPtr>& layers);
+    RSLayerPtr CreateLayer(RSSurfaceRenderNode& node) const;
+    RSLayerPtr CreateLayer(RSScreenRenderNode& node) const;
+    void CommitLayers(const std::vector<RSLayerPtr>& layers);
     /* only used for mock tests */
     void SetHdiBackendDevice(HdiDevice* device);
     void SetMirroredScreenInfo(const ScreenInfo& mirroredScreenInfo);
@@ -52,24 +53,24 @@ public:
 private:
     // check if the node is out of the screen region.
     bool IsOutOfScreenRegion(const ComposeInfo& info) const;
-    LayerInfoPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
-    LayerInfoPtr CreateTunnelLayer(RSSurfaceRenderNode& node) const;
+    RSLayerPtr CreateBufferLayer(RSSurfaceRenderNode& node) const;
+    RSLayerPtr CreateTunnelLayer(RSSurfaceRenderNode& node) const;
     ComposeInfo BuildComposeInfo(RSSurfaceRenderNode& node, bool isTunnelCheck = false) const;
     ComposeInfo BuildComposeInfo(RSScreenRenderNode& node) const;
     void SetComposeInfoToLayer(
-        const LayerInfoPtr& layer,
+        const RSLayerPtr& layer,
         const ComposeInfo& info,
         const sptr<IConsumerSurface>& surface,
         RSBaseRenderNode* node) const;
-    void SetMetaDataInfoToLayer(const LayerInfoPtr& layer, const ComposeInfo& info,
+    void SetMetaDataInfoToLayer(const RSLayerPtr& layer, const ComposeInfo& info,
                                 const sptr<IConsumerSurface>& surface) const;
     void DealWithNodeGravity(const RSSurfaceRenderNode& node, ComposeInfo& info) const;
-    void DumpLayersToFile(const std::vector<LayerInfoPtr>& layers);
+    void DumpLayersToFile(const std::vector<RSLayerPtr>& layers);
 
-    void LayerRotate(const LayerInfoPtr& layer, RSBaseRenderNode& node) const;
-    void LayerCrop(const LayerInfoPtr& layer) const;
-    static void LayerScaleDown(const LayerInfoPtr& layer);
-    static void LayerPresentTimestamp(const LayerInfoPtr& layer, const sptr<IConsumerSurface>& surface);
+    void LayerRotate(const RSLayerPtr& layer, RSBaseRenderNode& node) const;
+    void LayerCrop(const RSLayerPtr& layer) const;
+    static void LayerScaleDown(const RSLayerPtr& layer);
+    static void LayerPresentTimestamp(const RSLayerPtr& layer, const sptr<IConsumerSurface>& surface);
 
     void OnPrepareComplete(sptr<Surface>& surface, const PrepareCompleteParam& param, void* data);
     static void GetComposerInfoSrcRect(ComposeInfo& info, const RSSurfaceRenderNode& node);
@@ -87,6 +88,7 @@ private:
 
     float mirrorAdaptiveCoefficient_ = 1.0f;
     FallbackCallback fallbackCb_;
+    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

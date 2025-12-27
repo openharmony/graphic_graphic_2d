@@ -74,9 +74,9 @@ public:
     {
         RSRenderSpringAnimation::OnDetach();
     }
-    void OnInitialize(int64_t time)
+    void OnInitialize(int64_t time, bool isCustom = false)
     {
-        RSRenderSpringAnimation::OnInitialize(time);
+        RSRenderSpringAnimation::OnInitialize(time, isCustom);
     }
     void InitValueEstimator()
     {

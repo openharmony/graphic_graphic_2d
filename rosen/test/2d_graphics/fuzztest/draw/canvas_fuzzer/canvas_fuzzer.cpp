@@ -94,6 +94,95 @@ bool CanvasFuzzTest001(const uint8_t* data, size_t size)
     return true;
 }
 
+bool CanvasFuzzTest002(const uint8_t* data, size_t size)
+{
+    if (data == nullptr) {
+        return false;
+    }
+
+    Canvas canvas;
+    uint32_t count = GetObject<uint32_t>();
+    bool flag = GetObject<bool>();
+    canvas.AddCanvas(&canvas);
+    canvas.RemoveAll();
+    canvas.RestoreToCount(count);
+    canvas.GetRecordingState();
+    canvas.SetRecordingState(flag);
+    std::shared_ptr<Drawing::Canvas> cCanvas;
+    OverDrawCanvas overDrawCanvas = OverDrawCanvas(cCanvas);
+    overDrawCanvas.GetDrawingType();
+    int32_t width = GetObject<int32_t>();
+    int32_t height = GetObject<int32_t>();
+    NoDrawCanvas noDrawCanvas = NoDrawCanvas(width, height);
+    noDrawCanvas.GetDrawingType();
+
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Image image;
+    image.BuildFromBitmap(bmp);
+    // GetLocalShadowBound
+    Rect rect;
+    Path path;
+    Rect oval = GetObject<Rect>();
+    path.AddOval(oval, GetObject<PathDirection>());
+    path.Close();
+
+    scalar sx = GetObject<scalar>();
+    scalar sy = GetObject<scalar>();
+    scalar sz = GetObject<scalar>();
+    scalar dx = GetObject<scalar>();
+    scalar dy = GetObject<scalar>();
+    scalar dz = GetObject<scalar>();
+    scalar tx = GetObject<scalar>();
+    scalar ty = GetObject<scalar>();
+    scalar tz = GetObject<scalar>();
+    Matrix matrix;
+    matrix.SetMatrix(tx, ty, tz, sx, sy, sz, dx, dy, dz);
+
+    Point3 planeParams{GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    Point3 devLightPos{GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>()};
+    scalar lightRadius = GetObject<scalar>();
+    ShadowFlags shadowFlag = ShadowFlags::ALL;
+    bool isLimitElevation = false;
+
+    canvas.GetLocalShadowBounds(matrix, path, planeParams, devLightPos, lightRadius, shadowFlag, isLimitElevation,
+        rect);
+
+    return true;
+}
+
+bool CanvasFuzzTestHpsEdgeLight(const uint8_t* data, size_t size)
+{
+    Canvas canvas;
+    Bitmap bmp;
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
+    bmp.Build(BITMAP_WIDTH, BITMAP_HEIGHT, format); // bitmap width and height
+    bmp.ClearWithColor(Drawing::Color::COLOR_BLUE);
+    Image image;
+    image.BuildFromBitmap(bmp);
+    // Edge Light
+    Rect rect(GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>(), GetObject<scalar>());
+    std::vector<float> edgeColor = { GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>() };
+    std::vector<float> colors = { GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    std::vector<float> positions = { GetObject<float>(), GetObject<float>(), GetObject<float>() };
+    auto hpsRadialMaskArgs = std::make_shared<Drawing::HpsRadialGradientMaskParameter>(GetObject<float>(),
+        GetObject<float>(), GetObject<float>(), GetObject<float>(), colors, positions);
+    std::vector<float> edgeDetectColor = { GetObject<float>(), GetObject<float>(), GetObject<float>(),
+        GetObject<float>() };
+    Drawing::HpsEdgeLightParameter::EdgeSobelParameter edgeSobelParams = { GetObject<float>(), GetObject<float>(),
+        GetObject<float>(), edgeDetectColor };
+    auto hpsRadialArgs = std::make_shared<Drawing::HpsEdgeLightParameter>(rect, rect,
+        GetObject<float>(), GetObject<bool>(), GetObject<bool>(), edgeColor,
+        std::static_pointer_cast<Drawing::HpsMaskParameter>(hpsRadialMaskArgs), edgeSobelParams, 1);
+    std::vector<std::shared_ptr<HpsEffectParameter>> hpsEffectParams;
+    hpsEffectParams.push_back(hpsRadialArgs);
+    canvas.DrawImageEffectHPS(image, hpsEffectParams);
+    return true;
+}
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -109,5 +198,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::Drawing::CanvasFuzzTest(data, size);
     OHOS::Rosen::Drawing::CanvasFuzzTest001(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTest002(data, size);
+    OHOS::Rosen::Drawing::CanvasFuzzTestHpsEdgeLight(data, size);
     return 0;
 }

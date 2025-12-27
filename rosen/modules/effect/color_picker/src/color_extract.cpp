@@ -96,6 +96,8 @@ void ColorExtract::InitColorValBy1010102Color(std::shared_ptr<Media::PixelMap> p
             if (GetRGBA1010102ColorA(pixelColor) != 0) {
                 colorVal_.data()[realColorCnt] = pixelColor;
                 realColorCnt++;
+            } else {
+                fullyTransparentPixelNum_++;
             }
         }
     }
@@ -122,6 +124,8 @@ void ColorExtract::InitColorValBy8888Color(std::shared_ptr<Media::PixelMap> pixm
             if (GetARGB32ColorA(pixelColor) != 0) {
                 colorVal_.data()[realColorCnt] = pixelColor;
                 realColorCnt++;
+            } else {
+                fullyTransparentPixelNum_++;
             }
         }
     }

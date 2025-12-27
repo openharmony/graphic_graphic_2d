@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "modifier_ng/custom/rs_content_style_modifier.h"
 #include "transaction/rs_transaction.h"
 
 #include "ui/rs_canvas_node.h"
@@ -75,6 +76,39 @@ HWTEST_F(RSUIContextTest, PostDelayTaskTest002, TestSize.Level1)
     ASSERT_TRUE(flag);
     uiContext2->rsTransactionHandler_ = nullptr;
     uiContext2->SetUITaskRunner([](const std::function<void()>& task, uint32_t delay) { task(); });
+}
+
+/**
+ * @tc.name: SetRequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, SetRequestVsyncCallback, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
+    uiContext->SetRequestVsyncCallback(nullptr);
+}
+
+/**
+ * @tc.name: RequestVsyncCallback
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, RequestVsyncCallback, TestSize.Level1)
+{
+    auto uiContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_TRUE(uiContext != nullptr);
+    ASSERT_TRUE(RSUIContextManager::Instance().rsUIContextMap_.size() > 1);
+    uiContext->SetRequestVsyncCallback(nullptr);
+    EXPECT_EQ(uiContext->requestVsyncCallback_, nullptr);
+    uiContext->RequestVsyncCallback();
+
+    // test requestVsyncCallback_ not null
+    uiContext->SetRequestVsyncCallback([]() {});
+    EXPECT_NE(uiContext->requestVsyncCallback_, nullptr);
+    uiContext->RequestVsyncCallback();
 }
 
 /**
@@ -211,5 +245,284 @@ HWTEST_F(RSUIContextTest, CloseAllSyncTransactionTest001, TestSize.Level1)
     ASSERT_FALSE(transaction == nullptr);
     transaction->rsTransactionHandler_ = nullptr;
     RSUIContextManager::MutableInstance().CloseAllSyncTransaction(syncId);
+}
+
+/**
+ * @tc.name: MoveModifierTest001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, MoveModifierTest001, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    curContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+    auto canvasNode = RSCanvasNode::Create(false, false, curContext);
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    rsCustomModifier->OnAttach(*canvasNode);
+    ASSERT_NE(rsCustomModifier->node_.lock(), nullptr);
+    curContext->rsModifierManager_->AddModifier(rsCustomModifier);
+    auto notMoveModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    curContext->rsModifierManager_->AddModifier(notMoveModifier);
+    ASSERT_EQ(curContext->rsModifierManager_->modifiers_.size(), 2);
+
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    newContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+
+    curContext->MoveModifier(newContext, canvasNode->GetId());
+    ASSERT_EQ(curContext->rsModifierManager_->modifiers_.size(), 1);
+    ASSERT_EQ(newContext->rsModifierManager_->modifiers_.size(), 1);
+}
+
+/**
+ * @tc.name: MoveModifierTest002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, MoveModifierTest002, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    curContext->rsModifierManager_ = nullptr;
+    curContext->MoveModifier(nullptr, id);
+
+    curContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+    auto rsCustomModifier = std::make_shared<ModifierNG::RSContentStyleModifier>();
+    curContext->rsModifierManager_->AddModifier(rsCustomModifier);
+    ASSERT_FALSE(curContext->rsModifierManager_->modifiers_.empty());
+
+    curContext->MoveModifier(nullptr, id);
+    ASSERT_FALSE(curContext->rsModifierManager_->modifiers_.empty());
+}
+
+/**
+ * @tc.name: MoveModifierTest003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, MoveModifierTest003, TestSize.Level1)
+{
+    NodeId id = 0;
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    curContext->rsModifierManager_ = nullptr;
+    ASSERT_EQ(curContext->rsModifierManager_, nullptr);
+
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    newContext->rsModifierManager_ = std::make_shared<RSModifierManager>();
+    ASSERT_NE(newContext->rsModifierManager_, nullptr);
+
+    curContext->MoveModifier(nullptr, id);
+    ASSERT_TRUE(newContext->rsModifierManager_->modifiers_.empty());
+}
+
+/**
+ * @tc.name: UiPiplineNum001
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, UiPiplineNum001, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+}
+
+/**
+ * @tc.name: UiPiplineNum002
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, UiPiplineNum002, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 2);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+}
+
+/**
+ * @tc.name: UiPiplineNum003
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, UiPiplineNum003, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 2);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+}
+
+/**
+ * @tc.name: UiPiplineNum004
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, UiPiplineNum004, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 2);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+}
+
+/**
+ * @tc.name: UiPiplineNum005
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, UiPiplineNum005, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+
+    newContext->AttachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 1);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 2);
+
+    newContext->AttachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 2);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 1);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
+
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
+}
+
+/**
+ * @tc.name: UiPiplineNum006
+ * @tc.desc:
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIContextTest, UiPiplineNum006, TestSize.Level1)
+{
+    auto curContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->AttachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 2);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 1);
+ 
+    curContext->DetachFromUI();
+    ASSERT_EQ(curContext->GetUiPiplineNum(), 0);
+
+    auto newContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), UI_PiPLINE_NUM_UNDEFINED);
+
+    newContext->AttachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 1);
+ 
+    newContext->AttachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 2);
+ 
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 1);
+ 
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
+
+    newContext->DetachFromUI();
+    ASSERT_EQ(newContext->GetUiPiplineNum(), 0);
 }
 } // namespace OHOS::Rosen

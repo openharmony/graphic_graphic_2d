@@ -24,13 +24,13 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
-#include "feature/param_manager/rs_param_manager.h"
 #include "hgm_core.h"
 #include "memory/rs_memory_manager.h"
 #include "parameter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_profiler.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "transaction/rs_client_to_render_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "vsync_generator.h"
 #include "rs_trace.h"
 #include "ge_render.h"
@@ -46,13 +46,13 @@
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #endif
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "system/rs_system_parameters.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
 #include "graphic_feature_param_manager.h"
+#include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "rs_render_composer_manager.h"
+#include "system/rs_system_parameters.h"
 
 #include "text/font_mgr.h"
 
@@ -120,19 +120,16 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
 #ifdef TP_FEATURE_ENABLE
     TOUCH_SCREEN->InitTouchScreen();
 #endif
-    screenManager_ = CreateOrGetScreenManager();
-    if (RSUniRenderJudgement::GetUniRenderEnabledType() != UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
-        // screenManager initializtion executes in RSHHardwareThread under UNI_RENDER mode
-        if (screenManager_ == nullptr || !screenManager_->Init()) {
-            RS_LOGE("CreateOrGetScreenManager fail.");
-            return false;
-        }
-    } else {
+    if (RSUniRenderJudgement::GetUniRenderEnabledType() == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
         RSUniRenderThread::Instance().Start();
-        RSHardwareThread::Instance().Start();
         RegisterRcdMsg();
 #endif
+    }
+    screenManager_ = CreateOrGetScreenManager();
+    if (screenManager_ == nullptr || !screenManager_->Init()) {
+        RS_LOGE("CreateOrGetScreenManager or init fail.");
+        return false;
     }
 
     auto generator = CreateVSyncGenerator();
@@ -163,12 +160,14 @@ if (Drawing::SystemProperties::IsUseVulkan()) {
     if (mainThread_ == nullptr) {
         return false;
     }
+    runner_ = AppExecFwk::EventRunner::Create(false);
+    handler_ = std::make_shared<AppExecFwk::EventHandler>(runner_);
     mainThread_->rsVSyncDistributor_ = rsVSyncDistributor_;
     mainThread_->rsVSyncController_ = rsVSyncController_;
     mainThread_->appVSyncController_ = appVSyncController_;
     mainThread_->vsyncGenerator_ = generator;
     mainThread_->SetAppVSyncDistributor(appVSyncDistributor_);
-    mainThread_->Init();
+    mainThread_->Init(runner_, handler_);
     mainThread_->PostTask([]() {
         system::SetParameter(BOOTEVENT_RENDER_SERVICE_READY.c_str(), "true");
         RS_LOGI("Set boot render service started true");
@@ -225,10 +224,6 @@ void RSRenderService::Run()
         RS_LOGE("Run failed, mainThread is nullptr");
         return;
     }
-    mainThread_->PostTask([]() {
-        RS_LOGD("RSRenderService::Run(): Subscribe event.");
-        RSParamManager::GetInstance().SubscribeEvent();
-    });
     RS_LOGE("Run");
     mainThread_->Start();
 }
@@ -263,30 +258,34 @@ void RSRenderService::RegisterRcdMsg()
 #endif
 }
 
-sptr<RSIRenderServiceConnection> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(
+    const sptr<RSIConnectionToken>& token)
 {
     if (!mainThread_ || !token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
-        return nullptr;
+        return {nullptr, nullptr};
     }
     pid_t remotePid = GetCallingPid();
     RS_PROFILER_ON_CREATE_CONNECTION(remotePid);
 
     auto tokenObj = token->AsObject();
-    sptr<RSIRenderServiceConnection> newConn(
-        new RSRenderServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
+    sptr<RSIClientToServiceConnection> newConn(
+        new RSClientToServiceConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
 
-    sptr<RSIRenderServiceConnection> tmp;
+    sptr<RSIClientToRenderConnection> newRenderConn(
+        new RSClientToRenderConnection(remotePid, this, mainThread_, screenManager_, tokenObj, appVSyncDistributor_));
+
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> tmp;
     std::unique_lock<std::mutex> lock(mutex_);
     // if connections_ has the same token one, replace it.
     auto it = connections_.find(tokenObj);
     if (it != connections_.end()) {
         tmp = it->second;
     }
-    connections_[tokenObj] = newConn;
+    connections_[tokenObj] = {newConn, newRenderConn};
     lock.unlock();
     mainThread_->AddTransactionDataPidInfo(remotePid);
-    return newConn;
+    return {newConn, newRenderConn};
 }
 
 bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
@@ -303,10 +302,14 @@ bool RSRenderService::RemoveConnection(const sptr<RSIConnectionToken>& token)
         RS_LOGE("RemoveConnection: connections_ cannot find token");
         return false;
     }
-    auto rsConn = iter->second;
+    auto [rsConn, rsRenderConn] = iter->second;
     if (rsConn != nullptr) {
         rsConn->RemoveToken();
     }
+    if (rsRenderConn != nullptr) {
+        rsRenderConn->RemoveToken();
+    }
+    
     connections_.erase(iter);
     lock.unlock();
     return true;
@@ -408,8 +411,7 @@ void RSRenderService::DumpFps(std::string& dumpString, std::string& layerName) c
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &layerName]() { return screenManager_->FpsDump(dumpString, layerName); }).wait();
+        RSRenderComposerManager::GetInstance().FpsDump(dumpString, layerName);
 #endif
     } else {
         mainThread_->ScheduleTask(
@@ -447,10 +449,7 @@ void RSRenderService::ClearFps(std::string& dumpString, std::string& layerName) 
     auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
     if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-        RSHardwareThread::Instance().ScheduleTask(
-            [this, &dumpString, &layerName]() {
-                return screenManager_->ClearFpsDump(dumpString, layerName);
-            }).wait();
+        RSRenderComposerManager::GetInstance().ClearFpsDump(dumpString, layerName);
 #endif
     } else {
         mainThread_->ScheduleTask(
@@ -481,7 +480,7 @@ void RSRenderService::DumpRefreshRateCounts(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- RefreshRateCounts: \n");
 #ifdef RS_ENABLE_GPU
-    RSHardwareThread::Instance().RefreshRateCounts(dumpString);
+    RSRenderComposerManager::GetInstance().RefreshRateCounts(dumpString);
 #endif
 }
 
@@ -490,7 +489,7 @@ void RSRenderService::DumpClearRefreshRateCounts(std::string& dumpString) const
     dumpString.append("\n");
     dumpString.append("-- ClearRefreshRateCounts: \n");
 #ifdef RS_ENABLE_GPU
-    RSHardwareThread::Instance().ClearRefreshRateCounts(dumpString);
+    RSRenderComposerManager::GetInstance().ClearRefreshRateCounts(dumpString);
 #endif
 }
 
@@ -507,8 +506,7 @@ void RSRenderService::WindowHitchsDump(
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask(
-                [this, &dumpString, &layerArg]() { return screenManager_->HitchsDump(dumpString, layerArg); }).wait();
+            RSRenderComposerManager::GetInstance().HitchsDump(dumpString, layerArg);
 #endif
         } else {
             mainThread_->ScheduleTask(
@@ -607,6 +605,25 @@ void RSRenderService::DumpMem(std::unordered_set<std::u16string>& argSets, std::
         [this, &argSets, &dumpString, &type, &pid, isLite]() {
             return mainThread_->DumpMem(argSets, dumpString, type, pid, isLite);
         }).wait();
+}
+
+void RSRenderService::DumpGpuMem(std::unordered_set<std::u16string>& argSets, std::string& dumpString) const
+{
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        dumpString.append("\n--------------\nNot in UniRender and no information");
+    } else {
+        std::string type;
+        if (argSets.size() > 1) {
+            argSets.erase(u"dumpGpuMem");
+            if (!argSets.empty()) {
+                type = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(*argSets.begin());
+            }
+        }
+        mainThread_->ScheduleTask(
+            [this, &argSets, &dumpString, &type]() {
+                return mainThread_->DumpGpuMem(argSets, dumpString, type);
+            }).wait();
+    }
 }
 
 void RSRenderService::DumpJankStatsRs(std::string& dumpString) const
@@ -756,9 +773,7 @@ void RSRenderService::RegisterRSGfxFuncs()
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance()
-                .ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); })
-                .wait();
+            screenManager_->DisplayDump(dumpString);
 #endif
         } else {
             mainThread_->ScheduleTask([this, &dumpString]() { screenManager_->DisplayDump(dumpString); }).wait();
@@ -887,12 +902,19 @@ void RSRenderService::RegisterMemFuncs()
         DumpExistPidMem(argSets, dumpString);
     };
 
+    // gpu mem
+    RSDumpFunc gpuMemDumpFunc = [this](const std::u16string &cmd, std::unordered_set<std::u16string> &argSets,
+                                        std::string &dumpString) -> void {
+        DumpGpuMem(argSets, dumpString);
+    };
+
     std::vector<RSDumpHander> handers = {
         { RSDumpID::SURFACE_INFO, surfaceInfoFunc, RS_HW_THREAD_TAG },
         { RSDumpID::SURFACE_MEM_INFO, surfaceMemFunc },
         { RSDumpID::MEM_INFO, memDumpFunc },
         { RSDumpID::MEM_INFO_LITE, memDumpLiteFunc },
         { RSDumpID::EXIST_PID_MEM_INFO, existPidMemFunc },
+        { RSDumpID::GPU_MEM_INFO, gpuMemDumpFunc },
     };
 
     RSDumpManager::GetInstance().Register(handers);
@@ -973,11 +995,7 @@ void RSRenderService::RegisterBufferFuncs()
         auto renderType = RSUniRenderJudgement::GetUniRenderEnabledType();
         if (renderType == UniRenderEnabledType::UNI_RENDER_ENABLED_FOR_ALL) {
 #ifdef RS_ENABLE_GPU
-            RSHardwareThread::Instance().ScheduleTask([this]() {
-                RS_TRACE_NAME("RSRenderService dump current frame buffer in HardwareThread");
-                RS_LOGD("dump current frame buffer in HardwareThread");
-                return screenManager_->DumpCurrentFrameLayers();
-            }).wait();
+            RSRenderComposerManager::GetInstance().DumpCurrentFrameLayers();
 #endif
         } else {
             mainThread_->ScheduleTask([this]() {

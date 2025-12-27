@@ -29,6 +29,7 @@
 #include "params/rs_surface_render_params.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_root_render_node.h"
 
@@ -859,51 +860,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, AncestorDisplayNodeTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: UpdateSurfaceCacheContentStatic
- * @tc.desc: Set dirty subNode and check if surfacenode static
- * @tc.type:FUNC
- * @tc.require:I8W7ZS
- */
-HWTEST_F(RSSurfaceRenderNodeTest, UpdateSurfaceCacheContentStatic, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subNode = std::make_shared<RSRenderNode>(id + 1, context);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(subNode, nullptr);
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    std::shared_ptr<RSRenderNode> nullNode = nullptr;
-    activeNodeIds[subNode->GetId()] = nullNode;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    activeNodeIds[subNode->GetId()] = subNode;
-    node->AddChild(subNode, 0);
-    subNode->isContentDirty_ = true;
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    ASSERT_EQ(node->GetSurfaceCacheContentStatic(), false);
-    ASSERT_EQ(node->IsContentDirtyNodeLimited(), true);
-}
-
-/**
- * @tc.name: IsContentDirtyNodeLimited
- * @tc.desc: Set content dirty subnode new on the tree and check if it is in count
- * @tc.type:FUNC
- * @tc.require:I8XIJH
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsContentDirtyNodeLimited, TestSize.Level1)
-{
-    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    auto subnode = std::make_shared<RSRenderNode>(id + 1, context);
-    ASSERT_NE(node, nullptr);
-    ASSERT_NE(subnode, nullptr);
-    node->AddChild(subnode, 0);
-    subnode->isContentDirty_ = true;
-    subnode->isNewOnTree_ = true;
-    std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> activeNodeIds = {{subnode->GetId(), subnode}};
-    node->UpdateSurfaceCacheContentStatic(activeNodeIds);
-    ASSERT_EQ(node->IsContentDirtyNodeLimited(), false);
-}
-
-/**
  * @tc.name: SetSkipLayer001
  * @tc.desc: Test SetSkipLayer for single surface node which is skip layer
  * @tc.type: FUNC
@@ -1107,6 +1063,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId001, TestSize.Level2)
     ASSERT_NE(rsContext, nullptr);
     auto node = std::make_shared<RSSurfaceRenderNode>(id, rsContext);
     ASSERT_NE(node, nullptr);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId nodeId = node->GetId();
     pid_t pid = ExtractPid(nodeId);
     rsContext->GetMutableNodeMap().renderNodeMap_[pid][nodeId] = node;
@@ -1130,6 +1087,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, GetFirstLevelNodeId002, TestSize.Level2)
     ASSERT_NE(childNode, nullptr);
     ASSERT_NE(parentNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
     NodeId parentNodeId = parentNode->GetId();
@@ -1863,7 +1821,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, AccumulateOcclusionRegion, TestSize.Level1)
 
     auto parentSurfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
     testNode->SetParent(parentSurfaceNode);
-    testNode->isOcclusionInSpecificScenes_ = true;
     testNode->AccumulateOcclusionRegion(
         accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender, filterCacheOcclusionEnabled);
     EXPECT_FALSE(hasFilterCacheOcclusion);
@@ -1907,28 +1864,27 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleRegionRecursive, TestSize.Level1)
     Occlusion::Rect rect2(0, 0, 1, 1);
     Occlusion::Region region2(rect2);
     VisibleData visibleVec;
-    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
     bool needSetVisibleRegion = true;
     RSVisibleLevel visibleLevel = RSVisibleLevel::RS_ALL_VISIBLE;
     bool isSystemAnimatedScenes = false;
 
     node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
     node->SetVisibleRegionRecursive(
-        region, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
 
     node->SetVisibleRegionRecursive(
-        region, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
 
     needSetVisibleRegion = false;
     node->SetVisibleRegionRecursive(
-        region2, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region2, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_FALSE(node->visibleRegionForCallBack_.IsEmpty());
 
     node->qosPidCal_ = true;
     needSetVisibleRegion = true;
     node->SetVisibleRegionRecursive(
-        region2, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region2, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_FALSE(node->visibleRegionForCallBack_.IsEmpty());
 
     auto child1 = std::make_shared<RSSurfaceRenderNode>(id + 1);
@@ -1938,7 +1894,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetVisibleRegionRecursive, TestSize.Level1)
     children.push_back(child2);
     node->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(children);
     node->SetVisibleRegionRecursive(
-        region2, visibleVec, visMapForVsyncRate, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
+        region2, visibleVec, needSetVisibleRegion, visibleLevel, isSystemAnimatedScenes);
     ASSERT_FALSE(node->visibleRegionForCallBack_.IsEmpty());
 }
 
@@ -2286,8 +2242,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest001, TestSize.Level1)
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(leashWindowNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
     NodeId leashWindowNodeId = leashWindowNode->GetId();
@@ -2330,8 +2288,10 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
     ASSERT_NE(parentNode, nullptr);
     ASSERT_NE(leashWindowNode, nullptr);
 
+    childNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id);
     NodeId childNodeId = childNode->GetId();
     pid_t childNodePid = ExtractPid(childNodeId);
+    parentNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(id + 1);
     NodeId parentNodeId = parentNode->GetId();
     pid_t parentNodePid = ExtractPid(parentNodeId);
     NodeId leashWindowNodeId = leashWindowNode->GetId();
@@ -2369,6 +2329,97 @@ HWTEST_F(RSSurfaceRenderNodeTest, HDRPresentTest002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateNodeColorSpace001
+ * @tc.desc: test UpdateNodeColorSpace with appWindow node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateNodeColorSpace001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    node->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+
+    // subTree colorspace: None/sRGB, colorSpace_: None/sRGB
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // subTree colorspace: P3, colorSpace_: None/sRGB
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: None/sRGB, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: P3, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: BT2020, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // subTree colorspace: sRGB, colorSpace_: BT2020
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+}
+
+/**
+ * @tc.name: UpdateNodeColorSpace002
+ * @tc.desc: test UpdateNodeColorSpace with selfDrawing node
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, UpdateNodeColorSpace002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSSurfaceRenderNode>(id, context);
+    node->InitRenderParams();
+    node->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+
+    // subTree colorspace: None/sRGB, colorSpace_: None/sRGB
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+
+    // subTree colorspace: P3, colorSpace_: None/sRGB
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: None/sRGB, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: P3, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+
+    // subTree colorspace: BT2020, colorSpace_: P3
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    // subTree colorspace: sRGB, colorSpace_: BT2020
+    node->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+    node->colorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020);
+
+    node->nodeType_ = RSSurfaceNodeType::DEFAULT;
+    auto nodeColorSpace = node->GetNodeColorSpace();
+    node->UpdateNodeColorSpace();
+    EXPECT_EQ(node->GetNodeColorSpace(), nodeColorSpace);
+}
+
+/**
  * @tc.name: CheckIfOcclusionReusable
  * @tc.desc: test results of CheckIfOcclusionReusable
  * @tc.type: FUNC
@@ -2394,7 +2445,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckIfOcclusionReusable, TestSize.Level1)
 HWTEST_F(RSSurfaceRenderNodeTest, CheckParticipateInOcclusion, TestSize.Level1)
 {
     std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id);
-    EXPECT_FALSE(node->CheckParticipateInOcclusion());
+    EXPECT_FALSE(node->CheckParticipateInOcclusion(false));
 }
 
 /**
@@ -2597,26 +2648,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetNeedCacheSurface, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsCurFrameSwitchToPaint
- * @tc.desc: test if node switch from not paint to paint
- * @tc.type: FUNC
- * @tc.require: issueIB6GWC
- */
-HWTEST_F(RSSurfaceRenderNodeTest, IsCurFrameSwitchToPaint, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> node = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(node, nullptr);
-
-    node->shouldPaint_ = true;
-    node->lastFrameShouldPaint_ = true;
-    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
-    node->shouldPaint_ = false;
-    ASSERT_FALSE(node->IsCurFrameSwitchToPaint());
-    node->shouldPaint_ = true;
-    ASSERT_TRUE(node->IsCurFrameSwitchToPaint());
-}
-
-/**
  * @tc.name: SetForceDisableClipHoleForDRM
  * @tc.desc: test if node could be forced to disable cliphole for DRM correctly
  * @tc.type: FUNC
@@ -2809,43 +2840,6 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetSurfaceBufferOpaqueTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCaptureEnableUifirstTest
- * @tc.desc: test results of SetCaptureEnableUifirst
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeTest, SetCaptureEnableUifirstTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    ASSERT_NE(testNode, nullptr);
-    testNode->ResetSurfaceNodeStates();
-    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
-    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-
-    testNode->ResetSurfaceNodeStates();
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(testNode->stagingRenderParams_.get());
-    ASSERT_TRUE(surfaceParams->IsCaptureEnableUifirst());
-    testNode->SetCaptureEnableUifirst(false);
-    ASSERT_FALSE(surfaceParams->IsCaptureEnableUifirst());
-}
-
-/**
- * @tc.name: GetCaptureUiFirstMutexTest
- * @tc.desc: test results of GetCaptureUiFirstMutex
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSSurfaceRenderNodeTest, GetCaptureUiFirstMutexTest, TestSize.Level1)
-{
-    std::shared_ptr<RSSurfaceRenderNode> testNode = std::make_shared<RSSurfaceRenderNode>(id, context);
-    std::lock_guard<std::mutex> lock(testNode->GetCaptureUiFirstMutex());
-    ASSERT_NE(testNode, nullptr);
-    testNode->ResetSurfaceNodeStates();
-    testNode->stagingRenderParams_ = std::make_unique<RSSurfaceRenderParams>(id + 1);
-    ASSERT_NE(testNode->stagingRenderParams_, nullptr);
-}
-
-/**
  * @tc.name: SetUIFirstVisibleFilterRectTest
  * @tc.desc: Test set visible filter region to surface node
  * @tc.type: FUNC
@@ -2866,6 +2860,34 @@ HWTEST_F(RSSurfaceRenderNodeTest, SetUIFirstVisibleFilterRectTest, TestSize.Leve
     node->SetUIFirstVisibleFilterRect(rect);
     ASSERT_TRUE(node->addedToPendingSyncList_);
     ASSERT_FALSE(surfaceParams->GetUifirstVisibleFilterRect().IsEmpty());
+}
+
+/**
+ * @tc.name: IsAncestorScreenFrozenTest
+ * @tc.desc: IsAncestorScreenFrozen
+ * @tc.type:FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, IsAncestorScreenFrozenTest, TestSize.Level1)
+{
+    NodeId id = 10000;
+    auto context = std::make_shared<RSContext>();
+    ASSERT_NE(context, nullptr);
+    auto firstLevelNode = std::make_shared<RSSurfaceRenderNode>(id, context);
+    ASSERT_NE(firstLevelNode, nullptr);
+    EXPECT_TRUE(context->GetMutableNodeMap().RegisterRenderNode(firstLevelNode));
+    EXPECT_FALSE(firstLevelNode->IsAncestorScreenFrozen());
+    auto screenNode = std::make_shared<RSScreenRenderNode>(id + 1, 0);
+    ASSERT_NE(screenNode, nullptr);
+    screenNode->forceFreeze_ = true;
+    firstLevelNode->SetAncestorScreenNode(screenNode);
+    ASSERT_TRUE(firstLevelNode->IsAncestorScreenFrozen());
+
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 2, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->firstLevelNodeId_ = firstLevelNode->GetId();
+    EXPECT_TRUE(surfaceNode->IsAncestorScreenFrozen());
+    context->GetMutableNodeMap().UnregisterRenderNode(firstLevelNode->GetId());
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -28,6 +28,7 @@ public:
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSCanvasNodeUpdateRecording, Uint64, DrawingDrawCmdListPtr, Uint16);
     ADD_RANDOM_COMMAND_WITH_PARAM_1(RSCanvasNodeClearRecording, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSCanvasNodeSetHDRPresent, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSCanvasNodeSetColorGamut, Uint64, Uint32);
 };
 } // namespace Rosen
 } // namespace OHOS

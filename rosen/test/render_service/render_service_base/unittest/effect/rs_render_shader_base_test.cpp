@@ -44,6 +44,9 @@ HWTEST_F(RSNGRenderShaderBaseTest, Create001, TestSize.Level1)
     auto contour = RSNGRenderShaderBase::Create(RSNGEffectType::CONTOUR_DIAGONAL_FLOW_LIGHT);
     EXPECT_NE(contour, nullptr);
 
+    auto dotMatrix = RSNGRenderShaderBase::Create(RSNGEffectType::DOT_MATRIX_SHADER);
+    EXPECT_NE(dotMatrix, nullptr);
+
     auto ripple = RSNGRenderShaderBase::Create(RSNGEffectType::WAVY_RIPPLE_LIGHT);
     EXPECT_NE(ripple, nullptr);
 

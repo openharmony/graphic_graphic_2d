@@ -20,6 +20,7 @@
 #include <securec.h>
 
 #include "transaction/rs_render_service_client.h"
+#include "transaction/rs_render_pipeline_client.h"
 #include "command/rs_command.h"
 #include "command/rs_node_showing_command.h"
 #include "core/transaction/rs_interfaces.h"
@@ -37,9 +38,11 @@ const uint8_t DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST = 1;
 const uint8_t DO_SET_SCREEN_POWER_STATUS = 2;
 const uint8_t DO_GET_BITMAP = 3;
 const uint8_t DO_SET_HWCNODE_BOUNDS = 4;
-const uint8_t TARGET_SIZE = 5;
+const uint8_t DO_ADD_VIRTUAL_SCREEN_WHITE_LIST = 5;
+const uint8_t DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST = 6;
+const uint8_t TARGET_SIZE = 7;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -95,7 +98,7 @@ public:
 
 bool DoAddVirtualScreenBlackList()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     std::vector<NodeId> blackListVector;
     uint8_t blackListSize = GetData<uint8_t>();
@@ -103,13 +106,13 @@ bool DoAddVirtualScreenBlackList()
         NodeId nodeId = GetData<NodeId>();
         blackListVector.push_back(nodeId);
     }
-    client->AddVirtualScreenBlackList(id, blackListVector);
+    renderServiceClient->AddVirtualScreenBlackList(id, blackListVector);
     return true;
 }
 
 bool DoRemoveVirtualScreenBlackList()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     std::vector<NodeId> blackListVector;
     uint8_t blackListSize = GetData<uint8_t>();
@@ -117,38 +120,66 @@ bool DoRemoveVirtualScreenBlackList()
         NodeId nodeId = GetData<NodeId>();
         blackListVector.push_back(nodeId);
     }
-    client->RemoveVirtualScreenBlackList(id, blackListVector);
+    renderServiceClient->RemoveVirtualScreenBlackList(id, blackListVector);
+    return true;
+}
+
+bool DoAddVirtualScreenWhiteList()
+{
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+    renderServiceClient->AddVirtualScreenWhiteList(id, whiteList);
+    return true;
+}
+
+bool DoRemoveVirtualScreenWhiteList()
+{
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    ScreenId id = GetData<ScreenId>();
+    std::vector<NodeId> whiteList;
+    uint8_t whiteListSize = GetData<uint8_t>();
+    for (uint8_t i = 0; i < whiteListSize; i++) {
+        NodeId nodeId = GetData<NodeId>();
+        whiteList.push_back(nodeId);
+    }
+    renderServiceClient->RemoveVirtualScreenWhiteList(id, whiteList);
     return true;
 }
 
 bool DoSetScreenPowerStatus()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     ScreenId id = GetData<ScreenId>();
     ScreenPowerStatus status = static_cast<ScreenPowerStatus>(GetData<uint8_t>() % SET_SCREEN_POWER_STATUS);
-    client->SetScreenPowerStatus(id, status);
+    renderServiceClient->SetScreenPowerStatus(id, status);
     return true;
 }
 
 bool DoGetBitmap()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     Drawing::Bitmap bm;
     NodeId id = GetData<uint64_t>();
-    client->GetBitmap(id, bm);
+    renderServiceClient->GetBitmap(id, bm);
     return true;
 }
 
 bool DoSetHwcNodeBounds()
 {
-    std::shared_ptr<RSRenderServiceClient> client = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     int64_t rsNodeId = GetData<int64_t>();
     float positionX = GetData<float>();
     float positionY = GetData<float>();
     float positionZ = GetData<float>();
     float positionW = GetData<float>();
 
-    client->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
+    renderPipelineClient->SetHwcNodeBounds(rsNodeId, positionX, positionY, positionZ, positionW);
     return true;
 }
 } // namespace Rosen
@@ -168,6 +199,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_BLACK_LIST:
             OHOS::Rosen::DoRemoveVirtualScreenBlackList();
+            break;
+        case OHOS::Rosen::DO_ADD_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoAddVirtualScreenWhiteList();
+            break;
+        case OHOS::Rosen::DO_REMOVE_VIRTUAL_SCREEN_WHITE_LIST:
+            OHOS::Rosen::DoRemoveVirtualScreenWhiteList();
             break;
         case OHOS::Rosen::DO_SET_SCREEN_POWER_STATUS:
             OHOS::Rosen::DoSetScreenPowerStatus();

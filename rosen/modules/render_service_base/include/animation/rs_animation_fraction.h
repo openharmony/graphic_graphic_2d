@@ -43,7 +43,7 @@ public:
      * @param time Vsync time
      * @return tuple<fraction, isInStartDelay, isFinished, isRepeatFinished>
      */
-    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime);
+    std::tuple<float, bool, bool, bool> GetAnimationFraction(int64_t time, int64_t& minLeftDelayTime, bool isCustom);
     void UpdateRemainTimeFraction(float fraction, int remainTime = 0);
     float GetStartFraction() const;
     float GetEndFraction() const;
@@ -75,10 +75,10 @@ public:
 
 private:
     bool IsInRepeat() const;
-    bool IsFinished() const;
+    bool IsFinished(bool isCustom) const;
     void UpdateReverseState(bool finish);
-    bool IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs);
-    int64_t CalculateLeftDelayTime(const int64_t startDelayNs);
+    bool IsStartRunning(const int64_t deltaTime, const int64_t startDelayNs, bool isCustom);
+    int64_t CalculateLeftDelayTime(const int64_t startDelayNs, bool isCustom);
 
     static std::atomic<float> animationScale_;
     static std::atomic<bool> isInitialized_;

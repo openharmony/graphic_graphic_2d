@@ -32,6 +32,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
     // send mainScreenRect only to reduce ipc data size
     if (!data.WriteBool(captureConfig.isHdrCapture) ||
         !data.WriteBool(captureConfig.needF16WindowCaptureForScRGB) ||
+        !data.WriteBool(captureConfig.needErrorCode) ||
         !data.WriteFloat(captureConfig.mainScreenRect.left_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.top_) ||
         !data.WriteFloat(captureConfig.mainScreenRect.right_) ||
@@ -50,7 +51,7 @@ bool RSSurfaceCaptureCallbackProxy::WriteSurfaceCaptureConfig(
 }
 
 void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig,
-    Media::PixelMap* pixelmap, Media::PixelMap* pixelmapHDR)
+    Media::PixelMap* pixelmap, CaptureError captureErrorCode, Media::PixelMap* pixelmapHDR)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -69,6 +70,10 @@ void RSSurfaceCaptureCallbackProxy::OnSurfaceCapture(NodeId id, const RSSurfaceC
     }
     if (!data.WriteParcelable(pixelmap)) {
         ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteParcelable failed");
+        return;
+    }
+    if (!data.WriteUint8(static_cast<uint8_t>(captureErrorCode))) {
+        ROSEN_LOGE("SurfaceCaptureCallbackProxy::OnSurfaceCapture WriteUint8 failed");
         return;
     }
     if (captureConfig.isHdrCapture && !data.WriteParcelable(pixelmapHDR)) {

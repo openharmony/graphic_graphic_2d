@@ -34,7 +34,7 @@ public:
         float minimumAmplitudeRatio = SPRING_MIN_AMPLITUDE_RATIO);
     void SetZeroThreshold(float zeroThreshold);
     void SetInitialVelocity(const std::shared_ptr<RSRenderPropertyBase>& velocity);
-    void InheritSpringAnimation(const std::shared_ptr<RSRenderAnimation>& prevAnimation);
+    void InheritSpringAnimation(const std::shared_ptr<RSRenderAnimation>& prevAnimation, bool isCustom = false);
 
     ~RSRenderSpringAnimation() override = default;
 
@@ -47,7 +47,7 @@ protected:
 
     void OnAttach() override;
     void OnDetach() override;
-    void OnInitialize(int64_t time) override;
+    void OnInitialize(int64_t time, bool isCustom = false) override;
     void InitValueEstimator() override;
 
 private:
@@ -60,8 +60,8 @@ private:
     float prevMappedTime_ = 0.0f;
     // return current <value, velocity> as a tuple
     std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>,
-        std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus() const;
-    bool InheritSpringStatus(const RSRenderSpringAnimation* from);
+        std::shared_ptr<RSRenderPropertyBase>> GetSpringStatus(bool isCustom = false) const;
+    bool InheritSpringStatus(const RSRenderSpringAnimation* from, bool isCustom = false);
     std::shared_ptr<RSRenderPropertyBase> CalculateVelocity(float time) const;
     bool GetNeedLogicallyFinishCallback() const;
     void CallLogicallyFinishCallback() const;

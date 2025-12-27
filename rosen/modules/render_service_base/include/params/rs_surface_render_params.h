@@ -170,18 +170,6 @@ public:
     {
         return stencilVal_;
     }
-    void SetIsOutOfScreen(bool isOutOfScreen)
-    {
-        if (isOutOfScreen_ == isOutOfScreen) {
-            return;
-        }
-        isOutOfScreen_ = isOutOfScreen;
-        needSync_ = true;
-    }
-    bool GetIsOutOfScreen()
-    {
-        return isOutOfScreen_;
-    }
     bool GetIsRotating() const
     {
         return isRotating_;
@@ -415,6 +403,9 @@ public:
 
     bool IsSystemWatermarkEmpty() const;
     bool IsCustomWatermarkEmpty() const;
+
+    void SetScreenId(ScreenId screenId);
+    ScreenId GetScreenId() const;
 
 #ifndef ROSEN_CROSS_PLATFORM
     void SetBuffer(const sptr<SurfaceBuffer>& buffer, const Rect& damageRect) override;
@@ -650,14 +641,6 @@ public:
 
     void SetNeedCacheSurface(bool needCacheSurface);
     bool GetNeedCacheSurface() const;
-    inline void SetCaptureEnableUifirst(bool val)
-    {
-        captureEnableUifirst_ = val;
-    }
-    inline bool IsCaptureEnableUifirst()
-    {
-        return captureEnableUifirst_;
-    }
     inline bool HasSubSurfaceNodes() const
     {
         return hasSubSurfaceNodes_;
@@ -834,7 +817,6 @@ private:
     bool preSurfaceCacheContentStatic_ = false;
     bool isSubTreeDirty_ = false;
     float positionZ_ = 0.0f;
-    bool captureEnableUifirst_ = true;
     bool occlusionVisible_ = false;
     Occlusion::Region visibleRegion_;
     Occlusion::Region visibleRegionInVirtual_;
@@ -862,7 +844,6 @@ private:
     bool isInFixedRotation_ = false;
     int32_t releaseInHardwareThreadTaskNum_ = 0;
     bool animateState_ = false;
-    bool isOutOfScreen_ = false;
     bool isRotating_ = false;
     bool isSubSurfaceNode_ = false;
     bool isGlobalPositionEnabled_ = false;
@@ -925,6 +906,8 @@ private:
     bool isBufferFlushed_ = false;
     bool isFrameGravityNewVersionEnabled_ = false;
     bool isSurfaceBufferOpaque_ = false;
+
+    ScreenId screenId_ = INVALID_SCREEN_ID;
 };
 } // namespace OHOS::Rosen
 #endif // RENDER_SERVICE_BASE_PARAMS_RS_SURFACE_RENDER_PARAMS_H

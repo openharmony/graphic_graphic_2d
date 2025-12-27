@@ -28,6 +28,10 @@
 #include "pipeline/rs_task_dispatcher.h"
 #include "pipeline/sk_resource_manager.h"
 #include "platform/common/rs_log.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "memory/rs_canvas_dma_buffer_cache.h"
+#include "platform/ohos/backend/surface_buffer_utils.h"
+#endif
 #include "include/gpu/vk/GrVulkanTrackerInterface.h"
 
 #ifdef RS_PROFILER_ENABLED
@@ -36,9 +40,15 @@
 
 namespace OHOS::Rosen::DrawableV2 {
 namespace {
-    constexpr int EDGE_WIDTH_LIMIT = 1000;
-    constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
-}
+constexpr int EDGE_WIDTH_LIMIT = 1000;
+constexpr float DRAW_REGION_FOR_DFX_BORDER = 5.0f;
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+const bool RENDER_DMA_ENABLED =
+    RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled();
+const bool PRE_ALLOCATE_DMA_ENABLED =
+    RSUniRenderJudgement::IsUniRender() && RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled();
+#endif
+} // namespace
 RSCanvasDrawingRenderNodeDrawable::Registrar RSCanvasDrawingRenderNodeDrawable::instance_;
 
 RSCanvasDrawingRenderNodeDrawable::RSCanvasDrawingRenderNodeDrawable(std::shared_ptr<const RSRenderNode>&& node)
@@ -60,6 +70,12 @@ RSCanvasDrawingRenderNodeDrawable::~RSCanvasDrawingRenderNodeDrawable()
         curThreadInfo_.second(std::move(surface_));
     }
 #endif
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (PRE_ALLOCATE_DMA_ENABLED) {
+        RSCanvasDmaBufferCache::GetInstance().ClearPendingBufferByNodeId(GetId());
+    }
+#endif
 }
 
 RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::shared_ptr<const RSRenderNode> node)
@@ -70,6 +86,7 @@ RSRenderNodeDrawable::Ptr RSCanvasDrawingRenderNodeDrawable::OnGenerate(std::sha
 void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 {
     SetDrawSkipType(DrawSkipType::NONE);
+    std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     RSRenderNodeSingleDrawableLocker singleLocker(this);
     if (UNLIKELY(!singleLocker.IsLocked())) {
         singleLocker.DrawableOnDrawMultiAccessEventReport(__func__);
@@ -79,7 +96,6 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
     }
-    std::unique_lock<std::recursive_mutex> lock(drawableMutex_);
     if (!ShouldPaint()) {
         SetDrawSkipType(DrawSkipType::SHOULD_NOT_PAINT);
         return;
@@ -108,7 +124,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
-    if (uniParam->IsSecurityDisplay() && RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
+    if (LIKELY(uniParam) && uniParam->IsSecurityDisplay() && RSRenderNodeDrawable::SkipDrawByWhiteList(canvas)) {
         return;
     }
 
@@ -149,11 +165,7 @@ void RSCanvasDrawingRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     DumpCanvasDrawing();
 
     auto& captureParam = RSUniRenderThread::GetCaptureParam();
-    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
-        captureParam.endNodeId_ == GetId() &&
-        captureParam.endNodeId_ != INVALID_NODEID);
-
-    if (!captureParam.isSoloNodeUiCapture_ && !stopDrawForRangeCapture) {
+    if (!captureParam.isSoloNodeUiCapture_) {
         // 3. Draw children of this drawing node by the main canvas.
         DrawChildren(canvas, bounds);
     }
@@ -193,7 +205,15 @@ void RSCanvasDrawingRenderNodeDrawable::DumpCanvasDrawing()
 
 void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canvas, const Drawing::Rect& rect)
 {
-    DrawContent(*canvas_, rect);
+    {
+        std::optional<RSTagTracker> tagTracer;
+        if (renderParams_ && canvas_) {
+            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+                RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+        }
+        DrawContent(*canvas_, rect);
+    }
+
     if (!renderParams_ || !RSUniRenderThread::Instance().GetRSRenderThreadParams()) {
         return;
     }
@@ -230,6 +250,14 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRenderContent(Drawing::Canvas& canva
 
 void RSCanvasDrawingRenderNodeDrawable::OnCapture(Drawing::Canvas& canvas)
 {
+    auto& captureParam = RSUniRenderThread::GetCaptureParam();
+    bool stopDrawForRangeCapture = (canvas.GetUICapture() &&
+        captureParam.endNodeId_ == GetId() &&
+        captureParam.endNodeId_ != INVALID_NODEID);
+    if (stopDrawForRangeCapture || captureParam.captureFinished_) {
+        captureParam.captureFinished_ = true;
+        return;
+    }
     OnDraw(canvas);
 }
 
@@ -294,6 +322,12 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
             }
         }
 
+        std::optional<RSTagTracker> tagTracer;
+        if (canvas_) {
+            tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+                RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+        }
+
         if (renderParams_->GetCanvasDrawingSurfaceChanged()) {
             ResetSurface();
             RS_LOGI("PostPlaybackInCorrespondThread NodeId[%{public}" PRIu64 "] SurfaceChanged Reset Surface", nodeId);
@@ -330,6 +364,11 @@ void RSCanvasDrawingRenderNodeDrawable::PostPlaybackInCorrespondThread()
 bool RSCanvasDrawingRenderNodeDrawable::InitSurface(int width, int height, RSPaintFilterCanvas& canvas)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    std::optional<RSTagTracker> tagTracer;
+    if (renderParams_) {
+        tagTracer.emplace(canvas.GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+            RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+    }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
         return InitSurfaceForGL(width, height, canvas);
     }
@@ -431,7 +470,7 @@ void RSCanvasDrawingRenderNodeDrawable::FlushForVK(float width, float height, st
 {
     if (!recordingCanvas_) {
         REAL_ALLOC_CONFIG_SET_STATUS(true);
-        image_ = surface_->GetImageSnapshot();
+        image_ = GetImageAlias(surface_, GetTextureOrigin());
         REAL_ALLOC_CONFIG_SET_STATUS(false);
     } else {
         auto cmds = recordingCanvas_->GetDrawCmdList();
@@ -448,6 +487,11 @@ void RSCanvasDrawingRenderNodeDrawable::Flush(float width, float height, std::sh
     NodeId nodeId, RSPaintFilterCanvas& rscanvas)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+    std::optional<RSTagTracker> tagTracer;
+    if (renderParams_ && canvas_) {
+        tagTracer.emplace(canvas_->GetGPUContext(), renderParams_->GetInstanceRootNodeId(),
+            RSTagTracker::TAGTYPE::TAG_CANVAS_DRAWING_NODE, renderParams_->GetInstanceRootNodeName());
+    }
     if (RSSystemProperties::GetGpuApiType() == GpuApiType::VULKAN ||
         RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR) {
         FlushForVK(width, height, context, nodeId, rscanvas);
@@ -714,7 +758,15 @@ void RSCanvasDrawingRenderNodeDrawable::DrawCaptureImage(RSPaintFilterCanvas& ca
 bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
 {
     if (!backendTexture_.IsValid() || !backendTexture_.GetTextureInfo().GetVKTextureInfo()) {
-        backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, ExtractPid(nodeId_));
+        auto pid = ExtractPid(nodeId_);
+        bool dmaTextureCreated = false;
+#ifdef ROSEN_OHOS
+        dmaTextureCreated = CreateDmaBackendTexture(pid, width, height);
+#endif
+        // Create DMA BackendTexture fail or DMA not enabled
+        if (!dmaTextureCreated) {
+            backendTexture_ = NativeBufferUtils::MakeBackendTexture(width, height, pid);
+        }
         if (!backendTexture_.IsValid()) {
             surface_ = nullptr;
             recordingCanvas_ = nullptr;
@@ -732,7 +784,67 @@ bool RSCanvasDrawingRenderNodeDrawable::ReleaseSurfaceVK(int width, int height)
     }
     return true;
 }
-#endif
+
+#ifdef ROSEN_OHOS
+bool RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture(pid_t pid, int width, int height)
+{
+    if (!PRE_ALLOCATE_DMA_ENABLED && !RENDER_DMA_ENABLED) {
+        return false;
+    }
+
+    const auto& params = GetRenderParams();
+    auto resetSurfaceIndex = params != nullptr ? params->GetCanvasDrawingResetSurfaceIndex() : 0;
+    if (resetSurfaceIndex == 0) {
+        return false;
+    }
+
+    bool willNotify = false;
+    bool hasClientBuffer = false;
+    auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+    sptr<SurfaceBuffer> surfaceBuffer = nullptr;
+    if (PRE_ALLOCATE_DMA_ENABLED) {
+        // Step 1: Check Pending Buffer
+        surfaceBuffer = bufferCache.AcquirePendingBuffer(nodeId_, resetSurfaceIndex);
+        dmaAllocationCount_.fetch_add(1, std::memory_order_relaxed);
+        RS_TRACE_NAME_FMT("AcquirePendingBuffer: nodeId=%" PRIu64, nodeId_);
+    }
+    if (surfaceBuffer == nullptr) {
+        if (PRE_ALLOCATE_DMA_ENABLED) {
+            dmaFallbackCount_.fetch_add(1, std::memory_order_relaxed);
+            RS_TRACE_NAME_FMT("AcquirePendingBuffer fail, nodeId=%" PRIu64, nodeId_);
+            RS_LOGE("AcquirePendingBuffer fail, nodeId=%{public}" PRIu64, nodeId_);
+        }
+        if (RENDER_DMA_ENABLED) {
+            // Step 2: Create DMA SurfaceBuffer if no pending buffer
+            surfaceBuffer = SurfaceBufferUtils::CreateCanvasSurfaceBuffer(pid, width, height);
+            willNotify = surfaceBuffer != nullptr;
+        }
+    } else {
+        hasClientBuffer = true;
+    }
+
+    bool dmaTextureCreated = false;
+    if (surfaceBuffer != nullptr) {
+        // Step 3: Convert to BackendTexture
+        backendTexture_ = SurfaceBufferUtils::ConvertSurfaceBufferToBackendTexture(surfaceBuffer);
+        dmaTextureCreated = backendTexture_.IsValid();
+    }
+    if (!dmaTextureCreated) {
+        willNotify = hasClientBuffer;
+        surfaceBuffer = nullptr;
+        backendTexture_ = {};
+        RS_LOGE("RSCanvasDrawingRenderNodeDrawable::CreateDmaBackendTexture: Create DMA BackendTexture fail, "
+                "width=%{public}d, height=%{public}d, null surfaceBuffer: %{public}d",
+            width, height, surfaceBuffer == nullptr);
+    }
+    if (willNotify) {
+        // Step 4: Notify application to hold SurfaceBuffer
+        bufferCache.NotifyCanvasSurfaceBufferChanged(nodeId_, surfaceBuffer, resetSurfaceIndex);
+    }
+    return dmaTextureCreated;
+}
+#endif // ROSEN_OHOS
+#endif // RS_ENABLE_VK
 
 bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height, RSPaintFilterCanvas& canvas)
 {
@@ -769,6 +881,14 @@ bool RSCanvasDrawingRenderNodeDrawable::ResetSurfaceForVK(int width, int height,
             NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
         REAL_ALLOC_CONFIG_SET_STATUS(false);
         if (!surface_) {
+#ifdef ROSEN_OHOS
+            if ((PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED) && params != nullptr) {
+                auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+                bufferCache.NotifyCanvasSurfaceBufferChanged(
+                    nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+                bufferCache.RemovePendingBuffer(nodeId_, params->GetCanvasDrawingResetSurfaceIndex());
+            }
+#endif
             isGpuSurface_ = false;
             surface_ = Drawing::Surface::MakeRaster(info);
             if (!surface_) {
@@ -901,6 +1021,14 @@ bool RSCanvasDrawingRenderNodeDrawable::GpuContextResetVK(
         NativeBufferUtils::DeleteVkImage, isNewCreate ? vulkanCleanupHelper_ : vulkanCleanupHelper_->Ref());
     REAL_ALLOC_CONFIG_SET_STATUS(false);
     if (!surface_) {
+#ifdef ROSEN_OHOS
+        const auto& params = GetRenderParams();
+        if ((PRE_ALLOCATE_DMA_ENABLED || RENDER_DMA_ENABLED) && params != nullptr) {
+            auto& bufferCache = RSCanvasDmaBufferCache::GetInstance();
+            bufferCache.NotifyCanvasSurfaceBufferChanged(nodeId_, nullptr, params->GetCanvasDrawingResetSurfaceIndex());
+            bufferCache.RemovePendingBuffer(nodeId_, params->GetCanvasDrawingResetSurfaceIndex());
+        }
+#endif
         isGpuSurface_ = false;
         surface_ = Drawing::Surface::MakeRaster(info);
         if (!surface_) {
@@ -1116,4 +1244,13 @@ void RSCanvasDrawingRenderNodeDrawable::DrawRegionForDfx(Drawing::Canvas& canvas
     canvas.DetachPen();
 }
 
+void RSCanvasDrawingRenderNodeDrawable::DumpSubDrawableTree(std::string& out) const
+{
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    if (PRE_ALLOCATE_DMA_ENABLED) {
+        out += ", dmaAllocationCount:" + std::to_string(dmaAllocationCount_.load());
+        out += ", dmaFallbackCount:" + std::to_string(dmaFallbackCount_.load());
+    }
+#endif
+}
 } // namespace OHOS::Rosen::DrawableV2

@@ -293,7 +293,7 @@ HWTEST_F(RSPhysicalScreenProcessorTest, Redraw, TestSize.Level1)
 {
     std::shared_ptr<RSPhysicalScreenProcessor> rsHardwareProcessor = std::make_shared<RSPhysicalScreenProcessor>();
     sptr<Surface> surface;
-    std::vector<LayerInfoPtr> layers;
+    std::vector<RSLayerPtr> layers;
     rsHardwareProcessor->Redraw(surface, layers);
     surface = Surface::CreateSurfaceAsConsumer();
     ASSERT_NE(surface, nullptr);

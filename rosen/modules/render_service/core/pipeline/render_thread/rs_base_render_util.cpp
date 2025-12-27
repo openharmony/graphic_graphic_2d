@@ -45,6 +45,7 @@
 #include "system/rs_system_parameters.h"
 #include "transaction/rs_transaction_data.h"
 #include "utils/camera3d.h"
+#include "rs_profiler.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -968,7 +969,7 @@ void RSBaseRenderUtil::MergeBufferDamages(Rect& surfaceDamage, const std::vector
 }
 
 CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen,
-    bool dropFrameByPidEnable, uint64_t parentNodeId)
+    bool dropFrameByPidEnable, uint64_t parentNodeId, bool dropFrameByScreenFrozen)
 {
     if (surfaceHandler.GetAvailableBufferCount() <= 0) {
         return true;
@@ -1000,9 +1001,27 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
             ret = consumer->AcquireBuffer(returnValue, static_cast<int64_t>(acquireTimeStamp), false);
         }
         if (returnValue.buffer == nullptr || ret != SURFACE_ERROR_OK) {
-            RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug surfaceHandler(id: %{public}" PRIu64 ") "
-                "AcquireBuffer failed(ret: %{public}d)!", surfaceHandler.GetNodeId(), ret);
-            surfaceBuffer = nullptr;
+            auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
+            if (LIKELY(!dropFrameByScreenFrozen) && UNLIKELY(holdReturnValue)) {
+                returnValue.buffer = holdReturnValue->buffer;
+                returnValue.fence = holdReturnValue->fence;
+                returnValue.timestamp = holdReturnValue->timestamp;
+                returnValue.damages = holdReturnValue->damages;
+                surfaceHandler.ResetHoldReturnValue();
+            } else {
+                RS_LOGD_IF(DEBUG_PIPELINE, "RsDebug surfaceHandler(id: %{public}" PRIu64 ") "
+                    "AcquireBuffer failed(ret: %{public}d)!", surfaceHandler.GetNodeId(), ret);
+                surfaceBuffer = nullptr;
+                return false;
+            }
+        }
+        auto holdReturnValue = surfaceHandler.GetHoldReturnValue();
+        if (UNLIKELY(holdReturnValue)) {
+            consumer->ReleaseBuffer(holdReturnValue->buffer, holdReturnValue->fence);
+            surfaceHandler.ResetHoldReturnValue();
+        }
+        if (UNLIKELY(dropFrameByScreenFrozen)) {
+            surfaceHandler.SetHoldReturnValue(returnValue);
             return false;
         }
         surfaceBuffer = std::make_shared<RSSurfaceHandler::SurfaceBufferEntry>();
@@ -1055,9 +1074,10 @@ CM_INLINE bool RSBaseRenderUtil::ConsumeAndUpdateBuffer(RSSurfaceHandler& surfac
         DelayedSingleton<RSFrameRateVote>::GetInstance()->VideoFrameRateVote(surfaceHandler.GetNodeId(),
             consumer->GetSurfaceSourceType(), surfaceBuffer->buffer);
     }
-    if (consumer->GetSurfaceSourceType() == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
+    OHSurfaceSource sourceType =  consumer->GetSurfaceSourceType();
+    surfaceHandler.SetSourceType(static_cast<uint32_t>(sourceType));
+    if (sourceType == OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO) {
         RS_TRACE_NAME_FMT("lpp node: %" PRIu64 "", surfaceHandler.GetNodeId());
-        surfaceHandler.SetSourceType(static_cast<uint32_t>(consumer->GetSurfaceSourceType()));
     }
     surfaceBuffer = nullptr;
     surfaceHandler.SetAvailableBufferCount(static_cast<int32_t>(consumer->GetAvailableBufferCount()));
@@ -1569,11 +1589,13 @@ std::unique_ptr<RSTransactionData> RSBaseRenderUtil::ParseTransactionData(
     if (!transactionData) {
         RS_TRACE_NAME("UnMarsh RSTransactionData fail!");
         RS_LOGE("UnMarsh RSTransactionData fail!");
+        RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
         return nullptr;
     }
     lastSendingPid_ = transactionData->GetSendingPid();
     transactionData->ProfilerPushOffsets(parcel, parcelNumber);
     RS_TRACE_NAME("UnMarsh RSTransactionData: recv data from " + std::to_string(lastSendingPid_));
+    RS_PROFILER_TRANSACTION_UNMARSHALLING_END(parcel, parcelNumber);
     std::unique_ptr<RSTransactionData> transData(transactionData);
     return transData;
 }
@@ -1920,23 +1942,6 @@ GraphicTransformType RSBaseRenderUtil::RotateEnumToInt(int angle, GraphicTransfo
         auto iter = pairToEnumMap.find({angle, flip});
         return iter != pairToEnumMap.end() ? iter->second : GraphicTransformType::GRAPHIC_ROTATE_NONE;
     }
-}
-
-int RSBaseRenderUtil::GetAccumulatedBufferCount()
-{
-    return std::max(acquiredBufferCount_ - 1, 0);
-}
-
-void RSBaseRenderUtil::IncAcquiredBufferCount()
-{
-    ++acquiredBufferCount_;
-    RS_TRACE_NAME_FMT("Inc Acq BufferCount %d", acquiredBufferCount_.load());
-}
-
-void RSBaseRenderUtil::DecAcquiredBufferCount()
-{
-    --acquiredBufferCount_;
-    RS_TRACE_NAME_FMT("Dec Acq BufferCount %d", acquiredBufferCount_.load());
 }
 
 pid_t RSBaseRenderUtil::GetLastSendingPid()

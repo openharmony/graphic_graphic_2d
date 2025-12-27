@@ -32,6 +32,7 @@ using namespace testing::ext;
 using namespace OHOS::Rosen::DrawableV2;
 
 namespace OHOS::Rosen {
+static constexpr uint64_t TEST_ID = 128;
 constexpr int32_t DEFAULT_CANVAS_SIZE = 100;
 constexpr NodeId DEFAULT_ID = 0xFFFF;
 
@@ -137,6 +138,49 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCapture001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OnCaptureTest002
+ * @tc.desc: Test If OnCapture Can Run
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
+{
+    // set render thread param
+    auto uniParams = std::make_unique<RSRenderThreadParams>();
+    uniParams->SetSecurityDisplay(true);
+    RSUniRenderThread::Instance().Sync(std::move(uniParams));
+
+    NodeId nodeId = 0;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    ASSERT_NE(drawable, nullptr);
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    drawable->renderParams_ = nullptr;
+    drawable->OnCapture(canvas);
+    drawable->isDrawingCacheEnabled_ = false;
+    drawable->renderParams_ = std::make_unique<RSRenderParams>(nodeId);
+    ASSERT_TRUE(drawable->GetRenderParams());
+    drawable->renderParams_->shouldPaint_ = true;
+    drawable->renderParams_->contentEmpty_ = false;
+    ASSERT_FALSE(drawable->isDrawingCacheEnabled_);
+    ASSERT_TRUE(drawable->GetRenderParams());
+    drawable->OnCapture(canvas);
+    ASSERT_TRUE(drawable->ShouldPaint());
+    nodeId = TEST_ID;
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = TEST_ID;
+    canvas.SetUICapture(true);
+    drawable->OnCapture(canvas);
+    drawable->OnDraw(canvas);
+    ASSERT_TRUE(drawable->ShouldPaint());
+    RSUniRenderThread::GetCaptureParam().endNodeId_ = INVALID_NODEID;
+    RSUniRenderThread::GetCaptureParam().captureFinished_ = true;
+    drawable->OnCapture(canvas);
+    drawable->OnDraw(canvas);
+    ASSERT_TRUE(drawable->ShouldPaint());
+}
+
+/**
  * @tc.name: GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue
  * @tc.desc: generate effect when has no effect children and uiCapture is true
  * @tc.type: FUNC
@@ -154,17 +198,9 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUI
     paintFilterCanvas.SetUICapture(true);
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
     drawable->drawCmdIndex_.childrenIndex_ = 0;
-    Drawing::RecordingCanvas::DrawFunc drawFunc = [](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-        if (paintFilterCanvas == nullptr) {
-            return;
-        }
-        paintFilterCanvas->SetEffectData(std::make_shared<RSPaintFilterCanvas::CachedEffectData>());
-    };
-    drawable->drawCmdList_.emplace_back(drawFunc);
 
     RSEffectRenderParams params(nodeId);
-    params.SetHasEffectChildren(false);
+    params.SetHasEffectChildrenWithoutEmptyRect(false);
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
     EXPECT_NE(paintFilterCanvas.GetEffectData(), nullptr);
 }
@@ -215,6 +251,32 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw003, TestSize.Level2)
     auto params = std::make_unique<RSRenderThreadParams>();
     params->SetSecurityDisplay(true);
     RSUniRenderThread::Instance().Sync(std::move(params));
+    RSUniRenderThread::Instance().SetWhiteList({});
+
+    Drawing::Canvas drawingCanvas;
+    RSPaintFilterCanvas canvas(&drawingCanvas);
+    effectDrawable->OnDraw(canvas);
+    ASSERT_FALSE(effectDrawable->SkipDrawByWhiteList(canvas));
+
+    // restore
+    RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: OnDraw004
+ * @tc.desc: Test OnDraw while renderThreadParams_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require: issue20602
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw004, TestSize.Level2)
+{
+    auto effectNode = std::make_shared<RSEffectRenderNode>(DEFAULT_ID);
+    ASSERT_NE(effectNode, nullptr);
+    auto effectDrawable =
+        static_cast<RSEffectRenderNodeDrawable*>(RSRenderNodeDrawableAdapter::OnGenerate(effectNode).get());
+    effectDrawable->renderParams_->shouldPaint_ = true;
+
+    RSUniRenderThread::Instance().Sync(nullptr);
     RSUniRenderThread::Instance().SetWhiteList({});
 
     Drawing::Canvas drawingCanvas;

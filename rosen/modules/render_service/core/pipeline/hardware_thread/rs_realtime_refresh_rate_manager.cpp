@@ -22,6 +22,7 @@
 #include "hgm_core.h"
 #include "rs_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "screen_manager/rs_screen_manager.h"
 
 namespace OHOS::Rosen {
 RSRealtimeRefreshRateManager& RSRealtimeRefreshRateManager::Instance()
@@ -122,7 +123,7 @@ uint32_t RSRealtimeRefreshRateManager::GetRealtimeRefreshRate(ScreenId screenId)
     }
     std::unique_lock<std::mutex> lock(showRealtimeFrameMutex_);
     if (auto iter = currRealtimeRefreshRateMap_.find(screenId); iter != currRealtimeRefreshRateMap_.end()) {
-        uint32_t currentRefreshRate = OHOS::Rosen::HgmCore::Instance().GetScreenCurrentRefreshRate(screenId);
+        uint32_t currentRefreshRate = GetScreenCurrentRefreshRate(screenId);
         if (iter->second > currentRefreshRate) {
             return currentRefreshRate;
         }
@@ -130,4 +131,22 @@ uint32_t RSRealtimeRefreshRateManager::GetRealtimeRefreshRate(ScreenId screenId)
     }
     return DEFAULT_REALTIME_REFRESH_RATE;
 }
+
+uint32_t RSRealtimeRefreshRateManager::GetScreenCurrentRefreshRate(ScreenId screenId)
+{
+    auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
+    auto hgmscreen = hgmCore.GetScreen(screenId);
+    if (hgmscreen == nullptr) {
+        return 0;
+    }
+
+    if (hgmscreen->GetSelfOwnedScreenFlag()) {
+        return hgmCore.GetScreenCurrentRefreshRate(screenId);
+    }
+
+    auto scrMgr = OHOS::Rosen::CreateOrGetScreenManager();
+    return scrMgr != nullptr ?
+        scrMgr->GetScreenActiveRefreshRate(screenId) : hgmCore.GetScreenCurrentRefreshRate(screenId);
+}
+
 } // namespace OHOS::Rosen

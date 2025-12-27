@@ -185,6 +185,15 @@ void RSRenderParams::SetDrawingCacheChanged(bool isChanged, bool lastFrameSynced
     }
 }
 
+void RSRenderParams::SetForceDisableNodeGroup(bool forceDisable)
+{
+    if (isForceDisableNodeGroup_ == forceDisable) {
+        return;
+    }
+    isForceDisableNodeGroup_ = forceDisable;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
 {
     if (drawingCacheType_ == cacheType) {
@@ -193,6 +202,44 @@ void RSRenderParams::SetDrawingCacheType(RSDrawingCacheType cacheType)
     dirtyType_.set(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
     drawingCacheType_ = cacheType;
     needSync_ = true;
+}
+
+bool RSRenderParams::ExcludedFromNodeGroup(bool isExcluded)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->ExcludedFromNodeGroup(isExcluded)) {
+        needSync_ = true;
+        return true;
+    }
+    return false;
+}
+
+bool RSRenderParams::IsExcludedFromNodeGroup() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->IsExcludedFromNodeGroup();
+    }
+    return false;
+}
+
+void RSRenderParams::SetHasChildExcludedFromNodeGroup(bool isExcluded)
+{
+    if (!renderGroupCache_) {
+        renderGroupCache_ = std::make_unique<RSRenderGroupCache>();
+    }
+    if (renderGroupCache_ && renderGroupCache_->SetHasChildExcludedFromNodeGroup(isExcluded)) {
+        needSync_ = true;
+    }
+}
+
+bool RSRenderParams::HasChildExcludedFromNodeGroup() const
+{
+    if (renderGroupCache_) {
+        return renderGroupCache_->HasChildExcludedFromNodeGroup();
+    }
+    return false;
 }
 
 void RSRenderParams::SetDrawingCacheIncludeProperty(bool includeProperty)
@@ -283,6 +330,45 @@ void RSRenderParams::SetHDRBrightness(float hdrBrightness)
     needSync_ = true;
 }
 
+void RSRenderParams::UpdateHDRStatus(HdrStatus hdrStatus, bool isAdd)
+{
+    HdrStatus newStatus =
+        isAdd ? static_cast<HdrStatus>(hdrStatus_ | hdrStatus) : static_cast<HdrStatus>(hdrStatus_ & ~hdrStatus);
+    if (newStatus == hdrStatus_) {
+        return;
+    }
+    hdrStatus_ = newStatus;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetNodeColorSpace(GraphicColorGamut colorSpace)
+{
+    if (colorSpace != nodeColorSpace_) {
+        nodeColorSpace_ = colorSpace;
+        needSync_ = true;
+    }
+}
+
+void RSRenderParams::ClearHDRVideoStatus()
+{
+    HdrStatus newStatus = static_cast<HdrStatus>(
+        hdrStatus_ & ~(HdrStatus::HDR_VIDEO | HdrStatus::AI_HDR_VIDEO_GTM | HdrStatus::AI_HDR_VIDEO_GAINMAP));
+    if (newStatus == hdrStatus_) {
+        return;
+    }
+    hdrStatus_ = newStatus;
+    needSync_ = true;
+}
+
+void RSRenderParams::SetChildHasVisibleHDRContent(bool val)
+{
+    if (childHasVisibleHDRContent_ == val) {
+        return;
+    }
+    childHasVisibleHDRContent_ = val;
+    needSync_ = true;
+}
+
 void RSRenderParams::SetNeedFilter(bool needFilter)
 {
     if (needFilter_ == needFilter) {
@@ -355,6 +441,7 @@ void RSRenderParams::OnCanvasDrawingSurfaceChange(const std::unique_ptr<RSRender
     target->surfaceParams_.width = surfaceParams_.width;
     target->surfaceParams_.height = surfaceParams_.height;
     target->surfaceParams_.colorSpace = surfaceParams_.colorSpace;
+    target->canvasDrawingResetSurfaceIndex_ = canvasDrawingResetSurfaceIndex_.load();
     if (GetParamsType() == RSRenderParamsType::RS_PARAM_OWNED_BY_DRAWABLE) {
         return;
     }
@@ -377,6 +464,15 @@ bool RSRenderParams::IsRepaintBoundary() const
 void RSRenderParams::MarkRepaintBoundary(bool isRepaintBoundary)
 {
     isRepaintBoundary_ = isRepaintBoundary;
+}
+
+void RSRenderParams::SetCanvasDrawingResetSurfaceIndex(uint32_t index)
+{
+    if (index == canvasDrawingResetSurfaceIndex_) {
+        return;
+    }
+    canvasDrawingResetSurfaceIndex_.store(index);
+    needSync_ = true;
 }
 
 void RSRenderParams::SetForegroundFilterCache(const std::shared_ptr<RSFilter>& foregroundFilterCache)
@@ -420,13 +516,19 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     // use flag in render param and staging render param to determine if cache should be updated
     // (flag in render param may be not used because of occlusion skip, so we need to update cache in next frame)
     target->isDrawingCacheChanged_ = target->isDrawingCacheChanged_ || isDrawingCacheChanged_;
+    target->isForceDisableNodeGroup_ = isForceDisableNodeGroup_;
     target->shadowRect_ = shadowRect_;
     target->drawingCacheIncludeProperty_ = drawingCacheIncludeProperty_;
     target->isNodeGroupHasChildInBlacklist_ = isNodeGroupHasChildInBlacklist_;
+    if (renderGroupCache_) {
+        target->renderGroupCache_ = std::make_unique<RSRenderGroupCache>(*renderGroupCache_);
+    }
     target->dirtyRegionInfoForDFX_ = dirtyRegionInfoForDFX_;
     target->isRepaintBoundary_ = isRepaintBoundary_;
     target->alphaOffScreen_ = alphaOffScreen_;
     target->hdrBrightness_ = hdrBrightness_;
+    target->hdrStatus_ = hdrStatus_;
+    target->childHasVisibleHDRContent_ = childHasVisibleHDRContent_;
     target->needFilter_ = needFilter_;
     target->renderNodeType_ = renderNodeType_;
     target->globalAlpha_ = globalAlpha_;
@@ -456,10 +558,7 @@ void RSRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     target->hasUnobscuredUEC_ = hasUnobscuredUEC_;
 
     // [Attention] Only used in PC window resize scene now
-    target->windowKeyframeEnabled_ = windowKeyframeEnabled_;
-    target->linkedRootNodeDrawable_ = linkedRootNodeDrawable_;
-    target->needSwapBuffer_ = needSwapBuffer_;
-    target->cacheNodeFrameRect_ = cacheNodeFrameRect_;
+    target->windowKeyFrameNodeDrawable_ = windowKeyFrameNodeDrawable_;
 
     // used for DFX
     target->isOnTheTree_ = isOnTheTree_;
@@ -561,41 +660,16 @@ void RSRenderParams::SetCloneSourceDrawable(DrawableV2::RSRenderNodeDrawableAdap
 }
 
 // [Attention] Only used in PC window resize scene now
-void RSRenderParams::EnableWindowKeyFrame(bool enable)
+void RSRenderParams::SetWindowKeyFrameNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
 {
-    if (windowKeyframeEnabled_ == enable) {
-        return;
-    }
-
-    windowKeyframeEnabled_ = enable;
+    windowKeyFrameNodeDrawable_ = drawable;
     needSync_ = true;
 }
 
 // [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetLinkedRootNodeDrawable(DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr drawable)
+DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr RSRenderParams::GetWindowKeyFrameNodeDrawable()
 {
-    linkedRootNodeDrawable_ = drawable;
-    needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetNeedSwapBuffer(bool needSwapBuffer)
-{
-    if (needSwapBuffer_ == needSwapBuffer) {
-        return;
-    }
-    needSwapBuffer_ = needSwapBuffer;
-    needSync_ = true;
-}
-
-// [Attention] Only used in PC window resize scene now
-void RSRenderParams::SetCacheNodeFrameRect(const Drawing::RectF& cacheNodeFrameRect)
-{
-    if (cacheNodeFrameRect_ == cacheNodeFrameRect) {
-        return;
-    }
-    cacheNodeFrameRect_ = cacheNodeFrameRect;
-    needSync_ = true;
+    return windowKeyFrameNodeDrawable_;
 }
 
 // used for DFX

@@ -577,7 +577,7 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
         dirtyType_.reset(RSRenderParamsDirtyType::LAYER_INFO_DIRTY);
     }
     targetSurfaceParams->windowInfo_ = windowInfo_;
-
+    targetSurfaceParams->screenId_ = screenId_;
 #ifndef ROSEN_CROSS_PLATFORM
     if (dirtyType_.test(RSRenderParamsDirtyType::BUFFER_INFO_DIRTY)) {
         targetSurfaceParams->buffer_ = buffer_;
@@ -634,7 +634,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->drmCornerRadiusInfo_ = drmCornerRadiusInfo_;
     targetSurfaceParams->isForceDisableClipHoleForDRM_ = isForceDisableClipHoleForDRM_;
     targetSurfaceParams->animateState_ = animateState_;
-    targetSurfaceParams->isOutOfScreen_ = isOutOfScreen_;
     targetSurfaceParams->isRotating_ = isRotating_;
     targetSurfaceParams->specialLayerManager_ = specialLayerManager_;
     targetSurfaceParams->privacyContentLayerIds_ = privacyContentLayerIds_;
@@ -694,7 +693,6 @@ void RSSurfaceRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target
     targetSurfaceParams->regionToBeMagnified_ = regionToBeMagnified_;
     targetSurfaceParams->isFrameGravityNewVersionEnabled_ = isFrameGravityNewVersionEnabled_;
     targetSurfaceParams->isSurfaceBufferOpaque_ = isSurfaceBufferOpaque_;
-    targetSurfaceParams->captureEnableUifirst_ = captureEnableUifirst_;
     targetSurfaceParams->uiFirstVisibleFilterRect_ = uiFirstVisibleFilterRect_;
     RSRenderParams::OnSync(target);
 }
@@ -771,4 +769,17 @@ bool RSSurfaceRenderParams::GetSurfaceBufferOpaque() const
     return isSurfaceBufferOpaque_;
 }
 
+void RSSurfaceRenderParams::SetScreenId(ScreenId screenId)
+{
+    if (screenId_ == screenId) {
+        return;
+    }
+    screenId_ = screenId;
+    needSync_ = true;
+}
+
+ScreenId RSSurfaceRenderParams::GetScreenId() const
+{
+    return screenId_;
+}
 } // namespace OHOS::Rosen

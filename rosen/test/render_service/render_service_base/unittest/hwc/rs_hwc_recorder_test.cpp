@@ -19,6 +19,7 @@
 #include "params/rs_render_params.h"
 #include "params/rs_surface_render_params.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_root_render_node.h"
@@ -176,5 +177,38 @@ HWTEST_F(RSHwcRecorderTest, SetAndGetZOrderForHwcEnableByFilterTest, TestSize.Le
     RSSurfaceRenderNode node(id);
     node.GetHwcRecorder().SetZOrderForHwcEnableByFilter(1);
     ASSERT_EQ(node.GetHwcRecorder().GetZOrderForHwcEnableByFilter(), 1);
+}
+
+/**
+ * @tc.name: SetNeedForceUpdateHwcNodes_001
+ * @tc.desc: test SetNeedForceUpdateHwcNodes and GetNeedForceUpdateHwcNodes
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSHwcRecorderTest, SetNeedForceUpdateHwcNodes_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    uint32_t screenId = 0;
+    RSScreenRenderNode node(id, screenId);
+    node.HwcDisplayRecorder().SetNeedForceUpdateHwcNodes(true);
+    ASSERT_TRUE(node.HwcDisplayRecorder().GetNeedForceUpdateHwcNodes());
+    node.HwcDisplayRecorder().SetNeedForceUpdateHwcNodes(false);
+    ASSERT_FALSE(node.HwcDisplayRecorder().GetNeedForceUpdateHwcNodes());
+}
+
+/**
+ * @tc.name: SetLastFrameHasVisibleRegion_001
+ * @tc.desc: test SetLastFrameHasVisibleRegion and GetLastFrameHasVisibleRegion
+ * @tc.type: FUNC
+ * @tc.require: issuesICKNNB
+ */
+HWTEST_F(RSHwcRecorderTest, SetLastFrameHasVisibleRegion_001, TestSize.Level1)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(true);
+    ASSERT_TRUE(node.HwcSurfaceRecorder().GetLastFrameHasVisibleRegion());
+    node.HwcSurfaceRecorder().SetLastFrameHasVisibleRegion(false);
+    ASSERT_FALSE(node.HwcSurfaceRecorder().GetLastFrameHasVisibleRegion());
 }
 } //namespace OHOS::Rosen

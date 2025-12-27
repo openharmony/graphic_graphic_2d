@@ -18,7 +18,8 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
 subsystem_name = "graphic"
 part_name = "graphic_2d"
-taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
+taihe_generated_file_path =
+    "$taihe_file_path/out/$subsystem_name/$part_name/uiEffect"
 rosen_is_ohos = current_os == "ohos"
 
 copy_taihe_idl("copy_uieffect_taihe") {
@@ -26,10 +27,10 @@ copy_taihe_idl("copy_uieffect_taihe") {
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.taihe",
     "$graphic_2d_root/interfaces/kits/taihe/ui_effect/idl/ohos.graphics.uiEffect.uiEffect.taihe",
   ]
-  external_deps = ["image_framework:copy_image_taihe"]
+  external_deps = [ "image_framework:copy_image_taihe" ]
 }
 
-ohos_taihe("run_taihe") {
+ohos_taihe("run_uiEffect_taihe") {
   taihe_generated_file_path = "$taihe_generated_file_path"
   deps = [ ":copy_uieffect_taihe" ]
   outputs = [
@@ -59,7 +60,7 @@ taihe_shared_library("uieffect_taihe_native") {
     "$graphic_2d_root/utils/log",
   ]
 
-  sources = get_target_outputs(":run_taihe")
+  sources = get_target_outputs(":run_uiEffect_taihe")
   sources += [
     "src/ani_constructor.cpp",
     "src/effect_taihe.cpp",
@@ -71,7 +72,7 @@ taihe_shared_library("uieffect_taihe_native") {
   cflags = [ "-DIMAGE_DEBUG_FLAG" ]
 
   deps = [
-    ":run_taihe",
+    ":run_uiEffect_taihe",
     "$graphic_2d_root/rosen/modules/2d_graphics:2d_graphics",
     "$graphic_2d_root/rosen/modules/render_service_client:librender_service_client",
   ]
@@ -79,15 +80,13 @@ taihe_shared_library("uieffect_taihe_native") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image_taihe",
     "runtime_core:ani",
     "runtime_core:libarkruntime",
-    "image_framework:image_taihe",
   ]
 
   if (rosen_is_ohos) {
-    defines = [
-      "ENABLE_IPC_SECURITY"
-    ]
+    defines = [ "ENABLE_IPC_SECURITY" ]
     external_deps += [
       "access_token:libaccesstoken_sdk",
       "ipc:ipc_core",
@@ -100,7 +99,7 @@ generate_static_abc("uiEffect_taihe_abc") {
   files = [ "$taihe_generated_file_path/@ohos.graphics.uiEffect.ets" ]
   is_boot_abc = "True"
   device_dst_file = "/system/framework/uiEffect_taihe_abc.abc"
-  dependencies = [ ":run_taihe" ]
+  dependencies = [ ":run_uiEffect_taihe" ]
 }
 
 ohos_prebuilt_etc("uiEffect_etc") {
@@ -108,11 +107,9 @@ ohos_prebuilt_etc("uiEffect_etc") {
   module_install_dir = "framework"
   part_name = "$part_name"
   subsystem_name = "$subsystem_name"
-  deps = [
-    ":uiEffect_taihe_abc",
-  ]
+  deps = [ ":uiEffect_taihe_abc" ]
 }
 
 group("uieffect_taihe_gen_only") {
-  deps = [ ":run_taihe" ]
+  deps = [ ":run_uiEffect_taihe" ]
 }

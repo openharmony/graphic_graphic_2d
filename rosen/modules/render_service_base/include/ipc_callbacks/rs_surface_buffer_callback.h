@@ -74,6 +74,15 @@ private:
     std::function<void(const FinishCallbackRet&)> finishCallback_;
     std::function<void(const AfterAcquireBufferRet&)> afterAcquireBufferCallback_;
 };
+
+class SurfaceBufferCallback {
+public:
+    SurfaceBufferCallback() = default;
+    virtual ~SurfaceBufferCallback() noexcept = default;
+    virtual void OnFinish(const FinishCallbackRet& ret) = 0;
+    virtual void OnAfterAcquireBuffer(const AfterAcquireBufferRet& ret) = 0;
+};
+
 } // namespace Rosen
 } // namespace OHOS
 

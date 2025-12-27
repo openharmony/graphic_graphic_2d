@@ -48,9 +48,9 @@ public:
         RSRenderInterpolatingSpringAnimation::InitValueEstimator();
     }
 
-    void OnInitialize(int64_t time) override
+    void OnInitialize(int64_t time, bool isCustom = false) override
     {
-        RSRenderInterpolatingSpringAnimation::OnInitialize(time);
+        RSRenderInterpolatingSpringAnimation::OnInitialize(time, isCustom);
     }
 };
 

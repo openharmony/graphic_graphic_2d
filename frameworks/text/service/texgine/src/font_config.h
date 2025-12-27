@@ -61,6 +61,7 @@ using AliasSet = std::vector<AliasInfo>;
 typedef struct FallbackInfo {
     std::string familyName;
     std::string font;
+    std::string path;
 } FallbackInfo;
 using FallbackInfoSet = std::vector<FallbackInfo>;
 
@@ -72,6 +73,7 @@ using FallbackGroupSet = std::vector<FallbackGroup>;
 
 typedef struct FontGenericInfo {
     std::string familyName;
+    std::string path;
     AliasSet aliasSet;
     AdjustSet adjustSet;
 } FontGenericInfo;
@@ -126,6 +128,7 @@ private:
         std::string alias;
         std::string family;
         std::string lang;
+        std::string path;
     };
     void EmplaceFontJson(const FontJson &fontJson);
 

@@ -945,7 +945,7 @@ GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexData(const TexImageArg& 
     return WebGLRenderingContextBase::NO_ERROR;
 }
 
-bool WebGLRenderingContextBaseImpl::CheckCompressedTexSubDimensions(
+GLenum WebGLRenderingContextBaseImpl::CheckCompressedTexSubDimensions(
     const TexSubImage2DArg& imgArg, WebGLTexture* texture)
 {
     if (imgArg.xOffset < 0 || imgArg.yOffset < 0) {

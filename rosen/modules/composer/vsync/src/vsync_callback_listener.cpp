@@ -14,6 +14,7 @@
  */
 
 #include "vsync_receiver.h"
+#include <cinttypes>
 #include <memory>
 #include <mutex>
 #include <unistd.h>
@@ -136,8 +137,9 @@ void VSyncCallBackListener::HandleVsyncCallbacks(int64_t data[], ssize_t dataCou
 
     VLOGD("dataCount:%{public}d, cb == nullptr:%{public}d", dataCount, (cb == nullptr));
     // 1, 2: index of array data.
-    RS_TRACE_NAME_FMT("ReceiveVsync name:%s dataCount: %ldbytes now:%ld expectedEnd: %ld vsyncId:%ld, fd:%d",
-        name_.c_str(), dataCount, now, expectedEnd, data[2], fileDescriptor); // data[2] is vsyncId
+    RS_TRACE_NAME_FMT("ReceiveVsync name:%s dataCount: %ldbytes now:%" PRId64 " expectedEnd: %" PRId64 ""
+        " vsyncId:%" PRId64 ", fd:%d", name_.c_str(),
+        dataCount, now, expectedEnd, data[2], fileDescriptor); // data[2] is vsyncId
     PrintRequestTs(now);
     if (callbacks.empty() && dataCount > 0 && (cbWithId != nullptr || cb != nullptr)) {
         // data[2] is frameCount
@@ -178,7 +180,7 @@ int64_t VSyncCallBackListener::CalculateExpectedEndLocked(int64_t now)
 {
     int64_t expectedEnd = 0;
     if (period_ < 0 || now < period_ || now > INT64_MAX - period_) {
-        RS_TRACE_NAME_FMT("invalid timestamps, now:%ld, period_:%ld", now, period_);
+        RS_TRACE_NAME_FMT("invalid timestamps, now:%" PRId64 ", period:%" PRId64, now, period_);
         VLOGE("invalid timestamps, now:" VPUBI64 ", period_:" VPUBI64, now, period_);
         return 0;
     }

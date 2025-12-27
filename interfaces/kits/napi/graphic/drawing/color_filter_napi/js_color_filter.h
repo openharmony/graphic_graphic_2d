@@ -41,6 +41,11 @@ public:
     static napi_value CreateLightingColorFilter(napi_env env, napi_callback_info info);
     static napi_value Create(napi_env env, const std::shared_ptr<ColorFilter> colorFilter);
     DRAWING_API std::shared_ptr<ColorFilter> GetColorFilter();
+    static napi_value ColorFilterTransferDynamic(napi_env env, napi_callback_info info);
+    std::shared_ptr<ColorFilter> GetColorFilterPtr()
+    {
+        return m_ColorFilter;
+    }
 
 private:
     std::shared_ptr<ColorFilter> m_ColorFilter = nullptr;

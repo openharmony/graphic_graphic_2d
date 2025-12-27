@@ -22,6 +22,7 @@
 #include "hdi_layer_info.h"
 #include "metadata_helper.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "utils/system_properties.h"
@@ -41,7 +42,8 @@ const std::vector<float> DEFAULT_MATRIX = { 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 
 const std::vector<uint8_t> HDR_VIVID_METADATA = {
     1, 0, 23, 93, 111, 186, 221, 240, 26, 189, 83, 29, 128, 0, 82, 142, 25, 156, 3,
     198, 204, 179, 47, 236, 32, 190, 143, 163, 252, 16, 93, 185, 106, 159, 0, 10,
-    81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0
+    81, 199, 178, 80, 255, 217, 150, 101, 201, 144, 114, 73, 65, 127, 160, 0, 0,
+    0, 72, 85, 65, 87, 0, 8, 1, 67, 65, 83, 84, 0, 1, 1
 };
 }
 
@@ -182,15 +184,16 @@ void RSHdrUtil::UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId 
         RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit context is null");
         return;
     }
-    auto screenNode = context->GetNodeMap().GetRenderNode<RSScreenRenderNode>(surfaceNode.GetScreenNodeId());
-    if (!screenNode) {
-        RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit screenNode is null");
+    auto displayNode =
+        context->GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(surfaceNode.GetLogicalDisplayNodeId());
+    if (!displayNode) {
+        RS_LOGE("RSHdrUtil::UpdateSurfaceNodeNit displayNode is null");
         return;
     }
-    float brightnessFactor = screenNode->GetRenderProperties().GetHDRBrightnessFactor();
+    float brightnessFactor = displayNode->GetRenderProperties().GetHDRBrightnessFactor();
     if (ROSEN_NE(surfaceNode.GetHDRBrightnessFactor(), brightnessFactor)) {
         RS_LOGD("RSHdrUtil::UpdateSurfaceNodeNit GetHDRBrightnessFactor: %{public}f, "
-            "screenNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
+            "displayNode brightnessFactor: %{public}f, nodeId: %{public}" PRIu64 "",
             surfaceNode.GetHDRBrightnessFactor(), brightnessFactor, surfaceNode.GetId());
         surfaceNode.SetHDRBrightnessFactor(brightnessFactor);
         surfaceNode.SetContentDirty();
@@ -376,14 +379,31 @@ void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
     if (!node.GetIsLuminanceStatusChange()) {
         return;
     }
-    auto& hdrNodeList = node.GetHDRNodeList();
+    auto childList = node.GetChildrenList();
+    if (childList.empty()) {
+        return;
+    }
     const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    for (const auto& nodeId : hdrNodeList) {
-        auto canvasNode = nodeMap.GetRenderNode(nodeId);
-        if (!canvasNode) {
+    for (const auto& child : childList) {
+        auto childPtr = child.lock();
+        if (!childPtr) {
+            RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty child is null");
             continue;
         }
-        canvasNode->SetContentDirty();
+        auto displayNode = childPtr->ReinterpretCastTo<RSLogicalDisplayRenderNode>();
+        if (!displayNode) {
+            RS_LOGE("RSHdrUtil::LuminanceChangeSetDirty child is not displayNode");
+            continue;
+        }
+        const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+        for (const auto& [nodeId, _] : hdrNodeMap) {
+            auto canvasNode = nodeMap.GetRenderNode(nodeId);
+            if (!canvasNode) {
+                RS_LOGD("RSHdrUtil::LuminanceChangeSetDirty canvasNode is not on the tree");
+                continue;
+            }
+            canvasNode->SetContentDirty();
+        }
     }
 }
 
@@ -397,6 +417,14 @@ void RSHdrUtil::CheckNotifyCallback(RSContext& context, ScreenId screenId)
         RS_TRACE_NAME_FMT("%s curHeadroom:%f maxHeadroom:%f sdrNits:%f screenId:%" PRIu64 "",
             __func__, info.currentHeadroom, info.maxHeadroom, info.sdrNits, screenId);
     }
+}
+
+bool RSHdrUtil::BufferFormatNeedUpdate(const std::shared_ptr<Drawing::Surface>& cacheSurface, bool isNeedFP16)
+{
+    bool bufferFormatNeedUpdate = cacheSurface ? isNeedFP16 &&
+        cacheSurface->GetImageInfo().GetColorType() != Drawing::ColorType::COLORTYPE_RGBA_F16 : true;
+    RS_LOGD("RSHdrUtil::BufferFormatNeedUpdate: %{public}d", bufferFormatNeedUpdate);
+    return bufferFormatNeedUpdate;
 }
 
 ScreenColorGamut RSHdrUtil::GetScreenColorGamut(RSScreenRenderNode& node, const sptr<RSScreenManager>& screenManager)

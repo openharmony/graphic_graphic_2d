@@ -49,6 +49,18 @@ void OHDrawingRegisterFontTest(const uint8_t* data, size_t size)
     UseCustomFontToLayout(fc, familyName);
     OH_Drawing_UnregisterFont(fc, familyName.c_str());
 }
+
+void OHDrawingIsFontSupportedTest(const uint8_t* data, size_t size)
+{
+    FuzzedDataProvider fdp(data, size);
+    OH_Drawing_IsFontSupportedFromPath(nullptr);
+    OH_Drawing_IsFontSupportedFromPath(fdp.ConsumeRandomLengthString().c_str());
+    OH_Drawing_IsFontSupportedFromBuffer(nullptr, 0);
+    OH_Drawing_IsFontSupportedFromBuffer(nullptr, 1);
+    std::vector<uint8_t> buffer = fdp.ConsumeRemainingBytes<uint8_t>();
+    OH_Drawing_IsFontSupportedFromBuffer(buffer.data(), buffer.size());
+    OH_Drawing_IsFontSupportedFromBuffer(buffer.data(), 0);
+}
 } // namespace OHOS::Rosen::Drawing
 
 /* Fuzzer entry point */
@@ -56,5 +68,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
     /* Run your code on data */
     OHOS::Rosen::Drawing::OHDrawingRegisterFontTest(data, size);
+    OHOS::Rosen::Drawing::OHDrawingIsFontSupportedTest(data, size);
     return 0;
 }

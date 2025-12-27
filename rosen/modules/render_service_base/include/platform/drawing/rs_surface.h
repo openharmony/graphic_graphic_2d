@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,8 +42,8 @@ public:
 
     virtual bool FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uint64_t uiTimestamp = 0) = 0;
 
-    virtual RenderContext* GetRenderContext() = 0;
-    virtual void SetRenderContext(RenderContext* context) = 0;
+    virtual std::shared_ptr<RenderContext> GetRenderContext() = 0;
+    virtual void SetRenderContext(std::shared_ptr<RenderContext> context) = 0;
     virtual GraphicColorGamut GetColorSpace() const = 0;
     virtual void SetColorSpace(GraphicColorGamut colorSpace) = 0;
     virtual uint32_t GetQueueSize() const = 0;
@@ -52,6 +52,7 @@ public:
     // clear buffer for both producer and consumer and will receive OnGoBackground callback
     virtual void ClearAllBuffer() = 0;
     virtual void ResetBufferAge() = 0;
+    virtual void SetCleanUpHelper(std::function<void()> func) = 0;
 #ifdef USE_SURFACE_TEXTURE
     virtual RSSurfaceExtPtr CreateSurfaceExt(const RSSurfaceExtConfig& config) = 0;
     virtual RSSurfaceExtPtr GetSurfaceExt(const RSSurfaceExtConfig& config) = 0;

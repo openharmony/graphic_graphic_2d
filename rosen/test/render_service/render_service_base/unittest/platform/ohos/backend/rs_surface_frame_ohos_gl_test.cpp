@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 #include "platform/ohos/backend/rs_surface_frame_ohos_gl.h"
 
@@ -48,9 +49,9 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, SetDamageRegion001, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
-    std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
+    auto renderContext = std::make_shared<RenderContextGL>();
     EXPECT_NE(renderContext, nullptr);
-    rsSurface.SetRenderContext(renderContext.get());
+    rsSurface.SetRenderContext(renderContext);
     rsSurface.SetDamageRegion(0, 0, 1, 1);
 }
 
@@ -66,10 +67,10 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas001, TestSize.Level1)
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
 #ifdef RS_ENABLE_GPU
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = std::make_shared<RenderContextGL>();
     EXPECT_NE(renderContext, nullptr);
     if (renderContext) {
-        renderContext->InitializeEglContext();
+        renderContext->Init();
         rsSurface.SetRenderContext(renderContext);
         EXPECT_NE(rsSurface.GetCanvas(), nullptr);
     }
@@ -87,9 +88,9 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvas002, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
-    RenderContext* context = RenderContextFactory::GetInstance().CreateNewEngine();
-    ASSERT_NE(context, nullptr);
-    rsSurface.SetRenderContext(context);
+    auto renderContext = std::make_shared<RenderContextGL>();
+    ASSERT_NE(renderContext, nullptr);
+    rsSurface.SetRenderContext(renderContext);
     ASSERT_NE(rsSurface.GetCanvas(), nullptr);
 }
 
@@ -105,10 +106,10 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface001, TestSize.Level1)
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
 #ifdef RS_ENABLE_GPU
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = std::make_shared<RenderContextGL>();
     EXPECT_NE(renderContext, nullptr);
     if (renderContext) {
-        renderContext->InitializeEglContext();
+        renderContext->Init();
         rsSurface.SetRenderContext(renderContext);
         EXPECT_NE(rsSurface.GetSurface(), nullptr);
     }
@@ -126,7 +127,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetSurface002, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
-    RenderContext* context = RenderContextFactory::GetInstance().CreateNewEngine();
+    auto context = std::make_shared<RenderContextGL>();
     ASSERT_NE(context, nullptr);
     rsSurface.SetRenderContext(context);
     ASSERT_NE(rsSurface.GetSurface(), nullptr);
@@ -174,7 +175,7 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetBufferAge001, TestSize.Level1)
     int32_t width = 1;
     int32_t height = 1;
     RSSurfaceFrameOhosGl rsSurface(width, height);
-    RenderContext* context = RenderContextFactory::GetInstance().CreateNewEngine();
+    auto context = std::make_shared<RenderContextGL>();
     ASSERT_NE(context, nullptr);
     rsSurface.SetRenderContext(context);
     ASSERT_EQ(rsSurface.GetBufferAge(), -1);
@@ -190,11 +191,11 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvasAndGetSurface001, TestSize.Level1)
 {
     RSSurfaceFrameOhosGl rsSurfaceTest1(1, 1);
     rsSurfaceTest1.surface_ = nullptr;
-    RenderContext renderContextTest1;
+    auto renderContextTest1 = std::make_shared<RenderContextGL>();
     std::shared_ptr<Drawing::GPUContext> drGPUContextTest1 = std::make_shared<Drawing::GPUContext>();
     EXPECT_NE(drGPUContextTest1, nullptr);
-    renderContextTest1.drGPUContext_ = drGPUContextTest1;
-    rsSurfaceTest1.renderContext_ = &renderContextTest1;
+    renderContextTest1->SetDrGPUContext(drGPUContextTest1);
+    rsSurfaceTest1.renderContext_ = renderContextTest1;
     EXPECT_EQ(rsSurfaceTest1.GetCanvas(), NULL);
     std::shared_ptr<Drawing::Surface> surface = std::make_shared<Drawing::Surface>();
     EXPECT_NE(surface, nullptr);
@@ -203,11 +204,11 @@ HWTEST_F(RSSurfaceFrameOhosGlTest, GetCanvasAndGetSurface001, TestSize.Level1)
 
     RSSurfaceFrameOhosGl rsSurfaceTest2(1, 1);
     rsSurfaceTest2.surface_ = nullptr;
-    RenderContext renderContextTest2;
+    auto renderContextTest2 = std::make_shared<RenderContextGL>();
     std::shared_ptr<Drawing::GPUContext> drGPUContextTest2 = std::make_shared<Drawing::GPUContext>();
     EXPECT_NE(drGPUContextTest2, nullptr);
-    renderContextTest2.drGPUContext_ = drGPUContextTest2;
-    rsSurfaceTest2.renderContext_ = &renderContextTest2;
+    renderContextTest2->SetDrGPUContext(drGPUContextTest2);
+    rsSurfaceTest2.renderContext_ = renderContextTest2;
     EXPECT_EQ(rsSurfaceTest2.GetSurface(), nullptr);
     rsSurfaceTest2.surface_ = surface;
     EXPECT_NE(rsSurfaceTest2.GetSurface(), nullptr);

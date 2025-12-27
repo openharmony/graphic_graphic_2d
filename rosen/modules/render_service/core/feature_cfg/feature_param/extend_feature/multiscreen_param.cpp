@@ -37,16 +37,6 @@ void MultiScreenParam::SetSlrScaleEnabled(bool isEnabled)
     isSlrScaleEnabled_ = isEnabled;
 }
 
-bool MultiScreenParam::IsRsReportHwcDead()
-{
-    return isRsReportHwcDead_;
-}
-
-void MultiScreenParam::SetRsReportHwcDead(bool isEnabled)
-{
-    isRsReportHwcDead_ = isEnabled;
-}
-
 bool MultiScreenParam::IsRsSetScreenPowerStatus()
 {
     return isRsSetScreenPowerStatus_;
@@ -67,16 +57,6 @@ void MultiScreenParam::SetMirrorDisplayCloseP3(bool isEnabled)
     isMirrorDisplayCloseP3_ = isEnabled;
 }
 
-Drawing::MipmapMode MultiScreenParam::GetMipmapMode()
-{
-    return mipMapModeValue_;
-}
- 
-void MultiScreenParam::SetMipmapMode(Drawing::MipmapMode modeValue)
-{
-    mipMapModeValue_ = modeValue;
-}
-
 bool MultiScreenParam::IsSkipFrameByActiveRefreshRate()
 {
     return isSkipFrameByActiveRefreshRate_;
@@ -85,5 +65,15 @@ bool MultiScreenParam::IsSkipFrameByActiveRefreshRate()
 void MultiScreenParam::SetSkipFrameByActiveRefreshRate(bool isEnabled)
 {
     isSkipFrameByActiveRefreshRate_ = isEnabled;
+}
+
+bool MultiScreenParam::IsForceRenderForMirror()
+{
+    return isForceRenderForMirror_;
+}
+
+void MultiScreenParam::SetForceRenderForMirror(bool isEnabled)
+{
+    isForceRenderForMirror_ = isEnabled;
 }
 } // namespace OHOS::Rosen

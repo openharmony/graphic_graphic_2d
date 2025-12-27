@@ -29,6 +29,7 @@
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "draw/color.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -37,10 +38,12 @@
 #include "effect/runtime_blender_builder.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "property/rs_color_picker_def.h"
 #include "property/rs_point_light_manager.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_attraction_effect_filter.h"
@@ -492,10 +495,7 @@ void RSProperties::SetCornerApplyType(int type)
 
 bool RSProperties::NeedCornerOptimization() const
 {
-    bool isSameRadius = ROSEN_EQ(GetCornerRadius().x_, GetCornerRadius().y_) &&
-                        ROSEN_EQ(GetCornerRadius().y_, GetCornerRadius().z_) &&
-                        ROSEN_EQ(GetCornerRadius().z_, GetCornerRadius().w_);
-    return isSameRadius && cornerApplyType_ != static_cast<int>(RSCornerApplyType::FAST);
+    return cornerApplyType_ != static_cast<int>(RSCornerApplyType::FAST);
 }
 
 void RSProperties::SetQuaternion(Quaternion quaternion)
@@ -1242,7 +1242,7 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
     SetDirty();
     contentDirty_ = true;
 }
- 
+
 void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVelocityFields>& para)
 {
     particleVelocityFields_ = para;
@@ -1264,6 +1264,40 @@ void RSProperties::SetParticleVelocityFields(const std::shared_ptr<ParticleVeloc
     filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
+}
+
+void RSProperties::SetColorPickerPlaceholder(int placeholder)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->placeholder =
+        std::clamp(static_cast<ColorPlaceholder>(placeholder), ColorPlaceholder::NONE, ColorPlaceholder::MAX);
+    SetDirty();
+}
+
+void RSProperties::SetColorPickerStrategy(int strategy)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->strategy = std::clamp(
+        static_cast<ColorPickStrategyType>(strategy), ColorPickStrategyType::NONE, ColorPickStrategyType::MAX);
+    SetDirty();
+}
+
+void RSProperties::SetColorPickerInterval(int interval)
+{
+    if (!colorPicker_) {
+        colorPicker_ = std::make_shared<ColorPickerParam>();
+    }
+    colorPicker_->interval = interval;
+    SetDirty();
+}
+
+std::shared_ptr<ColorPickerParam> RSProperties::GetColorPicker() const
+{
+    return colorPicker_;
 }
 
 void RSProperties::SetDynamicLightUpRate(const std::optional<float>& rate)
@@ -2419,8 +2453,12 @@ void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
         bool oldHDRUIStatus = IsHDRUIBrightnessValid();
         bool newHDRUIStatus = ROSEN_GNE(hdrUIBrightness, 1.0f);
-        if ((oldHDRUIStatus != newHDRUIStatus) && node->IsOnTheTree()) {
-            node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+        if (oldHDRUIStatus != newHDRUIStatus) {
+            node->UpdateHDRStatus(HdrStatus::HDR_UICOMPONENT, newHDRUIStatus);
+            if (node->IsOnTheTree()) {
+                node->SetHdrNum(newHDRUIStatus, node->GetInstanceRootNodeId(), HDRComponentType::UICOMPONENT);
+                node->UpdateDisplayHDRNodeMap(newHDRUIStatus, node->GetLogicalDisplayNodeId());
+            }
         }
     }
     hdrUIBrightness_ = hdrUIBrightness;
@@ -2550,25 +2588,26 @@ void RSProperties::SetHDRBrightnessFactor(float factor)
         return;
     }
     hdrBrightnessFactor_ = factor;
-    auto node = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(backref_.lock());
-    if (node == nullptr) {
+    auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(backref_.lock());
+    if (displayNode == nullptr) {
+        ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid displayNode");
         return;
     }
-    auto& hdrNodeList = node->GetHDRNodeList();
-    auto context = node->GetContext().lock();
+    auto context = displayNode->GetContext().lock();
     if (!context) {
         ROSEN_LOGE("RSProperties::SetHDRBrightnessFactor Invalid context");
         return;
     }
-    EraseIf(hdrNodeList, [context, factor](const auto& nodeId) -> bool {
+    const auto& hdrNodeMap = displayNode->GetHDRNodeMap();
+    for (const auto& [nodeId, _] : hdrNodeMap) {
         auto canvasNode = context->GetNodeMap().GetRenderNode(nodeId);
         if (!canvasNode) {
-            return true;
+            RS_LOGD("RSHdrUtil::SetHDRBrightnessFactor canvasNode is not on the tree");
+            continue;
         }
         canvasNode->SetContentDirty();
         canvasNode->GetMutableRenderProperties().SetCanvasNodeHDRBrightnessFactor(factor);
-        return false;
-    });
+    }
 }
 
 void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
@@ -3538,6 +3577,19 @@ void RSProperties::GenerateForegroundFilter()
     }
 }
 
+void RSProperties::GenerateMaterialFilter()
+{
+    // not support compose yet, so do not use ComposeNGRenderFilter
+    if (!GetMaterialNGFilter()) {
+        GetEffect().materialFilter_ = nullptr;
+        return;
+    }
+    auto filter = std::make_shared<RSDrawingFilter>();
+    filter->SetNGRenderFilter(GetMaterialNGFilter());
+    filter->SetFilterType(RSFilter::COMPOUND_EFFECT);
+    GetEffect().materialFilter_ = filter;
+}
+
 void RSProperties::SetUseEffect(bool useEffect)
 {
     GetEffect().useEffect_ = useEffect;
@@ -3586,10 +3638,14 @@ void RSProperties::SetNeedDrawBehindWindow(bool needDrawBehindWindow)
 
 void RSProperties::SetUseUnion(bool useUnion)
 {
+    if (ROSEN_EQ(useUnion_, useUnion)) {
+        return;
+    }
     useUnion_ = useUnion;
     if (GetUseUnion()) {
         isDrawn_ = true;
     }
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -3600,9 +3656,13 @@ bool RSProperties::GetUseUnion() const
 
 void RSProperties::SetUnionSpacing(float spacing)
 {
+    if (ROSEN_EQ(unionSpacing_, spacing)) {
+        return;
+    }
     unionSpacing_ = spacing;
     geoDirty_ = true;
     contentDirty_ = true;
+    filterNeedUpdate_ = true;
     SetDirty();
 }
 
@@ -4415,6 +4475,11 @@ std::string RSProperties::Dump() const
         dumpInfo.append(buffer);
     }
 
+    if (sprintf_s(buffer, UINT8_MAX, " placeholder:%d",
+        static_cast<int>(GetBackgroundColor().GetPlaceholder())) != -1) {
+        dumpInfo.append(buffer);
+    }
+
     // BgImage
     std::unique_ptr<Decoration> defaultDecoration = std::make_unique<Decoration>();
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
@@ -4790,8 +4855,9 @@ void RSProperties::OnApplyModifiers()
         }
     }
     if (pixelStretchNeedUpdate_ || geoDirty_) {
+        filterNeedUpdate_ |= ((pixelStretchNeedUpdate_ || GetPixelStretch().has_value() ||
+            GetPixelStretchPercent().has_value()));
         CalculatePixelStretch();
-        filterNeedUpdate_ = true;
     }
 
     if (bgShaderNeedUpdate_) {
@@ -4812,6 +4878,7 @@ void RSProperties::OnApplyModifiers()
 void RSProperties::UpdateFilter()
 {
     filterNeedUpdate_ = false;
+    GenerateMaterialFilter();
     GenerateBackgroundFilter();
     GenerateForegroundFilter();
     if (GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
@@ -4834,19 +4901,21 @@ void RSProperties::UpdateFilter()
                   GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   GetForegroundFilter() != nullptr || IsFgBrightnessValid() || IsBgBrightnessValid() ||
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
-                  GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || GetPixelStretch().has_value();
+                  GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || GetPixelStretch().has_value() ||
+                  GetMaterialFilter() != nullptr;
 
     needHwcFilter_ = GetBackgroundFilter() != nullptr || GetFilter() != nullptr || IsLightUpEffectValid() ||
                      IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
                      IsDynamicDimValid() || IsFgBrightnessValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
                      GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
-                     GetPixelStretch().has_value();
+                     GetPixelStretch().has_value() || GetMaterialFilter() != nullptr;
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(GetFilter()) ||
                        IsFilterNeedForceSubmit(GetBackgroundFilter()) ||
                        IsFilterNeedForceSubmit(GetForegroundFilter()) ||
                        IsFilterNeedForceSubmit(GetForegroundFilterCache()) ||
+                       IsFilterNeedForceSubmit(GetMaterialFilter()) ||
                        GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE;
 #endif
 }
@@ -4862,7 +4931,7 @@ bool RSProperties::DisableHWCForFilter() const
         (GetForegroundFilterCache() != nullptr &&
         GetForegroundFilterCache()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsWaterRippleValid() || GetNeedDrawBehindWindow() || GetMask() || GetColorFilter() != nullptr ||
-        localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium();
+        localMagnificationCap_ || GetPixelStretch().has_value() || HasHarmonium() || GetMaterialFilter() != nullptr;
 }
 
 void RSProperties::UpdateForegroundFilter()
@@ -4910,15 +4979,6 @@ void RSProperties::UpdateForegroundFilter()
         CreateHDRUIBrightnessFilter();
     } else if (GetForegroundNGFilter()) {
         ComposeNGRenderFilter(GetEffect().foregroundFilter_, GetForegroundNGFilter());
-    } else if (renderSDFShape_) {
-        if (!sdfFilter_) {
-            sdfFilter_ = std::make_shared<RSSDFEffectFilter>(renderSDFShape_);
-        }
-        if (IS_UNI_RENDER) {
-            GetEffect().foregroundFilterCache_ = sdfFilter_;
-        } else {
-            GetEffect().foregroundFilter_ = sdfFilter_;
-        }
     }
 }
 
@@ -5109,8 +5169,12 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetForegroundShader() const
 
 void RSProperties::SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape)
 {
+    if (ROSEN_EQ(renderSDFShape_, shape)) {
+        return;
+    }
     renderSDFShape_ = shape;
     isDrawn_ = true;
+    filterNeedUpdate_ = true;
     SetDirty();
     contentDirty_ = true;
 }
@@ -5120,16 +5184,36 @@ std::shared_ptr<RSNGRenderShapeBase> RSProperties::GetSDFShape() const
     return renderSDFShape_;
 }
 
-const std::shared_ptr<RSSDFEffectFilter> RSProperties::GetSDFEffectFilter() const
+void RSProperties::SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)
 {
-    if (!GetSDFShape() || !effect_) {
-        return nullptr;
-    }
+    GetEffect().mtNGRenderFilter_ = renderFilter;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
 
-    if (IS_UNI_RENDER) {
-        return std::static_pointer_cast<RSSDFEffectFilter>(effect_->foregroundFilterCache_);
+std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
+{
+    if (effect_) {
+        return effect_->mtNGRenderFilter_;
     }
-    return std::static_pointer_cast<RSSDFEffectFilter>(effect_->foregroundFilter_);
+    return nullptr;
+}
+
+RRect RSProperties::GetRRectForSDF() const
+{
+    RRect sdfRRect;
+    if (GetClipToRRect()) {
+        auto rrect = GetClipRRect();
+        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+    } else if (!GetCornerRadius().IsZero()) {
+        auto rrect = GetRRect();
+        sdfRRect = RRect(rrect.rect_, rrect.radius_[0].x_, rrect.radius_[0].y_);
+    } else {
+        sdfRRect.rect_ = GetBoundsRect();
+    }
+    return sdfRRect;
 }
 
 } // namespace Rosen

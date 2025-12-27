@@ -25,7 +25,6 @@ public:
     static std::shared_ptr<RSShader> GetRandomRSShader();
 
 private:
-    static std::shared_ptr<RSShader> GetRandomRSDotMatrixShader();
     static std::shared_ptr<RSShader> GetRandomRSFlowLightSweepShader();
     static std::shared_ptr<RSShader> GetRandomRSDrawingShader();
 };

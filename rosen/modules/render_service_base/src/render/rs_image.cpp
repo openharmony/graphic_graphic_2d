@@ -41,6 +41,7 @@ namespace {
 constexpr int32_t CORNER_SIZE = 4;
 constexpr float CENTER_ALIGNED_FACTOR = 2.f;
 constexpr int32_t DEGREE_NINETY = 90;
+constexpr int32_t REPEAT_LOOP_TIME_LIMIT = 5000;
 }
 
 RSImage::~RSImage()
@@ -93,7 +94,7 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
         return false;
     }
     RS_LOGD("RSImage::HDRConvert HDRDraw pixelMap_ IsHdr: %{public}d", pixelMap_->IsHdr());
-    if (!pixelMap_->IsHdr()) {
+    if (!pixelMap_->IsHdr() && !IsHDRUiCapture()) {
         return false;
     }
 
@@ -140,6 +141,23 @@ bool RSImage::HDRConvert(const Drawing::SamplingOptions& sampling, Drawing::Canv
 #else
     return false;
 #endif
+}
+
+bool RSImage::IsHDRUiCapture() const
+{
+    if (pixelMap_->GetPixelFormat() != Media::PixelFormat::RGBA_F16 ||
+        pixelMap_->GetAllocatorType() != Media::AllocatorType::DMA_ALLOC) {
+            return false; // HDR UiCapture must be DMA and use F16
+    }
+    auto colorSpaceName = pixelMap_->InnerGetGrColorSpace().GetColorSpaceName();
+    if (colorSpaceName != ColorManager::BT2020 &&
+        colorSpaceName != ColorManager::BT2020_HLG &&
+        colorSpaceName != ColorManager::BT2020_PQ &&
+        colorSpaceName != ColorManager::BT2020_HLG_LIMIT &&
+        colorSpaceName != ColorManager::BT2020_PQ_LIMIT) {
+        return false;
+    }
+    return true;
 }
 
 void RSImage::CanvasDrawImage(Drawing::Canvas& canvas, const Drawing::Rect& rect,
@@ -250,7 +268,7 @@ void RSImage::DrawImageRect(
     //used for ScaleImageAsync
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageParams rsImageParams = {
-        pixelMap_, nodeId_, dst_, uniqueid_, image_, false
+        pixelMap_, nodeId_, dst_, uniqueid_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
     };
     if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
         return;
@@ -527,28 +545,19 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     UploadGpu(canvas);
     bool hdrImageDraw = HDRConvert(samplingOptions, canvas);
     src_ = RSPropertiesPainter::Rect2DrawingRect(srcRect_);
-    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
+    uint64_t loopTime = (maxX - minX) * (maxY - minY);
+    bool isNeedOffscreen = (maxX - minX >= 1) &&  loopTime > REPEAT_LOOP_TIME_LIMIT;
+    if (!hdrImageDraw && imageRepeat_ == ImageRepeat::REPEAT && isNeedOffscreen) {
+        DrawImageRepeatOffScreen(samplingOptions, canvas, minX, maxX, minY, maxY);
+        return;
+    }
     for (int i = minX; i <= maxX; ++i) {
         auto left = dstRect_.left_ + i * dstRect_.width_;
         auto right = left + dstRect_.width_;
         for (int j = minY; j <= maxY; ++j) {
             auto top = dstRect_.top_ + j * dstRect_.height_;
             dst_ = Drawing::Rect(left, top, right, top + dstRect_.height_);
-
-            bool needCanvasRestore = isAstc || isOrientationValid_;
-            Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
-
-            if (isAstc) {
-                RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
-            }
-
-            if (isOrientationValid_) {
-                ApplyImageOrientation(canvas);
-            }
-
-            if (image_) {
-                DrawImageOnCanvas(samplingOptions, canvas, hdrImageDraw);
-            }
+            RsImageDraw(samplingOptions, canvas, hdrImageDraw);
         }
     }
     if (imageRepeat_ == ImageRepeat::NO_REPEAT) {
@@ -556,6 +565,63 @@ void RSImage::DrawImageRepeatRect(const Drawing::SamplingOptions& samplingOption
     }
 }
 
+void RSImage::RsImageDraw(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+    const bool hdrImageDraw)
+{
+    bool isAstc = pixelMap_ != nullptr && pixelMap_->IsAstc();
+    bool needCanvasRestore = isAstc || isOrientationValid_;
+    Drawing::AutoCanvasRestore acr(canvas, needCanvasRestore);
+    if (isAstc) {
+        RSPixelMapUtil::TransformDataSetForAstc(pixelMap_, src_, dst_, canvas, imageFit_);
+    }
+
+    if (isOrientationValid_) {
+        ApplyImageOrientation(canvas);
+    }
+
+    if (image_) {
+        DrawImageOnCanvas(samplingOptions, canvas, hdrImageDraw);
+    }
+}
+
+void RSImage::DrawImageRepeatOffScreen(const Drawing::SamplingOptions& samplingOptions, Drawing::Canvas& canvas,
+    int& minX, int& maxX, int& minY, int& maxY)
+{
+    RS_TRACE_NAME_FMT("RSImage::DrawImageRepeatOffScreen");
+    auto surface = canvas.GetSurface();
+    if (!surface) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen get surface null");
+        return;
+    }
+    auto offScreenSurface = surface->MakeSurface(frameRect_.width_, dstRect_.height_);
+    if (!offScreenSurface) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen make offScreenSurface null");
+        return;
+    }
+    auto offScreenCanvas = *offScreenSurface->GetCanvas();
+
+    for (int i = minX; i <= maxX; ++i) {
+        auto left = dstRect_.left_ + i * dstRect_.width_;
+        auto right = left + dstRect_.width_;
+        dst_ = Drawing::Rect(left, 0, right, dstRect_.height_);
+        RsImageDraw(samplingOptions, offScreenCanvas, false);
+    }
+
+    auto imageLineSrc = Drawing::Rect(0, 0, offScreenSurface->Width(), offScreenSurface->Height());
+    auto imageLine = offScreenSurface->GetImageSnapshot();
+    if (imageLine == nullptr) {
+        RS_LOGE("RSImage::DrawImageRepeatOffScreen imageLine null");
+        return;
+    }
+
+    for (int j = minY; j <= maxY; ++j) {
+        auto lineDstTop = dstRect_.top_ + j * dstRect_.height_;
+        dst_ = Drawing::Rect(0, lineDstTop, frameRect_.width_, lineDstTop + dstRect_.height_);
+        canvas.DrawImageRect(*imageLine, imageLineSrc, dst_, Drawing::SamplingOptions(),
+            Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
+    }
+}
+    
 void RSImage::CalcRepeatBounds(int& minX, int& maxX, int& minY, int& maxY)
 {
     if (dstRect_.width_ == 0 || dstRect_.height_ == 0) {
@@ -598,7 +664,7 @@ void RSImage::DrawImageShaderRectOnCanvas(
         RS_LOGE("RSImage::DrawImageShaderRectOnCanvas image shader is nullptr");
         return;
     }
-    Drawing::Paint paint;
+    Drawing::Paint paint = paint_;
 
     if (imageRepeat_ == ImageRepeat::NO_REPEAT && isFitMatrixValid_ &&
         (fitMatrix_->Get(Drawing::Matrix::Index::SKEW_X) != 0 ||
@@ -644,7 +710,7 @@ void RSImage::DrawImageOnCanvas(
         }
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
         RSImageParams rsImageParams = {
-            pixelMap_, nodeId_, dst_, uniqueid_, image_, false
+            pixelMap_, nodeId_, dst_, uniqueid_, image_, false, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
         };
         if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
             return;
@@ -666,7 +732,7 @@ void RSImage::DrawImageWithFirMatrixRotateOnCanvas(
     canvas.AttachPen(pen);
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     RSImageParams rsImageParams = {
-        pixelMap_, nodeId_, dst_, uniqueid_, image_, true
+        pixelMap_, nodeId_, dst_, uniqueid_, image_, true, canvas.GetTotalMatrix().Get(Drawing::Matrix::SCALE_X)
     };
     if (RSImageDetailEnhancerThread::Instance().EnhanceImageAsync(canvas, samplingOptions, rsImageParams)) {
         return;
@@ -776,11 +842,11 @@ bool RSImage::Marshalling(Parcel& parcel) const
     std::lock_guard<std::mutex> lock(mutex_);
     auto image = image_;
     auto compressData = compressData_;
+    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
     if (image && image->IsTextureBacked()) {
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
-    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
     uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&

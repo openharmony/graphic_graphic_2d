@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <cstdint>
+#include <vector>
 
 #include "impl_interface/typeface_impl.h"
 #include "text/font_arguments.h"
@@ -33,6 +34,7 @@ const uint8_t NO_REGISTER = 0;
 const uint8_t REGISTERING = 1;
 const uint8_t REGISTERED = 2;
 using TypefaceRegisterCallback = std::function<int32_t(std::shared_ptr<Typeface>)>;
+struct SharedTypeface;
 class DRAWING_API Typeface {
 public:
     explicit Typeface(std::shared_ptr<TypefaceImpl> typefaceImpl) noexcept;
@@ -44,9 +46,15 @@ public:
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream, int32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromStream(std::unique_ptr<MemoryStream> memoryStream,
         const FontArguments& fontArguments);
-    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(int32_t fd, uint32_t size, uint32_t hash = 0, uint32_t index = 0);
     static std::shared_ptr<Typeface> MakeFromAshmem(
-        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name);
+        int32_t fd, uint32_t size, uint32_t hash, const FontArguments& fontArguments);
+    static std::shared_ptr<Typeface> MakeFromAshmem(SharedTypeface& sharedTypeface);
+    static std::shared_ptr<Typeface> MakeFromAshmem(
+        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, uint32_t index = 0);
+    static std::shared_ptr<Typeface> MakeFromAshmem(
+        const uint8_t* data, uint32_t size, uint32_t hash, const std::string& name, const FontArguments& fontArguments);
+    static std::shared_ptr<Typeface> MakeFromAshmem(std::unique_ptr<MemoryStream> memoryStream, uint32_t index = 0);
 
     static std::shared_ptr<Typeface> MakeFromName(const char familyName[], FontStyle fontStyle);
     static void RegisterCallBackFunc(TypefaceRegisterCallback func);
@@ -63,6 +71,7 @@ public:
     std::string GetFamilyName() const;
 
     std::string GetFontPath() const;
+    int32_t GetFontIndex() const;
 
     /**
      * @brief   Get the fontStyle for this typeface.
@@ -86,6 +95,12 @@ public:
      * @return        The number of bytes actually copied into data.
      */
     size_t GetTableData(uint32_t tag, size_t offset, size_t length, void* data) const;
+
+    /**
+     * @brief   Get fontStyle is bold.
+     * @return  If fontStyle is bold, return true.
+     */
+    bool GetBold() const;
 
     /**
      * @brief   Get fontStyle is italic.
@@ -155,18 +170,45 @@ public:
      * @brief   Calculate hash for this typeface.
      * @return  hash
      */
-    static uint32_t CalculateHash(const uint8_t* data, size_t size);
+    static uint32_t CalculateHash(const uint8_t* data, size_t size, uint32_t index = 0);
 
     /**
      * @brief   Update stream for this typeface.
      */
     void UpdateStream(std::unique_ptr<MemoryStream> stream);
+
+    int GetVariationDesignPosition(FontArguments::VariationPosition::Coordinate coordinates[],
+        int coordinateCount) const;
+
+    uint32_t GetIndex() const;
 private:
     std::shared_ptr<TypefaceImpl> typefaceImpl_;
     static TypefaceRegisterCallback registerTypefaceCallBack_;
     static std::function<std::shared_ptr<Typeface>(uint64_t)> uniqueIdCallBack_;
     uint32_t size_ = 0;
+    uint32_t index_ = 0;
 };
+
+struct SharedTypeface {
+    uint64_t id_ = 0;
+    uint32_t size_ = 0;
+    int32_t fd_ = -1;
+    uint32_t hash_ = 0;
+    uint32_t index_ = 0;
+    bool hasFontArgs_ = false;
+    std::vector<FontArguments::VariationPosition::Coordinate> coords_;
+    SharedTypeface() {};
+    SharedTypeface(uint64_t id, std::shared_ptr<Typeface>& typeface) : id_(id), size_(typeface->GetSize()),
+        fd_(typeface->GetFd()), hash_(typeface->GetHash()), index_(typeface->GetIndex()) {
+            int coordsCount = typeface->GetVariationDesignPosition(nullptr, 0);
+            if (coordsCount > 0) {
+                hasFontArgs_ = true;
+                coords_.resize(coordsCount);
+                typeface->GetVariationDesignPosition(coords_.data(), coordsCount);
+            }
+        }
+};
+
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

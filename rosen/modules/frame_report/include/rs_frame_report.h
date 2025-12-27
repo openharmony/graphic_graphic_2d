@@ -41,6 +41,7 @@ enum class FrameSchedEvent {
     RS_BLUR_PREDICT = 10013,
     RS_UNMARSHAL_DATA = 10014,
     RS_DDGR_TASK = 10017,
+    RS_COMPOSER_INFO = 10018,
     GPU_SCB_SCENE_INFO = 40001,
     SCHED_EVENT_MAX,
 };
@@ -67,11 +68,12 @@ public:
     void CheckUnblockMainThreadPoint();
     void CheckPostAndWaitPoint();
     void CheckBeginFlushPoint();
-    void ReportBufferCount(int count);
+    void ReportBufferCount(uint32_t count);
     void ReportHardwareInfo(int tid);
     void ReportFrameDeadline(int deadline, uint32_t currentRate);
     void ReportUnmarshalData(int unmarshalTid, size_t dataSize);
     void ReportDDGRTaskInfo();
+    void ReportComposerInfo(const int screenId, const int composerTid);
     void ReportScbSceneInfo(const std::string& description, bool eventStatus);
 
 private:
@@ -92,7 +94,7 @@ private:
 
     std::mutex reportSchedEventFuncLock_;
 
-    int bufferCount_ = 0;
+    uint32_t bufferCount_ = 0;
     int hardwareTid_ = 0;
 };
 } // namespace Rosen

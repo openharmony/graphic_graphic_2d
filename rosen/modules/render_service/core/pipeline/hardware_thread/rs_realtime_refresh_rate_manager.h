@@ -44,8 +44,9 @@ public:
     }
     void SetShowRefreshRateEnabled(bool enabled, int32_t type);
     uint32_t GetRealtimeRefreshRate(ScreenId screenId);
+    uint32_t GetScreenCurrentRefreshRate(ScreenId screenId);
 private:
-    friend class RSHardwareThread;
+    friend class RSRenderComposer;
     RSRealtimeRefreshRateManager() = default;
     ~RSRealtimeRefreshRateManager() = default;
 

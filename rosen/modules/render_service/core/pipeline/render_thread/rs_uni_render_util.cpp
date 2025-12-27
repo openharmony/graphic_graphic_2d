@@ -38,7 +38,6 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
-#include "graphic_feature_param_manager.h"
 #include "info_collection/rs_gpu_dirty_region_collection.h"
 #include "memory/rs_tag_tracker.h"
 #include "params/rs_screen_render_params.h"
@@ -76,7 +75,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
@@ -653,6 +651,29 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSSurfaceHandler& s
     return bufferDrawParam;
 }
 
+BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(sptr<SurfaceBuffer> buffer, sptr<SyncFence> acquireFence,
+    bool forceCPU)
+{
+    BufferDrawParam bufferDrawParam;
+    bufferDrawParam.useCPU = forceCPU;
+    Drawing::Filter filter;
+    filter.SetFilterQuality(Drawing::Filter::FilterQuality::LOW);
+    bufferDrawParam.paint.SetFilter(filter);
+
+    if (!buffer) {
+        RS_LOGE("RSUniRenderUtil::CreateBufferDrawParam buffer is null.");
+        return bufferDrawParam;
+    }
+
+    bufferDrawParam.buffer = buffer;
+    bufferDrawParam.acquireFence = acquireFence;
+    bufferDrawParam.srcRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    bufferDrawParam.dstRect = Drawing::Rect(0, 0, buffer->GetSurfaceBufferWidth(), buffer->GetSurfaceBufferHeight());
+    RS_LOGD_IF(DEBUG_COMPOSER,
+        "RSUniRenderUtil::CreateBufferDrawParam(buffer): Parameters creation completed");
+    return bufferDrawParam;
+}
+
 BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(
     const DrawableV2::RSSurfaceRenderNodeDrawable& surfaceDrawable, bool forceCPU, uint32_t threadIndex)
 {
@@ -817,7 +838,7 @@ BufferDrawParam RSUniRenderUtil::CreateBufferDrawParam(const RSScreenRenderNode&
     return params;
 }
 
-BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& layer, bool forceCPU)
+BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const RSLayerPtr& layer, bool forceCPU)
 {
     BufferDrawParam params;
     if (layer == nullptr) {
@@ -894,7 +915,7 @@ BufferDrawParam RSUniRenderUtil::CreateLayerBufferDrawParam(const LayerInfoPtr& 
         SrcRectScaleFit(params, buffer, surface, localBounds);
     }
     RS_LOGD_IF(DEBUG_COMPOSER,
-        "RSUniRenderUtil::CreateLayerBufferDrawParam(LayerInfoPtr): Parameters creation completed");
+        "RSUniRenderUtil::CreateLayerBufferDrawParam(RSLayerPtr): Parameters creation completed");
     return params;
 }
 
@@ -1192,7 +1213,7 @@ void RSUniRenderUtil::ProcessCacheImage(RSPaintFilterCanvas& canvas, Drawing::Im
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, MultiScreenParam::GetMipmapMode());
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImage(cacheImageProcessed, 0, 0, sampling);
     canvas.DetachBrush();
 }
@@ -1204,7 +1225,7 @@ void RSUniRenderUtil::ProcessCacheImageRect(RSPaintFilterCanvas& canvas, Drawing
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, MultiScreenParam::GetMipmapMode());
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.DrawImageRect(cacheImageProcessed, src, dst, sampling, Drawing::SrcRectConstraint::FAST_SRC_RECT_CONSTRAINT);
     canvas.DetachBrush();
 }
@@ -1220,7 +1241,7 @@ void RSUniRenderUtil::ProcessCacheImageForMultiScreenView(RSPaintFilterCanvas& c
     brush.SetAntiAlias(true);
     canvas.AttachBrush(brush);
     // Be cautious when changing FilterMode and MipmapMode that may affect clarity
-    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NEAREST);
+    auto sampling = Drawing::SamplingOptions(Drawing::FilterMode::LINEAR, Drawing::MipmapMode::NONE);
     canvas.Save();
     // Use Fill Mode
     const float scaleX = rect.GetWidth() / cacheImageProcessed.GetWidth();

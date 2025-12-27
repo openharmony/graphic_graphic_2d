@@ -72,12 +72,6 @@ protected:
 
 #include "effect/rs_render_mask_def.in"
 
-DECLARE_MASK(FrameGradientMask, FRAME_GRADIENT_MASK,
-    ADD_PROPERTY_TAG(FrameGradientMask, GradientBezierControlPoints),
-    ADD_PROPERTY_TAG(FrameGradientMask, CornerRadius),
-    ADD_PROPERTY_TAG(FrameGradientMask, FrameWidth)
-);
-
 #undef ADD_PROPERTY_TAG
 #undef DECLARE_MASK
 

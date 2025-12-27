@@ -59,6 +59,26 @@ namespace Mock {
 
 } // namespace Mock
 
+void DoSetBrightnessInfoChangeCallback()
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    bool needCallback = GetData<bool>();
+    if (needCallback) {
+        BrightnessInfoChangeCallback callback = [](ScreenId, BrightnessInfo) -> void {};
+        rsInterfaces.SetBrightnessInfoChangeCallback(callback);
+    } else {
+        rsInterfaces.SetBrightnessInfoChangeCallback(nullptr);
+    }
+}
+
+void DoGetBrightnessInfo()
+{
+    auto& rsInterfaces = RSInterfaces::GetInstance();
+    ScreenId screenId = GetData<ScreenId>();
+    BrightnessInfo brightnessInfo;
+    rsInterfaces.GetBrightnessInfo(screenId, brightnessInfo);
+}
+
 void DoRegisterFirstFrameCommitCallback()
 {
     FirstFrameCommitCallback callback;
@@ -75,6 +95,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return -1;
     }
     /* Run your code on data */
+    OHOS::Rosen::DoGetBrightnessInfo();
+    OHOS::Rosen::DoSetBrightnessInfoChangeCallback();
     OHOS::Rosen::DoRegisterFirstFrameCommitCallback();
     return 0;
 }

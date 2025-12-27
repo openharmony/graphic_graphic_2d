@@ -302,7 +302,6 @@ protected:
     bool CheckPixelsFormat(napi_env env, GLenum format);
     bool CheckPixelsType(napi_env env, GLenum type);
     bool CheckReadBufferMode(GLenum mode);
-    bool CheckCompressedTexSubDimensions(const TexSubImage2DArg& imgArg, WebGLTexture* texture);
     bool CheckTexImageInternalFormat(napi_env env, int32_t func, GLenum internalFormat);
     bool CheckTexInternalFormatColorBufferCombination(GLenum texInternalFormat, GLenum colorBufferFormat);
     bool CheckStencil(napi_env env);
@@ -328,7 +327,8 @@ protected:
     GLenum GetBoundFrameBufferColorFormat(napi_env env);
     GLenum CheckReadBufferAndGetInfo(napi_env env, GLuint* frameBufferId, GLenum* format, GLenum* type);
     GLenum CheckReadPixelsArg(napi_env env, const PixelsArg& arg, uint64_t bufferSize);
-
+    GLenum CheckCompressedTexSubDimensions(const TexSubImage2DArg& imgArg, WebGLTexture* texture);
+    
     template<class T>
     GLenum CheckTexParameter(napi_env env, GLenum target, GLenum pname, T param, bool isFloat);
 

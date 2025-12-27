@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,6 +81,7 @@ namespace OHOS::Rosen {
 namespace {
 const std::string KERNEL_CONFIG_PATH = "/system/etc/hiview/kernel_leak_config.json";
 const std::string GPUMEM_INFO_PATH = "/proc/gpumem_process_info";
+const std::string GPUMEM_NODEINFO_PATH = "/proc/gpu_memory";
 const std::string EVENT_ENTER_RECENTS = "GESTURE_TO_RECENTS";
 const std::string GPU_RS_LEAK = "ResourceLeak(GpuRsLeak)";
 const std::string SCB_BUNDLE_NAME = "com.ohos.sceneboard";
@@ -373,12 +374,12 @@ void MemoryManager::DumpRenderServiceMemory(DfxString& log, bool isLite)
     if (isLite) {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoByIdLite, isLite);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
+        RSTypefaceCache::Instance().Dump(log);
     } else {
         MemoryTrack::Instance().DumpMemoryStatistics(log, FindGeoById);
         RSMainThread::Instance()->RenderServiceAllNodeDump(log);
         RSMainThread::Instance()->RenderServiceAllSurafceDump(log);
     }
-    RSTypefaceCache::Instance().Dump(log);
 #ifdef RS_ENABLE_VK
     RsVulkanMemStat& memStat = RsVulkanContext::GetSingleton().GetRsVkMemStat();
     memStat.DumpMemoryStatistics(&gpuTracer);
@@ -535,13 +536,31 @@ void MemoryManager::DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* gp
 #endif
 }
 
+void MemoryManager::DumpGpuNodeMemory(DfxString& log)
+{
+    std::string gpuMemInfo;
+    std::ifstream gpuMemInfoFile;
+    gpuMemInfoFile.open(GPUMEM_NODEINFO_PATH);
+    if (gpuMemInfoFile.is_open()) {
+        std::stringstream gpuMemInfoStream;
+        gpuMemInfoStream << gpuMemInfoFile.rdbuf();
+        gpuMemInfo = gpuMemInfoStream.str();
+        gpuMemInfoFile.close();
+    } else {
+        RS_LOGE("MemoryManager::DumpGpuNodeMemory can not open gpumem info");
+    }
+    log.AppendFormat("\n---------------\nGPU Memory:\n");
+    log.AppendFormat("%s", gpuMemInfo.c_str());
+    log.AppendFormat("\n---------------\n");
+}
+
 static int32_t MemoryTrackerGetGLByPid(int32_t pid)
 {
     return pid;
 }
 
 void MemoryManager::DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* gpuContext,
-    std::vector<std::pair<NodeId, std::string>>& nodeTags)
+    const std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
     if (!gpuContext) {
         log.AppendFormat("No valid gpu cache instance.\n");
@@ -607,7 +626,7 @@ void MemoryManager::DumpDrawingGpuMemory(DfxString& log, const Drawing::GPUConte
 
     /* ShaderCache */
     log.AppendFormat("\n---------------\nShader Caches:\n");
-    std::shared_ptr<RenderContext> rendercontext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> rendercontext = RenderContext::Create();
     log.AppendFormat(rendercontext->GetShaderCacheSize().c_str());
     // gpu stat
     if (!isLite) {
@@ -955,11 +974,12 @@ void MemoryManager::MemoryOverReport(const pid_t pid, const MemorySnapshotInfo& 
 
     int ret = RSHiSysEvent::EventWrite(reportName, RSEventType::RS_STATISTIC,
         "PID", pid,
+        "TYPE", "GPU",
         "BUNDLE_NAME", info.bundleName,
         "CPU_MEMORY", info.cpuMemory,
         "GPU_MEMORY", info.gpuMemory,
         "TOTAL_MEMORY", info.TotalMemory(),
-        "GPU_PROCESS_INFO", filePath);
+        "FILEPATH", filePath);
     RS_LOGW("hisysevent writ result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], "
         "pid[%{public}d] bundleName[%{public}s] cpu[%{public}zu] gpu[%{public}zu] total[%{public}zu]",
         ret, pid, info.bundleName.c_str(), info.cpuMemory, info.gpuMemory, info.TotalMemory());

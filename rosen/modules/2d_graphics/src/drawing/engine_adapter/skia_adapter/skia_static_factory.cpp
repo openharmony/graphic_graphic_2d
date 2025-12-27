@@ -24,6 +24,7 @@
 #include "skia_adapter/skia_font_style_set.h"
 #include "skia_adapter/skia_hm_symbol.h"
 #include "skia_adapter/skia_image.h"
+#include "skia_adapter/skia_memory_stream.h"
 #include "skia_adapter/skia_surface.h"
 #include "skia_adapter/skia_text_blob.h"
 #include "skia_adapter/skia_typeface.h"
@@ -77,6 +78,12 @@ std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromStream(std::unique_ptr<Memo
     return SkiaTypeface::MakeFromStream(std::move(memoryStream), fontArguments);
 }
 
+std::unique_ptr<MemoryStream> SkiaStaticFactory::GenerateAshMemoryStream(std::unique_ptr<MemoryStream> memoryStream,
+    const void*& dataPtr, size_t& size, int32_t& fd)
+{
+    return SkiaMemoryStream::GenerateAshMemoryStream(std::move(memoryStream), dataPtr, size, fd);
+}
+
 std::shared_ptr<Typeface> SkiaStaticFactory::MakeFromName(const char familyName[], FontStyle fontStyle)
 {
     return SkiaTypeface::MakeFromName(familyName, fontStyle);
@@ -119,9 +126,10 @@ std::shared_ptr<Surface> SkiaStaticFactory::MakeRenderTarget(GPUContext* gpuCont
     return SkiaSurface::MakeRenderTarget(gpuContext, budgeted, imageInfo);
 }
 
-std::shared_ptr<Image> SkiaStaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory)
+std::shared_ptr<Image> SkiaStaticFactory::MakeFromYUVAPixmaps(GPUContext& gpuContext, const YUVInfo& info, void* memory,
+    const std::shared_ptr<ColorSpace>& colorSpace)
 {
-    return SkiaImage::MakeFromYUVAPixmaps(gpuContext, info, memory);
+    return SkiaImage::MakeFromYUVAPixmaps(gpuContext, info, memory, colorSpace);
 }
 #endif
 

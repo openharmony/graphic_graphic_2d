@@ -65,7 +65,7 @@ public:
     std::vector<std::shared_ptr<SymbolGradient>> GetGradients() const;
 
     void SetSymbolColor(const SymbolColor& symbolColor);
-    
+
     void SetFirstActive(bool isFirstActive);
 
     bool GetFirstActive() const;
@@ -73,6 +73,8 @@ public:
     SymbolColor GetSymbolColor() const;
 
     std::vector<RSSColor> GetRenderColor() const;
+
+    std::vector<ColorPlaceholder> GetRenderColorPlaceholder() const;
 
     RSSymbolRenderingStrategy GetRenderMode() const;
 

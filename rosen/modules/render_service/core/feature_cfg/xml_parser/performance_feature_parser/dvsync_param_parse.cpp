@@ -65,16 +65,16 @@ int32_t DVSyncParamParse::ParseDVSyncInternal(xmlNode &node)
     } else if (xmlParamType == PARSE_XML_FEATURE_SINGLEPARAM) {
         if (name == "DVSyncRsBufferCount") {
             DVSyncParam::SetRsBufferCount(std::atoi(val.c_str()));
-            RS_LOGI("DVSyncParamParse parse DVSyncRsBufferCount %{public}d", DVSyncParam::GetRsBufferCount());
+            RS_LOGI("DVSyncParamParse parse DVSyncRsBufferCount %{public}u", DVSyncParam::GetRsBufferCount());
         } else if (name == "DVSyncUiBufferCount") {
             DVSyncParam::SetUiBufferCount(std::atoi(val.c_str()));
-            RS_LOGI("DVSyncParamParse parse DVSyncUiBufferCount %{public}d", DVSyncParam::GetUiBufferCount());
+            RS_LOGI("DVSyncParamParse parse DVSyncUiBufferCount %{public}u", DVSyncParam::GetUiBufferCount());
         } else if (name == "DVSyncNativeBufferCount") {
             DVSyncParam::SetNativeBufferCount(std::atoi(val.c_str()));
-            RS_LOGI("DVSyncParamParse parse DVSyncNativeBufferCount %{public}d", DVSyncParam::GetNativeBufferCount());
+            RS_LOGI("DVSyncParamParse parse DVSyncNativeBufferCount %{public}u", DVSyncParam::GetNativeBufferCount());
         } else if (name == "DVSyncWebBufferCount") {
             DVSyncParam::SetWebBufferCount(std::atoi(val.c_str()));
-            RS_LOGI("DVSyncParamParse parse DVSyncWebBufferCount %{public}d", DVSyncParam::GetWebBufferCount());
+            RS_LOGI("DVSyncParamParse parse DVSyncWebBufferCount %{public}u", DVSyncParam::GetWebBufferCount());
         }
     } else if (xmlParamType == PARSE_XML_FEATURE_MULTIPARAM) {
         if (ParseFeatureMultiParam(*currNode, name) != PARSE_EXEC_SUCCESS) {

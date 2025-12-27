@@ -27,6 +27,7 @@
 
 #include "animation/rs_render_animation.h"
 #include "common/rs_common_def.h"
+#include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_optional_trace.h"
 #include "dirty_region/rs_gpu_dirty_collector.h"
@@ -34,6 +35,7 @@
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable_foreground.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#include "feature/hdr/rs_colorspace_util.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
 #endif
@@ -50,7 +52,9 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_union_render_node.h"
 #include "pipeline/sk_resource_manager.h"
+#include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "property/rs_point_light_manager.h"
@@ -84,9 +88,22 @@ const std::unordered_set<RSDrawableSlot> edrDrawableSlots = {
     RSDrawableSlot::POINT_LIGHT,
 };
 
+// ensure the corresponding drawable type inherits from RSFilterDrawable.
+static const std::unordered_set<RSDrawableSlot> filterDrawableSlotsSupportGetRect = {
+    RSDrawableSlot::MATERIAL_FILTER,
+    RSDrawableSlot::BACKGROUND_FILTER,
+    RSDrawableSlot::COMPOSITING_FILTER,
+};
+
 constexpr uint32_t SET_IS_ON_THE_TREE_THRESHOLD = 50;
 static uint32_t g_setIsOntheTreeCnt = 0;
+constexpr size_t CACHE_FILTER_DRAWABLE_SIZE = 3;
 } // namespace
+
+using RSCacheFilterPara = std::pair<bool, RSDrawableSlot>; // first: update condition, second: slot
+using RSCacheFilterParaArray = std::array<RSCacheFilterPara, CACHE_FILTER_DRAWABLE_SIZE>;
+
+using namespace TemplateUtils;
 
 void RSRenderNode::OnRegister(const std::weak_ptr<RSContext>& context)
 {
@@ -104,6 +121,7 @@ bool RSRenderNode::IsPureContainer() const
 bool RSRenderNode::IsPureBackgroundColor() const
 {
     static const std::unordered_set<RSDrawableSlot> pureBackgroundColorSlots = {
+        RSDrawableSlot::SAVE_ALL,
         RSDrawableSlot::BG_SAVE_BOUNDS,
         RSDrawableSlot::CLIP_TO_BOUNDS,
         RSDrawableSlot::BACKGROUND_COLOR,
@@ -112,7 +130,8 @@ bool RSRenderNode::IsPureBackgroundColor() const
         RSDrawableSlot::FRAME_OFFSET,
         RSDrawableSlot::CLIP_TO_FRAME,
         RSDrawableSlot::CHILDREN,
-        RSDrawableSlot::RESTORE_FRAME
+        RSDrawableSlot::RESTORE_FRAME,
+        RSDrawableSlot::RESTORE_ALL
     };
 
 #ifdef RS_ENABLE_MEMORY_DOWNTREE
@@ -132,6 +151,12 @@ bool RSRenderNode::IsPureBackgroundColor() const
     for (int8_t i = 0; i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
         if (drawableVec[i] &&
             !pureBackgroundColorSlots.count(static_cast<RSDrawableSlot>(i))) {
+            const auto& property = GetRenderProperties();
+            if (i == static_cast<int8_t>(RSDrawableSlot::BLENDER) &&
+                property.GetColorBlendMode() == static_cast<int>(RSColorBlendMode::SRC_OVER) &&
+                property.GetColorBlendApplyType() == static_cast<int>(RSColorBlendApplyType::FAST)) {
+                continue;
+            }
             return false;
         }
     }
@@ -468,6 +493,22 @@ void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, HDRComponentT
     }
 }
 
+void RSRenderNode::ResetNodeColorSpace()
+{
+    stagingRenderParams_->SetNodeColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
+}
+
+void RSRenderNode::SetNodeColorSpace(GraphicColorGamut colorSpace)
+{
+    colorSpace = RSColorSpaceUtil::SelectBigGamut(colorSpace, stagingRenderParams_->GetNodeColorSpace());
+    stagingRenderParams_->SetNodeColorSpace(colorSpace);
+}
+
+GraphicColorGamut RSRenderNode::GetNodeColorSpace() const
+{
+    return stagingRenderParams_->GetNodeColorSpace();
+}
+
 void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
 {
     if (enableHdrEffect_ == enableHdrEffect) {
@@ -476,7 +517,45 @@ void RSRenderNode::SetEnableHdrEffect(bool enableHdrEffect)
     if (IsOnTheTree()) {
         SetHdrNum(enableHdrEffect, GetInstanceRootNodeId(), HDRComponentType::EFFECT);
     }
+    UpdateHDRStatus(HdrStatus::HDR_EFFECT, enableHdrEffect);
     enableHdrEffect_ = enableHdrEffect;
+}
+
+void RSRenderNode::UpdateHDRStatus(HdrStatus hdrStatus, bool isAdd)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->UpdateHDRStatus(hdrStatus, isAdd);
+#endif
+}
+
+void RSRenderNode::ClearHDRVideoStatus()
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->ClearHDRVideoStatus();
+#endif
+}
+
+HdrStatus RSRenderNode::GetHDRStatus() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->GetHDRStatus();
+#endif
+    return HdrStatus::NO_HDR;
+}
+
+void RSRenderNode::SetChildHasVisibleHDRContent(bool val)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetChildHasVisibleHDRContent(val);
+#endif
+}
+
+bool RSRenderNode::ChildHasVisibleHDRContent() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->ChildHasVisibleHDRContent();
+#endif
+    return false;
 }
 
 void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId firstLevelNodeId,
@@ -502,25 +581,6 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         ClearCloneCrossNode();
     }
 
-    // Need to count upeer or lower trees of HDR nodes
-    if (GetType() == RSRenderNodeType::CANVAS_NODE) {
-        auto canvasNode = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(shared_from_this());
-        if (canvasNode != nullptr &&
-            (canvasNode->GetHDRPresent() || canvasNode->GetRenderProperties().IsHDRUIBrightnessValid())) {
-            NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
-            ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDRClient canvasNode[id:%{public}" PRIu64 " name:%{public}s]"
-                       " parent'S id:%{public}" PRIu64 " ",
-                canvasNode->GetId(), canvasNode->GetNodeName().c_str(), parentNodeId);
-            if (canvasNode->GetHDRPresent()) {
-                SetHdrNum(flag, parentNodeId, HDRComponentType::IMAGE);
-                canvasNode->UpdateScreenHDRNodeList(flag, screenNodeId);
-            }
-            if (canvasNode->GetRenderProperties().IsHDRUIBrightnessValid()) {
-                SetHdrNum(flag, parentNodeId, HDRComponentType::UICOMPONENT);
-            }
-        }
-    }
-
     if (enableHdrEffect_) {
         NodeId parentNodeId = flag ? instanceRootNodeId : instanceRootNodeId_;
         ROSEN_LOGD("RSRenderNode::SetIsOnTheTree HDREffect Node[id:%{public}" PRIu64 " name:%{public}s]"
@@ -541,6 +601,14 @@ void RSRenderNode::SetIsOnTheTree(bool flag, NodeId instanceRootNodeId, NodeId f
         instanceRootNodeId_ = instanceRootNodeId;
         firstLevelNodeId_ = firstLevelNodeId;
         OnTreeStateChanged();
+        auto instanceRootNode = GetInstanceRootNode();
+        if (instanceRootNode) {
+            auto appWindow = instanceRootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+            if (appWindow && appWindow->IsAppWindow()) {
+                stagingRenderParams_->SetInstanceRootNodeId(appWindow->GetId());
+                stagingRenderParams_->SetInstanceRootNodeName(appWindow->GetName());
+            }
+        }
     } else {
         OnTreeStateChanged();
         instanceRootNodeId_ = instanceRootNodeId;
@@ -642,6 +710,11 @@ void RSRenderNode::ResetChildRelevantFlags()
     visibleEffectChild_.clear();
     childrenRect_.Clear();
     hasChildrenOutOfRect_ = false;
+    SetHasChildExcludedFromNodeGroup(false);
+    SetChildHasVisibleHDRContent(false);
+    ResetNodeColorSpace();
+    SetForceDisableNodeGroup(false);
+    RSPointLightManager::Instance()->SetChildHasVisibleIlluminated(shared_from_this(), false);
 }
 
 void RSRenderNode::ResetPixelStretchSlot()
@@ -659,7 +732,8 @@ bool RSRenderNode::IsPixelStretchValid() const
     if (!GetRenderProperties().GetPixelStretch().has_value()) {
         return false;
     }
-    const auto drawablePtr = GetDrawableVec(__func__)[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    const auto drawablePtr = findMapValueRef(GetDrawableVec(__func__),
+        static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH));
     const auto pixelStretchDrawable = std::static_pointer_cast<const DrawableV2::RSPixelStretchDrawable>(drawablePtr);
     if (pixelStretchDrawable == nullptr) {
         return false;
@@ -1007,6 +1081,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
         }
         out += ", AbsRotation: " + std::to_string(surfaceNode->GetAbsRotation());
 #endif
+        out += ", persistId [" + std::to_string(surfaceNode->GetLeashPersistentId()) + "]";
     }
     if (sharedTransitionParam_) {
         out += sharedTransitionParam_->Dump();
@@ -1036,6 +1111,7 @@ void RSRenderNode::DumpTree(int32_t depth, std::string& out) const
 #endif
 
     DumpSubClassNode(out);
+    out += ", NodeColorSpace: " + std::to_string(GetNodeColorSpace());
     out += ", Properties: " + GetRenderProperties().Dump();
     if (!uiContextTokenList_.empty()) {
         out += ", RSUIContextToken: [";
@@ -1212,6 +1288,14 @@ void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
             out += "LOGICAL_DISPLAY_NODE";
             break;
         }
+        case RSRenderNodeType::UNION_NODE: {
+            out += "UNION_NODE";
+            break;
+        }
+        case RSRenderNodeType::WINDOW_KEYFRAME_NODE: {
+            out += "WINDOW_KEYFRAME_NODE";
+            break;
+        }
         default: {
             out += "UNKNOWN_NODE";
             break;
@@ -1255,16 +1339,9 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", skipLayer: " + std::to_string(displayNode->GetSecurityDisplay());
         out += ", securityExemption: " + std::to_string(displayNode->GetSecurityExemption());
         out += ", virtualScreenMuteStatus: " + std::to_string(displayNode->GetVirtualScreenMuteStatus());
-    } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
-        auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
-        NodeId linkedRootNodeId = canvasNode->GetLinkedRootNodeId();
-        if (linkedRootNodeId != INVALID_NODEID) {
-            out += ", linkedRootNodeId: " + std::to_string(linkedRootNodeId);
-        }
-    } else if (GetType() == RSRenderNodeType::CANVAS_DRAWING_NODE) {
-        auto canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode*>(this);
-        out += ", lastResetSurfaceTime: " + std::to_string(canvasDrawingNode->lastResetSurfaceTime_);
-        out += ", opCountAfterReset: " + std::to_string(canvasDrawingNode->opCountAfterReset_);
+    } else if (GetType() == RSRenderNodeType::WINDOW_KEYFRAME_NODE) {
+        auto wndKeyframeNode = static_cast<const RSWindowKeyFrameRenderNode*>(this);
+        out += ", linkedNodeId: " + std::to_string(wndKeyframeNode->GetLinkedNodeId());
     }
 }
 
@@ -1340,6 +1417,7 @@ void RSRenderNode::SetDirty(bool forceAddToActiveList)
             context->AddActiveNode(shared_from_this());
         }
     }
+    isParentTreeDirty_ = true;
     SetParentSubTreeDirty();
     dirtyStatus_ = NodeDirty::DIRTY;
 }
@@ -1416,6 +1494,9 @@ bool RSRenderNode::IsSubTreeNeedPrepare(bool filterInGlobal, bool isOccluded)
         return true;
     }
     if (childHasSharedTransition_ || isAccumulatedClipFlagChanged_ || subSurfaceCnt_ > 0) {
+        return true;
+    }
+    if (RSPointLightManager::Instance()->GetChildHasVisibleIlluminated(shared_from_this())) {
         return true;
     }
     if (ChildHasVisibleFilter()) {
@@ -1572,7 +1653,7 @@ void RSRenderNode::FallbackAnimationsToRoot()
 void RSRenderNode::ActivateDisplaySync()
 {
     if (!displaySync_) {
-        displaySync_ = std::make_shared<RSRenderDisplaySync>(GetId());
+        displaySync_ = std::make_unique<RSRenderDisplaySync>(GetId());
     }
 }
 
@@ -1614,7 +1695,9 @@ std::tuple<bool, bool, bool> RSRenderNode::Animate(
 
 bool RSRenderNode::IsClipBound() const
 {
-    return GetRenderProperties().GetClipToBounds() || GetRenderProperties().GetClipToFrame();
+    auto& renderProperties = GetRenderProperties();
+    return renderProperties.GetClipToBounds() || renderProperties.GetClipToFrame() ||
+        renderProperties.GetClipToRRect() || renderProperties.GetClipBounds() != nullptr;
 }
 
 bool RSRenderNode::SetAccumulatedClipFlag(bool clipChange)
@@ -1779,6 +1862,21 @@ void RSRenderNode::CollectAndUpdateLocalMagnifierEffectRect()
     }
 }
 
+void RSRenderNode::CollectAndUpdateLocalEffectRect()
+{
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+    for (auto slot : filterDrawableSlotsSupportGetRect) {
+        if (dirtySlots_.find(slot) == dirtySlots_.end()) {
+            continue;
+        }
+        std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
+        if (filter == nullptr) {
+            continue;
+        }
+        selfDrawRect_ = selfDrawRect_.JoinRect(filter->GetRect(boundsRect, EffectRectType::TOTAL));
+    }
+}
+
 void RSRenderNode::UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect)
 {
 #ifndef ROSEN_CROSS_PLATFORM
@@ -1793,6 +1891,12 @@ void RSRenderNode::UpdateBufferDirtyRegion(RectF& selfDrawingNodeDirtyRect)
     auto buffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
     if (buffer != nullptr) {
         isSelfDrawingNode_ = true;
+        // if the buffer size changed, use the node size as dirty rect
+        if (surfaceNode->GetRSSurfaceHandler()->GetBufferSizeChanged()) {
+            selfDrawingNodeDirtyRect = selfDrawRect_;
+            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode id: %" PRIu64 ", buffer size changed.", GetId());
+            return;
+        }
         // Use the matrix from buffer to relative coordinate and the absolute matrix
         // to calculate the buffer damageRegion's absolute rect
         auto rect = surfaceNode->GetRSSurfaceHandler()->GetDamageRegion();
@@ -1836,6 +1940,7 @@ bool RSRenderNode::UpdateSelfDrawRect(RectF& selfDrawingNodeDirtyRect)
     CollectAndUpdateLocalPixelStretchRect();
     CollectAndUpdateLocalDistortionEffectRect();
     CollectAndUpdateLocalMagnifierEffectRect();
+    CollectAndUpdateLocalEffectRect();
     return !selfDrawRect_.IsNearEqual(prevSelfDrawRect);
 }
 
@@ -1884,6 +1989,7 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
 #endif
     // 1. update self drawrect if dirty
     RectF selfDrawingNodeDirtyRect;
+    UpdateFilterRectInfo();
     bool selfDrawRectChanged = IsDirty() ? UpdateSelfDrawRect(selfDrawingNodeDirtyRect) : false;
     if (selfDrawRectChanged) {
         UpdateChildrenOutOfRectFlag(!childrenRect_.ConvertTo<float>().IsInsideOf(selfDrawRect_));
@@ -1923,9 +2029,14 @@ bool RSRenderNode::UpdateDrawRectAndDirtyRegion(RSDirtyRegionManager& dirtyManag
         }
     }
     // 3. update dirtyRegion if needed
+    if (properties.GetMaterialFilter()) {
+        UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()),
+            RSDrawableSlot::MATERIAL_FILTER);
+        UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::MATERIAL_FILTER);
+    }
     if (properties.GetBackgroundFilter()) {
         UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
-        UpdatePendingPurgeFilterDirtyRect(dirtyManager, false);
+        UpdatePendingPurgeFilterDirtyRect(dirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
     }
     ValidateLightResources();
     isDirtyRegionUpdated_ = false;
@@ -1995,7 +2106,7 @@ void RSRenderNode::UpdateDirtyRegionInfoForDFX(RSDirtyRegionManager& dirtyManage
     dirtyManager.UpdateDirtyRegionInfoForDfx(
         GetId(), GetType(), DirtyRegionType::UPDATE_DIRTY_REGION, oldDirtyInSurface_);
     dirtyManager.UpdateDirtyRegionInfoForDfx(
-        GetId(), GetType(), DirtyRegionType::FILTER_RECT, filterRegion_);
+        GetId(), GetType(), DirtyRegionType::FILTER_RECT, GetFilterRegion());
     if (LastFrameSubTreeSkipped()) {
         dirtyManager.UpdateDirtyRegionInfoForDfx(
             GetId(), GetType(), DirtyRegionType::SUBTREE_SKIP_RECT, subTreeDirtyRegion_);
@@ -2044,6 +2155,10 @@ bool RSRenderNode::Update(RSDirtyRegionManager& dirtyManager, const std::shared_
     // 'dirty region of all the nodes drawn before this node', and foreground filter cache manager should use 'dirty
     // region of all the nodes drawn before this node, this node, and the children of this node'
     // 2. Filter must be valid when filter cache manager is valid, we make sure that in RSRenderNode::ApplyModifiers().
+    if (GetRenderProperties().GetMaterialFilter()) {
+        UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()),
+            RSDrawableSlot::MATERIAL_FILTER);
+    }
     if (GetRenderProperties().GetBackgroundFilter()) {
         UpdateFilterCacheWithBelowDirty(Occlusion::Rect(dirtyManager.GetCurrentFrameDirtyRegion()));
     }
@@ -2212,18 +2327,10 @@ void RSRenderNode::SetParentSubTreeDirty()
     auto parentNode = parent_.lock();
     if (parentNode && !parentNode->IsSubTreeDirty()) {
         parentNode->SetSubTreeDirty(true);
+        // Only used in quick skip prepare phase
+        parentNode->SetForcePrepare(true);
         parentNode->SetParentSubTreeDirty();
     }
-}
-
-bool RSRenderNode::IsTreeStateChangeDirty() const
-{
-    return isTreeStateChangeDirty_;
-}
-
-void RSRenderNode::SetTreeStateChangeDirty(bool val)
-{
-    isTreeStateChangeDirty_ = val;
 }
 
 void RSRenderNode::SetParentTreeStateChangeDirty(bool isUpdateAllParentNode)
@@ -2291,12 +2398,15 @@ bool RSRenderNode::IsFilterCacheValid() const
         ROSEN_LOGD("IsBackgroundFilterCacheValid::blur is disabled or filter cache is disabled.");
         return false;
     }
-    auto filterDrawable = GetRenderProperties().GetFilter() != nullptr ?
-        GetFilterDrawable(true) : GetFilterDrawable(false);
-    if (filterDrawable == nullptr) {
-        return false;
+    std::vector<RSDrawableSlot> cacheDrawableSlots{RSDrawableSlot::COMPOSITING_FILTER,
+        RSDrawableSlot::BACKGROUND_FILTER, RSDrawableSlot::MATERIAL_FILTER};
+    for (auto& slot : cacheDrawableSlots) {
+        auto filterDrawable = GetFilterDrawable(slot);
+        if (filterDrawable != nullptr) {
+            return filterDrawable->IsFilterCacheValid();
+        }
     }
-    return filterDrawable->IsFilterCacheValid();
+    return false;
 #endif
     return false;
 }
@@ -2332,6 +2442,24 @@ bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
 return false;
 }
 
+bool RSRenderNode::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
+{
+#ifdef RS_ENABLE_GPU
+    if (!RSSystemProperties::GetBlurEnabled() || !RSProperties::filterCacheEnabled_) {
+        ROSEN_LOGD("ForceReduceAIBarCacheInterval: blur is disabled or filter cache is disabled.");
+        return false;
+    }
+
+    auto filterDrawable = GetFilterDrawable(false); // AIBar filter is only background filter
+    if (filterDrawable == nullptr) {
+        return false;
+    }
+    return filterDrawable->ForceReduceAIBarCacheInterval(intersectHwcDamage);
+#else
+    return false;
+#endif
+}
+
 const RectI RSRenderNode::GetFilterCachedRegion() const
 {
     return lastFilterRegion_;
@@ -2344,7 +2472,7 @@ bool RSRenderNode::HasBlurFilter() const
 
 void RSRenderNode::UpdateLastFilterCacheRegion()
 {
-    lastFilterRegion_ = filterRegion_;
+    lastFilterRegion_ = GetFilterRegionInfo().filterRegion_;
 }
 
 bool RSRenderNode::GetAbsMatrixReverse(const RSRenderNode& rootNode, Drawing::Matrix& absMatrix)
@@ -2380,9 +2508,14 @@ void RSRenderNode::UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirt
     }
     absDrawRect_ = RSObjAbsGeometry::MapRect(selfDrawRect_, absMatrix);
     oldDirtyInSurface_ = absDrawRect_.IntersectRect(clipRect);
-    filterRect = RSObjAbsGeometry::MapRect(GetRenderProperties().GetBoundsRect(), absMatrix);
-    filterRect = filterRect.IntersectRect(clipRect);
-    filterRegion_ = filterRect;
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto totalRect = RSObjAbsGeometry::MapRect(boundsRect, absMatrix);
+    CalVisibleFilterRect(totalRect, absMatrix, clipRect);
+    filterRect = GetFilterRegionInfo().filterRegion_;
+}
+
+void RSRenderNode::FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager, const RectI& filterRect)
+{
     if (filterRect == lastFilterRegion_) {
         return;
     }
@@ -2397,29 +2530,30 @@ void RSRenderNode::CheckBlurFilterCacheNeedForceClearOrSave(bool rotationChanged
     if (!IsInstanceOf<RSEffectRenderNode>() && rotationChanged) {
         rotationClear = true;
     }
-    const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter()) {
-        auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable != nullptr) {
-            auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
-                dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
-                dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE);
-            if (!(filterDrawable->IsForceClearFilterCache()) && (rotationClear || bgDirty)) {
-                RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] background color or shader or image is dirty", GetId());
-                filterDrawable->MarkFilterForceClearCache();
-            }
-        }
-    }
     if (IsInstanceOf<RSEffectRenderNode>()) {
         rotationStatusChanged = false;
     }
-    if (properties.GetFilter()) {
-        auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable != nullptr) {
-            if (!(filterDrawable->IsForceClearFilterCache()) && (rotationStatusChanged || !dirtySlots_.empty())) {
-                RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] foreground is dirty", GetId());
-                filterDrawable->MarkFilterForceClearCache();
-            }
+    auto bgDirty = dirtySlots_.count(RSDrawableSlot::BACKGROUND_COLOR) ||
+            dirtySlots_.count(RSDrawableSlot::BACKGROUND_SHADER) ||
+            dirtySlots_.count(RSDrawableSlot::BACKGROUND_IMAGE) ||
+            dirtySlots_.count(RSDrawableSlot::MATERIAL_FILTER);
+    const auto& properties = GetRenderProperties();
+
+    RSCacheFilterParaArray filterCacheHandles {
+        RSCacheFilterPara{properties.GetMaterialFilter() != nullptr && rotationClear,
+            RSDrawableSlot::MATERIAL_FILTER},
+        RSCacheFilterPara{properties.GetBackgroundFilter() != nullptr && (rotationClear || bgDirty),
+            RSDrawableSlot::BACKGROUND_FILTER},
+        RSCacheFilterPara{properties.GetFilter() != nullptr &&
+            (rotationStatusChanged || !dirtySlots_.empty()), RSDrawableSlot::COMPOSITING_FILTER}
+    };
+
+    for (auto& p : filterCacheHandles) {
+        auto filterDrawable = GetFilterDrawable(p.second);
+        if (filterDrawable && !(filterDrawable->IsForceClearFilterCache()) && p.first) {
+            RS_OPTIONAL_TRACE_NAME_FMT("RSRenderNode[%llu] background color or shader or"
+                " image or meterial is dirty", GetId());
+            filterDrawable->MarkFilterForceClearCache();
         }
     }
 #endif
@@ -2429,15 +2563,20 @@ void RSRenderNode::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(NodeI
 {
 #ifdef RS_ENABLE_GPU
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter()) {
-        auto filterDrawable = GetFilterDrawable(false);
+    auto invokeFunc = [offscreenCanvasNodeId] (
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
         if (filterDrawable != nullptr) {
             filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
         }
+    };
+    if (properties.GetMaterialFilter()) {
+        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     }
-
+    if (properties.GetBackgroundFilter()) {
+        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    }
     if (properties.GetFilter()) {
-        auto filterDrawable = GetFilterDrawable(true);
+        auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
         if (filterDrawable != nullptr) {
             filterDrawable->MarkInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId);
         }
@@ -2451,10 +2590,10 @@ bool RSRenderNode::IsForceClearOrUseFilterCache(std::shared_ptr<DrawableV2::RSFi
     return filterDrawable->IsForceUseFilterCache() || filterDrawable->IsForceClearFilterCache();
 }
 #endif
-void RSRenderNode::MarkFilterStatusChanged(bool isForeground, bool isFilterRegionChanged)
+void RSRenderNode::MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
+    bool isForeground, bool isFilterRegionChanged)
 {
 #ifdef RS_ENABLE_GPU
-    auto filterDrawable = GetFilterDrawable(isForeground);
     if (filterDrawable == nullptr) {
         return;
     }
@@ -2470,12 +2609,39 @@ void RSRenderNode::MarkFilterStatusChanged(bool isForeground, bool isFilterRegio
 std::shared_ptr<DrawableV2::RSFilterDrawable> RSRenderNode::GetFilterDrawable(bool isForeground) const
 {
     auto slot = isForeground ? RSDrawableSlot::COMPOSITING_FILTER : RSDrawableSlot::BACKGROUND_FILTER;
-    if (auto& drawable = GetDrawableVec(__func__)[static_cast<uint32_t>(slot)]) {
+    if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
         if (auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable)) {
             return filterDrawable;
         }
     }
     return nullptr;
+}
+
+std::shared_ptr<DrawableV2::RSFilterDrawable> RSRenderNode::GetFilterDrawable(RSDrawableSlot slot) const
+{
+    if (filterDrawableSlotsSupportGetRect.find(slot) == filterDrawableSlotsSupportGetRect.end()) {
+        return nullptr;
+    }
+    if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
+        if (auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable)) {
+            return filterDrawable;
+        }
+    }
+    return nullptr;
+}
+
+bool RSRenderNode::InvokeFilterDrawable(RSDrawableSlot slot,
+    std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc)
+{
+    if (checkMethodInvokeFunc == nullptr) {
+        return false;
+    }
+    auto drawable = GetFilterDrawable(slot);
+    if (drawable == nullptr) {
+        return false;
+    }
+    checkMethodInvokeFunc(drawable);
+    return true;
 }
 #endif
 void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
@@ -2488,9 +2654,10 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return;
     }
-    auto hasBackground = GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_COLOR)] ||
-                         GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_SHADER)] ||
-                         GetDrawableVec(__func__)[static_cast<int32_t>(RSDrawableSlot::BACKGROUND_IMAGE)];
+    auto hasBackground =
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_COLOR)) ||
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_SHADER)) ||
+        findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_IMAGE));
     auto alphaDirty = dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA));
     if (alphaDirty && hasBackground) {
         RS_OPTIONAL_TRACE_NAME_FMT(
@@ -2500,7 +2667,7 @@ void RSRenderNode::UpdateFilterCacheWithBackgroundDirty()
 #endif
 }
 
-bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, bool isForeground)
+bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belowDirty, RSDrawableSlot slot)
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     if (!RSProperties::filterCacheEnabled_) {
@@ -2509,16 +2676,17 @@ bool RSRenderNode::UpdateFilterCacheWithBelowDirty(const Occlusion::Region& belo
 #endif
         return false;
     }
-    auto filterDrawable = GetFilterDrawable(isForeground);
+    auto filterDrawable = GetFilterDrawable(slot);
     if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
         return false;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterCacheWithBelowDirty:node[%llu] foreground:%d, lastRect:%s, dirtyRegion:%s",
-        GetId(), isForeground, lastFilterRegion_.ToString().c_str(), belowDirty.GetRegionInfo().c_str());
-    if (!belowDirty.IsIntersectWith(lastFilterRegion_)) {
+    auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+    RS_OPTIONAL_TRACE_NAME_FMT("UpdateFilterCacheWithBelowDirty:node[%llu] drawable:%d, lastRect:%s, dirtyRegion:%s",
+        GetId(), static_cast<int>(slot), lastSnapshotRegion.ToString().c_str(), belowDirty.GetRegionInfo().c_str());
+    if (!belowDirty.IsIntersectWith(lastSnapshotRegion)) {
         return false;
     }
-    MarkFilterStatusChanged(isForeground, false);
+    MarkFilterStatusChanged(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER == slot, false);
     return true;
 #else
     return false;
@@ -2532,52 +2700,72 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
         ROSEN_LOGE("RSRenderNode::UpdateFilterCacheWithSelfDirty filter cache is disabled.");
         return;
     }
-    RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
-        GetId(), lastFilterRegion_.ToString().c_str(), filterRegion_.ToString().c_str());
+
     const auto& properties = GetRenderProperties();
-    if ((properties.GetBackgroundFilter() && !filterRegion_.IsInsideOf(lastFilterRegion_)) ||
-        (properties.GetNeedDrawBehindWindow() && filterRegion_ != lastFilterRegion_)) {
-        auto filterDrawable = GetFilterDrawable(false);
+    auto invokeFunc = [&properties, this] (std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
         if (filterDrawable != nullptr) {
-            if (!IsForceClearOrUseFilterCache(filterDrawable)) {
-                MarkFilterStatusChanged(false, true);
+            auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
+            auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+            bool regionChanged = ((!snapshotRegion.IsInsideOf(lastSnapshotRegion)) ||
+                (properties.GetNeedDrawBehindWindow() && snapshotRegion != lastSnapshotRegion)) &&
+                !IsForceClearOrUseFilterCache(filterDrawable);
+            RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] background UpdateFilterCacheWithSelfDirty"
+                " lastRect:%s, currRegion:%s", GetId(), lastSnapshotRegion.ToString().c_str(),
+                snapshotRegion.ToString().c_str());
+            if (regionChanged) {
+                MarkFilterStatusChanged(filterDrawable, false, true);
             }
         }
+    };
+    if (properties.GetMaterialFilter()) {
+        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
     }
-    if (properties.GetFilter() && filterRegion_ != lastFilterRegion_) {
-        auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable != nullptr) {
-            if (!IsForceClearOrUseFilterCache(filterDrawable)) {
-                MarkFilterStatusChanged(true, true);
-            }
+    if (properties.GetBackgroundFilter()) {
+        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
+    }
+    auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
+    if (filterDrawable != nullptr) {
+        auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
+        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+        bool regionChanged = (properties.GetFilter() && snapshotRegion != lastSnapshotRegion) &&
+            !IsForceClearOrUseFilterCache(filterDrawable);
+        RS_OPTIONAL_TRACE_NAME_FMT("node[%llu] compositing UpdateFilterCacheWithSelfDirty lastRect:%s, currRegion:%s",
+            GetId(), lastSnapshotRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
+        if (regionChanged) {
+            MarkFilterStatusChanged(filterDrawable, true, true);
         }
     }
 #endif
 }
 
-void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, bool isForeground)
+void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirtyManager, RSDrawableSlot slot)
 {
-    auto filterDrawable = GetFilterDrawable(isForeground);
-    if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
-        return;
-    }
+    auto invokeFunc = [slot, &dirtyManager, this] (
+        std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable) {
+        if (filterDrawable == nullptr || IsForceClearOrUseFilterCache(filterDrawable)) {
+            return;
+        }
+        auto lastSnapshotRegion = filterDrawable->GetLastVisibleSnapshotRegion(lastFilterRegion_);
+        const auto& pendingPurgeFilterRegion = dirtyManager.GetFilterCollector().GetPendingPurgeFilterRegion();
+        if (slot != RSDrawableSlot::COMPOSITING_FILTER &&
+            pendingPurgeFilterRegion.IsIntersectWith(Occlusion::Rect(lastSnapshotRegion))) {
+            backgroundFilterInteractWithDirty_ = true;
+        }
 
-    const auto filterRect = GetFilterRect();
-    const auto& pendingPurgeFilterRegion = dirtyManager.GetFilterCollector().GetPendingPurgeFilterRegion();
-    if (!isForeground && pendingPurgeFilterRegion.IsIntersectWith(Occlusion::Rect(filterRect))) {
-        backgroundFilterInteractWithDirty_ = true;
-    }
-
-    RS_OPTIONAL_TRACE_NAME_FMT("UpdatePendingPurgeFilterDirtyRect:node[%llu],"
-        " needPendingPurge:%d, pendingPurgeFilterRegion: %s",
-        GetId(), filterDrawable->NeedPendingPurge(), pendingPurgeFilterRegion.GetRegionInfo().c_str());
-    // mainly based on the pendingPurge_ within NeedPendingPurge().
-    // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
-    // may become true later in CheckMergeFilterDirtyWithPreDirty().
-    if (filterDrawable->NeedPendingPurge()) {
-        dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
-            Occlusion::Region(Occlusion::Rect(filterRect)));
-    }
+        RS_OPTIONAL_TRACE_NAME_FMT("UpdatePendingPurgeFilterDirtyRect:node[%llu],"
+            " needPendingPurge:%d, lastHpaeClearCache: %d, pendingPurgeFilterRegion: %s",
+            GetId(), filterDrawable->NeedPendingPurge(), filterDrawable->LastHpaeClearCache(),
+            pendingPurgeFilterRegion.GetRegionInfo().c_str());
+        // mainly based on the pendingPurge_ within NeedPendingPurge().
+        // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
+        // also AddPendingPurgeFilterRegion if HpaeBlur clear cache
+        // may become true later in CheckMergeFilterDirtyWithPreDirty().
+        if (filterDrawable->NeedPendingPurge() || filterDrawable->LastHpaeClearCache()) {
+            dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
+                Occlusion::Region(Occlusion::Rect(lastFilterRegion_)));
+        }
+    };
+    RSRenderNode::InvokeFilterDrawable(slot, invokeFunc);
 }
 
 void RSRenderNode::UpdateDirtySlotsAndPendingNodes(RSDrawableSlot slot)
@@ -2601,18 +2789,18 @@ void RSRenderNode::PostPrepareForBlurFilterNode(RSDirtyRegionManager& dirtyManag
         return;
     }
     const auto& properties = GetRenderProperties();
-    if (properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow()) {
-        auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable != nullptr) {
+    RSCacheFilterParaArray filterDrawableVec {
+        RSCacheFilterPara{properties.GetMaterialFilter(),
+            RSDrawableSlot::MATERIAL_FILTER},
+        RSCacheFilterPara{properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow(),
+            RSDrawableSlot::BACKGROUND_FILTER},
+        RSCacheFilterPara{properties.GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+    };
+    for (auto& p : filterDrawableVec) {
+        auto filterDrawable = GetFilterDrawable(p.second);
+        if (p.first && filterDrawable != nullptr) {
             MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
-            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
-        }
-    }
-    if (properties.GetFilter()) {
-        auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable != nullptr) {
-            MarkFilterCacheFlags(filterDrawable, dirtyManager, needRequestNextVsync);
-            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, p.second);
         }
     }
     OnFilterCacheStateChanged();
@@ -2627,31 +2815,34 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
         return;
     }
 
+    auto filterRegion = filterDrawable->GetVisibleTotalRegion(GetFilterRegion());
+    auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegion());
     RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d,"
-        " forceClearWithoutNextVsync:%d, filterRegion: %s",
+        " forceClearWithoutNextVsync:%d, filterRegion: %s, filterDrawable snapshotRegion: %s",
         GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
-        filterRegion_.ToString().c_str());
+        filterRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
     // force update if last frame hpae-blur clear cache
     if (filterDrawable->LastHpaeClearCache()) {
-        dirtyManager.MergeDirtyRect(filterRegion_);
+        dirtyManager.MergeDirtyRect(filterRegion);
         isDirtyRegionUpdated_ = true;
     }
 
     // force update if last frame use cache because skip-frame and current frame background is not dirty
     if (filterDrawable->NeedPendingPurge()) {
-        dirtyManager.MergeDirtyRect(filterRegion_);
+        dirtyManager.MergeDirtyRect(filterRegion);
         isDirtyRegionUpdated_ = true;
-        return;
-    }
-    // force update if no next vsync when skip-frame enabled
-    if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
-        filterDrawable->MarkForceClearCacheWithLastFrame();
         return;
     }
 
     // when background changed, skip-frame will enabled if filter region > 400 and blur radius > 25
-    if (IsLargeArea(filterRegion_.GetWidth(), filterRegion_.GetHeight())) {
+    if (IsLargeArea(snapshotRegion.GetWidth(), snapshotRegion.GetHeight())) {
         filterDrawable->MarkFilterRegionIsLargeArea();
+    }
+
+    // force update if no next vsync when skip-frame enabled
+    if (!needRequestNextVsync && filterDrawable->IsSkippingFrame()) {
+        filterDrawable->MarkForceClearCacheWithLastFrame();
+        return;
     }
 }
 
@@ -2668,18 +2859,16 @@ void RSRenderNode::CheckFilterCacheAndUpdateDirtySlots(
 void RSRenderNode::MarkForceClearFilterCacheWithInvisible()
 {
 #ifdef RS_ENABLE_GPU
-    if (GetRenderProperties().GetBackgroundFilter()) {
-        auto filterDrawable = GetFilterDrawable(false);
-        if (filterDrawable != nullptr) {
+    RSCacheFilterParaArray filterDrawableVec {
+        RSCacheFilterPara{GetRenderProperties().GetMaterialFilter() != nullptr,  RSDrawableSlot::MATERIAL_FILTER},
+        RSCacheFilterPara{GetRenderProperties().GetBackgroundFilter() != nullptr, RSDrawableSlot::BACKGROUND_FILTER},
+        RSCacheFilterPara{GetRenderProperties().GetFilter() != nullptr, RSDrawableSlot::COMPOSITING_FILTER}
+    };
+    for (auto& p : filterDrawableVec) {
+        auto filterDrawable = GetFilterDrawable(p.second);
+        if (p.first && filterDrawable != nullptr) {
             filterDrawable->MarkFilterForceClearCache();
-            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::BACKGROUND_FILTER);
-        }
-    }
-    if (GetRenderProperties().GetFilter()) {
-        auto filterDrawable = GetFilterDrawable(true);
-        if (filterDrawable != nullptr) {
-            filterDrawable->MarkFilterForceClearCache();
-            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, RSDrawableSlot::COMPOSITING_FILTER);
+            CheckFilterCacheAndUpdateDirtySlots(filterDrawable, p.second);
         }
     }
 #endif
@@ -2696,7 +2885,8 @@ void RSRenderNode::RenderTraceDebug() const
 
 void RSRenderNode::DrawPropertyDrawable(RSDrawableSlot slot, RSPaintFilterCanvas& canvas)
 {
-    auto& drawablePtr = GetDrawableVec(__func__)[static_cast<size_t>(slot)];
+    auto& drawablePtr = findMapValueRef(GetDrawableVec(__func__),
+        static_cast<int8_t>(slot));
     if (!drawablePtr) {
         return;
     }
@@ -2706,7 +2896,7 @@ void RSRenderNode::DrawPropertyDrawable(RSDrawableSlot slot, RSPaintFilterCanvas
         // non-recording canvas, draw directly
         Drawing::Rect rect = { 0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight() };
         drawablePtr->OnSync();
-        drawablePtr->CreateDrawFunc()(&canvas, &rect);
+        drawablePtr->OnDraw(&canvas, &rect);
         return;
     }
 
@@ -2726,14 +2916,16 @@ void RSRenderNode::DrawPropertyDrawableRange(RSDrawableSlot begin, RSDrawableSlo
     if (recordingCanvas == nullptr || !canvas.GetRecordDrawable()) {
         // non-recording canvas, draw directly
         Drawing::Rect rect = { 0, 0, GetRenderProperties().GetFrameWidth(), GetRenderProperties().GetFrameHeight() };
-        std::for_each(GetDrawableVec(__func__).begin() + static_cast<size_t>(begin),
-            GetDrawableVec(__func__).begin() + static_cast<size_t>(end) + 1, // +1 since we need to include end
-            [&](auto& drawablePtr) {
-                if (drawablePtr) {
-                    drawablePtr->OnSync();
-                    drawablePtr->CreateDrawFunc()(&canvas, &rect);
-                }
-            });
+
+        auto& drawVec = GetDrawableVec(__func__);
+        for (auto i = static_cast<int8_t>(begin);
+            i <= static_cast<int8_t>(end); ++i) {
+            auto ptr = findMapValueRef(drawVec, i);
+            if (ptr) {
+                ptr->OnSync();
+                ptr->OnDraw(&canvas, &rect);
+            }
+        };
         return;
     }
 
@@ -2843,10 +3035,13 @@ void RSRenderNode::RecordCurDirtyStatus()
 void RSRenderNode::AccumulateDirtyStatus()
 {
     GetMutableRenderProperties().AccumulateDirtyStatus();
-    if (curDirtyStatus_ == NodeDirty::CLEAN) {
+    if (curDirtyStatus_ != NodeDirty::CLEAN) {
+        SetDirty();
         return;
     }
-    SetDirty();
+    if (isSubTreeDirty_) {
+        SetParentSubTreeDirty();
+    }
 }
 
 void RSRenderNode::ResetAccumulateDirtyStatus()
@@ -2960,11 +3155,15 @@ CM_INLINE void RSRenderNode::ApplyModifiers()
     RecordCurDirtyTypes();
     // Reset and re-apply all modifiers
     ResetAndApplyModifiers();
+    ResetFilterInfo();
     MarkForegroundFilterCache();
     UpdateShouldPaint();
 
     if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::USE_EFFECT))) {
         ProcessBehindWindowAfterApplyModifiers();
+    }
+    if (dirtyTypesNG_.test(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS))) {
+        RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(shared_from_this());
     }
 
     RS_LOGI_IF(DEBUG_NODE,
@@ -3075,7 +3274,7 @@ void RSRenderNode::UpdateDrawableVecV2()
 void RSRenderNode::UpdateShadowRect()
 {
 #ifdef RS_ENABLE_GPU
-    if (GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::SHADOW)] != nullptr &&
+    if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::SHADOW)) != nullptr &&
         GetRenderProperties().GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE) {
         RectI shadowRect;
         auto rRect = GetRenderProperties().GetRRect();
@@ -3117,19 +3316,21 @@ void RSRenderNode::UpdateDisplayList()
     auto AppendDrawFunc = [&](RSDrawableSlot end) -> int8_t {
         auto endIndex = static_cast<int8_t>(end);
         for (; index <= endIndex; ++index) {
-            if (const auto& drawable = GetDrawableVec(__func__)[index]) {
-                stagingDrawCmdList_.emplace_back(drawable->CreateDrawFunc());
+            if (const auto& drawable = findMapValueRef(GetDrawableVec(__func__), index)) {
+                stagingDrawCmdList_.emplace_back(drawable);
             }
         }
         // If the end drawable exist, return its index, otherwise return -1
-        return GetDrawableVec(__func__)[endIndex] != nullptr ? stagingDrawCmdList_.size() - 1 : -1;
+        return (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(endIndex))
+            != nullptr ? stagingDrawCmdList_.size() - 1 : -1);
     };
     // Update index of TRANSITION
     stagingDrawCmdIndex_.transitionIndex_ = AppendDrawFunc(RSDrawableSlot::TRANSITION);
 
     // Update index of ENV_FOREGROUND_COLOR
     stagingDrawCmdIndex_.envForeGroundColorIndex_ = AppendDrawFunc(RSDrawableSlot::ENV_FOREGROUND_COLOR);
-
+    // Update index of MATERIAL_FILTER
+    stagingDrawCmdIndex_.materialFilterIndex_ = AppendDrawFunc(RSDrawableSlot::MATERIAL_FILTER);
     // Update index of SHADOW
     stagingDrawCmdIndex_.shadowIndex_ = AppendDrawFunc(RSDrawableSlot::SHADOW);
 
@@ -3306,13 +3507,12 @@ bool RSRenderNode::GetGlobalPositionEnabled() const
 
 Vector2f RSRenderNode::GetOptionalBufferSize() const
 {
-    if (boundsModifierNG_ != nullptr) {
-        auto bounds = boundsModifierNG_->Getter<Vector4f>(ModifierNG::RSPropertyType::BOUNDS);
-        return { bounds.z_, bounds.w_ };
+    auto& propeties = GetRenderProperties();
+    if (isBoundsModifierAdded_) {
+        return propeties.GetBoundsSize();
     }
-    if (frameModifierNG_ != nullptr) {
-        auto frame = frameModifierNG_->Getter<Vector4f>(ModifierNG::RSPropertyType::FRAME);
-        return { frame.z_, frame.w_ };
+    if (isFrameModifierAdded_) {
+        return propeties.GetFrameSize();
     }
     return { 0.f, 0.f };
 }
@@ -3369,6 +3569,39 @@ void RSRenderNode::MarkNodeGroup(NodeGroupType type, bool isNodeGroup, bool incl
     AddToPendingSyncList();
 }
 
+void RSRenderNode::ExcludedFromNodeGroup(bool isExcluded)
+{
+#ifdef RS_ENABLE_GPU
+    if (stagingRenderParams_->ExcludedFromNodeGroup(isExcluded)) {
+        RS_TRACE_NAME_FMT("ExcludedFromNodeGroup id:%llu isExcluded:%d", GetId(), isExcluded);
+        SetDirty();
+    }
+#endif
+}
+
+bool RSRenderNode::IsExcludedFromNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsExcludedFromNodeGroup();
+#endif
+    return false;
+}
+
+void RSRenderNode::SetHasChildExcludedFromNodeGroup(bool isExcluded)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetHasChildExcludedFromNodeGroup(isExcluded);
+#endif
+}
+
+bool RSRenderNode::HasChildExcludedFromNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->HasChildExcludedFromNodeGroup();
+#endif
+    return false;
+}
+
 bool RSRenderNode::IsNodeGroupIncludeProperty() const
 {
     return nodeGroupIncludeProperty_;
@@ -3400,7 +3633,7 @@ void RSRenderNode::MarkSuggestOpincNode(bool isOpincNode, bool isNeedCalculate)
 
 void RSRenderNode::CheckDrawingCacheType()
 {
-    if (nodeGroupType_ == NodeGroupType::NONE) {
+    if (nodeGroupType_ == NodeGroupType::NONE || IsExcludedFromNodeGroup()) {
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (nodeGroupType_ & NodeGroupType::GROUPED_BY_FOREGROUND_FILTER) {
         SetDrawingCacheType(RSDrawingCacheType::FOREGROUND_FILTER_CACHE);
@@ -3411,7 +3644,7 @@ void RSRenderNode::CheckDrawingCacheType()
     }
 }
 
-RectI RSRenderNode::GetFilterRect() const
+RectI RSRenderNode::GetAbsRect() const
 {
     auto& properties = GetRenderProperties();
     auto& geoPtr = (properties.GetBoundsGeometry());
@@ -3428,11 +3661,59 @@ RectI RSRenderNode::GetFilterRect() const
     }
 }
 
+RectI RSRenderNode::GetFilterRect() const
+{
+    auto& properties = GetRenderProperties();
+    auto& geoPtr = (properties.GetBoundsGeometry());
+    if (!geoPtr) {
+        return {};
+    }
+    RectI result = GetAbsRect();
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+    auto totalRect = boundsRect;
+    for (auto slot : filterDrawableSlotsSupportGetRect) {
+        auto drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot));
+        if (drawable == nullptr) {
+            continue;
+        }
+        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+        totalRect = totalRect.JoinRect(filterDrawable->GetStagingRelativeRect(EffectRectType::TOTAL, boundsRect));
+    }
+    Drawing::Rect absRect;
+    geoPtr->GetAbsMatrix().MapRect(absRect,
+        Drawing::Rect(totalRect.left_, totalRect.top_, totalRect.GetRight(), totalRect.GetBottom()));
+    return result.JoinRect({ absRect.GetLeft(), absRect.GetTop(), absRect.GetWidth(), absRect.GetHeight() });
+}
+
 void RSRenderNode::CalVisibleFilterRect(const std::optional<RectI>& clipRect)
 {
-    filterRegion_ = GetFilterRect();
+    auto& geoPtr = (GetRenderProperties().GetBoundsGeometry());
+    if (geoPtr == nullptr) {
+        return;
+    }
+    CalVisibleFilterRect(GetAbsRect(), geoPtr->GetAbsMatrix(), clipRect);
+}
+
+void RSRenderNode::CalVisibleFilterRect(const RectI& absRect, const Drawing::Matrix& matrix,
+    const std::optional<RectI>& clipRect)
+{
+    GetFilterRegionInfo().filterRegion_ = absRect;
     if (clipRect.has_value()) {
-        filterRegion_ = filterRegion_.IntersectRect(*clipRect);
+        GetFilterRegionInfo().filterRegion_ = GetFilterRegionInfo().filterRegion_.IntersectRect(*clipRect);
+    }
+    GetFilterRegionInfo().defaultFilterRegion_ = GetFilterRegionInfo().filterRegion_;
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+
+    for (RSDrawableSlot slot : filterDrawableSlotsSupportGetRect) {
+        auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot));
+        if (drawable == nullptr) {
+            continue;
+        }
+
+        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+        filterDrawable->CalVisibleRect(matrix, clipRect, boundsRect);
+        GetFilterRegionInfo().filterRegion_ = GetFilterRegionInfo().filterRegion_.
+            JoinRect(filterDrawable->GetVisibleTotalRegion(absRect));
     }
 }
 
@@ -3479,7 +3760,8 @@ void RSRenderNode::OnTreeStateChanged()
     if (!isOnTheTree_) {
         isFullChildrenListValid_ = false;
         std::atomic_store_explicit(&fullChildrenList_, EmptyChildrenList, std::memory_order_release);
-        GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CHILDREN)].reset();
+        assignOrEraseOnAccess(GetDrawableVec(__func__),
+            static_cast<int8_t>(RSDrawableSlot::CHILDREN), nullptr);
         stagingDrawCmdList_.clear();
         RS_PROFILER_KEEP_DRAW_CMD(drawCmdListNeedSync_); // false only when used for debugging
         uifirstNeedSync_ = true;
@@ -3492,6 +3774,7 @@ void RSRenderNode::OnTreeStateChanged()
     if (useEffect && useEffectType == UseEffectType::BEHIND_WINDOW) {
         ProcessBehindWindowOnTreeStateChanged();
     }
+    RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(shared_from_this());
 }
 
 bool RSRenderNode::HasDisappearingTransition(bool recursive) const
@@ -3665,7 +3948,8 @@ RectI RSRenderNode::GetRemovedChildrenRect() const
 }
 bool RSRenderNode::HasHpaeBackgroundFilter() const
 {
-    auto drawable = GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)];
+    auto drawable = findMapValueRef(GetDrawableVec(__func__),
+        static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER));
     return drawable != nullptr;
 }
 void RSRenderNode::SetChildHasVisibleFilter(bool val)
@@ -3694,8 +3978,7 @@ void RSRenderNode::UpdateVisibleFilterChild(RSRenderNode& childNode)
 }
 void RSRenderNode::UpdateVisibleEffectChild(RSRenderNode& childNode)
 {
-    if ((childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) &&
-         !childNode.GetOldDirtyInSurface().IsEmpty()) {
+    if (childNode.GetRenderProperties().GetUseEffect() || childNode.GetRenderProperties().HasHarmonium()) {
         visibleEffectChild_.emplace(childNode.GetId());
     }
     auto& childEffectNodes = childNode.GetVisibleEffectChild();
@@ -3774,7 +4057,8 @@ RectI RSRenderNode::GetOldDirty() const
 
 bool RSRenderNode::IsForegroundFilterEnable()
 {
-    return GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)] != nullptr;
+    return findMapValueRef(GetDrawableVec(__func__),
+        static_cast<uint32_t>(RSDrawableSlot::FOREGROUND_FILTER)) != nullptr;
 }
 
 void RSRenderNode::SetStaticCached(bool isStaticCached)
@@ -3832,6 +4116,20 @@ bool RSRenderNode::GetDrawingCacheChanged() const
 {
 #ifdef RS_ENABLE_GPU
     return stagingRenderParams_->GetDrawingCacheChanged();
+#else
+    return false;
+#endif
+}
+void RSRenderNode::SetForceDisableNodeGroup(bool forceDisable)
+{
+#ifdef RS_ENABLE_GPU
+    stagingRenderParams_->SetForceDisableNodeGroup(forceDisable);
+#endif
+}
+bool RSRenderNode::IsForceDisableNodeGroup() const
+{
+#ifdef RS_ENABLE_GPU
+    return stagingRenderParams_->IsForceDisableNodeGroup();
 #else
     return false;
 #endif
@@ -3981,9 +4279,6 @@ void RSRenderNode::UpdateRenderParams()
     bool hasSandbox = sharedTransitionParam_ && GetRenderProperties().GetSandBox();
     stagingRenderParams_->SetHasSandBox(hasSandbox);
     stagingRenderParams_->SetMatrix(boundGeo->GetMatrix());
-#ifdef RS_ENABLE_PREFETCH
-    __builtin_prefetch(&boundsModifierNG_, 0, 1);
-#endif
     stagingRenderParams_->SetFrameGravity(GetRenderProperties().GetFrameGravity());
     stagingRenderParams_->SetBoundsRect({ 0, 0, boundGeo->GetWidth(), boundGeo->GetHeight() });
     stagingRenderParams_->SetFrameRect({ 0, 0, GetRenderProperties().GetFrameWidth(),
@@ -4039,7 +4334,7 @@ bool RSRenderNode::UpdateLocalDrawRect()
 
 void RSRenderNode::UpdateAbsDrawRect()
 {
-    auto absRect = GetAbsDrawRect();
+    const auto& absRect = GetAbsDrawRect();
     stagingRenderParams_->SetAbsDrawRect(absRect);
 }
 
@@ -4078,17 +4373,16 @@ void RSRenderNode::UpdateSrcOrClipedAbsDrawRectChangeState(const RectI& clipRect
 
 void RSRenderNode::NodeDrawLargeAreaBlur(std::pair<bool, bool>& nodeDrawLargeAreaBlur)
 {
-    auto backgroundFilterDrawable = GetFilterDrawable(false);
-    auto compositingFilterDrawable = GetFilterDrawable(true);
     bool flagPredict = false;
     bool flagCurrent = false;
-    if (backgroundFilterDrawable) {
-        flagPredict = flagPredict || backgroundFilterDrawable->WouldDrawLargeAreaBlur();
-        flagCurrent = flagCurrent || backgroundFilterDrawable->WouldDrawLargeAreaBlurPrecisely();
-    }
-    if (compositingFilterDrawable) {
-        flagPredict = flagPredict || compositingFilterDrawable->WouldDrawLargeAreaBlur();
-        flagCurrent = flagCurrent || compositingFilterDrawable->WouldDrawLargeAreaBlurPrecisely();
+    std::vector<RSDrawableSlot> drawableSlotTypes = {RSDrawableSlot::MATERIAL_FILTER, RSDrawableSlot::BACKGROUND_FILTER,
+        RSDrawableSlot::COMPOSITING_FILTER};
+    for (auto slotType : drawableSlotTypes) {
+        auto drawable = GetFilterDrawable(slotType);
+        if (drawable) {
+            flagPredict = flagPredict || drawable->WouldDrawLargeAreaBlur();
+            flagCurrent = flagCurrent || drawable->WouldDrawLargeAreaBlurPrecisely();
+        }
     }
     nodeDrawLargeAreaBlur.first = flagPredict;
     nodeDrawLargeAreaBlur.second = flagCurrent;
@@ -4127,8 +4421,10 @@ void RSRenderNode::OnSync()
     }
 
 #ifdef RS_ENABLE_GPU
-    renderDrawable_->backgroundFilterDrawable_ = GetFilterDrawable(false);
-    renderDrawable_->compositingFilterDrawable_ = GetFilterDrawable(true);
+    renderDrawable_->filterDrawables_ = {
+        GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER),
+        GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER),
+        GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER)};
     if (stagingRenderParams_->NeedSync()) {
         stagingRenderParams_->OnSync(renderDrawable_->renderParams_);
     }
@@ -4143,7 +4439,7 @@ void RSRenderNode::OnSync()
     if (!uifirstSkipPartialSync_) {
         if (!dirtySlots_.empty()) {
             for (const auto& slot : dirtySlots_) {
-                if (auto& drawable = GetDrawableVec(__func__)[static_cast<uint32_t>(slot)]) {
+                if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
                     drawable->OnSync();
                 }
             }
@@ -4162,18 +4458,16 @@ void RSRenderNode::OnSync()
     } else {
         RS_TRACE_NAME_FMT("partial_sync %lu", GetId());
         std::vector<RSDrawableSlot> todele;
-        if (!dirtySlots_.empty()) {
-            for (const auto& slot : dirtySlots_) {
-                if (slot != RSDrawableSlot::CONTENT_STYLE && slot != RSDrawableSlot::CHILDREN) { // SAVE_FRAME
-                    if (auto& drawable = GetDrawableVec(__func__)[static_cast<uint32_t>(slot)]) {
-                        drawable->OnSync();
-                    }
-                    todele.push_back(slot);
+        for (const auto& slot : dirtySlots_) {
+            if (slot != RSDrawableSlot::CONTENT_STYLE && slot != RSDrawableSlot::CHILDREN) { // SAVE_FRAME
+                if (auto& drawable = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(slot))) {
+                    drawable->OnSync();
                 }
+                todele.push_back(slot);
             }
-            for (const auto& slot : todele) {
-                dirtySlots_.erase(slot);
-            }
+        }
+        for (const auto& slot : todele) {
+            dirtySlots_.erase(slot);
         }
         uifirstSkipPartialSync_ = false;
         isLeashWindowPartialSkip = true;
@@ -4234,8 +4528,13 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
 {
 #ifdef RS_ENABLE_GPU
     const auto& properties = GetRenderProperties();
+    if (properties.GetMaterialFilter()) {
+        if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER)) {
+            filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
+        }
+    }
     if (properties.GetBackgroundFilter()) {
-        if (auto filterDrawable = GetFilterDrawable(false)) {
+        if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER)) {
             filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
         }
     }
@@ -4253,7 +4552,7 @@ bool RSRenderNode::GetUifirstSupportFlag()
 void RSRenderNode::UpdateDrawableEnableEDR()
 {
     bool hasEDREffect = std::any_of(edrDrawableSlots.begin(), edrDrawableSlots.end(), [this](auto slot) {
-        auto drawable = this->GetDrawableVec(__func__)[static_cast<int8_t>(slot)];
+        auto drawable = findMapValueRef(this->GetDrawableVec(__func__), static_cast<int8_t>(slot));
         return drawable && drawable->GetEnableEDR();
     });
     SetEnableHdrEffect(hasEDREffect);
@@ -4261,7 +4560,15 @@ void RSRenderNode::UpdateDrawableEnableEDR()
 
 void RSRenderNode::UpdatePointLightDirtySlot()
 {
+    auto& drawablePtr = findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::POINT_LIGHT));
+    if (!drawablePtr) {
+        return;
+    }
+    drawablePtr->OnUpdate(*shared_from_this());
     UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::POINT_LIGHT);
+    // The illuminated node has no attribute changes, so it does not call applymodifier, and consequently does not
+    // call SetEnableHdrEffect. Therefore, here we need call SetEnableHdrEffect.
+    SetEnableHdrEffect(drawablePtr->GetEnableEDR());
 }
 
 void RSRenderNode::AddToPendingSyncList()
@@ -4497,19 +4804,19 @@ void RSRenderNode::ProcessBehindWindowAfterApplyModifiers()
     }
 }
 
-void RSRenderNode::UpdateDrawableBehindWindow()
+void RSRenderNode::UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType type)
 {
-    AddDirtyType(ModifierNG::RSModifierType::BACKGROUND_FILTER);
+    AddDirtyType(type);
     SetContentDirty();
 #ifdef RS_ENABLE_GPU
     auto dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypesNG_, GetDrawableVec(__func__));
     if (dirtySlots.empty()) {
-        RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow dirtySlots is empty");
+        RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare dirtySlots is empty");
         return;
     }
     bool drawableChanged = RSDrawable::UpdateDirtySlots(*this, GetDrawableVec(__func__), dirtySlots);
     RSDrawable::FuzeDrawableSlots(*this, GetDrawableVec(__func__));
-    RS_LOGD("RSRenderNode::UpdateDrawableBehindWindow drawableChanged:%{public}d", drawableChanged);
+    RS_LOGD("RSRenderNode::UpdateDrawableAfterPostPrepare drawableChanged:%{public}d", drawableChanged);
     if (drawableChanged) {
         RSDrawable::UpdateSaveRestore(*this, GetDrawableVec(__func__), drawableVecStatus_);
         UpdateDisplayList();
@@ -4540,27 +4847,28 @@ void RSRenderNode::ClearDrawableVec2()
 {
     if (drawableVecNeedClear_) {
         if (GetType() != RSRenderNodeType::CANVAS_DRAWING_NODE &&
-            GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]) {
+            findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE))) {
             if (isPurgeable_) {
-                GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)]->OnPurge();
+                findMapValueRef(GetDrawableVec(__func__),
+                    static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE))->OnPurge();
             }
-            GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE)].reset();
+            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::CONTENT_STYLE));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
         }
-        if (GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)]) {
-            GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::TRANSITION)].reset();
+        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::TRANSITION))) {
+            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::TRANSITION));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::TRANSITION_STYLE), true);
         }
-        if (GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)]) {
-            GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE)].reset();
+        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE))) {
+            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::BACKGROUND_STYLE));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::BACKGROUND_STYLE), true);
         }
-        if (GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)]) {
-            GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE)].reset();
+        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE))) {
+            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::FOREGROUND_STYLE));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::FOREGROUND_STYLE), true);
         }
-        if (GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)]) {
-            GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::OVERLAY)].reset();
+        if (findMapValueRef(GetDrawableVec(__func__), static_cast<int8_t>(RSDrawableSlot::OVERLAY))) {
+            GetDrawableVec(__func__).erase(static_cast<int8_t>(RSDrawableSlot::OVERLAY));
             dirtyTypesNG_.set(static_cast<int>(ModifierNG::RSModifierType::OVERLAY_STYLE), true);
         }
         drawableVecNeedClear_ = false;
@@ -4592,10 +4900,10 @@ void RSRenderNode::AddModifier(
     }
     // bounds and frame modifiers must be unique
     if (type == ModifierNG::RSModifierType::BOUNDS) {
-        boundsModifierNG_ = modifier;
+        isBoundsModifierAdded_ = true;
     }
     if (type == ModifierNG::RSModifierType::FRAME) {
-        frameModifierNG_ = modifier;
+        isFrameModifierAdded_ = true;
     }
     if (modifier->IsCustom()) {
         modifier->SetSingleFrameModifier(false);
@@ -4614,16 +4922,21 @@ void RSRenderNode::RemoveModifier(ModifierNG::RSModifierType type, ModifierId id
 {
     const auto& modifiersIt = modifiersNG_.find(type);
     if (modifiersIt == modifiersNG_.end()) {
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::RemoveModifier modifierNG_ not find, ModifierId %{public}"
+            PRIu64 ", ModifierType %{public}hu", id, type);
         return;
     }
     auto& slot = modifiersIt->second;
     auto it =
         std::find_if(slot.begin(), slot.end(), [id](const auto& modifier) -> bool { return modifier->GetId() == id; });
     if (it == slot.end()) {
+        RS_LOGE_LIMIT(__func__, __line__, "RSRenderNode::RemoveModifier slot not find, ModifierId %{public}"
+            PRIu64 ", ModifierType %{public}hu", id, type);
         return;
     }
-    (*it)->OnDetachModifier();
+    auto modifier = *it;
     slot.erase(it);
+    modifier->OnDetachModifier();
 }
 
 void RSRenderNode::RemoveModifierNG(ModifierId id)
@@ -4635,9 +4948,9 @@ void RSRenderNode::RemoveModifierNG(ModifierId id)
         if (it == slot.end()) {
             continue;
         }
-        AddDirtyType((*it)->GetType());
-        (*it)->OnDetachModifier();
+        auto modifier = *it;
         slot.erase(it);
+        modifier->OnDetachModifier();
     }
 }
 
@@ -4812,12 +5125,20 @@ void RSRenderNode::MapAndUpdateChildrenRect()
     }
 }
 
-void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
+void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList,
+    const std::unordered_set<NodeId>& childHasProtectedNodeSet)
 {
     RS_LOGI_IF(DEBUG_NODE, "RSRenderNode::UpdateDrawingCacheInfoAC uifirstArkTsCardNode:%{public}d"
         " startingWindowFlag_:%{public}d HasChildrenOutOfRect:%{public}d drawingCacheType:%{public}d",
         IsUifirstArkTsCardNode(), startingWindowFlag_, HasChildrenOutOfRect(), GetDrawingCacheType());
-    if (IsUifirstArkTsCardNode()) {
+    if (IsForceDisableNodeGroup() || GetUIFirstSwitch() == RSUIFirstSwitch::FORCE_DISABLE_CARD) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter force disable nodeGroup id:%" PRIu64, GetId());
+        auto parentNode = GetParent().lock();
+        if (parentNode) {
+            parentNode->SetForceDisableNodeGroup(true);
+        }
+    }
+    if (IsUifirstArkTsCardNode() || IsForceDisableNodeGroup()) {
         // disable render group because cards will use uifirst cache.
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     } else if (isInBlackList) {
@@ -4825,6 +5146,11 @@ void RSRenderNode::UpdateDrawingCacheInfoAfterChildren(bool isInBlackList)
     }
     if (HasChildrenOutOfRect() && GetDrawingCacheType() == RSDrawingCacheType::TARGETED_CACHE) {
         RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter ChildrenOutOfRect id:%llu", GetId());
+        SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
+    }
+    if (childHasProtectedNodeSet.count(GetId()) &&
+        GetDrawingCacheType() == RSDrawingCacheType::FOREGROUND_FILTER_CACHE) {
+        RS_OPTIONAL_TRACE_NAME_FMT("DrawingCacheInfoAfter disable nodeGroup by ChildHasProtectedNode id:%llu", GetId());
         SetDrawingCacheType(RSDrawingCacheType::DISABLED_CACHE);
     }
 #ifdef RS_ENABLE_GPU
@@ -4913,8 +5239,69 @@ void RSRenderNode::InitRenderDrawableAndDrawableVec()
     if (parent != nullptr) {
         parent->AddDirtyType(ModifierNG::RSModifierType::CHILDREN);
     }
+    if (stagingRenderParams_) {
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::MATRIX_DIRTY);
+        stagingRenderParams_->SetDirtyType(RSRenderParamsDirtyType::DRAWING_CACHE_TYPE_DIRTY);
+    }
     released_ = false;
 #endif
+}
+
+std::shared_ptr<RSFilter> RSRenderNode::GetRSFilterWithSlot(RSDrawableSlot slot) const
+{
+    switch (slot) {
+        case RSDrawableSlot::MATERIAL_FILTER: {
+            return GetRenderProperties().GetMaterialFilter();
+        }
+        case RSDrawableSlot::BACKGROUND_FILTER: {
+            return GetRenderProperties().GetBackgroundFilter();
+        }
+        case RSDrawableSlot::COMPOSITING_FILTER: {
+            return GetRenderProperties().GetFilter();
+        }
+        default: {
+            return nullptr;
+        }
+    }
+}
+
+void RSRenderNode::UpdateFilterRectInfo()
+{
+    auto boundsRect = GetRenderProperties().GetBoundsRect();
+    for (auto slot : filterDrawableSlotsSupportGetRect) {
+        std::shared_ptr<RSFilter> filter = GetRSFilterWithSlot(slot);
+        if (filter == nullptr) {
+            continue;
+        }
+
+        auto drawable = GetDrawableVec(__func__)[static_cast<int8_t>(slot)];
+        if (drawable == nullptr) {
+            continue;
+        }
+        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+        filterDrawable->UpdateFilterRectInfo(boundsRect, filter);
+    }
+}
+
+RectI RSRenderNode::GetFilterDrawableSnapshotRegion() const
+{
+    RectI snapshotRegion;
+    for (auto slot : filterDrawableSlotsSupportGetRect) {
+        auto drawable = GetDrawableVec(__func__)[static_cast<int8_t>(slot)];
+        if (drawable == nullptr) {
+            continue;
+        }
+
+        auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
+        snapshotRegion = snapshotRegion.JoinRect(filterDrawable->GetVisibleSnapshotRegion(GetDefaultFilterRegion()));
+    }
+    return snapshotRegion;
+}
+
+void RSRenderNode::ResetFilterInfo()
+{
+    // reset filterRegionInfo_ and will regenerate in postPrepare if need
+    filterRegionInfo_ = nullptr;
 }
 } // namespace Rosen
 } // namespace OHOS

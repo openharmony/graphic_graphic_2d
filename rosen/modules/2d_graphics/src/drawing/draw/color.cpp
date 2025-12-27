@@ -14,6 +14,7 @@
  */
 
 #include "draw/color.h"
+
 #include <algorithm>
 #include <cstdint>
 #include <iomanip>
@@ -50,10 +51,11 @@ Color::Color(const Color& c) noexcept
     color4f_.greenF_ = c.GetGreenF();
     color4f_.blueF_ = c.GetBlueF();
     color4f_.alphaF_ = c.GetAlphaF();
+    placeholder_ = c.placeholder_;
 }
 
-Color::Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept : alpha_(ClampColor(a)),
-    red_(ClampColor(r)), green_(ClampColor(g)), blue_(ClampColor(b))
+Color::Color(uint32_t r, uint32_t g, uint32_t b, uint32_t a) noexcept
+    : alpha_(ClampColor(a)), red_(ClampColor(r)), green_(ClampColor(g)), blue_(ClampColor(b))
 {
     UpdateValueToFloat();
 }
@@ -190,15 +192,27 @@ void Color::SetColorQuad(uint32_t c)
 
 bool operator==(const Color& c1, const Color& c2)
 {
-    return c1.alpha_ == c2.alpha_ && c1.red_ == c2.red_ && c1.green_ == c2.green_ && c1.blue_ == c2.blue_;
+    return c1.alpha_ == c2.alpha_ && c1.red_ == c2.red_ && c1.green_ == c2.green_ && c1.blue_ == c2.blue_ &&
+        c1.placeholder_ == c2.placeholder_;
 }
 bool operator!=(const Color& c1, const Color& c2)
 {
-    return c1.alpha_ != c2.alpha_ || c1.red_ != c2.red_ || c1.green_ != c2.green_ || c1.blue_ != c2.blue_;
+    return c1.alpha_ != c2.alpha_ || c1.red_ != c2.red_ || c1.green_ != c2.green_ || c1.blue_ != c2.blue_ ||
+        c1.placeholder_ != c2.placeholder_;
+}
+
+ColorQuad Color::CastToColorQuad() const
+{
+    return ((static_cast<uint32_t>(alpha_) & 0xffu) << 24) | ((red_ & 0xffu) << 16) | ((green_ & 0xffu) << 8) |
+        ((blue_ & 0xffu) << 0);
 }
 
 void Color::Dump(std::string& out) const
 {
+    if (placeholder_ != 0) {
+        out += "PH: " + std::to_string(placeholder_);
+        return;
+    }
     constexpr int32_t colorStrWidth = 8;
     std::stringstream ss;
     ss << "[ARGB-0x" << std::hex << std::setfill('0') << std::setw(colorStrWidth) << std::uppercase;
@@ -220,6 +234,25 @@ void Color::UpdateValueToInt()
     blue_ = static_cast<uint32_t>(round(color4f_.blueF_ * RGB_MAX));
 }
 
+// Placeholder helper implementations
+Color::Color(ColorPlaceholder ph) noexcept
+    : alpha_(RGB_MAX), placeholder_(static_cast<uint16_t>(ph)), red_(0), green_(0), blue_(0)
+{}
+
+bool Color::IsPlaceholder() const
+{
+    return placeholder_ != 0;
+}
+
+ColorPlaceholder Color::GetPlaceholder() const
+{
+    return static_cast<ColorPlaceholder>(placeholder_);
+}
+
+void Color::SetPlaceholder(ColorPlaceholder ph)
+{
+    placeholder_ = static_cast<uint16_t>(ph);
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS

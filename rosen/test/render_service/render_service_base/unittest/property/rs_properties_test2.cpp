@@ -16,9 +16,13 @@
 #include <gtest/gtest.h>
 
 #include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_shape_base.h"
+#include "params/rs_render_params.h"
 #include "pipeline/rs_context.h"
+#include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "property/rs_properties.h"
+#include "property/rs_color_picker_def.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -421,12 +425,19 @@ HWTEST_F(PropertiesTest, SetHDRUIBrightnessTest, TestSize.Level1)
     NodeId surfaceNodeId = 2; // surface node id
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(surfaceNodeId);
     properties.backref_ = canvasNode;
+    auto stagingRenderParams = std::make_unique<RSRenderParams>(0);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    canvasNode->stagingRenderParams_ = std::move(stagingRenderParams);
     canvasNode->instanceRootNodeId_ = surfaceNodeId;
-    canvasNode->isOnTheTree_ = true;
+
+    canvasNode->isOnTheTree_ = false;
+    properties.SetHDRUIBrightness(1.0f);
+    EXPECT_EQ(properties.GetHDRUIBrightness(), 1.0f);
     float hdrBrightness = 2.0f; // hdr brightness
     properties.SetHDRUIBrightness(hdrBrightness);
     EXPECT_EQ(properties.GetHDRUIBrightness(), hdrBrightness);
 
+    canvasNode->isOnTheTree_ = true;
     properties.SetHDRUIBrightness(1.0f);
     EXPECT_EQ(properties.GetHDRUIBrightness(), 1.0f);
 }
@@ -546,33 +557,36 @@ HWTEST_F(PropertiesTest, SetHDRBrightnessFactor003, TestSize.Level1)
     properties.backref_ = node;
     properties.SetHDRBrightnessFactor(initialFactor);
 
+    NodeId displayNodeId = 5;
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, config);
+
     NodeId screenRenderNodeId = 2;
     ScreenId screenId = 0;
     auto context = std::make_shared<RSContext>();
     auto screenRenderNode = std::make_shared<RSScreenRenderNode>(screenRenderNodeId, screenId, context);
 
-    properties.backref_ = screenRenderNode;
-    screenRenderNode->InsertHDRNode(screenRenderNodeId);
-    EXPECT_NE(screenRenderNode->hdrNodeList_.find(screenRenderNodeId), screenRenderNode->hdrNodeList_.end());
+    properties.backref_ = displayNode;
+    displayNode->IncreaseHDRNode(screenRenderNodeId);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(screenRenderNodeId), displayNode->hdrNodeMap_.end());
     properties.SetHDRBrightnessFactor(0.5f);
 
     NodeId nodeId1 = 0;
     auto node1 = std::make_shared<RSRenderNode>(nodeId1);
     pid_t pid1 = ExtractPid(nodeId1);
     context->GetMutableNodeMap().renderNodeMap_[pid1][nodeId1] = node1;
-    screenRenderNode->InsertHDRNode(nodeId1);
+    displayNode->IncreaseHDRNode(nodeId1);
     properties.SetHDRBrightnessFactor(0.6f);
 
     pid_t pid = ExtractPid(screenRenderNodeId);
     context->GetMutableNodeMap().renderNodeMap_[pid][screenRenderNodeId] = screenRenderNode;
     properties.SetHDRBrightnessFactor(0.8f);
 
-    ScreenId screenId2 = 1;
-    std::shared_ptr<RSContext> context2;
-    auto screenNode2 = std::make_shared<RSScreenRenderNode>(3, screenId2, context2);
-    properties.backref_ = screenNode2;
-    screenRenderNode->InsertHDRNode(3);
-    EXPECT_NE(screenRenderNode->hdrNodeList_.find(3), screenRenderNode->hdrNodeList_.end());
+    ScreenId displayNodeId2 = 6;
+    auto displayNode2 = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId2, config);
+    properties.backref_ = displayNode2;
+    displayNode->IncreaseHDRNode(3);
+    EXPECT_NE(displayNode->hdrNodeMap_.find(3), displayNode->hdrNodeMap_.end());
     properties.SetHDRBrightnessFactor(0.9f);
 }
 
@@ -1280,6 +1294,84 @@ HWTEST_F(PropertiesTest,  UpdateForegroundFilterTest_RenderFilter001, TestSize.L
 }
 
 /**
+ * @tc.name: SetColorPickerPlaceholderTest
+ * @tc.desc: verify placeholder clamping and dirty flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerPlaceholderTest, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_EQ(properties.GetColorPicker(), nullptr);
+
+    properties.SetColorPickerPlaceholder(-100); // below NONE
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::NONE);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.ResetDirty();
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::MAX) + 100); // above MAX
+    EXPECT_EQ(properties.GetColorPicker()->placeholder, ColorPlaceholder::MAX);
+    EXPECT_TRUE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetColorPickerStrategyTest
+ * @tc.desc: verify strategy clamping and dirty flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerStrategyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerStrategy(-5); // below NONE
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->strategy, ColorPickStrategyType::NONE);
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.ResetDirty();
+    properties.SetColorPickerStrategy(999); // above MAX
+    EXPECT_EQ(properties.GetColorPicker()->strategy, ColorPickStrategyType::MAX);
+    EXPECT_TRUE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: SetColorPickerIntervalTest
+ * @tc.desc: verify interval setting and dirty flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetColorPickerIntervalTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerInterval(0);
+    ASSERT_NE(properties.GetColorPicker(), nullptr);
+    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(0));
+    EXPECT_TRUE(properties.IsDirty());
+
+    properties.ResetDirty();
+    properties.SetColorPickerInterval(123);
+    EXPECT_EQ(properties.GetColorPicker()->interval, static_cast<uint64_t>(123));
+    EXPECT_TRUE(properties.IsDirty());
+}
+
+/**
+ * @tc.name: GetColorPickerTest
+ * @tc.desc: verify GetColorPicker returns params after setters
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetColorPickerTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::SURFACE));
+    properties.SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::AVERAGE));
+    properties.SetColorPickerInterval(200);
+
+    auto picker = properties.GetColorPicker();
+    ASSERT_NE(picker, nullptr);
+    EXPECT_EQ(picker->placeholder, ColorPlaceholder::SURFACE);
+    EXPECT_EQ(picker->strategy, ColorPickStrategyType::AVERAGE);
+    EXPECT_EQ(picker->interval, static_cast<uint64_t>(200));
+}
+
+/**
  * @tc.name: PixelStretchUpdateFilterFlag001
  * @tc.desc: test update filter flag with pixel stretch enable
  * @tc.type: FUNC
@@ -1292,6 +1384,104 @@ HWTEST_F(PropertiesTest, PixelStretchUpdateFilterFlag001, TestSize.Level1)
     EXPECT_TRUE(properties.NeedFilter());
     EXPECT_TRUE(properties.NeedHwcFilter());
     EXPECT_TRUE(properties.DisableHWCForFilter());
+}
+
+/**
+ * @tc.name: SetMaterialFilter001
+ * @tc.desc: test SetMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, SetMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.SetMaterialNGFilter(filter);
+    ASSERT_NE(properties.effect_->mtNGRenderFilter_, nullptr);
+    ASSERT_TRUE(properties.isDrawn_);
+    ASSERT_TRUE(properties.filterNeedUpdate_);
+    ASSERT_TRUE(properties.contentDirty_);
+}
+
+/**
+ * @tc.name: GetMaterialFilter001
+ * @tc.desc: test GetMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    ASSERT_NE(filter, nullptr);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter001
+ * @tc.desc: test GenerateMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    ASSERT_EQ(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_EQ(properties.GetEffect().materialFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GenerateMaterialFilter002
+ * @tc.desc: test GenerateMaterialFilter
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GenerateMaterialFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    std::shared_ptr<RSNGRenderFilterBase> filter = RSNGRenderFilterBase::Create(RSNGEffectType::BLUR);
+    properties.GetEffect().mtNGRenderFilter_ = filter;
+    ASSERT_NE(properties.GetMaterialNGFilter(), nullptr);
+    properties.GenerateMaterialFilter();
+    ASSERT_NE(properties.GetEffect().materialFilter_, nullptr);
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest001
+ * @tc.desc: GetClipToRRect == true test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest001, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.clipRRect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    ASSERT_TRUE(properties.GetClipToRRect());
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest002
+ * @tc.desc: GetCornerRadius().IsZero() == false test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.cornerRadius_ = Vector4f(5.f);
+    properties.rrect_ = RRect(RectF(0.f, 0.f, 10.f, 10.f), 2.f, 2.f);
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
+}
+
+/**
+ * @tc.name: GetRRectForSDFTest003
+ * @tc.desc: else test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PropertiesTest, GetRRectForSDFTest003, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    properties.boundsGeo_->width_ = 10.f;
+    properties.boundsGeo_->height_ = 10.f;
+    ASSERT_FALSE(properties.GetRRectForSDF().rect_.IsEmpty());
 }
 } // namespace Rosen
 } // namespace OHOS

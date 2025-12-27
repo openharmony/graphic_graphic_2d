@@ -5305,6 +5305,71 @@ HWTEST_F(RSNodeTest, SetBounds001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: LoadRenderNodeIfNeed001
+ * @tc.desc: Test LoadRenderNodeIfNeed func with RSNode
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->lazyLoad_, true);
+    rsNode->LoadRenderNodeIfNeed();
+    EXPECT_EQ(rsNode->lazyLoad_, false);
+}
+
+/**
+ * @tc.name: LoadRenderNodeIfNeed002
+ * @tc.desc: Test LoadRenderNodeIfNeed when commands count exceeds threshold
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed002, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->lazyLoad_, true);
+
+    constexpr int commandSize{1024};
+    for (int i = 0; i < commandSize; ++i) {
+        rsNode->SetNodeName(std::to_string(i));
+    }
+    EXPECT_EQ(rsNode->lazyLoad_, false);
+}
+
+/**
+ * @tc.name: LoadRenderNodeIfNeed003
+ * @tc.desc: Test LoadRenderNodeIfNeed when child operation command is cached
+ * @tc.type: FUNC
+ * @tc.require: issue21188
+ */
+HWTEST_F(RSNodeTest, LoadRenderNodeIfNeed003, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    EXPECT_EQ(rsNode->lazyLoad_, true);
+
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(true, true);
+    auto rsUIContext = uiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto trueChild = RSCanvasNode::Create();
+    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
+        trueChild->IsTextureExportNode(), rsUIContext);
+
+    rsNode->children_.emplace_back();
+    constexpr int index{1};
+    rsNode->AddChild(shadowChild, index);
+
+    constexpr int commandSize{64};
+    std::vector<RSCanvasNode::SharedPtr> children;
+    for (int n = 0; n < commandSize; ++n) {
+        auto child = RSCanvasNode::Create();
+        children.emplace_back(child);
+        rsNode->AddChild(child, n);
+    }
+    EXPECT_EQ(rsNode->lazyLoad_, false);
+}
+
+/**
  * @tc.name: SetPivotZ
  * @tc.desc: test results of SetPivotZ
  * @tc.type: FUNC
@@ -6821,6 +6886,29 @@ HWTEST_F(RSNodeTest, MarkNodeGroup, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExcludedFromNodeGroup
+ * @tc.desc: test results of ExcludedFromNodeGroup
+ * @tc.type: FUNC
+ * @tc.require: issueI9KQ6R
+ */
+HWTEST_F(RSNodeTest, ExcludedFromNodeGroup, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->ExcludedFromNodeGroup(true);
+    EXPECT_NE(RSTransactionProxy::instance_, nullptr);
+    EXPECT_TRUE(rsNode->isExcludedFromNodeGroup_);
+
+    rsNode->ExcludedFromNodeGroup(false);
+    EXPECT_FALSE(rsNode->isExcludedFromNodeGroup_);
+    rsNode->ExcludedFromNodeGroup(false);
+    delete RSTransactionProxy::instance_;
+    RSTransactionProxy::instance_ = nullptr;
+    rsNode->ExcludedFromNodeGroup(true);
+    EXPECT_EQ(RSTransactionProxy::instance_, nullptr);
+    RSTransactionProxy::instance_ = new RSTransactionProxy();
+}
+
+/**
  * @tc.name: MarkRepaintBoundary
  * @tc.desc: test results of MarkRepaintBoundary
  * @tc.type: FUNC
@@ -7158,6 +7246,7 @@ HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
         auto uiDirector2 = RSUIDirector::Create();
         uiDirector2->Init(true, true);
         auto rsNode = RSCanvasNode::Create(false, false, uiDirector1->GetRSUIContext());
+        rsNode->LoadRenderNodeIfNeed();
         auto childNode = RSCanvasNode::Create(false, false, uiDirector2->GetRSUIContext());
         rsNode->AddChild(childNode, -1);
         auto uiContext1 = uiDirector1->GetRSUIContext();
@@ -7210,6 +7299,46 @@ HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
         surfaceNode->RemoveFromTree();
         EXPECT_EQ(rsNode->children_.size(), 0);
     }
+}
+
+/**
+ * @tc.name: AddChildTest004
+ * @tc.desc: Test AddChild with shadow child
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, AddChildTest004, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    auto trueChild = RSCanvasNode::Create();
+    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), trueChild->GetId(),
+        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
+
+    EXPECT_EQ(trueChild->lazyLoad_, true);
+    rsNode->AddChild(shadowChild, 1);
+    EXPECT_EQ(trueChild->lazyLoad_, false);
+}
+
+/**
+ * @tc.name: AddChildTest005
+ * @tc.desc: Test AddChild with invalid shadow child
+ * @tc.type: FUNC
+ * @tc.require: issue20607
+ */
+HWTEST_F(RSNodeTest, AddChildTest005, TestSize.Level1)
+{
+    auto uiDirector = RSUIDirector::Create();
+    uiDirector->Init(true, true);
+    auto rsUIContext = uiDirector->GetRSUIContext();
+    ASSERT_NE(rsUIContext, nullptr);
+    auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+    auto trueChild = RSCanvasNode::Create();
+    auto shadowChild = std::make_shared<RSCanvasNode>(trueChild->IsRenderServiceNode(), INVALID_NODEID,
+        trueChild->IsTextureExportNode(), trueChild->GetRSUIContext());
+
+    EXPECT_EQ(trueChild->lazyLoad_, true);
+    rsNode->AddChild(shadowChild, 1);
+    EXPECT_EQ(trueChild->lazyLoad_, true);
 }
 
 /**
@@ -7587,6 +7716,29 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetRSUIContext
+ * @tc.desc: test results of SetRSUIContext
+ * @tc.type: FUNC
+ * @tc.require: issueIBX6OE
+ */
+HWTEST_F(RSNodeTest, SetRSUIContext001, TestSize.Level1)
+{
+    auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
+    if (enable) {
+        auto rsUIContext = std::make_shared<RSUIContext>();
+        auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
+        ASSERT_NE(rsNode, nullptr);
+        auto rsUIContext2 = std::make_shared<RSUIContext>();
+        std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>();
+        rsNode->AddAnimationInner(animation);
+        // test animations_ is not empty
+        EXPECT_FALSE(rsNode->animations_.empty());
+        rsNode->SetRSUIContext(rsUIContext2);
+        EXPECT_EQ(rsNode->GetRSUIContext(), rsUIContext2);
+    }
+}
+
+/**
  * @tc.name: SetSkipCheckInMultiInstance
  * @tc.desc: test results of SetSkipCheckInMultiInstance
  * @tc.type: FUNC
@@ -7905,12 +8057,14 @@ HWTEST_F(RSNodeTest, SetUIContextToken, TestSize.Level1)
     if (enable) {
         auto rsNode = RSCanvasNode::Create();
         ASSERT_NE(rsNode, nullptr);
+        rsNode->LoadRenderNodeIfNeed();
         rsNode->SetUIContextToken();
         rsNode = nullptr;
         auto uiDirector = RSUIDirector::Create();
         uiDirector->Init(true, true);
         auto uiContext = uiDirector->GetRSUIContext();
         rsNode = RSCanvasNode::Create(false, false, uiContext);
+        rsNode->LoadRenderNodeIfNeed();
         rsNode->SetUIContextToken();
         ASSERT_NE(uiContext, nullptr);
         auto transaction = uiContext->GetRSTransaction();
@@ -8692,6 +8846,7 @@ HWTEST_F(RSNodeTest, MarkRepaintBoundary001, TestSize.Level1)
 {
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     auto rsNode = RSCanvasNode::Create();
+    rsNode->LoadRenderNodeIfNeed();
     std::string tag = "ListItem";
     rsNode->SetFrameNodeInfo(0, tag);
     std::string strResult = rsNode->GetFrameNodeTag();
@@ -8733,5 +8888,22 @@ HWTEST_F(RSNodeTest, SetNeedUseCmdlistDrawRegion, TestSize.Level1)
     EXPECT_CALL(*rsNode, SetNeedUseCmdlistDrawRegion(_)).Times(2);
     rsNode->SetNeedUseCmdlistDrawRegion(true);
     rsNode->SetNeedUseCmdlistDrawRegion(false);
+}
+
+/**
+ * @tc.name: SetDrawNodeChangeCallback
+ * @tc.desc: test results of SetDrawNodeChangeCallback
+ * @tc.type: FUNC
+ * @tc.require: issue21291
+ */
+HWTEST_F(RSNodeTest, SetDrawNodeChangeCallback, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    RSNode::SetDrawNodeChangeCallback(nullptr);
+    ASSERT_EQ(RSNode::drawNodeChangeCallback_, nullptr);
+
+    auto changeCallback = [](std::shared_ptr<RSNode> rsNode, bool isPositionZ) {};
+    RSNode::SetDrawNodeChangeCallback(changeCallback);
+    ASSERT_NE(RSNode::drawNodeChangeCallback_, nullptr);
 }
 } // namespace OHOS::Rosen

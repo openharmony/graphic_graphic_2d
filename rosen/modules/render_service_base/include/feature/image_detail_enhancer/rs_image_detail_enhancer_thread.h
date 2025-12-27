@@ -38,6 +38,7 @@ struct RSImageParams {
     uint64_t mUniqueid;
     std::shared_ptr<Drawing::Image> mImage;
     bool mNeedDetachPen;
+    float mMatrixScaleX;
 };
 
 class RSB_EXPORT RSImageDetailEnhancerThread final {
@@ -111,6 +112,7 @@ public:
     std::shared_ptr<Drawing::Image> MakeImageFromSurfaceBuffer(sptr<SurfaceBuffer>& surfaceBuffer,
         const std::shared_ptr<Drawing::Image>& image);
     Drawing::ColorType GetColorTypeWithVKFormat(VkFormat vkFormat);
+    void SavePixelmapToFile(Drawing::Bitmap& bitmap, const std::string& dst);
 #endif
 };
 } // OHOS

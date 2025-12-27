@@ -222,14 +222,14 @@ bool HgmEnergyConsumptionPolicy::GetUiIdleFps(FrameRateRange& rsRange, pid_t pid
     std::pair<bool, int> fpsInfo;
     bool isEnergyAssured = false;
     for (const auto& [key, value] : uiEnergyAssuranceMap_) {
-        if ((key & type) == type) {
+        if ((key & type) != 0) {
             fpsInfo = value;
             isEnergyAssured = true;
             break;
         }
     }
     if (!isEnergyAssured) {
-        HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}d is invalid", rsRange.type_);
+        HGM_LOGD("HgmEnergyConsumptionPolicy::GetUiIdleFps the rateType = %{public}u is invalid", rsRange.type_);
         return false;
     }
     bool isEnergyAssuranceEnable = fpsInfo.first;

@@ -28,12 +28,12 @@ void RSCanvasDrawingNodeCommandHelper::Create(RSContext& context, NodeId id, boo
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
-void RSCanvasDrawingNodeCommandHelper::ResetSurface(RSContext& context, NodeId id, int width, int height)
+void RSCanvasDrawingNodeCommandHelper::ResetSurface(
+    RSContext& context, NodeId id, int width, int height, uint32_t resetSurfaceIndex)
 {
     if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id)) {
-        node->ResetSurface(width, height);
+        node->ResetSurface(width, height, resetSurfaceIndex);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS

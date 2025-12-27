@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,28 +18,31 @@
 #include <memory>
 #include <unistd.h>
 
-#include "surface_buffer_impl.h"
+#include "common/rs_background_thread.h"
+#include "feature/capture/rs_capture_pixelmap_manager.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "feature/capture/rs_ui_capture_task_parallel.h"
+#include "ipc_callbacks/surface_capture_callback_stub.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/render_thread/rs_render_engine.h"
+#include "pipeline/render_thread/rs_uni_render_engine.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
-#include "pipeline/rs_root_render_node.h"
+#include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_root_render_node.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_test_util.h"
+#include "pipeline/rs_uni_render_judgement.h"
+#include "platform/common/rs_system_properties.h"
+#include "surface_buffer_impl.h"
 #include "transaction/rs_interfaces.h"
-#include "ui/rs_surface_extractor.h"
+#include "transaction/rs_render_interface.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "ui/rs_proxy_node.h"
-#include "pipeline/render_thread/rs_render_engine.h"
-#include "pipeline/render_thread/rs_uni_render_engine.h"
-#include "pipeline/rs_test_util.h"
-#include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/rs_paint_filter_canvas.h"
-#include "pipeline/rs_uni_render_judgement.h"
-#include "pipeline/rs_render_node_gc.h"
-#include "platform/common/rs_system_properties.h"
-#include "feature/capture/rs_capture_pixelmap_manager.h"
+#include "ui/rs_surface_extractor.h"
 using namespace testing::ext;
 
 namespace OHOS {
@@ -78,16 +81,18 @@ public:
 };
 
 class RSC_EXPORT MockSurfaceCaptureCallback : public RSISurfaceCaptureCallback {
+public:
     sptr<IRemoteObject> AsObject()
     {
         return nullptr;
     }
 
     void OnSurfaceCapture(NodeId id, const RSSurfaceCaptureConfig& captureConfig, Media::PixelMap* pixelmap,
-        Media::PixelMap* pixelmapHDR = nullptr) override
+        CaptureError captureErrCode = CaptureError::CAPTURE_OK, Media::PixelMap* pixelmapHDR = nullptr) override
     {
-        // DO NOTHING
+        isCallbackCalled_ = true;
     }
+    bool isCallbackCalled_ = false;
 };
 }
 
@@ -99,6 +104,7 @@ public:
         RsVulkanContext::SetRecyclable(false);
 #endif
         rsInterfaces_ = &RSInterfaces::GetInstance();
+        rsRenderInterfaces_ = &RSRenderInterface::GetInstance();
 
         RSTestUtil::InitRenderNodeGC();
         ScreenId screenId = rsInterfaces_->GetDefaultScreenId();
@@ -128,8 +134,8 @@ public:
 #ifdef ACE_ENABLE_GL
         if (renderContext_ == nullptr) {
             HiLog::Info(LOG_LABEL, "%s: init renderContext_", __func__);
-            renderContext_ = RenderContextFactory::GetInstance().CreateEngine();
-            renderContext_->InitializeEglContext();
+            renderContext_ = RenderContext::Create();
+            renderContext_->Init();
         }
 #endif // ACE_ENABLE_GL
     }
@@ -207,7 +213,8 @@ public:
     }
 
     static RSInterfaces* rsInterfaces_;
-    static RenderContext* renderContext_;
+    static RSRenderInterface* rsRenderInterfaces_;
+    static std::shared_ptr<RenderContext> renderContext_;
     static RSDisplayNodeConfig mirrorConfig_;
     static std::shared_ptr<RSDisplayNode> displayNode_;
 
@@ -216,7 +223,8 @@ public:
     std::shared_ptr<RSCanvasDrawingNode> canvasDrawingNode_;
 };
 RSInterfaces* RSUiCaptureTaskParallelTest::rsInterfaces_ = nullptr;
-RenderContext* RSUiCaptureTaskParallelTest::renderContext_ = nullptr;
+RSRenderInterface* RSUiCaptureTaskParallelTest::rsRenderInterfaces_ = nullptr;
+std::shared_ptr<RenderContext> RSUiCaptureTaskParallelTest::renderContext_ = nullptr;
 RSDisplayNodeConfig RSUiCaptureTaskParallelTest::mirrorConfig_ = {INVALID_SCREEN_ID, true, INVALID_SCREEN_ID};
 std::shared_ptr<RSDisplayNode> RSUiCaptureTaskParallelTest::displayNode_ = nullptr;
 
@@ -232,7 +240,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiInvalidSurface, Fun
     auto surfaceNode = RSSurfaceNode::Create(config);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
 
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(surfaceNode, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -251,7 +259,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSurfaceNode, Functi
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(surfaceNode_, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -270,7 +278,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode001, Func
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -293,7 +301,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode002, Func
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -313,7 +321,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasNode003, Func
 
     Drawing::Rect specifiedRect(1.f, 1.f, 5.f, 5.f);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.f, 1.f, false, specifiedRect);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.f, 1.f, false, specifiedRect);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -332,7 +340,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiCanvasDrawingNode, 
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasDrawingNode_, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasDrawingNode_, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -354,7 +362,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiProxyNode, Function
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(proxyNode, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(proxyNode, callback);
     ASSERT_EQ(ret, false);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), false);
@@ -375,7 +383,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function |
     canvasNode->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
     canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -391,10 +399,12 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync001, Function |
  */
 HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiSync002, Function | SmallTest | Level2)
 {
-    SetUpSurface();
-
+    auto canvasNode = RSCanvasNode::Create();
+    canvasNode->SetBounds(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetFrame(0.0f, 0.0f, HALF_BOUNDS_WIDTH, HALF_BOUNDS_HEIGHT);
+    canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 1.0, 1.0, true);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -413,7 +423,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale001, Function 
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 0, 0);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 0, 0);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -432,7 +442,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale002, Function 
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, -1, -1);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, -1, -1);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -451,7 +461,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiScale003, Function 
     SetUpSurface();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 10000, 10000);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback, 10000, 10000);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -473,7 +483,7 @@ HWTEST_F(RSUiCaptureTaskParallelTest, TakeSurfaceCaptureForUiNotOnTree, Function
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
 
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode_, callback);
     ASSERT_EQ(ret, true);
 #ifdef RS_ENABLE_UNI_RENDER
     ASSERT_EQ(CheckSurfaceCaptureCallback(callback), true);
@@ -577,6 +587,44 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CreateResources003, Function | SmallTest |
     parent3->renderProperties_.SetBoundsHeight(1024.0f);
     renderNode->parent_ = parent3;
     ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), true);
+}
+
+/*
+ * @tc.name: Capture001
+ * @tc.desc: Test RSUiCaptureTaskParallel::Capture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, Capture001, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 110;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.uiCaptureInRangeParam.useBeginNodeSize = false;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    nodeMap.RegisterRenderNode(renderNode);
+    Drawing::Rect specifiedRect(0.f, 0.f, 0.f, 0.f);
+    auto callback = sptr<MockSurfaceCaptureCallback>::MakeSptr();
+    RSUiCaptureTaskParallel::Capture(nodeId, callback, captureConfig, specifiedRect);
+    ASSERT_EQ(callback->isCallbackCalled_, true);
+}
+
+/*
+ * @tc.name: Capture002
+ * @tc.desc: Test RSUiCaptureTaskParallel::Capture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, Capture002, Function | SmallTest | Level2)
+{
+    NodeId nodeId = -1;
+    RSSurfaceCaptureConfig captureConfig;
+    Drawing::Rect specifiedRect(0.f, 0.f, 0.f, 0.f);
+    auto callback = sptr<MockSurfaceCaptureCallback>::MakeSptr();
+    RSUiCaptureTaskParallel::Capture(nodeId, callback, captureConfig, specifiedRect);
+    ASSERT_EQ(callback->isCallbackCalled_, true);
 }
 
 /*
@@ -725,11 +773,11 @@ HWTEST_F(RSUiCaptureTaskParallelTest, CalendarIconNeedDump, Function | SmallTest
     canvasNode->SetBackgroundColor(Drawing::Color::COLOR_YELLOW);
     canvasNode->SetAlpha(0.0f);
     auto callback = std::make_shared<CustomizedSurfaceCapture>();
-    bool ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    bool ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
     ASSERT_EQ(ret, true);
     usleep(SLEEP_TIME_IN_US);
     canvasNode->SetNodeName("CalendarTest");
-    ret = rsInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
+    ret = rsRenderInterfaces_->TakeSurfaceCaptureForUI(canvasNode, callback);
     ASSERT_EQ(ret, true);
 }
 
@@ -754,6 +802,218 @@ HWTEST_F(RSUiCaptureTaskParallelTest, DumpInfoTest, Function | SmallTest | Level
     RSUiCaptureTaskParallel::DumpInfo(parentNodeId);
     auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
     ASSERT_EQ(renderNodeHandle->CreateResources(specifiedAreaRect), true);
+}
+
+/*
+ * @tc.name: IsHdrCapture001
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture001, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 123;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.dynamicRangeMode.first = -1;
+    captureConfig.dynamicRangeMode.second = false;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_CONSTRAINT;
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+}
+
+/*
+ * @tc.name: IsHdrCapture002
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture002, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 124;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    captureConfig.dynamicRangeMode.second = true;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+    renderNodeHandle->captureConfig_.dynamicRangeMode.first = DYNAMIC_RANGE_MODE_HIGH;
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+}
+
+/*
+ * @tc.name: IsHdrCapture003
+ * @tc.desc: Test RSUiCaptureTaskParallel::IsHdrCapture
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, IsHdrCapture003, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 125;
+    RSSurfaceCaptureConfig captureConfig;
+    captureConfig.dynamicRangeMode.first = DEFAULT_DYNAMIC_RANGE_MODE_STANDARD;
+    captureConfig.dynamicRangeMode.second = true;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, captureConfig);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+    nodeMap.RegisterRenderNode(renderNode);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG), false);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_PQ), false);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_HLG_LIMIT), false);
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020_PQ_LIMIT), false);
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId);
+    if (node) {
+        node->stagingRenderParams_->hdrStatus_ = HdrStatus::HDR_PHOTO;
+        node->SetChildHasVisibleHDRContent(true);
+    }
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+    if (node) {
+        node->stagingRenderParams_->hdrStatus_ = HdrStatus::NO_HDR;
+        node->SetChildHasVisibleHDRContent(true);
+    }
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+    if (node) {
+        node->stagingRenderParams_->hdrStatus_ = HdrStatus::NO_HDR;
+        node->SetChildHasVisibleHDRContent(false);
+    }
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), false);
+    if (node) {
+        node->stagingRenderParams_->hdrStatus_ = HdrStatus::HDR_PHOTO;
+        node->SetChildHasVisibleHDRContent(false);
+    }
+    ASSERT_EQ(renderNodeHandle->IsHdrCapture(ColorManager::BT2020), true);
+}
+
+/*
+ * @tc.name: SelectColorSpace001
+ * @tc.desc: Test RSUiCaptureTaskParallel::SelectColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, SelectColorSpace001, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 110;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId);
+    if (node) {
+        node->stagingRenderParams_->nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::NONE, false), ColorManager::SRGB);
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::SRGB, false), ColorManager::SRGB);
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::DISPLAY_P3, false), ColorManager::DISPLAY_P3);
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::BT2020, false), ColorManager::BT2020);
+}
+
+/*
+ * @tc.name: SelectColorSpace002
+ * @tc.desc: Test RSUiCaptureTaskParallel::SelectColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, SelectColorSpace002, Function | SmallTest | Level2)
+{
+    NodeId nodeId = 111;
+    RSSurfaceCaptureConfig config;
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::SRGB, true), ColorManager::SRGB);
+}
+
+/*
+ * @tc.name: SelectColorSpace003
+ * @tc.desc: Test RSUiCaptureTaskParallel::SelectColorSpace
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, SelectColorSpace003, Function | SmallTest | Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 112;
+    RSSurfaceCaptureConfig config;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId);
+    if (node) {
+        node->stagingRenderParams_->nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    renderNodeHandle->errorCode_ = CaptureError::COLOR_SPACE_NOT_SUPPORT;
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::NONE, true), ColorManager::SRGB);
+    renderNodeHandle->errorCode_ = CaptureError::CAPTURE_OK;
+    if (node) {
+        node->stagingRenderParams_->nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3;
+    }
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::NONE, true), ColorManager::DISPLAY_P3);
+    if (node) {
+        node->stagingRenderParams_->nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_BT2020;
+    }
+    ASSERT_EQ(renderNodeHandle->SelectColorSpace(ColorManager::NONE, true), ColorManager::BT2020);
+}
+
+/*
+ * @tc.name: RunForHdr001
+ * @tc.desc: Test RSUiCaptureTaskParallel::Run
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUiCaptureTaskParallelTest, RunForHdr001, Function | SmallTest | Level2)
+{
+    auto renderEngine = std::make_shared<RSRenderEngine>();
+    renderEngine->Init();
+    RSUniRenderThread::Instance().uniRenderEngine_ = renderEngine;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().nodeMap;
+    NodeId nodeId = 109;
+    RSSurfaceCaptureConfig config;
+    config.captureType = SurfaceCaptureType::UICAPTURE;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId, std::make_shared<RSContext>(), true);
+    renderNode->renderProperties_.SetBoundsWidth(500.f);
+    renderNode->renderProperties_.SetBoundsHeight(500.f);
+    renderNode->InitRenderParams();
+    nodeMap.RegisterRenderNode(renderNode);
+    auto renderNodeHandle = std::make_shared<RSUiCaptureTaskParallel>(nodeId, config);
+    auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId);
+    if (node) {
+        node->stagingRenderParams_->nodeColorSpace_ = GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB;
+    }
+    Drawing::Rect specifiedAreaRect(0.f, 0.f, 0.f, 0.f);
+    renderNodeHandle->CreateResources(specifiedAreaRect);
+    auto mockCallback = sptr<MockSurfaceCaptureCallback>::MakeSptr();
+    renderNodeHandle->Run(mockCallback, specifiedAreaRect);
+    ASSERT_EQ(mockCallback->isCallbackCalled_, true);
+    renderNodeHandle->isHdrCapture_ = true;
+    mockCallback->isCallbackCalled_ = false;
+    renderNodeHandle->Run(mockCallback, specifiedAreaRect);
+    ASSERT_EQ(mockCallback->isCallbackCalled_, true);
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
 }
 
 /*

@@ -27,6 +27,7 @@
 #include "pipeline/render_thread/rs_uni_render_util.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "platform/common/rs_log.h"
+#include "rs_render_composer.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -35,9 +36,10 @@ namespace {
 constexpr float DEGAMMA = 1.0f / 2.2f;
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int GRAPH_NUM = 3;
-constexpr int UN_EXECUTE_TASK_NUM_MAX = 2;
 constexpr int MAX_RELEASE_FRAME_NUM = 5;
 constexpr float RATIO_CHANGE_TH = 0.02f;
+constexpr uint32_t RS_HARDWARE_THREAD_TASK_NUM = 2;
+constexpr uint32_t RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT = 3000;
 }
 
 RSHeteroHDRManager& RSHeteroHDRManager::Instance()
@@ -82,6 +84,11 @@ RectI RSHeteroHDRManager::RectRound(RectI srcRect, int32_t width, int32_t height
 
     RectI dstRect = { srcRect.left_, srcRect.top_, srcWidth, srcHeight };
     return dstRect;
+}
+
+void RSHeteroHDRManager::ClearPendingPostNodes()
+{
+    pendingPostNodes_.clear();
 }
 
 void RSHeteroHDRManager::UpdateHDRNodes(RSSurfaceRenderNode& node, bool isCurrentFrameBufferConsumed)
@@ -204,17 +211,12 @@ bool RSHeteroHDRManager::PrepareHpaeTask(
     // 3. Set Current Frame Id
     if (!MHCSetCurFrameId(curFrameId)) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask MHCSetCurFrameId failed");
+        TryConsumeBuffer([this]() { this->rsHeteroHDRBufferLayer_.ConsumeAndUpdateBuffer(); });
         RSHDRPatternManager::Instance().MHCReleaseEGraph(curFrameId);
         return false;
     }
     // 4. Apply for ION memory
-    if (!TryConsumeBuffer([this]() { this->rsHeteroHDRBufferLayer_.ConsumeAndUpdateBuffer(); })) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask TryConsumeBuffer failed");
-        RSHDRPatternManager::Instance().MHCResetCurFrameId();
-        RSHDRPatternManager::Instance().MHCReleaseEGraph(curFrameId);
-        return false;
-    }
-
+    TryConsumeBuffer([this]() { this->rsHeteroHDRBufferLayer_.ConsumeAndUpdateBuffer(); });
     dstBuffer_ = rsHeteroHDRBufferLayer_.PrepareHDRDstBuffer(surfaceParams, GetScreenIDByDrawable(nodeDrawable));
     if (dstBuffer_ == nullptr) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask prepare dstBuffer is nullptr");
@@ -222,6 +224,7 @@ bool RSHeteroHDRManager::PrepareHpaeTask(
         RSHDRPatternManager::Instance().MHCReleaseEGraph(curFrameId);
         return false;
     }
+    needClear_ = true;
     RS_LOGD("[hdrHetero]:RSHeteroHDRManager PrepareHpaeTask dstBuffer seq = %{public}" PRIu32 ".",
         dstBuffer_->GetSeqNum());
     rsHeteroHDRBufferLayer_.FlushHDRDstBuffer(dstBuffer_);
@@ -234,17 +237,12 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
 {
     curNodeId_ = surfaceNode->GetId();
     curHandleStatus_ = surfaceNode->GetVideoHdrStatus();
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(curNodeId_);
-    if (!drawable) {
-        RS_LOGE("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode drawable is nullptr");
-        return false;
-    }
-    auto nodeDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(drawable);
+    auto nodeDrawable = RSHeteroHDRUtil::GetSurfaceDrawableByID(curNodeId_);
     if (!nodeDrawable) {
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode nodeDrawable is nullptr");
         return false;
     }
-    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(drawable->GetRenderParams().get());
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
     if (!RSHeteroHDRUtil::ValidateSurface(surfaceParams)) {
         return false;
     }
@@ -260,16 +258,9 @@ bool RSHeteroHDRManager::ProcessPendingNode(std::shared_ptr<RSSurfaceRenderNode>
         ClearBufferCache();
         return false;
     }
-    uint32_t unExecuteTaskNum = RSHardwareThread::Instance().GetunExecuteTaskNum();
-    if (unExecuteTaskNum > UN_EXECUTE_TASK_NUM_MAX) {
-        RS_LOGW("[hdrHetero]:RSHeteroHDRManager ProcessPendingNode unExecuteTaskNum%{public}" PRIu32,
-            unExecuteTaskNum);
-        return false;
-    }
     if (!CheckWindowOwnership(curNodeId_)) {
         return false;
     }
-
     if (!PrepareAndSubmitHDRTask(nodeDrawable, surfaceParams, curNodeId_, curFrameId)) {
         return false;
     } else {
@@ -287,22 +278,10 @@ bool RSHeteroHDRManager::CheckWindowOwnership(NodeId nodeId)
         return false;
     }
     if (ownedAppWindowIdIter != ownedAppWindowIdMap_.end()) {
-        auto ownedAppWindowDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(ownedAppWindowIdIter->second));
+        auto ownedAppWindowDrawable = RSHeteroHDRUtil::GetSurfaceDrawableByID(ownedAppWindowIdIter->second);
         if (IsHDRSurfaceNodeSkipped(ownedAppWindowDrawable)) {
             RS_LOGD("[hdrHetero]:RSHeteroHDRManager CheckWindowOwnership "
                 "ownedAppWindowDrawable IsHDRSurfaceNodeSkipped");
-            return false;
-        }
-    }
-
-    if (ownedLeashWindowIdIter != ownedLeashWindowIdMap_.end()) {
-        auto ownedLeashWindowDrawable = std::static_pointer_cast<DrawableV2::RSSurfaceRenderNodeDrawable>(
-            DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(ownedLeashWindowIdIter->second));
-        const auto& pendingNodes = RSUifirstManager::Instance().GetPendingPostNodes();
-        if (IsHDRSurfaceNodeSkipped(ownedLeashWindowDrawable) && !pendingNodes.count(nodeId)) {
-            RS_LOGD("[hdrHetero]:RSHeteroHDRManager CheckWindowOwnership this frame draw with UiFirst cache and "
-                "not rendered in UIFirst SubThread");
             return false;
         }
     }
@@ -311,12 +290,16 @@ bool RSHeteroHDRManager::CheckWindowOwnership(NodeId nodeId)
 
 void RSHeteroHDRManager::ClearBufferCache()
 {
-    if (framesNoApplyCnt_ > MAX_RELEASE_FRAME_NUM) {
+    if (!needClear_) {
+        return;
+    }
+    if (framesNoApplyCnt_ > MAX_RELEASE_FRAME_NUM && MHCGetFrameIdUsed()) {
         dstBuffer_ = nullptr;
         rsHeteroHDRBufferLayer_.CleanCache();
         framesNoApplyCnt_ = 0;
         nodeSrcRectMap_.clear();
         RSHDRPatternManager::Instance().MHCReleaseAll();
+        needClear_ = false;
     } else {
         framesNoApplyCnt_++;
     }
@@ -403,6 +386,7 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
             this->buildHdrTaskStatus_ =
                 BuildHDRTask(surfaceParams, MDCSrcRect, &taskId, &(this->taskPtr_), this->curHandleStatus_);
             this->taskId_.store(taskId);
+            WaitHardwareThreadTaskExecute(surfaceParams->GetScreenId());
         },
         &taskPtr_,
         [this, curFrameId] {
@@ -418,7 +402,32 @@ bool RSHeteroHDRManager::PrepareAndSubmitHDRTask(std::shared_ptr<DrawableV2::RSS
 bool RSHeteroHDRManager::HasHdrHeteroNode()
 {
     uint64_t curFrameId = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
-    return (pendingPostNodes_.size() == 1 && curFrameId != 0);
+    bool ret = (pendingPostNodes_.size() == 1 && curFrameId != 0);
+    if (ret) {
+        auto iterHardware = isPrevHandleByHWMap_.find(pendingPostNodes_.front()->GetId());
+        bool prevHardware = iterHardware == isPrevHandleByHWMap_.end() ||
+            iterHardware->second || curFrameId != prevFrameId_ + 1;
+        ret = ret && prevHardware;
+        RS_LOGD("[hdrHetero]:RSHeteroHDRManager HasHdrHeteroNode prevHardware %{public}d", prevHardware);
+    }
+    return ret;
+}
+
+void RSHeteroHDRManager::UpdateHardwareHandleCondition()
+{
+    isPrevHandleByHWMap_.clear();
+    for (uint32_t i = 0; i < pendingPostNodes_.size(); i++) {
+        NodeId nodeId = pendingPostNodes_[i]->GetId();
+        auto nodeDrawable = RSHeteroHDRUtil::GetSurfaceDrawableByID(nodeId);
+        if (!nodeDrawable) {
+            RS_LOGE("[hdrHetero]:RSHeteroHDRManager UpdateHardwareHandleCondition nodeDrawable is nullptr");
+            return;
+        }
+        auto surfaceParams = static_cast<RSSurfaceRenderParams*>(nodeDrawable->GetRenderParams().get());
+        bool isHardwareHandle = surfaceParams->GetHardwareEnabled();
+        isPrevHandleByHWMap_[nodeId] = isHardwareHandle || curFrameHeteroHandleCanBeUsed_;
+    }
+    prevFrameId_ = OHOS::Rosen::HgmCore::Instance().GetVsyncId();
 }
 
 void RSHeteroHDRManager::PostHDRSubTasks()
@@ -442,6 +451,7 @@ void RSHeteroHDRManager::PostHDRSubTasks()
         }
         ClearBufferCache();
     }
+    UpdateHardwareHandleCondition();
     preFrameHeteroHandleCanBeUsed_ = curFrameHeteroHandleCanBeUsed_;
     pendingPostNodes_.clear();
     ownedLeashWindowIdMap_.clear();
@@ -509,8 +519,6 @@ void RSHeteroHDRManager::FindParentLeashWindowNode()
     if (appWindowNode) {
         ownedAppWindowIdMap_[nodeId] = appWindowNode->GetId();
     }
-    RS_LOGD("[hdrHetero]:RSHeteroHDRManager FindParentLeashWindowNode LeashWindowNode:%{public}" PRIu64 ", "
-        "AppWindowNode:%{public}" PRIu64, ownedLeashWindowIdMap_[nodeId], ownedAppWindowIdMap_[nodeId]);
 }
 
 int32_t RSHeteroHDRManager::BuildHDRTask(
@@ -625,6 +633,13 @@ bool RSHeteroHDRManager::UpdateHDRHeteroParams(RSPaintFilterCanvas& canvas,
         RS_LOGD("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams done");
         return true;
     }
+    RS_LOGD("[hdrHetero]:RSHeteroHDRManager UpdateHDRHeteroParams %d, %d, %d, %d, %d, %d",
+        surfaceParams->GetHardwareEnabled(),
+        !GetCurFrameHeteroHandleCanBeUsed(nodeId),
+        !(GetCurHandleStatus() == HdrStatus::HDR_VIDEO || GetCurHandleStatus() == HdrStatus::AI_HDR_VIDEO_GAINMAP),
+        drawableParams.useCPU,
+        canvas.IsOnMultipleScreen(),
+        RSUniRenderThread::IsInCaptureProcess());
     return false;
 }
 
@@ -644,12 +659,13 @@ void RSHeteroHDRManager::ProcessParamsUpdate(RSPaintFilterCanvas& canvas,
             break;
         case HdrStatus::HDR_VIDEO:
             hdrHeteroType = RSHeteroHDRUtilConst::HDR_HETERO | RSHeteroHDRUtilConst::HDR_HETERO_HDR;
+            RSHeteroHDRUtil::GenDrawHDRBufferParams(surfaceDrawable,
+                validHpaeDstRect_, isFixedDstBuffer_, drawableParams);
             break;
         default:
             hdrHeteroType = RSHeteroHDRUtilConst::HDR_HETERO_NO;
             break;
     }
-    RSHeteroHDRUtil::GenDrawHDRBufferParams(surfaceDrawable, validHpaeDstRect_, isFixedDstBuffer_, drawableParams);
     drawableParams.buffer = hdrSurfaceHandler->GetBuffer();
     drawableParams.acquireFence = hdrSurfaceHandler->GetAcquireFence();
     drawableParams.hdrHeteroType = hdrHeteroType;
@@ -741,5 +757,27 @@ void RSHeteroHDRManager::GenerateHDRHeteroShader(
         param.paint.SetShaderEffect(shader);
     }
 }
+
+void RSHeteroHDRManager::WaitHardwareThreadTaskExecute(ScreenId screenId)
+{
+    std::unique_lock<std::mutex> lock(hardwareThreadTaskMutex_);
+    bool ret = hardwareThreadTaskCond_.wait_until(lock, std::chrono::system_clock::now() +
+        std::chrono::milliseconds(RS_WAIT_FOR_HARDWARE_THREAD_TASK_TIMEOUT),
+        [screenId]() {
+            return RSRenderComposerManager::GetInstance()
+                .GetUnExecuteTaskNum(screenId) <= RS_HARDWARE_THREAD_TASK_NUM;
+        });
+    if (!ret) {
+        RS_LOGE("[hdrHetero]:RSHeteroHDRManager WaitHardwareThreadTaskExecute has too many hw tasks to execute");
+    }
+}
+
+void RSHeteroHDRManager::NotifyHardwareThreadCanExecuteTask()
+{
+    RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager NotifyHardwareThreadCanExecuteTask");
+    std::lock_guard<std::mutex> lock(hardwareThreadTaskMutex_);
+    hardwareThreadTaskCond_.notify_one();
+}
+
 } // namespace Rosen
 } // namespace OHOS

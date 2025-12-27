@@ -42,7 +42,7 @@
 namespace OHOS {
 namespace Rosen {
 
-constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 5;
+constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 6;
 constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 
 bool RSFilterCacheManager::isCCMFilterCacheEnable_ = true;
@@ -274,6 +274,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
         GenerateFilteredSnapshot(canvas, filter, dst);
     }
+
     // Keep a reference to the cached image, since CompactCache may invalidate it.
     auto cachedFilteredSnapshot = cachedFilteredSnapshot_;
     return cachedFilteredSnapshot;
@@ -350,7 +351,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
     auto dst = Drawing::Rect(0, 0, offscreenRect.GetWidth(), offscreenRect.GetHeight());
 
     // Draw the cached snapshot on the offscreen canvas, apply the filter, and post-process.
-    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst, { false, true });
+    filter->DrawImageRect(offscreenCanvas, cachedSnapshot_->cachedImage_, src, dst,
+        { false, true, cachedSnapshot_->geCacheProvider_.get() });
     filter->PostProcess(offscreenCanvas);
 
     // Update the cache state with the filtered snapshot.
@@ -372,7 +374,8 @@ void RSFilterCacheManager::GenerateFilteredSnapshot(
         }
     }
     cachedFilteredSnapshot_ =
-        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect);
+        std::make_shared<RSPaintFilterCanvas::CachedEffectData>(std::move(filteredSnapshot), offscreenRect,
+                                                                cachedSnapshot_->geCacheProvider_);
     isHpaeCachedFilteredSnapshot_ = false;
 }
 
@@ -415,6 +418,10 @@ void RSFilterCacheManager::DrawCachedFilteredSnapshot(RSPaintFilterCanvas& canva
 
 void RSFilterCacheManager::InvalidateFilterCache(FilterCacheType clearType)
 {
+    if (hpaeCacheManager_) {
+        hpaeCacheManager_->InvalidateFilterCache(clearType);
+    }
+
     if (clearType == FilterCacheType::BOTH) {
         cachedSnapshot_.reset();
         cachedFilteredSnapshot_.reset();
@@ -515,18 +522,33 @@ void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
         pendingPurge_ = false;
         return;
     }
-    if (stagingIsAIBarInteractWithHWC_) {
-        if (cacheUpdateInterval_ > 0) {
-            cacheUpdateInterval_--;
-            pendingPurge_ = true;
-        }
-    } else {
-        if ((stagingFilterInteractWithDirty_ || stagingRotationChanged_) && cacheUpdateInterval_ > 0) {
-            cacheUpdateInterval_--;
-            pendingPurge_ = true;
-        }
+    if (stagingIsAIBarInteractWithHWC_ || stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
+        ReduceCacheUpdateInterval();
     }
     stagingIsAIBarInteractWithHWC_ = false;
+}
+
+bool RSFilterCacheManager::ReduceCacheUpdateInterval()
+{
+    if (cacheUpdateInterval_ <= 0) {
+        return false;
+    }
+
+    cacheUpdateInterval_--;
+    pendingPurge_ = true;
+    return true;
+}
+
+bool RSFilterCacheManager::ReduceCacheUpdateIntervalIfPendingPurge()
+{
+    if (cacheUpdateInterval_ <= 0) {
+        return false;
+    }
+
+    if (pendingPurge_) {
+        cacheUpdateInterval_--;
+    }
+    return true;
 }
 
 bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
@@ -534,7 +556,9 @@ bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamag
     if (filterType_ != RSFilter::AIBAR) {
         return false;
     }
-    if (intersectHwcDamage) {
+    // should mark stagingIsAIBarInteractWithHWC_ once intersectHwcDamage is true
+    // or pendingPurge_ is true (which means AIBar has been intersected with damage during cache consuming)
+    if (intersectHwcDamage || pendingPurge_) {
         stagingIsAIBarInteractWithHWC_ = true;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus \

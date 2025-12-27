@@ -1224,52 +1224,6 @@ HWTEST_F(RSUniHwcComputeUtilTest, IS_ANY_NULLPTR_004, Function | SmallTest | Lev
 }
 
 /**
- * @tc.name: IsBlendNeedFilter_001
- * @tc.desc: Test IsBlendNeedFilter
- * @tc.type: FUNC
- * @tc.require: issueIBJ6BZ
- */
-HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedFilter_001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSRenderNode node(id);
-    node.renderProperties_.GetEffect().useEffect_ = true;
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
-
-    node.renderProperties_.GetEffect().useEffect_ = false;
-    node.GetHwcRecorder().SetBlendWithBackground(true);
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
-
-    node.GetHwcRecorder().SetBlendWithBackground(false);
-    auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
-    property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
-    std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
-        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
-    modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
-    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
-    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifiers);
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedFilter(node));
-}
-
-/**
- * @tc.name: IsBlendNeedBackground_001
- * @tc.desc: Test IsBlendNeedBackground
- * @tc.type: FUNC
- * @tc.require: issueIBJ6BZ
- */
-HWTEST_F(RSUniHwcComputeUtilTest, IsBlendNeedBackground_001, Function | SmallTest | Level2)
-{
-    NodeId id = 0;
-    RSRenderNode node(id);
-    node.renderProperties_.needHwcFilter_ = true;
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedBackground(node));
-
-    node.renderProperties_.needHwcFilter_ = false;
-    node.GetHwcRecorder().SetBlendWithBackground(true);
-    EXPECT_TRUE(RSUniHwcComputeUtil::IsBlendNeedBackground(node));
-}
-
-/**
  * @tc.name: IsBlendNeedChildNode_001
  * @tc.desc: Test IsBlendNeedChildNode
  * @tc.type: FUNC
@@ -1592,6 +1546,74 @@ HWTEST_F(RSUniHwcComputeUtilTest, UpdateHwcNodeProperty_002, Function | SmallTes
     canvasNode2->AddChild(surfaceNode);
     RSUniHwcComputeUtil::UpdateHwcNodeProperty(surfaceNode);
     EXPECT_TRUE(surfaceNode->IsHardwareEnabledType());
+}
+
+/**
+ * @tc.name: TraverseParentNodeAndReduce_001
+ * @tc.desc: Test TraverseParentNodeAndReduce
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, TraverseParentNodeAndReduce_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    auto canvasNode = std::make_shared<RSCanvasRenderNode>(++id);
+    canvasNode->InitRenderParams();
+    canvasNode->renderProperties_.alpha_ = 0.1;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(++id);
+    surfaceNode->InitRenderParams();
+    surfaceNode->renderProperties_.alpha_ = 0.2;
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(++id, 0, rsContext);
+    canvasNode->AddChild(surfaceNode);
+    screenNode->AddChild(canvasNode);
+    RSUniHwcComputeUtil::HwcPropertyContext ctx;
+    ctx.alpha = surfaceNode->GetRenderProperties().GetAlpha();
+    RSUniHwcComputeUtil::TraverseParentNodeAndReduce(surfaceNode,
+        [&ctx](const std::shared_ptr<RSRenderNode>& parent){ RSUniHwcComputeUtil::UpdateHwcNodeAlpha(parent, ctx); });
+    ASSERT_FLOAT_EQ(ctx.alpha, 0.02);
+}
+
+/**
+ * @tc.name: GetRotateTransformForRotationFixed_001
+ * @tc.desc: Test GetRotateTransformForRotationFixed
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetRotateTransformForRotationFixed_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSSurfaceRenderNode node(id);
+    node.GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    node.GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    node.GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferTransform(GraphicTransformType::GRAPHIC_ROTATE_90);
+    node.absRotation_ = 0;
+    node.stagingRenderParams_ = nullptr;
+    auto transform = RSUniHwcComputeUtil::GetRotateTransformForRotationFixed(node,
+        node.GetRSSurfaceHandler()->consumer_);
+    ASSERT_FLOAT_EQ(transform, GRAPHIC_ROTATE_90);
+}
+
+/**
+ * @tc.name: GetPropertyFromModifier_001
+ * @tc.desc: Test GetPropertyFromModifier
+ * @tc.type: FUNC
+ * @tc.require: issueIBJ6BZ
+ */
+HWTEST_F(RSUniHwcComputeUtilTest, GetPropertyFromModifier_001, Function | SmallTest | Level2)
+{
+    NodeId id = 0;
+    RSRenderNode node(id);
+    auto property = std::make_shared<RSRenderProperty<ForegroundColorStrategyType>>();
+    property->GetRef() = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
+    std::shared_ptr<ModifierNG::RSRenderModifier> modifier =
+        std::make_shared<ModifierNG::RSEnvForegroundColorRenderModifier>();
+    modifier->properties_[ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY] = property;
+    RSRootRenderNode::ModifierNGContainer modifiers { modifier };
+    node.modifiersNG_.emplace(ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, modifiers);
+    auto result = RSUniHwcComputeUtil::GetPropertyFromModifier<ForegroundColorStrategyType>(node,
+        ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR, ModifierNG::RSPropertyType::ENV_FOREGROUND_COLOR_STRATEGY);
+    ASSERT_NE(result, nullptr);
 }
 
 } // namespace OHOS::Rosen

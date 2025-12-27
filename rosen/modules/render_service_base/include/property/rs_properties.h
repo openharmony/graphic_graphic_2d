@@ -30,8 +30,6 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_border.h"
 #include "render/rs_filter.h"
-#include "render/rs_sdf_effect_filter.h"
-
 #include "render/rs_filter_cache_manager.h"
 #include "render/rs_gradient_blur_para.h"
 #include "render/rs_image.h"
@@ -49,6 +47,7 @@ class RSObjAbsGeometry;
 class RSNGRenderFilterBase;
 class ParticleRippleFields;
 class ParticleVelocityFields;
+struct ColorPickerParam;
 namespace DrawableV2 {
 class RSBackgroundImageDrawable;
 class RSBackgroundFilterDrawable;
@@ -397,6 +396,14 @@ public:
     std::shared_ptr<RSNGRenderShaderBase> GetForegroundShader() const;
     void SetSDFShape(const std::shared_ptr<RSNGRenderShapeBase>& shape);
     std::shared_ptr<RSNGRenderShapeBase> GetSDFShape() const;
+    void SetMaterialNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    std::shared_ptr<RSNGRenderFilterBase> GetMaterialNGFilter() const;
+
+    // setter and getter of color picker related properties
+    void SetColorPickerPlaceholder(int placeholder);
+    void SetColorPickerStrategy(int strategy);
+    void SetColorPickerInterval(int interval);
+    std::shared_ptr<ColorPickerParam> GetColorPicker() const;
 
     void SetFgBrightnessRates(const Vector4f& rates);
     Vector4f GetFgBrightnessRates() const;
@@ -475,6 +482,14 @@ public:
         }
         return defaultValue;
     }
+    const std::shared_ptr<RSFilter>& GetMaterialFilter() const
+    {
+        static const std::shared_ptr<RSFilter> defaultValue = nullptr;
+        if (effect_) {
+            return effect_->materialFilter_;
+        }
+        return defaultValue;
+    }
     const std::shared_ptr<MotionBlurParam>& GetMotionBlurPara() const;
     const std::shared_ptr<RSMagnifierParams>& GetMagnifierPara() const;
     bool DisableHWCForFilter() const;
@@ -499,8 +514,6 @@ public:
         return defaultValue;
     }
     void SetForegroundFilter(const std::shared_ptr<RSFilter>& foregroundFilter);
-
-    [[nodiscard]] const std::shared_ptr<RSSDFEffectFilter> GetSDFEffectFilter() const;
 
     void SetBackgroundBlurRadius(float backgroundBlurRadius);
     float GetBackgroundBlurRadius() const;
@@ -888,6 +901,7 @@ public:
 
     static void SetFilterCacheEnabledByCCM(bool isCCMFilterCacheEnable);
     static void SetBlurAdaptiveAdjustEnabledByCCM(bool isCCMBlurAdaptiveAdjustEnabled);
+    RRect GetRRectForSDF() const;
 
 private:
 struct CommonEffectParams {
@@ -967,9 +981,11 @@ struct CommonEffectParams {
     std::optional<Color> colorBlend_;
     std::shared_ptr<RSNGRenderFilterBase> bgNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderFilterBase> fgNGRenderFilter_ = nullptr;
+    std::shared_ptr<RSNGRenderFilterBase> mtNGRenderFilter_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> bgNGRenderShader_ = nullptr;
     std::shared_ptr<RSNGRenderShaderBase> fgRenderShader_ = nullptr;
     std::shared_ptr<RSFilter> filter_ = nullptr;
+    std::shared_ptr<RSFilter> materialFilter_ = nullptr;
 };
     inline float DecreasePrecision(float value)
     {
@@ -989,6 +1005,7 @@ struct CommonEffectParams {
         int colorMode, const RSColor& color);
     void GenerateBackgroundFilter();
     void GenerateForegroundFilter();
+    void GenerateMaterialFilter();
     void GenerateBackgroundMaskFilter();
     void GenerateBackgroundBlurFilter();
     void GenerateForegroundBlurFilter();
@@ -1066,6 +1083,7 @@ struct CommonEffectParams {
     float unionSpacing_ = 0.f;
     Gravity frameGravity_ = Gravity::DEFAULT;
     float hdrUIBrightness_ = 1.0f;
+    std::shared_ptr<ColorPickerParam> colorPicker_;
     // filter property
     std::shared_ptr<RSObjAbsGeometry> boundsGeo_;
     std::shared_ptr<RSNGRenderShapeBase> renderSDFShape_ = nullptr;
@@ -1087,7 +1105,6 @@ struct CommonEffectParams {
 
     std::optional<RectI> lastRect_;
 
-    std::shared_ptr<RSSDFEffectFilter> sdfFilter_;
     // OnApplyModifiers hooks
     void CheckEmptyBounds();
     void GenerateColorFilter();

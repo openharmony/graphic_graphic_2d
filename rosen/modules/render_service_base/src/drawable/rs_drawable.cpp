@@ -17,6 +17,7 @@
 
 #include <limits>
 
+#include "common/rs_common_tools.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "drawable/rs_property_drawable_background.h"
@@ -25,6 +26,7 @@
 #include "pipeline/rs_surface_render_node.h"
 
 namespace OHOS::Rosen {
+using namespace TemplateUtils;
 namespace {
 using namespace DrawableV2;
 
@@ -65,6 +67,8 @@ static const std::unordered_map<ModifierNG::RSModifierType, RSDrawableSlot> g_pr
     { ModifierNG::RSModifierType::ENV_FOREGROUND_COLOR,         RSDrawableSlot::ENV_FOREGROUND_COLOR },
     { ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER,         RSDrawableSlot::BACKGROUND_FILTER },
     { ModifierNG::RSModifierType::FOREGROUND_SHADER,            RSDrawableSlot::FOREGROUND_SHADER },
+    { ModifierNG::RSModifierType::COLOR_PICKER,                 RSDrawableSlot::COLOR_PICKER },
+    { ModifierNG::RSModifierType::MATERIAL_FILTER,              RSDrawableSlot::MATERIAL_FILTER },
     { ModifierNG::RSModifierType::CHILDREN,                     RSDrawableSlot::CHILDREN },
 };
 
@@ -84,6 +88,8 @@ static const std::array<RSDrawable::Generator, GEN_LUT_SIZE> g_drawableGenerator
     RSMaskDrawable::OnGenerate,                                      // MASK,
     ModifierGenerator<ModifierNG::RSModifierType::TRANSITION_STYLE>, // TRANSITION_STYLE,
     RSEnvFGColorDrawable::OnGenerate,                                // ENV_FOREGROUND_COLOR,
+    RSColorPickerDrawable::OnGenerate,                               // COLOR_PICKER,
+    RSMaterialFilterDrawable::OnGenerate,                            // MATERIAL_FILTER,
     RSShadowDrawable::OnGenerate,                                    // SHADOW,
     RSForegroundFilterDrawable::OnGenerate,                          // FOREGROUND_FILTER
     RSOutlineDrawable::OnGenerate,                                   // OUTLINE,
@@ -157,9 +163,11 @@ inline static bool HasPropertyDrawableInRange(
     const RSDrawable::Vec& drawableVec, RSDrawableSlot begin, RSDrawableSlot end) noexcept
 {
     // Note: the loop range is [begin, end], both end is included.
-    auto beginIt = drawableVec.begin() + static_cast<size_t>(begin);
-    auto endIt = drawableVec.begin() + static_cast<size_t>(end) + 1;
-    return std::any_of(beginIt, endIt, [](const auto& Ptr) { return Ptr != nullptr; });
+    auto beginIt = drawableVec.lower_bound(static_cast<int8_t>(begin));
+    auto endIt = drawableVec.upper_bound(static_cast<int8_t>(end));
+    return std::any_of(beginIt, endIt, [](const auto& drawablePair) {
+        return drawablePair.second != nullptr;
+    });
 }
 
 static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::Vec& drawableVec)
@@ -205,11 +213,12 @@ static uint8_t CalculateDrawableVecStatus(RSRenderNode& node, const RSDrawable::
     }
 
     // Foreground color & Background Effect & Blend Mode should be processed here
-    if (drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)] ||
-        drawableVec[static_cast<size_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)] ||
-        drawableVec[static_cast<size_t>(RSDrawableSlot::BLENDER)] ||
+    if (findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR)) ||
+        findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::ENV_FOREGROUND_COLOR_STRATEGY)) ||
+        findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BLENDER)) ||
         (node.GetType() == RSRenderNodeType::EFFECT_NODE &&
-            drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)])) {
+            findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER))) ||
+            findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::COLOR_PICKER))) {
         result |= DrawableVecStatus::ENV_CHANGED;
     }
 
@@ -224,12 +233,12 @@ inline static void SaveRestoreHelper(RSDrawable::Vec& drawableVec, RSDrawableSlo
     }
     if (type == RSPaintFilterCanvas::kCanvas) {
         auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
-        drawableVec[static_cast<size_t>(slot1)] = std::make_unique<RSSaveDrawable>(count);
-        drawableVec[static_cast<size_t>(slot2)] = std::make_unique<RSRestoreDrawable>(count);
+        drawableVec[static_cast<int8_t>(slot1)] = std::make_unique<RSSaveDrawable>(count);
+        drawableVec[static_cast<int8_t>(slot2)] = std::make_unique<RSRestoreDrawable>(count);
     } else {
         auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
-        drawableVec[static_cast<size_t>(slot1)] = std::make_unique<RSCustomSaveDrawable>(status, type);
-        drawableVec[static_cast<size_t>(slot2)] = std::make_unique<RSCustomRestoreDrawable>(status);
+        drawableVec[static_cast<int8_t>(slot1)] = std::make_unique<RSCustomSaveDrawable>(status, type);
+        drawableVec[static_cast<int8_t>(slot2)] = std::make_unique<RSCustomRestoreDrawable>(status);
     }
 }
 
@@ -245,13 +254,14 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         RSDrawableSlot::FG_RESTORE_BOUNDS,
     };
     for (auto& slot : boundsSlotsToErase) {
-        drawableVec[static_cast<size_t>(slot)] = nullptr;
+        drawableVec.erase(static_cast<int8_t>(slot));
     }
 
     if (flags & DrawableVecStatus::CLIP_TO_BOUNDS) {
         // case 1: ClipToBounds set.
         // add one clip, and reuse SAVE_ALL and RESTORE_ALL.
-        drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = RSClipToBoundsDrawable::OnGenerate(node);
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
         return;
     }
 
@@ -262,15 +272,16 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         // part 1: before children
         SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BG_RESTORE_BOUNDS,
             RSPaintFilterCanvas::kCanvas);
-        drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = RSClipToBoundsDrawable::OnGenerate(node);
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
 
         // part 2: after children, add aliases
-        drawableVec[static_cast<size_t>(RSDrawableSlot::FG_SAVE_BOUNDS)] =
-            drawableVec[static_cast<size_t>(RSDrawableSlot::BG_SAVE_BOUNDS)];
-        drawableVec[static_cast<size_t>(RSDrawableSlot::FG_CLIP_TO_BOUNDS)] =
-            drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)];
-        drawableVec[static_cast<size_t>(RSDrawableSlot::FG_RESTORE_BOUNDS)] =
-            drawableVec[static_cast<size_t>(RSDrawableSlot::BG_RESTORE_BOUNDS)];
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_SAVE_BOUNDS),
+            findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BG_SAVE_BOUNDS)));
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_CLIP_TO_BOUNDS),
+            findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS)));
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_RESTORE_BOUNDS),
+            findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BG_RESTORE_BOUNDS)));
         return;
     }
 
@@ -279,7 +290,8 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         SaveRestoreHelper(drawableVec, RSDrawableSlot::BG_SAVE_BOUNDS, RSDrawableSlot::BG_RESTORE_BOUNDS,
             RSPaintFilterCanvas::kCanvas);
 
-        drawableVec[static_cast<size_t>(RSDrawableSlot::CLIP_TO_BOUNDS)] = RSClipToBoundsDrawable::OnGenerate(node);
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
         return;
     }
 
@@ -288,7 +300,8 @@ static void OptimizeBoundsSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
         SaveRestoreHelper(drawableVec, RSDrawableSlot::FG_SAVE_BOUNDS, RSDrawableSlot::FG_RESTORE_BOUNDS,
             RSPaintFilterCanvas::kCanvas);
 
-        drawableVec[static_cast<size_t>(RSDrawableSlot::FG_CLIP_TO_BOUNDS)] = RSClipToBoundsDrawable::OnGenerate(node);
+        assignOrEraseOnAccess(drawableVec, static_cast<int8_t>(RSDrawableSlot::FG_CLIP_TO_BOUNDS),
+            RSClipToBoundsDrawable::OnGenerate(node));
         return;
     }
     // case 5: ClipToBounds not set and no bounds properties, no need to save/clip/restore.
@@ -303,7 +316,7 @@ static void OptimizeFrameSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawab
     };
     // Erase existing save/clip/restore before re-generating
     for (auto& slot : frameSlotsToErase) {
-        drawableVec[static_cast<size_t>(slot)] = nullptr;
+        drawableVec.erase(static_cast<int8_t>(slot));
     }
 
     if (flags & DrawableVecStatus::FRAME_NOT_EMPTY) {
@@ -320,7 +333,7 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
     };
     // Erase existing save/clip/restore before re-generating
     for (auto& slot : globalSlotsToErase) {
-        drawableVec[static_cast<size_t>(slot)] = nullptr;
+        drawableVec.erase(static_cast<int8_t>(slot));
     }
 
     // Parent will do canvas save/restore, we don't need to do it again
@@ -340,6 +353,7 @@ static void OptimizeGlobalSaveRestore(RSRenderNode& node, RSDrawable::Vec& drawa
 
 constexpr std::array boundsDirtyTypes = {
     RSDrawableSlot::MASK,
+    RSDrawableSlot::MATERIAL_FILTER,
     RSDrawableSlot::SHADOW,
     RSDrawableSlot::OUTLINE,
     RSDrawableSlot::FOREGROUND_FILTER,
@@ -383,7 +397,7 @@ inline void MarkAffectedSlots(const std::array<RSDrawableSlot, SIZE>& affectedSl
     std::unordered_set<RSDrawableSlot>& dirtySlots)
 {
     for (auto slot : affectedSlots) {
-        if (drawableVec[static_cast<size_t>(slot)]) {
+        if (findMapValueRef(drawableVec, static_cast<int8_t>(slot))) {
             dirtySlots.emplace(slot);
         }
     }
@@ -472,7 +486,7 @@ bool RSDrawable::UpdateDirtySlots(
     bool drawableAddedOrRemoved = false;
 
     for (const auto& slot : dirtySlots) {
-        if (auto& drawable = drawableVec[static_cast<size_t>(slot)]) {
+        if (auto& drawable = findMapValueRef(drawableVec, static_cast<int8_t>(slot))) {
             // If the slot is already created, call OnUpdate
             if (!drawable->OnUpdate(node)) {
                 // If the slot is no longer needed, destroy it
@@ -482,7 +496,7 @@ bool RSDrawable::UpdateDirtySlots(
         } else if (auto& generator = g_drawableGeneratorLut[static_cast<int>(slot)]) {
             // If the slot is not created, call OnGenerate
             if (auto drawable = generator(node)) {
-                drawableVec[static_cast<size_t>(slot)] = std::move(drawable);
+                drawableVec[static_cast<int8_t>(slot)] = std::move(drawable);
                 drawableAddedOrRemoved = true;
             }
         }
@@ -490,7 +504,8 @@ bool RSDrawable::UpdateDirtySlots(
     // If at this point the child node happens to be null, and the scenario involves deleting the child node
     // when the parent node is not on the tree, it is necessary to manually mark drawableAddedOrRemoved as true.
     if (!drawableAddedOrRemoved && dirtySlots.count(RSDrawableSlot::CHILDREN) &&
-        drawableVec[static_cast<int8_t>(RSDrawableSlot::CHILDREN)] == nullptr) {
+        findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::CHILDREN)) == nullptr) {
+        drawableVec.erase(static_cast<int8_t>(RSDrawableSlot::CHILDREN));
         drawableAddedOrRemoved = true;
     }
 
@@ -499,9 +514,9 @@ bool RSDrawable::UpdateDirtySlots(
 
 void RSDrawable::ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVec)
 {
-    auto &stretchDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
-    if (stretchDrawable) {
-        auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
+    auto &sptrStretchDrawable = findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH));
+    if (sptrStretchDrawable) {
+        auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(sptrStretchDrawable);
         pixelStretchDrawable->OnUpdate(node);
         float INFTY = std::numeric_limits<float>::infinity();
         pixelStretchDrawable->SetPixelStretch(Vector4f{INFTY, INFTY, INFTY, INFTY});
@@ -510,16 +525,16 @@ void RSDrawable::ResetPixelStretchSlot(const RSRenderNode &node, Vec &drawableVe
 
 bool RSDrawable::CanFusePixelStretch(Vec &drawableVec)
 {
-    if (!drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] ||
-        !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
+    if (!findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER)) ||
+        !findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH))) {
             return false;
     }
 
-    size_t start = static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
-    size_t end = static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH);
+    auto itStart = static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
+    auto itEnd = static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH);
     // we do not fuze if drawableSlots between BACKGROUND_FILTER and PIXEL_STRETCH exist
-    for (size_t ptr = start; ptr < end; ptr++) {
-        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(ptr)) && drawableVec[ptr]) {
+    for (auto it = itStart; it < itEnd; ++it) {
+        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(it)) && findMapValueRef(drawableVec, it)) {
             return false;
         }
     }
@@ -530,24 +545,24 @@ bool RSDrawable::FuzeDrawableSlots(const RSRenderNode& node, Vec& drawableVec)
 {
     // fuze the pixel stretch with MESA blur
     if (!RSSystemProperties::GetMESABlurFuzedEnabled() ||
-        !drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)] ||
-        !drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)]) {
+        !findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER)) ||
+        !findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH))) {
         return false;
     }
 
-    auto &filterDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER)];
+    auto &filterDrawable = findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER));
     auto bgFilterDrawable = std::static_pointer_cast<RSBackgroundFilterDrawable>(filterDrawable);
     bgFilterDrawable->RemovePixelStretch();
 
-    auto &stretchDrawable = drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)];
+    auto &stretchDrawable = findMapValueRef(drawableVec, static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH));
     auto pixelStretchDrawable = std::static_pointer_cast<RSPixelStretchDrawable>(stretchDrawable);
     pixelStretchDrawable->OnUpdate(node);
 
-    size_t start = static_cast<size_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
-    size_t end = static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH);
+    auto itStart = static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER) + 1;
+    auto itEnd = static_cast<int8_t>(RSDrawableSlot::PIXEL_STRETCH);
     // We do not fuze if drawableSlots between BACKGROUND_FILTER and PIXEL_STRETCH exist
-    for (size_t ptr = start; ptr < end; ptr++) {
-        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(ptr)) && drawableVec[ptr]) {
+    for (auto it = itStart; it < itEnd; ++it) {
+        if (!fuzeStretchBlurSafeList.count(static_cast<RSDrawableSlot>(it)) && drawableVec[it]) {
             return false;
         }
     }

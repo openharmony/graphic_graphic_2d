@@ -28,8 +28,15 @@
 #include "customized/random_rs_gradient_blur_para.h"
 #include "customized/random_rs_image.h"
 #include "customized/random_rs_mask.h"
+#include "customized/random_rs_ng_filter.h"
+#include "customized/random_rs_ng_mask.h"
+#include "customized/random_rs_ng_shader.h"
+#include "customized/random_rs_ng_shape.h"
 #include "customized/random_rs_path.h"
+#include "customized/random_rs_render_modifier_ng.h"
 #include "customized/random_rs_render_particle.h"
+#include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_particle_velocity_field.h"
 #include "customized/random_rs_render_property_base.h"
 #include "customized/random_rs_shader.h"
 #include "random/random_data_basic_type.h"
@@ -138,6 +145,8 @@ std::shared_ptr<RSMagnifierParams> RandomDataCustomizedType::GetRandomRSMagnifie
     rsMagnifierParams->borderWidth_ = RandomDataBasicType::GetRandomFloat();
     rsMagnifierParams->offsetX_ = RandomDataBasicType::GetRandomFloat();
     rsMagnifierParams->offsetY_ = RandomDataBasicType::GetRandomFloat();
+    rsMagnifierParams->zoomOffsetX_ = RandomDataBasicType::GetRandomFloat();
+    rsMagnifierParams->zoomOffsetY_ = RandomDataBasicType::GetRandomFloat();
     rsMagnifierParams->shadowOffsetX_ = RandomDataBasicType::GetRandomFloat();
     rsMagnifierParams->shadowOffsetY_ = RandomDataBasicType::GetRandomFloat();
     rsMagnifierParams->shadowSize_ = RandomDataBasicType::GetRandomFloat();
@@ -227,6 +236,62 @@ std::shared_ptr<ParticleNoiseFields> RandomDataCustomizedType::GetRandomParticle
     return particleNoiseFields;
 }
 
+std::shared_ptr<ParticleRippleFields> RandomDataCustomizedType::GetRandomParticleRippleFieldsSharedPtr(
+    const std::string& sizeType)
+{
+    auto particleRippleFields = std::make_shared<ParticleRippleFields>();
+    int vectorLength = 0;
+    if (sizeType == "normal") {
+        vectorLength = RandomEngine::GetRandomVectorLength();
+    } else if (sizeType == "small") {
+        vectorLength = RandomEngine::GetRandomSmallVectorLength();
+    } else {
+        SAFUZZ_LOGE("RandomDataCustomizedType::GetRandomParticleRippleFieldsSharedPtr unrecognized sizeType %s",
+            sizeType.c_str());
+        return particleRippleFields;
+    }
+    for (int i = 0; i < vectorLength; ++i) {
+        Vector2f center = GetRandomVector2f();
+        float amplitude = RandomDataBasicType::GetRandomFloat();
+        float wavelength = RandomDataBasicType::GetRandomFloat();
+        float waveSpeed = RandomDataBasicType::GetRandomFloat();
+        float attenuation = RandomDataBasicType::GetRandomFloat();
+        auto particleRippleField = std::make_shared<ParticleRippleField>(center, amplitude, wavelength,
+            waveSpeed, attenuation);
+        particleRippleField->regionShape_ = GetRandomShapeType();
+        particleRippleField->regionPosition_ = GetRandomVector2f();
+        particleRippleField->regionSize_ = GetRandomVector2f();
+        particleRippleField->lifeTime_ = RandomDataBasicType::GetRandomFloat();
+        particleRippleFields->AddRippleField(particleRippleField);
+    }
+    return particleRippleFields;
+}
+
+std::shared_ptr<ParticleVelocityFields> RandomDataCustomizedType::GetRandomParticleVelocityFieldsSharedPtr(
+    const std::string& sizeType)
+{
+    auto particleVelocityFields = std::make_shared<ParticleVelocityFields>();
+    int vectorLength = 0;
+    if (sizeType == "normal") {
+        vectorLength = RandomEngine::GetRandomVectorLength();
+    } else if (sizeType == "small") {
+        vectorLength = RandomEngine::GetRandomSmallVectorLength();
+    } else {
+        SAFUZZ_LOGE("RandomDataCustomizedType::GetRandomParticleVelocityFieldsSharedPtr unrecognized sizeType %s",
+            sizeType.c_str());
+        return particleVelocityFields;
+    }
+    for (int i = 0; i < vectorLength; ++i) {
+        Vector2f velocity = GetRandomVector2f();
+        auto particleVelocityField = std::make_shared<ParticleVelocityField>(velocity);
+        particleVelocityField->regionShape_ = GetRandomShapeType();
+        particleVelocityField->regionPosition_ = GetRandomVector2f();
+        particleVelocityField->regionSize_ = GetRandomVector2f();
+        particleVelocityFields->AddVelocityField(particleVelocityField);
+    }
+    return particleVelocityFields;
+}
+
 Vector4<uint32_t> RandomDataCustomizedType::GetRandomUint32Vector4()
 {
     uint32_t x = RandomDataBasicType::GetRandomUint32();
@@ -285,6 +350,29 @@ Drawing::Matrix RandomDataCustomizedType::GetRandomDrawingMatrix()
 std::shared_ptr<Drawing::DrawCmdList> RandomDataCustomizedType::GetRandomDrawingDrawCmdListPtr()
 {
     return RandomDrawCmdList::GetRandomDrawCmdList();
+}
+
+std::shared_ptr<RSNGRenderFilterBase> RandomDataCustomizedType::GetRandomRSNGFilterPtr()
+{
+    RandomRSNGShapePtr::ResetShapeDepth();
+    return RandomRSNGFilterPtr::GetRandomValue();
+}
+
+std::shared_ptr<RSNGRenderMaskBase> RandomDataCustomizedType::GetRandomRSNGMaskPtr()
+{
+    return RandomRSNGMaskPtr::GetRandomValue();
+}
+
+std::shared_ptr<RSNGRenderShaderBase> RandomDataCustomizedType::GetRandomRSNGShaderPtr()
+{
+    RandomRSNGShapePtr::ResetShapeDepth();
+    return RandomRSNGShaderPtr::GetRandomValue();
+}
+
+std::shared_ptr<RSNGRenderShapeBase> RandomDataCustomizedType::GetRandomRSNGShapePtr()
+{
+    RandomRSNGShapePtr::ResetShapeDepth();
+    return RandomRSNGShapePtr::GetRandomValue();
 }
 
 RSDisplayNodeConfig RandomDataCustomizedType::GetRandomRSDisplayNodeConfig()
@@ -365,6 +453,16 @@ Vector4f RandomDataCustomizedType::GetRandomVector4f()
     return vector;
 }
 
+Vector4<int> RandomDataCustomizedType::GetRandomVector4i()
+{
+    int x = RandomDataBasicType::GetRandomInt();
+    int y = RandomDataBasicType::GetRandomInt();
+    int z = RandomDataBasicType::GetRandomInt();
+    int w = RandomDataBasicType::GetRandomInt();
+    Vector4<int> vector(x, y, z, w);
+    return vector;
+}
+
 Quaternion RandomDataCustomizedType::GetRandomQuaternion()
 {
     float x = RandomDataBasicType::GetRandomFloat();
@@ -419,6 +517,38 @@ std::vector<Vector2f> RandomDataCustomizedType::GetRandomVectorVector2f()
     return out;
 }
 
+std::vector<Vector2f> RandomDataCustomizedType::GetRandomSmallVectorVector2f()
+{
+    std::vector<Vector2f> out;
+    size_t outSize = static_cast<size_t>(RandomEngine::GetRandomSmallVectorLength());
+    out.reserve(outSize);
+    for (size_t i = 0; i < outSize; ++i) {
+        out.push_back(GetRandomVector2f());
+    }
+    return out;
+}
+
+std::vector<Vector4f> RandomDataCustomizedType::GetRandomSmallVectorVector4f()
+{
+    std::vector<Vector4f> out;
+    size_t outSize = static_cast<size_t>(RandomEngine::GetRandomSmallVectorLength());
+    out.reserve(outSize);
+    for (size_t i = 0; i < outSize; ++i) {
+        out.push_back(GetRandomVector4f());
+    }
+    return out;
+}
+
+std::vector<float> RandomDataCustomizedType::GetRandomSmallFloatVector()
+{
+    std::vector<float> out;
+    auto vectorLength = RandomEngine::GetRandomSmallVectorLength();
+    for (auto i = 0; i < vectorLength; ++i) {
+        out.push_back(RandomDataBasicType::GetRandomFloat());
+    }
+    return out;
+}
+
 std::shared_ptr<Media::PixelMap> RandomDataCustomizedType::GetRandomPixelMap()
 {
     return RandomPixelMap::GetRandomPixelMap();
@@ -456,6 +586,16 @@ std::optional<Drawing::Matrix> RandomDataCustomizedType::GetRandomOptionalDrawin
         return std::nullopt;
     }
     return RandomDrawingMatrix::GetRandomDrawingMatrix();
+}
+
+Rect RandomDataCustomizedType::GetRandomRect()
+{
+    int32_t x = RandomDataBasicType::GetRandomInt32();
+    int32_t y = RandomDataBasicType::GetRandomInt32();
+    int32_t w = RandomDataBasicType::GetRandomInt32();
+    int32_t h = RandomDataBasicType::GetRandomInt32();
+    Rect rect{x, y, w, h};
+    return rect;
 }
 
 AnimationCallbackEvent RandomDataCustomizedType::GetRandomAnimationCallbackEvent()
@@ -551,6 +691,55 @@ FrameRateRange RandomDataCustomizedType::GetRandomFrameRateRange()
     return frameRateRange;
 }
 
+EventInfo RandomDataCustomizedType::GetRandomEventInfo()
+{
+    std::string eventName = RandomDataBasicType::GetRandomString();
+    bool eventStatus = RandomDataBasicType::GetRandomBool();
+    uint32_t minRefreshRate = RandomDataBasicType::GetRandomUint32();
+    uint32_t maxRefreshRate = RandomDataBasicType::GetRandomUint32();
+    std::string description = RandomDataBasicType::GetRandomString();
+    return { eventName, eventStatus, minRefreshRate, maxRefreshRate, description };
+}
+
+std::vector<std::pair<uint64_t, EventInfo>> RandomDataCustomizedType::GetRandomUint64AndEventInfoPairVector()
+{
+    std::vector<std::pair<uint64_t, EventInfo>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        uint64_t x = RandomDataBasicType::GetRandomUint64();
+        EventInfo y = GetRandomEventInfo();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
+std::vector<std::pair<std::string, EventInfo>> RandomDataCustomizedType::GetRandomStringAndEventInfoPairVector()
+{
+    std::vector<std::pair<std::string, EventInfo>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        std::string x = RandomDataBasicType::GetRandomString();
+        EventInfo y = GetRandomEventInfo();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
+std::vector<std::pair<std::string, std::string>> RandomDataCustomizedType::GetRandomStringAndStringPairVector()
+{
+    std::vector<std::pair<std::string, std::string>> vector;
+    int vectorLength = RandomEngine::GetRandomVectorLength();
+    vector.reserve(vectorLength);
+    for (int i = 0; i < vectorLength; ++i) {
+        std::string x = RandomDataBasicType::GetRandomString();
+        std::string y = RandomDataBasicType::GetRandomString();
+        vector.emplace_back(std::make_pair(x, y));
+    }
+    return vector;
+}
+
 Drawing::Point RandomDataCustomizedType::GetRandomDrawingPoint()
 {
     return Drawing::Point(RandomDataBasicType::GetRandomFloat(), RandomDataBasicType::GetRandomFloat());
@@ -590,6 +779,38 @@ std::vector<std::shared_ptr<EmitterUpdater>> RandomDataCustomizedType::GetRandom
 std::shared_ptr<ParticleNoiseFields> RandomDataCustomizedType::GetRandomSmallParticleNoiseFieldsSharedPtr()
 {
     return GetRandomParticleNoiseFieldsSharedPtr("small");
+}
+
+std::shared_ptr<ParticleRippleFields> RandomDataCustomizedType::GetRandomSmallParticleRippleFieldsSharedPtr()
+{
+    return GetRandomParticleRippleFieldsSharedPtr("small");
+}
+
+std::shared_ptr<ParticleVelocityFields> RandomDataCustomizedType::GetRandomSmallParticleVelocityFieldsSharedPtr()
+{
+    return GetRandomParticleVelocityFieldsSharedPtr("small");
+}
+
+std::shared_ptr<ModifierNG::RSRenderModifier> RandomDataCustomizedType::GetRandomRSRenderModifierSharedPtr()
+{
+    return RandomRSRenderModifier::GetRandomRSRenderModifier();
+}
+
+ModifierNG::RSPropertyType RandomDataCustomizedType::GetRandomRSPropertyType()
+{
+    return RandomRSRenderModifier::GetRandomRSPropertyType();
+}
+
+ModifierNG::RSModifierType RandomDataCustomizedType::GetRandomRSModifierType()
+{
+    return RandomRSRenderModifier::GetRandomRSRenderModifier()->GetType();
+}
+
+DrawNodeType RandomDataCustomizedType::GetRandomDrawNodeType()
+{
+    static constexpr int DRAW_NODE_TYPE_MAX = 3;
+    int randomIndex = RandomEngine::GetRandomIndex(DRAW_NODE_TYPE_MAX);
+    return static_cast<DrawNodeType>(randomIndex);
 }
 } // namespace Rosen
 } // namespace OHOS

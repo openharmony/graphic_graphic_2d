@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "rs_surface_frame_ohos_gl.h"
 #include "platform/common/rs_log.h"
 #include "render_context/render_context.h"
+#include "render_context/new_render_context/render_context_gl.h"
 
 #include <hilog/log.h>
 #include "pipeline/rs_render_thread.h"
@@ -30,7 +31,9 @@ RSSurfaceFrameOhosGl::RSSurfaceFrameOhosGl(int32_t width, int32_t height)
 
 void RSSurfaceFrameOhosGl::SetDamageRegion(int32_t left, int32_t top, int32_t width, int32_t height)
 {
-    renderContext_->DamageFrame(left, top, width, height);
+    std::vector<RectI> rects;
+    rects.emplace_back(left, top, width, height);
+    renderContext_->DamageFrame(rects);
 }
 
 void RSSurfaceFrameOhosGl::SetDamageRegion(const std::vector<RectI> &rects)

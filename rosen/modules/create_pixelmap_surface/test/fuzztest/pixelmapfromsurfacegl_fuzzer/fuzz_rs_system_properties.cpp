@@ -93,6 +93,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return {};
 }
 
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+    return false;
+}
+
 float RSSystemProperties::GetClipRectThreshold()
 {
     return 1.f;

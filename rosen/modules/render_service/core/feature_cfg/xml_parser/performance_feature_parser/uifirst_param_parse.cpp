@@ -109,6 +109,22 @@ int32_t UIFirstParamParse::ParseUIFirstSingleParam(const std::string& name, cons
             UIFirstParam::SetUIFirstType(num);
             RS_LOGI("UIFirstParamParse parse UIFirstType %{public}d", UIFirstParam::GetUIFirstType());
         }
+    } else if (name == "ClearCacheThreshold" && IsNumber(value)) {
+        int num;
+        std::istringstream iss(value);
+        if (iss >> num) {
+            UIFirstParam::SetClearCacheThreshold(num);
+            RS_LOGI("UIFirstParamParse parse ClearCacheThreshold %{public}d", UIFirstParam::GetClearCacheThreshold());
+        }
+    } else if (name == "SizeChangedThreshold") {
+        float num;
+        std::istringstream iss(value);
+        if (iss >> num) {
+            UIFirstParam::SetSizeChangedThreshold(num);
+            RS_LOGI("UIFirstParamParse parse SizeChangedThreshold %{public}f", UIFirstParam::GetSizeChangedThreshold());
+        } else {
+            RS_LOGE("UIFirstParamParse invalid SizeChangedThreshold: %{public}s", value.c_str());
+        }
     }
     return PARSE_EXEC_SUCCESS;
 }

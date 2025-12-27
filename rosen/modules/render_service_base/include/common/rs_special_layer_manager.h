@@ -21,6 +21,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_macros.h"
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -32,9 +33,12 @@ constexpr uint32_t VIRTUALSCREEN_IS_SPECIAL = 0X7;  //contain security、skip、
 constexpr uint32_t VIRTUALSCREEN_HAS_SPECIAL = 0X1C00;  //contain security、skip、protected layer
 constexpr uint32_t SNAPSHOT_IS_SPECIAL = 0XF;   //contain security、skip、protected、snapshotskip layer
 constexpr uint32_t SNAPSHOT_HAS_SPECIAL = 0X3C00;   //contain security、skip、protected、snapshotskip layer
-constexpr uint32_t MAX_IDS_SIZE = 1024;
+constexpr uint32_t HAS_SCREEN_SPECIAL = 0X60000;   //contain blacklist、whitelist
+constexpr size_t MAX_SPECIAL_LAYER_NUM = 1024;
 
-enum SpecialLayerType : uint32_t {
+using SpecialLayerBitmask = uint32_t;
+
+enum SpecialLayerType : SpecialLayerBitmask {
     NONE = 0,
     SECURITY = 0x00000001,
     SKIP = 0x00000002,
@@ -63,25 +67,36 @@ public:
     RSSpecialLayerManager() = default;
     ~RSSpecialLayerManager() = default;
 
-    bool Set(uint32_t type, bool is);
+    bool Set(uint32_t type, bool enable);
     bool Find(uint32_t type) const;
     uint32_t Get() const;
     void AddIds(uint32_t type, NodeId id);
     void RemoveIds(uint32_t type, NodeId id);
+    std::unordered_set<NodeId> GetIds(uint32_t type) const;
 
-    bool SetWithScreen(uint64_t screenId, uint32_t type, bool is);
-    bool FindWithScreen(uint64_t screenId, uint32_t type) const;
+    bool SetWithScreen(ScreenId screenId, uint32_t type, bool enable);
+    bool FindWithScreen(ScreenId screenId, uint32_t type) const;
+    void AddIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id);
+    void RemoveIdsWithScreen(ScreenId screenId, uint32_t type, NodeId id);
+    std::unordered_set<NodeId> GetIdsWithScreen(ScreenId screenId, uint32_t type) const;
+
+    void SetHasSlInVisibleRect(ScreenId screenId, bool hasSlInVisibleRect);
+    bool GetHasSlInVisibleRect(ScreenId screenId) const;
+    void MergeChildren(const RSSpecialLayerManager& childSlm);
+
     void ClearScreenSpecialLayer();
-    void ClearSpecialLayerIds();
-
+    void Clear();
 private:
     static std::stack<LeashPersistentId> whiteListRootIds_;
 
-    uint32_t specialLayerType_ = SpecialLayerType::NONE;
-    // key:SpecialLayerType value:std::set<NodeId>
-    std::map<uint32_t, std::set<NodeId>> specialLayerIds_;
-    // key:ScreenId value:SpecialLayerType
-    std::map<uint64_t, uint32_t> screenSpecialLayer_;
+    SpecialLayerBitmask specialLayerType_ = SpecialLayerType::NONE;
+    std::unordered_map<SpecialLayerBitmask, std::unordered_set<NodeId>> specialLayerIds_;
+
+    std::unordered_map<ScreenId, SpecialLayerBitmask> screenSpecialLayer_;
+    std::unordered_map<ScreenId,
+        std::unordered_map<SpecialLayerBitmask, std::unordered_set<NodeId>>> screenSpecialLayerIds_;
+    // value : whether the virtual screen rect intersect with the special layer rect
+    std::unordered_map<ScreenId, bool> hasSlInVisibleRect_;
 };
 
 class AutoSpecialLayerStateRecover {

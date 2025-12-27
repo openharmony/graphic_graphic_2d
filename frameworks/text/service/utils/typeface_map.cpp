@@ -25,10 +25,26 @@ TypefaceMap& TypefaceMap::GetInstance()
     return instance;
 }
 
-std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypeface(uint32_t id)
+std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHash(uint32_t hash)
 {
     std::unique_lock guard(GetInstance().mutex_);
-    auto iter = GetInstance().typefaceMap_.find(id);
+    return GetTypefaceByHashInner(hash);
+}
+
+std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByUniqueId(uint32_t id)
+{
+    std::unique_lock guard(GetInstance().mutex_);
+    auto hash = GetInstance().uniqueToHash_.find(id);
+    if (hash != GetInstance().uniqueToHash_.end()) {
+        return GetTypefaceByHashInner(hash->second);
+    }
+    return nullptr;
+}
+
+
+std::shared_ptr<Drawing::Typeface> TypefaceMap::GetTypefaceByHashInner(uint32_t hash)
+{
+    auto iter = GetInstance().typefaceMap_.find(hash);
     if (iter != GetInstance().typefaceMap_.end()) {
         if (auto tf = iter->second.lock()) {
             return tf;
@@ -46,5 +62,11 @@ void TypefaceMap::InsertTypeface(uint32_t hash, const std::shared_ptr<Drawing::T
     }
     std::unique_lock guard(GetInstance().mutex_);
     GetInstance().typefaceMap_.insert_or_assign(hash, tf);
+    uint32_t uniqueId = tf->GetUniqueID();
+    auto it = GetInstance().uniqueToHash_.find(uniqueId);
+    if (it != GetInstance().uniqueToHash_.end()) {
+        GetInstance().uniqueToHash_.erase(it);
+    }
+    GetInstance().uniqueToHash_.insert({uniqueId, hash});
 }
 } // namespace OHOS::Rosen

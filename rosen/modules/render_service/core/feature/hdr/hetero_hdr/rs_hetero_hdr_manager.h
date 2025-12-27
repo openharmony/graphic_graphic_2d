@@ -53,6 +53,8 @@ public:
     }
 
     bool HasHdrHeteroNode();
+    void NotifyHardwareThreadCanExecuteTask();
+    void ClearPendingPostNodes();
 
     virtual ~RSHeteroHDRManager() = default;
 private:
@@ -90,12 +92,15 @@ private:
         std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable>& nodeDrawable,
         RSSurfaceRenderParams* surfaceParams, NodeId nodeId, uint64_t curFrameId);
     void ClearBufferCache();
+    void WaitHardwareThreadTaskExecute(ScreenId screenId);
 
     std::shared_ptr<Drawing::ShaderEffect> MakeHDRHeadroomShader(float hdrRatio,
         std::shared_ptr<Drawing::ShaderEffect>& imageShader);
  
     std::shared_ptr<Drawing::ShaderEffect> MakeAIHDRGainmapHeadroomShader(float hdrRatio,
         std::shared_ptr<Drawing::ShaderEffect>& imageShader);
+    
+    void UpdateHardwareHandleCondition();
 
     virtual bool MHCRequestEGraph(uint64_t frameId)
     {
@@ -109,6 +114,10 @@ private:
     {
         return RSHDRPatternManager::Instance().TryConsumeBuffer(std::move(consumingFunc));
     }
+    virtual bool MHCGetFrameIdUsed()
+    {
+        return RSHDRPatternManager::Instance().MHCGetFrameIdUsed();
+    }
 
     RSHeteroHDRBufferLayer rsHeteroHDRBufferLayer_{"HDRHeterogeneousLayer", INVALID_NODEID};
     std::unordered_map<NodeId, NodeId> ownedLeashWindowIdMap_;
@@ -116,6 +125,7 @@ private:
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> pendingPostNodes_;
     std::unordered_map<NodeId, RectI> nodeSrcRectMap_;
     std::unordered_map<NodeId, bool> isCurrentFrameBufferConsumedMap_;
+    std::unordered_map<NodeId, bool> isPrevHandleByHWMap_;
     void* taskPtr_ = nullptr;
     std::atomic<uint32_t> taskId_ = 0;
     int32_t buildHdrTaskStatus_ = 0;
@@ -135,6 +145,10 @@ private:
 
     HdrStatus curHandleStatus_ = HdrStatus::NO_HDR;
     bool isHdrOn_ = false; // whether hdr is turn on in current screen
+    bool needClear_ = false;
+    mutable std::mutex hardwareThreadTaskMutex_;
+    std::condition_variable hardwareThreadTaskCond_;
+    uint64_t prevFrameId_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -130,6 +130,24 @@ HWTEST_F(FilterCommonUnittest, FilterCommon_Grayscale001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: FilterCommon_CreateSDF
+ * @tc.desc: Create an SDF texture from pixelmap.
+ * @tc.type: FUNC
+ * @tc.require: I9CSQ0
+ * @tc.author:
+ */
+HWTEST_F(FilterCommonUnittest, FilterCommon_CreateSDF001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FilterCommonUnittest FilterCommon_CreateSDF001 start";
+    std::unique_ptr<PixelMap> pixMap = CreatePixelMap();
+    uint32_t errorCode = SUCCESS;
+    std::shared_ptr<FilterCommon> filter = FilterCommon::CreateEffect(std::move(pixMap), errorCode);
+    ASSERT_TRUE(errorCode == SUCCESS);
+    ASSERT_TRUE(filter != nullptr);
+    ASSERT_TRUE(filter->CreateSDF(64, true) == true);
+}
+
+/**
  * @tc.name: FilterCommon_Brighten
  * @tc.desc: Create a brighten effect filter with pixelmap.
  * @tc.type: FUNC

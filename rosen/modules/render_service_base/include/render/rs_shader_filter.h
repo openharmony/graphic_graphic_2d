@@ -54,6 +54,8 @@ public:
         GASIFY_SCALE_TWIST,
         GASIFY_BLUR,
         GASIFY,
+        FROSTED_GLASS,
+        FROSTED_GLASS_BLUR,
     };
 
     ShaderFilterType GetShaderFilterType() const

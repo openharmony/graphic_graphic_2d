@@ -17,19 +17,19 @@
 
 #include <parameter.h>
 #include <parameters.h>
+#include "common/rs_optional_trace.h"
 #include "include/core/SkColorSpace.h"
 #include "native_buffer_inner.h"
+#include "params/rs_surface_render_params.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_task_dispatcher.h"
 #ifdef USE_M133_SKIA
 #include "include/gpu/ganesh/vk/GrVkBackendSurface.h"
 #else
 #include "include/gpu/GrBackendSurface.h"
 #endif
-#include "pipeline/hardware_thread/rs_hardware_thread.h"
-#include "pipeline/rs_task_dispatcher.h"
+#include "rs_render_composer_manager.h"
 #include "rs_trace.h"
-#include "common/rs_optional_trace.h"
-#include "params/rs_surface_render_params.h"
 
 #ifdef USE_M133_SKIA
 #include "src/gpu/ganesh/gl/GrGLDefines.h"
@@ -237,6 +237,73 @@ std::shared_ptr<VkImageResource> RSVkImageManager::NewImageCacheFromBuffer(
     return imageCache;
 }
 
+void RSVkImageManager::UnMapImageOneByOne(pid_t threadIndex)
+{
+    auto func = [this]() {
+        pid_t thdIdx = UNI_RENDER_THREAD_INDEX;
+        {
+            std::lock_guard<std::mutex> lock(opMutex_);
+            if (oneByoneUnmapCacheSeqs_.empty()) {
+                RS_TRACE_NAME("RSVkImageManagerDfx: OneByOne Unmap stop, no need to do");
+                return;
+            }
+            auto toRemove = oneByoneUnmapCacheSeqs_.front();
+            uint64_t id = toRemove.first;
+            RS_TRACE_NAME_FMT("RSVkImageManagerDfx: Unmap image one by one, bufferId=%" PRIu64
+                ", thread=%u, remaining=%u", id, toRemove.second, oneByoneUnmapCacheSeqs_.size() - 1);
+            imageCacheSeqs_.erase(id);
+            oneByoneUnmapCacheSeqs_.pop();
+            if (!oneByoneUnmapCacheSeqs_.empty()) {
+                thdIdx = oneByoneUnmapCacheSeqs_.front().second;
+            } else {
+                RS_TRACE_NAME("RSVkImageManagerDfx: OneByOne Unmap finish");
+                return;
+            }
+        }
+        UnMapImageOneByOne(thdIdx);
+    };
+    RSTaskDispatcher::GetInstance().PostTask(threadIndex, func, false);
+}
+
+void RSVkImageManager::UnMapImageFromSurfaceBuffer(const std::set<uint64_t>& unmappedCache)
+{
+    std::set<uint64_t> unmappedCacheTmp;
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        for (auto id : unmappedCache) {
+            if (imageCacheSeqs_.count(id) == 0) {
+                continue;
+            }
+            if (imageCacheSeqs_[id]->GetThreadIndex() != UNI_RENDER_THREAD_INDEX) {
+                RS_TRACE_NAME_FMT("RSVkImageManagerDfx: image will be Unmap one by one, bufferId=%" PRIu64 "", id);
+                std::pair<uint64_t, pid_t> pairTmp(id, imageCacheSeqs_[id]->GetThreadIndex());
+                oneByoneUnmapCacheSeqs_.push(pairTmp);
+            } else {
+                RS_TRACE_NAME_FMT("RSVkImageManagerDfx: image will be Unmap right now, bufferId=%" PRIu64 "", id);
+                unmappedCacheTmp.insert(id);
+            }
+        }
+    }
+
+    for (auto id : unmappedCacheTmp) {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        RS_TRACE_NAME_FMT("RSVkImageManagerDfx: unmap image, bufferId=%" PRIu64 "", id);
+        imageCacheSeqs_.erase(id);
+        DFX_LOGD(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: UnmapImage, bufferId=%{public}" PRIu64 ", "
+            "cacheSeq=[%{public}lu]", id, imageCacheSeqs_.size());
+    }
+
+    pid_t threadIndex = 0;
+    {
+        std::lock_guard<std::mutex> lock(opMutex_);
+        if (oneByoneUnmapCacheSeqs_.empty()) {
+            return;
+        }
+        threadIndex = oneByoneUnmapCacheSeqs_.front().second;
+    }
+    UnMapImageOneByOne(threadIndex);
+}
+
 void RSVkImageManager::UnMapImageFromSurfaceBuffer(uint64_t seqNum)
 {
     DFX_LOG(ENABLE_VKIMAGE_DFX, "RSVkImageManagerDfx: tryUnmapImage, bufferId=%{public}" PRIu64 "", seqNum);
@@ -268,7 +335,8 @@ void RSVkImageManager::DumpVkImageInfo(std::string &dumpString)
 {
     std::lock_guard<std::mutex> lock(opMutex_);
     dumpString.append("\n---------RSVkImageManager-DumpVkImageInfo-Begin----------\n");
-    dumpString.append("imageCacheSeqs size: " + std::to_string(imageCacheSeqs_.size()) + "\n");
+    dumpString.append("imageCacheSeqs size: " + std::to_string(imageCacheSeqs_.size()) +
+        ", oneByOneUnmapCacheSeqs size:" + std::to_string(oneByoneUnmapCacheSeqs_.size()) +"\n");
     for (auto iter = imageCacheSeqs_.begin(); iter != imageCacheSeqs_.end(); ++iter) {
         auto bufferInfoCache = iter->second->GetBufferInfoCache();
         dumpString.append("vkimageinfo: bufferId=" + std::to_string(iter->first) +
@@ -304,8 +372,8 @@ std::shared_ptr<Drawing::Image> RSVkImageManager::CreateImageFromBuffer(RSPaintF
         RS_LOGD_IF(DEBUG_COMPOSER, "  - Buffer %{public}" PRIu64 " marked for deletion from cache, unmapping",
             buffer->GetBufferId());
         UnMapImageFromSurfaceBuffer(buffer->GetBufferId());
-        if ((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
-            static_cast<BufferDeletedFlag>(0)) {
+        if (((buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE) !=
+            static_cast<BufferDeletedFlag>(0)) && RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()) {
             buffer->ClearBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         }
     }

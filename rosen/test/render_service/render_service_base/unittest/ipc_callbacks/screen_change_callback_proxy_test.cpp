@@ -82,5 +82,18 @@ HWTEST_F(RSScreenChangeCallbackProxyTest, OnScreenChanged003, TestSize.Level1)
     screenChangeCallbackProxy->OnScreenChanged(INVALID_SCREEN_ID, ScreenEvent::CONNECTED);
 }
 
+/**
+ * @tc.name: OnScreenChanged004
+ * @tc.desc: Verify the OnScreenChanged
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSScreenChangeCallbackProxyTest, OnScreenChanged004, TestSize.Level1)
+{
+    auto screenChangeCallbackProxy = std::make_shared<RSScreenChangeCallbackProxy>(nullptr);
+    ASSERT_TRUE(screenChangeCallbackProxy != nullptr);
+    sptr<MockIRemoteObject> remoteMocker = new MockIRemoteObject();
+    screenChangeCallbackProxy->OnScreenChanged(INVALID_SCREEN_ID, ScreenEvent::CONNECTED, ScreenChangeReason::DEFAULT,
+        remoteMocker);
+}
 } // namespace Rosen
 } // namespace OHOS

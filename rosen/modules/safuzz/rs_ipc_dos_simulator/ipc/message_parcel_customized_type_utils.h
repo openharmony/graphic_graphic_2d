@@ -48,6 +48,14 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomHgmRefreshRateUpdateCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomOnFirstFrameCommitCallbackSptr(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomUint64AndEventInfoPairVector(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomStringAndEventInfoPairVector(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
+    static bool WriteRandomStringAndStringPairVector(MessageParcel& messageParcel,
+        const TestCaseParams& testCaseParams);
 #ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
     static bool WriteRandomPointerLuminanceChangeCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
@@ -72,6 +80,11 @@ private:
         const TestCaseParams& testCaseParams);
     static bool WriteRandomSelfDrawingNodeRectChangeCallbackSptr(MessageParcel& messageParcel,
         const TestCaseParams& testCaseParams);
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    static bool WriteRandomCanvasSurfaceBufferCallbackSptr(
+        MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
+    static bool WriteRandomSurfaceBufferSptr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
+#endif
 
     static bool WriteRandomPixelMapSharedPtr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
     static bool WriteRandomSurfaceSptr(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
@@ -83,6 +96,7 @@ private:
 
     static bool WriteRandomRSTransactionDataToVector(std::vector<std::shared_ptr<MessageParcel>>& messageParcels,
         const TestCaseParams& testCaseParams);
+    static bool WriteRandomSharedTypefaceFd(MessageParcel& messageParcel, const TestCaseParams& testCaseParams);
 };
 } // namespace Rosen
 } // namespace OHOS

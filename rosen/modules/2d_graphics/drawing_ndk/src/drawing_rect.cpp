@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,11 @@ using namespace Drawing;
 static Rect* CastToRect(OH_Drawing_Rect* cRect)
 {
     return reinterpret_cast<Rect*>(cRect);
+}
+
+static const Rect* CastToRect(const OH_Drawing_Rect* cRect)
+{
+    return reinterpret_cast<const Rect*>(cRect);
 }
 
 OH_Drawing_Rect* OH_Drawing_RectCreate(float left, float top, float right, float bottom)
@@ -253,7 +258,10 @@ OH_Drawing_ErrorCode OH_Drawing_RectContains(OH_Drawing_Rect* cRect, OH_Drawing_
         return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
     }
     Rect* otherRect = CastToRect(other);
-    
+
+    if (isContains == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
     *isContains = rect->Contains(*otherRect);
     return OH_DRAWING_SUCCESS;
 }
@@ -274,5 +282,68 @@ OH_Drawing_ErrorCode OH_Drawing_RectInset(OH_Drawing_Rect* cRect, float left, fl
     rect->SetRight(originalRight - right);
     rect->SetBottom(originalBottom - bottom);
 
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectIsEmpty(const OH_Drawing_Rect* cRect, bool* isEmpty)
+{
+    const Rect* rect = CastToRect(cRect);
+    if (rect == nullptr || isEmpty == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *isEmpty = rect->IsEmpty();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectOffset(OH_Drawing_Rect* cRect, float dx, float dy)
+{
+    Rect* rect = CastToRect(cRect);
+    if (rect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    rect->Offset(dx, dy);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectOffsetTo(OH_Drawing_Rect* cRect, float newLeft, float newTop)
+{
+    Rect* rect = CastToRect(cRect);
+    if (rect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    float dx = newLeft - rect->GetLeft();
+    float dy = newTop - rect->GetTop();
+    rect->Offset(dx, dy);
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectSetEmpty(OH_Drawing_Rect* cRect)
+{
+    Rect* rect = CastToRect(cRect);
+    if (rect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    *rect = Rect();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectSort(OH_Drawing_Rect* cRect)
+{
+    Rect* rect = CastToRect(cRect);
+    if (rect == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    rect->Sort();
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_RectUnion(OH_Drawing_Rect* cRect, const OH_Drawing_Rect* cOther)
+{
+    Rect* rect = CastToRect(cRect);
+    const Rect* other = CastToRect(cOther);
+    if (rect == nullptr || other == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    rect->Join(*other);
     return OH_DRAWING_SUCCESS;
 }

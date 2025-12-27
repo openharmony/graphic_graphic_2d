@@ -78,4 +78,24 @@ void UIFirstParam::SetUIFirstType(int uiFirstType)
 {
     uiFirstType_ = uiFirstType;
 }
+
+int UIFirstParam::GetClearCacheThreshold()
+{
+    return clearCacheThreshold_;
+}
+
+void UIFirstParam::SetClearCacheThreshold(int threshold)
+{
+    clearCacheThreshold_ = threshold;
+}
+
+float UIFirstParam::GetSizeChangedThreshold()
+{
+    return sizeChangedThreshold_;
+}
+
+void UIFirstParam::SetSizeChangedThreshold(float threshold)
+{
+    sizeChangedThreshold_ = threshold;
+}
 } // namespace OHOS::Rosen

@@ -273,13 +273,22 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::EnhanceImageAsync(
     const RSImageParams& RSImageParams) const
 {
     bool isEnable = GetEnableStatus() && IsEnableImageDetailEnhance(RSImageParams.mNodeId);
-    if (isEnable || RSImageParams.mPixelMap == nullptr) {
+    if (isEnable || RSImageParams.mPixelMap == nullptr || RSImageParams.mImage == nullptr) {
         return false;
     }
     ScaleImageAsync(RSImageParams.mPixelMap, RSImageParams.mDst, RSImageParams.mNodeId,
         RSImageParams.mUniqueId, RSImageParams.mImage);
     std::shared_ptr<Drawing::Image> dstImage = GetOutImage(RSImageParams.mUniqueId);
     if (dstImage == nullptr) {
+        return false;
+    }
+    if (dstImage->GetWidth() == 0 || RSImageParams.mImage->GetWidth() == 0) {
+        return false;
+    }
+    float realDstWidth = RSImageParams.mDst.GetWidth() * RSImageParams.mMatrixScaleX;
+    float newScaleRatio = realDstWidth / static_cast<float>(dstImage->GetWidth());
+    float originScaleRatio = realDstWidth / static_cast<float>(RSImageParams.mImage->GetWidth());
+    if (abs(originScaleRatio - 1.0f) < abs(newScaleRatio - 1.0f)) {
         return false;
     }
     Drawing::Rect newSrcRect(0, 0, dstImage->GetWidth(), dstImage->GetHeight());
@@ -362,7 +371,8 @@ bool RSImageDetailEnhancerThread::GetProcessReady(uint64_t imageId) const
 bool RSImageDetailEnhancerThread::GetEnableStatus() const
 {
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
-    if (std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
+    if (RSSystemProperties::GetGpuApiType() == GpuApiType::DDGR &&
+        std::atoi((system::GetParameter("rosen.isEnabledScaleImageAsync.enabled", "0")).c_str()) != 0 &&
         RSSystemProperties::GetMemoryWatermarkEnabled() &&
         isParamValidate_) {
         return true;
@@ -414,7 +424,6 @@ std::shared_ptr<Drawing::Surface> DetailEnhancerUtils::InitSurface(int dstWidth,
     nativeSurfaceInfo->nativeWindowBuffer = nativeWindowBuffer;
     std::shared_ptr<Drawing::Surface> newSurface = NativeBufferUtils::CreateFromNativeWindowBuffer(context.get(),
         imageInfoForRenderTarget, *nativeSurfaceInfo);
-    DestroyNativeWindowBuffer(nativeWindowBuffer);
     return newSurface;
 }
 
@@ -452,10 +461,6 @@ std::shared_ptr<Drawing::Image> DetailEnhancerUtils::MakeImageFromSurfaceBuffer(
     NativeBufferUtils::VulkanCleanupHelper* cleanUpHelper = new NativeBufferUtils::VulkanCleanupHelper(
         RsVulkanContext::GetSingleton(), vkTextureInfo->vkImage, vkTextureInfo->vkAlloc.memory);
     std::shared_ptr<Drawing::Image> dmaImage = std::make_shared<Drawing::Image>();
-    if (cleanUpHelper == nullptr || dmaImage == nullptr) {
-        RS_LOGE("DetailEnhancerUtils MakeImageFromSurfaceBuffer failed, cleanUpHelper is invalid!");
-        return nullptr;
-    }
     Drawing::TextureOrigin origin = Drawing::TextureOrigin::TOP_LEFT;
     image->GetBackendTexture(false, &origin);
     Drawing::BitmapFormat bitmapFormat = {GetColorTypeWithVKFormat(vkTextureInfo->format), image->GetAlphaType()};
@@ -522,6 +527,25 @@ sptr<SurfaceBuffer> DetailEnhancerUtils::CreateSurfaceBuffer(int width, int heig
     };
     surfaceBuffer->Alloc(bufConfig);
     return surfaceBuffer;
+}
+
+void DetailEnhancerUtils::SavePixelmapToFile(Drawing::Bitmap& bitmap, const std::string& dst)
+{
+    int32_t w = bitmap.GetWidth();
+    int32_t h = bitmap.GetHeight();
+    int32_t rowStride = bitmap.GetRowBytes();
+    int32_t totalSize = rowStride * h;
+    std::string localTime = CommonTools::GetLocalTime();
+    std::string fileName = dst + localTime + "_w" + std::to_string(w) + "_h" + std::to_string(h) +
+        "_stride" + std::to_string(rowStride) + ".dat";
+    std::ofstream outfile(fileName, std::fstream::out);
+    if (!outfile.is_open()) {
+        RS_LOGE("SavePixelmapToFile write error, path=%{public}s", fileName.c_str());
+        return;
+    }
+    outfile.write(reinterpret_cast<const char*>(bitmap.GetPixels()), totalSize);
+    outfile.close();
+    RS_LOGI("SavePixelmapToFile write success, path=%{public}s", fileName.c_str());
 }
 #endif
 } // OHOS

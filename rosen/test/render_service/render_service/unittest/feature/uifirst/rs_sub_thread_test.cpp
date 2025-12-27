@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,7 +41,10 @@ void RsSubThreadTest::SetUpTestCase()
 #endif
     RSTestUtil::InitRenderNodeGC();
 }
-void RsSubThreadTest::TearDownTestCase() {}
+void RsSubThreadTest::TearDownTestCase()
+{
+    sleep(25); // wait 25s ensure asnyc task is excuted.
+}
 void RsSubThreadTest::SetUp() {}
 void RsSubThreadTest::TearDown() {}
 
@@ -53,42 +56,10 @@ void RsSubThreadTest::TearDown() {}
  */
 HWTEST_F(RsSubThreadTest, PostTaskTest, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
+    auto renderContext = RenderContext::Create();
     ASSERT_TRUE(renderContext != nullptr);
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->PostTask([] {});
-}
-
-/**
- * @tc.name: CreateShareEglContextTest
- * @tc.desc: Test RsSubThreadTest.CreateShareEglContextTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RsSubThreadTest, CreateShareEglContextTest, TestSize.Level1)
-{
-    auto curThread1 = std::make_shared<RSSubThread>(nullptr, 0);
-    curThread1->CreateShareEglContext();
-    auto renderContext = std::make_shared<RenderContext>();
-    ASSERT_TRUE(renderContext != nullptr);
-    auto curThread2 = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    curThread2->CreateShareEglContext();
-}
-
-/**
- * @tc.name: DestroyShareEglContextgTest
- * @tc.desc: Test RsSubThreadTest.DestroyShareEglContextgTest
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RsSubThreadTest, DestroyShareEglContextTest, TestSize.Level1)
-{
-    auto curThread1 = std::make_shared<RSSubThread>(nullptr, 0);
-    curThread1->DestroyShareEglContext();
-    auto renderContext = std::make_shared<RenderContext>();
-    ASSERT_TRUE(renderContext != nullptr);
-    auto curThread2 = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    curThread2->DestroyShareEglContext();
 }
 
 /**
@@ -132,8 +103,8 @@ HWTEST_F(RsSubThreadTest, AddToReleaseQueue, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, PostSyncTaskTest001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->PostSyncTask([] {});
     curThread->Start();
     curThread->PostSyncTask([] {});
@@ -147,8 +118,8 @@ HWTEST_F(RsSubThreadTest, PostSyncTaskTest001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, RemoveTaskTest001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->RemoveTask("1");
     curThread->Start();
     curThread->RemoveTask("2");
@@ -162,8 +133,8 @@ HWTEST_F(RsSubThreadTest, RemoveTaskTest001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, DumpMemTest001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     DfxString log;
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
@@ -179,13 +150,29 @@ HWTEST_F(RsSubThreadTest, DumpMemTest001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, DumpMemTest002, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     DfxString log;
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     auto renderNode = std::make_shared<RSSurfaceRenderNode>(0);
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(renderNode);
     curThread->DumpMem(log, true);
+    EXPECT_TRUE(curThread->grContext_);
+}
+
+/**
+ * @tc.name: DumpGpuMemTest001
+ * @tc.desc: Verify function DumpGpuMem
+ * @tc.type:FUNC
+ */
+HWTEST_F(RsSubThreadTest, DumpGpuMemTest001, TestSize.Level1)
+{
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
+    DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
+    curThread->DumpGpuMem(log, nodeTags);
     EXPECT_TRUE(curThread->grContext_);
 }
 
@@ -196,8 +183,8 @@ HWTEST_F(RsSubThreadTest, DumpMemTest002, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
     curThread->GetAppGpuMemoryInMB();
     EXPECT_TRUE(curThread->grContext_);
@@ -210,8 +197,8 @@ HWTEST_F(RsSubThreadTest, GetAppGpuMemoryInMBTest001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, ThreadSafetyReleaseTextureTest001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->grContext_ = nullptr;
     curThread->ThreadSafetyReleaseTexture();
     EXPECT_EQ(curThread->grContext_, nullptr);
@@ -228,35 +215,12 @@ HWTEST_F(RsSubThreadTest, ThreadSafetyReleaseTextureTest001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, ReleaseSurfaceTest001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto graphicsSurface = std::make_shared<Drawing::Surface>();
     curThread->AddToReleaseQueue(std::move(graphicsSurface));
     curThread->ReleaseSurface();
     EXPECT_TRUE(curThread->tmpSurfaces_.empty());
-}
-
-/**
- * @tc.name: CreateShareEglContext001
- * @tc.desc: Verify function CreateShareEglContext
- * @tc.type: FUNC
- * @tc.require: issueIAE59W
- */
-HWTEST_F(RsSubThreadTest, CreateShareEglContext001, TestSize.Level1)
-{
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
-    curThread->CreateShareEglContext();
-    EXPECT_TRUE(curThread->renderContext_);
-
-#ifdef RS_ENABLE_GL
-    curThread->CreateShareEglContext();
-    EXPECT_TRUE(curThread->renderContext_);
-#endif
-
-    curThread->renderContext_ = nullptr;
-    curThread->CreateShareEglContext();
-    EXPECT_FALSE(curThread->renderContext_);
 }
 
 /**
@@ -267,8 +231,8 @@ HWTEST_F(RsSubThreadTest, CreateShareEglContext001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
     EXPECT_FALSE(curThread->grContext_);
@@ -295,8 +259,8 @@ HWTEST_F(RsSubThreadTest, DrawableCache001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     curThread->grContext_ = std::make_shared<Drawing::GPUContext>();
 
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
@@ -326,8 +290,8 @@ HWTEST_F(RsSubThreadTest, DrawableCache002, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    auto renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
     EXPECT_FALSE(curThread->grContext_);
@@ -376,8 +340,8 @@ HWTEST_F(RsSubThreadTest, DrawableCache003, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     EXPECT_TRUE(curThread->CreateShareGrContext());
 }
 
@@ -389,8 +353,8 @@ HWTEST_F(RsSubThreadTest, CreateShareGrContext001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, ReleaseCacheSurfaceOnly001, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
     auto node = std::make_shared<const RSSurfaceRenderNode>(0);
     std::shared_ptr<DrawableV2::RSSurfaceRenderNodeDrawable> nodeDrawable = nullptr;
     curThread->ReleaseCacheSurfaceOnly(nodeDrawable);
@@ -412,8 +376,8 @@ HWTEST_F(RsSubThreadTest, ReleaseCacheSurfaceOnly001, TestSize.Level1)
  */
 HWTEST_F(RsSubThreadTest, SetHighContrastIfEnabledTest, TestSize.Level1)
 {
-    auto renderContext = std::make_shared<RenderContext>();
-    auto curThread = std::make_shared<RSSubThread>(renderContext.get(), 0);
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
+    auto curThread = std::make_shared<RSSubThread>(renderContext, 0);
 
     Drawing::Canvas canvas;
     RSPaintFilterCanvas filterCanvas(&canvas);

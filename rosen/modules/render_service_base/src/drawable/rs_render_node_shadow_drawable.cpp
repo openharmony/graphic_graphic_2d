@@ -55,7 +55,7 @@ void RSRenderNodeShadowDrawable::Draw(Drawing::Canvas& canvas)
     // PLANNING: add support for op drop
 
     for (auto i = 0; i <= shadowIndex; i++) {
-        nodeDrawable_->drawCmdList_[i](&canvas, &rect);
+        nodeDrawable_->drawCmdList_[i]->OnDraw(&canvas, &rect);
     }
 }
 

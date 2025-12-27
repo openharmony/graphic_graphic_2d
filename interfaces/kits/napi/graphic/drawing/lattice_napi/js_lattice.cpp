@@ -25,6 +25,7 @@ napi_value JsLattice::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {
         DECLARE_NAPI_STATIC_FUNCTION("createImageLattice", JsLattice::CreateImageLattice),
+        DECLARE_NAPI_STATIC_FUNCTION("__createTransfer__", JsLattice::LatticeTransferDynamic),
     };
 
     napi_value constructor = nullptr;
@@ -242,6 +243,29 @@ napi_value JsLattice::Create(napi_env env, std::shared_ptr<Lattice> lattice)
         return nullptr;
     }
     return objValue;
+}
+
+napi_value JsLattice::LatticeTransferDynamic(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value argv;
+    if (napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr) != napi_ok || argc != 1) {
+        return nullptr;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv, &valueType);
+    if (valueType != napi_number) {
+        return nullptr;
+    }
+
+    int64_t addr = 0;
+    napi_get_value_int64(env, argv, &addr);
+    std::shared_ptr<Lattice> lattice = *reinterpret_cast<std::shared_ptr<Lattice>*>(addr);
+    if (lattice == nullptr) {
+        return nullptr;
+    }
+    return JsLattice::Create(env, lattice);
 }
 
 std::shared_ptr<Lattice> JsLattice::GetLattice()

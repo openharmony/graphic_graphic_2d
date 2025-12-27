@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_DRAWABLE_RS_ROOT_RENDER_NODE_DRAWABLE_H
 
 #include "drawable/rs_canvas_render_node_drawable.h"
-#include "feature/window_keyframe/rs_window_keyframe_buffer.h"
 
 namespace OHOS::Rosen {
 class RSRootRenderNode;
@@ -45,9 +44,6 @@ private:
 
     using Registrar = RenderNodeDrawableRegistrar<RSRenderNodeType::ROOT_NODE, OnGenerate>;
     static Registrar instance_;
-
-    // [Attention] Only used in PC window resize scene now
-    RSWindowKeyframeBuffer windowKeyframeBuffer_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -135,9 +135,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
     EXPECT_EQ(0, rateReduceManager.oneFramePeriod_);
     EXPECT_EQ(true, rateReduceManager.curAllMainAndLeashWindowNodesIds_.empty());
 
-    rateReduceManager.lastVisMapForVSyncVisLevel_.emplace(nodeId, RSVisibleLevel::RS_ALL_VISIBLE);
-    rateReduceManager.ClearLastVisMapForVsyncRate();
-    EXPECT_EQ(false, rateReduceManager.lastVisMapForVSyncVisLevel_.empty());
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
     EXPECT_EQ(true, rateReduceManager.surfaceVRateMap_.empty());
 
@@ -147,9 +144,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues001, TestSize.Level1)
     rateReduceManager.curTime_ = noneZero;
     rateReduceManager.FrameDurationEnd();
     EXPECT_NE(0, rateReduceManager.curTime_);
-    rateReduceManager.isReduceBySystemAnimatedScenes_ = true;
-    rateReduceManager.SetIsReduceBySystemAnimatedScenes(false);
-    EXPECT_EQ(true, rateReduceManager.isReduceBySystemAnimatedScenes_);
 
     rateReduceManager.vRateConditionQualified_ = true;
     rateReduceManager.oneFramePeriod_ = 0;
@@ -191,9 +185,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues002, TestSize.Level1)
     EXPECT_NE(0, rateReduceManager.oneFramePeriod_);
     EXPECT_EQ(false, rateReduceManager.curAllMainAndLeashWindowNodesIds_.empty());
 
-    rateReduceManager.lastVisMapForVSyncVisLevel_.emplace(nodeId, RSVisibleLevel::RS_ALL_VISIBLE);
-    rateReduceManager.ClearLastVisMapForVsyncRate();
-    EXPECT_EQ(true, rateReduceManager.lastVisMapForVSyncVisLevel_.empty());
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
     EXPECT_EQ(false, rateReduceManager.surfaceVRateMap_.empty());
 
@@ -202,9 +193,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, ResetFrameValues002, TestSize.Level1)
     rateReduceManager.curTime_ = 100;
     rateReduceManager.FrameDurationEnd();
     EXPECT_EQ(0, rateReduceManager.curTime_);
-    rateReduceManager.isReduceBySystemAnimatedScenes_ = true;
-    rateReduceManager.SetIsReduceBySystemAnimatedScenes(false);
-    EXPECT_EQ(false, rateReduceManager.isReduceBySystemAnimatedScenes_);
 
     rateReduceManager.ResetFrameValues(0);
     EXPECT_EQ(false, rateReduceManager.vRateConditionQualified_);
@@ -278,7 +266,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CheckNeedNotify001, TestSize.Level1)
     rateReduceManager.isSystemAnimatedScenes_ = true;
     EXPECT_EQ(true, rateReduceManager.CheckNeedNotify());
     EXPECT_EQ(false, rateReduceManager.CheckNeedNotify());
-    EXPECT_EQ(true, rateReduceManager.isReduceBySystemAnimatedScenes_);
 
     rateReduceManager.isSystemAnimatedScenes_ = false;
     rateReduceManager.curAllMainAndLeashWindowNodesIds_.emplace_back(nodeId);
@@ -705,42 +692,5 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CollectSurfaceVsyncInfo003, TestSize.Leve
     properties.boundsGeo_ = nullptr;
     rateReduceManager.CollectSurfaceVsyncInfo(screenInfo, *surfaceNode);
     EXPECT_EQ(true, rateReduceManager.surfaceVRateMap_.empty());
-}
-
-/**
- * @tc.name: NotifyVSyncRates001
- * @tc.desc: Test NotifyVSyncRates processing.
- * @tc.type: FUNC
- * @tc.require: issueIAWXLO
- */
-HWTEST_F(RSVsyncRateReduceManagerTest, NotifyVSyncRates001, TestSize.Level1)
-{
-    RSVsyncRateReduceManager rateReduceManager;
-    sptr<MockVSyncDistributor> vSyncDistributor = new MockVSyncDistributor();
-    rateReduceManager.appVSyncDistributor_ = vSyncDistributor;
-    rateReduceManager.vRateReduceEnabled_ = true;
-    rateReduceManager.vRateConditionQualified_ = true;
-    VsyncError error = VsyncError::GSERROR_OK;
-    EXPECT_CALL(*vSyncDistributor, SetQosVSyncRate(0, 0, false)).WillRepeatedly(testing::Return(error));
-
-    NodeId nodeId = 1;
-    NodeId nodeId2 = 2;
-    std::map<NodeId, RSVisibleLevel> vSyncVisLevelMap;
-    rateReduceManager.lastVisMapForVSyncVisLevel_.emplace(nodeId, RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE);
-    rateReduceManager.lastVisMapForVSyncVisLevel_.emplace(nodeId2, RSVisibleLevel::RS_ALL_VISIBLE);
-    vSyncVisLevelMap.emplace(nodeId2, RSVisibleLevel::RS_INVISIBLE);
-    rateReduceManager.NotifyVSyncRates(vSyncVisLevelMap);
-    EXPECT_EQ(rateReduceManager.lastVisMapForVSyncVisLevel_, vSyncVisLevelMap);
-
-    NodeId nodeId3 = 3;
-    NodeId nodeId4 = 4;
-    rateReduceManager.lastVisMapForVSyncVisLevel_.clear();
-    rateReduceManager.lastVisMapForVSyncVisLevel_.emplace(nodeId, RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE);
-    rateReduceManager.lastVisMapForVSyncVisLevel_.emplace(nodeId2, RSVisibleLevel::RS_ALL_VISIBLE);
-    vSyncVisLevelMap.emplace(nodeId2, RSVisibleLevel::RS_INVISIBLE);
-    vSyncVisLevelMap.emplace(nodeId3, RSVisibleLevel::RS_INVISIBLE);
-    vSyncVisLevelMap.emplace(nodeId4, RSVisibleLevel::RS_SEMI_DEFAULT_VISIBLE);
-    rateReduceManager.NotifyVSyncRates(vSyncVisLevelMap);
-    EXPECT_EQ(rateReduceManager.lastVisMapForVSyncVisLevel_, vSyncVisLevelMap);
 }
 } // namespace OHOS::Rosen

@@ -34,6 +34,7 @@ enum RSGraphicTestType {
     SYMBOL_TEST,
     EFFECT_TEST,
     HYBRID_RENDER_TEST,
+    GPU_COMPOSER_TEST,
 };
 
 enum class RSGraphicTestMode : uint8_t {

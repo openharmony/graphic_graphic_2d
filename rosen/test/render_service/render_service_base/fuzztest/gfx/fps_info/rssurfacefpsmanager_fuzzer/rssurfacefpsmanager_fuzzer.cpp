@@ -71,7 +71,18 @@ std::string GetStringFromData(int strlen)
     std::string str(cstr);
     return str;
 }
-
+void RSSurfaceFpsManagerRecordTimeFuzzTest()
+{
+    NodeId id = GetData<NodeId>();
+    uint64_t timestamp = GetData<uint64_t>();
+    uint64_t flushTimestamp = GetData<uint64_t>();
+    uint64_t vsyncId = GetData<uint64_t>();
+    int32_t presentFd = GetData<int32_t>();
+    RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
+    surfaceFpsManager.RecordFlushTime(id, vsyncId, flushTimestamp);
+    surfaceFpsManager.RecordPresentFd(id, vsyncId, presentFd);
+    surfaceFpsManager.RecordPresentTime(id, presentFd, timestamp);
+}
 bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr) {
@@ -105,29 +116,26 @@ bool RSSurfaceFpsManagerFuzzTest(const uint8_t* data, size_t size)
     NodeId id2 = GetData<NodeId>();
     NodeId id3 = GetData<NodeId>();
     NodeId id4 = GetData<NodeId>();
-    NodeId id5 = GetData<NodeId>();
     pid_t pid0 = GetData<pid_t>();
     pid_t pid1 = GetData<pid_t>();
     pid_t pid2 = GetData<pid_t>();
-    uint64_t timestamp = GetData<uint64_t>();
-    uint32_t seqNum = GetData<uint32_t>();
     bool isUnique = GetData<bool>();
 
     RSSurfaceFpsManager& surfaceFpsManager = RSSurfaceFpsManager::GetInstance();
     surfaceFpsManager.RegisterSurfaceFps(id0, name0);
-    surfaceFpsManager.RecordPresentTime(id1, timestamp, seqNum);
-    surfaceFpsManager.GetSurfaceFps(id2);
+    RSSurfaceFpsManagerRecordTimeFuzzTest();
+    surfaceFpsManager.GetSurfaceFps(id1);
     surfaceFpsManager.GetSurfaceFps(name1, isUnique);
     surfaceFpsManager.GetSurfaceFpsByPid(pid0);
-    surfaceFpsManager.Dump(result0, id3);
-    surfaceFpsManager.ClearDump(result1, id4);
+    surfaceFpsManager.Dump(result0, id2);
+    surfaceFpsManager.ClearDump(result1, id3);
     surfaceFpsManager.Dump(result2, name2);
     surfaceFpsManager.ClearDump(result3, name3);
     surfaceFpsManager.DumpByPid(result4, pid1);
     surfaceFpsManager.ClearDumpByPid(result5, pid2);
     surfaceFpsManager.DumpSurfaceNodeFps(result6, option0, arg0);
     surfaceFpsManager.ClearSurfaceNodeFps(result7, option1, arg1);
-    surfaceFpsManager.UnregisterSurfaceFps(id5);
+    surfaceFpsManager.UnregisterSurfaceFps(id4);
     return true;
 }
 

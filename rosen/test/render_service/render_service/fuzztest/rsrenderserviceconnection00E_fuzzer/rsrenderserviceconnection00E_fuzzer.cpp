@@ -26,9 +26,9 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "pipeline/main_thread/rs_main_thread.h"
-#include "pipeline/main_thread/rs_render_service_connection.h"
+#include "render_server/transaction/rs_client_to_service_connection.h"
 #include "platform/ohos/rs_irender_service.h"
-#include "transaction/rs_render_service_connection_stub.h"
+#include "render_server/transaction/zidl/rs_client_to_service_connection_stub.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "transaction/rs_marshalling_helper.h"
 #include "message_parcel.h"
@@ -38,9 +38,8 @@
 
 namespace OHOS {
 namespace Rosen {
-DECLARE_INTERFACE_DESCRIPTOR(u"ohos.rosen.RenderServiceConnection");
 auto g_pid = getpid();
-auto screenManagerPtr_ = impl::RSScreenManager::GetInstance();
+auto screenManagerPtr_ = RSScreenManager::GetInstance();
 auto mainThread_ = RSMainThread::Instance();
 sptr<RSIConnectionToken> token_ = new IRemoteStub<RSIConnectionToken>();
 
@@ -48,7 +47,7 @@ DVSyncFeatureParam dvsyncParam;
 auto generator = CreateVSyncGenerator();
 auto appVSyncController = new VSyncController(generator, 0);
 sptr<VSyncDistributor> appVSyncDistributor_ = new VSyncDistributor(appVSyncController, "app", dvsyncParam);
-sptr<RSRenderServiceConnectionStub> connectionStub_ = new RSRenderServiceConnection(
+sptr<RSClientToServiceConnectionStub> toServiceConnectionStub_ = new RSClientToServiceConnection(
     g_pid, nullptr, mainThread_, screenManagerPtr_, token_->AsObject(), appVSyncDistributor_);
 namespace {
 const uint8_t DO_REGISTER_TYPEFACE = 0;
@@ -57,7 +56,7 @@ const uint8_t DO_NEED_REGISTER_TYPEFACE = 2;
 const uint8_t DO_REGISTER_SHARED_TYPEFACE = 3;
 const uint8_t TARGET_SIZE = 4;
 
-sptr<RSIRenderServiceConnection> CONN = nullptr;
+sptr<RSIClientToServiceConnection> CONN = nullptr;
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
@@ -128,12 +127,30 @@ void DoRegisterTypeface()
     uint64_t uniqueId = static_cast<NodeId>(g_pid) << 32;
     uint32_t hash = GetData<uint32_t>();
     option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(uniqueId);
     dataParcel.WriteUint32(hash);
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     RSMarshallingHelper::Marshalling(dataParcel, typeface);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+
+    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
+    MessageParcel dataParcel1;
+    MessageParcel replyParcel1;
+    MessageOption option1;
+    uint64_t uniqueId1 = static_cast<NodeId>(g_pid) << 32 | GetData<uint32_t>();
+    uint32_t size = GetData<uint32_t>();
+    auto ashmem = Ashmem::CreateAshmem("test", size);
+    ashmem->MapReadAndWriteAshmem();
+    option.SetFlags(MessageOption::TF_SYNC);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = uniqueId1;
+    sharedTypeface.size_ = size;
+    sharedTypeface.index_ = GetData<uint32_t>();
+    sharedTypeface.fd_ = ashmem->GetAshmemFd();
+    RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterSharedTypeface()
@@ -146,11 +163,13 @@ void DoRegisterSharedTypeface()
     uint32_t hash = GetData<uint32_t>();
     id |= static_cast<uint64_t>(hash);
     option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(GetDescriptor());
-    dataParcel.WriteUint64(id);
-    dataParcel.WriteUint32(GetData<uint32_t>());
-    dataParcel.WriteFileDescriptor(GetData<int32_t>());
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = id;
+    sharedTypeface.size_ = GetData<uint32_t>();
+    sharedTypeface.fd_ = GetData<int32_t>();
+    RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoUnRegisterTypeface()
@@ -161,9 +180,9 @@ void DoUnRegisterTypeface()
     MessageOption option;
     uint64_t uniqueId = static_cast<NodeId>(g_pid) << 32;
     option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(uniqueId);
-    connectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 // DO NOTHING
@@ -175,17 +194,6 @@ void DoNeedRegisterTypeface()
 /* Fuzzer envirement */
 extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
 {
-    auto newPid = getpid();
-    auto mainThread = OHOS::Rosen::RSMainThread::Instance();
-    auto screenManagerPtr = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::CONN = new OHOS::Rosen::RSRenderServiceConnection(
-        newPid,
-        nullptr,
-        mainThread,
-        screenManagerPtr,
-        nullptr,
-        nullptr
-    );
     return 0;
 }
 

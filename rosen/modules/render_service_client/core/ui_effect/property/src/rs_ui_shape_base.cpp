@@ -38,6 +38,18 @@ static thread_local std::unordered_map<RSNGEffectType, ShapeCreator> creatorLUT 
             return std::make_shared<RSNGSDFRRectShape>();
         }
     },
+    {RSNGEffectType::SDF_TRANSFORM_SHAPE, [] {
+            return std::make_shared<RSNGSDFTransformShape>();
+        }
+    },
+    {RSNGEffectType::SDF_PIXELMAP_SHAPE, [] {
+            return std::make_shared<RSNGSDFPixelmapShape>();
+        }
+    },
+    {RSNGEffectType::SDF_EMPTY_SHAPE, [] {
+            return std::make_shared<RSNGSDFEmptyShape>();
+        }
+    },
 };
 
 std::shared_ptr<RSNGShapeBase> RSNGShapeBase::Create(RSNGEffectType type)

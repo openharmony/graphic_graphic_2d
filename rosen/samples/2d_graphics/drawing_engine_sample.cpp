@@ -304,7 +304,7 @@ void DrawingEngineSample::OutPutDisplay()
             return;
         }
 
-        std::vector<LayerInfoPtr> layers;
+        std::vector<RSLayerPtr> layers;
         layers.push_back(drawingLayer);
         output_->SetLayerInfo(layers);
 

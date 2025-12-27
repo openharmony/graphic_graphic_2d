@@ -28,6 +28,7 @@ namespace {
 const std::string VIDEO_RATE_FLAG = "VIDEO_RATE";
 const std::string VIDEO_VOTE_FLAG = "VOTER_VIDEO";
 // USE DURATION TO DETERMINE BARRAGE AND UI
+constexpr uint64_t FFRT_QOS_INHERIT = 4;
 constexpr uint64_t DANMU_MAX_INTERVAL_TIME = 50;
 constexpr int32_t VIDEO_VOTE_DELAYS_TIME = 1000 * 1000;
 }
@@ -85,6 +86,9 @@ void RSFrameRateVote::CheckSurfaceAndUi()
 void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource sourceType,
     sptr<SurfaceBuffer>& buffer)
 {
+    if (!isVideoApp_.load()) {
+        return;
+    }
     // transactionFlags_ format is [pid, eventId]
     std::string transactionFlags = "";
     std::string strLastVotedPid;
@@ -97,6 +101,7 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
             transactionFlags.find(strLastVotedPid) != std::string::npos) {
             hasUiOrSurface = true;
     }
+    RS_LOGD("sourceType: %{public}d, hasUiOrSurface: %{public}d", sourceType, hasUiOrSurface);
     // OH SURFACE SOURCE VIDEO AN UI VOTE
     if (!isSwitchOn_ || sourceType != OHSurfaceSource::OH_SURFACE_SOURCE_VIDEO || buffer == nullptr) {
         return;
@@ -121,7 +126,9 @@ void RSFrameRateVote::VideoFrameRateVote(uint64_t surfaceNodeId, OHSurfaceSource
         rsVideoFrameRateVote->StartVideoFrameRateVote(videoRate);
     };
     if (ffrtQueue_) {
-        ffrtQueue_->submit(initTask);
+        ffrt::task_attr taskAttr;
+        taskAttr.qos(FFRT_QOS_INHERIT);
+        ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }
 
@@ -138,7 +145,9 @@ void RSFrameRateVote::ReleaseSurfaceMap(uint64_t surfaceNodeId)
         }
     };
     if (ffrtQueue_) {
-        ffrtQueue_->submit(initTask);
+        ffrt::task_attr taskAttr;
+        taskAttr.qos(FFRT_QOS_INHERIT);
+        ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }
 
@@ -184,9 +193,9 @@ void RSFrameRateVote::SurfaceVideoVote(uint64_t surfaceNodeId, uint32_t rate)
     auto initTask = [this, maxPid, maxRate]() {
         VoteRate(maxPid, VIDEO_VOTE_FLAG, maxRate);
     };
-    ffrt::task_attr taskAttr;
-    taskAttr.delay(VIDEO_VOTE_DELAYS_TIME);
     if (ffrtQueue_) {
+        ffrt::task_attr taskAttr;
+        taskAttr.delay(VIDEO_VOTE_DELAYS_TIME);
         taskHandler_ = ffrtQueue_->submit_h(initTask, taskAttr);
     }
 }

@@ -13,15 +13,12 @@
  * limitations under the License.
  */
 
-#include "feature/param_manager/rs_param_manager.h"
 #include "gtest/gtest.h"
 #include "limit_number.h"
-#include "parameters.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "render_server/rs_render_service.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "gfx/dump/rs_dump_manager.h"
-#include "want.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -62,19 +59,6 @@ std::string GetDumpResult(sptr<RSRenderService> renderService, std::u16string ar
     std::unordered_set<std::u16string> argSet = { arg };
     renderService->DoDump(argSet, dumpString);
     return dumpString;
-}
-
-/**
- * @tc.name: TestRemoveConnection001
- * @tc.desc: RemoveConnection test.
- * @tc.type: FUNC
- * @tc.require: issueI7G75T
- */
-HWTEST_F(RSRenderServiceUnitTest, TestRemoveConnection001, TestSize.Level1)
-{
-    sptr<RSRenderService> renderService(new RSRenderService());
-    ASSERT_NE(renderService, nullptr);
-    renderService->RemoveConnection(nullptr);
 }
 
 /**
@@ -213,100 +197,22 @@ HWTEST_F(RSRenderServiceUnitTest, RSGfxDumpInit001, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSParamManager001
- * @tc.desc: test RSParamManager
+ * @tc.name  : RemoveConnectionTest001
+ * @tc.desc  : test RemoveConnection
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager001, TestSize.Level1)
+HWTEST_F(RSRenderServiceUnitTest, RemoveConnectionTest001, TestSize.Level1)
 {
-    RSParamManager& paramManager = RSParamManager::GetInstance();
-    paramManager.SubscribeEvent();
-    ASSERT_NE(paramManager.handleEventFunc_.size(), 0);
-    paramManager.UnSubscribeEvent();
-}
+    sptr<RSRenderService> renderService(new RSRenderService());
+    ASSERT_NE(renderService, nullptr);
+    bool isConnectionRemoved = renderService->RemoveConnection(nullptr);
+    EXPECT_FALSE(isConnectionRemoved);
 
-/**
- * @tc.name: RSParamManager002
- * @tc.desc: test RSParamManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager002, TestSize.Level1)
-{
-    RSParamManager& paramManager = RSParamManager::GetInstance();
-    paramManager.SubscribeEvent();
-    OHOS::AAFwk::Want want;
-    want.SetAction("usual.event.DUE_SA_CFG_UPDATED");
-    paramManager.OnReceiveEvent(want);
-    paramManager.HandleParamUpdate(want);
-    int restartParameter = std::atoi(system::GetParameter("debug.graphic.cloudpushrestart", "0").c_str());
-    int cloudParameter = std::atoi(system::GetParameter("persist.rosen.disableddgr.enabled", "0").c_str());
-    ASSERT_EQ(restartParameter, 1);
-    ASSERT_EQ(cloudParameter, 0);
-    paramManager.UnSubscribeEvent();
+    auto token = new IRemoteStub<RSIConnectionToken>();
+    auto tokenObj = token->AsObject();
+    ASSERT_NE(tokenObj, nullptr);
+    isConnectionRemoved = renderService->RemoveConnection(token);
+    EXPECT_FALSE(isConnectionRemoved);
 }
-
-/**
- * @tc.name: RSParamManager003
- * @tc.desc: test RSParamManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager003, TestSize.Level1)
-{
-    RSParamManager& paramManager = RSParamManager::GetInstance();
-    paramManager.SubscribeEvent();
-    OHOS::AAFwk::Want want;
-    want.SetAction("unexpected_action");
-    paramManager.OnReceiveEvent(want);
-    paramManager.HandleParamUpdate(want);
-    int restartParameter = std::atoi(system::GetParameter("debug.graphic.cloudpushrestart", "0").c_str());
-    int cloudParameter = std::atoi(system::GetParameter("persist.rosen.disableddgr.enabled", "0").c_str());
-    ASSERT_EQ(restartParameter, 0);
-    ASSERT_EQ(cloudParameter, 0);
-    paramManager.UnSubscribeEvent();
-}
-
-/**
- * @tc.name: RSParamManager004
- * @tc.desc: test RSParamManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager004, TestSize.Level1)
-{
-    RSParamManager& paramManager = RSParamManager::GetInstance();
-    bool isCloud = paramManager.IsCloudDisableDDGR();
-    ASSERT_FALSE(isCloud);
-    paramManager.GetHigherVersionPath();
-    std::string filePath = "";
-    paramManager.GetVersionNums(filePath);
-    std::string versionStr = "version=5.0.0.0";
-    std::vector<std::string> versionStrSplit = paramManager.SplitString(versionStr, '=');
-    ASSERT_EQ(versionStrSplit.size(), 2);
-    std::vector<std::string> localVersion = {"4", "0", "0", "0"};
-    std::vector<std::string> cloudVersion = {"5", "0", "0", "0"};
-    bool versionCompare = paramManager.CompareVersion(localVersion, cloudVersion);
-    ASSERT_TRUE(versionCompare);
-}
-
-/**
- * @tc.name  : GRSParamManager005
- * @tc.desc  : test RSParamManager
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSRenderServiceUnitTest, RSParamManager005, TestSize.Level1) {
-    RSParamManager& paramManager = RSParamManager::GetInstance();
-    std::vector<std::string> localVersion1 = {"5", "0", "0", "0"};
-    std::vector<std::string> cloudVersion1 = {"4", "0", "0", "0"};
-    bool versionCompare1 = paramManager.CompareVersion(localVersion1, cloudVersion1);
-    ASSERT_FALSE(versionCompare1);
-    std::vector<std::string> localVersion2 = {"5", "0", "0", "0"};
-    std::vector<std::string> cloudVersion2 = {"5", "a", "0", "0"};
-    bool versionCompare2 = paramManager.CompareVersion(localVersion2, cloudVersion2);
-    ASSERT_FALSE(versionCompare2);
-}
-
 } // namespace OHOS::Rosen

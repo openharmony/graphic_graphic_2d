@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <fstream>
 
+#include "file_ex.h"
 #include "gtest/gtest.h"
 
 #include "text/typeface.h"
@@ -228,6 +229,7 @@ HWTEST_F(TypefaceTest, NullTests001, TestSize.Level1)
     EXPECT_EQ(typeface->GetFamilyName(), "");
     EXPECT_EQ(typeface->GetTableSize(0), 0);
     EXPECT_EQ(typeface->GetTableData(0, 0, 0, nullptr), 0);
+    EXPECT_EQ(typeface->GetBold(), false);
     EXPECT_EQ(typeface->GetItalic(), false);
     EXPECT_EQ(typeface->GetUniqueID(), 0);
     EXPECT_EQ(typeface->Serialize(), nullptr);
@@ -243,6 +245,80 @@ HWTEST_F(TypefaceTest, NullTests001, TestSize.Level1)
     EXPECT_EQ(typeface->GetSize(), 0);
     FontArguments arg;
     EXPECT_EQ(typeface->MakeClone(arg), nullptr);
+}
+
+/**
+ * @tc.name: GetVariationDesignPosition001
+ * @tc.desc: Test GetVariationDesignPosition
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(TypefaceTest, GetVariationDesignPosition001, TestSize.Level1)
+{
+    auto stream = std::make_unique<MemoryStream>(ttfData_.get(), ttfLen_);
+    ASSERT_NE(stream, nullptr);
+
+    auto typeface = Typeface::MakeFromStream(std::move(stream));
+    ASSERT_NE(typeface, nullptr);
+
+    uint32_t axis = 10;
+    float coValue = 10;
+    int coordinateCount = 2;
+    FontArguments::VariationPosition::Coordinate coordinates[] = {
+        {axis, coValue},
+        {axis, coValue}
+    };
+    int result = typeface->GetVariationDesignPosition(coordinates, coordinateCount);
+    EXPECT_EQ(result, 1);
+}
+
+/**
+ * @tc.name: MakeFromAshmemTest001
+ * @tc.desc: Test MakeFromAshmem
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(TypefaceTest, MakeFromAshmemTest001, TestSize.Level1)
+{
+    auto stream = std::make_unique<MemoryStream>(ttfData_.get(), ttfLen_);
+    ASSERT_NE(stream, nullptr);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(std::move(stream), 0);
+    ASSERT_NE(typeface, nullptr);
+}
+
+/**
+ * @tc.name: MakeFromAshmemTest002
+ * @tc.desc: Test MakeFromAshmem
+ * @tc.type: FUNC
+ * @tc.require:I91EDT
+ */
+HWTEST_F(TypefaceTest, MakeFromAshmemTest002, TestSize.Level1)
+{
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
+    std::shared_ptr<Drawing::Typeface> typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<const uint8_t*>(content.data()), content.size(), 0, "test");
+    ASSERT_NE(typeface, nullptr);
+    pid_t pid = getpid();
+    uint64_t uniqueID = (static_cast<uint64_t>(pid) << 32 | static_cast<uint64_t>(typeface->GetHash()));
+    Drawing::SharedTypeface sharedTypeface(uniqueID, typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 100.0}, {2003072104, 62.5} };
+
+    std::shared_ptr<Drawing::Typeface> newTypeface = Drawing::Typeface::MakeFromAshmem(sharedTypeface);
+    ASSERT_NE(newTypeface, nullptr);
+    EXPECT_NE(newTypeface, typeface);
+
+    int coordsCount = newTypeface->GetVariationDesignPosition(nullptr, 0);
+    EXPECT_EQ(coordsCount, 2);
+
+    std::vector<FontArguments::VariationPosition::Coordinate> coords(coordsCount);
+    newTypeface->GetVariationDesignPosition(coords.data(), coordsCount);
+    EXPECT_EQ(sharedTypeface.coords_[0].axis, coords[0].axis);
+    EXPECT_EQ(sharedTypeface.coords_[0].value, coords[0].value);
+    EXPECT_EQ(sharedTypeface.coords_[1].axis, coords[1].axis);
+    EXPECT_EQ(sharedTypeface.coords_[1].value, coords[1].value);
 }
 } // namespace Drawing
 } // namespace Rosen

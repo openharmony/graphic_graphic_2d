@@ -78,7 +78,6 @@ protected:
     virtual ~RSModifier() = default;
 
     // only accept properties on white list ?
-    std::map<RSPropertyType, std::shared_ptr<RSPropertyBase>> properties_;
     ModifierId id_;
     std::weak_ptr<RSNode> node_;
 
@@ -146,6 +145,7 @@ protected:
         }
     }
 
+    std::map<RSPropertyType, std::shared_ptr<RSPropertyBase>> properties_;
 private:
     static ModifierId GenerateModifierId();
     bool isDirty_ { false };

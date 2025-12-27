@@ -267,6 +267,14 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_BLACKLIST");
             break;
         }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::ADD_VIRTUAL_SCREEN_WHITELIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::ADD_VIRTUAL_SCREEN_WHITELIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::REMOVE_VIRTUAL_SCREEN_WHITELIST): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REMOVE_VIRTUAL_SCREEN_WHITELIST");
+            break;
+        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_ROG_SCREEN_RESOLUTION): {
             hasPermission = IsFoundationCalling(codeEnumTypeName_ + "::SET_ROG_SCREEN_RESOLUTION");
             break;
@@ -379,10 +387,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_SURFACE_CAPTURE): {
             hasPermission = CheckPermission(code);
-            break;
-        }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::TAKE_UI_CAPTURE_IN_RANGE): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::TAKE_UI_CAPTURE_IN_RANGE");
             break;
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_POINTER_POSITION): {
@@ -602,10 +606,6 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_BEHIND_WINDOW_FILTER_ENABLED");
             break;
         }
-        case static_cast<CodeUnderlyingType>(CodeEnumType::REGISTER_TRANSACTION_DATA_CALLBACK): {
-            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::REGISTER_TRANSACTION_DATA_CALLBACK");
-            break;
-        }
         case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PID_GPU_MEMORY_IN_MB): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PID_GPU_MEMORY_IN_MB");
             break;
@@ -644,6 +644,10 @@ bool RSIRenderServiceConnectionInterfaceCodeAccessVerifier::IsExclusiveVerificat
         }
         case static_cast<CodeUnderlyingType>(CodeEnumType::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST): {
             hasPermission = IsSystemCalling(codeEnumTypeName_ + "::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST");
+            break;
+        }
+        case static_cast<CodeUnderlyingType>(CodeEnumType::GET_PANEL_POWER_STATUS): {
+            hasPermission = IsSystemCalling(codeEnumTypeName_ + "::GET_PANEL_POWER_STATUS");
             break;
         }
         default: {

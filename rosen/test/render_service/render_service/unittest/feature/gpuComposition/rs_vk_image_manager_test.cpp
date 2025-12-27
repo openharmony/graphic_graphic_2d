@@ -14,8 +14,10 @@
  */
 
 #include "gtest/gtest.h"
+#include "parameters.h"
 #include "feature/gpuComposition/rs_vk_image_manager.h"
 #include "pipeline/render_thread/rs_base_render_engine.h"
+#include "platform/common/rs_system_properties.h"
 #include "recording/recording_canvas.h"
 #include "surface_buffer_impl.h"
 
@@ -285,7 +287,7 @@ HWTEST_F(RSVKImageManagerTest, MapVkImageFromSurfaceBufferTest, TestSize.Level1)
     vkImageManager_->imageCacheSeqs_[bufferId] = nullptr;
     image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
     EXPECT_EQ(image, nullptr); // imageCache is null
-    
+
     NativeWindowBuffer* nativeWindowBuffer = nullptr;
     Drawing::BackendTexture backendTexture(true);
     Drawing::TextureInfo textureInfo;
@@ -297,7 +299,7 @@ HWTEST_F(RSVKImageManagerTest, MapVkImageFromSurfaceBufferTest, TestSize.Level1)
     ASSERT_NE(vkImage, nullptr);
     EXPECT_EQ(vkImage->GetBackendTexture().GetTextureInfo().GetVKTextureInfo(), nullptr);
     image = vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
-    
+
     vkImageManager_->imageCacheSeqs_.clear();
     vkImageManager_->MapVkImageFromSurfaceBuffer(buffer_, BufferFence_, fakeTid_);
 
@@ -344,7 +346,7 @@ HWTEST_F(RSVKImageManagerTest, CreateImageCacheFromBuffer001, TestSize.Level1)
 HWTEST_F(RSVKImageManagerTest, CreateTest, TestSize.Level1)
 {
     std::shared_ptr<RSImageManager> imageManager;
-    std::shared_ptr<RenderContext> renderContext = std::make_shared<RenderContext>();
+    std::shared_ptr<RenderContext> renderContext = RenderContext::Create();
 #ifdef RS_ENABLE_VK
     imageManager = RSImageManager::Create(renderContext);
     ASSERT_NE(imageManager, nullptr);
@@ -401,16 +403,45 @@ HWTEST_F(RSVKImageManagerTest, CreateImageFromBufferTest002, TestSize.Level1)
     params.ignoreAlpha = true;
     EXPECT_NE(params.buffer, nullptr);
     if (params.buffer && recordingCanvas) {
+        // buffer is not deleted
         EXPECT_FALSE(params.buffer->IsBufferDeleted());
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
 
-        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
-        EXPECT_TRUE(params.buffer->IsBufferDeleted());
-        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        // GetVKImageAdaptationForWallpaperEnabled() is true
+        system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
+        EXPECT_TRUE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
 
-        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
-        EXPECT_TRUE(params.buffer->IsBufferDeleted());
+        // buffer is deleted from cache
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
         EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
+            static_cast<BufferDeletedFlag>(0));
+
+        // buffer is deleted from cache and rs
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
+            static_cast<BufferDeletedFlag>(0));
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_RS,
+            BufferDeletedFlag::DELETED_FROM_RS);
+
+        // buffer is deleted from rs
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_RS);
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_RS,
+            BufferDeletedFlag::DELETED_FROM_RS);
+
+        // buffer is deleted from cache and GetVKImageAdaptationForWallpaperEnabled() is false
+        params.buffer->SetBufferDeletedFlag(BufferDeletedFlag::DELETED_FROM_CACHE);
+        system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "0");
+        EXPECT_FALSE(RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled());
+        EXPECT_EQ(imageManager->CreateImageFromBuffer(*recordingCanvas, params, drawingColorSpace), nullptr);
+        EXPECT_EQ(params.buffer->GetBufferDeletedFlag() & BufferDeletedFlag::DELETED_FROM_CACHE,
+            BufferDeletedFlag::DELETED_FROM_CACHE);
+
+        // Set rosen.graphic.vkimage_adapt_wallpape as default value
+        system::SetParameter("rosen.graphic.vkimage_adapt_wallpaper", "1");
     }
 }
 
@@ -460,5 +491,175 @@ HWTEST_F(RSVKImageManagerTest, NewImageCacheFromBufferTest, TestSize.Level1)
     isProtectedCondition = false;
     res = imageManager->NewImageCacheFromBuffer(buffer, threadIndex, isProtectedCondition);
     EXPECT_EQ(res, nullptr);
+}
+
+/**
+ * @tc.name: UnMapImageFromSurfaceBuffer001
+ * @tc.desc: Map 10 VkImages, check cacheSeq size is 10,
+ *           UnMap all VkImage with invalidSeqNum and validSeqNum, check cacheSeq size is 10 or 0
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer001, TestSize.Level1)
+{
+    const uint32_t cacheNums = 10;
+    std::set<uint64_t> bufferSeqNums;
+    std::set<uint64_t> bufferSeqInvalidNums;
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+
+        bufferSeqNums.insert(buffer->GetBufferId());
+        bufferSeqInvalidNums.insert(buffer->GetBufferId() / 2);
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, UNI_RENDER_THREAD_INDEX);
+        EXPECT_NE(imageCache, nullptr);
+        EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
+    }
+
+    vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqInvalidNums);
+    EXPECT_EQ(cacheNums, vkImageManager_->imageCacheSeqs_.size());
+
+    vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqNums);
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: UnMapImageFromSurfaceBuffer002
+ * @tc.desc: Map 50 VkImages with valid tid, check cacheSeq size is not over MAX_CACHE_SIZE(40),
+ *           UnMap all VkImage with validSeqNum, check imageCacheSeqs and oneByOneUnmapCacheSeqs size is  0
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer002, TestSize.Level1)
+{
+    const uint32_t cacheNums = 50;
+    std::set<uint64_t> bufferSeqNums;
+    const uint32_t MAX_CACHE_SIZE = 40;
+    pid_t tid = gettid();
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+
+        bufferSeqNums.insert(buffer->GetBufferId());
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, tid);
+        EXPECT_NE(imageCache, nullptr);
+        if (i <= MAX_CACHE_SIZE) {
+            EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
+        } else {
+            EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->imageCacheSeqs_.size());
+        }
+    }
+
+    vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqNums);
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+    EXPECT_EQ(0, vkImageManager_->oneByoneUnmapCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: UnMapImageFromSurfaceBuffer003
+ * @tc.desc: Map 50 VkImages with invalid tid, check cacheSeq size is not over MAX_CACHE_SIZE(40),
+ *           UnMap all VkImage with validSeqNum, check imageCacheSeqs and oneByOneUnmapCacheSeqs size is  0
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer003, TestSize.Level1)
+{
+    const uint32_t cacheNums = 50;
+    std::set<uint64_t> bufferSeqNums;
+    const uint32_t MAX_CACHE_SIZE = 40;
+    pid_t tid = UNI_RENDER_THREAD_INDEX;
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+
+        bufferSeqNums.insert(buffer->GetBufferId());
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, tid);
+        EXPECT_NE(imageCache, nullptr);
+        if (i <= MAX_CACHE_SIZE) {
+            EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
+        } else {
+            EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->imageCacheSeqs_.size());
+        }
+    }
+
+    vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqNums);
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+    EXPECT_EQ(0, vkImageManager_->oneByoneUnmapCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: UnMapImageFromSurfaceBuffer004
+ * @tc.desc: Map 50 VkImages with valid or invalid tid, check cacheSeq size is not over MAX_CACHE_SIZE(40),
+ *           UnMap all VkImage with validSeqNum, check imageCacheSeqs and oneByOneUnmapCacheSeqs size is  0
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, UnMapImageFromSurfaceBuffer004, TestSize.Level1)
+{
+    const uint32_t cacheNums = 50;
+    std::set<uint64_t> bufferSeqNums;
+    const uint32_t MAX_CACHE_SIZE = 40;
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+
+        bufferSeqNums.insert(buffer->GetBufferId());
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, i % 2 == 0 ? gettid() : UNI_RENDER_THREAD_INDEX);
+        EXPECT_NE(imageCache, nullptr);
+        if (i <= MAX_CACHE_SIZE) {
+            EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
+        } else {
+            EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->imageCacheSeqs_.size());
+        }
+    }
+
+    vkImageManager_->UnMapImageFromSurfaceBuffer(bufferSeqNums);
+    EXPECT_EQ(0, vkImageManager_->imageCacheSeqs_.size());
+    EXPECT_EQ(0, vkImageManager_->oneByoneUnmapCacheSeqs_.size());
+}
+
+/**
+ * @tc.name: UnMapImageOneByOne001
+ * @tc.desc: Map 50 VkImages, check cacheSeq size is not over MAX_CACHE_SIZE(40),
+ *           UnMap all VkImage with invalid tid, check imageCacheSeqs size is MAX_CACHE_SIZE
+ * @tc.type: FUNC
+ * @tc.require: issueI7A39J
+ */
+HWTEST_F(RSVKImageManagerTest, UnMapImageOneByOne001, TestSize.Level1)
+{
+    const uint32_t cacheNums = 50;
+    std::set<uint64_t> bufferSeqNums;
+    const uint32_t MAX_CACHE_SIZE = 40;
+
+    while (!vkImageManager_->oneByoneUnmapCacheSeqs_.empty()) {
+        vkImageManager_->oneByoneUnmapCacheSeqs_.pop();
+    }
+    vkImageManager_->imageCacheSeqs_.clear();
+
+    for (uint32_t i = 1; i <= cacheNums; i++) {
+        auto buffer = CreateBuffer();
+        ASSERT_NE(buffer, nullptr);
+
+        bufferSeqNums.insert(buffer->GetBufferId());
+        auto imageCache = vkImageManager_->MapVkImageFromSurfaceBuffer(
+            buffer, SyncFence::INVALID_FENCE, i % 2 == 0 ? gettid() : UNI_RENDER_THREAD_INDEX);
+        EXPECT_NE(imageCache, nullptr);
+        if (i <= MAX_CACHE_SIZE) {
+            EXPECT_EQ(i, vkImageManager_->imageCacheSeqs_.size());
+        } else {
+            EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->imageCacheSeqs_.size());
+        }
+    }
+
+    vkImageManager_->UnMapImageOneByOne(0);
+    EXPECT_EQ(MAX_CACHE_SIZE, vkImageManager_->imageCacheSeqs_.size());
+    while (!vkImageManager_->oneByoneUnmapCacheSeqs_.empty()) {
+        vkImageManager_->oneByoneUnmapCacheSeqs_.pop();
+    }
+    vkImageManager_->imageCacheSeqs_.clear();
 }
 } // namespace OHOS::Rosen

@@ -115,7 +115,6 @@ HWTEST_F(RSDrawingFilterTest, SetImageFilter002, TestSize.Level1)
     EXPECT_TRUE(imageFilter != nullptr);
 }
 
-
 /**
  * @tc.name: ProcessImageFilter001
  * @tc.desc: test results of ProcessImageFilter
@@ -804,10 +803,11 @@ HWTEST_F(RSDrawingFilterTest, SetGeometryTest001, TestSize.Level1)
     Drawing::Canvas canvas;
     auto filter = std::make_shared<RSRenderFilterParaBase>();
     RSDrawingFilter drawingFilter(filter);
-    drawingFilter.SetGeometry(canvas, 0, 0);
+    Drawing::RectF rect;
+    drawingFilter.SetGeometry(canvas.GetTotalMatrix(), rect, rect, 0, 0);
     EXPECT_EQ(drawingFilter.visualEffectContainer_, nullptr);
     drawingFilter.GenerateAndUpdateGEVisualEffect();
-    drawingFilter.SetGeometry(canvas, 0, 0);
+    drawingFilter.SetGeometry(canvas.GetTotalMatrix(), rect, rect, 0, 0);
     EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
 }
 
@@ -825,5 +825,24 @@ HWTEST_F(RSDrawingFilterTest, SetDisplayHeadroom001, TestSize.Level1)
     drawingFilter.GenerateAndUpdateGEVisualEffect();
     drawingFilter.SetDisplayHeadroom(2.0f);
     EXPECT_NE(drawingFilter.visualEffectContainer_, nullptr);
+}
+
+/**
+ * @tc.name: CalcRect001
+ * @tc.desc: test results of CalcRect
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDrawingFilterTest, CalcRect001, TestSize.Level1)
+{
+    auto imageFilter = std::make_shared<Drawing::ImageFilter>();
+    auto filterPtr = std::make_shared<RSRenderFilterParaBase>();
+    std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters;
+    shaderFilters.push_back(filterPtr);
+    shaderFilters.push_back(nullptr);
+    uint32_t hash = 1;
+    RSDrawingFilter drawingFilter(imageFilter, hash);
+    drawingFilter.shaderFilters_ = shaderFilters;
+    RectF bound(0.f, 0.f, 10.f, 10.f);
+    EXPECT_EQ(drawingFilter.CalcRect(bound, EffectRectType::SNAPSHOT), bound);
 }
 } // namespace OHOS::Rosen

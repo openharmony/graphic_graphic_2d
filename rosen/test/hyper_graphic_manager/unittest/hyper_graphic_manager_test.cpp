@@ -231,7 +231,6 @@ HWTEST_F(HyperGraphicManagerTest, GetScreen, Function | SmallTest | Level0)
             auto addScreen = instance5.AddScreen(screenId, 0, screenSize);
             auto activeScreen = instance5.GetActiveScreen();
 
-            instance5.SetActiveScreenId(screenId);
             activeScreen = instance5.GetActiveScreen();
             STEP_ASSERT_GE(addScreen, 0);
             STEP_ASSERT_GE(instance5.GetActiveScreenId(), 0);
@@ -486,17 +485,6 @@ HWTEST_F(HyperGraphicManagerTest, HgmScreenTests, Function | MediumTest | Level0
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(screenId2, rate3), -1);
     EXPECT_EQ(screen2->SetActiveRefreshRate(SWITCH_SCREEN_SCENE, rate2), 1);
-    screen2->SetRateAndResolution(screenId2, rate2, width, height);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width, height), 0);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate3, width, height), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate4, width, height), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate5, width, height), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate5, width2, height2), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate5, width, height2), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate5, width2, height), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width2, height2), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width, height2), -1);
-    EXPECT_EQ(screen2->SetRateAndResolution(screenId2, rate, width2, height), -1);
     screen2->AddScreenModeInfo(width, height, rate, mode);
     EXPECT_EQ(screen2->SetRefreshRateRange(rate2, rate), 0);
 }
@@ -592,8 +580,6 @@ HWTEST_F(HyperGraphicManagerTest, HgmCoreTests, Function | MediumTest | Level0)
         }
 
         STEP("3. set rate and resolution") {
-            int32_t setResult = instance.SetRateAndResolution(screenId2, 0, 0, 0, 0);
-            STEP_ASSERT_EQ(setResult, -1);
             int32_t addResult = instance.AddScreen(screenId2, 1, screenSize);
             STEP_ASSERT_GE(addResult, -1);
         }
@@ -672,7 +658,7 @@ HWTEST_F(HyperGraphicManagerTest, GetIdealPeriod, Function | SmallTest | Level0)
 HWTEST_F(HyperGraphicManagerTest, GetLtpoEnabled, Function | SmallTest | Level0)
 {
     auto& instance = HgmCore::Instance();
-    instance.SetLtpoEnabled(true);
+    instance.isLtpoMode_.store(true);
     instance.SetSupportedMaxTE(360);
     instance.SetRefreshRateMode(HGM_REFRESHRATE_MODE_AUTO);
     if (instance.IsLTPOSwitchOn() != true) {

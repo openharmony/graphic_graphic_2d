@@ -34,23 +34,6 @@ void RSSurfaceFpsTest::SetUp() {}
 void RSSurfaceFpsTest::TearDown() {}
 
 /**
- * @tc.name: RecordPresentTime
- * @tc.desc: test results of RecordPresentTime
- * @tc.type:FUNC
- * @tc.require: IBE7GI
- */
-HWTEST_F(RSSurfaceFpsTest, RecordPresentTime, TestSize.Level1)
-{
-    uint64_t timestamp = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
-    uint32_t seqNum = 0;
-    RSSurfaceFps surfaceFps("surfacefps");
-    EXPECT_FALSE(surfaceFps.RecordPresentTime(timestamp, seqNum));
-    seqNum = 1;
-    EXPECT_TRUE(surfaceFps.RecordPresentTime(timestamp, seqNum));
-}
-
-/**
  * @tc.name: DumpAndClearDump
  * @tc.desc: test results of DumpAndClearDump
  * @tc.type:FUNC

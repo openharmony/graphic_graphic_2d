@@ -178,6 +178,7 @@ HWTEST_F(HgmTouchManagerTest, Up2IdleState001, Function | SmallTest | Level0)
             touchManager.State2String(undefinedState);
         }
         STEP("CheckChangeStateValid") {
+            touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, TouchState::DOWN_STATE);
             touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, TouchState::UP_STATE);
             touchManager.CheckChangeStateValid(TouchState::IDLE_STATE, undefinedState);
             touchManager.CheckChangeStateValid(undefinedState, TouchState::IDLE_STATE);

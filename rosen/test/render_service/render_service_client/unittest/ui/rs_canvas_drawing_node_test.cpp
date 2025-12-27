@@ -26,6 +26,9 @@
 #include "transaction/rs_transaction_proxy.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+#include "ui/rs_canvas_callback_router.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -76,6 +79,11 @@ HWTEST_F(RSCanvasDrawingNodeTest, ResetSurfaceTest, TestSize.Level1)
     RSTransactionProxy::instance_ = new RSTransactionProxy();
     EXPECT_EQ(res, false);
     RSTransactionProxy::instance_ = new RSTransactionProxy();
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+    canvasNode->isNeverOnTree_ = false;
+    canvasNode->ResetSurface(width, height);
+    EXPECT_EQ(res, false);
+#endif
 }
 
 /**
@@ -113,7 +121,6 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmapTest, TestSize.Level1)
     Drawing::Rect rect;
     bool res = drawingNode->GetBitmap(bitmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
-    ASSERT_TRUE(!RSSystemProperties::isUniRenderEnabled_);
 
     RSSystemProperties::GetUniRenderEnabled();
     RSSystemProperties::isUniRenderEnabled_ = true;
@@ -163,4 +170,116 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapTest, TestSize.Level1)
     res = drawingNode1->GetPixelmap(pixelmap, drawCmdList, &rect);
     EXPECT_EQ(res, false);
 }
+
+#if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
+/**
+ * @tc.name: PreAllocateDMABufferTest
+ * @tc.desc: test results of PreAllocateDMABuffer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, PreAllocateDMABufferTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
+    auto nodeId = node->GetId();
+    std::weak_ptr<RSCanvasDrawingNode> weakNode = node;
+    node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, 1);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->resetSurfaceIndex_ = RSCanvasDrawingNode::GenerateResetSurfaceIndex();
+    node->PreAllocateDMABuffer(weakNode, nodeId, 0, 0, 1);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->PreAllocateDMABuffer(weakNode, nodeId, 100, 100, 1);
+    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
+        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    } else {
+        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    }
+    node->resetSurfaceIndex_ = 10;
+    node->canvasSurfaceBuffer_ = nullptr;
+    node->PreAllocateDMABuffer(node, nodeId, 0, 0, 10);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->resetSurfaceIndex_ = 0;
+    node->canvasSurfaceBuffer_ = nullptr;
+    node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
+    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
+        ASSERT_NE(node->canvasSurfaceBuffer_, nullptr);
+    } else {
+        ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    }
+    node->resetSurfaceIndex_ = 0;
+    node->canvasSurfaceBuffer_ = nullptr;
+    node->PreAllocateDMABuffer(node, nodeId, 100, 100, 0);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+}
+
+/**
+ * @tc.name: CheckNodeAndSurfaceBufferStateTest
+ * @tc.desc: test results of CheckNodeAndSurfaceBufferState
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, CheckNodeAndSurfaceBufferStateTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
+    node->resetSurfaceIndex_ = 1;
+    auto buffer = SurfaceBuffer::Create();
+    node->canvasSurfaceBuffer_ = buffer;
+    auto nodeId = node->GetId();
+    std::weak_ptr<RSCanvasDrawingNode> weakNode = node;
+    auto ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 1);
+    ASSERT_FALSE(ret);
+    ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 2);
+    ASSERT_FALSE(ret);
+    node->canvasSurfaceBuffer_ = nullptr;
+    ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 1);
+    ASSERT_TRUE(ret);
+    ret = node->CheckNodeAndSurfaceBufferState(weakNode, nodeId, 2);
+    ASSERT_FALSE(ret);
+    std::shared_ptr<RSCanvasDrawingNode> nullNode = nullptr;
+    ret = node->CheckNodeAndSurfaceBufferState(nullNode, nodeId, 2);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: OnSurfaceBufferChangedTest
+ * @tc.desc: test results of OnSurfaceBufferChanged
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, OnSurfaceBufferChangedTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
+    node->resetSurfaceIndex_ = 1;
+    auto buffer = SurfaceBuffer::Create();
+    node->canvasSurfaceBuffer_ = buffer;
+    node->OnSurfaceBufferChanged(nullptr, 1);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+    node->OnSurfaceBufferChanged(buffer, 2);
+    ASSERT_EQ(node->canvasSurfaceBuffer_, nullptr);
+}
+
+/**
+ * @tc.name: SetIsOnTheTreeTest
+ * @tc.desc: test results of SetIsOnTheTree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, SetIsOnTheTreeTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingNode>(true);
+    node->isNeverOnTree_ = true;
+    node->SetIsOnTheTree(true);
+    ASSERT_FALSE(node->isNeverOnTree_);
+    node->isNeverOnTree_ = true;
+    node->resetSurfaceParams_ = std::make_unique<RSCanvasDrawingNode::ResetSurfaceParams>(100, 100, 1);
+    node->SetIsOnTheTree(true);
+    ASSERT_FALSE(node->isNeverOnTree_);
+    ASSERT_EQ(node->resetSurfaceParams_, nullptr);
+    node->isNeverOnTree_ = true;
+    node->SetIsOnTheTree(false);
+    ASSERT_TRUE(node->isNeverOnTree_);
+    node->isNeverOnTree_ = false;
+    node->SetIsOnTheTree(true);
+    ASSERT_FALSE(node->isNeverOnTree_);
+    node->isNeverOnTree_ = false;
+    node->SetIsOnTheTree(false);
+    ASSERT_FALSE(node->isNeverOnTree_);
+}
+#endif
 } // namespace OHOS::Rosen

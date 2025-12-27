@@ -15,6 +15,7 @@
 
 #include "vsync_distributor.h"
 #include <chrono>
+#include <cinttypes>
 #include <condition_variable>
 #include <algorithm>
 #include <cinttypes>
@@ -198,7 +199,8 @@ int32_t VSyncConnection::PostEvent(int64_t now, int64_t period, int64_t vsyncCou
     }
 
     std::unique_lock<std::mutex> lockerPostEvent(postEventMutex_);
-    RS_TRACE_NAME_FMT("SendVsyncTo conn: %s, now:%ld, refreshRate:%d", info_.name_.c_str(), now, refreshRate_);
+    RS_TRACE_NAME_FMT("SendVsyncTo conn: %s, now:%" PRId64 ", refreshRate:%u",
+        info_.name_.c_str(), now, refreshRate_);
     // 3 is array size.
     int64_t data[3];
     data[0] = now;
@@ -296,7 +298,7 @@ bool VSyncConnection::AddRequestVsyncTimestamp(const int64_t& timestamp)
     }
 
     std::lock_guard<std::recursive_mutex> lock(vsyncTimeMutex_);
-    RS_TRACE_NAME_FMT("AddRequestVsyncTimestamp in, timestamp=%lld, size=%u",
+    RS_TRACE_NAME_FMT("AddRequestVsyncTimestamp in, timestamp=%" PRId64 ", size=%u",
         timestamp, requestVsyncTimestamp_.size());
     if (requestVsyncTimestamp_.size() >= MAX_VSYNC_QUEUE_SIZE) {
         return false;
@@ -307,7 +309,7 @@ bool VSyncConnection::AddRequestVsyncTimestamp(const int64_t& timestamp)
 
 void VSyncConnection::RemoveTriggeredVsyncLocked(const int64_t& currentTime)
 {
-    SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked In, TriggeredTime=%lld, size=%u",
+    SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked In, TriggeredTime=%" PRId64 ", size=%u",
         currentTime, requestVsyncTimestamp_.size());
 
     if (requestVsyncTimestamp_.empty()) {
@@ -316,11 +318,11 @@ void VSyncConnection::RemoveTriggeredVsyncLocked(const int64_t& currentTime)
 
     for (auto iter = requestVsyncTimestamp_.begin(); iter != requestVsyncTimestamp_.end();) {
         if (*iter <= currentTime) {
-            SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked, TriggeredTime=%lld, removeTime=%lld, size=%u",
-                currentTime, *iter, requestVsyncTimestamp_.size());
+            SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked, TriggeredTime=%" PRId64 ", removeTime=%" PRId64 ","
+                " size=%u", currentTime, *iter, requestVsyncTimestamp_.size());
             iter = requestVsyncTimestamp_.erase(iter);
         } else {
-            SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked out, TriggeredTime=%lld, size=%u",
+            SCOPED_DEBUG_TRACE_FMT("RemoveTriggeredVsyncLocked out, TriggeredTime=%" PRId64 ", size=%u",
                 currentTime, requestVsyncTimestamp_.size());
             return;
         }
@@ -346,7 +348,7 @@ bool VSyncConnection::NeedTriggeredVsyncLocked(const int64_t& currentTime)
     }
     bool isNeedTriggered = *(requestVsyncTimestamp_.begin()) <= currentTime;
     if (!isNeedTriggered) {
-        RS_TRACE_NAME_FMT("should Post this Vsync to %s(%d), requestVsyncTime=%lld, currentTime=%lld",
+        RS_TRACE_NAME_FMT("should Post this Vsync to %s(%d), requestVsyncTime=%" PRId64 ", currentTime=%" PRId64,
             info_.name_.c_str(), isNeedTriggered, *(requestVsyncTimestamp_.begin()), currentTime);
     }
     return isNeedTriggered;
@@ -928,7 +930,7 @@ void VSyncDistributor::ConnectionsPostEvent(std::vector<sptr<VSyncConnection>> &
         }
         // End of DVSync
         if (!conns[i]->CheckIsReadyByTime(timestamp)) {
-            RS_TRACE_NAME_FMT("conn name=%s, do not post this vsync(curtime=%lld)",
+            RS_TRACE_NAME_FMT("conn name=%s, do not post this vsync(curtime=%" PRId64 ")",
                 conns[i]->info_.name_.c_str(), timestamp);
             continue;
         }
@@ -1074,8 +1076,8 @@ void VSyncDistributor::CollectConnections(bool &waitForVSync, int64_t timestamp,
             continue;
         }
 
-        RS_TRACE_NAME_FMT("CollectConnections name:%s, proxyPid:%d, highPriorityState_:%d, highPriorityRate_:%d"
-            ", rate_:%d, timestamp:%ld, vsyncCount:%ld", connections_[i]->info_.name_.c_str(),
+        RS_TRACE_NAME_FMT("CollectConnections name:%s, proxyPid:%d, highPriorityState_:%d, highPriorityRate_:%d,"
+            " rate_:%d, timestamp:%" PRId64 ", vsyncCount:%" PRId64, connections_[i]->info_.name_.c_str(),
             connections_[i]->proxyPid_, connections_[i]->highPriorityState_,
             connections_[i]->highPriorityRate_, connections_[i]->rate_, timestamp, vsyncCount);
 
@@ -1110,8 +1112,9 @@ void VSyncDistributor::CollectConnectionsLTPO(bool &waitForVSync, int64_t timest
             continue;
         }
 #endif
-        SCOPED_DEBUG_TRACE_FMT("CollectConnectionsLTPO, i:%d, name:%s, rate:%d, vsyncPulseFreq:%u"
-            ", referencePulseCount:%ld, vsyncCount:%d", i, connections_[i]->info_.name_.c_str(), connections_[i]->rate_,
+        SCOPED_DEBUG_TRACE_FMT("CollectConnectionsLTPO, i:%u, name:%s, rate:%d, vsyncPulseFreq:%u"
+            ", referencePulseCount:%" PRId64 ", vsyncCount:%" PRId64, i,
+            connections_[i]->info_.name_.c_str(), connections_[i]->rate_,
             connections_[i]->vsyncPulseFreq_, connections_[i]->referencePulseCount_, vsyncCount);
         // Start of DVSync
         if (DVSyncNeedSkipUi(connections_[i])) {
@@ -1478,7 +1481,8 @@ VsyncError VSyncDistributor::SetQosVSyncRateByConnId(uint64_t connId, int32_t ra
         if (connection != nullptr && connection->highPriorityRate_ != rate) {
             connection->highPriorityRate_ = rate;
             connection->highPriorityState_ = rate != 1;
-            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByConnId connId:%lu, rate:%d", connId, rate);
+            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByConnId connId:%" PRIu64 ", rate:%d",
+                connId, rate);
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
             isNeedNotify = true;
@@ -1511,7 +1515,7 @@ VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate
         if (connection != nullptr && connection->highPriorityRate_ != rate) {
             connection->highPriorityRate_ = rate;
             connection->highPriorityState_ = true;
-            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByWindowId windowNodeId:%lu, rate:%d",
+            RS_TRACE_NAME_FMT("VSyncDistributor::SetQosVSyncRateByWindowId windowNodeId:%" PRIu64 ", rate:%d",
                 windowNodeId, rate);
             VLOGD("in, conn name:%{public}s, highPriorityRate:%{public}d", connection->info_.name_.c_str(),
                 connection->highPriorityRate_);
@@ -1793,7 +1797,7 @@ void VSyncDistributor::PrintConnectionsStatus()
 {
     std::unique_lock<std::mutex> locker(mutex_);
     for (uint32_t i = 0; i < connections_.size(); i++) {
-        VLOGW("[Info]PrintConnectionsStatus, i:%{public}d, name:%{public}s, proxyPid:%{public}d"
+        VLOGW("[Info]PrintConnectionsStatus, i:%{public}u, name:%{public}s, proxyPid:%{public}d"
             ", highPriorityRate:%{public}d, rate:%{public}d, vsyncPulseFreq:%{public}u",
             i, connections_[i]->info_.name_.c_str(), connections_[i]->proxyPid_, connections_[i]->highPriorityRate_,
             connections_[i]->rate_, connections_[i]->vsyncPulseFreq_);
@@ -1887,7 +1891,7 @@ bool VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnectio
     }
     bool NeedPreexecute = controller_->NeedPreexecuteAndUpdateTs(timestamp, period);
     if (NeedPreexecute) {
-        RS_TRACE_NAME_FMT("VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs timestamp:%ld, period:%ld",
+        RS_TRACE_NAME_FMT("VSyncDistributor::VSyncCheckPreexecuteAndUpdateTs timestamp:%" PRId64 ", period:%" PRId64,
             timestamp, period);
         event_.vsyncCount++;
         vsyncCount = event_.vsyncCount;
@@ -1905,7 +1909,8 @@ bool VSyncDistributor::DVSyncCheckPreexecuteAndUpdateTs(const sptr<VSyncConnecti
 #if defined(RS_ENABLE_DVSYNC_2)
     bool NeedPreexecute = DVSync::Instance().NeedPreexecuteAndUpdateTs(connection, timestamp, period);
     if (NeedPreexecute) {
-        RS_TRACE_NAME_FMT("DVSync::DVSyncCheckPreexecuteAndUpdateTs timestamp:%ld, period:%ld", timestamp, period);
+        RS_TRACE_NAME_FMT("DVSync::DVSyncCheckPreexecuteAndUpdateTs timestamp:%" PRId64 ", period:%" PRId64,
+            timestamp, period);
         event_.vsyncCount++;
         vsyncCount = event_.vsyncCount;
         if (connection->rate_ == 0) {

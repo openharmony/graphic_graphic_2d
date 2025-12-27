@@ -86,6 +86,8 @@ void DoCreatePixelMapFromSurface()
     Rect srcRect = {0, 0, 100, 100};
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+    rsInterfaces.CreatePixelMapFromSurfaceId(surfaceId, srcRect, true);
+    rsInterfaces.CreatePixelMapFromSurfaceId(surfaceId, srcRect, false);
 }
 
 void DoGetScreenHDRCapability()

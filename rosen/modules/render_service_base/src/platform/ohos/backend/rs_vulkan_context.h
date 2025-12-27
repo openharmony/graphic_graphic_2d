@@ -70,6 +70,14 @@ enum class VulkanDeviceStatus : uint32_t {
     CREATE_FAIL,
     MAX_DEVICE_STATUS,
 };
+
+struct DrawingContextProperty {
+    std::shared_ptr<Drawing::GPUContext> unprotectContext = nullptr;
+    bool unprotectRecyclable = false;
+    std::shared_ptr<Drawing::GPUContext> protectContext = nullptr;
+    bool protectRecyclable = false;
+};
+
 class MemoryHandler;
 class RsVulkanInterface {
 public:
@@ -493,8 +501,7 @@ private:
     static thread_local VulkanInterfaceType vulkanInterfaceType_;
     std::vector<std::shared_ptr<RsVulkanInterface>> vulkanInterfaceVec_;
     // drawingContextMap_ : <tid, <drawingContext, isRecyclable>>
-    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> drawingContextMap_;
-    static std::map<int, std::pair<std::shared_ptr<Drawing::GPUContext>, bool>> protectedDrawingContextMap_;
+    static std::map<int, DrawingContextProperty> drawingContextMap_;
     static std::mutex drawingContextMutex_;
     // use for recyclable singleton
     static std::recursive_mutex recyclableSingletonMutex_;

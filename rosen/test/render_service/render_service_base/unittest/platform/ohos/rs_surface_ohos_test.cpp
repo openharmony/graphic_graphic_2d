@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -104,9 +104,9 @@ HWTEST_F(RSSurfaceOhosTest, GetRenderContext, TestSize.Level1)
     producer = csurf->GetProducer();
     pSurface = Surface::CreateSurfaceAsProducer(producer);
     auto rsSurface = std::make_shared<RSSurfaceOhosRaster>(pSurface);
-    RenderContext context;
-    rsSurface->SetRenderContext(&context);
-    ASSERT_EQ(rsSurface->GetRenderContext(), &context);
+    auto context = RenderContext::Create();
+    rsSurface->SetRenderContext(context);
+    ASSERT_EQ(rsSurface->GetRenderContext(), context);
 }
 
 /**

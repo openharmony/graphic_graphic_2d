@@ -52,13 +52,9 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 bool g_forceBgAntiAlias = true;
+constexpr int ONE_PIXEL = 1;
 constexpr int PARAM_DOUBLE = 2;
 constexpr int TRACE_LEVEL_TWO = 2;
-constexpr float MIN_TRANS_RATIO = 0.0f;
-constexpr float MAX_TRANS_RATIO = 0.95f;
-constexpr float MIN_SPOT_RATIO = 1.0f;
-constexpr float MAX_SPOT_RATIO = 1.95f;
-constexpr float MAX_AMBIENT_RADIUS = 150.0f;
 } // namespace
 
 const bool RSPropertiesPainter::BLUR_ENABLED = RSSystemProperties::GetBlurEnabled();
@@ -287,28 +283,19 @@ void RSPropertiesPainter::GetShadowDirtyRect(RectI& dirtyShadow, const RSPropert
 
     Drawing::Rect shadowRect = path.GetBounds();
     if (properties.GetShadowElevation() > 0.f) {
-        float elevation = properties.GetShadowElevation() + DEFAULT_TRANSLATION_Z;
-
-        float userTransRatio =
-            (elevation != DEFAULT_LIGHT_HEIGHT) ? elevation / (DEFAULT_LIGHT_HEIGHT - elevation) : MAX_TRANS_RATIO;
-        float transRatio = std::max(MIN_TRANS_RATIO, std::min(userTransRatio, MAX_TRANS_RATIO));
-
-        float userSpotRatio = (elevation != DEFAULT_LIGHT_HEIGHT)
-                                  ? DEFAULT_LIGHT_HEIGHT / (DEFAULT_LIGHT_HEIGHT - elevation)
-                                  : MAX_SPOT_RATIO;
-        float spotRatio = std::max(MIN_SPOT_RATIO, std::min(userSpotRatio, MAX_SPOT_RATIO));
-
-        Drawing::Rect ambientRect = path.GetBounds();
-        Drawing::Rect spotRect = Drawing::Rect(ambientRect.GetLeft() * spotRatio, ambientRect.GetTop() * spotRatio,
-            ambientRect.GetRight() * spotRatio, ambientRect.GetBottom() * spotRatio);
-        spotRect.Offset(-transRatio * DEFAULT_LIGHT_POSITION_X, -transRatio * DEFAULT_LIGHT_POSITION_Y);
-        spotRect.MakeOutset(transRatio * DEFAULT_LIGHT_RADIUS, transRatio * DEFAULT_LIGHT_RADIUS);
-
-        shadowRect = ambientRect;
-        float ambientBlur = std::min(elevation * 0.5f, MAX_AMBIENT_RADIUS);
-        shadowRect.MakeOutset(ambientBlur, ambientBlur);
-
-        shadowRect.Join(spotRect);
+        auto emptyCanvas = GetEmptyCanvas();
+        if (emptyCanvas == nullptr) {
+            ROSEN_LOGE("RSPropertiesPainter::GetShadowDirtyRect emptyCanvas null");
+            return;
+        }
+        Drawing::Matrix matrix;
+        Drawing::Point3 planeParams = { 0.0f, 0.0f, properties.GetShadowElevation() };
+        std::vector<Drawing::Point> pt{{ shadowRect.GetLeft() + shadowRect.GetWidth() / 2,
+            shadowRect.GetTop() + shadowRect.GetHeight() / 2 }};
+        emptyCanvas->GetTotalMatrix().MapPoints(pt, pt, 1);
+        Drawing::Point3 lightPos = { pt[0].GetX(), pt[0].GetY(), DEFAULT_LIGHT_HEIGHT };
+        emptyCanvas->GetLocalShadowBounds(matrix, path, planeParams, lightPos, DEFAULT_LIGHT_RADIUS,
+            Drawing::ShadowFlags::TRANSPARENT_OCCLUDER, true, shadowRect);
     } else {
         Drawing::Brush brush;
         brush.SetAntiAlias(true);
@@ -1164,6 +1151,29 @@ bool RSPropertiesPainter::IsDangerousBlendMode(int blendMode, int blendApplyType
         return tmp & fastDangerousBit;
     }
     return tmp & offscreenDangerousBit;
+}
+
+std::shared_ptr<Drawing::Canvas> RSPropertiesPainter::GetEmptyCanvas()
+{
+    static thread_local std::shared_ptr<Drawing::Surface> offscreenSurface = nullptr;
+    static thread_local std::shared_ptr<Drawing::Canvas> offscreenCanvas = nullptr;
+    if (offscreenCanvas == nullptr) {
+        if (offscreenSurface == nullptr) {
+            Drawing::ImageInfo offscreenInfo { ONE_PIXEL, ONE_PIXEL, Drawing::COLORTYPE_RGBA_8888,
+                Drawing::ALPHATYPE_PREMUL, nullptr };
+            offscreenSurface = Drawing::Surface::MakeRaster(offscreenInfo);
+            if (offscreenSurface == nullptr) {
+                ROSEN_LOGE("RSPropertiesPainter::GetEmptyCanvas offscreenSurface null");
+                return nullptr;
+            }
+        }
+        offscreenCanvas = std::make_shared<RSPaintFilterCanvas>(offscreenSurface.get());
+        if (offscreenCanvas == nullptr) {
+            ROSEN_LOGE("RSPropertiesPainter::GetEmptyCanvas offscreenCanvas null");
+            return nullptr;
+        }
+    }
+    return offscreenCanvas;
 }
 } // namespace Rosen
 } // namespace OHOS

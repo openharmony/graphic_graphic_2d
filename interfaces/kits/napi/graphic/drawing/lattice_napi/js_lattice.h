@@ -34,6 +34,11 @@ public:
 
     static napi_value CreateImageLattice(napi_env env, napi_callback_info info);
     DRAWING_API std::shared_ptr<Lattice> GetLattice();
+    static napi_value LatticeTransferDynamic(napi_env env, napi_callback_info info);
+    std::shared_ptr<Lattice> GetLatticePtr()
+    {
+        return m_lattice;
+    }
 
 private:
     static napi_value Create(napi_env env, std::shared_ptr<Lattice> lattice);

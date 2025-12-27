@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -150,7 +150,6 @@ RSRenderThread::RSRenderThread()
     };
     context_ = std::make_shared<RSContext>();
     context_->Initialize();
-    RSAnimationFraction::Init();
     jankDetector_ = std::make_shared<RSJankDetector>();
 #ifdef ACCESSIBILITY_ENABLE
     RSAccessibility::GetInstance().ListenHighContrastChange([](bool newHighContrast) {
@@ -199,9 +198,8 @@ RSRenderThread::~RSRenderThread()
     Stop();
 #ifdef RS_ENABLE_GPU
     if (renderContext_ != nullptr) {
-        ROSEN_LOGD("Destroy renderContext!!");
-        delete renderContext_;
-        renderContext_ = nullptr;
+        ROSEN_LOGD("Reset renderContext!!");
+        renderContext_.reset();
     }
 #endif
 }
@@ -293,25 +291,19 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 {
 #if (defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)) && !defined(ROSEN_PREVIEW)
     if (renderContext_ == nullptr) {
-        renderContext_ = new RenderContext();
+        renderContext_ = RenderContext::Create();
         ROSEN_LOGD("Create RenderContext");
 #ifdef ROSEN_OHOS
-#ifdef RS_ENABLE_GL
-        if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
-            RS_TRACE_NAME("InitializeEglContext");
-            renderContext_->InitializeEglContext(); // init egl context on RT
-            if (!cacheDir_.empty()) {
-                renderContext_->SetCacheDir(cacheDir_);
-            }
+
+#if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
+        RS_TRACE_NAME("Init");
+        renderContext_->Init(); // init context on RT
+        if (!cacheDir_.empty()) {
+            renderContext_->SetCacheDir(cacheDir_);
         }
-#endif
-#ifdef RS_ENABLE_VK
-    if (!cacheDir_.empty()) {
-        renderContext_->SetCacheDir(cacheDir_);
-    }
-    if (RSSystemProperties::IsUseVulkan()) {
-        renderContext_->SetUpGpuContext(nullptr);
-    }
+        if (RSSystemProperties::IsUseVulkan()) {
+            renderContext_->SetUpGpuContext();
+        }
 #endif
 #endif
     }

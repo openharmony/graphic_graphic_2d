@@ -60,6 +60,9 @@ public:
     static void FlushGpuMemoryInWaitQueue(Drawing::GPUContext* gpuContext);
     static void SuppressGpuCacheBelowCertainRatio(
         Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
+    static void DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* grContext,
+        const std::vector<std::pair<NodeId, std::string>>& nodeTags);
+    static void DumpGpuNodeMemory(DfxString& log);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log, bool isLite = false);
@@ -71,8 +74,6 @@ private:
     static void DumpGpuCacheWithPidInfo(DfxString& log, const Drawing::GPUContext* gpuContext,
         Drawing::GPUResourceTag* tag, std::string& name, GpuPidInfo& info);
     static void DumpAllGpuInfo(DfxString& log, const Drawing::GPUContext* grContext,
-        std::vector<std::pair<NodeId, std::string>>& nodeTags);
-    static void DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* grContext,
         std::vector<std::pair<NodeId, std::string>>& nodeTags);
     //jemalloc info
     static void DumpGpuStats(DfxString& log, const Drawing::GPUContext* gpuContext);

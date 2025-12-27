@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -120,8 +120,8 @@ HWTEST_F(RSSurfaceOhosVulkanTest, ResetBufferAge002, TestSize.Level1)
     RSSurfaceOhosVulkan rsSurface(pSurface);
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>();
-        rsSurface.SetRenderContext(renderContext.get());
+        auto renderContext = RenderContext::Create();
+        rsSurface.SetRenderContext(renderContext);
         int32_t width = 1;
         int32_t height = 1;
         uint64_t uiTimestamp = 1;
@@ -275,6 +275,14 @@ HWTEST_F(RSSurfaceOhosVulkanTest, RequestFrame001, TestSize.Level1)
     uint64_t uiTimestamp = 1;
     std::unique_ptr<RSSurfaceFrame> ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, true);
     EXPECT_TRUE(ret == nullptr);
+    rsSurface.SetRenderContext(RenderContext::Create());
+    rsSurface.GetRenderContext()->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+    ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, true);
+    EXPECT_TRUE(ret == nullptr);
+
+    rsSurface.SetRenderContext(RenderContext::Create());
+    ret = rsSurface.RequestFrame(width, height, uiTimestamp, true, true);
+    EXPECT_TRUE(ret == nullptr);
 }
 
 HWTEST_F(RSSurfaceOhosVulkanTest, RequestFrame002, TestSize.Level1)
@@ -391,8 +399,8 @@ HWTEST_F(RSSurfaceOhosVulkanTest, FlushFrame001, TestSize.Level1)
     {
         sptr<Surface> producer = nullptr;
         RSSurfaceOhosGl rsSurface(producer);
-        RenderContext renderContext;
-        rsSurface.SetRenderContext(&renderContext);
+        auto renderContext = RenderContext::Create();
+        rsSurface.SetRenderContext(renderContext);
         ASSERT_TRUE(rsSurface.FlushFrame(frame, uiTimestamp));
     }
 }

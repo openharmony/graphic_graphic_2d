@@ -22,6 +22,9 @@
 #include "command/rs_node_command.h"
 #include "command/rs_node_showing_command.h"
 #include "command/rs_surface_node_command.h"
+#include "effect/rs_render_filter_base.h"
+#include "effect/rs_render_mask_base.h"
+#include "variable_frame_rate/rs_variable_frame_rate.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -44,8 +47,15 @@ public:
     static ShapeType GetRandomShapeType();
     static std::shared_ptr<ParticleNoiseFields> GetRandomParticleNoiseFieldsSharedPtr(
         const std::string& sizeType = "normal");
+    static std::shared_ptr<ParticleRippleFields> GetRandomParticleRippleFieldsSharedPtr(
+        const std::string& sizeType = "normal");
+    static std::shared_ptr<ParticleVelocityFields> GetRandomParticleVelocityFieldsSharedPtr(
+        const std::string& sizeType = "normal");
     static Vector4<uint32_t> GetRandomUint32Vector4();
     static Vector4<Color> GetRandomColorVector4();
+    static ModifierNG::RSPropertyType GetRandomRSPropertyType();
+    static ModifierNG::RSModifierType GetRandomRSModifierType();
+    static std::shared_ptr<ModifierNG::RSRenderModifier> GetRandomRSRenderModifierSharedPtr();
     static std::shared_ptr<RSFilter> GetRandomRSFilterSharedPtr();
     static std::shared_ptr<RSImage> GetRandomRSImageSharedPtr();
     static std::shared_ptr<RSMask> GetRandomRSMaskSharedPtr();
@@ -54,6 +64,11 @@ public:
     static std::shared_ptr<RSShader> GetRandomRSShaderSharedPtr();
     static Drawing::Matrix GetRandomDrawingMatrix();
     static std::shared_ptr<Drawing::DrawCmdList> GetRandomDrawingDrawCmdListPtr();
+    static std::shared_ptr<RSNGRenderFilterBase> GetRandomRSNGFilterPtr();
+    static std::shared_ptr<RSNGRenderMaskBase> GetRandomRSNGMaskPtr();
+    static std::shared_ptr<RSNGRenderShaderBase> GetRandomRSNGShaderPtr();
+    static std::shared_ptr<RSNGRenderShapeBase> GetRandomRSNGShapePtr();
+    static DrawNodeType GetRandomDrawNodeType();
 
     // RSDisplayNodeCommand params
     static RSDisplayNodeConfig GetRandomRSDisplayNodeConfig();
@@ -67,11 +82,15 @@ public:
     static Vector2f GetRandomVector2f();
     static Vector3f GetRandomVector3f();
     static Vector4f GetRandomVector4f();
+    static Vector4<int> GetRandomVector4i();
     static Quaternion GetRandomQuaternion();
     static RectF GetRandomRectF();
     static std::shared_ptr<RectF> GetRandomRectFSharedPtr();
     static RRect GetRandomRRect();
     static std::vector<Vector2f> GetRandomVectorVector2f();
+    static std::vector<Vector2f> GetRandomSmallVectorVector2f();
+    static std::vector<Vector4f> GetRandomSmallVectorVector4f();
+    static std::vector<float> GetRandomSmallFloatVector();
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
 #ifndef ROSEN_CROSS_PLATFORM
@@ -79,6 +98,7 @@ public:
 #endif
     static RSSurfaceNodeAbilityState GetRandomRSSurfaceNodeAbilityState();
     static std::optional<Drawing::Matrix> GetRandomOptionalDrawingMatrix();
+    static Rect GetRandomRect();
 
     // RSAnimationCommand params
     static AnimationCallbackEvent GetRandomAnimationCallbackEvent();
@@ -101,6 +121,11 @@ public:
     static ComponentScene GetRandomComponentScene();
     static FrameRateRange GetRandomFrameRateRange();
 
+    static EventInfo GetRandomEventInfo();
+    static std::vector<std::pair<uint64_t, EventInfo>> GetRandomUint64AndEventInfoPairVector();
+    static std::vector<std::pair<std::string, EventInfo>> GetRandomStringAndEventInfoPairVector();
+    static std::vector<std::pair<std::string, std::string>> GetRandomStringAndStringPairVector();
+
     static Drawing::Point GetRandomDrawingPoint();
     static Drawing::Color GetRandomDrawingColor();
     static Drawing::RectI GetRandomDrawingRectI();
@@ -109,6 +134,8 @@ public:
     static Range<Color> GetRandomColorRange();
     static std::vector<std::shared_ptr<EmitterUpdater>> GetRandomSmallEmitterUpdaterSharedPtrVector();
     static std::shared_ptr<ParticleNoiseFields> GetRandomSmallParticleNoiseFieldsSharedPtr();
+    static std::shared_ptr<ParticleRippleFields> GetRandomSmallParticleRippleFieldsSharedPtr();
+    static std::shared_ptr<ParticleVelocityFields> GetRandomSmallParticleVelocityFieldsSharedPtr();
 };
 } // namespace Rosen
 } // namespace OHOS

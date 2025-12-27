@@ -83,9 +83,6 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
     rsRootRenderNode.stagingRenderParams_ = std::move(stagingRenderParams);
     rsRootRenderNode.UpdateRenderParams();
-    bool enable = GetData<bool>();
-    rsRootRenderNode.EnableWindowKeyFrame(enable);
-    rsRootRenderNode.IsWindowKeyFrameEnabled();
     return true;
 }
 } // namespace Rosen

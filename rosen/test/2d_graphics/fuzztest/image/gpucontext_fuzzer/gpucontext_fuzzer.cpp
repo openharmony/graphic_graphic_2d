@@ -227,6 +227,25 @@ bool GPUContextFuzzTest004(const uint8_t* data, size_t size)
 
     return true;
 }
+
+/*
+ * 测试以下 GPUContext 接口：
+ * 1. SetParam(std::string name, std::string value);
+ */
+bool GPUContextFuzzTest005(const uint8_t* data, size_t size)
+{
+    if (data == nullptr || size < DATA_MIN_SIZE) {
+        return false;
+    }
+    std::string name = GetObject<std::string>();
+    std::string value = GetObject<std::string>();
+    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
+    if (gpuContext == nullptr) {
+        return false;
+    }
+    gpuContext->SetParam(name, value);
+    return true;
+}
 } // namespace Drawing
 } // namespace Rosen
 } // namespace OHOS
@@ -244,5 +263,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::Drawing::GPUContextFuzzTest002(data, size);
     OHOS::Rosen::Drawing::GPUContextFuzzTest003(data, size);
     OHOS::Rosen::Drawing::GPUContextFuzzTest004(data, size);
+    OHOS::Rosen::Drawing::GPUContextFuzzTest005(data, size);
     return 0;
 }

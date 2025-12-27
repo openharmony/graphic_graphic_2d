@@ -31,6 +31,7 @@
 namespace OHOS {
 namespace Rosen {
 class RSPaintFilterCanvas;
+struct IGECacheProvider;
 class RSB_EXPORT RSDrawingFilter : public RSFilter {
 public:
     RSDrawingFilter() = default;
@@ -49,10 +50,12 @@ public:
     struct DrawImageRectParams {
         bool discardCanvas;
         bool offscreenDraw;
+        IGECacheProvider* geCacheProvider;
     };
 
     void DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
-        const Drawing::Rect& src, const Drawing::Rect& dst, const DrawImageRectParams params = { false, false });
+        const Drawing::Rect& src, const Drawing::Rect& dst,
+        const DrawImageRectParams params = { false, false, nullptr });
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> GetShaderFilters() const;
     void InsertShaderFilter(std::shared_ptr<RSRenderFilterParaBase> shaderFilter);
     std::shared_ptr<Drawing::ImageFilter> GetImageFilter() const;
@@ -87,8 +90,11 @@ public:
 
     void GenerateAndUpdateGEVisualEffect();
 
-    void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight);
+    void SetGeometry(const Drawing::Matrix& matrix, const Drawing::RectF& bound, const Drawing::RectF& materialDst,
+        float geoWidth, float geoHeight);
     void SetDisplayHeadroom(float headroom);
+
+    void SetDarkScale(float darkScale);
 
     bool CanSkipFrame() const
     {
@@ -117,13 +123,13 @@ public:
         const Drawing::Rect& src, const Drawing::Rect& dst, float brushAlpha);
 
     bool NeedForceSubmit() const override;
-
 private:
     struct DrawImageRectAttributes {
         Drawing::Rect src;
         Drawing::Rect dst;
         bool discardCanvas;
         float brushAlpha;
+        IGECacheProvider* geCacheProvider;
     };
     void DrawImageRectInternal(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image> image,
         const DrawImageRectAttributes& attr);
@@ -175,6 +181,7 @@ private:
     void ProfilerLogImageEffect(std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer,
         const std::shared_ptr<Drawing::Image>& image, const Drawing::Rect& src,
         const std::shared_ptr<Drawing::Image>& outImage);
+    RectF CalcRect(const RectF& bound, EffectRectType type) const override;
     std::string GetFilterTypeString() const;
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;
     std::vector<std::shared_ptr<RSRenderFilterParaBase>> shaderFilters_;

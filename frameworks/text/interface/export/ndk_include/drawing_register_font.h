@@ -73,6 +73,33 @@ uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection*, const char* f
     size_t length);
 
 /**
+ * @brief Defines an <b>OH_Drawing_RegisterFontByIndex</b>, which is used to register font from ttc file.
+ *
+ * @param fontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @param fontFamily Indicates the family name of the font which need to register.
+ * @param familySrc Indicates the path of the font file which need to register.
+ * @param index Indicates the index of the font data in the ttc file.
+ * @return error code.
+ * @since 23
+ */
+uint32_t OH_Drawing_RegisterFontByIndex(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, const char* familySrc, uint32_t index);
+
+/**
+ * @brief Defines an <b>OH_Drawing_RegisterFontBufferByIndex</b>, which is used to register font from ttc buffer.
+ *
+ * @param fontCollection Indicates the pointer to an <b>OH_Drawing_FontCollection</b> object.
+ * @param fontFamily Indicates the family name of the font which need to register.
+ * @param fontBuffer Indicates the font data which need to register.
+ * @param length Indicates the font data length.
+ * @param index Indicates the index of the font data in the ttc file.
+ * @return error code.
+ * @since 23
+ */
+uint32_t OH_Drawing_RegisterFontBufferByIndex(OH_Drawing_FontCollection* fontCollection,
+    const char* fontFamily, uint8_t* fontBuffer, size_t length, uint32_t index);
+
+/**
  * @brief Unregister a customized font by the font family.
  * Unregistering a font that is currently in use by UI components may lead to text rendering anomalies,
  * including garbled characters or missing glyphs.
@@ -85,6 +112,25 @@ uint32_t OH_Drawing_RegisterFontBuffer(OH_Drawing_FontCollection*, const char* f
  * @version 1.0
  */
 uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily);
+
+/**
+ * @brief Checks if the font format specified by the path is supported.
+ *
+ * @param path The absolute path to the font file.
+ * @return Returns true if the font is supported; otherwise, returns false.
+ * @since 23
+ */
+bool OH_Drawing_IsFontSupportedFromPath(const char* fontPath);
+
+/**
+ * @brief Checks if the font format specified by the buffer is supported.
+ *
+ * @param data A pointer to the memory buffer containing the font data.
+ * @param dataLength The size of the font data in bytes.
+ * @return Returns true if the font is supported; otherwise, returns false.
+ * @since 23
+ */
+bool OH_Drawing_IsFontSupportedFromBuffer(uint8_t* fontBuffer, size_t length);
 #ifdef __cplusplus
 }
 #endif

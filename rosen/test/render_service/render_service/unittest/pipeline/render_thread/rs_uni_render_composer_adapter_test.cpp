@@ -15,13 +15,14 @@
 
 #include "gtest/gtest.h"
 #include "drawable/rs_screen_render_node_drawable.h"
-#include "foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/pipeline/rs_test_util.h"
+#include "pipeline/rs_test_util.h"
 #include "pipeline/render_thread/rs_uni_render_composer_adapter.h"
 #include "pipeline/main_thread/rs_uni_render_listener.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "surface_buffer_impl.h"
 #include "metadata_helper.h"
 #include "screen_manager/rs_screen.h"
+#include "rs_surface_layer.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -40,41 +41,53 @@ public:
     void TearDown() override;
 
 public:
-    const uint32_t screenId_ = 10;
-    const int32_t offsetX = 0; // screenOffset on x axis equals to 0
-    const int32_t offsetY = 0; // screenOffset on y axis equals to 0
-    const float mirrorAdaptiveCoefficient = 1.0f;
+    static inline uint32_t screenId_ = 0;
+    static inline int32_t offsetX = 0; // screenOffset on x axis equals to 0
+    static inline int32_t offsetY = 0; // screenOffset on y axis equals to 0
+    static inline float mirrorAdaptiveCoefficient = 1.0f;
 
-    sptr<RSScreenManager> screenManager_;
-    std::unique_ptr<RSUniRenderComposerAdapter> composerAdapter_;
+    static inline sptr<RSScreenManager> screenManager_;
+    static inline std::shared_ptr<RSUniRenderComposerAdapter> composerAdapter_;
+    static inline std::shared_ptr<HdiOutput> output_;
+    static inline ScreenInfo info = {};
 };
 
 void RSUniRenderComposerAdapterTest::SetUpTestCase()
 {
+#ifdef RS_ENABLE_VK
+    RsVulkanContext::SetRecyclable(false);
+#endif
     RSTestUtil::InitRenderNodeGC();
+
+    output_ = HdiOutput::CreateHdiOutput(screenId_);
+    auto screen = std::make_shared<RSScreen>(output_);
+    screenManager_ = CreateOrGetScreenManager();
+    screenManager_->MockHdiScreenConnected(screen);
+
+    composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
+    ASSERT_NE(composerAdapter_, nullptr);
 }
 
-void RSUniRenderComposerAdapterTest::TearDownTestCase() {}
-void RSUniRenderComposerAdapterTest::TearDown()
+void RSUniRenderComposerAdapterTest::TearDownTestCase()
 {
-    screenManager_ = OHOS::Rosen::impl::RSScreenManager::GetInstance();
-    OHOS::Rosen::impl::RSScreenManager& screenManager =
-        static_cast<OHOS::Rosen::impl::RSScreenManager&>(*screenManager_);
-    screenManager.screens_.erase(screenId_);
+    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
 }
-void RSUniRenderComposerAdapterTest::SetUp()
+
+void RSUniRenderComposerAdapterTest::TearDown() {}
+
+void RSUniRenderComposerAdapterTest::SetUp() {}
+
+// must be first UTTest
+HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
 {
-    screenManager_ = CreateOrGetScreenManager();
-    ASSERT_NE(screenManager_, nullptr);
     uint32_t width = 2560;
     uint32_t height = 1080;
     ScreenColorGamut colorGamut = ScreenColorGamut::COLOR_GAMUT_SRGB;
     ScreenState state = ScreenState::UNKNOWN;
     ScreenRotation rotation = ScreenRotation::ROTATION_0;
-    auto rsScreen = std::make_shared<impl::RSScreen>(screenId_, true, HdiOutput::CreateHdiOutput(screenId_), nullptr);
-    ASSERT_NE(rsScreen, nullptr);
-    screenManager_->MockHdiScreenConnected(rsScreen);
-    auto info = screenManager_->QueryScreenInfo(screenId_);
+    info = screenManager_->QueryScreenInfo(screenId_);
+    composerAdapter_->Init(info, offsetX, offsetY);
+    EXPECT_EQ(composerAdapter_->composerClient_, nullptr);
     info.width = width;
     info.height = height;
     info.phyWidth = width;
@@ -82,11 +95,11 @@ void RSUniRenderComposerAdapterTest::SetUp()
     info.colorGamut = colorGamut;
     info.state = state;
     info.rotation = rotation;
-    composerAdapter_ = std::make_unique<RSUniRenderComposerAdapter>();
-    ASSERT_NE(composerAdapter_, nullptr);
+    RSRenderComposerManager::GetInstance().OnScreenConnected(output_);
     composerAdapter_->Init(info, offsetX, offsetY);
+    EXPECT_NE(composerAdapter_->composerClient_, nullptr);
+    EXPECT_NE(composerAdapter_->output_, nullptr);
 }
-
 /**
  * @tc.name: SrcRectRotateTransform001
  * @tc.desc: Test RSUniRenderComposerAdapterTest.SrcRectRotateTransform
@@ -174,7 +187,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CheckStatusBeforeCreateLayer001, TestSi
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     surfaceNode->GetRSSurfaceHandler()->GetConsumer()->SetTransform(GraphicTransformType::GRAPHIC_ROTATE_NONE);
     ASSERT_NE(surfaceNode, nullptr);
-    composerAdapter_->output_ = nullptr;
     ASSERT_EQ(false, composerAdapter_->CheckStatusBeforeCreateLayer(*surfaceNode));
 }
 
@@ -301,23 +313,22 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform005, TestSize.Lev
 }
 
 /**
- * @tc.name: CreateLayer002
+ * @tc.name: CreateLayer001
  * @tc.desc: Test RSUniRenderComposerAdapterTest.CreateLayer
  * @tc.type: FUNC
  */
-HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer001, TestSize.Level2)
 {
     NodeId id = 1;
     ScreenId screenId = 0;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto rsScreenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context->weak_from_this());
-    LayerInfoPtr layer1 = composerAdapter_->CreateLayer(*rsScreenNode);
-    ASSERT_EQ(layer1, nullptr);
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*rsScreenNode);
+    ASSERT_EQ(layer, nullptr);
 
-    auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode);
-    ASSERT_NE(drawable, nullptr);
-    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(drawable);
-    rsScreenNode->renderDrawable_ = screenDrawable;
+    auto screenDrawable = std::static_pointer_cast<DrawableV2::RSScreenRenderNodeDrawable>(
+        DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(rsScreenNode));
+    ASSERT_NE(screenDrawable, nullptr);
     screenDrawable->surfaceCreated_ = true;
     OHOS::sptr<SurfaceBuffer> cbuffer = new SurfaceBufferImpl();
     sptr<SyncFence> acquireFence = SyncFence::INVALID_FENCE;
@@ -325,9 +336,40 @@ HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
     ASSERT_NE(surfaceHandler, nullptr);
     surfaceHandler->SetBuffer(cbuffer, acquireFence, {}, 0);
     surfaceHandler->SetAvailableBufferCount(0);
-    screenDrawable->surfaceCreated_ = true;
-    LayerInfoPtr layer2 = composerAdapter_->CreateLayer(*rsScreenNode);
-    ASSERT_EQ(layer2->GetNodeId(), id);
+    composerAdapter_->composerClient_ = nullptr;
+    layer = composerAdapter_->CreateLayer(*rsScreenNode);
+    ASSERT_EQ(layer, nullptr);
+    composerAdapter_->Init(info, offsetX, offsetY);
+    layer = composerAdapter_->CreateLayer(*rsScreenNode);
+    ASSERT_NE(layer, nullptr);
+    
+    composerAdapter_->composerClient_ = nullptr;
+    layer = composerAdapter_->CreateLayer(*screenDrawable);
+    ASSERT_EQ(layer, nullptr);
+    composerAdapter_->Init(info, offsetX, offsetY);
+    layer = composerAdapter_->CreateLayer(*screenDrawable);
+    ASSERT_NE(layer, nullptr);
+}
+
+/**
+ * @tc.name: CreateLayer002
+ * @tc.desc: Test RSUniRenderComposerAdapterTest.CreateLayer
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderComposerAdapterTest, CreateLayer002, TestSize.Level2)
+{
+    auto rcdSurfaceRenderNode = RSRcdSurfaceRenderNode::Create(1, RCDSurfaceType::TOP);
+    sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
+    sptr<SyncFence> acquireFence = SyncFence::InvalidFence();
+    int64_t timestamp = 0;
+    Rect damage;
+    rcdSurfaceRenderNode->SetBuffer(buffer, acquireFence, damage, timestamp);
+    composerAdapter_->composerClient_ = nullptr;
+    RSLayerPtr layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
+    ASSERT_EQ(layer, nullptr);
+    composerAdapter_->Init(info, offsetX, offsetY);
+    layer = composerAdapter_->CreateLayer(*rcdSurfaceRenderNode);
+    ASSERT_NE(layer, nullptr);
 }
 
 /**
@@ -355,8 +397,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SrcRectRotateTransform006, TestSize.Lev
 */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2)
 {
-    SetUp();
-
     using namespace HDI::Display::Graphic::Common::V1_0;
 
     auto rsContext = std::make_shared<RSContext>();
@@ -413,8 +453,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace001, TestSize.Level2
 */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2)
 {
-    SetUp();
-
     NodeId id = 0;
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
@@ -432,8 +470,6 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace002, TestSize.Level2
 */
 HWTEST_F(RSUniRenderComposerAdapterTest, SetBufferColorSpace003, TestSize.Level2)
 {
-    SetUp();
-
     NodeId id = 1;
     auto rsContext = std::make_shared<RSContext>();
     auto node = std::make_shared<RSScreenRenderNode>(id, 0, rsContext->weak_from_this());
@@ -471,7 +507,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, SetMetaDataInfoToLayerTest, TestSize.Le
     auto buffer = new SurfaceBufferImpl(0);
     surfaceHandler->SetBuffer(buffer, acquireFence, {}, 0);
     ComposeInfo info = composerAdapter_->BuildComposeInfo(*screenDrawable, screenDrawable->GetDirtyRects());
-    LayerInfoPtr layer = HdiLayerInfo::CreateHdiLayerInfo();
+    RSLayerPtr layer = std::make_shared<RSSurfaceLayer>();
     layer->SetUniRenderFlag(true);
     composerAdapter_->SetMetaDataInfoToLayer(layer, info.buffer, surfaceHandler->GetConsumer());
     if (buffer) {

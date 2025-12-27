@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -98,7 +98,7 @@ HWTEST_F(RSOffscreenRenderThreadTest, GetRenderContextTest001, TestSize.Level1)
     thread->GetRenderContext();
     thread->CleanGrResource();
 
-    thread->renderContext_ = std::make_shared<RenderContext>();
+    thread->renderContext_ = RenderContext::Create();
     EXPECT_NE(thread->renderContext_, nullptr);
     EXPECT_NE(thread->GetRenderContext(), nullptr);
 
@@ -107,7 +107,7 @@ HWTEST_F(RSOffscreenRenderThreadTest, GetRenderContextTest001, TestSize.Level1)
 
     std::shared_ptr<Drawing::GPUContext> drGPUContext = std::make_shared<Drawing::GPUContext>();
     EXPECT_NE(drGPUContext, nullptr);
-    thread->renderContext_->drGPUContext_ = drGPUContext;
+    thread->renderContext_->drGPUContext_ = nullptr;
     thread->CleanGrResource();
 }
 } // namespace OHOS::Rosen

@@ -95,6 +95,7 @@ namespace OHOS {
         const RSUINodeType nodeType = static_cast<RSUINodeType>(GetData<uint32_t>());
         auto propertyType = static_cast<ModifierNG::RSPropertyType>(GetData<uint16_t>());
         auto node = std::make_shared<RSRenderNode>(nodeId);
+        FrameRateRange frameRateRange {0, 120, 60};
 
         // test
         RSAnimationTraceUtils::GetInstance().AddAnimationNameTrace(nodeName);
@@ -103,9 +104,10 @@ namespace OHOS {
             nodeId, animationId, propertyType, isAddLogInfo);
         RSAnimationTraceUtils::GetInstance().AddAnimationCreateTrace(nodeId, nodeName, propertyId, animationId,
             animationType, propertyType, startValue, endValue, animationDelay, animationDur, repeat, interfaceName,
-            frameNodeId, frameNodeTag, nodeType);
+            frameNodeId, frameNodeTag, nodeType, frameRateRange);
         RSAnimationTraceUtils::GetInstance().AddAnimationFrameTrace(
-            node.get(), nodeId, nodeName, animationId, propertyId, fraction, value, time, animationDur, repeat);
+            node.get(), nodeId, nodeName, animationId, propertyId, fraction, value, time, animationDur, repeat,
+            frameRateRange);
         RSAnimationTraceUtils::GetInstance().AddSpringInitialVelocityTrace(
             propertyId, animationId, initialVelocity, value);
         RSAnimationTraceUtils::GetInstance().AddAnimationCancelTrace(nodeId, propertyId);

@@ -65,6 +65,8 @@ enum class RSModifierType : uint16_t {
     BEHIND_WINDOW_FILTER = 33,
     BACKGROUND_NG_SHADER = 34,
     FOREGROUND_SHADER = 35,
+    MATERIAL_FILTER = 36,
+    COLOR_PICKER = 37,
 
     CHILDREN, // PLACEHOLDER, no such modifier, but we need a dirty flag
 
@@ -140,6 +142,8 @@ public:
             case RSModifierType::BEHIND_WINDOW_FILTER: return "BehindWindowFilter";
             case RSModifierType::BACKGROUND_NG_SHADER: return "BackgroundNgShader";
             case RSModifierType::FOREGROUND_SHADER: return "ForegroundShader";
+            case RSModifierType::MATERIAL_FILTER: return "MaterialFilter";
+            case RSModifierType::COLOR_PICKER : return "ColorPicker";
             case RSModifierType::CHILDREN: return "Children";
             default: return "Invalid";
         }
@@ -310,6 +314,10 @@ public:
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
             case RSPropertyType::SDF_SHAPE: return "SDFShape";
+            case RSPropertyType::MATERIAL_NG_FILTER: return "MaterialNGFilter";
+            case RSPropertyType::COLOR_PICKER_PLACEHOLDER : return "ColorPickerPlaceholder";
+            case RSPropertyType::COLOR_PICKER_STRATEGY : return "ColorPickerStrategy";
+            case RSPropertyType::COLOR_PICKER_INTERVAL : return "ColorPickerInterval";
             case RSPropertyType::CHILDREN: return "Children";
             default: return "Unknown";
         }

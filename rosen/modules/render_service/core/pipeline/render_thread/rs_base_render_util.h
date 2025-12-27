@@ -160,7 +160,7 @@ public:
 
     static GSError DropFrameProcess(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = 0);
     static bool ConsumeAndUpdateBuffer(RSSurfaceHandler& surfaceHandler, uint64_t presentWhen = CONSUME_DIRECTLY,
-        bool dropFrameByPidEnable = false, uint64_t parentNodeId = 0);
+        bool dropFrameByPidEnable = false, uint64_t parentNodeId = 0, bool dropFrameByScreenFrozen = false);
     static bool ReleaseBuffer(RSSurfaceHandler& surfaceHandler);
 
     static std::unique_ptr<RSTransactionData> ParseTransactionData(MessageParcel& parcel, uint32_t parcelNumber);
@@ -203,9 +203,6 @@ public:
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Image> image, std::string debugInfo);
     static bool WriteCacheImageRenderNodeToPng(std::shared_ptr<Drawing::Bitmap> bitmap, std::string debugInfo);
 
-    static int GetAccumulatedBufferCount();
-    static void IncAcquiredBufferCount();
-    static void DecAcquiredBufferCount();
     static pid_t GetLastSendingPid();
 
 private:

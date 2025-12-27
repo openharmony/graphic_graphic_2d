@@ -35,14 +35,22 @@ public:
     static void Constructor(ani_env* env, ani_object obj);
     static ani_string GetFamilyName(ani_env* env, ani_object obj);
     static ani_object MakeFromFile(ani_env* env, ani_object obj, ani_string filePath);
+    static ani_object MakeFromRawFile(ani_env* env, ani_object obj, ani_object resource);
     static ani_object MakeFromFileWithArguments(ani_env* env, ani_object obj, ani_string filePath,
         ani_object argumentsObj);
 
     static std::shared_ptr<Typeface> GetZhCnTypeface();
 
+    static ani_boolean IsBold(ani_env* env, ani_object obj);
+    static ani_boolean IsItalic(ani_env* env, ani_object obj);
+
     std::shared_ptr<Typeface> GetTypeface();
 
 private:
+    static ani_object CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface> typeface);
+    static ani_object TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    static ani_long GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input);
+    std::shared_ptr<Typeface>* GetTypefacePtrAddr();
     std::shared_ptr<Typeface> typeface_;
 };
 } // namespace Drawing

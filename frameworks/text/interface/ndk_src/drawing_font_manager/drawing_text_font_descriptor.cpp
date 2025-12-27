@@ -299,3 +299,108 @@ void OH_Drawing_DestroyFontFullDescriptors(OH_Drawing_Array* descriptorArray)
     descriptorList->type = ObjectType::INVALID;
     delete descriptorList;
 }
+
+OH_Drawing_ErrorCode GetUnicodeArray(const std::vector<uint32_t>& fontUnicodeArray,
+    int32_t** unicodeArray, int32_t* arrayLength)
+{
+    if (fontUnicodeArray.empty() || unicodeArray == nullptr || arrayLength == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+
+    int32_t* result = static_cast<int32_t*>(malloc(fontUnicodeArray.size() * sizeof(int32_t)));
+    if (result == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    for (size_t i = 0; i < fontUnicodeArray.size(); ++i) {
+        result[i] = static_cast<int32_t>(fontUnicodeArray[i]);
+    }
+
+    *unicodeArray = result;
+    *arrayLength = static_cast<int32_t>(fontUnicodeArray.size());
+
+    return OH_DRAWING_SUCCESS;
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromFile(const char* fontSrc, uint32_t index,
+    int32_t** unicodeArray, int32_t* arrayLength)
+{
+    if (fontSrc == nullptr || unicodeArray == nullptr || arrayLength == nullptr) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto result = TextEngine::FontParser::GetFontTypefaceUnicode(fontSrc, index);
+    return GetUnicodeArray(result, unicodeArray, arrayLength);
+}
+
+OH_Drawing_ErrorCode OH_Drawing_GetFontUnicodeArrayFromBuffer(uint8_t* fontBuffer, size_t length, uint32_t index,
+    int32_t** unicodeArray, int32_t* arrayLength)
+{
+    if (fontBuffer == nullptr || unicodeArray == nullptr || arrayLength == nullptr || length == 0) {
+        return OH_DRAWING_ERROR_INCORRECT_PARAMETER;
+    }
+    auto result = TextEngine::FontParser::GetFontTypefaceUnicode(fontBuffer, length, index);
+    return GetUnicodeArray(result, unicodeArray, arrayLength);
+}
+
+uint32_t OH_Drawing_GetFontCountFromFile(const char* fontSrc)
+{
+    uint32_t fileCount = 0;
+    if (fontSrc != nullptr) {
+        fileCount = static_cast<uint32_t>(TextEngine::FontParser::GetFontCount(fontSrc));
+    }
+    return fileCount;
+}
+
+uint32_t OH_Drawing_GetFontCountFromBuffer(uint8_t* fontBuffer, size_t length)
+{
+    uint32_t fileCount = 0;
+    if (fontBuffer != nullptr && length != 0) {
+        std::vector<uint8_t> fontData(fontBuffer, fontBuffer + length);
+        fileCount = static_cast<uint32_t>(TextEngine::FontParser::GetFontCount(fontData));
+    }
+    return fileCount;
+}
+
+OH_Drawing_String* OH_Drawing_GetFontPathsByType(OH_Drawing_SystemFontType fontType, size_t* num)
+{
+    auto systemFontType = static_cast<int32_t>(fontType);
+    std::unordered_set<std::string> fontPaths;
+    size_t index = 0;
+    if (num == nullptr) {
+        num = &index;
+    }
+    FontDescriptorMgrInstance.GetFontPathsByType(systemFontType, fontPaths);
+    if (fontPaths.empty()) {
+        TEXT_LOGI_LIMIT3_MIN("Failed to get font path by type: %{public}d", systemFontType);
+        *num = 0;
+        return nullptr;
+    }
+    // +1 for nullptr termination
+    std::unique_ptr<OH_Drawing_String[]> stringArr = std::make_unique<OH_Drawing_String[]>(fontPaths.size() + 1);
+    size_t byteLength = sizeof(OH_Drawing_String) * (fontPaths.size() + 1);
+    if (memset_s(stringArr.get(), byteLength, 0, byteLength) != EOK) {
+        TEXT_LOGE("Failed to memset_s length: %{public}zu", byteLength);
+        *num = 0;
+        return nullptr;
+    }
+    for (const auto& path : fontPaths) {
+        std::u16string utf16String = OHOS::Str8ToStr16(path);
+        if (utf16String.empty()) {
+            TEXT_LOGE("Failed to convert string to utf16: %{public}s", path.c_str());
+            continue;
+        }
+        stringArr[index].strLen = utf16String.size() * sizeof(char16_t);
+        std::unique_ptr strData = std::make_unique<uint8_t[]>(stringArr[index].strLen);
+        if (memcpy_s(strData.get(), stringArr[index].strLen, utf16String.c_str(), stringArr[index].strLen) != EOK) {
+            TEXT_LOGE("Failed to memcpy_s length: %{public}u", stringArr[index].strLen);
+            continue;
+        }
+        stringArr[index].strData = strData.release();
+        index += 1;
+    }
+    *num = index;
+    if (index == 0) {
+        TEXT_LOGI_LIMIT3_MIN("Failed to get font path, font type: %{public}d", static_cast<int32_t>(fontType));
+        return nullptr;
+    }
+    return stringArr.release();
+}

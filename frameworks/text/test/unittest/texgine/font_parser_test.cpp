@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
+#include <fcntl.h>
 #include <fstream>
 #include <gtest/gtest.h>
 
 #include "font_config.h"
 #include "font_parser.h"
+#include "font_tool_set.h"
 #include "cmap_table_parser.h"
+#include "locale_config.h"
 #include "name_table_parser.h"
 #include "post_table_parser.h"
 
@@ -29,6 +32,9 @@ namespace OHOS {
 namespace Rosen {
 namespace TextEngine {
 static const std::string FILE_NAME = "/system/fonts/visibility_list.json";
+static const std::string TEST_FONT_PATH = "/system/fonts/NotoSans[wdth,wght].ttf";
+static const std::string TEST_TTC_PATH = "/system/fonts/NotoSansCJK-Regular.ttc";
+static const std::string NON_EXISTENT_PATH = "/system/fonts/nonexistent.ttf";
 
 class FontParserTest : public testing::Test {
 };
@@ -183,6 +189,672 @@ HWTEST_F(FontParserTest, CheckFullNameParamInvalidTest1, TestSize.Level0)
     fd.requestedLid = LANGUAGE_DEFAULT;
     EXPECT_FALSE(FontParser::CheckFullNameParamInvalid(fd, LANGUAGE_TC, "non-empty"));
 }
+
+/**
+ * @tc.name: GetFontTypefaceUnicodeFromPathTest
+ * @tc.desc: Test getting font Unicode information from file path
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontTypefaceUnicodeFromPathTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: Valid font file path
+    std::ifstream testFile(TEST_FONT_PATH.c_str(), std::ios::binary);
+    if (!testFile.is_open()) {
+        // If test font file does not exist, skip this test
+        GTEST_SKIP();
+    }
+
+    auto unicodeList = fontParser.GetFontTypefaceUnicode(TEST_FONT_PATH, 0);
+    // Check if the returned Unicode list is not empty
+    EXPECT_FALSE(unicodeList.empty());
+    testFile.close();
+
+    // Test case 2: Invalid font file path
+    auto unicodeList2 = fontParser.GetFontTypefaceUnicode(NON_EXISTENT_PATH, 0);
+    EXPECT_TRUE(unicodeList2.empty());
+
+    // Test case 3: TTC font file, test different indices
+    std::ifstream ttcFile(TEST_TTC_PATH.c_str());
+    if (ttcFile.is_open()) {
+        auto unicodeList3 = fontParser.GetFontTypefaceUnicode(TEST_TTC_PATH, 0);
+        // For TTC file, index 0 should return valid data
+        EXPECT_FALSE(unicodeList3.empty());
+
+        // Test out-of-bounds index case
+        auto unicodeList4 = fontParser.GetFontTypefaceUnicode(TEST_TTC_PATH, 100);
+        EXPECT_TRUE(unicodeList4.empty());
+        ttcFile.close();
+    }
+}
+
+/**
+ * @tc.name: GetFontTypefaceUnicodeFromDataTest
+ * @tc.desc: Test getting font Unicode information from memory data
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontTypefaceUnicodeFromDataTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::ifstream file(TEST_FONT_PATH.c_str(), std::ios::binary);
+    if (!file.is_open()) {
+        GTEST_SKIP();
+    }
+    std::stringstream fileStream;
+    fileStream << file.rdbuf();
+    std::string fileData = fileStream.str();
+    std::vector<uint8_t> testFontData(fileData.begin(), fileData.end());
+
+    // Test case 1: Valid font data
+    if (!testFontData.empty()) {
+        auto unicodeList = fontParser.GetFontTypefaceUnicode(testFontData.data(), testFontData.size(), 0);
+        EXPECT_FALSE(unicodeList.empty());
+    }
+
+    // Test case 2: Null data pointer
+    auto unicodeList2 = fontParser.GetFontTypefaceUnicode(nullptr, 0, 0);
+    EXPECT_TRUE(unicodeList2.empty());
+
+    // Test case 3: Zero length data
+    auto unicodeList3 = fontParser.GetFontTypefaceUnicode(testFontData.data(), 0, 0);
+    EXPECT_TRUE(unicodeList3.empty());
+
+    // Test case 4: Negative index
+    auto unicodeList4 = fontParser.GetFontTypefaceUnicode(testFontData.data(), testFontData.size(), -1);
+    EXPECT_TRUE(unicodeList4.empty());
+    file.close();
+}
+
+/**
+ * @tc.name: GetFontFullNameFromFdTest
+ * @tc.desc: Test getting font full names from file descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontFullNameFromFdTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: Test with valid font file
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (testFile.is_open()) {
+        // Open file descriptor for the test font file
+        int fd = open(TEST_FONT_PATH.c_str(), O_RDONLY);
+        auto fullNames = fontParser.GetFontFullName(fd);
+
+        // Verify that full names are returned
+        EXPECT_FALSE(fullNames.empty());
+
+        // Each full name should not be empty
+        for (const auto& name : fullNames) {
+            EXPECT_FALSE(name.empty());
+            EXPECT_STREQ(name.c_str(), "Noto Sans Regular");
+        }
+
+        // Close file descriptor
+        close(fd);
+        testFile.close();
+    } else {
+        GTEST_SKIP();
+    }
+
+    // Test case 2: Test with TTC font file (multiple fonts)
+    std::ifstream ttcFile(TEST_TTC_PATH.c_str());
+    if (ttcFile.is_open()) {
+        int fd = open(TEST_TTC_PATH.c_str(), O_RDONLY);
+        auto fullNames = fontParser.GetFontFullName(fd);
+
+        // TTC file should return 10 font full names
+        EXPECT_EQ(fullNames.size(), 10);
+        EXPECT_STREQ(fullNames[0].c_str(), "Noto Sans CJK JP");
+
+        close(fd);
+        ttcFile.close();
+    }
+}
+
+/**
+ * @tc.name: GetFontFullNameFromFdInvalidFdTest
+ * @tc.desc: Test getting font full names from invalid file descriptor
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontFullNameFromFdInvalidFdTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: Test with invalid file descriptor (-1)
+    int invalidFd = -1;
+    auto fullNames = fontParser.GetFontFullName(invalidFd);
+
+    // Should return empty vector for invalid file descriptor
+    EXPECT_TRUE(fullNames.empty());
+
+    // Test case 2: Test with closed file descriptor
+    int closedFd = open("/dev/null", O_RDONLY);
+    close(closedFd);
+
+    // Now file descriptor is closed
+    auto fullNames2 = fontParser.GetFontFullName(closedFd);
+    EXPECT_TRUE(fullNames2.empty());
+}
+
+/**
+ * @tc.name: GetFontFullNameFromFdZeroSizeFileTest
+ * @tc.desc: Test getting font full names from zero-size file
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontFullNameFromFdZeroSizeFileTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Create a temporary empty file
+    std::string tempFilePath = "/data/local/tmp/test_empty_font.ttf";
+    int fd = open(tempFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd == -1) {
+        GTEST_SKIP() << "Failed to create test file";
+    }
+    close(fd);
+
+    // Should return empty vector for zero-size file
+    fd = open(tempFilePath.c_str(), O_RDONLY);
+    auto fullNames = fontParser.GetFontFullName(fd);
+    EXPECT_TRUE(fullNames.empty());
+
+    close(fd);
+    unlink(tempFilePath.c_str()); // Clean up
+}
+
+/**
+ * @tc.name: GetFontFullNameFromFdNonFontFileTest
+ * @tc.desc: Test getting font full names from non-font file
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontFullNameFromFdNonFontFileTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string tempFilePath = "/data/local/tmp/test_text_file.txt";
+    std::ofstream textFile(tempFilePath);
+    textFile << "This is a text file, not a font file." << std::endl;
+    textFile.close();
+
+    int fd = open(tempFilePath.c_str(), O_RDONLY);
+    if (fd == -1) {
+        GTEST_SKIP() << "Failed to create test file";
+    }
+
+    // Should return empty vector for non-font file
+    auto fullNames = fontParser.GetFontFullName(fd);
+    EXPECT_TRUE(fullNames.empty());
+
+    close(fd);
+    unlink(tempFilePath.c_str()); // Clean up
+}
+
+
+/**
+ * @tc.name: GetFontFullNameFromFdMakeTypefaceFailureTest
+ * @tc.desc: Test getting font full names when MakeFromStream fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontFullNameFromFdMakeTypefaceFailureTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    // Create a file with OTF/TTF header but invalid content
+    std::string tempFilePath = "/data/local/tmp/test_corrupt_font.ttf";
+    int fd = open(tempFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd == -1) {
+        GTEST_SKIP() << "Failed to create test file";
+    }
+
+    // Write OTF/TTF header (4 bytes: "OTTO" or 0x00010000)
+    uint32_t header = 0x4F54544F; // "OTTO" in ASCII
+    write(fd, &header, sizeof(header));
+
+    // Fill with zeros to make it invalid font data
+    uint8_t zeros[1000] = {0};
+    write(fd, zeros, sizeof(zeros));
+    close(fd);
+
+    // This should return empty vector because font parsing will fail
+    fd = open(tempFilePath.c_str(), O_RDONLY);
+    auto fullNames = fontParser.GetFontFullName(fd);
+    EXPECT_TRUE(fullNames.empty());
+
+    close(fd);
+    unlink(tempFilePath.c_str()); // Clean up
+}
+
+/**
+ * @tc.name: GetFontFullNameFromFdParseNameTableFailureTest
+ * @tc.desc: Test getting font full names when parsing name table fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontFullNameFromFdParseNameTableFailureTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string tempFilePath = "/data/local/tmp/test_font_no_name_table.ttf";
+    int fd = open(tempFilePath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd == -1) {
+        GTEST_SKIP() << "Failed to create test file";
+    }
+
+    // Write minimal font data without name table
+    // This is a simplified example - real font files are more complex
+    uint8_t fontData[] = {
+        0x00, 0x01, 0x00, 0x00, // sfntVersion
+        0x00, 0x01, // numTables
+        0x00, 0x00, // searchRange
+        0x00, 0x00, // entrySelector
+        0x00, 0x00, // rangeShift
+        // Table directory entry for a table that's not 'name'
+        0x41, 0x41, 0x41, 0x41, // tag: "AAAA"
+        0x00, 0x00, 0x00, 0x00, // checksum
+        0x00, 0x00, 0x00, 0x10, // offset
+        0x00, 0x00, 0x00, 0x10, // length
+    };
+    write(fd, fontData, sizeof(fontData));
+
+    // Pad with zeros to reach offset 0x10
+    uint8_t zeros[16] = {0};
+    write(fd, zeros, 16);
+    close(fd);
+
+    // This should return empty vector because name table parsing will fail
+    fd = open(tempFilePath.c_str(), O_RDONLY);
+    auto fullNames = fontParser.GetFontFullName(fd);
+    EXPECT_TRUE(fullNames.empty());
+
+    close(fd);
+    unlink(tempFilePath.c_str()); // Clean up
+}
+
+/**
+ * @tc.name: GetBcpTagListTest
+ * @tc.desc: Test getting BCP tag list
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetBcpTagListTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Get BCP tag list for current system language
+    auto bcpTagList = fontParser.GetBcpTagList();
+
+    // Test case 1: Verify BCP tag list is not empty
+    EXPECT_FALSE(bcpTagList.empty());
+
+    // Test case 2: Verify each BCP tag is not empty
+    for (const auto& tag : bcpTagList) {
+        EXPECT_FALSE(tag.empty());
+    }
+
+    // Test case 3: Verify consistency of multiple function calls
+    auto bcpTagList2 = fontParser.GetBcpTagList();
+    EXPECT_EQ(bcpTagList.size(), bcpTagList2.size());
+}
+
+/**
+ * @tc.name: FillFontDescriptorWithLocalInfoTest
+ * @tc.desc: Test filling font descriptor with local information
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithLocalInfoTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    FontParser::FontDescriptor desc;
+
+    // Create a Typeface object (using test font file)
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+
+    auto typeface = Drawing::Typeface::MakeFromFile(TEST_FONT_PATH.c_str());
+    ASSERT_NE(typeface, nullptr);
+
+    // Test case 1: Fill descriptor with valid typeface
+    fontParser.FillFontDescriptorWithLocalInfo(typeface, desc);
+
+    EXPECT_FALSE(desc.localFamilyName.empty());
+    EXPECT_FALSE(desc.localFullName.empty());
+    EXPECT_FALSE(desc.localSubFamilyName.empty());
+    EXPECT_FALSE(desc.localPostscriptName.empty());
+    EXPECT_FALSE(desc.version.empty());
+    EXPECT_FALSE(desc.manufacture.empty());
+    EXPECT_FALSE(desc.copyright.empty());
+    EXPECT_FALSE(desc.trademark.empty());
+    EXPECT_FALSE(desc.license.empty());
+
+    // Test case 2: Use nullptr typeface
+    // Should not crash, all fields should remain unchanged
+    FontParser::FontDescriptor desc2;
+    fontParser.FillFontDescriptorWithLocalInfo(nullptr, desc2);
+    testFile.close();
+
+    // Test case 3: Test field priority in descriptor
+    // If descriptor already has some fields, FillFontDescriptorWithLocalInfo should not overwrite them
+    FontParser::FontDescriptor desc3;
+    desc3.localFamilyName = "PredefinedFamily";
+    desc3.localFullName = "PredefinedFullName";
+
+    std::ifstream testFile2(TEST_FONT_PATH.c_str());
+    if (testFile2.is_open()) {
+        typeface = Drawing::Typeface::MakeFromFile(TEST_FONT_PATH.c_str());
+        ASSERT_NE(typeface, nullptr);
+
+        fontParser.FillFontDescriptorWithLocalInfo(typeface, desc3);
+
+        // Predefined fields should remain unchanged
+        EXPECT_EQ(desc3.localFamilyName, "PredefinedFamily");
+        EXPECT_EQ(desc3.localFullName, "PredefinedFullName");
+
+        testFile2.close();
+    }
+
+    // improved the test case coverage rate
+    std::shared_ptr<Drawing::TypefaceImpl> swapTypefaceImpl = nullptr;
+    typeface->typefaceImpl_.swap(swapTypefaceImpl);
+    EXPECT_EQ(typeface->GetFontIndex(), 0);
+    typeface->typefaceImpl_.swap(swapTypefaceImpl);
+}
+
+/**
+ * @tc.name: GetFontCountFromPathTest
+ * @tc.desc: Test getting font count from file path
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontCountFromPathTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: Valid font file path (single font)
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    int32_t count = fontParser.GetFontCount(TEST_FONT_PATH);
+    // Single font file should return 1
+    EXPECT_EQ(count, 1);
+    testFile.close();
+
+    // Test case 2: TTC font file (multiple fonts)
+    std::ifstream ttcFile(TEST_TTC_PATH.c_str());
+    if (ttcFile.is_open()) {
+        count = fontParser.GetFontCount(TEST_TTC_PATH);
+        // TTC file should return count greater than 1
+        EXPECT_GT(count, 0);
+        ttcFile.close();
+    }
+
+    // Test case 3: Invalid file path
+    int32_t count3 = fontParser.GetFontCount(NON_EXISTENT_PATH);
+    EXPECT_EQ(count3, 0);
+
+    // Test case 4: Empty string path
+    int32_t count4 = fontParser.GetFontCount("");
+    EXPECT_EQ(count4, 0);
+}
+
+/**
+ * @tc.name: GetFontCountFromDataTest
+ * @tc.desc: Test getting font count from memory data
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontCountFromDataTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: Valid font data
+    std::ifstream file(TEST_FONT_PATH.c_str(), std::ios::binary);
+    if (!file.is_open()) {
+        GTEST_SKIP();
+    }
+    std::stringstream fileStream;
+    fileStream << file.rdbuf();
+    std::string fileData = fileStream.str();
+    std::vector<uint8_t> testFontData(fileData.begin(), fileData.end());
+
+    int32_t count = fontParser.GetFontCount(testFontData);
+    EXPECT_GE(count, 0);
+
+    // Test case 2: Empty data
+    std::vector<uint8_t> emptyData;
+    int32_t count2 = fontParser.GetFontCount(emptyData);
+    EXPECT_EQ(count2, 0);
+    file.close();
+}
+
+/**
+ * @tc.name: GetFontCountEdgeCasesTest
+ * @tc.desc: Test edge cases for GetFontCount
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetFontCountEdgeCasesTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test case 1: Very long path (buffer boundary test)
+    std::string longPath(4096, 'A');
+    int32_t count1 = fontParser.GetFontCount(longPath);
+    EXPECT_EQ(count1, 0);
+
+    // Test case 2: Path containing special characters
+    std::string specialPath = "/system/fonts/test\0font.ttf";
+    int32_t count2 = fontParser.GetFontCount(specialPath);
+    EXPECT_EQ(count2, 0);
+
+    // Test case 3: Relative path
+    std::string relativePath = "./fonts/test.ttf";
+    int32_t count3 = fontParser.GetFontCount(relativePath);
+    EXPECT_EQ(count3, 0);
+}
+
+/**
+ * @tc.name: FontParserIntegrationTest
+ * @tc.desc: Font parser integration test
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FontParserIntegrationTest, TestSize.Level0)
+{
+    FontParser fontParser;
+
+    // Test combined usage of multiple functions
+    std::ifstream testFile(TEST_FONT_PATH.c_str());
+    if (testFile.is_open()) {
+        // 1. Get font count
+        int32_t count = fontParser.GetFontCount(TEST_FONT_PATH);
+        EXPECT_GT(count, 0);
+
+        // 2. Get Unicode information
+        for (int32_t i = 0; i < count; i++) {
+            auto unicodeList = fontParser.GetFontTypefaceUnicode(TEST_FONT_PATH, i);
+            // For valid font indices, should return non-empty list
+            EXPECT_FALSE(unicodeList.empty());
+        }
+
+        testFile.close();
+    } else {
+        GTEST_SKIP();
+    }
+}
+
+// System language guard class, used to temporarily set system language during tests and restore it after test end
+class SystemLanguageGuard {
+public:
+    explicit SystemLanguageGuard(const std::string& newLang)
+    {
+        // Save current system language
+        originalLang_ = Global::I18n::LocaleConfig::GetSystemLanguage();
+        // Set new system language
+        Global::I18n::LocaleConfig::SetSystemLanguage(newLang);
+    }
+
+    ~SystemLanguageGuard()
+    {
+        // Restore original system language
+        Global::I18n::LocaleConfig::SetSystemLanguage(originalLang_);
+    }
+
+    // Disable copy and move
+    SystemLanguageGuard(const SystemLanguageGuard&) = delete;
+    SystemLanguageGuard& operator=(const SystemLanguageGuard&) = delete;
+    SystemLanguageGuard(SystemLanguageGuard&&) = delete;
+    SystemLanguageGuard& operator=(SystemLanguageGuard&&) = delete;
+    
+private:
+    std::string originalLang_;
+};
+
+/**
+ * @tc.name: GetBcpTagListWithZhHansTest
+ * @tc.desc: Test getting BCP tag list when system language is zh-Hans
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetBcpTagListWithZhHansTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string originalLang = Global::I18n::LocaleConfig::GetSystemLanguage();
+    // Use SystemLanguageGuard to temporarily set system language to zh-Hans
+    {
+        SystemLanguageGuard guard("zh-Hans");
+
+        // Get BCP tag list
+        auto bcpTagList = fontParser.GetBcpTagList();
+
+        // Verify returned BCP tag list
+        std::vector<std::string> expectedTags = {"zh-Hans", "zh", "zh-CN"};
+
+        // Check returned tag list size
+        EXPECT_EQ(bcpTagList.size(), expectedTags.size());
+
+        // Check if each tag exists
+        for (const auto& expectedTag : expectedTags) {
+            bool found = false;
+            for (const auto& actualTag : bcpTagList) {
+                if (actualTag == expectedTag) {
+                    found = true;
+                    break;
+                }
+            }
+            EXPECT_TRUE(found);
+        }
+    }
+    // guard destructor, system language automatically restored
+    EXPECT_STREQ(originalLang.c_str(), Global::I18n::LocaleConfig::GetSystemLanguage().c_str());
+}
+
+/**
+ * @tc.name: GetBcpTagListWithEnLatnUSTest
+ * @tc.desc: Test getting BCP tag list when system language is en-Latn-US
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetBcpTagListWithEnLatnUSTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string originalLang = Global::I18n::LocaleConfig::GetSystemLanguage();
+    // Use SystemLanguageGuard to temporarily set system language to en-Latn-US
+    {
+        SystemLanguageGuard guard("en-Latn-US");
+
+        // Get BCP tag list
+        auto bcpTagList = fontParser.GetBcpTagList();
+
+        // Verify returned BCP tag list
+        // According to g_localeToBcpTable, en-Latn-US should correspond to {"en-US", "en"}
+        std::vector<std::string> expectedTags = {"en-US", "en"};
+
+        // Check returned tag list size
+        EXPECT_EQ(bcpTagList.size(), expectedTags.size());
+
+        // Check if each tag exists
+        for (const auto& expectedTag : expectedTags) {
+            bool found = false;
+            for (const auto& actualTag : bcpTagList) {
+                if (actualTag == expectedTag) {
+                    found = true;
+                    break;
+                }
+            }
+            EXPECT_TRUE(found);
+        }
+    }
+    // guard destructor, system language automatically restored
+    EXPECT_STREQ(originalLang.c_str(), Global::I18n::LocaleConfig::GetSystemLanguage().c_str());
+}
+
+/**
+ * @tc.name: GetBcpTagListWithUnsupportedLangTest
+ * @tc.desc: Test getting BCP tag list when system language is not in mapping table
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, GetBcpTagListWithUnsupportedLangTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string originalLang = Global::I18n::LocaleConfig::GetSystemLanguage();
+    // Use SystemLanguageGuard to temporarily set system language to non-existent language
+    {
+        SystemLanguageGuard guard("xx-XX");
+
+        // Get BCP tag list
+        auto bcpTagList = fontParser.GetBcpTagList();
+
+        // Verify returned BCP tag list is empty
+        EXPECT_TRUE(bcpTagList.empty());
+    }
+    // guard destructor, system language automatically restored
+    EXPECT_STREQ(originalLang.c_str(), Global::I18n::LocaleConfig::GetSystemLanguage().c_str());
+}
+
+
+/**
+ * @tc.name: FillFontDescriptorWithLocalInfoWithDifferentSystemLangTest
+ * @tc.desc: Test filling font descriptor with different system languages
+ * @tc.type: FUNC
+ */
+HWTEST_F(FontParserTest, FillFontDescriptorWithLocalInfoWithDifferentSystemLangTest, TestSize.Level0)
+{
+    FontParser fontParser;
+    std::string testFontPath = "/system/fonts/HYQiHeiL3.ttf";
+    std::string originalLang = Global::I18n::LocaleConfig::GetSystemLanguage();
+    std::ifstream testFile(testFontPath.c_str());
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    testFile.close();
+
+    auto typeface = Drawing::Typeface::MakeFromFile(testFontPath.c_str());
+    ASSERT_NE(typeface, nullptr);
+    
+    // Test case 1: Fill descriptor when system language is zh-Hans
+    {
+        SystemLanguageGuard guard("zh-Hans");
+
+        FontParser::FontDescriptor desc1;
+        fontParser.FillFontDescriptorWithLocalInfo(typeface, desc1);
+        EXPECT_STREQ(desc1.localFamilyName.c_str(), "汉仪旗黑 L3");
+    }
+    
+    // Test case 2: Fill descriptor when system language is en-Latn-US
+    {
+        SystemLanguageGuard guard("en-Latn-US");
+
+        FontParser::FontDescriptor desc2;
+        fontParser.FillFontDescriptorWithLocalInfo(typeface, desc2);
+        EXPECT_STREQ(desc2.localFamilyName.c_str(), "HYQiHei L3");
+    }
+    
+    // Test case 3: Fill descriptor when system language is unsupported language
+    {
+        SystemLanguageGuard guard("xx-XX");
+
+        FontParser::FontDescriptor desc3;
+        fontParser.FillFontDescriptorWithLocalInfo(typeface, desc3);
+        EXPECT_STREQ(desc3.localFamilyName.c_str(), "HYQiHei L3");
+    }
+    // guard destructor, system language automatically restored
+    EXPECT_STREQ(originalLang.c_str(), Global::I18n::LocaleConfig::GetSystemLanguage().c_str());
+}
+
 } // namespace TextEngine
 } // namespace Rosen
 } // namespace OHOS

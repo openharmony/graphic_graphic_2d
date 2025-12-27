@@ -295,6 +295,8 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             if (auto parent = pair.second->GetParent().lock()) {
                 parent->RemoveChildFromFulllist(pair.second->GetId());
             }
+            // delete attachedInfo when clearing surfaceNodeMap to avoid incorrect attached nodes
+            pair.second->GetAttachedInfo() = std::nullopt;
             pair.second->RemoveFromTree(false);
         }
         return shouldErase;
@@ -325,6 +327,12 @@ void RSRenderNodeMap::FilterNodeByPid(pid_t pid, bool immediate)
             ROSEN_LOGD("RSRenderNodeMap::FilterNodeByPid removing all nodes belong to pid %{public}llu",
                 (unsigned long long)pid);
             pair.second->FilterModifiersByPid(pid);
+        }
+        if (ExtractPid(pair.first) == pid && pair.second) {
+            if (auto parent = pair.second->GetParent().lock()) {
+                parent->RemoveChildFromFulllist(pair.first);
+            }
+            pair.second->RemoveFromTree(false);
         }
         return ExtractPid(pair.first) == pid;
     });

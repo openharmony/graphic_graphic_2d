@@ -108,6 +108,8 @@ public:
 
     bool MHCGraphPatternInit(size_t size);
 
+    bool MHCGraphPatternWarmup();
+
     bool MHCRequestEGraph(uint64_t frameId);
 
     bool MHCWait(uint64_t frameId, MHC_PatternTaskName taskName);
@@ -120,7 +122,7 @@ public:
 
     bool MHCReleaseEGraph(uint64_t frameId);
 
-    void MHCReleaseAll();
+    void MHCReleaseAll(bool releaseHcs = true);
 
     bool MHCSubmitTask(uint64_t frameId, MHC_PatternTaskName taskName, std::function<void()>&& preFunc,
         void*** taskHandleVec, size_t numTask, std::function<void()>&& afterFunc);

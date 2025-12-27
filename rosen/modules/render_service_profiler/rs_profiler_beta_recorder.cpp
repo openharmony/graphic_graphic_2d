@@ -18,6 +18,7 @@
 
 #include "rs_profiler.h"
 #include "rs_profiler_archive.h"
+#include "rs_profiler_cache.h"
 #include "rs_profiler_command.h"
 #include "rs_profiler_file.h"
 #include "rs_profiler_network.h"
@@ -28,12 +29,12 @@
 
 namespace OHOS::Rosen {
 
-static constexpr float INACTIVITY_THRESHOLD_SECONDS = 0.01f;
+static constexpr float INACTIVITY_THRESHOLD_SECONDS = 0.02f;
 static DeviceInfo g_deviceInfo;
 static std::mutex g_deviceInfoMutex;
 static std::atomic_bool g_started = false;
 static double g_inactiveTimestamp = 0.0;
-static double g_recordsTimestamp = 0.0;
+static std::atomic<double> g_recordsTimestamp = 0.0;
 static double g_currentFrameDirtyRegion = 0.0;
 static uint64_t g_lastParcelTime = 0;
 static int g_animationCount = 0;
@@ -62,7 +63,7 @@ void RSProfiler::LaunchBetaRecordFileSplitThread()
 {
     std::thread thread([]() {
         while (IsBetaRecordStarted() && IsBetaRecordEnabled()) {
-            SaveBetaRecord();
+            BetaRecordTick();
             
             constexpr int32_t splitCheckTime = 100;
             std::this_thread::sleep_for(std::chrono::milliseconds(splitCheckTime));
@@ -140,7 +141,7 @@ void RSProfiler::BetaRecordSetLastParcelTime()
     g_lastParcelTime = Utils::Now();
 }
 
-void RSProfiler::SaveBetaRecord()
+void RSProfiler::BetaRecordTick()
 {
     if (!RSUniRenderThread::Instance().IsTaskQueueEmpty()) {
         // rendering thread works
@@ -173,14 +174,17 @@ void RSProfiler::SaveBetaRecord()
         delete[] ptr;
         ScheduleTask([]() {
             // executes in main thread when mainLoop is sleeping
-            if (!IsBetaRecordStarted() || !IsBetaRecordEnabled()) {
+            bool betaRecordStarted = IsBetaRecordStarted();
+            if (!betaRecordStarted || !IsBetaRecordEnabled()) {
                 return;
             }
             if (IsSecureScreen() || IsPowerOffScreen()) {
                 return;
             }
             g_recordsTimestamp = Now();
-            RecordStart(ArgList());
+            std::vector<std::string> argList;
+            argList.push_back("BETAREC");
+            RecordStart(ArgList(argList));
         });
         return;
     }

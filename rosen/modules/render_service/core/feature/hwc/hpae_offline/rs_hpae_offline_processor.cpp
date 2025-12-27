@@ -195,7 +195,8 @@ void RSHpaeOfflineProcessor::CheckAndPostPreAllocBuffersTask()
 }
 
 bool RSHpaeOfflineProcessor::GetOfflineProcessInput(RSSurfaceRenderParams& params,
-    OfflineProcessInputInfo& inputInfo, sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence)
+    OfflineProcessInputInfo& inputInfo, sptr<SurfaceBuffer>& srcSurfaceBuffer,
+    sptr<SurfaceBuffer>& dstSurfaceBuffer, int32_t& releaseFence)
 {
     // get offline buffer
     RS_OPTIONAL_TRACE_NAME_FMT("hpae_offline: Get Offline Process Input Info");
@@ -214,11 +215,6 @@ bool RSHpaeOfflineProcessor::GetOfflineProcessInput(RSSurfaceRenderParams& param
     }
 
     inputInfo.id = params.GetId();
-    auto srcSurfaceBuffer = params.GetBuffer();
-    if (!srcSurfaceBuffer) {
-        RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
-        return false;
-    }
     inputInfo.srcHandle = srcSurfaceBuffer->GetBufferHandle();
     inputInfo.dstHandle = dstHandle;
     auto src = params.GetLayerInfo().srcRect;
@@ -299,7 +295,12 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     OfflineProcessInputInfo inputInfo;
     sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
     int32_t releaseFence = -1;
-    if (!GetOfflineProcessInput(params, inputInfo, dstSurfaceBuffer, releaseFence)) {
+    auto srcSurfaceBuffer = params.GetBuffer();
+    if (!srcSurfaceBuffer) {
+        RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
+        return false;
+    }
+    if (!GetOfflineProcessInput(params, inputInfo, srcSurfaceBuffer, dstSurfaceBuffer, releaseFence)) {
         RS_OFFLINE_LOGW("Get offline process input failed.");
         return false;
     }

@@ -16,7 +16,6 @@
 #ifndef MULTISCREEN_PARAM_H
 #define MULTISCREEN_PARAM_H
 
-#include "draw/canvas.h"
 #include "feature_param.h"
 
 namespace OHOS::Rosen {
@@ -27,29 +26,26 @@ public:
  
     static bool IsExternalScreenSecure();
     static bool IsSlrScaleEnabled();
-    static bool IsRsReportHwcDead();
     static bool IsRsSetScreenPowerStatus();
     static bool IsMirrorDisplayCloseP3();
     static bool IsSkipFrameByActiveRefreshRate();
-    static Drawing::MipmapMode GetMipmapMode();
+    static bool IsForceRenderForMirror();
 
 protected:
     static void SetExternalScreenSecure(bool isSecure);
     static void SetSlrScaleEnabled(bool isEnabled);
-    static void SetRsReportHwcDead(bool isEnabled);
     static void SetRsSetScreenPowerStatus(bool isEnabled);
     static void SetMirrorDisplayCloseP3(bool isEnabled);
-    static void SetMipmapMode(Drawing::MipmapMode modeValue);
     static void SetSkipFrameByActiveRefreshRate(bool isEnabled);
+    static void SetForceRenderForMirror(bool isEnabled);
 
 private:
     inline static bool isExternalScreenSecure_ = false;
     inline static bool isSlrScaleEnabled_ = false;
-    inline static bool isRsReportHwcDead_ = false;
     inline static bool isRsSetScreenPowerStatus_ = true;
     inline static bool isMirrorDisplayCloseP3_ = true;
     inline static bool isSkipFrameByActiveRefreshRate_ = false;
-    inline static Drawing::MipmapMode mipMapModeValue_ = Drawing::MipmapMode::NEAREST;
+    inline static bool isForceRenderForMirror_ = false;
  
     friend class MultiScreenParamParse;
 };

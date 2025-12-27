@@ -21,7 +21,7 @@
 #include "limit_number.h"
 #include "rs_irender_service.h"
 #include "render_server/rs_render_service.h"
-#include "transaction/rs_render_service_stub.h"
+#include "render_server/transaction/zidl/rs_render_service_stub.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -100,5 +100,61 @@ HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub003, TestSize.Level1)
 
     int res = stub_->OnRemoteRequest(-1, data, reply, option);
     ASSERT_EQ(res, IPC_STUB_UNKNOW_TRANS_ERR);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceStub004
+ * @tc.desc: Test if data has no content.
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub004, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_INVALID_STATE);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceStub005
+ * @tc.desc: Test if remoteObj is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    data.WriteInterfaceToken(RSIRenderService::GetDescriptor());
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_NULL_OBJECT);
+}
+
+/**
+ * @tc.name: TestRSRenderServiceStub006
+ * @tc.desc: Test if remoteObj is nullptr.
+ * @tc.type: FUNC
+ * @tc.require: issueI60KUK
+ */
+HWTEST_F(RSRenderServiceStubTest, TestRSRenderServiceStub006, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    data.WriteInterfaceToken(RSIRenderService::GetDescriptor());
+    auto token = new IRemoteStub<RSIConnectionToken>();
+    auto tokenObj = token->AsObject();
+    data.WriteRemoteObject(tokenObj);
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION);
+    int res = stub_->OnRemoteRequest(code, data, reply, option);
+    ASSERT_EQ(res, ERR_UNKNOWN_OBJECT);
 }
 } // namespace OHOS::Rosen

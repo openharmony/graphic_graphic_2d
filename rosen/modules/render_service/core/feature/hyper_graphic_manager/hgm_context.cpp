@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config.xml";
+constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 }
 
 HgmContext::HgmContext()
@@ -115,19 +116,24 @@ void HgmContext::ProcessHgmFrameRate(
         rpFrameRatePolicy_.HgmConfigUpdateCallback(rpHgmConfigData_);
     }
 
-    bool isUiDvsyncOn = rsVSyncDistributor != nullptr ? rsVSyncDistributor->IsUiDvsyncOn() : false;
-    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    auto& hgmCore = HgmCore::Instance();
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
     if (frameRateMgr == nullptr || rsVSyncDistributor == nullptr) {
         return;
     }
 
+    auto mainThread = RSMainThread::Instance();
+    auto& rsContext = mainThread->GetContext();
     if (frameRateMgr->AdaptiveStatus() == SupportASStatus::SUPPORT_AS) {
-        frameRateMgr->HandleGameNode(RSMainThread::Instance()->GetContext().GetNodeMap());
+        frameRateMgr->HandleGameNode(rsContext.GetNodeMap());
+        isAdaptiveVsyncComposeReady_ =
+            rsContext.GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM &&
+            rsContext.GetAnimatingNodeList().empty();
     }
 
     // Check and processing refresh rate task.
     frameRateMgr->ProcessPendingRefreshRate(
-        timestamp, vsyncId, rsVSyncDistributor->GetRefreshRate(), isUiDvsyncOn);
+        timestamp, vsyncId, rsVSyncDistributor->GetRefreshRate(), rsVSyncDistributor->IsUiDvsyncOn());
     if (rsFrameRateLinker_ != nullptr) {
         auto rsCurrRange = rsCurrRange_;
         rsCurrRange.type_ = RS_ANIMATION_FRAME_RATE_TYPE;
@@ -138,17 +144,17 @@ void HgmContext::ProcessHgmFrameRate(
     rsCurrRange_.IsValid() ? frameRateMgr->GetRsFrameRateTimer().Start() : frameRateMgr->GetRsFrameRateTimer().Stop();
     
     bool needRefresh = frameRateMgr->UpdateUIFrameworkDirtyNodes(
-        RSMainThread::Instance()->GetContext().GetUiFrameworkDirtyNodes(), timestamp);
-    bool setHgmTaskFlag = HgmCore::Instance().SetHgmTaskFlag(false);
-    auto& rsVsyncRateReduceManager = RSMainThread::Instance()->GetRSVsyncRateReduceManager();
+        rsContext.GetUiFrameworkDirtyNodes(), timestamp);
+    bool setHgmTaskFlag = hgmCore.SetHgmTaskFlag(false);
+    auto& rsVsyncRateReduceManager = mainThread->GetRSVsyncRateReduceManager();
     bool vrateStatusChange = rsVsyncRateReduceManager.SetVSyncRatesChangeStatus(false);
     bool isVideoCallVsyncChange = HgmEnergyConsumptionPolicy::Instance().GetVideoCallVsyncChange();
     if (!vrateStatusChange && !setHgmTaskFlag && !needRefresh && !isVideoCallVsyncChange &&
-        HgmCore::Instance().GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
+        hgmCore.GetPendingScreenRefreshRate() == frameRateMgr->GetCurrRefreshRate()) {
         return;
     }
     HgmTaskHandleThread::Instance().PostTask([timestamp, rsFrameRateLinker = rsFrameRateLinker_,
-        appFrameRateLinkers = RSMainThread::Instance()->GetContext().GetFrameRateLinkerMap().Get(),
+        appFrameRateLinkers = rsContext.GetFrameRateLinkerMap().Get(),
         linkers = rsVsyncRateReduceManager.GetVrateMap()]() mutable {
             RS_TRACE_NAME("ProcessHgmFrameRate");
             if (auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr(); frameRateMgr != nullptr) {

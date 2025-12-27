@@ -61,7 +61,8 @@
         "graphic_2d_feature_tv_metadata_enable",
         "graphic_2d_feature_upgrade_skia",
         "graphic_2d_feature_enable_rdo",
-        "graphic_2d_feature_enable_memory_info_manager"
+        "graphic_2d_feature_enable_memory_info_manager",
+        "graphic_2d_feature_enable_memory_downtree"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -70,8 +71,6 @@
       ],
       "deps": {
         "components": [
-          "ability_base",
-          "common_event_service",
           "window_manager",
           "resource_management",
           "napi",
@@ -126,7 +125,8 @@
           "media_foundation",
           "selinux_adapter",
           "runtime_core",
-          "hiview"
+          "hiview",
+          "i18n"
         ],
         "third_party": [
           "skia"
@@ -165,12 +165,21 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-            "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
             "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
             "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
       },
         "inner_kits": [
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
+            "header": {
+              "header_files": [
+                "filter_common.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common/include"
+            }
+          },
           {
             "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
@@ -334,6 +343,7 @@
                 "animation/rs_transition.h",
                 "animation/rs_animation_timing_curve.h",
                 "animation/rs_motion_path_option.h",
+                "feature/window_keyframe/rs_window_keyframe_node.h",
                 "ui/rs_node.h",
                 "ui/rs_proxy_node.h",
                 "ui/rs_base_node.h",
@@ -441,14 +451,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
-            "header": {
-            "header_files": [],
-            "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect/include"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
             "header": {
               "header_files": [
@@ -456,24 +458,6 @@
                 "cj_color_mgr_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_impl",
-            "header": {
-              "header_files": [
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_ffi",
-            "header": {
-              "header_files": [
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
             }
           },
           {
@@ -529,7 +513,8 @@
           "//foundation/graphic/graphic_2d/rosen/test/2d_graphics/drawing:drawing_demo",
           "//foundation/graphic/graphic_2d/rosen/test/dtk:dtk",
           "//foundation/graphic/graphic_2d/frameworks/text/test:text_test",
-          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test"
+          "//foundation/graphic/graphic_2d/rosen/test/frame_load:test",
+          "//foundation/graphic/graphic_2d/rosen/modules/render_service:test"
         ]
       }
     }

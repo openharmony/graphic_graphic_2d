@@ -470,6 +470,12 @@ void RSProperty<std::vector<Vector2f>>::UpdateToRender(
 }
 // =============================================================================
 template<>
+void RSProperty<std::vector<Vector4f>>::UpdateToRender(
+    const std::vector<Vector4f>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyVectorVector4f, value, type);
+}
+template<>
 void RSProperty<int>::UpdateToRender(const int& value, PropertyUpdateType type) const
 {
     UPDATE_TO_RENDER(RSUpdatePropertyInt, value, type);

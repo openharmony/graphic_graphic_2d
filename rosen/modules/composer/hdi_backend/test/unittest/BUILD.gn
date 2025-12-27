@@ -20,29 +20,12 @@ group("unittest") {
   testonly = true
 
   deps = [
-    ":hdibackend_unit_test",
     ":hdidevice_unit_test",
     ":hdiframebuffersurface_unit_test",
-    ":hdilayer_unit_test",
     ":hdilayerinfo_unit_test",
-    ":hdioutput_unit_test",
     ":hdiscreen_unit_test",
   ]
 }
-
-## UnitTest hdibackend_unit_test {{{
-ohos_unittest("hdibackend_unit_test") {
-  module_out_path = module_out_path
-
-  sources = [
-    "hdibackend_test.cpp",
-    "mock_hdi_device.cpp",
-  ]
-
-  deps = [ ":hdibackend_test_common" ]
-}
-
-## UnitTest hdibackend_unit_test }}}
 
 ## UnitTest hdiframebuffersurface_unit_test {{{
 ohos_unittest("hdiframebuffersurface_unit_test") {
@@ -55,20 +38,6 @@ ohos_unittest("hdiframebuffersurface_unit_test") {
 
 ## UnitTest hdiframebuffersurface_unit_test }}}
 
-## UnitTest hdilayer_unit_test {{{
-ohos_unittest("hdilayer_unit_test") {
-  module_out_path = module_out_path
-
-  sources = [
-    "hdilayer_test.cpp",
-    "mock_hdi_device.cpp",
-  ]
-
-  deps = [ ":hdibackend_test_common" ]
-}
-
-## UnitTest hdilayer_unit_test }}}
-
 ## UnitTest hdilayerinfo_unit_test {{{
 ohos_unittest("hdilayerinfo_unit_test") {
   module_out_path = module_out_path
@@ -79,23 +48,6 @@ ohos_unittest("hdilayerinfo_unit_test") {
 }
 
 ## UnitTest hdilayerinfo_unit_test }}}
-
-## UnitTest hdioutput_unit_test {{{
-ohos_unittest("hdioutput_unit_test") {
-  module_out_path = module_out_path
-
-  sources = [
-    "hdioutput_test.cpp",
-    "mock_hdi_device.cpp",
-  ]
-
-  deps = [
-    ":hdibackend_test_common",
-    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
-  ]
-}
-
-## UnitTest hdioutput_unit_test }}}
 
 ## UnitTest hdiscreen_unit_test {{{
 ohos_unittest("hdiscreen_unit_test") {
@@ -130,6 +82,9 @@ config("hdibackend_test_common_public_config") {
   include_dirs = [
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
     "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/test",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/layer_backend",
+    "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_base/render_layer",
+    "//foundation/graphic/graphic_2d/rosen/modules/2d_graphics",
   ]
 
   cflags = [

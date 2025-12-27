@@ -26,8 +26,12 @@ public:
     static std::shared_ptr<EffectImageFilter> Blur(float radius, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     static std::shared_ptr<EffectImageFilter> Brightness(float degree);
     static std::shared_ptr<EffectImageFilter> Grayscale();
+    static std::shared_ptr<EffectImageFilter> CreateSDF(int spreadFactor, bool generateDerivs);
     static std::shared_ptr<EffectImageFilter> Invert();
     static std::shared_ptr<EffectImageFilter> ApplyColorMatrix(const Drawing::ColorMatrix& colorMatrix);
+    static std::shared_ptr<EffectImageFilter> EllipticalGradientBlur(float blurRadius, float center_x, float center_y,
+        float mask_radius_x, float mask_radius_y, const std::vector<float> &positions,
+        const std::vector<float> &degrees);
 
     virtual DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) = 0;
 };
@@ -53,6 +57,41 @@ public:
 private:
     float radius_;
     Drawing::TileMode tileMode_;
+};
+
+class EffectImageEllipticalGradientBlurFilter : public EffectImageFilter {
+public:
+    EffectImageEllipticalGradientBlurFilter(float blurRadius, float centerX, float centerY, float maskRadiusX,
+        float maskRadiusY, const std::vector<float> &positions, const std::vector<float> &degrees)
+        : blurRadius_(blurRadius), centerX_(centerX), centerY_(centerY), maskRadiusX_(maskRadiusX),
+          maskRadiusY_(maskRadiusY), positions_(positions), degrees_(degrees)
+    {}
+
+    ~EffectImageEllipticalGradientBlurFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    float blurRadius_;
+    float centerX_;
+    float centerY_;
+    float maskRadiusX_;
+    float maskRadiusY_;
+    std::vector<float> positions_;
+    std::vector<float> degrees_;
+};
+
+class EffectImageSdfFromImageFilter : public EffectImageFilter {
+public:
+    EffectImageSdfFromImageFilter(int spreadFactor, bool generateDerivs)
+        : spreadFactor_(spreadFactor), generateDerivs_(generateDerivs) {}
+    ~EffectImageSdfFromImageFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    int spreadFactor_;
+    bool generateDerivs_;
 };
 
 class EffectImageRender {

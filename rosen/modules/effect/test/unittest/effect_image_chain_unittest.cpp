@@ -95,65 +95,165 @@ HWTEST_F(EffectImageChainUnittest, PrepareTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: Apply_Draw_Test
+ * @tc.name: ApplyDrawTest001
  * @tc.desc: test Apply and Draw
  */
-HWTEST_F(EffectImageChainUnittest, Apply_Draw_Test, TestSize.Level1)
+HWTEST_F(EffectImageChainUnittest, ApplyDrawTest001, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    EXPECT_NE(image, nullptr);
+    auto ret = image->ApplyDrawingFilter(nullptr);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+    ret = image->ApplyBlur(-1, Drawing::TileMode::CLAMP);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // invalid radius
+
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepered first
+
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    EXPECT_NE(srcPixelMap, nullptr);
+    ret = image->Prepare(srcPixelMap, false);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // hps
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->ApplyBlur(0, Drawing::TileMode::CLAMP); // hps 0
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    RSSystemProperties::SetForceHpsBlurDisabled(true);
+    EXPECT_TRUE(!RSSystemProperties::GetHpsBlurEnabled());
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // disable hps
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    RSSystemProperties::SetForceHpsBlurDisabled(false);
+    EXPECT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
+
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::DECAL); // mesa
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
+    EXPECT_NE(filterBlur, nullptr);
+    ret = image->ApplyDrawingFilter(filterBlur);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // has drawing before blur
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Draw();
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->Prepare(srcPixelMap, false);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    ret = image->ApplyBlur(0.5, Drawing::TileMode::MIRROR); // cpu
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplyDrawTest002
+ * @tc.desc: test Apply and Draw
+ */
+HWTEST_F(EffectImageChainUnittest, ApplyDrawTest002, TestSize.Level1)
+{
+    auto image = std::make_shared<EffectImageChain>();
+    EXPECT_NE(image, nullptr);
+    std::vector<float> positions = {0.0f, 1.0f};
+    std::vector<float> degrees = {0.0f, 1.0f};
+
+    // test filter_ == nullptr
+    auto ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
+    ret = image->ApplyDrawingFilter(nullptr);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+    // test not prepare
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // need prepared first
+    // test normal condition
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    EXPECT_NE(srcPixelMap, nullptr);
+    ret = image->Prepare(srcPixelMap, false);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    // test illegal blur radius
+    ret = image->ApplyEllipticalGradientBlur(-1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+
+    // test illegal ellipse radius
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+
+    // test empty positions and degrees
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, {}, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, {});
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, {}, {});
+    EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+
+    // test if forceCPU_ is true
+    ret = image->Prepare(srcPixelMap, true);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_NE(ret, DrawingError::ERR_OK);
+    // test multiple filters
+    ret = image->Prepare(srcPixelMap, false);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    ret = image->ApplyEllipticalGradientBlur(1.0f, 0.0f, 0.0f, 1.0f, 1.0f, positions, degrees);
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+    ret = image->Draw();
+    EXPECT_EQ(ret, DrawingError::ERR_OK);
+}
+
+/**
+ * @tc.name: ApplySDFTest001
+ * @tc.desc: test ApplySDFCreation
+ */
+HWTEST_F(EffectImageChainUnittest, ApplySDFTest001, TestSize.Level1)
 {
     auto image = std::make_shared<EffectImageChain>();
     ASSERT_NE(image, nullptr);
-
-    auto ret = image->ApplyDrawingFilter(nullptr);
-    ASSERT_NE(ret, DrawingError::ERR_OK);
-
-    ret = image->ApplyBlur(-1, Drawing::TileMode::CLAMP);
-    ASSERT_NE(ret, DrawingError::ERR_OK); // invalid radius
-
-    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP);
-    ASSERT_NE(ret, DrawingError::ERR_OK); // need prepered first
-
-    ret = image->Draw(); // need prepare first
-    ASSERT_NE(ret, DrawingError::ERR_OK);
 
     Media::InitializationOptions opts;
     opts.size = { 1, 1 };
     std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
     ASSERT_NE(srcPixelMap, nullptr);
+
+    auto ret = image->ApplySDFCreation(32, false);
+    ASSERT_NE(ret, DrawingError::ERR_OK); // not prepared
+
+    ret = image->Prepare(srcPixelMap, true);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    ret = image->ApplySDFCreation(8, false);
+    EXPECT_NE(ret, DrawingError::ERR_OK); // force cpu unsupported
+
     ret = image->Prepare(srcPixelMap, false);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 
     ret = image->Draw(); // no filter
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 
-    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // hps
+    ret = image->ApplySDFCreation(64, true);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 
-    ret = image->ApplyBlur(0, Drawing::TileMode::CLAMP); // hps 0
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    RSSystemProperties::SetForceHpsBlurDisabled(true);
-    ASSERT_TRUE(!RSSystemProperties::GetHpsBlurEnabled());
-    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // disable hps
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    RSSystemProperties::SetForceHpsBlurDisabled(false);
-    ASSERT_TRUE(RSSystemProperties::GetHpsBlurEnabled());
-
-    ret = image->ApplyBlur(0.5, Drawing::TileMode::DECAL); // mesa
+    ret = image->Draw();
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 
     auto filterBlur = Drawing::ImageFilter::CreateBlurImageFilter(1, 1, Drawing::TileMode::DECAL, nullptr);
     ASSERT_NE(filterBlur, nullptr);
     ret = image->ApplyDrawingFilter(filterBlur);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = image->ApplyBlur(0.5, Drawing::TileMode::CLAMP); // has drawing before blur
+    ret = image->ApplySDFCreation(64, true); // has drawing before sdf
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 
     ret = image->Draw();
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-
-    ret = image->Prepare(srcPixelMap, false);
-    ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = image->ApplyBlur(0.5, Drawing::TileMode::MIRROR); // cpu
     ASSERT_EQ(ret, DrawingError::ERR_OK);
 }
 

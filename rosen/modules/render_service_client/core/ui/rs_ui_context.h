@@ -152,6 +152,19 @@ public:
     void SetUITaskRunner(const TaskRunner& uiTaskRunner);
 
     /**
+     * @brief Sets the callback function to be invoked when a vsync request is made.
+     *
+     * @param callback A std::function object representing the callback to be executed.
+     */
+    void SetRequestVsyncCallback(const std::function<void()>& callback);
+
+    /**
+     * @brief Requests a vsync callback to be executed.
+     * This function triggers the vsync callback that was previously set via SetRequestVsyncCallback.
+     */
+    void RequestVsyncCallback();
+
+    /**
      * @brief Posts a task to the UI thread.
      *
      * @param task The task to be posted.
@@ -166,6 +179,10 @@ public:
      */
     void PostDelayTask(const std::function<void()>& task, uint32_t delay);
 
+    int32_t GetUiPiplineNum();
+    void AttachFromUI();
+    void DetachFromUI();
+
     /**
      * @brief Checks if the task runner is set.
      *
@@ -175,9 +192,6 @@ public:
     {
         return bool(taskRunner_);
     }
-
-    void DetachFromUI();
-    bool HasDetachedFromUI() const;
 
     void MoveModifier(std::shared_ptr<RSUIContext> dstUIContext, NodeId nodeId);
 
@@ -204,8 +218,10 @@ private:
     std::recursive_mutex animationMutex_;
 
     TaskRunner taskRunner_ = TaskRunner();
+    std::function<void()> requestVsyncCallback_;
     std::mutex implicitAnimatorMutex_;
-    bool detachedFromUI_ = false;
+    std::mutex uiPipelineNumMutex_;
+    int32_t uiPipelineNum_ = UI_PiPLINE_NUM_UNDEFINED;
 
     friend class RSUIContextManager;
     friend class RSUIDirector;

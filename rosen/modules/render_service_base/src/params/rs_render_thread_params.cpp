@@ -36,11 +36,6 @@ void RSRenderThreadParams::SetSecurityDisplay(bool isSecurityDisplay)
     isSecurityDisplay_ = isSecurityDisplay;
 }
 
-bool RSRenderThreadParams::IsSecurityDisplay() const
-{
-    return isSecurityDisplay_;
-}
-
 RSRenderThreadParamsManager& RSRenderThreadParamsManager::Instance()
 {
     static RSRenderThreadParamsManager instance;

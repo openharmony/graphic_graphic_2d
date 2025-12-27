@@ -303,6 +303,16 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
     return static_cast<PartialRenderType>(ConvertToInt(enable, DEFAULT_UNI_PARTIAL_RENDER_ENABLED_VALUE));
 }
 
+bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
+{
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
+#else
+    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "0") != "0";
+#endif
+    return enabled;
+}
+
 StencilPixelOcclusionCullingType RSSystemProperties::GetStencilPixelOcclusionCullingEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.stencilpixelocclusionculling.enabled", "-1");
@@ -318,6 +328,14 @@ AdvancedDirtyRegionType RSSystemProperties::GetAdvancedDirtyRegionEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return static_cast<AdvancedDirtyRegionType>(ConvertToInt(enable, DEFAULT_ADVANCED_DIRTY_REGION_ENABLED_VALUE));
+}
+
+bool RSSystemProperties::GetAnimationOcclusionEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.animation.occlusion.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
 }
 
 DirtyAlignType RSSystemProperties::GetDirtyAlignEnabled()
@@ -810,8 +828,8 @@ bool RSSystemProperties::GetBlurEnabled()
 
 bool RSSystemProperties::GetFgBlenderEnabled()
 {
-    bool blenderEnabled_ =
-        std::atoi((system::GetParameter("rosen.graphic.blenderEnabled", "1")).c_str()) != 0;
+    static bool blenderEnabled_ =
+        std::atoi((system::GetParameter("persist.sys.graphic.blenderEnabled", "1")).c_str()) != 0;
     return blenderEnabled_;
 }
 
@@ -936,14 +954,22 @@ bool RSSystemProperties::GetUIFirstBehindWindowFilterEnabled()
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
 }
- 
+
+bool RSSystemProperties::GetUIFirstAutoClearCacheEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.ui.first.auto.clearcache.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 bool RSSystemProperties::GetHeterogeneousHDREnabled()
 {
     static bool flag =
         std::atoi((system::GetParameter("persist.rosen.heterogeneous.hdr.enabled", "1")).c_str()) == 1;
     return flag;
 }
- 
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.surfaceOffscreenEnabled", "1");
@@ -1617,6 +1643,14 @@ bool RSSystemProperties::GetVKImageUseEnabled()
     return enable;
 }
 
+bool RSSystemProperties::GetVKImageAdaptationForWallpaperEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.graphic.vkimage_adapt_wallpaper", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
 void RSSystemProperties::SetDebugFmtTraceEnabled(bool flag)
 {
     debugFmtTraceEnable_ = flag;
@@ -1666,8 +1700,14 @@ bool RSSystemProperties::GetEarlyZEnable()
 
 bool RSSystemProperties::GetAIBarOptEnabled()
 {
-    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 0) != 0;
+    static bool isAIBarOptEnabled = system::GetIntParameter("persist.rosen.aibaropt.enabled", 1) != 0;
     return isAIBarOptEnabled;
+}
+
+bool RSSystemProperties::GetAIBarDirectCompositeFullEnabled()
+{
+    static bool enabled = system::GetIntParameter("persist.rosen.aibarfulldirectcomp.enabled", 0) != 0;
+    return enabled;
 }
 
 bool RSSystemProperties::GetRSMemoryInfoManagerParam()
@@ -1681,6 +1721,12 @@ bool RSSystemProperties::GetSupportScreenFreezeEnabled()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetPreparePhaseQuickSkipEnabled()
+{
+    static bool quickSkipEnabled = system::GetIntParameter("persist.rosen.graphic.quick.skip.enabled", 1) != 0;
+    return quickSkipEnabled;
 }
 
 bool RSSystemProperties::GetSelfDrawingDirtyRegionEnabled()
@@ -1732,6 +1778,59 @@ bool RSSystemProperties::GetRSNodeExceedKillEnabled()
 {
     static bool isPhone = system::GetParameter("const.product.devicetype", "phone") == "phone";
     return isPhone;
+}
+
+bool RSSystemProperties::GetScaleImageAsyncEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.isEnabledScaleImageAsync.enabled", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
+{
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", false);
+}
+
+bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
+{
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_render_dma", false);
+}
+
+bool RSSystemProperties::GetDefaultMemClearEnabled()
+{
+    static bool defaultMemClearEnabled =
+        std::atoi((system::GetParameter("persist.sys.graphic.default.mem.clear.enabled", "1")).c_str()) != 0;
+    return defaultMemClearEnabled;
+}
+
+bool RSSystemProperties::GetSceneBoardIsPcMode()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sceneboard.ispcmode", "false");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    if (enable == nullptr || strcmp(enable, "false") == 0) {
+        return false;
+    }
+    return true;
+}
+
+bool RSSystemProperties::GetReleaseImageOneByOneFlag()
+{
+    if (!IsUseVulkan()) {
+        return false;
+    }
+    static CachedHandle g_Handle = CachedParameterCreate("persist.sys.graphic.release.image.onebyone.flag", "1");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
+{
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
 }
 } // namespace Rosen
 } // namespace OHOS

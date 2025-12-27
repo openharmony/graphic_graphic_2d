@@ -105,11 +105,6 @@ bool RSLuminanceControl::IsHdrPictureOn()
     return false;
 }
 
-bool RSLuminanceControl::IsCloseHardwareHdr()
-{
-    return false;
-}
-
 bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId) const
 {
     return false;
@@ -149,6 +144,11 @@ void RSLuminanceControl::SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
     std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler)
 {
     return;
+}
+
+bool RSLuminanceControl::IsHardwareHdrDisabled(bool checkBrightnessRatio, ScreenId screenId) const
+{
+    return false;
 }
 } // namespace Rosen
 } // namespace OHOS

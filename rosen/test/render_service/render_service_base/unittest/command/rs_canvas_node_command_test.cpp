@@ -198,20 +198,4 @@ HWTEST_F(RSCanvasNodeCommandTest, SetColorGamut001, TestSize.Level1)
     ASSERT_EQ(node->colorGamut_, 3); // 3 is DISPLAY_P3
 }
 
-/**
- * @tc.name: SetLinkedRootNodeId
- * @tc.desc: test SetLinkedRootNodeId
- * @tc.type: FUNC
- * @tc.require: #IBPVN9
- */
-HWTEST_F(RSCanvasNodeCommandTest, SetLinkedRootNodeId, TestSize.Level1)
-{
-    RSContext context;
-    NodeId id = static_cast<NodeId>(1);
-    NodeId rootNodeId = static_cast<NodeId>(2);
-    RSCanvasNodeCommandHelper::Create(context, id, true);
-    RSCanvasNodeCommandHelper::SetLinkedRootNodeId(context, id, rootNodeId);
-    EXPECT_TRUE(id);
-}
-
 } // namespace OHOS::Rosen

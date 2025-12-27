@@ -37,10 +37,10 @@ public:
     SymbolGradient() = default;
     virtual ~SymbolGradient() = default;
 
-    void SetColors(const std::vector<Drawing::ColorQuad>& colors);
+    void SetColors(const std::vector<Drawing::Color>& colors);
     void SetPositions(const std::vector<float>& positions);
     void SetTileMode(Drawing::TileMode tileMode);
-    const std::vector<Drawing::ColorQuad>& GetColors() const;
+    const std::vector<Drawing::Color>& GetColors() const;
     const std::vector<float>& GetPositions() const;
     Drawing::TileMode GetTileMode() const;
     GradientType GetGradientType() const;
@@ -53,9 +53,10 @@ public:
     bool IsNearlyEqual(const std::shared_ptr<SymbolGradient>& gradient);
 
 protected:
+    std::vector<Drawing::ColorQuad> GetColorQuads() const;
     GradientType gradientType_ = GradientType::NONE_GRADIENT;
     Drawing::TileMode tileMode_ = Drawing::TileMode::CLAMP;
-    std::vector<Drawing::ColorQuad> colors_;
+    std::vector<Drawing::Color> colors_;
     std::vector<float> positions_;
 };
 

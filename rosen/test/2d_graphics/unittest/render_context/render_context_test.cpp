@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,12 @@
 
 #include <gtest/gtest.h>
 #include <hilog/log.h>
+#include <memory>
 
 #include "platform/common/rs_system_properties.h"
 #include "render_context.h"
+#include "new_render_context/render_context_gl.h"
+#include "new_render_context/render_context_vk.h"
 
 using namespace testing::ext;
 
@@ -49,8 +52,8 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest001, Function | SmallTest | Leve
         return;
     }
     // start CreateEGLSurfaceTest001 test
-    RenderContext renderContext;
-    EGLSurface eglSurface = renderContext.CreateEGLSurface(nullptr);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    EGLSurface eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
 #endif
 }
@@ -68,9 +71,9 @@ HWTEST_F(RenderContextTest, CreateEGLSurfaceTest002, Function | SmallTest | Leve
         return;
     }
     // start CreateEGLSurfaceTest002 test
-    RenderContext renderContext;
-    renderContext.InitializeEglContext();
-    EGLSurface eglSurface = renderContext.CreateEGLSurface(nullptr);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    renderContext->Init();
+    EGLSurface eglSurface = renderContext->CreateEGLSurface(nullptr);
     EXPECT_EQ(eglSurface, EGL_NO_SURFACE);
 #endif
 }
@@ -88,8 +91,8 @@ HWTEST_F(RenderContextTest, SetUpGrContextTest, Function | SmallTest | Level2)
         return;
     }
     // start SetUpGrContextTest test
-    RenderContext renderContext;
-    bool grContext = renderContext.SetUpGpuContext();
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    bool grContext = renderContext->SetUpGpuContext();
     EXPECT_EQ(grContext, false);
 #endif
 }
@@ -107,8 +110,8 @@ HWTEST_F(RenderContextTest, AcquireSurfaceTest, Function | SmallTest | Level2)
         return;
     }
     // start AcquireSurfaceTest test
-    RenderContext renderContext;
-    auto surface = renderContext.AcquireSurface(0, 0);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    auto surface = renderContext->AcquireSurface(0, 0);
     EXPECT_TRUE(surface == nullptr);
 #endif
 }
@@ -126,8 +129,8 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest001, Function | SmallTest | Lev
         return;
     }
     // start QueryEglBufferAgeTest001 test
-    RenderContext renderContext;
-    EGLint bufferAge = renderContext.QueryEglBufferAge();
+    std::shared_ptr<RenderContextGL> renderContextGL = std::make_shared<RenderContextGL>();
+    EGLint bufferAge = renderContextGL->QueryEglBufferAge();
     EXPECT_EQ(bufferAge, EGL_UNKNOWN);
 #endif
 }
@@ -145,8 +148,8 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest002, Function | SmallTest | Lev
         return;
     }
     // start QueryEglBufferAgeTest002 test
-    RenderContext renderContext;
-    EGLint bufferAge = renderContext.QueryEglBufferAge();
+    std::shared_ptr<RenderContextGL> renderContextGL = std::make_shared<RenderContextGL>();
+    EGLint bufferAge = renderContextGL->QueryEglBufferAge();
     EXPECT_EQ(bufferAge, EGL_UNKNOWN);
 #endif
 }
@@ -164,50 +167,10 @@ HWTEST_F(RenderContextTest, ClearRedundantResourcesTest001, Level1)
         return;
     }
     // start ClearRedundantResourcesTest001 test
-    RenderContext renderContext;
-    renderContext.InitializeEglContext();
-    EXPECT_NE(renderContext.GetEGLContext(), nullptr);
-    renderContext.ClearRedundantResources();
-#endif
-}
-
-/**
- * @tc.name: DamageFrameTest001
- * @tc.desc: Verify the DamageFrameTest001 of RenderContextTest
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextTest, DamageFrameTest001, Level1)
-{
-#ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
-        return;
-    }
-    // start DamageFrameTest001 test
-    RenderContext renderContext;
-    renderContext.InitializeEglContext();
-    renderContext.DamageFrame(0, 0, 0, 0);
-    EXPECT_NE(renderContext.eglDisplay_, nullptr);
-#endif
-}
-
-/**
- * @tc.name: MakeSelfCurrentTest001
- * @tc.desc: Verify the MakeSelfCurrentTest001 of RenderContextTest
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextTest, MakeSelfCurrentTest001, Level1)
-{
-#ifdef ACE_ENABLE_GL
-    if (RSSystemProperties::IsUseVulkan()) {
-        GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
-        return;
-    }
-    // start MakeSelfCurrentTest001 test
-    RenderContext renderContext;
-    renderContext.InitializeEglContext();
-    renderContext.MakeSelfCurrent();
-    EXPECT_NE(renderContext.eglDisplay_, EGL_NO_CONTEXT);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    renderContext->Init();
+    EXPECT_NE(renderContext->GetDrGPUContext(), nullptr);
+    renderContext->ClearRedundantResources();
 #endif
 }
 
@@ -224,9 +187,9 @@ HWTEST_F(RenderContextTest, ColorSpaceTest001, Level1)
         return;
     }
     // start ColorSpaceTest001 test
-    RenderContext renderContext;
-    renderContext.SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
-    ASSERT_EQ(renderContext.GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    renderContext->SetColorSpace(GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
+    ASSERT_EQ(renderContext->GetColorSpace(), GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
 #endif
 }
 
@@ -243,9 +206,9 @@ HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
         return;
     }
     // start PixelFormatTest001 test
-    RenderContext renderContext;
-    renderContext.SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
-    ASSERT_EQ(renderContext.GetPixelFormat(), GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    renderContext->SetPixelFormat(GRAPHIC_PIXEL_FMT_RGBA_1010102);
+    ASSERT_EQ(renderContext->GetPixelFormat(), GRAPHIC_PIXEL_FMT_RGBA_1010102);
 #endif
 }
 
@@ -256,22 +219,8 @@ HWTEST_F(RenderContextTest, PixelFormatTest001, Level1)
  */
 HWTEST_F(RenderContextTest, DiscodingTest001, Level1)
 {
-    RenderContext* renderContext = new RenderContext();
+    auto renderContext = RenderContext::Create();
     EXPECT_NE(renderContext, nullptr);
-    delete renderContext;
-    renderContext = nullptr;
-}
-
-/**
- * @tc.name: CreatePbufferSurfaceTest001
- * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextTest, CreatePbufferSurfaceTest001, Level1)
-{
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    EXPECT_NE(renderContext, nullptr);
-    renderContext->CreatePbufferSurface();
 }
 
 /**
@@ -281,11 +230,11 @@ HWTEST_F(RenderContextTest, CreatePbufferSurfaceTest001, Level1)
  */
 HWTEST_F(RenderContextTest, ClearRedundantTest, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     EXPECT_NE(renderContext, nullptr);
-    renderContext->drGPUContext_ = nullptr;
+    renderContext->SetDrGPUContext(nullptr);
     renderContext->ClearRedundantResources();
-    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
     renderContext->ClearRedundantResources();
 }
 
@@ -296,23 +245,11 @@ HWTEST_F(RenderContextTest, ClearRedundantTest, Level1)
  */
 HWTEST_F(RenderContextTest, DamageFrameTest003, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    auto renderContext = RenderContext::Create();
     EXPECT_NE(renderContext, nullptr);
-    renderContext->eglDisplay_ = nullptr;
-    renderContext->DamageFrame({});
-}
-
-/**
- * @tc.name: DamageFrameTest004
- * @tc.desc: Verify the SetPixelFormatTest and GetPixelFormat of RenderContextTest
- * @tc.type: FUNC
- */
-HWTEST_F(RenderContextTest, DamageFrameTest004, Level1)
-{
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    EXPECT_NE(renderContext, nullptr);
-    renderContext->eglDisplay_ = nullptr;
-    renderContext->DamageFrame(1, 1, 1, 1);
+    auto renderContextGL = std::make_shared<RenderContextGL>();
+    renderContextGL->eglDisplay_ = nullptr;
+    renderContextGL->DamageFrame({});
 }
 
 /**
@@ -322,7 +259,7 @@ HWTEST_F(RenderContextTest, DamageFrameTest004, Level1)
  */
 HWTEST_F(RenderContextTest, RenderFrameTest, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
     EXPECT_NE(renderContext, nullptr);
     renderContext->surface_ = nullptr;
     renderContext->RenderFrame();
@@ -338,9 +275,11 @@ HWTEST_F(RenderContextTest, RenderFrameTest, Level1)
  */
 HWTEST_F(RenderContextTest, QueryEglBufferAgeTest, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    renderContext->eglDisplay_ = nullptr;
-    EXPECT_EQ(EGL_UNKNOWN, renderContext->QueryEglBufferAge());
+    if (!RSSystemProperties::IsUseVulkan()) {
+        std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+        renderContext->eglDisplay_ = nullptr;
+        EXPECT_EQ(EGL_UNKNOWN, renderContext->QueryEglBufferAge());
+    }
 }
 
 /**
@@ -350,8 +289,8 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest, Level1)
  */
 HWTEST_F(RenderContextTest, SetUpGpuContextTest, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    auto renderContext = RenderContext::Create();
+    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
     EXPECT_TRUE(renderContext->SetUpGpuContext());
 }
 
@@ -362,8 +301,8 @@ HWTEST_F(RenderContextTest, SetUpGpuContextTest, Level1)
  */
 HWTEST_F(RenderContextTest, CreateEGLSurfaceTest, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
+    auto renderContext = RenderContext::Create();
+    renderContext->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
     EXPECT_TRUE(renderContext->SetUpGpuContext());
 }
 
@@ -376,11 +315,12 @@ HWTEST_F(RenderContextTest, AbandonContextTest001, Level1)
 {
 #ifdef RS_ENABLE_VK
     if (RSSystemProperties::IsUseVulkan()) {
-        RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-        renderContext->drGPUContext_ = nullptr;
-        renderContext->AbandonContext();
-        renderContext->drGPUContext_ = std::make_shared<Drawing::GPUContext>();
-        renderContext->AbandonContext();
+        auto renderContext = RenderContext::Create();
+        auto renderContextVK = static_pointer_cast<RenderContextVK>(renderContext);
+        renderContextVK->SetDrGPUContext(nullptr);
+        renderContextVK->AbandonContext();
+        renderContextVK->SetDrGPUContext(std::make_shared<Drawing::GPUContext>());
+        renderContextVK->AbandonContext();
     } else {
         GTEST_LOG_(INFO) << "vulkan enable! skip opengl test case";
     }
@@ -395,10 +335,11 @@ HWTEST_F(RenderContextTest, AbandonContextTest001, Level1)
  */
 HWTEST_F(RenderContextTest, QueryEglBufferAgeTest003, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    renderContext->InitializeEglContext();
-    EXPECT_NE(nullptr, renderContext->eglDisplay_);
-    renderContext->QueryEglBufferAge();
+    auto renderContext = RenderContext::Create();
+    renderContext->Init();
+    std::shared_ptr<RenderContextGL> renderContextGL = std::make_shared<RenderContextGL>();
+    EXPECT_EQ(EGL_NO_DISPLAY, renderContextGL->GetEGLDisplay());
+    renderContextGL->QueryEglBufferAge();
 }
 
 /**
@@ -408,9 +349,9 @@ HWTEST_F(RenderContextTest, QueryEglBufferAgeTest003, Level1)
  */
 HWTEST_F(RenderContextTest, DamageFrameTest002, Level1)
 {
-    RenderContext* renderContext = RenderContextFactory::GetInstance().CreateEngine();
-    renderContext->InitializeEglContext();
-    EXPECT_NE(nullptr, renderContext->eglDisplay_);
+    std::shared_ptr<RenderContextGL> renderContext = std::make_shared<RenderContextGL>();
+    renderContext->Init();
+    EXPECT_NE(nullptr, renderContext->GetEGLDisplay());
     renderContext->DamageFrame({});
     RectI rect{0, 0, 1, 1};
     auto rects = {rect};

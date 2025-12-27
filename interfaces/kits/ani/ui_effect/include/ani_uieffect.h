@@ -41,11 +41,11 @@
 
 namespace OHOS {
 namespace Rosen {
-static const std::string ANI_UIEFFECT_SPACE = "L@ohos/graphics/uiEffect/uiEffect";
-static const std::string ANI_UIEFFECT_VISUAL_EFFECT = ANI_UIEFFECT_SPACE + "/VisualEffectInternal;";
-static const std::string ANI_UIEFFECT_BRIGHTNESS_BLENDER = ANI_UIEFFECT_SPACE + "/BrightnessBlenderInternal;";
-static const std::string ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER = ANI_UIEFFECT_SPACE + "/HdrBrightnessBlenderInternal;";
-static const std::string ANI_UIEFFECT_FILTER = ANI_UIEFFECT_SPACE + "/FilterInternal;";
+static const std::string ANI_UIEFFECT_SPACE = "@ohos.graphics.uiEffect.uiEffect";
+static const std::string ANI_UIEFFECT_VISUAL_EFFECT = ANI_UIEFFECT_SPACE + ".VisualEffectInternal";
+static const std::string ANI_UIEFFECT_BRIGHTNESS_BLENDER = ANI_UIEFFECT_SPACE + ".BrightnessBlenderInternal";
+static const std::string ANI_UIEFFECT_HDRBRIGHTNESS_BLENDER = ANI_UIEFFECT_SPACE + ".HdrBrightnessBlenderInternal";
+static const std::string ANI_UIEFFECT_FILTER = ANI_UIEFFECT_SPACE + ".FilterInternal";
 class AniEffect {
 public:
     AniEffect();

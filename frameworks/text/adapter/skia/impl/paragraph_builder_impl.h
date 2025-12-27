@@ -46,6 +46,7 @@ private:
     void TextStyleToSKStrutStyle(skia::textlayout::StrutStyle& strutStyle, const ParagraphStyle& txt);
     skia::textlayout::ParagraphStyle TextStyleToSkStyle(const ParagraphStyle& txt);
     skia::textlayout::TextStyle TextStyleToSkStyle(const TextStyle& txt);
+    void ParagraphStyleToSkParagraphStyle(const ParagraphStyle& txt, skt::ParagraphStyle& skStyle);
     void CopyTextStylePaint(const TextStyle& txt, skia::textlayout::TextStyle& skStyle);
     std::shared_ptr<skia::textlayout::ParagraphBuilder> builder_;
     std::vector<PaintRecord> paints_;

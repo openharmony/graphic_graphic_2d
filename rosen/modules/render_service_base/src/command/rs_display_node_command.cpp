@@ -19,6 +19,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -47,19 +48,15 @@ bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda
 
 void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
 {
+    RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::Create displayNodeId[%" PRIu64 "], screenId[%" PRIu64 "]",
+        id, config.screenId);
+    
     auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
 
-    auto lambda = [&node](auto& screenRenderNode) {
-        screenRenderNode->AddChild(node);
-    };
-    if (!TrySetScreenNodeByScreenId(context, config.screenId, lambda)) {
-        RS_LOGE("%{public}s Invalid ScreenId NodeId: %{public}" PRIu64
-            ", curNodeId: %{public}" PRIu64, __func__, config.screenId, id);
-    }
-
+    AddDisplayNodeToTree(context, id);
     SetDisplayMode(context, id, config);
 }
 
@@ -88,8 +85,8 @@ void DisplayNodeCommandHelper::AddDisplayNodeToTree(RSContext& context, NodeId i
         screenRenderNode->AddChild(logicalDisplayNode);
     };
     if (!TrySetScreenNodeByScreenId(context, screenId, lambda)) {
-        RS_LOGE("%{public}s Invalid ScreenId NodeId: %{public}" PRIu64
-            ", curNodeId: %{public}" PRIu64, __func__, screenId, id);
+        RS_LOGE("%{public}s: displayNode[%{public}" PRIu64 "] failed to AddToTree, can't find ScreenId[%{public}" PRIu64
+            "]", __func__, id, screenId);
         logicalDisplayNode->NotifySetOnTreeFlag();
     } else {
         logicalDisplayNode->ResetSetOnTreeFlag();

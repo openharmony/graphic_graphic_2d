@@ -43,7 +43,7 @@ std::shared_ptr<RSColorPicker> RSColorPicker::CreateColorPicker(const std::share
         errorCode = RS_COLOR_PICKER_ERR_EFFECT_INVALID_VALUE;
         return nullptr;
     }
-    
+
     RSColorPicker *colorPicker = new (std::nothrow) RSColorPicker(pixmap);
     if (colorPicker == nullptr) {
         ROSEN_LOGE("[ColorPicker]failed to create ColorPicker with pixmap.");

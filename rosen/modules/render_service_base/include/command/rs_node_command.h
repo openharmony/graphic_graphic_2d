@@ -68,6 +68,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x0129,
     UPDATE_MODIFIER_DRAW_CMD_LIST = 0x012A,
     UPDATE_MODIFIER_NG_SHAPE_BASE_PTR = 0x012B,
+    UPDATE_MODIFIER_VECTOR_VECTOR4F = 0x012C,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -83,6 +84,7 @@ enum RSNodeCommandType : uint16_t {
     MARK_NODE_GROUP = 0x0400,
     MARK_NODE_SINGLE_FRAME_COMPOSER = 0x0401,
     MARK_SUGGEST_OPINC_NODE = 0x0402,
+    EXCLUDED_FROM_NODE_GROUP = 0x403,
 
     MARK_UIFIRST_NODE = 0x0500,
     MARK_UIFIRST_NODE_FORCE = 0x0501,
@@ -136,6 +138,7 @@ public:
     static void SetNodeName(RSContext& context, NodeId nodeId, std::string& nodeName);
     static void MarkNodeGroup(RSContext& context, NodeId nodeId, bool isNodeGroup, bool isForced,
         bool includeProperty);
+    static void ExcludedFromNodeGroup(RSContext& context, NodeId nodeId, bool isExcluded);
     static void MarkRepaintBoundary(RSContext& context, NodeId nodeId, bool isRepaintBoundary);
     static void MarkNodeSingleFrameComposer(RSContext& context, NodeId nodeId, bool isNodeFasterDraw, pid_t pid);
     static void MarkSuggestOpincNode(RSContext& context, NodeId nodeId, bool isOpincNode, bool isNeedCalculate);
@@ -303,6 +306,10 @@ ADD_COMMAND(RSUpdatePropertyVectorVector2f,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector2f>>,
         NodeId, std::vector<Vector2f>, PropertyId, PropertyUpdateType))
 // =============================================================================
+ADD_COMMAND(RSUpdatePropertyVectorVector4f,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR4F,
+        RSNodeCommandHelper::UpdateProperty<std::vector<Vector4f>>,
+        NodeId, std::vector<Vector4f>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyPixelMap,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PIXEL_MAP,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<Media::PixelMap>>, NodeId,
@@ -322,11 +329,14 @@ ADD_COMMAND(RSSetNodeName,
     ARG(PERMISSION_APP, RS_NODE, SET_NODE_NAME,
         RSNodeCommandHelper::SetNodeName, NodeId, std::string))
 ADD_COMMAND(RSSetUIContextToken,
-    ARG(PERMISSION_APP, BASE_NODE, SET_UICONTEXT_TOKEN,
+    ARG(PERMISSION_APP, RS_NODE, SET_UICONTEXT_TOKEN,
         RSNodeCommandHelper::SetUIToken, NodeId, uint64_t))
 ADD_COMMAND(RSMarkNodeGroup,
     ARG(PERMISSION_APP, RS_NODE, MARK_NODE_GROUP,
         RSNodeCommandHelper::MarkNodeGroup, NodeId, bool, bool, bool))
+ADD_COMMAND(RSExcludedFromNodeGroup,
+    ARG(PERMISSION_APP, RS_NODE, EXCLUDED_FROM_NODE_GROUP,
+        RSNodeCommandHelper::ExcludedFromNodeGroup, NodeId, bool))
 ADD_COMMAND(RSMarkRepaintBoundary,
     ARG(PERMISSION_APP, RS_NODE, MARK_REPAINT_BOUNDARY,
         RSNodeCommandHelper::MarkRepaintBoundary, NodeId, bool))

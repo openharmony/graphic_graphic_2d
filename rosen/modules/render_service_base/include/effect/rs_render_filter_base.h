@@ -71,10 +71,12 @@ public:
             EffectTemplateBase::DumpProperties().c_str());
         auto geFilter = RSNGRenderEffectHelper::CreateGEVisualEffect(Type);
         OnGenerateGEVisualEffect(geFilter);
-        std::apply([&geFilter](const auto&... propTag) {
-            (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(geFilter, propTag), ...);
+        std::apply(
+            [&geFilter](const auto&... propTag) {
+                (RSNGRenderEffectHelper::UpdateVisualEffectParam<std::decay_t<decltype(propTag)>>(geFilter, propTag),
+                    ...);
             },
-            EffectTemplateBase::properties_);
+            this->EffectTemplateBase::properties_);
         RSNGRenderFilterBase::UpdateCacheData(RSNGRenderFilterBase::geFilter_, geFilter);
         RSNGRenderFilterBase::geFilter_ = std::move(geFilter);
 
@@ -108,6 +110,9 @@ public:
     
     static void SetRotationAngle(std::shared_ptr<RSNGRenderFilterBase>& filter,
         const Vector3f& rotationAngle);
+
+    static RectF CalcRect(const std::shared_ptr<RSNGRenderFilterBase>& filter, const RectF& bound,
+        EffectRectType rectType);
 };
 
 #define ADD_PROPERTY_TAG(Effect, Prop) Effect##Prop##RenderTag

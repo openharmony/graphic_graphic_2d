@@ -798,6 +798,25 @@ HWTEST_F(RSFilterCacheManagerTest, RecordFilterInfosTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ReduceCacheUpdateIntervalIfPendingPurgeTest
+ * @tc.desc: test results of ReduceCacheUpdateIntervalIfPendingPurge
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSFilterCacheManagerTest, ReduceCacheUpdateIntervalIfPendingPurgeTest, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    EXPECT_NE(rsFilterCacheManager, nullptr);
+
+    rsFilterCacheManager->cacheUpdateInterval_ = 0;
+    EXPECT_FALSE(rsFilterCacheManager->ReduceCacheUpdateIntervalIfPendingPurge());
+
+    rsFilterCacheManager->cacheUpdateInterval_ = 1;
+    EXPECT_TRUE(rsFilterCacheManager->ReduceCacheUpdateIntervalIfPendingPurge());
+    rsFilterCacheManager->pendingPurge_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->ReduceCacheUpdateIntervalIfPendingPurge());
+}
+
+/**
  * @tc.name: CheckAndUpdateAIBarCacheStatus
  * @tc.desc: test results of CheckAndUpdateAIBarCacheStatus
  * @tc.type: FUNC
@@ -818,7 +837,9 @@ HWTEST_F(RSFilterCacheManagerTest, CheckAndUpdateAIBarCacheStatusTest, TestSize.
     EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     rsFilterCacheManager->pendingPurge_ = false;
     EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(true));
     rsFilterCacheManager->pendingPurge_ = true;
+    EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(false));
     EXPECT_TRUE(rsFilterCacheManager->CheckAndUpdateAIBarCacheStatus(true));
 }
 

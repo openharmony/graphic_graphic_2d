@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "file_ex.h"
 #include "memory/rs_memory_manager.h"
 #include "render/rs_typeface_cache.h"
 
@@ -245,8 +246,12 @@ HWTEST_F(RSTypefaceCacheTest, HandleDelayDestroyQueueTest001, TestSize.Level1)
  * @tc.type:FUNC
  */
 HWTEST_F(RSTypefaceCacheTest, DumpTest001, TestSize.Level1) {
-    auto typeface = Drawing::Typeface::MakeDefault();
-    uint64_t uniqueId = 1;
+    std::vector<char> content;
+    LoadBufferFromFile("/system/fonts/NotoSansCJK-Regular.ttc", content);
+    auto typeface =
+        Drawing::Typeface::MakeFromAshmem(reinterpret_cast<uint8_t*>(content.data()), content.size(), 0, "");
+    ASSERT_NE(typeface, nullptr);
+    uint64_t uniqueId = typeface->GetHash();
     RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
     DfxString log;
     RSTypefaceCache::Instance().Dump(log);
@@ -254,6 +259,7 @@ HWTEST_F(RSTypefaceCacheTest, DumpTest001, TestSize.Level1) {
     EXPECT_TRUE(log.GetString().find("pid") != std::string::npos);
     EXPECT_TRUE(log.GetString().find("hash_value") != std::string::npos);
     EXPECT_TRUE(log.GetString().find("familyname") != std::string::npos);
+    EXPECT_TRUE(log.GetString().find("Pss") != std::string::npos);
 }
 
 /**
@@ -452,6 +458,63 @@ HWTEST_F(RSTypefaceCacheTest, RemoveHashQueueTest, TestSize.Level1) {
     auto mapSizeBefore = testMap.size();
     RemoveHashQueue(testMap, 9999); // 9999 is no exist uniqueId
     EXPECT_EQ(testMap.size(), mapSizeBefore);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest001
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest001, TestSize.Level1) {
+    RSTypefaceCache::Instance().typefaceHashCode_.clear();
+    RSTypefaceCache::Instance().typefaceHashMap_.clear();
+    RSTypefaceCache::Instance().typefaceBaseHashMap_.clear();
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    EXPECT_NE(typeface, nullptr);
+    pid_t pid1 = 123;
+    uint64_t uniqueId = (((uint64_t)pid1) << 32) | (uint64_t)(typeface->GetUniqueID());
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), nullptr);
+
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    EXPECT_EQ(RSTypefaceCache::Instance().GetDrawingTypefaceCache(uniqueId), typeface);
+
+    
+    Drawing::SharedTypeface sharedTypeface(uniqueId, typeface);
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_EQ(result, typeface);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest002
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest002, TestSize.Level1) {
+    std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
+    EXPECT_NE(typeface, nullptr);
+    pid_t pid1 = 123;
+    uint64_t uniqueId = (((uint64_t)pid1) << 32) | (uint64_t)(typeface->GetUniqueID());
+
+    RSTypefaceCache::Instance().CacheDrawingTypeface(uniqueId, typeface);
+    Drawing::SharedTypeface sharedTypeface(uniqueId, typeface);
+    sharedTypeface.hasFontArgs_ = true;
+    sharedTypeface.coords_ = { {2003265652, 100.0}, {2003072104, 62.5} };
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_NE(result, typeface);
+    EXPECT_NE(result, nullptr);
+}
+
+/**
+ * @tc.name: UpdateDrawingTypefaceRefTest003
+ * @tc.desc: Verify function UpdateDrawingTypefaceRef
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSTypefaceCacheTest, UpdateDrawingTypefaceRefTest003, TestSize.Level1) {
+    Drawing::SharedTypeface sharedTypeface;
+    sharedTypeface.id_ = 3;
+    sharedTypeface.hash_ = 789;
+    auto result = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
+    EXPECT_EQ(result, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

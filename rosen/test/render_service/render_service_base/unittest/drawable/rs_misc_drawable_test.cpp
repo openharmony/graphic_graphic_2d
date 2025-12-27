@@ -62,6 +62,8 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable001, TestSize.Level1)
     std::shared_ptr<RSRenderNode> childOne = std::make_shared<RSRenderNode>(2);
     std::shared_ptr<RSRenderNode> childTwo = std::make_shared<RSRenderNode>(3);
     std::shared_ptr<RSRenderNode> childThree = std::make_shared<RSRenderNode>(4);
+    std::shared_ptr<RSRenderNode> childFour = std::make_shared<RSRenderNode>(5);
+    std::shared_ptr<RSRenderNode> childFive = std::make_shared<RSRenderNode>(6);
     ASSERT_EQ(DrawableV2::RSChildrenDrawable::OnGenerate(node), nullptr);
 
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSRenderNode>(2);
@@ -76,15 +78,21 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable001, TestSize.Level1)
     node.AddChild(childOne, -1);
     node.AddChild(childTwo, -1);
     node.AddChild(childThree, -1);
+    node.AddChild(childFour, -1);
+    node.AddChild(childFive, -1);
     node.disappearingChildren_.emplace_back(childOne, 1);
     node.disappearingChildren_.emplace_back(childTwo, 2);
     node.disappearingChildren_.emplace_back(childThree, 3);
+    node.disappearingChildren_.emplace_back(childFour, 4);
+    node.disappearingChildren_.emplace_back(childFive, 5);
     node.GenerateFullChildrenList();
     ASSERT_TRUE(node.fullChildrenList_->size());
 
     ASSERT_TRUE(UNLIKELY(childOne->GetSharedTransitionParam()));
     ASSERT_FALSE(UNLIKELY(childTwo->GetSharedTransitionParam()));
     ASSERT_FALSE(UNLIKELY(childThree->GetSharedTransitionParam()));
+    ASSERT_FALSE(UNLIKELY(childFour->GetSharedTransitionParam()));
+    ASSERT_FALSE(UNLIKELY(childFive->GetSharedTransitionParam()));
     ASSERT_EQ(DrawableV2::RSChildrenDrawable::OnGenerate(node), nullptr);
 
     node.GetMutableRenderProperties().SetUseShadowBatching(true);
@@ -92,7 +100,16 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable001, TestSize.Level1)
     auto nodeTwo = std::make_shared<RSRenderNode>(0);
     auto nodeDrawable = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(nodeTwo);
     childThree->renderDrawable_ = nodeDrawable;
+
+    auto nodeThree = std::make_shared<RSRenderNode>(10);
+    auto nodeDrawableThree = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(nodeThree);
+    childFour->renderDrawable_ = nodeDrawableThree;
+
+    auto nodeFour = std::make_shared<RSRenderNode>(11);
+    auto nodeDrawableFour = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(nodeFour);
+    childFive->renderDrawable_ = nodeDrawableFour;
     ASSERT_NE(DrawableV2::RSChildrenDrawable::OnGenerate(node), nullptr);
+
     node.GetMutableRenderProperties().SetUseShadowBatching(false);
     auto drawable =
         std::static_pointer_cast<DrawableV2::RSChildrenDrawable>(DrawableV2::RSChildrenDrawable::OnGenerate(node));
@@ -102,6 +119,11 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable001, TestSize.Level1)
     ASSERT_FALSE(drawable->needSync_);
     drawable->OnSync();
     ASSERT_FALSE(drawable->needSync_);
+
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    EXPECT_NE(canvas, nullptr);
 }
 
 /**
@@ -138,12 +160,12 @@ HWTEST_F(RSChildrenDrawableTest, RSChildrenDrawable002, TestSize.Level1)
 
 #ifndef MODIFIER_NG
 /**
- * @tc.name: RSCustomModifierDrawable
+ * @tc.name: RSCustomModifierDrawable001
  * @tc.desc: Test OnGenerate
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
-HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable, TestSize.Level1)
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable001, TestSize.Level1)
 {
     NodeId id = 1;
     RSCanvasDrawingRenderNode node(id);
@@ -179,7 +201,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable, TestSize.Level1)
 #else
 /**
  * @tc.name: RSCustomModifierDrawable002
- * @tc.desc: Test OnGenerate
+ * @tc.desc: Test OnDraw for RSCustomModifierDrawable
  * @tc.type: FUNC
  * @tc.require: issueI9QIQO
  */
@@ -214,22 +236,100 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable002, TestSize.Level1)
         DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE));
     ASSERT_NE(drawable, nullptr);
 
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+
     drawable->OnSync();
     drawable->needClearOp_ = true;
-    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
-    drawable->CreateDrawFunc();
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
+    drawable->OnDraw(canvas.get(), rect.get());
 
     drawable->needClearOp_ = false;
-    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
-    drawable->CreateDrawFunc();
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
+    drawable->OnDraw(canvas.get(), rect.get());
 
     drawable->needClearOp_ = true;
-    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
-    drawable->CreateDrawFunc();
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->OnDraw(canvas.get(), rect.get());
 
     drawable->needClearOp_ = false;
-    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::INVALID;
-    drawable->CreateDrawFunc();
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_NE(drawable, nullptr);
+
+    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
+    auto customModifiers = node.GetModifiersNG(drawable->modifierTypeNG_);
+    EXPECT_EQ(customModifiers.empty(), false);
+    drawable->OnUpdate(node);
+    drawable->OnSync();
+    EXPECT_EQ(drawable->isCanvasNode_, false);
+    EXPECT_EQ(drawable->gravity_, Gravity::CENTER);
+    drawable->needClearOp_ = true;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_NE(drawable, nullptr);
+}
+
+/**
+ * @tc.name: RSCustomModifierDrawable003
+ * @tc.desc: Test OnDraw for RSCustomModifierDrawable on isCanvasNode_ = true branch;
+ * @tc.type: FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomModifierDrawable003, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSCanvasDrawingRenderNode node(id);
+    ASSERT_EQ(
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE), nullptr);
+
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    auto property = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    property->GetRef() = drawCmdList;
+    auto modifier1 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    ASSERT_NE(modifier1, nullptr);
+    modifier1->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = property;
+    auto indexProperty = std::make_shared<RSRenderProperty<int16_t>>(2, 0);
+    modifier1->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty;
+    node.AddModifier(modifier1);
+
+    auto propertyTwo = std::make_shared<RSRenderProperty<Drawing::DrawCmdListPtr>>();
+    propertyTwo->GetRef() = std::make_shared<Drawing::DrawCmdList>(1, 1);
+    auto modifier2 = std::make_shared<ModifierNG::RSCustomRenderModifier<ModifierNG::RSModifierType::CONTENT_STYLE>>();
+    ASSERT_NE(modifier2, nullptr);
+    modifier2->properties_[ModifierNG::RSPropertyType::CONTENT_STYLE] = propertyTwo;
+    auto indexProperty2 = std::make_shared<RSRenderProperty<int16_t>>(1, 1);
+    modifier2->properties_[ModifierNG::RSPropertyType::CUSTOM_INDEX] = indexProperty2;
+    node.AddModifier(modifier2);
+
+    node.AddDirtyType(ModifierNG::RSModifierType::CONTENT_STYLE);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSCustomModifierDrawable>(
+        DrawableV2::RSCustomModifierDrawable::OnGenerate(node, ModifierNG::RSModifierType::CONTENT_STYLE));
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->isCanvasNode_ = true;
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+
+    drawable->needClearOp_ = true;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->OnDraw(canvas.get(), rect.get());
+
+    drawable->needClearOp_ = false;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_NE(drawable, nullptr);
+
+    node.GetMutableRenderProperties().SetFrameGravity(Gravity::CENTER);
+    auto customModifiers = node.GetModifiersNG(drawable->modifierTypeNG_);
+    EXPECT_EQ(customModifiers.empty(), false);
+    drawable->OnUpdate(node);
+    drawable->OnSync();
+    EXPECT_EQ(drawable->isCanvasNode_, false);
+    EXPECT_EQ(drawable->gravity_, Gravity::CENTER);
+    drawable->needClearOp_ = true;
+    drawable->modifierTypeNG_ = ModifierNG::RSModifierType::CONTENT_STYLE;
+    drawable->OnDraw(canvas.get(), rect.get());
     ASSERT_NE(drawable, nullptr);
 }
 #endif
@@ -290,7 +390,7 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable002, TestSize.Level1)
 
 /**
  * @tc.name: RSBeginBlenderDrawable003
- * @tc.desc: Test CreateDrawFunc for RSBeginBlenderDrawable
+ * @tc.desc: Test OnDraw for RSBeginBlenderDrawable
  * @tc.type:FUNC
  * @tc.require: issueICLU4I
  */
@@ -303,15 +403,14 @@ HWTEST_F(RSChildrenDrawableTest, RSBeginBlenderDrawable003, TestSize.Level1)
         DrawableV2::RSBeginBlenderDrawable::OnGenerate(node));
     ASSERT_NE(drawable, nullptr);
     drawable->OnSync();
-    auto drawFunc = drawable->CreateDrawFunc();
 
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto rect = std::make_shared<Drawing::Rect>();
-    drawFunc(canvas.get(), rect.get());
+    drawable->OnDraw(canvas.get(), rect.get());
     EXPECT_NE(canvas, nullptr);
 
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
-    drawFunc(filterCanvas.get(), rect.get());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
     EXPECT_NE(filterCanvas->envStack_.top().blender_, nullptr);
 }
 
@@ -340,7 +439,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable001, TestSize.Level1)
 
 /**
  * @tc.name: RSEndBlenderDrawable002
- * @tc.desc: Test CreateDrawFunc
+ * @tc.desc: Test OnDraw
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
@@ -350,8 +449,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEndBlenderDrawable002, TestSize.Level1)
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawFunc = drawable->CreateDrawFunc();
-    drawFunc(filterCanvas.get(), rect.get());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
 
@@ -384,7 +482,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorDrawable001, TestSize.Level1)
 
 /**
  * @tc.name: RSEnvFGColorDrawable002
- * @tc.desc: Test CreateDrawFunc
+ * @tc.desc: Test OnDraw
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
@@ -394,8 +492,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorDrawable002, TestSize.Level1)
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawFunc = drawable->CreateDrawFunc();
-    drawFunc(filterCanvas.get(), rect.get());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
 
@@ -427,7 +524,7 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable001, TestSize.Level
 
 /**
  * @tc.name: RSEnvFGColorStrategyDrawable002
- * @tc.desc: Test CreateDrawFunc
+ * @tc.desc: Test OnDraw
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
@@ -441,11 +538,10 @@ HWTEST_F(RSChildrenDrawableTest, RSEnvFGColorStrategyDrawable002, TestSize.Level
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     filterCanvas->surface_ = surface.get();
     auto rect = std::make_shared<Drawing::Rect>(0, 0, 10, 10);
-    auto drawFunc = drawable->CreateDrawFunc();
-    drawFunc(filterCanvas.get(), rect.get());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
     drawable->envFGColorStrategy_ = ForegroundColorStrategyType::INVERT_BACKGROUNDCOLOR;
-    drawFunc(filterCanvas.get(), rect.get());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
 
@@ -478,7 +574,7 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable001, TestSize.Level1
 
 /**
  * @tc.name: RSCustomClipToFrameDrawable002
- * @tc.desc: Test CreateDrawFunc
+ * @tc.desc: Test OnDraw
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
@@ -488,8 +584,108 @@ HWTEST_F(RSChildrenDrawableTest, RSCustomClipToFrameDrawable002, TestSize.Level1
     auto canvas = std::make_shared<Drawing::Canvas>();
     auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
     auto rect = std::make_shared<Drawing::Rect>();
-    auto drawFunc = drawable->CreateDrawFunc();
-    drawFunc(filterCanvas.get(), rect.get());
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSColorPickerDrawable
+ * @tc.desc: Test Func of RSColorPickerDrawable
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSChildrenDrawableTest, RSColorPickerDrawable001, TestSize.Level1)
+{
+    NodeId id = 1;
+    RSRenderNode node(id);
+    ASSERT_EQ(DrawableV2::RSColorPickerDrawable::OnGenerate(node), nullptr);
+
+    node.GetMutableRenderProperties().SetColorPickerPlaceholder(static_cast<int>(ColorPlaceholder::TEXT_CONTRAST));
+    node.GetMutableRenderProperties().SetColorPickerStrategy(static_cast<int>(ColorPickStrategyType::AVERAGE));
+    node.GetMutableRenderProperties().SetColorPickerInterval(1000);
+    auto drawable = std::static_pointer_cast<DrawableV2::RSColorPickerDrawable>(
+        DrawableV2::RSColorPickerDrawable::OnGenerate(node));
+    ASSERT_NE(drawable, nullptr);
+
+    drawable->OnSync();
+    ASSERT_FALSE(drawable->needSync_);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+
+    drawable->OnDraw(nullptr, rect.get());
+    ASSERT_TRUE(true);
+
+    drawable->colorPickerManager_ = nullptr;
+    drawable->OnDraw(filterCanvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSSaveDrawable001
+ * @tc.desc: Test OnDraw
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSSaveDrawable001, TestSize.Level1)
+{
+    auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
+    auto drawable = std::make_shared<DrawableV2::RSSaveDrawable>(count);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSRestoreDrawable001
+ * @tc.desc: Test OnDraw
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSRestoreDrawable001, TestSize.Level1)
+{
+    auto count = std::make_shared<uint32_t>(std::numeric_limits<uint32_t>::max());
+    auto drawable = std::make_shared<DrawableV2::RSRestoreDrawable>(count);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSCustomSaveDrawable001
+ * @tc.desc: Test OnDraw
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomSaveDrawable001, TestSize.Level1)
+{
+    auto type = RSPaintFilterCanvas::kCanvas;
+    auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
+    auto drawable = std::make_shared<DrawableV2::RSCustomSaveDrawable>(status, type);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(canvas.get(), rect.get());
+    ASSERT_TRUE(true);
+}
+
+/**
+ * @tc.name: RSCustomRestoreDrawable001
+ * @tc.desc: Test OnDraw
+ * @tc.type:FUNC
+ * @tc.require: issueI9QIQO
+ */
+HWTEST_F(RSChildrenDrawableTest, RSCustomRestoreDrawable001, TestSize.Level1)
+{
+    auto status = std::make_shared<RSPaintFilterCanvas::SaveStatus>();
+    auto drawable = std::make_shared<DrawableV2::RSCustomRestoreDrawable>(status);
+    auto canvas = std::make_shared<Drawing::Canvas>();
+    auto filterCanvas = std::make_shared<RSPaintFilterCanvas>(canvas.get());
+    auto rect = std::make_shared<Drawing::Rect>();
+    drawable->OnDraw(filterCanvas.get(), rect.get());
     ASSERT_TRUE(true);
 }
 } // namespace OHOS::Rosen

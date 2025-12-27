@@ -153,6 +153,13 @@ public:
     void RecordState(Canvas* canvas);
 
     /**
+     * @brief switch canvas formats
+     * @param canvas canvas to be switch
+     * @return Returns the result of canvas switch
+     */
+    bool InheritStateAndContentFrom(Canvas* canvas);
+
+    /**
      * @brief Gets the total matrix of Canvas to device.
      * @return Returns the total matrix of Canvas to device.
      */
@@ -316,6 +323,9 @@ public:
      * @param brush        used to fill Canvas
      */
     virtual void DrawBackground(const Brush& brush);
+
+    virtual bool GetLocalShadowBounds(const Matrix& ctm, const Path& path, const Point3& planeParams,
+        const Point3& devLightPos, scalar lightRadius, ShadowFlags flag, bool isLimitElevation, Rect& rect);
 
     virtual void DrawShadow(const Path& path, const Point3& planeParams, const Point3& devLightPos, scalar lightRadius,
         Color ambientColor, Color spotColor, ShadowFlags flag);

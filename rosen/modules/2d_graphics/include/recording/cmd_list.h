@@ -366,7 +366,7 @@ public:
 #endif
 
     void SetNoImageMarshallingFlag(bool flag);
-    bool GetNoImageMarshallingFlag();
+    bool GetNoImageMarshallingFlag() const;
 
 protected:
     void ProfilerPushObjects(std::stringstream& stream, size_t size);
@@ -376,7 +376,7 @@ protected:
     MemAllocator imageAllocator_;
     MemAllocator bitmapAllocator_;
     std::optional<size_t> lastOpItemOffset_ = std::nullopt;
-    std::recursive_mutex mutex_;
+    mutable std::recursive_mutex mutex_;
     std::map<size_t, std::shared_ptr<Image>> imageMap_;
     std::vector<std::pair<size_t, OpDataHandle>> imageHandleVec_;
     uint32_t opCnt_ = 0;
@@ -401,7 +401,7 @@ protected:
 #endif
     std::vector<std::shared_ptr<ExtendDrawFuncObj>> drawFuncObjVec_;
     std::mutex drawFuncObjMutex_;
-    bool noImageMarshallingFlag = false;
+    bool noImageMarshallingFlag_ = false;
 };
 } // namespace Drawing
 } // namespace Rosen

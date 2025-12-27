@@ -44,12 +44,12 @@ void RSHwcContextTest::SetUp() {}
 void RSHwcContextTest::TearDown() {}
 
 /**
- * @tc.name: CheckPackageInConfigList
+ * @tc.name: CheckPackageInConfigList001
  * @tc.desc: Test CheckPackageInConfigList
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSHwcContextTest, CheckPackageInConfigList, TestSize.Level1)
+HWTEST_F(RSHwcContextTest, CheckPackageInConfigList001, TestSize.Level1)
 {
     std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.youku.next", "1"}};
     std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
@@ -58,36 +58,132 @@ HWTEST_F(RSHwcContextTest, CheckPackageInConfigList, TestSize.Level1)
     pkgs.push_back("com.youku.next");
     auto& rsCommonHook = RsCommonHook::Instance();
     hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
-    hwcContext->CheckPackageInConfigList(pkgs);
-    auto result1 = rsCommonHook.GetVideoSurfaceFlag();
-    ASSERT_TRUE(result1);
-    hwcContext->sourceTuningConfig_["com.youku.next"] = "2";
-    hwcContext->CheckPackageInConfigList(pkgs);
-    auto result2 = rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
-    ASSERT_TRUE(result2);
     hwcContext->solidLayerConfig_["com.youku.next"] = "1";
     hwcContext->CheckPackageInConfigList(pkgs);
-    auto result3 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
-    ASSERT_TRUE(result3);
-    hwcContext->hwcSourceTuningConfig_["com.youku.next"] = "1";
+    EXPECT_TRUE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_TRUE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "2";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "2";
     hwcContext->CheckPackageInConfigList(pkgs);
-    auto result4 = rsCommonHook.GetVideoSurfaceFlag();
-    ASSERT_TRUE(result4);
+    EXPECT_TRUE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_TRUE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
     hwcContext->hwcSourceTuningConfig_["com.youku.next"] = "2";
+    hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "2";
     hwcContext->CheckPackageInConfigList(pkgs);
-    auto result5 = rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
-    ASSERT_TRUE(result5);
-    hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "1";
+    EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_TRUE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_TRUE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "1";
     hwcContext->CheckPackageInConfigList(pkgs);
-    auto result6 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
-    ASSERT_TRUE(result6);
+    EXPECT_TRUE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_TRUE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+}
+
+/**
+ * @tc.name: CheckPackageInConfigList002
+ * @tc.desc: Test CheckPackageInConfigList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, CheckPackageInConfigList002, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.youku.next", "1"}};
+    std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    std::vector<std::string> pkgs = {"com.youku.next", "yylx.danmaku.bili"};
+    auto& rsCommonHook = RsCommonHook::Instance();
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+}
+
+/**
+ * @tc.name: CheckPackageInConfigList003
+ * @tc.desc: Test CheckPackageInConfigList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, CheckPackageInConfigList003, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.youku.next", "1"}};
+    std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    std::vector<std::string> pkgs;
+    pkgs.push_back("com.youku.next");
+    auto& rsCommonHook = RsCommonHook::Instance();
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "2";
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_TRUE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_TRUE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "2";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "1";
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_TRUE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_TRUE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
+    hwcContext->hwcSourceTuningConfig_["com.youku.next"] = "2";
+    hwcContext->hwcSolidLayerConfig_["com.youku.next"] = "2";
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_TRUE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_TRUE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_TRUE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "2";
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_TRUE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "3";
+    hwcContext->CheckPackageInConfigList(pkgs);
+    EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_TRUE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_TRUE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
+}
+
+/**
+ * @tc.name: CheckPackageInConfigList004
+ * @tc.desc: Test CheckPackageInConfigList
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSHwcContextTest, CheckPackageInConfigList004, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> sourceTuningConfig = {{"com.youku.next", "1"}};
+    std::unordered_map<std::string, std::string> solidLayerConfig = {{"com.youku.next", "1"}};
+    auto hwcContext = std::make_shared<RSHwcContext>(sourceTuningConfig, solidLayerConfig);
+    std::vector<std::string> pkgs;
     pkgs.push_back("yylx.danmaku.bili");
+    auto& rsCommonHook = RsCommonHook::Instance();
+    hwcContext->sourceTuningConfig_["com.youku.next"] = "1";
+    hwcContext->solidLayerConfig_["com.youku.next"] = "1";
     hwcContext->CheckPackageInConfigList(pkgs);
-    auto result7 = rsCommonHook.GetVideoSurfaceFlag();
-    ASSERT_FALSE(result7);
-    auto result8 = rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag();
-    ASSERT_FALSE(result8);
-    auto result9 = rsCommonHook.GetIsWhiteListForSolidColorLayerFlag();
-    ASSERT_FALSE(result9);
+    EXPECT_FALSE(rsCommonHook.GetVideoSurfaceFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByHwcnodeBelowSelfInAppFlag());
+    EXPECT_FALSE(rsCommonHook.GetHardwareEnabledByBackgroundAlphaFlag());
+    EXPECT_FALSE(rsCommonHook.GetIsWhiteListForSolidColorLayerFlag());
 }
 } // namespace OHOS::Rosen

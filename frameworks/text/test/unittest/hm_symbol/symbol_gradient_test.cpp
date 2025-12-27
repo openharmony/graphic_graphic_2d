@@ -34,7 +34,8 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolGradientTest001, TestSize.Level0)
 {
     // init data
     SymbolGradient gradient = SymbolGradient();
-    std::vector<Drawing::ColorQuad> colors = {0xFF00FF00, 0XFFFF0000}; // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0xFF00FF00), Drawing::Color(0XFFFF0000)};
     std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
 
     // test setColors
@@ -70,7 +71,8 @@ HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual001, TestSize.Level0)
     // init data
     auto gradient1 = std::make_shared<SymbolGradient>();
     auto gradient2 = std::make_shared<SymbolGradient>();
-    std::vector<Drawing::ColorQuad> colors = {0xFF00FF00, 0XFFFF0000}; // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0xFF00FF00), Drawing::Color(0XFFFF0000)};
     std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
 
     // test colors is empty
@@ -86,7 +88,8 @@ HWTEST_F(OHHmSymbolGradientTest, IsNearlyEqual001, TestSize.Level0)
     gradient1->SetColors(colors);
     EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
 
-    std::vector<Drawing::ColorQuad> colors1 = {0xFF00FFFF, 0XFFFF0000}; // 0xFF00FFFF and 0XFFFF0000 is ARGB
+    // 0xFF00FFFF and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors1 = {Drawing::Color(0xFF00FFFF), Drawing::Color(0XFFFF0000)};
     gradient2->SetColors(colors1);
     EXPECT_FALSE(gradient1->IsNearlyEqual(gradient2));
 
@@ -118,7 +121,8 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolLineGradient001, TestSize.Level0)
 {
     // init data
     SymbolLineGradient gradient = SymbolLineGradient(45.0f); // 45.0f is angle of linegradient
-    std::vector<Drawing::ColorQuad> colors = {0XFF00FF00, 0XFFFF0000}; // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    // 0XFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0XFF00FF00), Drawing::Color(0XFFFF0000)};
     std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
     // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
     Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);
@@ -203,7 +207,8 @@ HWTEST_F(OHHmSymbolGradientTest, SymbolRadialGradient001, TestSize.Level0)
     Drawing::Point centerPt = Drawing::Point(0.5f, 0.5f); // 0.5f: x, 0.5f: y
     float radiusRatio = 0.6f; // 0.6f is radius
     SymbolRadialGradient gradient = SymbolRadialGradient(centerPt, radiusRatio);
-    std::vector<Drawing::ColorQuad> colors = {0xFF00FF00, 0XFFFF0000}; // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    // 0xFF00FF00 and 0XFFFF0000 is ARGB
+    std::vector<Drawing::Color> colors = {Drawing::Color(0xFF00FF00), Drawing::Color(0XFFFF0000)};
     std::vector<float> positions = {0.2f, 0.9f}; // 0.2f and 0.9f is position of colors
     // 0.0f left, 0.0f top, 100.0f right, 100.0f bottom
     Drawing::Rect bounds = Drawing::Rect(0.0f, 0.0f, 100.0f, 100.0f);

@@ -66,7 +66,9 @@ public:
     void ReleaseSelfDrawingNodeBuffer();
     void ReleaseSurfaceOpItemBuffer();
     std::shared_ptr<RSBaseRenderEngine> GetRenderEngine() const;
-    void NotifyScreenNodeBufferReleased();
+
+    void UnRegisterCond(ScreenId curScreenId);
+    void NotifyScreenNodeBufferReleased(ScreenId curScreenId);
     bool WaitUntilScreenNodeBufferReleased(DrawableV2::RSScreenRenderNodeDrawable& screenNodeDrawable);
 
     uint64_t GetCurrentTimestamp() const;
@@ -99,6 +101,7 @@ public:
     ClearMemoryMoment GetClearMoment() const;
     uint32_t GetRefreshRate() const;
     void DumpMem(DfxString& log, bool isLite = false);
+    void DumpGpuMem(DfxString& log, const std::vector<std::pair<NodeId, std::string>>& nodeTags);
     std::shared_ptr<Drawing::Image> GetWatermarkImg();
     uint64_t GetFrameCount() const
     {
@@ -236,16 +239,21 @@ public:
     void DumpVkImageInfo(std::string &dumpString);
 
     void InitDrawOpOverCallback(Drawing::GPUContext* gpuContext);
+
+    void SetScreenPowerOnChanged(bool val);
+
+    bool GetSetScreenPowerOnChanged();
+
+    void CollectProcessNodeNum(int num);
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
     void Inittcache();
     void PerfForBlurIfNeeded();
     void PostReclaimMemoryTask(ClearMemoryMoment moment, bool isReclaim);
-    void CollectReleaseTasks(std::vector<std::function<void()>>& releaseTasks);
+    void CollectReleaseTasks(std::map<ScreenId, std::vector<std::function<void()>>>& releaseTasks);
 
     std::atomic_bool isPostedReclaimMemoryTask_ = false;
-    bool screenNodeBufferReleased_ = false;
     // Those variable is used to manage memory.
     bool clearMemoryFinished_ = true;
     bool clearMemDeeply_ = false;
@@ -275,10 +283,16 @@ private:
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     std::vector<NodeId> curDrawStatusVec_;
 
-    // used for blocking renderThread before screenNode has no freed buffer to request
-    mutable std::mutex screenNodeBufferReleasedMutex_;
-    // used for stalling renderThread before screenNode has no freed buffer to request
-    std::condition_variable screenNodeBufferReleasedCond_;
+    struct ScreenNodeBufferCond {
+        bool screenNodeBufferReleased = false;
+        // used for blocking renderThread before screenNode has no freed buffer to request
+        mutable std::mutex screenNodeBufferReleasedMutex;
+        // used for stalling renderThread before screenNode has no freed buffer to request
+        std::condition_variable screenNodeBufferReleasedCond;
+    };
+
+    mutable std::mutex screenCondMutex_;
+    std::unordered_map<ScreenId, std::shared_ptr<ScreenNodeBufferCond>> screenCond_;
 
     std::mutex mutex_;
     mutable std::mutex clearMemoryMutex_;
@@ -302,6 +316,9 @@ private:
     void SubScribeSystemAbility();
     sptr<VSyncSystemAbilityListener> saStatusChangeListener_ = nullptr;
 #endif
+
+    std::atomic<bool> screenPowerOnChanged_ = false;
+    uint32_t totalProcessNodeNum_ = 0;
 };
 } // namespace Rosen
 } // namespace OHOS

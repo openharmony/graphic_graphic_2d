@@ -53,6 +53,7 @@ public:
         unsigned int glyphStride, hb_position_t* advances, unsigned int advanceStride, void* userData);
     static HBFont CreateTypefaceHbFont(const Typeface& typeface);
     static HBFont CreateSubHbFont(const Font& font, const HBFont& typefaceFont);
+    static HBFace CreateHbFace(const Typeface& typeface);
 };
 } // namespace Drawing
 } // namespace Rosen

@@ -772,7 +772,7 @@ void RSFile::AddHeaderFirstFrame(const std::string& dataFirstFrame)
 
 void RSFile::InsertHeaderData(size_t offset, const std::string& data)
 {
-    if (offset >= headerFirstFrame_.size()) {
+    if (offset > headerFirstFrame_.size()) {
         return;
     }
     headerFirstFrame_.insert(offset, data);
@@ -787,7 +787,7 @@ void RSFile::SetHeaderFailedNodeCount(size_t offset, uint32_t failedNodeCount)
     if (offset + sizeof(uint32_t) >= headerFirstFrame_.size()) {
         return;
     }
-    uint32_t* ptr = reinterpret_cast<uint32_t*>(headerFirstFrame_.data() + offset);
+    uint32_t *ptr = reinterpret_cast<uint32_t *>(headerFirstFrame_.data() + offset);
     if (*ptr >= failedNodeCount) {
         *ptr -= failedNodeCount;
     }

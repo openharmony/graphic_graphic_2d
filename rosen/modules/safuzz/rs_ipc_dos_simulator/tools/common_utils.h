@@ -65,6 +65,9 @@ public:
         return Str16ToStr8(data);
     };
 
+    static std::optional<float> StringToFloat(const std::string& str);
+    static std::optional<double> StringToDouble(const std::string& str);
+
 private:
     static constexpr int PRINT_COUNT_UPPER_BOUND = 10;
 };
