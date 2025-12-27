@@ -422,19 +422,6 @@ void RSRenderThreadVisitor::ProcessRootRenderNode(RSRootRenderNode& node)
 #if defined(RS_ENABLE_GL) || defined (RS_ENABLE_VK)
     RenderContext* rc = RSRenderThread::Instance().GetRenderContext();
     rsSurface->SetRenderContext(rc);
-#ifdef ROSEN_IOS
-    if (rc == nullptr) {
-        return;
-    }
-    auto cleanupTask = [rc]() {
-        RSRenderThread::Instance().PostSyncTask([rc]() {
-            //release egl source
-            rc->DestroySharedSource();
-        });
-    };
-
-    rc->SetCleanUpHelper(cleanupTask);
-#endif
 #endif
 
 #ifdef RS_ENABLE_VK
