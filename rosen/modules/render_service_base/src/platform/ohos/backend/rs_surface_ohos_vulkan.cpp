@@ -18,8 +18,10 @@
 #include <atomic>
 #include <memory>
 #include "common/rs_exception_check.h"
-#include "hetero_hdr/rs_hdr_pattern_manager.h"
-#include "hetero_hdr/rs_hdr_vulkan_task.h"
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hdr_pattern_manager.h"
+#include "rs_hdr_vulkan_task.h"
+#endif
 #ifdef MHC_ENABLE
 #include "rs_mhc_manager.h"
 #endif
@@ -534,7 +536,10 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
     std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
 
     std::vector<GrBackendSemaphore> semaphoreVec = {backendSemaphore};
+#ifdef HETERO_HDR_ENABLE
+    std::vector<uint64_t> frameIdVec = RSHDRPatternManager::Instance().MHCGetFrameIdForGPUTask();
     RSHDRVulkanTask::PrepareHDRSemaphoreVector(semaphoreVec, surface.drawingSurface, frameIdVec);
+#endif
 
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().PrepareGraphAndSemaphore(semaphoreVec, surface.drawingSurface);
@@ -576,7 +581,9 @@ bool RSSurfaceOhosVulkan::FlushFrame(std::unique_ptr<RSSurfaceFrame>& frame, uin
         mSkContext->Submit();
         mSkContext->EndFrame();
     }
+#ifdef HETERO_HDR_ENABLE
     RSHDRPatternManager::Instance().MHCClearGPUTaskFunc(frameIdVec);
+#endif
     
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().MHCSubmitTask();

@@ -100,12 +100,14 @@ struct BufferDrawParam {
     bool isTmoNitsFixed = false;
     bool hasMetadata = false; // SDR has metadata
 #endif
+#ifdef HETERO_HDR_ENABLE
     /*
     * HDR_HETERO = 1U << 0,
     * HDR_HETERO_HDR = 1U << 1,
     * HDR_HETERO_AIHDR = 1U << 2,
     */
     uint32_t hdrHeteroType = 0;
+#endif
     bool colorFollow = false;
     bool preRotation = false;
     Drawing::AlphaType alphaType = Drawing::AlphaType::ALPHATYPE_PREMUL;

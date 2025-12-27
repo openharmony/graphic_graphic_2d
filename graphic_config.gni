@@ -65,6 +65,7 @@ declare_args() {
   }
 
   graphic_2d_feature_subtree_parallel_enable = false
+  graphic_2d_feature_hetero_hdr_enable = false
   graphic_2d_feature_mhc_enable = false
 }
 
@@ -142,6 +143,10 @@ if (graphic_2d_feature_ace_enable_gpu) {
 
 if (graphic_2d_feature_subtree_parallel_enable) {
   gpu_defines += [ "SUBTREE_PARALLEL_ENABLE" ]
+}
+
+if (graphic_2d_feature_hetero_hdr_enable) {
+  gpu_defines += [ "HETERO_HDR_ENABLE" ]
 }
 
 if (graphic_2d_feature_mhc_enable) {
@@ -239,6 +244,11 @@ check_subtree_ext_file_args = [
   rebase_path(
     "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config.gni"),
 ]
+check_hetero_hdr_ext_file_args = [
+  "--filename",
+  rebase_path(
+    "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config.gni"),
+]
 
 check_mhc_ext_file_args = [
   "--filename",
@@ -332,6 +342,19 @@ if (path_exists("//foundation/graphic/graphic_2d_ext/subtree/build/subtree_confi
       "//foundation/graphic/graphic_2d_ext/subtree/build/subtree_config/gni")
   }
 }
+
+graphic_2d_hetero_hdr_config = {}
+
+if (exec_script(check_graphic_ext_file_script,
+                check_hetero_hdr_ext_file_args,
+                "string") == "True") {
+
+  graphic_2d_hetero_hdr_configs = {
+    import(
+      "//foundation/graphic/graphic_2d_ext/hetero_hdr/build/hetero_hdr_config/gni")
+  }
+}
+
 
 graphic_2d_mhc_config = {}
 
