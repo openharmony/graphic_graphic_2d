@@ -497,7 +497,7 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest002, Function | SmallT
         sptr<CustomHgmCallback> cb = new CustomHgmCallback();
         hccMgr->animDynamicCfgCallbacks_[0] = cb;
         hccMgr->refreshRateModeCallbacks_[0] = cb;
-        hccMgr->SyncHgmConfigChangeCallback();
+        hccMgr->SyncHgmConfigChangeCallback(pid);
         hccMgr->SyncRefreshRateModeChangeCallback(0);
         hccMgr->RegisterHgmConfigChangeCallback(0, nullptr);
         auto& hgmCore = HgmCore::Instance();
@@ -667,6 +667,30 @@ HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest004, Function | SmallT
         hccMgr->SyncXComponentExpectedFrameRateCallback(dstPid, idStr, expectedFrameRate);
     }
     ASSERT_EQ(hccMgr->xcomponentExpectedFrameRate_[dstPid].size(), 50); // 50 : xcomponentIdNumsMax of one pid
+}
+
+/**
+ * @tc.name: HgmConfigCallbackManagerTest005
+ * @tc.desc: Verify the result of HgmConfigCallbackManagerTest005 function
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmFrameRateMgrTest, HgmConfigCallbackManagerTest005, Function | SmallTest | Level0)
+{
+    sptr<HgmConfigCallbackManager> hccMgr = HgmConfigCallbackManager::GetInstance();
+    std::unique_ptr<XMLParser> parser = std::make_unique<XMLParser>();
+    if (parser->LoadConfiguration(xmlConfig) == EXEC_SUCCESS) {
+        sptr<CustomHgmCallback> cb = sptr<CustomHgmCallback>::MakeSptr();
+        hccMgr->RegisterHgmConfigChangeCallback(0, cb);
+        hccMgr->SyncHgmConfigChangeCallback(pid);
+        std::unordered_map<pid_t, std::pair<int32_t, std::string>> foregroundPidAppMap;
+        foregroundPidAppMap.try_emplace(pid, std::pair<int32_t, std::string>{ 0, "com.app10" });
+        hccMgr->SyncHgmConfigChangeCallback(foregroundPidAppMap, pid);
+        ASSERT_EQ(hccMgr->pendingAnimDynamicCfgCallbacks_.find(pid) ==
+            hccMgr->pendingAnimDynamicCfgCallbacks_.end(), true);
+    } else {
+        EXPECT_EQ(parser->LoadConfiguration(xmlConfig), XML_FILE_LOAD_FAIL);
+    }
 }
 
 /**
