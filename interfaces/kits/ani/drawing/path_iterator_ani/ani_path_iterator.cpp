@@ -19,14 +19,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_PATH_ITERATOR_NAME = "@ohos.graphics.drawing.drawing.PathIterator";
-const char* ANI_ENUM_PATH_ITERATOR_VERB = "@ohos.graphics.drawing.drawing.PathIteratorVerb";
 
 ani_status AniPathIterator::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_PATH_ITERATOR_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().pathIterator;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_PATH_ITERATOR_NAME);
         return ANI_NOT_FOUND;
     }
@@ -39,7 +36,7 @@ ani_status AniPathIterator::AniInit(ani_env *env)
         ani_native_function { "peek", nullptr, reinterpret_cast<void*>(Peek) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_PATH_ITERATOR_NAME);
         return ANI_NOT_FOUND;
@@ -50,14 +47,15 @@ ani_status AniPathIterator::AniInit(ani_env *env)
 
 void AniPathIterator::ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPathObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
 
     AniPathIterator* newAniPathIterator = new AniPathIterator(*aniPath->GetPath());
-    ani_status ret = env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPathIterator));
+    ani_status ret = env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().pathIteratorNativeObj, reinterpret_cast<ani_long>(newAniPathIterator));
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniPathIterator::Constructor failed create AniPathIterator");
         delete newAniPathIterator;
@@ -94,7 +92,7 @@ PathVerb AniPathIterator::GetReturnVerb(const PathVerb& cachedVerb)
     }
 }
 
-ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_object aniOffsetObj)
+ani_object AniPathIterator::OnNext(ani_env* env, ani_array aniPointArray, ani_object aniOffsetObj)
 {
     int32_t offset = 0;
     ani_status ret = ANI_OK;
@@ -102,7 +100,8 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_o
     env->Reference_IsUndefined(aniOffsetObj, &isUndefined);
     if (!isUndefined) {
         ani_int aniOffset = 0;
-        if (ANI_OK != env->Object_CallMethodByName_Int(aniOffsetObj, "toInt", ":i", &aniOffset)) {
+        if (ANI_OK != env->Object_CallMethod_Int(
+            aniOffsetObj, AniGlobalMethod::GetInstance().intGet, &aniOffset)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param offset.");
             return CreateAniUndefined(env);
         }
@@ -114,8 +113,8 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_o
         offset = static_cast<int32_t>(aniOffset);
     }
 
-    ani_int aniLength;
-    ret = env->Object_GetPropertyByName_Int(aniPointArray, "length", &aniLength);
+    ani_size aniLength;
+    ret = env->Array_GetLength(aniPointArray, &aniLength);
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniPathIterator::Next points array invalid. ret: %{public}d", ret);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param points.");
@@ -123,7 +122,7 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_o
     }
 
     if (static_cast<int32_t>(aniLength) < (offset + MAX_PAIRS_PATHVERB)) {
-        ROSEN_LOGE("AniPathIterator::Next array size is incorrect. length: %{public}d", aniLength);
+        ROSEN_LOGE("AniPathIterator::Next array size is incorrect. length: %{public}zu", aniLength);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param points array length.");
         return CreateAniUndefined(env);
     }
@@ -138,7 +137,8 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_o
     }
 
     ani_enum_item enumItem;
-    bool result = CreateAniEnumByEnumIndex(env, ANI_ENUM_PATH_ITERATOR_VERB, static_cast<int>(returnVerb), enumItem);
+    bool result = CreateAniEnumByEnumIndex(
+        env, AniGlobalEnum::GetInstance().pathIteratorVerb, static_cast<ani_size>(returnVerb), enumItem);
     if (!result) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid path verb.");
         return CreateAniUndefined(env);
@@ -146,9 +146,10 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_object aniPointArray, ani_o
     return enumItem;
 }
 
-ani_object AniPathIterator::Next(ani_env* env, ani_object obj, ani_object aniPointArray, ani_object aniOffsetObj)
+ani_object AniPathIterator::Next(ani_env* env, ani_object obj, ani_array aniPointArray, ani_object aniOffsetObj)
 {
-    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj);
+    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj,
+        AniGlobalField::GetInstance().pathIteratorNativeObj);
     if (aniPathIterator == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return CreateAniUndefined(env);
@@ -166,7 +167,8 @@ ani_boolean AniPathIterator::OnHasNext(ani_env* env)
 
 ani_boolean AniPathIterator::HasNext(ani_env* env, ani_object obj)
 {
-    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj);
+    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj,
+        AniGlobalField::GetInstance().pathIteratorNativeObj);
     if (aniPathIterator == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return false;
@@ -183,7 +185,8 @@ ani_enum_item AniPathIterator::OnPeek(ani_env* env, PathIterator& pathIterator)
         pathVerb = pathIterator.Peek();
     }
     ani_enum_item enumItem;
-    bool result = CreateAniEnumByEnumIndex(env, ANI_ENUM_PATH_ITERATOR_VERB, static_cast<int>(pathVerb), enumItem);
+    bool result = CreateAniEnumByEnumIndex(
+        env, AniGlobalEnum::GetInstance().pathIteratorVerb, static_cast<ani_size>(pathVerb), enumItem);
     if (!result) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid path verb.");
         return nullptr;
@@ -193,7 +196,8 @@ ani_enum_item AniPathIterator::OnPeek(ani_env* env, PathIterator& pathIterator)
 
 ani_enum_item AniPathIterator::Peek(ani_env* env, ani_object obj)
 {
-    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj);
+    auto aniPathIterator = GetNativeFromObj<AniPathIterator>(env, obj,
+        AniGlobalField::GetInstance().pathIteratorNativeObj);
     if (aniPathIterator == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return nullptr;

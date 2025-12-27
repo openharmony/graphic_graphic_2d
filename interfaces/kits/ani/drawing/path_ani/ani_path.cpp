@@ -75,14 +75,13 @@ static const std::array g_methods = {
 
 ani_status AniPath::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_PATH_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().path;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_PATH_NAME);
         return ANI_NOT_FOUND;
     }
 
-    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: ret %{public}d %{public}s", ret, ANI_CLASS_PATH_NAME);
         return ret;
@@ -106,7 +105,8 @@ void AniPath::Constructor(ani_env* env, ani_object obj)
 {
     std::shared_ptr<Path> path = std::make_shared<Path>();
     AniPath* aniPath = new AniPath(path);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniPath::Constructor failed create AniPath");
         delete aniPath;
         return;
@@ -115,7 +115,7 @@ void AniPath::Constructor(ani_env* env, ani_object obj)
 
 void AniPath::ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPathObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -123,7 +123,8 @@ void AniPath::ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPa
     std::shared_ptr<Path> other = aniPath->GetPath();
     std::shared_ptr<Path> path = other == nullptr ? std::make_shared<Path>() : std::make_shared<Path>(*other);
     AniPath* newAniPath = new AniPath(path);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPath))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(newAniPath))) {
         ROSEN_LOGE("AniPath::Constructor failed create AniPath");
         delete newAniPath;
         return;
@@ -132,7 +133,7 @@ void AniPath::ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPa
 
 void AniPath::Reset(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -144,7 +145,7 @@ void AniPath::Reset(ani_env* env, ani_object obj)
 void AniPath::ArcTo(ani_env* env, ani_object obj, ani_double x1, ani_double y1, ani_double x2, ani_double y2,
     ani_double startDeg, ani_double sweepDeg)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -156,7 +157,7 @@ void AniPath::ArcTo(ani_env* env, ani_object obj, ani_double x1, ani_double y1, 
 
 ani_boolean AniPath::IsRect(ani_env* env, ani_object obj, ani_object aniRectObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return false;
@@ -180,12 +181,12 @@ ani_boolean AniPath::IsRect(ani_env* env, ani_object obj, ani_object aniRectObj)
 ani_boolean AniPath::GetSegment(ani_env* env, ani_object obj, ani_boolean forceClosed, ani_double start,
     ani_double stop, ani_boolean startWithMoveTo, ani_object aniPathObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return false;
     }
-    auto dst = GetNativeFromObj<AniPath>(env, aniPathObj);
+    auto dst = GetNativeFromObj<AniPath>(env, aniPathObj, AniGlobalField::GetInstance().pathNativeObj);
     if (dst == nullptr || dst->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param dst.");
         return false;
@@ -196,14 +197,16 @@ ani_boolean AniPath::GetSegment(ani_env* env, ani_object obj, ani_boolean forceC
 
 ani_object AniPath::GetPathIterator(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return CreateAniUndefined(env);
     }
     AniPathIterator* aniPathItertor = new AniPathIterator(*aniPath->GetPath());
-    ani_object aniObj = CreateAniObject(env, "@ohos.graphics.drawing.drawing.PathIterator", nullptr, obj);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPathItertor))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().pathIterator,
+        AniGlobalMethod::GetInstance().pathIteratorCtor, obj);
+    if (ANI_OK != env->Object_SetField_Long(
+        aniObj, AniGlobalField::GetInstance().pathIteratorNativeObj, reinterpret_cast<ani_long>(aniPathItertor))) {
         ROSEN_LOGE("AniPath::GetPathIterator failed create PathIntertor.");
         delete aniPathItertor;
         return CreateAniUndefined(env);
@@ -213,7 +216,7 @@ ani_object AniPath::GetPathIterator(ani_env* env, ani_object obj)
 
 void AniPath::RLineTo(ani_env* env, ani_object obj, ani_double dx, ani_double dy)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -223,13 +226,14 @@ void AniPath::RLineTo(ani_env* env, ani_object obj, ani_double dx, ani_double dy
 
 void AniPath::AddRoundRect(ani_env* env, ani_object obj, ani_object aniRoundRectObj, ani_object aniPathDirectionObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
 
-    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, aniRoundRectObj);
+    auto aniRoundRect = GetNativeFromObj<AniRoundRect>(env, aniRoundRectObj,
+        AniGlobalField::GetInstance().roundRectNativeObj);
     if (aniRoundRect == nullptr || aniRoundRect->GetRoundRect() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param roundRect.");
         return;
@@ -251,7 +255,7 @@ void AniPath::AddRoundRect(ani_env* env, ani_object obj, ani_object aniRoundRect
 
 void AniPath::RQuadTo(ani_env* env, ani_object obj, ani_double dx1, ani_double dy1, ani_double dx2, ani_double dy2)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -261,12 +265,12 @@ void AniPath::RQuadTo(ani_env* env, ani_object obj, ani_double dx1, ani_double d
 
 void AniPath::Transform(ani_env* env, ani_object obj, ani_object aniMatrix)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
     }
-    auto matrix = GetNativeFromObj<AniMatrix>(env, aniMatrix);
+    auto matrix = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
     if (matrix == nullptr || matrix->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param matrix.");
         return;
@@ -276,14 +280,15 @@ void AniPath::Transform(ani_env* env, ani_object obj, ani_object aniMatrix)
 
 ani_object AniPath::Offset(ani_env* env, ani_object obj, ani_double dx, ani_double dy)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return CreateAniUndefined(env);
     }
     std::shared_ptr<Path> path = std::make_shared<Path>();
     aniPath->GetPath()->Offset(path.get(), dx, dy);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_PATH_NAME, ":");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
+        AniGlobalMethod::GetInstance().pathCtor);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -291,7 +296,8 @@ ani_object AniPath::Offset(ani_env* env, ani_object obj, ani_double dx, ani_doub
         return aniObj;
     }
     AniPath* newAniPath = new AniPath(path);
-    ani_status ret = env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPath));
+    ani_status ret = env->Object_SetField_Long(
+        aniObj, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(newAniPath));
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniPath::Offset create new path failed %{public}d", ret);
         delete newAniPath;
@@ -303,7 +309,7 @@ ani_object AniPath::Offset(ani_env* env, ani_object obj, ani_double dx, ani_doub
 
 void AniPath::AddArc(ani_env* env, ani_object obj, ani_object aniRectObj, ani_double startAngle, ani_double endAngle)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -318,7 +324,7 @@ void AniPath::AddArc(ani_env* env, ani_object obj, ani_object aniRectObj, ani_do
 
 void AniPath::RMoveTo(ani_env* env, ani_object obj, ani_double dx, ani_double dy)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return;
@@ -329,33 +335,31 @@ void AniPath::RMoveTo(ani_env* env, ani_object obj, ani_double dx, ani_double dy
 ani_boolean AniPath::GetPositionAndTangent(ani_env* env, ani_object obj, ani_boolean forceClosed,
     ani_double distance, ani_object aniPosition, ani_object aniTangent)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return false;
     }
     Drawing::Point position;
-    if (!GetPointFromAniPointObj(env, aniPosition, position)) {
+    if (GetPointFromPointObj(env, aniPosition, position) != ANI_OK) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param position.");
         return false;
     }
 
     Drawing::Point tangent;
-    if (!GetPointFromAniPointObj(env, aniTangent, tangent)) {
+    if (GetPointFromPointObj(env, aniTangent, tangent) != ANI_OK) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param tangent.");
         return false;
     }
     bool result = aniPath->GetPath()->GetPositionAndTangent(distance, position, tangent, forceClosed);
-    env->Object_SetPropertyByName_Double(aniPosition, "x", position.GetX());
-    env->Object_SetPropertyByName_Double(aniPosition, "y", position.GetY());
-    env->Object_SetPropertyByName_Double(aniTangent, "x", tangent.GetX());
-    env->Object_SetPropertyByName_Double(aniTangent, "y", tangent.GetY());
+    DrawingPointConvertToAniPoint(env, aniPosition, position);
+    DrawingPointConvertToAniPoint(env, aniTangent, tangent);
     return static_cast<ani_boolean>(result);
 }
 
 ani_double AniPath::GetLength(ani_env* env, ani_object obj, ani_boolean forceClosed)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return 0.0;
@@ -365,13 +369,13 @@ ani_double AniPath::GetLength(ani_env* env, ani_object obj, ani_boolean forceClo
 
 ani_boolean AniPath::Op(ani_env* env, ani_object obj, ani_object aniPathObj, ani_enum_item aniPathOpEnum)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return false;
     }
 
-    auto aniNewPath = GetNativeFromObj<AniPath>(env, aniPathObj);
+    auto aniNewPath = GetNativeFromObj<AniPath>(env, aniPathObj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniNewPath == nullptr  || aniNewPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param path.");
         return false;
@@ -387,16 +391,16 @@ ani_boolean AniPath::Op(ani_env* env, ani_object obj, ani_object aniPathObj, ani
 }
 
 
-void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_object aniPointArray, ani_boolean aniClose)
+void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_array aniPointArray, ani_boolean aniClose)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
     }
     std::vector<Drawing::Point> points;
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(aniPointArray, "length", &aniLength)) {
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(aniPointArray, &aniLength)) {
         ROSEN_LOGE("AniPath::AddPolygon aniPointsObj are invalid");
         return;
     }
@@ -409,14 +413,13 @@ void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_object aniPointArray,
     for (uint32_t i = 0; i < pointSize; i++) {
         ani_ref pointRef;
         Drawing::Point point;
-        ani_status ret = env->Object_CallMethodByName_Ref(
-            aniPointArray, "$_get", "i:Y", &pointRef, static_cast<ani_int>(i));
+        ani_status ret = env->Array_Get(aniPointArray, static_cast<ani_int>(i), &pointRef);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPath::AddPolygon get point from array failed: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param points.");
             return;
         }
-        if (!GetPointFromAniPointObj(env, static_cast<ani_object>(pointRef), point)) {
+        if (GetPointFromPointObj(env, static_cast<ani_object>(pointRef), point) != ANI_OK) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param points.");
             return;
         }
@@ -428,7 +431,7 @@ void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_object aniPointArray,
 void AniPath::ConicTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double ctrlY, ani_double endX,
     ani_double endY, ani_double weight)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -439,7 +442,7 @@ void AniPath::ConicTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double
 void AniPath::AddCircle(
     ani_env* env, ani_object obj, ani_double x, ani_double y, ani_double radius, ani_object aniPathDirectionObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -463,7 +466,7 @@ void AniPath::AddCircle(
 void AniPath::RCubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_double ctrlY1,
     ani_double ctrlX2, ani_double ctrlY2, ani_double endX, ani_double endY)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -474,7 +477,7 @@ void AniPath::RCubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_doub
 void AniPath::RConicTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double ctrlY, ani_double endX,
     ani_double endY, ani_double weight)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -484,7 +487,7 @@ void AniPath::RConicTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_doubl
 
 void AniPath::SetFillType(ani_env* env, ani_object obj, ani_enum_item aniPathFillType)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -501,7 +504,7 @@ void AniPath::SetFillType(ani_env* env, ani_object obj, ani_enum_item aniPathFil
 
 void AniPath::AddRect(ani_env* env, ani_object obj, ani_object aniRectObj, ani_object aniPathDirectionObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -531,12 +534,12 @@ void AniPath::AddRect(ani_env* env, ani_object obj, ani_object aniRectObj, ani_o
 ani_boolean AniPath::GetMatrix(ani_env* env, ani_object obj, ani_boolean aniForceClosed, ani_double distance,
     ani_object aniMatrixObj, ani_enum_item aniPathMeasureMatrixFlags)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return false;
     }
-    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj);
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param matrix.");
         return false;
@@ -552,7 +555,8 @@ ani_boolean AniPath::GetMatrix(ani_env* env, ani_object obj, ani_boolean aniForc
     std::shared_ptr<Matrix> matrix = aniMatrix->GetMatrix();
     auto result = aniPath->GetPath()->GetMatrix(
         aniForceClosed, distance, matrix.get(), static_cast<PathMeasureMatrixFlags>(pathMeasureMatrixFlags));
-    ret = env->Object_SetFieldByName_Long(aniMatrixObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniMatrix));
+    ret = env->Object_SetField_Long(
+        aniMatrixObj, AniGlobalField::GetInstance().matrixNativeObj, reinterpret_cast<ani_long>(aniMatrix));
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniPath::GetMatrix failed create AniMatrix ret: %{public}d", ret);
         return false;
@@ -562,7 +566,7 @@ ani_boolean AniPath::GetMatrix(ani_env* env, ani_object obj, ani_boolean aniForc
 
 ani_object AniPath::GetBounds(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return CreateAniUndefined(env);
@@ -580,7 +584,7 @@ ani_object AniPath::GetBounds(ani_env* env, ani_object obj)
 void AniPath::AddOval(
     ani_env* env, ani_object obj, ani_object aniRectObj, ani_int aniStart, ani_object aniPathDirectionObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -614,7 +618,7 @@ void AniPath::AddOval(
 
 ani_boolean AniPath::Contains(ani_env* env, ani_object obj, ani_double x, ani_double y)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return false;
@@ -624,12 +628,12 @@ ani_boolean AniPath::Contains(ani_env* env, ani_object obj, ani_double x, ani_do
 
 void AniPath::AddPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_object aniMatrixObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
     }
-    auto aniNewPath = GetNativeFromObj<AniPath>(env, aniPathObj);
+    auto aniNewPath = GetNativeFromObj<AniPath>(env, aniPathObj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniNewPath == nullptr  || aniNewPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param path.");
         return;
@@ -643,7 +647,7 @@ void AniPath::AddPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_o
         aniPath->GetPath()->AddPath(*aniNewPath->GetPath(), Drawing::Matrix());
         return;
     }
-    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj);
+    auto aniMatrix = GetNativeFromObj<AniMatrix>(env, aniMatrixObj, AniGlobalField::GetInstance().matrixNativeObj);
     if (aniMatrix == nullptr || aniMatrix->GetMatrix() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param matrix.");
         return;
@@ -653,7 +657,7 @@ void AniPath::AddPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_o
 
 ani_boolean AniPath::IsClosed(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return false;
@@ -663,7 +667,7 @@ ani_boolean AniPath::IsClosed(ani_env* env, ani_object obj)
 
 ani_boolean AniPath::BuildFromSVGString(ani_env* env, ani_object obj, ani_string aniStringObj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return false;
@@ -675,7 +679,7 @@ ani_boolean AniPath::BuildFromSVGString(ani_env* env, ani_object obj, ani_string
 void AniPath::CubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_double ctrlY1, ani_double ctrlX2,
     ani_double ctrlY2, ani_double endX, ani_double endY)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -686,7 +690,7 @@ void AniPath::CubicTo(ani_env* env, ani_object obj, ani_double ctrlX1, ani_doubl
 void AniPath::QuadTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double ctrlY, ani_double ctrlX2,
     ani_double ctrlY2)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -696,7 +700,7 @@ void AniPath::QuadTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double 
 
 void AniPath::LineTo(ani_env* env, ani_object obj, ani_double x, ani_double y)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -706,7 +710,7 @@ void AniPath::LineTo(ani_env* env, ani_object obj, ani_double x, ani_double y)
 
 void AniPath::MoveTo(ani_env* env, ani_object obj, ani_double x, ani_double y)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -716,7 +720,7 @@ void AniPath::MoveTo(ani_env* env, ani_object obj, ani_double x, ani_double y)
 
 void AniPath::Close(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr  || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -726,7 +730,7 @@ void AniPath::Close(ani_env* env, ani_object obj)
 
 ani_boolean AniPath::IsInverseFillType(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return false;
@@ -736,7 +740,7 @@ ani_boolean AniPath::IsInverseFillType(ani_env* env, ani_object obj)
 
 void AniPath::ToggleInverseFillType(ani_env* env, ani_object obj)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, obj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, obj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
@@ -764,7 +768,8 @@ ani_object AniPath::PathTransferStatic(
     }
 
     auto aniPath = new AniPath(jsPath->GetPathPtr());
-    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPath))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        output, AniGlobalField::GetInstance().pathNativeObj, reinterpret_cast<ani_long>(aniPath))) {
         ROSEN_LOGE("AniPath::PathTransferStatic failed create aniPath");
         delete aniPath;
         return CreateAniUndefined(env);
@@ -774,7 +779,7 @@ ani_object AniPath::PathTransferStatic(
 
 ani_long AniPath::GetPathAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, input);
+    auto aniPath = GetNativeFromObj<AniPath>(env, input, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr || aniPath->GetPath() == nullptr) {
         ROSEN_LOGE("AniPath::GetPathAddr aniPath is null");
         return 0;

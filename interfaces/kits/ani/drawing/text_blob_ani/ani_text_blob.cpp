@@ -18,15 +18,12 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TEXT_BLOB_NAME = "@ohos.graphics.drawing.drawing.TextBlob";
-const char* ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME = "@ohos.graphics.drawing.drawing.TextBlobRunBuffer";
 static constexpr size_t CHAR16_SIZE = 2;
 
 ani_status AniTextBlob::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_TEXT_BLOB_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().textBlob;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_TEXT_BLOB_NAME);
         return ANI_NOT_FOUND;
     }
@@ -37,7 +34,7 @@ ani_status AniTextBlob::AniInit(ani_env *env)
         ani_native_function { "uniqueID", ":l", reinterpret_cast<void*>(UniqueID) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_TEXT_BLOB_NAME);
         return ANI_NOT_FOUND;
@@ -65,7 +62,7 @@ ani_status AniTextBlob::AniInit(ani_env *env)
 
 ani_object AniTextBlob::Bounds(ani_env* env, ani_object obj, ani_object aniRectObj)
 {
-    auto aniTextBlob = GetNativeFromObj<AniTextBlob>(env, obj);
+    auto aniTextBlob = GetNativeFromObj<AniTextBlob>(env, obj, AniGlobalField::GetInstance().textBlobNativeObj);
     if (aniTextBlob == nullptr || aniTextBlob->GetTextBlob() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniTextBlob::Bounds textBlob is nullptr.");
         return CreateAniUndefined(env);
@@ -86,7 +83,7 @@ ani_object AniTextBlob::Bounds(ani_env* env, ani_object obj, ani_object aniRectO
 
 ani_long AniTextBlob::UniqueID(ani_env* env, ani_object obj)
 {
-    auto aniTextBlob = GetNativeFromObj<AniTextBlob>(env, obj);
+    auto aniTextBlob = GetNativeFromObj<AniTextBlob>(env, obj, AniGlobalField::GetInstance().textBlobNativeObj);
     if (aniTextBlob == nullptr || aniTextBlob->GetTextBlob() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniTextBlob::UniqueID textBlob is nullptr.");
         return -1;
@@ -105,11 +102,11 @@ std::shared_ptr<Font> AniTextBlob::GetValidFont(const std::shared_ptr<Font>& fon
 }
 
 ani_object AniTextBlob::MakeFromPosText(ani_env* env, ani_object obj, ani_string aniText, ani_int len,
-    ani_object pointArray, ani_object aniFontObj)
+    ani_array pointArray, ani_object aniFontObj)
 {
     std::string textStr = CreateStdString(env, aniText);
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(pointArray, "length", &aniLength)) {
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(pointArray, &aniLength)) {
         ROSEN_LOGE("AniTextBlob::MakeFromPosText points is invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect Argv[2].");
         return CreateAniUndefined(env);
@@ -118,13 +115,13 @@ ani_object AniTextBlob::MakeFromPosText(ani_env* env, ani_object obj, ani_string
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Argv[0] is empty.");
         return CreateAniUndefined(env);
     }
-    if (len != aniLength) {
+    if (len != (ani_int)aniLength) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "string length does not match points array length.");
         return CreateAniUndefined(env);
     }
 
-    auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect Argv[3] type.");
         return CreateAniUndefined(env);
@@ -138,7 +135,7 @@ ani_object AniTextBlob::MakeFromPosText(ani_env* env, ani_object obj, ani_string
 
     uint32_t pointsSize = static_cast<uint32_t>(aniLength);
     std::unique_ptr<Point[]> points = std::make_unique<Point[]>(pointsSize);
-    if (!MakePoints(env, points.get(), pointsSize, static_cast<ani_array>(pointArray))) {
+    if (!MakePoints(env, points.get(), pointsSize, pointArray)) {
         ROSEN_LOGE("AniTextBlob::MakeFromPosText: Argv[2] is invalid");
         return CreateAniUndefined(env);
     }
@@ -165,7 +162,7 @@ bool AniTextBlob::MakePoints(ani_env* env, Point* points, uint32_t size, ani_arr
 ani_object AniTextBlob::MakeFromString(ani_env* env, ani_object obj, ani_string aniText, ani_object aniFontObj,
     ani_enum_item aniEncoding)
 {
-    auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr || aniFont->GetFont() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniTextBlob::MakeFromString font is nullptr.");
         return CreateAniUndefined(env);
@@ -193,11 +190,11 @@ ani_object AniTextBlob::MakeFromString(ani_env* env, ani_object obj, ani_string 
     return CreateTextBlobObj(env, textBlob);
 }
 
-ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_object posArray, ani_object aniFontObj,
+ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_array posArray, ani_object aniFontObj,
     ani_object aniRectObj)
 {
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(posArray, "length", &aniLength)) {
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(posArray, &aniLength)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter0 type.");
         return CreateAniUndefined(env);
     }
@@ -206,7 +203,7 @@ ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_obje
         return CreateAniUndefined(env);
     }
     uint32_t size = static_cast<uint32_t>(aniLength);
-    auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj);
+    auto aniFont = GetNativeFromObj<AniFont>(env, aniFontObj, AniGlobalField::GetInstance().fontNativeObj);
     if (aniFont == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter1 type.");
         return CreateAniUndefined(env);
@@ -261,7 +258,8 @@ ani_object AniTextBlob::GetTextBlobObj(ani_env* env, const char* buffer, size_t 
 ani_object AniTextBlob::CreateTextBlobObj(ani_env* env, const std::shared_ptr<TextBlob> textBlob)
 {
     AniTextBlob* aniTextBlob = new AniTextBlob(textBlob);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_TEXT_BLOB_NAME, aniTextBlob);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().textBlob,
+        AniGlobalMethod::GetInstance().textBlobCtor, AniGlobalMethod::GetInstance().textBlobBindNative, aniTextBlob);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -271,23 +269,22 @@ ani_object AniTextBlob::CreateTextBlobObj(ani_env* env, const std::shared_ptr<Te
     return aniObj;
 }
 
-bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, ani_object posArray)
+bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, ani_array posArray)
 {
     if (size > MAX_ELEMENTSIZE) {
         ROSEN_LOGE("AniTextBlob::MakeRunBuffer failed. size exceeds the upper limit.");
         return false;
     }
-    ani_class runBufferClass;
-    if (ANI_OK != env->FindClass(ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME, &runBufferClass)) {
+    ani_class runBufferClass = AniGlobalClass::GetInstance().runBufferInterface;
+    if (runBufferClass == nullptr) {
         ROSEN_LOGE("AniTextBlob::MakeRunBuffer failed. Can't find class %{public}s.",
-            ANI_CLASS_TEXT_BLOB_RUN_BUFFER_NAME);
+            ANI_INTERFACE_TEXT_BLOB_RUN_BUFFER_NAME);
         return false;
     }
     for (uint32_t i = 0; i < size; i++) {
         Drawing::Point point;
         ani_ref runBufferRef;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(
-            posArray, "$_get", "i:Y", &runBufferRef, (ani_int)i)) {
+        if (ANI_OK != env->Array_Get(posArray, (ani_int)i, &runBufferRef)) {
             ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_CallMethodByName_Ref failed");
             return false;
         }
@@ -298,13 +295,20 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
             return false;
         }
 
+        ani_method runBufferGetGlyph = AniGlobalMethod::GetInstance().runBufferGetGlyph;
+        ani_method runBufferGetPositionX = AniGlobalMethod::GetInstance().runBufferGetPositionX;
+        ani_method runBufferGetPositionY = AniGlobalMethod::GetInstance().runBufferGetPositionY;
+        if (runBufferGetGlyph == nullptr || runBufferGetPositionX == nullptr || runBufferGetPositionY == nullptr) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer failed by cls method is null");
+            return false;
+        }
         ani_int glyph;
         ani_double positionX;
         ani_double positionY;
-        if ((env->Object_GetPropertyByName_Int(aniRunBuffer, "glyph", &glyph) != ANI_OK) ||
-            (env->Object_GetPropertyByName_Double(aniRunBuffer, "positionX", &positionX) != ANI_OK) ||
-            (env->Object_GetPropertyByName_Double(aniRunBuffer, "positionY", &positionY) != ANI_OK)) {
-            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_GetPropertyByName failed");
+        if ((env->Object_CallMethod_Int(aniRunBuffer, runBufferGetGlyph, &glyph) != ANI_OK) ||
+            (env->Object_CallMethod_Double(aniRunBuffer, runBufferGetPositionX, &positionX) != ANI_OK) ||
+            (env->Object_CallMethod_Double(aniRunBuffer, runBufferGetPositionY, &positionY) != ANI_OK)) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_CallMethod failed");
             return false;
         }
         

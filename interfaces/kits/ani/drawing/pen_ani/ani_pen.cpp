@@ -28,9 +28,6 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_PEN_NAME = "@ohos.graphics.drawing.drawing.Pen";
-const char* ANI_CLASS_JOIN_STYLE_NAME = "@ohos.graphics.drawing.drawing.JoinStyle";
-const char* ANI_CLASS_CAP_STYLE_NAME = "@ohos.graphics.drawing.drawing.CapStyle";
 
 static const std::array g_methods = {
     ani_native_function { "constructorNative", ":", reinterpret_cast<void*>(AniPen::Constructor) },
@@ -74,13 +71,12 @@ static const std::array g_methods = {
 
 ani_status AniPen::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_PEN_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().pen;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_PEN_NAME);
         return ANI_NOT_FOUND;
     }
-    ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, g_methods.data(), g_methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_PEN_NAME);
         return ANI_NOT_FOUND;
@@ -104,7 +100,8 @@ void AniPen::Constructor(ani_env* env, ani_object obj)
 {
     std::shared_ptr<Pen> pen = std::make_shared<Pen>();
     AniPen* aniPen = new AniPen(pen);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().penNativeObj, reinterpret_cast<ani_long>(aniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
         delete aniPen;
         return;
@@ -113,7 +110,7 @@ void AniPen::Constructor(ani_env* env, ani_object obj)
 
 void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, aniPenObj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, aniPenObj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return;
@@ -121,7 +118,8 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
     std::shared_ptr<Pen> other = aniPen->GetPen();
     std::shared_ptr<Pen> pen = other == nullptr ? std::make_shared<Pen>() : std::make_shared<Pen>(*other);
     AniPen* newAniPen = new AniPen(pen);
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(newAniPen))) {
+    if (ANI_OK != env->Object_SetField_Long(
+    obj, AniGlobalField::GetInstance().penNativeObj, reinterpret_cast<ani_long>(newAniPen))) {
         ROSEN_LOGE("AniPen::Constructor failed create aniPen");
         delete newAniPen;
         return;
@@ -130,7 +128,7 @@ void AniPen::ConstructorWithPen(ani_env* env, ani_object obj, ani_object aniPenO
 
 ani_int AniPen::GetAlpha(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return -1;
@@ -141,7 +139,7 @@ ani_int AniPen::GetAlpha(ani_env* env, ani_object obj)
 
 void AniPen::Reset(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return;
@@ -152,7 +150,7 @@ void AniPen::Reset(ani_env* env, ani_object obj)
 
 void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return;
@@ -168,7 +166,7 @@ void AniPen::SetAlpha(ani_env* env, ani_object obj, ani_int alpha)
 
 void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMode)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return;
@@ -185,7 +183,7 @@ void AniPen::SetBlendMode(ani_env* env, ani_object obj, ani_enum_item aniBlendMo
 
 void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFilter)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return;
@@ -195,7 +193,8 @@ void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFil
     env->Reference_IsNull(objColorFilter, &isNull);
     AniColorFilter* aniColorFilter = nullptr;
     if (!isNull) {
-        aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter);
+        aniColorFilter = GetNativeFromObj<AniColorFilter>(env, objColorFilter,
+            AniGlobalField::GetInstance().colorFilterNativeObj);
         if (aniColorFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param colorFilter.");
             return;
@@ -209,7 +208,7 @@ void AniPen::SetColorFilter(ani_env* env, ani_object obj, ani_object objColorFil
 
 ani_object AniPen::GetColorFilter(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetColorFilter aniPen is nullptr.");
         return CreateAniUndefined(env);
@@ -218,10 +217,11 @@ ani_object AniPen::GetColorFilter(ani_env* env, ani_object obj)
         return CreateAniUndefined(env);
     }
     AniColorFilter* aniColorFilter = new AniColorFilter(aniPen->GetPen()->GetFilter().GetColorFilter());
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_COLORFILTER_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniColorFilter))) {
-        ROSEN_LOGE(" AniPen::GetColorFilter failed cause by Object_SetFieldByName_Long");
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniObj,
+        AniGlobalField::GetInstance().colorFilterNativeObj, reinterpret_cast<ani_long>(aniColorFilter))) {
+        ROSEN_LOGE(" AniPen::GetColorFilter failed cause by Object_SetField_Long");
         delete aniColorFilter;
         return CreateAniUndefined(env);
     }
@@ -230,7 +230,7 @@ ani_object AniPen::GetColorFilter(ani_env* env, ani_object obj)
 
 ani_int AniPen::GetHexColor(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetHexColor aniPen is nullptr.");
         return -1;
@@ -240,7 +240,7 @@ ani_int AniPen::GetHexColor(ani_env* env, ani_object obj)
 
 void AniPen::SetColor(ani_env* env, ani_object obj, ani_int color)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetColor aniPen is nullptr.");
         return;
@@ -253,7 +253,7 @@ void AniPen::SetColor(ani_env* env, ani_object obj, ani_int color)
 
 void AniPen::SetColorWithColor(ani_env* env, ani_object obj,  ani_object colorObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetColor aniPen is nullptr.");
         return;
@@ -273,7 +273,7 @@ void AniPen::SetColorWithColor(ani_env* env, ani_object obj,  ani_object colorOb
 void AniPen::SetColorWithNumber(ani_env* env, ani_object obj, ani_int alpha,
     ani_int red, ani_int green, ani_int blue)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetColor aniPen is nullptr.");
         return;
@@ -304,7 +304,7 @@ void AniPen::SetColorWithNumber(ani_env* env, ani_object obj, ani_int alpha,
 
 void AniPen::SetDither(ani_env* env, ani_object obj, ani_boolean dither)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetDither aniPen is nullptr.");
         return;
@@ -313,7 +313,7 @@ void AniPen::SetDither(ani_env* env, ani_object obj, ani_boolean dither)
 
 void AniPen::SetAntiAlias(ani_env* env, ani_object obj, ani_boolean antiAlias)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetAntiAlias aniPen is nullptr.");
         return;
@@ -323,7 +323,7 @@ void AniPen::SetAntiAlias(ani_env* env, ani_object obj, ani_boolean antiAlias)
 
 void AniPen::SetStrokeWidth(ani_env* env, ani_object obj, ani_double width)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetStrokeWidth aniPen is nullptr.");
         return;
@@ -371,7 +371,7 @@ static Pen::CapStyle TsCapCastToCap(int32_t tsCap)
 
 void AniPen::SetCapStyle(ani_env* env, ani_object obj, ani_enum_item aniCapstyle)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetCapStyle aniPen is nullptr.");
         return;
@@ -386,12 +386,12 @@ void AniPen::SetCapStyle(ani_env* env, ani_object obj, ani_enum_item aniCapstyle
 
 ani_boolean AniPen::GetFillPath(ani_env* env, ani_object obj, ani_object src, ani_object dst)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetFillPath aniPen is nullptr.");
         return false;
     }
-    auto aniSrcPath = GetNativeFromObj<AniPath>(env, src);
+    auto aniSrcPath = GetNativeFromObj<AniPath>(env, src, AniGlobalField::GetInstance().pathNativeObj);
     if (aniSrcPath == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetFillPath aniSrcPath is nullptr.");
         return false;
@@ -400,7 +400,7 @@ ani_boolean AniPen::GetFillPath(ani_env* env, ani_object obj, ani_object src, an
         ROSEN_LOGE("AniPen::GetFillPath src path is nullptr");
         return false;
     }
-    auto aniDstPath = GetNativeFromObj<AniPath>(env, dst);
+    auto aniDstPath = GetNativeFromObj<AniPath>(env, dst, AniGlobalField::GetInstance().pathNativeObj);
     if (aniDstPath == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetFillPath aniDstPath is nullptr.");
         return false;
@@ -414,7 +414,7 @@ ani_boolean AniPen::GetFillPath(ani_env* env, ani_object obj, ani_object src, an
 
 void AniPen::SetMiterLimit(ani_env* env, ani_object obj, ani_double miter)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetMiterLimit aniPen is nullptr.");
         return;
@@ -425,21 +425,16 @@ void AniPen::SetMiterLimit(ani_env* env, ani_object obj, ani_double miter)
 ani_enum_item AniPen::GetCapStyle(ani_env* env, ani_object obj)
 {
     ani_enum_item value = nullptr;
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetMiterLimit aniPen is nullptr.");
         return value;
     }
-    ani_enum enumType;
-    if (ANI_OK != env->FindEnum(ANI_CLASS_CAP_STYLE_NAME, &enumType)) {
+    Pen::CapStyle capStyle = aniPen->GetPen()->GetCapStyle();
+    if (!CreateAniEnumByEnumIndex(
+        env, AniGlobalEnum::GetInstance().capStyle, static_cast<ani_size>(CapCastToTsCap(capStyle)), value)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "Find enum for CapStyle failed.");
-        return value;
-    }
-    Pen::CapStyle capStyle = aniPen->GetPen()->GetCapStyle();
-    if (ANI_OK != env->Enum_GetEnumItemByIndex(enumType, static_cast<ani_size>(CapCastToTsCap(capStyle)), &value)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Failed to obtain the CapStyle enumeration.");
         return value;
     }
     return value;
@@ -447,7 +442,7 @@ ani_enum_item AniPen::GetCapStyle(ani_env* env, ani_object obj)
 
 ani_boolean AniPen::IsAntiAlias(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::IsAntiAlias aniPen is nullptr.");
         return false;
@@ -457,7 +452,7 @@ ani_boolean AniPen::IsAntiAlias(ani_env* env, ani_object obj)
 
 ani_object AniPen::GetColor(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetColor aniPen is nullptr.");
         return CreateAniUndefined(env);
@@ -470,7 +465,7 @@ ani_object AniPen::GetColor(ani_env* env, ani_object obj)
 
 void AniPen::SetJoinStyle(ani_env* env, ani_object obj, ani_enum_item aniJoinStyle)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetJoinStyle aniPen is nullptr.");
         return;
@@ -487,30 +482,24 @@ void AniPen::SetJoinStyle(ani_env* env, ani_object obj, ani_enum_item aniJoinSty
 ani_enum_item AniPen::GetJoinStyle(ani_env* env, ani_object obj)
 {
     ani_enum_item value = nullptr;
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetJoinStyle aniPen is nullptr.");
         return value;
     }
-    ani_enum enumType;
-    if (ANI_OK != env->FindEnum(ANI_CLASS_JOIN_STYLE_NAME, &enumType)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Find enum for JoinStyle failed.");
-        return value;
-    }
-
     Pen::JoinStyle joinStyle = aniPen->GetPen()->GetJoinStyle();
-    if (ANI_OK != env->Enum_GetEnumItemByIndex(enumType, static_cast<ani_size>(joinStyle), &value)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Failed to obtain the JoinStyle enumeration.");
-        return value;
+    if (!CreateAniEnumByEnumIndex(env,
+            AniGlobalEnum::GetInstance().joinStyle, static_cast<ani_size>(joinStyle), value)) {
+            ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
+                "Find enum for JoinStyle failed.");
+            return value;
     }
     return value;
 }
 
 ani_double AniPen::GetWidth(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetWidth aniPen is nullptr.");
         return -1;
@@ -520,7 +509,7 @@ ani_double AniPen::GetWidth(ani_env* env, ani_object obj)
 
 ani_double AniPen::GetMiterLimit(ani_env* env, ani_object obj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::GetMiterLimit aniPen is nullptr.");
         return -1;
@@ -530,7 +519,7 @@ ani_double AniPen::GetMiterLimit(ani_env* env, ani_object obj)
 
 void AniPen::SetPathEffect(ani_env* env, ani_object obj, ani_object aniPathEffectObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetPathEffect aniPen is nullptr.");
         return;
@@ -539,7 +528,8 @@ void AniPen::SetPathEffect(ani_env* env, ani_object obj, ani_object aniPathEffec
     env->Reference_IsNull(aniPathEffectObj, &isNull);
     AniPathEffect* aniPathEffect = nullptr;
     if (!isNull) {
-        aniPathEffect = GetNativeFromObj<AniPathEffect>(env, aniPathEffectObj);
+        aniPathEffect = GetNativeFromObj<AniPathEffect>(env, aniPathEffectObj,
+            AniGlobalField::GetInstance().pathEffectNativeObj);
         if (aniPathEffect == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param pathEffect.");
             return;
@@ -550,7 +540,7 @@ void AniPen::SetPathEffect(ani_env* env, ani_object obj, ani_object aniPathEffec
 
 void AniPen::SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFilterObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetImageFilter aniPen is nullptr.");
         return;
@@ -559,7 +549,8 @@ void AniPen::SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFil
     env->Reference_IsNull(aniImageFilterObj, &isNull);
     AniImageFilter* aniImageFilter = nullptr;
     if (!isNull) {
-        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj);
+        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj,
+            AniGlobalField::GetInstance().imageFilterNativeObj);
         if (aniImageFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
             return;
@@ -572,7 +563,7 @@ void AniPen::SetImageFilter(ani_env* env, ani_object obj, ani_object aniImageFil
 
 void AniPen::SetMaskFilter(ani_env* env, ani_object obj, ani_object aniMaskFilterObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetMaskFilter aniPen is nullptr.");
         return;
@@ -581,7 +572,8 @@ void AniPen::SetMaskFilter(ani_env* env, ani_object obj, ani_object aniMaskFilte
     env->Reference_IsNull(aniMaskFilterObj, &isNull);
     AniMaskFilter* aniMaskFilter = nullptr;
     if (!isNull) {
-        aniMaskFilter = GetNativeFromObj<AniMaskFilter>(env, aniMaskFilterObj);
+        aniMaskFilter = GetNativeFromObj<AniMaskFilter>(env, aniMaskFilterObj,
+            AniGlobalField::GetInstance().maskFilterNativeObj);
         if (aniMaskFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param maskFilter.");
             return;
@@ -594,7 +586,7 @@ void AniPen::SetMaskFilter(ani_env* env, ani_object obj, ani_object aniMaskFilte
 
 void AniPen::SetShadowLayer(ani_env* env, ani_object obj, ani_object aniShadowLayerObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetShadowLayer aniPen is nullptr.");
         return;
@@ -603,7 +595,8 @@ void AniPen::SetShadowLayer(ani_env* env, ani_object obj, ani_object aniShadowLa
     env->Reference_IsNull(aniShadowLayerObj, &isNull);
     AniShadowLayer* aniShadowLayer = nullptr;
     if (!isNull) {
-        aniShadowLayer = GetNativeFromObj<AniShadowLayer>(env, aniShadowLayerObj);
+        aniShadowLayer = GetNativeFromObj<AniShadowLayer>(env, aniShadowLayerObj,
+            AniGlobalField::GetInstance().shadowLayerNativeObj);
         if (aniShadowLayer == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param shadowLayer.");
             return;
@@ -614,7 +607,7 @@ void AniPen::SetShadowLayer(ani_env* env, ani_object obj, ani_object aniShadowLa
 
 void AniPen::SetShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderEffectObj)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, obj);
+    auto aniPen = GetNativeFromObj<AniPen>(env, obj, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniPen::SetShaderEffect aniPen is nullptr.");
         return;
@@ -623,7 +616,8 @@ void AniPen::SetShaderEffect(ani_env* env, ani_object obj, ani_object aniShaderE
     env->Reference_IsNull(aniShaderEffectObj, &isNull);
     AniShaderEffect* aniShaderEffect = nullptr;
     if (!isNull) {
-        aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, aniShaderEffectObj);
+        aniShaderEffect = GetNativeFromObj<AniShaderEffect>(env, aniShaderEffectObj,
+            AniGlobalField::GetInstance().shaderEffectNativeObj);
         if (aniShaderEffect == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param shaderEffect.");
             return;
@@ -651,7 +645,8 @@ ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object ob
     }
 
     auto aniPen = new AniPen(jsPen->GetPen());
-    if (ANI_OK != env->Object_SetFieldByName_Long(output, NATIVE_OBJ, reinterpret_cast<ani_long>(aniPen))) {
+    if (ANI_OK != env->Object_SetField_Long(
+    output, AniGlobalField::GetInstance().penNativeObj, reinterpret_cast<ani_long>(aniPen))) {
         ROSEN_LOGE("AniPen::PenTransferStatic failed create aniPen");
         delete aniPen;
         return CreateAniUndefined(env);
@@ -661,7 +656,7 @@ ani_object AniPen::PenTransferStatic(ani_env* env, [[maybe_unused]]ani_object ob
 
 ani_long AniPen::GetPenAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniPen = GetNativeFromObj<AniPen>(env, input);
+    auto aniPen = GetNativeFromObj<AniPen>(env, input, AniGlobalField::GetInstance().penNativeObj);
     if (aniPen == nullptr || aniPen->GetPen() == nullptr) {
         ROSEN_LOGE("AniPen::GetPenAddr aniPen is null");
         return 0;

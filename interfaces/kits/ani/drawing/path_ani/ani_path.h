@@ -48,7 +48,7 @@ public:
         ani_double distance, ani_object aniPosition, ani_object aniTangent);
     static ani_double GetLength(ani_env* env, ani_object obj, ani_boolean forceClosed);
     static ani_boolean Op(ani_env* env, ani_object obj, ani_object aniPathObj, ani_enum_item aniPathOpEnum);
-    static void AddPolygon(ani_env* env, ani_object obj, ani_object aniPointArray, ani_boolean aniClose);
+    static void AddPolygon(ani_env* env, ani_object obj, ani_array aniPointArray, ani_boolean aniClose);
     static void ConicTo(ani_env* env, ani_object obj, ani_double ctrlX, ani_double ctrlY, ani_double endX,
         ani_double endY, ani_double weight);
     static void AddCircle(ani_env* env, ani_object obj,

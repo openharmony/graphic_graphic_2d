@@ -17,13 +17,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_SHADOW_LAYER_NAME = "@ohos.graphics.drawing.drawing.ShadowLayer";
 
 ani_status AniShadowLayer::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_SHADOW_LAYER_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().shadowLayer;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_SHADOW_LAYER_NAME);
         return ANI_NOT_FOUND;
     }
@@ -35,7 +33,7 @@ ani_status AniShadowLayer::AniInit(ani_env *env)
             "C{@ohos.graphics.drawing.drawing.ShadowLayer}", reinterpret_cast<void*>(Create) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_SHADOW_LAYER_NAME);
         return ANI_NOT_FOUND;
@@ -92,7 +90,9 @@ ani_object AniShadowLayer::CreateLooper(ani_env* env, const std::shared_ptr<Blur
         return CreateAniUndefined(env);
     }
     AniShadowLayer* aniShadowLayer = new AniShadowLayer(blurDrawLooper);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_SHADOW_LAYER_NAME, aniShadowLayer);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().shadowLayer,
+        AniGlobalMethod::GetInstance().shadowLayerCtor, AniGlobalMethod::GetInstance().shadowLayerBindNative,
+        aniShadowLayer);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {

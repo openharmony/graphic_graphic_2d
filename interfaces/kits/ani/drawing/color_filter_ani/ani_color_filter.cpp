@@ -26,9 +26,8 @@ namespace Drawing {
 
 ani_status AniColorFilter::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_COLORFILTER_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().colorFilter;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_COLORFILTER_NAME);
         return ANI_NOT_FOUND;
     }
@@ -51,7 +50,7 @@ ani_status AniColorFilter::AniInit(ani_env *env)
         ani_native_function { "createSRGBGammaToLinear", nullptr, reinterpret_cast<void*>(CreateSRGBGammaToLinear) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_COLORFILTER_NAME, ret);
         return ANI_NOT_FOUND;
@@ -83,7 +82,9 @@ ani_object AniColorFilter::CreateBlendModeColorFilter(
 
     AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(blendMode)));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -112,7 +113,9 @@ ani_object AniColorFilter::CreateBlendModeColorFilterWithNumber(
 
     AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateBlendModeColorFilter(color, static_cast<BlendMode>(blendMode)));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -141,7 +144,9 @@ ani_object AniColorFilter::ColorFilterTransferStatic(ani_env* env, [[maybe_unuse
     }
 
     auto aniColorFilter = new AniColorFilter(jsColorFilter->GetColorFilterPtr());
-    ani_object aniColorFilterObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, aniColorFilter);
+    ani_object aniColorFilterObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        aniColorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniColorFilterObj, &isUndefined);
     if (isUndefined) {
@@ -153,7 +158,8 @@ ani_object AniColorFilter::ColorFilterTransferStatic(ani_env* env, [[maybe_unuse
 
 ani_long AniColorFilter::GetColorFilterAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, input);
+    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, input,
+        AniGlobalField::GetInstance().colorFilterNativeObj);
     if (aniColorFilter == nullptr || aniColorFilter->GetColorFilter() == nullptr) {
         ROSEN_LOGE("AniColorFilter::GetColorFilterAddr aniColorFilter is null");
         return 0;
@@ -183,7 +189,9 @@ ani_object AniColorFilter::CreateLightingColorFilterWithColor(
     }
     AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateLightingColorFilter(multiplyColor, addColor));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -198,7 +206,9 @@ ani_object AniColorFilter::CreateLightingColorFilter(
 {
     AniColorFilter* colorFilter = new AniColorFilter(
         ColorFilter::CreateLightingColorFilter(multiplyColor, addColor));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -209,15 +219,16 @@ ani_object AniColorFilter::CreateLightingColorFilter(
 }
 
 ani_object AniColorFilter::CreateMatrixColorFilter(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object aniMatrixArrayObj)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_array aniMatrixArrayObj)
 {
-    ani_int aniLength;
-    ani_status ret = env->Object_GetPropertyByName_Int(aniMatrixArrayObj, "length", &aniLength);
+    ani_size length;
+    ani_status ret = env->Array_GetLength(aniMatrixArrayObj, &length);
     if (ret != ANI_OK) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param matrix.");
         return CreateAniUndefined(env);
     }
-    uint32_t arraySize = static_cast<uint32_t>(aniLength);
+
+    uint32_t arraySize = static_cast<uint32_t>(length);
     if (arraySize != ColorMatrix::MATRIX_SIZE) {
         ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter aniMatrixArrayObj size is invalid %{public}u.", arraySize);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array size.");
@@ -226,16 +237,15 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
     std::unique_ptr<float[]> matrixArray = std::make_unique<float[]>(arraySize);
     for (uint32_t i = 0; i < arraySize; i++) {
         ani_double value;
-        ani_ref valueRef;
-        ret = env->Object_CallMethodByName_Ref(aniMatrixArrayObj, "$_get", "i:Y", &valueRef,
-            static_cast<ani_int>(i));
+        ani_ref aniRef = nullptr;
+        ret = env->Array_Get(aniMatrixArrayObj, i, &aniRef);
         if (ret != ANI_OK) {
             ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter get matrix array element failed %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array element.");
             return CreateAniUndefined(env);
         }
-
-        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(valueRef), "toDouble", ":d", &value);
+        ret = env->Object_CallMethod_Double(
+            reinterpret_cast<ani_object>(aniRef), AniGlobalMethod::GetInstance().doubleGet, &value);
         if (ret != ANI_OK) {
             ROSEN_LOGD("AniColorFilter::CreateMatrixColorFilter get matrix array element failed %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid matrix array element.");
@@ -246,7 +256,9 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
     Drawing::ColorMatrix matrix;
     matrix.SetArray(matrixArray.get());
     AniColorFilter* colorFilter = new AniColorFilter(ColorFilter::CreateMatrixColorFilter(matrix));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -259,19 +271,23 @@ ani_object AniColorFilter::CreateMatrixColorFilter(
 ani_object AniColorFilter::CreateComposeColorFilter(
     ani_env* env, [[maybe_unused]] ani_object obj, ani_object aniOuterColorFilterObj, ani_object aniInnerColorFilterObj)
 {
-    auto aniOuterColorFilter = GetNativeFromObj<AniColorFilter>(env, aniOuterColorFilterObj);
+    auto aniOuterColorFilter = GetNativeFromObj<AniColorFilter>(env, aniOuterColorFilterObj,
+        AniGlobalField::GetInstance().colorFilterNativeObj);
     if (aniOuterColorFilter == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param outer.");
         return CreateAniUndefined(env);
     }
-    auto aniInnerColorFilter = GetNativeFromObj<AniColorFilter>(env, aniInnerColorFilterObj);
+    auto aniInnerColorFilter = GetNativeFromObj<AniColorFilter>(env, aniInnerColorFilterObj,
+        AniGlobalField::GetInstance().colorFilterNativeObj);
     if (aniInnerColorFilter == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param inner.");
         return CreateAniUndefined(env);
     }
     AniColorFilter* colorFilter = new AniColorFilter(ColorFilter::CreateComposeColorFilter(
         *(aniOuterColorFilter->GetColorFilter()), *(aniInnerColorFilter->GetColorFilter())));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -284,7 +300,9 @@ ani_object AniColorFilter::CreateComposeColorFilter(
 ani_object AniColorFilter::CreateLinearToSRGBGamma(ani_env* env, [[maybe_unused]] ani_object obj)
 {
     AniColorFilter* colorFilter = new AniColorFilter(ColorFilter::CreateLinearToSrgbGamma());
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -297,7 +315,9 @@ ani_object AniColorFilter::CreateLinearToSRGBGamma(ani_env* env, [[maybe_unused]
 ani_object AniColorFilter::CreateLumaColorFilter(ani_env* env, [[maybe_unused]] ani_object obj)
 {
     AniColorFilter* colorFilter = new AniColorFilter(ColorFilter::CreateLumaColorFilter());
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -310,7 +330,9 @@ ani_object AniColorFilter::CreateLumaColorFilter(ani_env* env, [[maybe_unused]] 
 ani_object AniColorFilter::CreateSRGBGammaToLinear(ani_env* env, [[maybe_unused]] ani_object obj)
 {
     AniColorFilter* colorFilter = new AniColorFilter(ColorFilter::CreateSrgbGammaToLinear());
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_COLORFILTER_NAME, colorFilter);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().colorFilter,
+        AniGlobalMethod::GetInstance().colorFilterCtor, AniGlobalMethod::GetInstance().colorFilterBindNative,
+        colorFilter);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {

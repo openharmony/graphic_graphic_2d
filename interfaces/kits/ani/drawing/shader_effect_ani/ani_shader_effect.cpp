@@ -18,13 +18,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_SHADER_EFFECT_NAME = "@ohos.graphics.drawing.drawing.ShaderEffect";
 
 ani_status AniShaderEffect::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_SHADER_EFFECT_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().shaderEffect;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_SHADER_EFFECT_NAME);
         return ANI_NOT_FOUND;
     }
@@ -39,7 +37,7 @@ ani_status AniShaderEffect::AniInit(ani_env *env)
         ani_native_function { "createRadialGradient", nullptr, reinterpret_cast<void*>(CreateRadialGradient) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_SHADER_EFFECT_NAME);
         return ANI_NOT_FOUND;
@@ -48,10 +46,10 @@ ani_status AniShaderEffect::AniInit(ani_env *env)
     return ANI_OK;
 }
 
-bool GetColorsArray(ani_env* env, ani_object corlorsArray, std::vector<ColorQuad>& colors)
+bool GetColorsArray(ani_env* env, ani_array corlorsArray, std::vector<ColorQuad>& colors)
 {
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(corlorsArray, "length", &aniLength)) {
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(corlorsArray, &aniLength)) {
         ROSEN_LOGE("colors are invalid");
         return false;
     }
@@ -60,9 +58,9 @@ bool GetColorsArray(ani_env* env, ani_object corlorsArray, std::vector<ColorQuad
     for (uint32_t i = 0; i < colorsSize; i++) {
         ani_int color;
         ani_ref colorRef;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(corlorsArray,
-            "$_get", "i:Y", &colorRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Int(static_cast<ani_object>(colorRef), "toInt", ":i", &color)) {
+        if (ANI_OK != env->Array_Get(corlorsArray, (ani_int)i, &colorRef) ||
+            ANI_OK != env->Object_CallMethod_Int(
+                static_cast<ani_object>(colorRef), AniGlobalMethod::GetInstance().intGet, &color)) {
             ROSEN_LOGE("get color ref failed.");
             return false;
         }
@@ -71,10 +69,10 @@ bool GetColorsArray(ani_env* env, ani_object corlorsArray, std::vector<ColorQuad
     return true;
 }
 
-bool GetPosArray(ani_env* env, ani_object posArray, std::vector<float>& pos)
+bool GetPosArray(ani_env* env, ani_array posArray, std::vector<float>& pos)
 {
-    ani_int aniLength;
-    if (ANI_OK != env->Object_GetPropertyByName_Int(posArray, "length", &aniLength)) {
+    ani_size aniLength;
+    if (ANI_OK != env->Array_GetLength(posArray, &aniLength)) {
         ROSEN_LOGE("pos are invalid");
         return false;
     }
@@ -83,9 +81,9 @@ bool GetPosArray(ani_env* env, ani_object posArray, std::vector<float>& pos)
     for (uint32_t i = 0; i < size; i++) {
         ani_double value;
         ani_ref posRef;
-        if (ANI_OK != env->Object_CallMethodByName_Ref(
-            posArray, "$_get", "i:Y", &posRef, (ani_int)i) ||
-            ANI_OK != env->Object_CallMethodByName_Double(static_cast<ani_object>(posRef), "toDouble", ":d", &value)) {
+        if (ANI_OK != env->Array_Get(posArray, (ani_int)i, &posRef) ||
+            ANI_OK != env->Object_CallMethod_Double(
+                static_cast<ani_object>(posRef), AniGlobalMethod::GetInstance().doubleGet, &value)) {
             ROSEN_LOGE("get pos ref failed.");
             return false;
         }
@@ -111,7 +109,9 @@ bool GetTileMode(ani_env* env, ani_enum_item aniTileMode, TileMode& mode)
 ani_object AniShaderEffect::CreateAniShaderEffect(ani_env* env, std::shared_ptr<ShaderEffect> shaderEffect)
 {
     AniShaderEffect* aniShaderEffect = new AniShaderEffect(shaderEffect);
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_SHADER_EFFECT_NAME, aniShaderEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().shaderEffect,
+        AniGlobalMethod::GetInstance().shaderEffectCtor, AniGlobalMethod::GetInstance().shaderEffectBindNative,
+        aniShaderEffect);
     ani_boolean isUndefined = ANI_TRUE;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -137,7 +137,7 @@ ani_object AniShaderEffect::CreateColorShader(ani_env* env, ani_object obj, ani_
 }
 
 ani_object AniShaderEffect::CreateLinearGradient(ani_env* env, ani_object obj, ani_object startPt, ani_object endPt,
-    ani_object colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix)
+    ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix)
 {
     Drawing::Point startPoint;
     if (GetPointFromPointObj(env, startPt, startPoint) != ANI_OK) {
@@ -167,7 +167,7 @@ ani_object AniShaderEffect::CreateLinearGradient(ani_env* env, ani_object obj, a
 
     std::vector<scalar> pos;
     if (IsReferenceValid(env, aniPos)) {
-        if (!GetPosArray(env, aniPos, pos)) {
+        if (!GetPosArray(env, reinterpret_cast<ani_array>(aniPos), pos)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateLinearGradient get posArray failed.");
             return CreateAniUndefined(env);
@@ -176,7 +176,7 @@ ani_object AniShaderEffect::CreateLinearGradient(ani_env* env, ani_object obj, a
 
     Drawing::Matrix* drawingMatrixPtr = nullptr;
     if (IsReferenceValid(env, aniMatrix)) {
-        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix);
+        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
         if (aniMatrixObj == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateLinearGradient get matrix failed.");
@@ -190,7 +190,7 @@ ani_object AniShaderEffect::CreateLinearGradient(ani_env* env, ani_object obj, a
 }
 
 ani_object AniShaderEffect::CreateConicalGradient(ani_env* env, ani_object obj, ani_object startPt,
-    ani_double startRadius, ani_object endPt, ani_double endRadius, ani_object colorsArray,
+    ani_double startRadius, ani_object endPt, ani_double endRadius, ani_array colorsArray,
     ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix)
 {
     Drawing::Point startPoint;
@@ -221,7 +221,7 @@ ani_object AniShaderEffect::CreateConicalGradient(ani_env* env, ani_object obj, 
 
     std::vector<scalar> pos;
     if (IsReferenceValid(env, aniPos)) {
-        if (!GetPosArray(env, aniPos, pos)) {
+        if (!GetPosArray(env, reinterpret_cast<ani_array>(aniPos), pos)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateConicalGradient get posArray failed.");
             return CreateAniUndefined(env);
@@ -230,7 +230,7 @@ ani_object AniShaderEffect::CreateConicalGradient(ani_env* env, ani_object obj, 
 
     Drawing::Matrix* drawingMatrixPtr = nullptr;
     if (IsReferenceValid(env, aniMatrix)) {
-        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix);
+        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
         if (aniMatrixObj == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateConicalGradient get matrix failed.");
@@ -244,7 +244,7 @@ ani_object AniShaderEffect::CreateConicalGradient(ani_env* env, ani_object obj, 
 }
 
 ani_object AniShaderEffect::CreateSweepGradient(
-    ani_env* env, ani_object obj, ani_object centerPt, ani_object colorsArray, ani_enum_item aniTileMode,
+    ani_env* env, ani_object obj, ani_object centerPt, ani_array colorsArray, ani_enum_item aniTileMode,
     ani_double startAngle, ani_double endAngle, ani_object aniPos, ani_object aniMatrix)
 {
     Drawing::Point centerPoint;
@@ -270,7 +270,7 @@ ani_object AniShaderEffect::CreateSweepGradient(
 
     std::vector<scalar> pos;
     if (IsReferenceValid(env, aniPos)) {
-        if (!GetPosArray(env, aniPos, pos)) {
+        if (!GetPosArray(env, reinterpret_cast<ani_array>(aniPos), pos)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateSweepGradient get posArray failed.");
             return CreateAniUndefined(env);
@@ -279,7 +279,7 @@ ani_object AniShaderEffect::CreateSweepGradient(
 
     Drawing::Matrix* drawingMatrixPtr = nullptr;
     if (IsReferenceValid(env, aniMatrix)) {
-        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix);
+        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
         if (aniMatrixObj == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateSweepGradient get matrix failed.");
@@ -293,7 +293,7 @@ ani_object AniShaderEffect::CreateSweepGradient(
 }
 
 ani_object AniShaderEffect::CreateRadialGradient(ani_env* env, ani_object obj, ani_object centerPt, ani_double radius,
-    ani_object colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix)
+    ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix)
 {
     Drawing::Point centerPoint;
     if (GetPointFromPointObj(env, centerPt, centerPoint) != ANI_OK) {
@@ -318,7 +318,7 @@ ani_object AniShaderEffect::CreateRadialGradient(ani_env* env, ani_object obj, a
 
     std::vector<scalar> pos;
     if (IsReferenceValid(env, aniPos)) {
-        if (!GetPosArray(env, aniPos, pos)) {
+        if (!GetPosArray(env, reinterpret_cast<ani_array>(aniPos), pos)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateRadialGradient get posArray failed.");
             return CreateAniUndefined(env);
@@ -327,7 +327,7 @@ ani_object AniShaderEffect::CreateRadialGradient(ani_env* env, ani_object obj, a
 
     Drawing::Matrix* drawingMatrixPtr = nullptr;
     if (IsReferenceValid(env, aniMatrix)) {
-        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix);
+        auto aniMatrixObj = GetNativeFromObj<AniMatrix>(env, aniMatrix, AniGlobalField::GetInstance().matrixNativeObj);
         if (aniMatrixObj == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
                 "AniShaderEffect::CreateRadialGradient get matrix failed.");

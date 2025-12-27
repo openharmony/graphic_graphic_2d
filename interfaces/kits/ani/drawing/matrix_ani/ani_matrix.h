@@ -43,16 +43,16 @@ public:
     static void PostScale(ani_env* env, ani_object obj, ani_double sx, ani_double sy, ani_double px, ani_double py);
     static void PostTranslate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
     static ani_object GetAll(ani_env* env, ani_object obj);
-    static void SetMatrix(ani_env* env, ani_object obj, ani_object aniValueArrayObj);
+    static void SetMatrix(ani_env* env, ani_object obj, ani_array aniValueArrayObj);
     static ani_boolean MapRect(ani_env* env, ani_object obj, ani_object aniDstRectObj, ani_object aniSrcRectObj);
     static void PostRotate(ani_env* env, ani_object obj, ani_double degree, ani_double px, ani_double py);
     static ani_boolean Invert(ani_env* env, ani_object obj, ani_object aniMatrixObj);
     static ani_boolean IsEqual(ani_env* env, ani_object obj, ani_object aniMatrixObj);
-    static ani_boolean SetPolyToPoly(ani_env* env, ani_object obj, ani_object aniSrcPointArray,
-        ani_object aniDstPointArray, ani_int count);
+    static ani_boolean SetPolyToPoly(ani_env* env, ani_object obj, ani_array aniSrcPointArray,
+        ani_array aniDstPointArray, ani_int count);
     static void PreConcat(ani_env* env, ani_object obj, ani_object aniMatrixObj);
     static ani_boolean IsIdentity(ani_env* env, ani_object obj);
-    static ani_object MapPoints(ani_env* env, ani_object obj, ani_object aniSrcPointArray);
+    static ani_object MapPoints(ani_env* env, ani_object obj, ani_array aniSrcPointArray);
     static void SetRotation(ani_env* env, ani_object obj, ani_double degree, ani_double px, ani_double py);
     static void PreTranslate(ani_env* env, ani_object obj, ani_double dx, ani_double dy);
     static void SetScale(ani_env* env, ani_object obj, ani_double sx, ani_double sy, ani_double px, ani_double py);

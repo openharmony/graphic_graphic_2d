@@ -17,13 +17,11 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_RECT_UTILS_NAME = "@ohos.graphics.drawing.drawing.RectUtils";
 
 ani_status AniRectUtils::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_RECT_UTILS_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().rectUtils;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_RECT_UTILS_NAME);
         return ANI_NOT_FOUND;
     }
@@ -40,7 +38,7 @@ ani_status AniRectUtils::AniInit(ani_env *env)
         ani_native_function { "offset", nullptr, reinterpret_cast<void*>(Offset) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_RECT_UTILS_NAME);
         return ANI_NOT_FOUND;
@@ -85,10 +83,7 @@ void AniRectUtils::Inset(ani_env* env, ani_object obj, ani_object aniRectObj,
     drawingRect.SetTop(originalTop + top);
     drawingRect.SetRight(originalRight - right);
     drawingRect.SetBottom(originalBottom - bottom);
-    env->Object_SetPropertyByName_Double(aniRectObj, "left", drawingRect.GetLeft());
-    env->Object_SetPropertyByName_Double(aniRectObj, "top", drawingRect.GetTop());
-    env->Object_SetPropertyByName_Double(aniRectObj, "right", drawingRect.GetRight());
-    env->Object_SetPropertyByName_Double(aniRectObj, "bottom", drawingRect.GetBottom());
+    DrawingRectConvertToAniRect(env, aniRectObj, drawingRect);
 }
 
 void AniRectUtils::Sort(ani_env* env, ani_object obj, ani_object aniRectObj)

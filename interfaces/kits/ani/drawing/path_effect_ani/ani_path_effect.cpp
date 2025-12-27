@@ -21,13 +21,10 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_PATHEFFECT_NAME = "@ohos.graphics.drawing.drawing.PathEffect";
-
 ani_status AniPathEffect::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_PATHEFFECT_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().pathEffect;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_PATHEFFECT_NAME);
         return ANI_NOT_FOUND;
     }
@@ -41,7 +38,7 @@ ani_status AniPathEffect::AniInit(ani_env *env)
         ani_native_function { "createDashPathEffect", nullptr, reinterpret_cast<void*>(CreateDashPathEffect) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s", ANI_CLASS_PATHEFFECT_NAME);
         return ANI_NOT_FOUND;
@@ -58,7 +55,8 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
     env->Reference_IsUndefined(aniSeedAssistObj, &isUndefined);
     if (!isUndefined) {
         ani_double aniSeedAssist = 0;
-        ani_status ret =  env->Object_CallMethodByName_Double(aniSeedAssistObj, "toDouble", ":d", &aniSeedAssist);
+        ani_status ret =  env->Object_CallMethod_Double(
+            aniSeedAssistObj, AniGlobalMethod::GetInstance().doubleGet, &aniSeedAssist);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPathEffect::CreateDiscretePathEffect invalid param seedAssist: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param seedAssist.");
@@ -69,7 +67,8 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
 
     AniPathEffect* pathEffect = new AniPathEffect(
         PathEffect::CreateDiscretePathEffect(aniSegLength, aniDev, seedAssist));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
+        AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
         delete pathEffect;
@@ -81,19 +80,22 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
 ani_object AniPathEffect::CreateSumPathEffect(ani_env* env, [[maybe_unused]]ani_object obj,
     ani_object aniFirstPathEffectObj, ani_object aniSecondPathEffectObj)
 {
-    auto aniFirstPathEffect = GetNativeFromObj<AniPathEffect>(env, aniFirstPathEffectObj);
+    auto aniFirstPathEffect = GetNativeFromObj<AniPathEffect>(env, aniFirstPathEffectObj,
+        AniGlobalField::GetInstance().pathEffectNativeObj);
     if (aniFirstPathEffect == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param firstPathEffect.");
         return CreateAniUndefined(env);
     }
-    auto aniSecondPathEffect = GetNativeFromObj<AniPathEffect>(env, aniSecondPathEffectObj);
+    auto aniSecondPathEffect = GetNativeFromObj<AniPathEffect>(env, aniSecondPathEffectObj,
+        AniGlobalField::GetInstance().pathEffectNativeObj);
     if (aniSecondPathEffect == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param secondPathEffect.");
         return CreateAniUndefined(env);
     }
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateSumPathEffect(
         *(aniFirstPathEffect->GetPathEffect()), *(aniSecondPathEffect->GetPathEffect())));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
+        AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -106,7 +108,7 @@ ani_object AniPathEffect::CreateSumPathEffect(ani_env* env, [[maybe_unused]]ani_
 ani_object AniPathEffect::CreatePathDashEffect(ani_env* env, [[maybe_unused]]ani_object obj,
     ani_object aniPathObj, ani_double aniAdvance, ani_double aniPhase, ani_enum_item aniStyleEnum)
 {
-    auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj);
+    auto aniPath = GetNativeFromObj<AniPath>(env, aniPathObj, AniGlobalField::GetInstance().pathNativeObj);
     if (aniPath == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param path.");
         return CreateAniUndefined(env);
@@ -119,7 +121,8 @@ ani_object AniPathEffect::CreatePathDashEffect(ani_env* env, [[maybe_unused]]ani
     }
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreatePathDashEffect(
         *aniPath->GetPath(), aniAdvance, aniPhase, static_cast<PathDashStyle>(aniStyle)));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
+        AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -132,19 +135,22 @@ ani_object AniPathEffect::CreatePathDashEffect(ani_env* env, [[maybe_unused]]ani
 ani_object AniPathEffect::CreateComposePathEffect(ani_env* env, [[maybe_unused]]ani_object obj,
     ani_object aniOuterPathEffectObj, ani_object aniInnerPathEffectObj)
 {
-    auto aniOuterPathEffect = GetNativeFromObj<AniPathEffect>(env, aniOuterPathEffectObj);
+    auto aniOuterPathEffect = GetNativeFromObj<AniPathEffect>(env, aniOuterPathEffectObj,
+        AniGlobalField::GetInstance().pathEffectNativeObj);
     if (aniOuterPathEffect == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param outer.");
         return CreateAniUndefined(env);
     }
-    auto aniInnerPathEffect = GetNativeFromObj<AniPathEffect>(env, aniInnerPathEffectObj);
+    auto aniInnerPathEffect = GetNativeFromObj<AniPathEffect>(env, aniInnerPathEffectObj,
+        AniGlobalField::GetInstance().pathEffectNativeObj);
     if (aniInnerPathEffect == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param outer.");
         return CreateAniUndefined(env);
     }
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateComposePathEffect(
         *(aniOuterPathEffect->GetPathEffect()), *(aniInnerPathEffect->GetPathEffect())));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
+        AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -158,7 +164,8 @@ ani_object AniPathEffect::CreateCornerPathEffect(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_double aniRadius)
 {
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateCornerPathEffect(aniRadius));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
+        AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {
@@ -169,10 +176,10 @@ ani_object AniPathEffect::CreateCornerPathEffect(
 }
 
 ani_object AniPathEffect::CreateDashPathEffect(
-    ani_env* env, [[maybe_unused]]ani_object obj, ani_object aniIntervalsArray, ani_double aniPhase)
+    ani_env* env, [[maybe_unused]]ani_object obj, ani_array aniIntervalsArray, ani_double aniPhase)
 {
-    ani_int aniLength;
-    ani_status ret = env->Object_GetPropertyByName_Int(aniIntervalsArray, "length", &aniLength);
+    ani_size aniLength;
+    ani_status ret = env->Array_GetLength(aniIntervalsArray, &aniLength);
     if (ret != ANI_OK) {
         ROSEN_LOGE("AniPathEffect::CreateDashPathEffect aniIntervalsArray invalid %{public}d", ret);
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param intervals.");
@@ -188,14 +195,14 @@ ani_object AniPathEffect::CreateDashPathEffect(
     for (uint32_t i = 0; i < intervalSize; i++) {
         ani_ref intervalRef;
         ani_double interval;
-        ret = env->Object_CallMethodByName_Ref(
-            aniIntervalsArray, "$_get", "i:Y", &intervalRef, static_cast<ani_int>(i));
+        ret = env->Array_Get(aniIntervalsArray, static_cast<ani_int>(i), &intervalRef);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPathEffect::CreateDashPathEffect get intervalRef failed: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid intervals array length.");
             return CreateAniUndefined(env);
         }
-        ret = env->Object_CallMethodByName_Double(static_cast<ani_object>(intervalRef), "toDouble", ":d", &interval);
+        ret = env->Object_CallMethod_Double(
+            static_cast<ani_object>(intervalRef), AniGlobalMethod::GetInstance().doubleGet, &interval);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPathEffect::CreateDashPathEffect intervalRef get interval failed: %d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid intervals array length.");
@@ -205,7 +212,8 @@ ani_object AniPathEffect::CreateDashPathEffect(
     }
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateDashPathEffect(intervals.get(), intervalSize,
         aniPhase));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_PATHEFFECT_NAME, pathEffect);
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
+        AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
     ani_boolean isUndefined;
     env->Reference_IsUndefined(aniObj, &isUndefined);
     if (isUndefined) {

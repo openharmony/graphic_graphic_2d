@@ -30,7 +30,7 @@ public:
 
     static void ConstructorWithPath(ani_env* env, ani_object obj, ani_object aniPathObj);
 
-    static ani_object Next(ani_env* env, ani_object obj, ani_object aniPointArray, ani_object aniOffsetObj);
+    static ani_object Next(ani_env* env, ani_object obj, ani_array aniPointArray, ani_object aniOffsetObj);
 
     static ani_boolean HasNext(ani_env* env, ani_object obj);
 
@@ -39,7 +39,7 @@ public:
     PathIterator& GetPathIterator();
 
 private:
-    ani_object OnNext(ani_env* env, ani_object aniPointArray, ani_object aniOffsetObj);
+    ani_object OnNext(ani_env* env, ani_array aniPointArray, ani_object aniOffsetObj);
     ani_boolean OnHasNext(ani_env* env);
     ani_enum_item OnPeek(ani_env* env, PathIterator& pathIterator);
 

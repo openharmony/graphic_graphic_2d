@@ -21,7 +21,6 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TOOL_NAME = "@ohos.graphics.drawing.drawing.Tool";
 #ifdef ROSEN_OHOS
 const int32_t GLOBAL_ERROR = 10000;
 // The expectLength of regex match of "rgb(255,0,0)". The elements:0 is the string, 1 is r, 2 is g, 3 is b.
@@ -45,9 +44,8 @@ const std::regex HEX_PATTERN("^[0-9a-fA-F]+$");
 
 ani_status AniTool::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_TOOL_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().tool;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_TOOL_NAME);
         return ANI_NOT_FOUND;
     }
@@ -57,7 +55,7 @@ ani_status AniTool::AniInit(ani_env *env)
             reinterpret_cast<void*>(MakeColorFromResourceColor) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind static methods fail: %{public}s", ANI_CLASS_TOOL_NAME);
         return ANI_NOT_FOUND;
@@ -139,17 +137,17 @@ bool AniTool::IsUndefinedObject(ani_env* env, ani_ref objectRef)
     return (bool)isUndefined;
 }
 
-bool AniTool::GetTypeParam(ani_env* env, ani_object obj, const char* name, int32_t& result)
+bool AniTool::GetTypeParam(ani_env* env, ani_object obj, int32_t& result)
 {
     ani_ref resultRef;
-    if (env->Object_GetPropertyByName_Ref(obj, name, &resultRef) != ANI_OK) {
+    if (env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().resourceGetType, &resultRef) != ANI_OK) {
         return false;
     }
     if (IsUndefinedObject(env, resultRef)) {
         return false;
     }
-    ani_class typeClass;
-    if (env->FindClass("std.core.Int", &typeClass) != ANI_OK) {
+    ani_class typeClass = AniGlobalClass::GetInstance().intCls;
+    if (typeClass == nullptr) {
         return false;
     }
     ani_boolean isInt = ANI_TRUE;
@@ -158,24 +156,24 @@ bool AniTool::GetTypeParam(ani_env* env, ani_object obj, const char* name, int32
         return false;
     }
     ani_int resultValue;
-    if (env->Object_CallMethodByName_Int(typeObj, "toInt", nullptr, &resultValue) != ANI_OK) {
+    if (env->Object_CallMethod_Int(typeObj, AniGlobalMethod::GetInstance().intGet, &resultValue) != ANI_OK) {
         return false;
     }
     result = static_cast<int32_t>(resultValue);
     return true;
 }
 
-bool AniTool::GetParamsArray(ani_env* env, ani_object obj, const char* name, std::vector<std::string>& result)
+bool AniTool::GetParamsArray(ani_env* env, ani_object obj, std::vector<std::string>& result)
 {
     ani_ref paramsRef;
-    if (env->Object_GetPropertyByName_Ref(obj, name, &paramsRef) != ANI_OK) {
+    if (env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().resourceGetParams, &paramsRef) != ANI_OK) {
         return false;
     }
     if (IsUndefinedObject(env, paramsRef)) {
         return false;
     }
-    ani_class paramsClass;
-    if (env->FindClass("std.core.Array", &paramsClass) != ANI_OK) {
+    ani_class paramsClass = AniGlobalClass::GetInstance().arrayCls;
+    if (paramsClass == nullptr) {
         return false;
     }
     ani_object paramsObj = static_cast<ani_object>(paramsRef);
@@ -204,15 +202,15 @@ bool AniTool::GetParamsArray(ani_env* env, ani_object obj, const char* name, std
 bool AniTool::GetResourceInfo(ani_env* env, ani_object obj, ResourceInfo& result)
 {
     ani_long aniId;
-    if (env->Object_GetPropertyByName_Long(obj, "id", &aniId) != ANI_OK) {
+    if (env->Object_CallMethod_Long(obj, AniGlobalMethod::GetInstance().resourceGetId, &aniId) != ANI_OK) {
         return false;
     }
     result.resId = static_cast<int32_t>(aniId);
 
-    if (!GetTypeParam(env, obj, "type", result.type)) {
+    if (!GetTypeParam(env, obj, result.type)) {
         return false;
     }
-    if (!GetParamsArray(env, obj, "params", result.params)) {
+    if (!GetParamsArray(env, obj, result.params)) {
         return false;
     }
     return true;
@@ -479,8 +477,8 @@ bool AniTool::GetColorObjectResult(ani_env* env, ani_object value, uint32_t& res
 
 bool AniTool::IsStringObject(ani_env* env, ani_object obj)
 {
-    ani_class stringClass;
-    if (env->FindClass("std.core.String", &stringClass) != ANI_OK) {
+    ani_class stringClass = AniGlobalClass::GetInstance().strCls;
+    if (stringClass == nullptr) {
         return false;
     }
     ani_boolean isString;
@@ -492,8 +490,8 @@ bool AniTool::IsStringObject(ani_env* env, ani_object obj)
 
 bool AniTool::IsColorEnum(ani_env* env, ani_object obj)
 {
-    ani_enum colorEnum;
-    if (env->FindEnum("arkui.component.enums.Color", &colorEnum) != ANI_OK) {
+    ani_enum colorEnum = AniGlobalEnum::GetInstance().colorEnum;
+    if (colorEnum == nullptr) {
         return false;
     }
 
@@ -507,8 +505,8 @@ bool AniTool::IsColorEnum(ani_env* env, ani_object obj)
 
 bool AniTool::IsIntObject(ani_env* env, ani_object obj)
 {
-    ani_class intClass;
-    if (env->FindClass("std.core.Int", &intClass) != ANI_OK) {
+    ani_class intClass = AniGlobalClass::GetInstance().intCls;
+    if (intClass == nullptr) {
         return false;
     }
     ani_boolean isInt;
@@ -520,8 +518,8 @@ bool AniTool::IsIntObject(ani_env* env, ani_object obj)
 
 bool AniTool::IsResourceObject(ani_env* env, ani_object obj)
 {
-    ani_class resourceClass;
-    if (env->FindClass("global.resource.Resource", &resourceClass) != ANI_OK) {
+    ani_class resourceClass = AniGlobalClass::GetInstance().resourceCls;
+    if (resourceClass == nullptr) {
         return false;
     }
     ani_boolean isResource;
@@ -558,7 +556,7 @@ bool AniTool::GetResourceColor(ani_env* env, ani_object obj, uint32_t& result)
 
     if (IsIntObject(env, obj)) {
         ani_int aniColor;
-        if (ANI_OK != env->Object_CallMethodByName_Int(obj, "toInt", ":i", &aniColor)) {
+        if (ANI_OK != env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().intGet, &aniColor)) {
             ROSEN_LOGE("AniTool::GetResourceColor failed by Object_CallMethodByName_Double");
             return false;
         }
