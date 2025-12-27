@@ -1056,18 +1056,6 @@ bool RSUniRenderVisitor::CheckSkipAndUpdateForegroundSurfaceRenderNode(RSSurface
         }
         return false;
     }
-    // Record the surfaceNode object for later use in RSScreenRenderParams::OnSync to collect its drawable.
-    // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
-    if (curScreenNode_) {
-        curScreenNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
-    }
-    if (node.ChildHasVisibleFilter()) {
-        if (const auto& curDirtyManager = node.GetDirtyManager()) {
-            curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
-            UpdateFilterRegionInSkippedSurfaceNode(node, *curDirtyManager);
-            curSurfaceNode_ = nullptr;
-        }
-    }
     return true;
 }
 
@@ -1107,11 +1095,28 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
         node.SetStableSkipReached(false);
         return false;
     }
+    bool isQuickSkip = false;
     if (isBgWindowTraversalStarted_) {
-        return CheckSkipBackgroundSurfaceRenderNode(node);
+        isQuickSkip = CheckSkipBackgroundSurfaceRenderNode(node);
     } else {
-        return CheckSkipAndUpdateForegroundSurfaceRenderNode(node);
+        isQuickSkip = CheckSkipAndUpdateForegroundSurfaceRenderNode(node);
     }
+    if (isQuickSkip) {
+        // Record the surfaceNode object for later use in RSScreenRenderParams::OnSync to collect its drawable.
+        // This ensures the drawable can updates the latest drawRegion, thus correctly skip drawing.
+        if (curScreenNode_) {
+            curScreenNode_->RecordMainAndLeashSurfaces(node.shared_from_this());
+        }
+        if (node.ChildHasVisibleFilter()) {
+            if (const auto& curDirtyManager = node.GetDirtyManager()) {
+                curSurfaceNode_ = node.ReinterpretCastTo<RSSurfaceRenderNode>();
+                UpdateFilterRegionInSkippedSurfaceNode(node, *curDirtyManager);
+                curSurfaceNode_ = nullptr;
+            }
+        }
+        CollectOcclusionInfoForWMS(node);
+    }
+    return isQuickSkip;
 }
 
 void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node)
@@ -1128,7 +1133,6 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             node.GetName().c_str(), node.GetId(), ExtractPid(node.GetId()),
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
             isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
-        CollectOcclusionInfoForWMS(node);
         RS_OPTIONAL_TRACE_END_LEVEL(TRACE_LEVEL_PRINT_NODEID);
         return;
     }
