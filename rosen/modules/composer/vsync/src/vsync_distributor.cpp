@@ -1513,7 +1513,7 @@ VsyncError VSyncDistributor::SetQosVSyncRateByConnId(uint64_t connId, int32_t ra
 VsyncError VSyncDistributor::SetQosVSyncRate(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    return SetQosVSyncRateLocked(windowId, rate, isSystemAnimateScene);
+    return SetQosVSyncRateLocked(windowNodeId, rate, isSystemAnimateScene);
 }
 
 VsyncError VSyncDistributor::SetQosVSyncRateLocked(uint64_t windowNodeId, int32_t rate, bool isSystemAnimateScene)
