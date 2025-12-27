@@ -48,6 +48,9 @@
 #ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
 #endif
+#ifdef ROSEN_IOS
+#include "render_context/new_render_context/render_context_gl.h"
+#endif
 #ifdef OHOS_RSS_CLIENT
 #include "res_sched_client.h"
 #include "res_type.h"
@@ -293,6 +296,21 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
     if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
         ROSEN_LOGD("Create RenderContext");
+#ifdef ROSEN_IOS
+        auto renderContextGL = std::static_pointer_cast<RenderContextGL>(renderContext_);
+        if (renderContextGL == nullptr) {
+            ROSEN_LOGE("renderContextGL is nullptr");
+            return;
+        }
+        auto cleanupTask = [renderContextGL]() {
+            RSRenderThread::Instance().PostSyncTask([renderContextGL]() {
+                //release egl source
+                renderContextGL->DestroySharedSource();
+            });
+        };
+
+        renderContextGL->SetCleanUpHelper(cleanupTask);
+#endif
 #ifdef ROSEN_OHOS
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
