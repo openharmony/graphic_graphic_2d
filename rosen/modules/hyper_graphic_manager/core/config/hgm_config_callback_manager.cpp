@@ -163,7 +163,6 @@ void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
             pendingAnimDynamicCfgCallbacks_.erase(iter);
         }
     }
-
     if (extraSyncPid > DEFAULT_PID) {
         if (auto iter = pendingAnimDynamicCfgCallbacks_.find(extraSyncPid);
             iter != pendingAnimDynamicCfgCallbacks_.end()) {
