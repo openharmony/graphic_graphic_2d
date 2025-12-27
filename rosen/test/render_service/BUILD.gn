@@ -209,6 +209,9 @@ group("test") {
     "render_service_base/fuzztest/rsspringmodelstandard_fuzzer:fuzztest",
     "render_service_base/fuzztest/rswindowkeyframerendernode_fuzzer:fuzztest",
     "render_service_base/fuzztest/rswindowkeyframenodecommand_fuzzer:fuzztest",
+    "render_service/fuzztest/composer/composer_service/layer_backend:fuzztest",
+    "render_service/systemtest/composer/composer_service/layer_backend:systemtest",
+    "render_service/unittest/composer:unittest",
   ]
 
 

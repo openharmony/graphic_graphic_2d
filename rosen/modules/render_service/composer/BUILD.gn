@@ -195,11 +195,3 @@ ohos_shared_library("librender_composer") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
-
-group("test") {
-  testonly = true
-
-  deps = [
-    "composer_service/layer_backend/test:test",
-  ]
-}

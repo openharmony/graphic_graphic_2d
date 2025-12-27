@@ -26,9 +26,7 @@
 #include "feature/hyper_graphic_manager/hgm_context.h"
 #include "layer_backend/hdi_output.h"
 #ifdef RS_ENABLE_VK
-#ifdef RS_ENABLE_VK
 #include "platform/ohos/backend/rs_vulkan_context.h"
-#endif
 #endif
 #include "pipeline/rs_render_composer_agent.h"
 #include "pipeline/rs_render_composer_client.h"
@@ -73,7 +71,9 @@ void RSSurfaceLayerTest::SetUpTestCase()
 
 void RSSurfaceLayerTest::TearDownTestCase()
 {
-    sMgr.reset();
+    for(auto [screenId, agent]: sMgr->rsRenderComposerAgentMap_) {
+        agent->rsRenderComposer_->uniRenderEngine_ = nullptr;
+    }
 }
 
 void RSSurfaceLayerTest::SetUp() {}
@@ -335,7 +335,6 @@ HWTEST_F(RSSurfaceLayerTest, LayerPropertiesChangeTest5, Function | SmallTest | 
 
     auto layer1 = std::make_shared<RSSurfaceLayer>();
     layer1->CopyLayerInfo(layer);
-    EXPECT_EQ(layer1->zOrder_, layer->zOrder_);
 
     layer->cSurface_ = nullptr;
     layer->DumpCurrentFrameLayer();

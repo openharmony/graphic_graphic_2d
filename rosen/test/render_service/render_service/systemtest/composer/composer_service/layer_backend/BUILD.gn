@@ -1,0 +1,145 @@
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+
+module_out_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_service/layer_backend"
+
+# Common settings for layer_backend systemtest targets
+lb_sys_include_dirs = [
+  "//foundation/graphic/graphic_2d/interfaces/inner_api/common",
+  "//foundation/graphic/graphic_2d/rosen/include/common",
+  "//foundation/graphic/graphic_2d/rosen/2d_graphics/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/composer/hdi_backend/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/common",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/config",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "//foundation/graphic/graphic_2d/rosen/modules/hyper_graphic_manager/core/utils",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/connection",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/connection/zidl",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/layer_backend",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/pipeline",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/render_layer",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/transaction",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_service/transaction/command",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_client/layer",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_client/connection/zidl",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer/composer_client/pipeline",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/core",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/include",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service_base/src",
+  "//foundation/graphic/graphic_2d/rosen/modules/utils",
+]
+
+lb_sys_cflags = [
+  "-Wall",
+  "-Werror",
+  "-g3",
+]
+
+lb_sys_core_deps = [
+  "//foundation/graphic/graphic_2d/rosen/modules/composer:libcomposer",
+  "//foundation/graphic/graphic_2d/rosen/modules/composer/vsync:libvsync",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service/composer:librender_composer",
+  "//foundation/graphic/graphic_2d/rosen/modules/render_service_base:librender_service_base",
+  "//foundation/graphic/graphic_2d/utils:socketpair",
+]
+
+lb_sys_ext_deps = [
+  "c_utils:utils",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+  "eventhandler:libeventhandler",
+  "googletest:gmock_main",
+  "googletest:gtest_main",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "init:libbegetutil",
+  "ipc:ipc_core",
+  "libxml2:libxml2",
+]
+
+if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+  lb_sys_ext_deps += [ "sensor:sensor_interface_native" ]
+}
+if ((defined(use_memmgr_plugin) && use_memmgr_plugin) ||
+    (defined(use_memmgr) && use_memmgr)) {
+  lb_sys_ext_deps += [ "memmgr:memmgrclient" ]
+}
+
+group("systemtest") {
+  testonly = true
+
+  deps = [
+    ":hdibackend_sys_test",
+    ":hdilayer_sys_test",
+    ":hdioutput_sys_test",
+  ]
+}
+
+## SystemTest hdibackend_sys_test {{{
+ohos_systemtest("hdibackend_sys_test") {
+  module_out_path = module_out_path
+
+  sources = [
+    "hdibackend_test.cpp",
+    "hdilayer_context_systest.cpp",
+    "mock_hdi_device_systest.cpp",
+  ]
+
+  include_dirs = lb_sys_include_dirs
+  cflags = lb_sys_cflags
+  deps = lb_sys_core_deps + [ "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/composer/composer_service/layer_backend:layer_backend_test_impl" ]
+  external_deps = lb_sys_ext_deps
+}
+
+## SystemTest hdibackend_sys_test }}}
+
+## SystemTest hdilayer_sys_test {{{
+ohos_systemtest("hdilayer_sys_test") {
+  module_out_path = module_out_path
+
+  sources = [ "hdilayer_test.cpp" ]
+
+  include_dirs = lb_sys_include_dirs
+  cflags = lb_sys_cflags
+  deps = lb_sys_core_deps + [ "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/composer/composer_service/layer_backend:layer_backend_test_impl" ]
+  external_deps = lb_sys_ext_deps
+}
+
+## SystemTest hdilayer_sys_test }}}
+
+## SystemTest hdioutput_sys_test {{{
+ohos_systemtest("hdioutput_sys_test") {
+  module_out_path = module_out_path
+
+  sources = [
+    "hdilayer_context_systest.cpp",
+    "hdioutput_test.cpp",
+    "mock_hdi_device_systest.cpp",
+  ]
+
+  include_dirs = lb_sys_include_dirs
+  cflags = lb_sys_cflags
+  deps = lb_sys_core_deps + [ "//foundation/graphic/graphic_2d/rosen/test/render_service/render_service/unittest/composer/composer_service/layer_backend:layer_backend_test_impl" ]
+
+  # fuzz targets have been moved to fuzztest/composer path
+  external_deps = lb_sys_ext_deps
+}
+## SystemTest hdioutput_sys_test }}}
