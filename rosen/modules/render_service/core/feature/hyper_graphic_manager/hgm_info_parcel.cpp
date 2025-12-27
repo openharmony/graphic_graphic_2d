@@ -62,7 +62,7 @@ bool HgmServiceToProcessInfo::Marshalling(Parcel& data) const
 
 HgmServiceToProcessInfo* HgmServiceToProcessInfo::Unmarshalling(Parcel& data)
 {
-    auto result = new HgmServiceToProcessInfo();
+    auto result = std::make_unique<HgmServiceToProcessInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     if (!message->ReadUint32(result->pendingScreenRefreshRate) ||
         !message->ReadUint64(result->pendingConstraintRelativeTime)) {
@@ -96,7 +96,7 @@ HgmServiceToProcessInfo* HgmServiceToProcessInfo::Unmarshalling(Parcel& data)
     if (!message->ReadBool(result->isPowerIdle)) {
         return nullptr;
     }
-    return result;
+    return result.release();
 }
 
 bool HgmProcessToServiceInfo::Marshalling(Parcel& data) const
@@ -122,7 +122,7 @@ bool HgmProcessToServiceInfo::Marshalling(Parcel& data) const
 
 HgmProcessToServiceInfo* HgmProcessToServiceInfo::Unmarshalling(Parcel& data)
 {
-    auto result = new HgmProcessToServiceInfo();
+    auto result = std::make_unique<HgmProcessToServiceInfo>();
     MessageParcel* message = static_cast<MessageParcel*>(&data);
     if (!message->ReadBool(result->isGameNodeOnTree)) {
         return nullptr;
@@ -139,7 +139,7 @@ HgmProcessToServiceInfo* HgmProcessToServiceInfo::Unmarshalling(Parcel& data)
     if (!result->UnmarshallingVRateData(message)) {
         return nullptr;
     }
-    return result;
+    return result.release();
 }
 
 bool HgmProcessToServiceInfo::MarshallingFrameRateLinker(MessageParcel* message) const
