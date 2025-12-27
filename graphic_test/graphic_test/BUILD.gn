@@ -101,6 +101,7 @@ rs_func_feature_sources = [
   "rs_func_feature/special_layer/snapshot_skip_layer_test.cpp",
   "rs_func_feature/surface_capture/surface_capture_demo.cpp",
   "rs_func_feature/accessibility/curtain_screen_test.cpp",
+  "rs_func_feature/register_buffer_available_callback/register_buffer_available_callback_test.cpp",
 ]
 rs_perform_feature_sources = [
   "rs_perform_feature/dirty_region/filter_test.cpp",
