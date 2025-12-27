@@ -417,6 +417,7 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
     auto node = target_.lock();                                                                                      \
     if (node != nullptr) {                                                                                           \
+        node->LoadRenderNodeIfNeed();                                                                                \
         auto transaction = node->GetRSTransaction();                                                                 \
         if (!transaction) {                                                                                          \
             do {                                                                                                     \
