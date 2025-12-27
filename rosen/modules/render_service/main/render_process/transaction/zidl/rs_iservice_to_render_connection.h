@@ -62,7 +62,7 @@ public:
     virtual void DoDump(std::unordered_set<std::u16string>& argSets) = 0;
     virtual int32_t GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB) = 0;
     virtual ErrCode GetTotalAppMemSize(float& cpuMemSize, float& gpuMemSize) = 0;
-    virtual GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) = 0;
+    virtual ErrCode GetPixelMapByProcessId(std::vector<PixelMapInfo>& pixelMapInfoVector, pid_t pid, int32_t& repCode) = 0;
     virtual void SetCurtainScreenUsingStatus(bool isCurtainScreenOn) = 0;
 
     // Watermark
