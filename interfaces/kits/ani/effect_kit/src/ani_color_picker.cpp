@@ -307,6 +307,33 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
         reinterpret_cast<ani_long>(colorPicker.release()));
 }
 
+ani_object AniColorPicker::GetAlphaZeroTransparentProportion(ani_env* env, ani_object obj)
+{
+    AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
+    if (!thisColorPicker) {
+        EFFECT_LOG_E("[GetAverageColor] Error1, failed to retrieve ColorPicker wrapper");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (!thisColorPicker->nativeColorPicker_) {
+        EFFECT_LOG_E("[GetAverageColor] Error2, failed to retrieve native ColorPicker wrapper");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    ani_double ret = thisColorPicker->nativeColorPicker_->GetAlphaZeroTransparentProportion();
+    static constexpr const char *className = "std.core.Double";
+    ani_class doubleCls {};
+    env->FindClass(className, &doubleCls);
+    ani_method ctor {};
+    env->Class_FindMethod(doubleCls, "<ctor>", "d:", &ctor);
+    ani_object obj_ret {};
+    if (env->Object_New(doubleCls, ctor, &obj_ret, ret) != ANI_OK) {
+        std::cerr << "Failed to allocate Double!" << std::endl;
+        ani_ref undefinedRef;
+        env->GetUndefined(&undefinedRef);
+        return undefinedRef;
+    }
+    return static_cast<ani_ref>(obj_ret);
+}
+
 ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
 {
     if (!pixelMap) {
