@@ -37,7 +37,7 @@
 #include "feature/hpae/rs_hpae_manager.h"
 #include "feature/uifirst/rs_sub_thread_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
+
 #include "feature/special_layer/rs_special_layer_utils.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "memory/rs_tag_tracker.h"
@@ -82,6 +82,10 @@
 
 #ifdef RS_PROFILER_ENABLED
 #include "rs_profiler_capture_recorder.h"
+#endif
+
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hetero_hdr_manager.h"
 #endif
 
 // blur predict
@@ -2385,7 +2389,9 @@ void RSUniRenderVisitor::PrevalidateHwcNode()
             continue;
         }
         if (it.second == RequestCompositionType::OFFLINE_DEVICE &&
+#ifdef HETERO_HDR_ENABLE
             !RSHeteroHDRManager::Instance().HasHdrHeteroNode() &&
+#endif
             RSHpaeOfflineProcessor::GetOfflineProcessor().IsRSHpaeOfflineProcessorReady()) {
             node->SetDeviceOfflineEnable(true);
             continue;

@@ -118,10 +118,10 @@ ohos_shared_library("librender_service") {
     "core/feature/dirty/rs_uni_dirty_compute_util.cpp",
     "core/feature/drm/rs_drm_util.cpp",
     "core/feature/hdr/rs_hdr_util.cpp",
-    "core/feature/hdr/hetero_hdr/rs_hetero_hdr_buffer_layer.cpp",
-    "core/feature/hdr/hetero_hdr/rs_hetero_hdr_hpae.cpp",
-    "core/feature/hdr/hetero_hdr/rs_hetero_hdr_manager.cpp",
-    "core/feature/hdr/hetero_hdr/rs_hetero_hdr_util.cpp",
+    
+
+
+
     "core/feature/hwc/hpae_offline/rs_hpae_offline_layer.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_processor.cpp",
     "core/feature/hwc/hpae_offline/rs_hpae_offline_process_syncer.cpp",
@@ -437,6 +437,13 @@ ohos_shared_library("librender_service") {
     sources += [ "core/feature/chipset_vsync/rs_chipset_vsync.cpp" ]
   }
 
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable
+      && defined(graphic_2d_hetero_hdr_configs.hetero_hdr_root)) {
+    include_dirs += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_include
+    sources += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_sources
+
+  }
+
   if (graphic_2d_feature_overlay_display_enable) {
     sources += [ "core/feature/overlay_display/rs_overlay_display_manager.cpp" ]
   }
@@ -541,6 +548,9 @@ ohos_shared_library("librender_service") {
   }
   if (use_video_processing_engine) {
     external_deps += [ "video_processing_engine:videoprocessingengine" ]
+  }
+  if (defined(graphic_2d_feature_hetero_hdr_enable) && graphic_2d_feature_hetero_hdr_enable) {
+    external_deps += graphic_2d_hetero_hdr_configs.librender_service_hetero_hdr_external_deps
   }
 
   if (defined(ddgr_ext_configs)) {

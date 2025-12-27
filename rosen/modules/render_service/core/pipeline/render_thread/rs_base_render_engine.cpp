@@ -20,8 +20,8 @@
 
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_luminance_control.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
-#include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
+
+
 #include "graphic_feature_param_manager.h"
 #include "memory/rs_tag_tracker.h"
 #include "metadata_helper.h"
@@ -40,6 +40,11 @@
 #if (defined(RS_ENABLE_GPU) && defined(RS_ENABLE_GL))
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "feature/gpuComposition/rs_image_manager.h"
+#endif
+
+#ifdef HETERO_HDR_ENABLE
+#include "rs_hetero_hdr_manager.h"
+#include "rs_hetero_hdr_util.h"
 #endif
 
 #ifdef RS_ENABLE_VK
@@ -775,6 +780,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
     if (imageShader == nullptr) {
         RS_LOGW("RSBaseRenderEngine::DrawImage imageShader is nullptr.");
     } else {
+#ifdef HETERO_HDR_ENABLE
         bool needHetero = (params.hdrHeteroType & RSHeteroHDRUtilConst::HDR_HETERO) && !ROSEN_LE(params.sdrNits, 0.0f);
         if (needHetero) {
             RSHeteroHDRManager::Instance().GenerateHDRHeteroShader(params, imageShader);
@@ -782,6 +788,10 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
             params.paint.SetShaderEffect(imageShader);
             ColorSpaceConvertor(imageShader, params, videoInfo.parameter_, canvas.GetHDRProperties());
         }
+#else
+        params.paint.SetShaderEffect(imageShader);
+        ColorSpaceConvertor(imageShader, params, videoInfo.parameter_, canvas.GetHDRProperties());
+#endif
     }
     canvas.AttachBrush(params.paint);
     canvas.DrawRect(params.dstRect);
