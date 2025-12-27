@@ -652,6 +652,30 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBufferSize_005, TestSize.Leve
 }
 
 /**
+ * @tc.name: UpdateHwcNodeEnableByBufferSize_006
+ * @tc.desc: Test UpdateHwcNodeEnableByBufferSize
+ * @tc.type: FUNC
+ * @tc.require: #21317
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByBufferSize_006, TestSize.Level1)
+{
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    surfaceNode->name_ = "Test";
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = SurfaceBuffer::Create();
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferWidth(2440);
+    surfaceNode->GetRSSurfaceHandler()->buffer_.buffer->SetSurfaceBufferHeight(1080);
+    surfaceNode->GetRSSurfaceHandler()->consumer_ = IConsumerSurface::Create();
+    surfaceNode->renderProperties_.SetBoundsWidth(1080);
+    surfaceNode->renderProperties_.SetBoundsHeight(1653);
+    surfaceNode->renderProperties_.frameGravity_ = Gravity::TOP_LEFT;
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    rsUniRenderVisitor->hwcVisitor_->UpdateHwcNodeEnableByBufferSize(*surfaceNode);
+}
+
+/**
  * @tc.name: UpdateHwcNodeEnable_001
  * @tc.desc: Test UpdateHwcNodeEnable when surfaceNode is nullptr.
  * @tc.type: FUNC

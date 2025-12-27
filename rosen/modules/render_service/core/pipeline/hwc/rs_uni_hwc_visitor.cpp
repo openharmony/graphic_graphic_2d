@@ -432,9 +432,15 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
     ProcessSolidLayerDisabled(node);
 }
 
+bool RSUniHwcVisitor::IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node)
+{
+    return HWCParam::IsDisableHwcInScaleScene() && IsTargetSolidLayer(node);
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeEnableByBufferSize(RSSurfaceRenderNode& node)
 {
-    if (!node.IsRosenWeb() || node.IsHardwareForcedDisabled() || !node.GetRSSurfaceHandler()) {
+    if (!(node.IsRosenWeb() || IsScaleSceneHwcEnabled(node)) ||
+        node.IsHardwareForcedDisabled() || !node.GetRSSurfaceHandler()) {
         return;
     }
     auto surfaceHandler = node.GetRSSurfaceHandler();
