@@ -253,12 +253,15 @@ bool HgmProcessToServiceInfo::MarshallingVRateData(MessageParcel* message) const
 {
     if (vRateMap.size() > MAX_DATA_SIZE) {
         RS_LOGE("HgmProcessToServiceInfo Marshalling VRateData Failed size:%{public}zu", vRateMap.size());
-        if (!message->WriteBool(0)) {
+        if (!message->WriteBool(false)) {
             return false;
         }
     } else {
         if (!message->WriteBool(isNeedRefreshVRate)) {
             return false;
+        }
+        if (!isNeedRefreshVRate) {
+            return true;
         }
         if (!message->WriteInt32(vRateMap.size())) {
             return false;
@@ -405,6 +408,9 @@ bool HgmProcessToServiceInfo::UnmarshallingVRateData(MessageParcel* message)
 {
     if (!message->ReadBool(isNeedRefreshVRate)){
         return false;
+    }
+    if (!isNeedRefreshVRate) {
+        return true;
     }
     int32_t vRateMapSize;
     if (!message->ReadInt32(vRateMapSize)) {
