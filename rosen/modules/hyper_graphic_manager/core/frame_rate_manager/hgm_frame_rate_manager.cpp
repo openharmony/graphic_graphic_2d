@@ -909,7 +909,7 @@ void HgmFrameRateManager::HandleRefreshRateMode(int32_t refreshRateMode)
     HandlePageUrlEvent();
     multiAppStrategy_.CalcVote();
     HgmCore::Instance().SetLtpoConfig();
-    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback(multiAppStrategy_.GetSceneBoardPid());
     SyncHgmConfigUpdateCallback();
     UpdateAppSupportedState();  // sync app state config when RefreshRateMode changed
 }
@@ -1079,7 +1079,7 @@ void HgmFrameRateManager::UpdateScreenFrameRate()
     multiAppStrategy_.CalcVote();
     hgmCore.SetLtpoConfig();
     MarkVoteChange();
-    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback();
+    HgmConfigCallbackManager::GetInstance()->SyncHgmConfigChangeCallback(multiAppStrategy_.GetSceneBoardPid());
     SyncHgmConfigUpdateCallback();
 
     // hgm warning: use !isLtpo_ instead after GetDisplaySupportedModes ready
