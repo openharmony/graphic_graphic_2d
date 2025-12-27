@@ -2244,7 +2244,12 @@ CM_INLINE bool RSUniRenderVisitor::AfterUpdateSurfaceDirtyCalc(RSSurfaceRenderNo
     // 3. Update HwcNode Info for appNode
     UpdateHwcNodeInfoForAppNode(node);
     if (node.IsHardwareEnabledTopSurface()) {
-        hwcVisitor_->UpdateTopSurfaceSrcRect(node, geoPtr->GetAbsMatrix(), geoPtr->GetAbsRect());
+        auto matrix = geoPtr->GetAbsMatrix();
+        RectF bounds = {0, 0, property.GetBoundsWidth(), property.GetBoundsHeight()};
+        int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(matrix);
+        // hardCursor cannot be rotated, so when calculating srcRect，the matrix cannot have rotation
+        matrix.PreConcat(RSUniRenderUtil::GetMatrixByDegree(-degree, bounds));
+        hwcVisitor_->UpdateTopSurfaceSrcRect(node, matrix, geoPtr->GetAbsRect());
         RSPointerWindowManager::CheckHardCursorValid(node);
     }
     // 4. Update color gamut for appNode

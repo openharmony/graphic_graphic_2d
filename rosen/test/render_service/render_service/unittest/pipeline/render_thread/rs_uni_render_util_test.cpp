@@ -1382,4 +1382,47 @@ HWTEST_F(RSUniRenderUtilTest, CreateBufferDrawParamTest003, TestSize.Level1)
     params = RSUniRenderUtil::CreateBufferDrawParam(*surfaceNode, forceCPU, 0, false);
     ASSERT_EQ(params.alphaType, Drawing::AlphaType::ALPHATYPE_UNPREMUL);
 }
+
+/**
+ * @tc.name: GetMatrixByDegree
+ * @tc.desc: test GetMatrixByDegree
+ * @tc.type: FUNC
+ * @tc.require: #ICGE8J
+ */
+HWTEST_F(RSUniRenderUtilTest, GetMatrixByDegree001, TestSize.Level1)
+{
+    const int32_t ROTATE_0 = 0;
+    const int32_t ROTATE_90 = 90;
+    const int32_t ROTATE_180 = 180;
+    auto canvas = std::make_unique<Drawing::Canvas>(100, 100); // create 100*100 canvas
+    RectF bounds = {0, 0, 0, 0}; // create zero bounds
+    
+    canvas->Rotate(ROTATE_90);
+    int degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
+    ASSERT_EQ(degree, ROTATE_90);
+    Drawing::Matrix matrix = RSUniRenderUtil::GetMatrixByDegree(-ROTATE_90, bounds);
+    canvas->ConcatMatrix(matrix);
+    degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
+    ASSERT_EQ(degree, ROTATE_0);
+
+    canvas->Rotate(-ROTATE_90);
+    degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
+    ASSERT_EQ(degree, -ROTATE_90);
+    matrix = RSUniRenderUtil::GetMatrixByDegree(ROTATE_90, bounds);
+    canvas->ConcatMatrix(matrix);
+    degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
+    ASSERT_EQ(degree, ROTATE_0);
+
+    canvas->Rotate(ROTATE_180);
+    degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
+    ASSERT_EQ(degree, ROTATE_180);
+    matrix = RSUniRenderUtil::GetMatrixByDegree(ROTATE_180, bounds);
+    canvas->ConcatMatrix(matrix);
+    degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(canvas->GetTotalMatrix());
+    ASSERT_EQ(degree, ROTATE_0);
+
+    matrix = RSUniRenderUtil::GetMatrixByDegree(ROTATE_0, bounds);
+    degree = RSUniRenderUtil::GetRotationDegreeFromMatrix(matrix);
+    ASSERT_EQ(degree, ROTATE_0);
+}
 } // namespace OHOS::Rosen

@@ -966,6 +966,33 @@ int RSUniRenderUtil::GetRotationDegreeFromMatrix(Drawing::Matrix matrix)
         value[Drawing::Matrix::Index::SCALE_X]) * (RS_ROTATION_180 / PI)));
 }
 
+Drawing::Matrix RSUniRenderUtil::GetMatrixByDegree(int degree, const RectF& bounds)
+{
+    Drawing::Matrix matrix;
+    const float boundsWidth = bounds.GetWidth();
+    const float boundsHeight = bounds.GetHeight();
+    switch (degree) {
+        case 90: { // get matrix by 90 degree
+            matrix.PreRotate(degree);
+            matrix.PreTranslate(0, -boundsWidth);
+            break;
+        }
+        case 180: { // get matrix by 180 degree
+            matrix.PreRotate(degree);
+            matrix.PreTranslate(-boundsHeight, -boundsWidth);
+            break;
+        }
+        case -90: { // get matrix by -90 degree
+            matrix.PreRotate(degree);
+            matrix.PreTranslate(-boundsHeight, 0);
+            break;
+        }
+        default:
+            break;
+    }
+    return matrix;
+}
+
 void RSUniRenderUtil::ClearNodeCacheSurface(std::shared_ptr<Drawing::Surface>&& cacheSurface,
     std::shared_ptr<Drawing::Surface>&& cacheCompletedSurface,
     uint32_t cacheSurfaceThreadIndex, uint32_t completedSurfaceThreadIndex)
