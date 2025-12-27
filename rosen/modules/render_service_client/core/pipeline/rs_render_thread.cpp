@@ -286,6 +286,16 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
     if (renderContext_ == nullptr) {
         renderContext_ = new RenderContext();
         ROSEN_LOGD("Create RenderContext");
+#ifdef ROSEN_IOS
+        auto cleanupTask = [this]() {
+            RSRenderThread::Instance().PostSyncTask([this]() {
+                //release egl source
+                renderContext_->DestroySharedSource();
+            });
+        };
+
+        renderContext_->SetCleanUpHelper(cleanupTask);
+#endif
 #ifdef ROSEN_OHOS
 #ifdef RS_ENABLE_GL
         if (RSSystemProperties::GetGpuApiType() == GpuApiType::OPENGL) {
