@@ -1639,15 +1639,17 @@ public:
      * @param isNodeGroup       Whether to enable group rendering optimization for this node
      * @param isForced          When true, forces group marking ignoring system property checks
      * @param includeProperty   When true, packages node properties with the group
+     * @param colorAdaptive     When true, apply a color adaptive filter to the node group
      */
-    void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
+    void MarkNodeGroup(
+        bool isNodeGroup, bool isForced = true, bool includeProperty = false, bool colorAdaptive = false);
 
     /**
      * @brief Mark node exclude from nodeGroup
      *
      * When node is marked ExcludedFromNodeGroup, it will not cached by renderGroup
      *
-     * @param isExcluded     When true, When node and its subtree will be exluded on renderGroup cache
+     * @param isExcluded     When true, When node and its subtree will be excluded on renderGroup cache
      */
     void ExcludedFromNodeGroup(bool isExcluded);
 

@@ -48,6 +48,7 @@
 #include "property/rs_properties_def.h"
 #include "render/rs_attraction_effect_filter.h"
 #include "render/rs_border_light_shader.h"
+#include "render/rs_color_adaptive_filter.h"
 #include "render/rs_colorful_shadow_filter.h"
 #include "render/rs_distortion_shader_filter.h"
 #include "render/rs_filter.h"
@@ -4948,6 +4949,7 @@ void RSProperties::UpdateForegroundFilter()
         }
     } else if (IsForegroundEffectRadiusValid()) {
         auto foregroundEffectFilter = std::make_shared<RSForegroundEffectFilter>(GetForegroundEffectRadius());
+        foregroundEffectFilter->SetColorPreprocess(GetColorAdaptive());
         if (IS_UNI_RENDER) {
             GetEffect().foregroundFilterCache_ = foregroundEffectFilter;
         } else {
@@ -4979,6 +4981,8 @@ void RSProperties::UpdateForegroundFilter()
         CreateHDRUIBrightnessFilter();
     } else if (GetForegroundNGFilter()) {
         ComposeNGRenderFilter(GetEffect().foregroundFilter_, GetForegroundNGFilter());
+    } else if (GetColorAdaptive()) {
+        GetEffect().foregroundFilterCache_ = std::make_shared<RSColorAdaptiveFilter>();
     }
 }
 
@@ -5216,5 +5220,21 @@ RRect RSProperties::GetRRectForSDF() const
     return sdfRRect;
 }
 
+bool RSProperties::GetColorAdaptive() const
+{
+    if (effect_) {
+        return effect_->colorAdaptive_;
+    }
+    return false;
+}
+
+void RSProperties::SetAdaptive(bool value)
+{
+    GetEffect().colorAdaptive_ = value;
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
 } // namespace Rosen
 } // namespace OHOS

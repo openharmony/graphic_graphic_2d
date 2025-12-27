@@ -869,6 +869,47 @@ HWTEST_F(PropertiesTest, GenerateForegroundFilterTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetColorAdaptiveTest
+ * @tc.desc: verify default color adaptive state
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, GetColorAdaptiveTest, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetColorAdaptive());
+}
+
+/**
+ * @tc.name: SetAdaptiveTest
+ * @tc.desc: verify SetAdaptive updates state and dirty flags
+ * @tc.type: FUNC
+ * @tc.require: issueI9W24N
+ */
+HWTEST_F(PropertiesTest, SetAdaptiveTest, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetAdaptive(true);
+    EXPECT_TRUE(properties.GetColorAdaptive());
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.isDirty_);
+
+    properties.UpdateForegroundFilter();
+    EXPECT_TRUE(properties.GetForegroundFilterCache());
+
+    properties.isDrawn_ = false;
+    properties.filterNeedUpdate_ = false;
+    properties.isDirty_ = false;
+
+    properties.SetAdaptive(false);
+    EXPECT_FALSE(properties.GetColorAdaptive());
+    EXPECT_TRUE(properties.isDrawn_);
+    EXPECT_TRUE(properties.filterNeedUpdate_);
+    EXPECT_TRUE(properties.isDirty_);
+}
+
+/**
  * @tc.name: CheckEmptyBoundsTest
  * @tc.desc: test results of CheckEmptyBounds
  * @tc.type: FUNC

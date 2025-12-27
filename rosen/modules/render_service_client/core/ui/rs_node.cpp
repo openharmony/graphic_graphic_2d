@@ -1961,16 +1961,6 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval)
 {
-    if (placeholder == ColorPlaceholder::NONE || ColorPickStrategyType::NONE == strategy) {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COLOR_PICKER);
-        if (modifier != nullptr) {
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY);
-        }
-        return;
-    }
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerPlaceholder>(placeholder);
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
@@ -3277,9 +3267,11 @@ void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUICon
     }
 }
 
-void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty)
+void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty, bool colorAdaptive)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+        &ModifierNG::RSForegroundFilterModifier::SetColorAdaptive>(colorAdaptive);
     if (isNodeGroup_ == isNodeGroup) {
         return;
     }

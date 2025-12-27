@@ -17,8 +17,10 @@
 #include "common/rs_common_def.h"
 #include "common/rs_optional_trace.h"
 #include "draw/surface.h"
+#include "effect/image_filter.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "platform/common/rs_log.h"
+#include "render/rs_color_adaptive_filter.h"
 #ifdef USE_M133_SKIA
 #include "src/core/SkChecksum.h"
 #else
@@ -263,6 +265,12 @@ void RSForegroundEffectFilter::ApplyForegroundEffect(Drawing::Canvas& canvas,
 void RSForegroundEffectFilter::DrawImageRect(Drawing::Canvas& canvas, const std::shared_ptr<Drawing::Image>& image,
     const Drawing::Rect& src, const Drawing::Rect& dst) const
 {
+    if (colorPreprocess_) {
+        // filter color and then apply foreground effect
+        auto filteredImage = RSColorAdaptiveFilter::ApplyFilter(canvas.GetGPUContext(), image, grayScale_);
+        ApplyForegroundEffect(canvas, filteredImage, ForegroundEffectParam(src, dst));
+        return;
+    }
     ForegroundEffectParam param = ForegroundEffectParam(src, dst);
     ApplyForegroundEffect(canvas, image, param);
 }
