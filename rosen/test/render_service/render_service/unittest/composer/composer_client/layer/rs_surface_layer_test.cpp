@@ -71,7 +71,7 @@ void RSSurfaceLayerTest::SetUpTestCase()
 
 void RSSurfaceLayerTest::TearDownTestCase()
 {
-    for(auto [screenId, agent]: sMgr->rsRenderComposerAgentMap) {
+    for(auto [screenId, agent]: sMgr->rsRenderComposerAgentMap_) {
         agent->rsRenderComposer_->uniRenderEngine_ = nullptr;
     }
 }
