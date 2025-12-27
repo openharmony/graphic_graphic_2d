@@ -53,6 +53,7 @@ ohos_fuzztest("TextFlipEffectFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image_native",
   ]
   part_name = "graphic_2d"
   subsystem_name = "graphic"

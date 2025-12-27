@@ -1348,6 +1348,5 @@ HWTEST_F(OH_Drawing_TypographyTest, TypographyGetDumpInfoTest, TestSize.Level0)
     typographyImpl->paragraph_.swap(paragraphTemp);
     EXPECT_EQ(typography->GetDumpInfo(), g_expectDumpInfo);
 }
-
 } // namespace Rosen
 } // namespace OHOS

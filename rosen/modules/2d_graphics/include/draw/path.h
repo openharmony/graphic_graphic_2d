@@ -425,6 +425,12 @@ public:
     int CountVerbs() const;
 
     /**
+     * @brief Gets the number of points in the current path object.
+     * @return The number of points in the current path object. If there are no points, it returns 0.
+     */
+    int CountPoints() const;
+
+    /**
      * @brief Gets the point at the specified index.
      * @param index The index of the point to get.
      * @return The point at the specified index. If the index is out of range, it returns a Point with coordinates

@@ -240,6 +240,11 @@ int Path::CountVerbs() const
     return impl_->CountVerbs();
 }
 
+int Path::CountPoints() const
+{
+    return impl_->CountPoints();
+}
+
 Point Path::GetPoint(int index) const
 {
     return impl_->GetPoint(index);

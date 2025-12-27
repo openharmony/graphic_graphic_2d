@@ -80,6 +80,7 @@ ohos_source_set("text_ndk") {
       "c_utils:utils",
       "hilog:libhilog",
       "icu:shared_icuuc",
+      "image_framework:image_native",
     ]
   } else {
     cflags_cc = [ "-std=c++17" ]
