@@ -842,11 +842,11 @@ bool RSImage::Marshalling(Parcel& parcel) const
     std::lock_guard<std::mutex> lock(mutex_);
     auto image = image_;
     auto compressData = compressData_;
+    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
     if (image && image->IsTextureBacked()) {
         image = nullptr;
         ROSEN_LOGE("RSImage::Marshalling skip texture image");
     }
-    RS_PROFILER_MARSHAL_DRAWINGIMAGE(image, compressData);
     uint32_t versionId = pixelMap_ == nullptr ? 0 : pixelMap_->GetVersionId();
     bool success = RSMarshallingHelper::Marshalling(parcel, uniqueId_) &&
                    RSMarshallingHelper::Marshalling(parcel, static_cast<int>(srcRect_.width_)) &&
