@@ -791,6 +791,7 @@ void RSBaseRenderEngine::DrawImage(RSPaintFilterCanvas& canvas, BufferDrawParam&
 #else
         params.paint.SetShaderEffect(imageShader);
         ColorSpaceConvertor(imageShader, params, videoInfo.parameter_, canvas.GetHDRProperties());
+#endif
     }
     canvas.AttachBrush(params.paint);
     canvas.DrawRect(params.dstRect);

@@ -95,9 +95,9 @@ void RSDrawFrame::RenderFrame()
     unirenderInstance_.UpdateScreenNodeScreenId();
     RSMainThread::Instance()->ProcessUiCaptureTasks();
 #ifdef HETERO_HDR_ENABLE
-#include "rs_hetero_hdr_manager.h"
-#endif
     RSHeteroHDRManager::Instance().PostHDRSubTasks();
+#endif
+    
 #ifdef MHC_ENABLE
     RSMhcManager::Instance().UpdateFrameId();
 #endif
