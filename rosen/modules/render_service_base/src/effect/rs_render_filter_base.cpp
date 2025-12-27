@@ -102,6 +102,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGRenderMagnifierFilter>();
         }
     },
+    {RSNGEffectType::SDF_EDGE_LIGHT, [] {
+            return std::make_shared<RSNGRenderSDFEdgeLightFilter>();
+        }
+    },
 };
 
 using FilterGetSnapshotRect = std::function<RectF(std::shared_ptr<RSNGRenderFilterBase>, RectF)>;

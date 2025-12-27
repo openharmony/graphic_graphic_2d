@@ -120,6 +120,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
             return std::make_shared<RSNGMagnifierFilter>();
         }
     },
+    {RSNGEffectType::SDF_EDGE_LIGHT, [] {
+            return std::make_shared<RSNGSDFEdgeLightFilter>();
+        }
+    },
 };
 
 namespace {

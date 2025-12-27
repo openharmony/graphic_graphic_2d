@@ -201,3 +201,17 @@ DECLARE_FILTER(Magnifier, MAGNIFIER,
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor1),
     ADD_PROPERTY_TAG(Magnifier, OuterContourColor2)
 );
+
+DECLARE_FILTER(SDFEdgeLight, SDF_EDGE_LIGHT,
+    ADD_PROPERTY_TAG(SDFEdgeLight, SpreadFactor),
+    ADD_PROPERTY_TAG(SDFEdgeLight, BloomIntensityCutoff),
+    ADD_PROPERTY_TAG(SDFEdgeLight, LightMaxIntensity),
+    ADD_PROPERTY_TAG(SDFEdgeLight, MaxBloomIntensity),
+    ADD_PROPERTY_TAG(SDFEdgeLight, BloomFalloffPow),
+    ADD_PROPERTY_TAG(SDFEdgeLight, MinBorderWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, MaxBorderWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, InnerBorderBloomWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, OuterBorderBloomWidth),
+    ADD_PROPERTY_TAG(SDFEdgeLight, SDFImage),
+    ADD_PROPERTY_TAG(SDFEdgeLight, LightMask)
+);

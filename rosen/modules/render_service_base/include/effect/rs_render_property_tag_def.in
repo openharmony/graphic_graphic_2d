@@ -371,6 +371,18 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, DistortStrength, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CircleFlowlight, BlendGradient, float);
 DECLARE_NONANIMATABLE_PROPERTY_TAG(CircleFlowlight, Mask, MASK_PTR);
 
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SpreadFactor, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, BloomIntensityCutoff, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, LightMaxIntensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, MaxBloomIntensity, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, BloomFalloffPow, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, MinBorderWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, MaxBorderWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, InnerBorderBloomWidth, float);
+DECLARE_ANIMATABLE_PROPERTY_TAG(SDFEdgeLight, OuterBorderBloomWidth, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, SDFImage, std::shared_ptr<Media::PixelMap>);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(SDFEdgeLight, LightMask, MASK_PTR);
+
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint0, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint1, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(GridWarp, GridPoint2, Vector2f);
