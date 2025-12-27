@@ -22,6 +22,9 @@
 #include "draw/color.h"
 #include "rs_trace.h"
 
+#include "parameter.h"
+#include "parameters.h"
+
 #include "common/rs_background_thread.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "feature/hdr/rs_hdr_util.h"
@@ -676,9 +679,8 @@ void RSSurfaceCaptureTaskParallel::AddBlur(
             return;
         }
         callback->OnSurfaceCapture(id, captureConfig, pixelmap.get());
-        RS_LOGI("RSSurfaceCaptureTaskParallel::Capture capture success nodeId:[%{public}]" PRIu64
-            "], pixelMap width: %{public}d, height: %{public}d",
-            id, pixelmap->GetWidth(), pixelmap->GetHeight());
+		
+        RS_LOGI("RSSurfaceCaptureTaskParallel::Capture capture success nodeId:[%{public}" PRIu64 "], pixelMap width: %{public}d, height: %{public}d",id, pixelmap->GetWidth(), pixelmap->GetHeight());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(
             std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
@@ -839,9 +841,7 @@ bool RSSurfaceCaptureTaskParallel::PixelMapCopy(std::unique_ptr<Media::PixelMap>
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() / 2) |
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() - 1, pixelmap->GetHeight() / 2) |
                     PixelMapSamplingDump(pixelmap, pixelmap->GetWidth() / 2, pixelmap->GetHeight() - 1);
-    if ((pixelDump & ALPHA_MASK) == 0) {
-        RS_LOGW("RSSurfaceCaptureTaskParallel::PixelMapCopy pixelmap is transparent");
-    }
+    
     pixelmap->SetMemoryName("RSSurfaceCaptureForClient");
     return true;
 }

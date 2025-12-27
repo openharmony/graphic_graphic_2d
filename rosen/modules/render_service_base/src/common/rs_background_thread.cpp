@@ -84,7 +84,7 @@ std::shared_ptr<Drawing::GPUContext> RSBackgroundThread::GetShareGPUContext() co
     return gpuContext_;
 }
 
-void RSBackgroundThread::HoldSurface(std::shared_ptr<Drawing::Surface> surface) const
+void RSBackgroundThread::HoldSurface(std::shared_ptr<Drawing::Surface> surface) 
 {
     surfaceHolder_ = surface;
 }
