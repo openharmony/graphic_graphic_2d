@@ -109,6 +109,7 @@ public:
             case RSNGEffectType::DISTORT_CHROMA : return "DistortChroma";
             case RSNGEffectType::DUPOLI_NOISE_MASK : return "DupoliNoiseMask";
             case RSNGEffectType::NOISY_FRAME_GRADIENT_MASK: return "NoisyFrameGradientMask";
+            case RSNGEffectType::MAGNIFIER: return "Magnifier";
             default: return "UNKNOWN";
         }
     }
@@ -161,6 +162,9 @@ private:
         const std::string& desc, const Matrix3f& value);
 
     static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
+        const std::string& desc, const RSColor& value);
+
+    static void UpdateVisualEffectParamImpl(Drawing::GEVisualEffect& geFilter,
         const std::string& desc, std::shared_ptr<Drawing::Image> value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, int value);
@@ -192,6 +196,8 @@ private:
     static void CalculatePropTagHashImpl(uint32_t& hash, const Matrix3f& value);
 
     static void CalculatePropTagHashImpl(uint32_t& hash, std::shared_ptr<Drawing::Image> value);
+
+    static void CalculatePropTagHashImpl(uint32_t& hash, const RSColor& value);
 
 #ifdef USE_M133_SKIA
     static constexpr auto hashFunc_ = SkChecksum::Hash32;

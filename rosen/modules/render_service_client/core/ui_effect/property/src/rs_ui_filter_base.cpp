@@ -24,12 +24,13 @@
 #include "ui_effect/filter/include/filter_direction_light_para.h"
 #include "ui_effect/filter/include/filter_dispersion_para.h"
 #include "ui_effect/filter/include/filter_displacement_distort_para.h"
+#include "ui_effect/filter/include/filter_edge_light_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_blur_para.h"
 #include "ui_effect/filter/include/filter_frosted_glass_para.h"
 #include "ui_effect/filter/include/filter_gasify_blur_para.h"
 #include "ui_effect/filter/include/filter_gasify_para.h"
 #include "ui_effect/filter/include/filter_gasify_scale_twist_para.h"
-#include "ui_effect/filter/include/filter_edge_light_para.h"
+#include "ui_effect/filter/include/filter_magnifier_para.h"
 #include "ui_effect/filter/include/filter_mask_transition_para.h"
 #include "ui_effect/filter/include/filter_variable_radius_blur_para.h"
 
@@ -113,6 +114,10 @@ static std::unordered_map<RSNGEffectType, FilterCreator> creatorLUT = {
     },
     {RSNGEffectType::FROSTED_GLASS_BLUR, [] {
             return std::make_shared<RSNGFrostedGlassBlurFilter>();
+        }
+    },
+    {RSNGEffectType::MAGNIFIER, [] {
+            return std::make_shared<RSNGMagnifierFilter>();
         }
     },
 };
@@ -369,6 +374,35 @@ std::shared_ptr<RSNGFilterBase> ConvertFrostedGlassBlurPara(std::shared_ptr<Filt
     frostedGlassBlurFilter->Setter<FrostedGlassBlurRefractOutPxTag>(frostedGlassBlurFilterPara->GetRefractOutPx());
     return frostedGlassBlurFilter;
 }
+
+std::shared_ptr<RSNGFilterBase> ConvertMagnifierPara(std::shared_ptr<FilterPara> filterPara)
+{
+    auto filter = RSNGFilterBase::Create(RSNGEffectType::MAGNIFIER);
+    if (filter == nullptr || filterPara == nullptr) {
+        ROSEN_LOGE("ConvertMagnifierPara filter or filterPara is nullptr");
+        return nullptr;
+    }
+    auto magnifierFilter = std::static_pointer_cast<RSNGMagnifierFilter>(filter);
+    auto magnifierFilterPara = std::static_pointer_cast<MagnifierPara>(filterPara);
+    magnifierFilter->Setter<MagnifierFactorTag>(magnifierFilterPara->GetFactor());
+    magnifierFilter->Setter<MagnifierWidthTag>(magnifierFilterPara->GetWidth());
+    magnifierFilter->Setter<MagnifierHeightTag>(magnifierFilterPara->GetHeight());
+    magnifierFilter->Setter<MagnifierCornerRadiusTag>(magnifierFilterPara->GetCornerRadius());
+    magnifierFilter->Setter<MagnifierBorderWidthTag>(magnifierFilterPara->GetBorderWidth());
+    magnifierFilter->Setter<MagnifierOffsetXTag>(magnifierFilterPara->GetOffsetX());
+    magnifierFilter->Setter<MagnifierOffsetYTag>(magnifierFilterPara->GetOffsetY());
+    magnifierFilter->Setter<MagnifierZoomOffsetXTag>(magnifierFilterPara->GetZoomOffsetX());
+    magnifierFilter->Setter<MagnifierZoomOffsetYTag>(magnifierFilterPara->GetZoomOffsetY());
+    magnifierFilter->Setter<MagnifierShadowOffsetXTag>(magnifierFilterPara->GetShadowOffsetX());
+    magnifierFilter->Setter<MagnifierShadowOffsetYTag>(magnifierFilterPara->GetShadowOffsetY());
+    magnifierFilter->Setter<MagnifierShadowSizeTag>(magnifierFilterPara->GetShadowSize());
+    magnifierFilter->Setter<MagnifierShadowStrengthTag>(magnifierFilterPara->GetShadowStrength());
+    magnifierFilter->Setter<MagnifierGradientMaskColor1Tag>(RSColor(magnifierFilterPara->GetGradientMaskColor1()));
+    magnifierFilter->Setter<MagnifierGradientMaskColor2Tag>(RSColor(magnifierFilterPara->GetGradientMaskColor2()));
+    magnifierFilter->Setter<MagnifierOuterContourColor1Tag>(RSColor(magnifierFilterPara->GetOuterContourColor1()));
+    magnifierFilter->Setter<MagnifierOuterContourColor2Tag>(RSColor(magnifierFilterPara->GetOuterContourColor2()));
+    return magnifierFilter;
+}
 } // namespace
 
 static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = {
@@ -386,6 +420,7 @@ static std::unordered_map<FilterPara::ParaType, FilterConvertor> convertorLUT = 
     { FilterPara::ParaType::GASIFY, ConvertGasifyPara },
     { FilterPara::ParaType::FROSTED_GLASS, ConvertFrostedGlassPara },
     { FilterPara::ParaType::FROSTED_GLASS_BLUR, ConvertFrostedGlassBlurPara },
+    { FilterPara::ParaType::MAGNIFIER, ConvertMagnifierPara },
 };
 
 std::shared_ptr<RSNGFilterBase> RSNGFilterBase::Create(RSNGEffectType type)
