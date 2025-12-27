@@ -3180,13 +3180,6 @@ void RSUniRenderVisitor::CollectEffectInfo(RSRenderNode& node)
     }
 }
 
-void RSUniRenderVisitor::CollectUnionInfo(RSRenderNode& node)
-{
-    if (curUnionNode_ && node.GetRenderProperties().GetUseUnion() && node.ShouldPaint()) {
-        curUnionNode_->UpdateVisibleUnionChildren(node);
-    }
-}
-
 void RSUniRenderVisitor::DisableOccludedHwcNodeInSkippedSubTree(const RSRenderNode& node) const
 {
     if (curSurfaceNode_ == nullptr || curSurfaceNode_->GetId() != node.GetId()) {
@@ -3251,7 +3244,6 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         node.SetGlobalAlpha(curAlpha_);
     }
     CollectEffectInfo(node);
-    CollectUnionInfo(node);
     node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
 
     if (isDrawingCacheEnabled_) {

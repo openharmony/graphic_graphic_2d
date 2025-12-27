@@ -54,24 +54,27 @@ void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visit
     visitor->QuickPrepareUnionRenderNode(*this);
 }
 
-void RSUnionRenderNode::UpdateVisibleUnionChildren(RSRenderNode& childNode)
+void RSUnionRenderNode::AddUnionChild(NodeId id)
 {
-    if (childNode.GetRenderProperties().GetUseUnion() && !childNode.GetOldDirtyInSurface().IsEmpty()) {
-        visibleUnionChildren_.emplace(childNode.GetId());
-    }
+    unionChildren_.emplace(id);
 }
 
-void RSUnionRenderNode::ResetVisibleUnionChildren()
+void RSUnionRenderNode::RemoveUnionChild(NodeId id)
 {
-    visibleUnionChildren_.clear();
+    unionChildren_.erase(id);
+}
+
+void RSUnionRenderNode::ResetUnionChildren()
+{
+    unionChildren_.clear();
 }
 
 void RSUnionRenderNode::ProcessSDFShape()
 {
-    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, visibleUnionChildren_[%lu], UnionSpacing[%f]",
-        visibleUnionChildren_.size(), GetRenderProperties().GetUnionSpacing());
+    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f]",
+        unionChildren_.size(), GetRenderProperties().GetUnionSpacing());
     std::shared_ptr<RSNGRenderShapeBase> root;
-    if (visibleUnionChildren_.empty()) {
+    if (unionChildren_.empty()) {
         if (GetRenderProperties().GetSDFShape() &&
             GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
             return;
@@ -172,11 +175,48 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape
     return childShape;
 }
 
-void RSUnionRenderNode::ResetChildRelevantFlags()
+void RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(const std::shared_ptr<RSRenderNode> node)
 {
-    visibleUnionChildren_.clear();
-    RSRenderNode::ResetChildRelevantFlags();
+    if (!node->GetRenderProperties().GetUseUnion()) {
+        return;
+    }
+    auto unionNode = FindClosestUnionAncestor(node);
+    if (!unionNode) {
+        ROSEN_LOGD("RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged: invalid unionNode");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged node[%llu], unionNode[%llu], "
+        "isOnTheTree[%d]", node->GetId(), unionNode->GetId(), node->IsOnTheTree());
+    node->IsOnTheTree() ? unionNode->AddUnionChild(node->GetId()) : unionNode->RemoveUnionChild(node->GetId());
 }
 
+void RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(const std::shared_ptr<RSRenderNode> node)
+{
+    if (!node->IsOnTheTree()) {
+        return;
+    }
+    auto unionNode = FindClosestUnionAncestor(node);
+    if (!unionNode) {
+        ROSEN_LOGD("RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers: invalid unionNode");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers node[%llu], unionNode[%llu], "
+        "useUnion[%d]", node->GetId(), unionNode->GetId(), node->GetRenderProperties().GetUseUnion());
+    node->GetRenderProperties().GetUseUnion() ?
+        unionNode->AddUnionChild(node->GetId()) : unionNode->RemoveUnionChild(node->GetId());
+}
+
+std::shared_ptr<RSUnionRenderNode> RSUnionRenderNode::FindClosestUnionAncestor(
+    const std::shared_ptr<RSRenderNode> node)
+{
+    std::shared_ptr<RSRenderNode> curNode = node;
+    while (auto parent = curNode->GetParent().lock()) {
+        if (parent->IsInstanceOf<RSUnionRenderNode>()) {
+            return std::static_pointer_cast<RSUnionRenderNode>(parent);
+        }
+        curNode = parent;
+    }
+    return nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

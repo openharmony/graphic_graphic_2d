@@ -657,23 +657,23 @@ HWTEST_F(RSRenderNodeTest, CalVisibleFilterRectTest, TestSize.Level1)
  */
 HWTEST_F(RSRenderNodeTest, OnTreeStateChangedTest, TestSize.Level1)
 {
-    RSRenderNode node(id, context); // isOnTheTree_ false
+    std::shared_ptr<RSRenderNode> node = std::make_shared<RSRenderNode>(id, context); // isOnTheTree_ false
     std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(floatData[0], floatData[1]);
-    node.renderProperties_.GetEffect().filter_ = filter;
-    node.OnTreeStateChanged();
-    EXPECT_FALSE(node.isOnTheTree_);
-    EXPECT_TRUE(node.HasBlurFilter());
+    node->renderProperties_.GetEffect().filter_ = filter;
+    node->OnTreeStateChanged();
+    EXPECT_FALSE(node->isOnTheTree_);
+    EXPECT_TRUE(node->HasBlurFilter());
 
     std::shared_ptr<RSRenderNode> inNode = std::make_shared<RSBaseRenderNode>(id, context);
     std::shared_ptr<RSRenderNode> outNode = std::make_shared<RSBaseRenderNode>(id + 1, context);
     auto sharedTransitionParam = std::make_shared<SharedTransitionParam>(inNode, outNode, true);
-    node.SetSharedTransitionParam(sharedTransitionParam);
-    node.OnTreeStateChanged();
-    EXPECT_FALSE(node.sharedTransitionParam_->paired_);
+    node->SetSharedTransitionParam(sharedTransitionParam);
+    node->OnTreeStateChanged();
+    EXPECT_FALSE(node->sharedTransitionParam_->paired_);
 
-    node.isOnTheTree_ = true;
-    node.OnTreeStateChanged();
-    EXPECT_TRUE(node.IsDirty());
+    node->isOnTheTree_ = true;
+    node->OnTreeStateChanged();
+    EXPECT_TRUE(node->IsDirty());
 
     auto canvasDrawingNode = std::make_shared<RSCanvasDrawingRenderNode>(1);
     canvasDrawingNode->isNeverOnTree_ = false;

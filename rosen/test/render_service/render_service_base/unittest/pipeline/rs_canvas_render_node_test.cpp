@@ -259,13 +259,13 @@ HWTEST_F(RSCanvasRenderNodeTest, OnTreeStateChanged, TestSize.Level1)
 {
     NodeId nodeId = 0;
     std::weak_ptr<RSContext> context;
-    RSCanvasRenderNode rsCanvasRenderNode(nodeId, context);
-    rsCanvasRenderNode.SetCacheType(CacheType::CONTENT);
-    EXPECT_EQ(rsCanvasRenderNode.IsOnTheTree(), false);
-    EXPECT_FALSE(rsCanvasRenderNode.needClearSurface_);
-    rsCanvasRenderNode.OnTreeStateChanged();
-    EXPECT_EQ(rsCanvasRenderNode.GetCacheType(), CacheType::NONE);
-    EXPECT_TRUE(rsCanvasRenderNode.needClearSurface_);
+    std::shared_ptr<RSCanvasRenderNode> rsCanvasRenderNode = std::make_shared<RSCanvasRenderNode>(nodeId, context);
+    rsCanvasRenderNode->SetCacheType(CacheType::CONTENT);
+    EXPECT_EQ(rsCanvasRenderNode->IsOnTheTree(), false);
+    EXPECT_FALSE(rsCanvasRenderNode->needClearSurface_);
+    rsCanvasRenderNode->OnTreeStateChanged();
+    EXPECT_EQ(rsCanvasRenderNode->GetCacheType(), CacheType::NONE);
+    EXPECT_TRUE(rsCanvasRenderNode->needClearSurface_);
 }
 
 /**
