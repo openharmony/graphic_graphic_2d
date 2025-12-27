@@ -69,8 +69,8 @@ public:
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return renderService_.GetHgmContext(); }
 
     // Dfx
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
-    void FpsDump(std::string& dumpString, std::string& arg);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
+    void FpsDump(std::string& dumpString, const std::string& arg);
 
 private:
     RSRenderService& renderService_;
