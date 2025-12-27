@@ -139,30 +139,44 @@ void HgmConfigCallbackManager::RegisterXComponentExpectedFrameRateCallback(pid_t
     }
 }
 
-void HgmConfigCallbackManager::SyncHgmConfigChangeCallback()
+void HgmConfigCallbackManager::SyncHgmExtraPendingCallback(
+    std::unordered_map<pid_t, sptr<RSIHgmConfigChangeCallback>>& callbacks, pid_t extraSyncPid)
+{
+    if (extraSyncPid > DEFAULT_PID) {
+        if (auto iter = pendingAnimDynamicCfgCallbacks_.find(extraSyncPid);
+            iter != pendingAnimDynamicCfgCallbacks_.end()) {
+            callbacks.insert_or_assign(extraSyncPid, std::move(iter->second));
+            pendingAnimDynamicCfgCallbacks_.erase(iter);
+        }
+    }
+}
+
+void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(pid_t extraSyncPid)
 {
     pendingAnimDynamicCfgCallbacks_ = animDynamicCfgCallbacks_;
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
         return;
     }
-    SyncHgmConfigChangeCallback(frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp());
+    SyncHgmConfigChangeCallback(frameRateMgr->GetMultiAppStrategy().GetForegroundPidApp(), extraSyncPid);
 }
 
 void HgmConfigCallbackManager::SyncHgmConfigChangeCallback(
-    const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids)
+    const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& pids, pid_t extraSyncPid)
 {
     if (pendingAnimDynamicCfgCallbacks_.empty()) {
         return;
     }
     decltype(pendingAnimDynamicCfgCallbacks_) callbacks;
     for (const auto& [pid, _] : pids) {
-        if (pendingAnimDynamicCfgCallbacks_.find(pid) == pendingAnimDynamicCfgCallbacks_.end()) {
-            continue;
+        if (auto iter = pendingAnimDynamicCfgCallbacks_.find(pid);
+            iter != pendingAnimDynamicCfgCallbacks_.end()) {
+            callbacks.insert_or_assign(pid, std::move(iter->second));
+            pendingAnimDynamicCfgCallbacks_.erase(iter);
         }
-        callbacks[pid] = pendingAnimDynamicCfgCallbacks_[pid];
-        pendingAnimDynamicCfgCallbacks_.erase(pid);
     }
+    SyncHgmExtraPendingCallback(callbacks, extraSyncPid);
+
     if (callbacks.empty()) {
         return;
     }
