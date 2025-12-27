@@ -190,6 +190,11 @@ public:
         const std::vector<NodeId>& nodeIdList, bool isSystemCalling);
     ErrCode ForceRefreshOneFrameWithNextVSync();
     ErrCode SetAppWindowNum(uint32_t num);
+
+    void AddTransactionDataPidInfo(pid_t remotePid);
+    void AddConnection(sptr<IRemoteObject>& token, sptr<RSIClientToRenderConnection> connectToRenderConnection);
+    sptr<RSIClientToRenderConnection> FindClientToRenderConnection(const sptr<IRemoteObject>& token);
+
 private:
     std::shared_ptr<RSRenderPipeline>& rsRenderPipeline_;
 };

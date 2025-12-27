@@ -15,17 +15,14 @@
 
 #include "rs_render_single_process_manager.h"
 
-#include "dfx/rs_service_dump_manager.h"
 #include "dfx/rs_process_dump_manager.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "render_server/transaction/rs_render_to_service_connection.h"
 #include "rs_composer_to_render_connection.h"
 #include "rs_render_pipeline.h"
 
-#include "pipeline/main_thread/rs_main_thread.h"
 #include "rs_render_composer_manager.h"
 #include "screen_manager/screen_types.h"
-#include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_connect_to_render_process.h"
 
 #undef LOG_TAG
@@ -57,8 +54,7 @@ RSSingleRenderProcessManager::RSSingleRenderProcessManager(RSRenderService& rend
     composerToRenderConnection_ = sptr<RSComposerToRenderConnection>::MakeSptr();
 
     // step3:
-    connectToRenderConnection_ = sptr<RSIConnectToRenderProcess>(
-        new RSConnectToRenderProcess(renderService.mainThread_, renderPipelineAgent));
+    connectToRenderConnection_ = sptr<RSConnectToRenderProcess>::MakeSptr(renderPipelineAgent);
 }
 
 sptr<IRemoteObject> RSSingleRenderProcessManager::OnScreenConnected(ScreenId screenId,
