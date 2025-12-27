@@ -252,7 +252,7 @@ bool HgmProcessToServiceInfo::MarshallingEnergyData(MessageParcel* message) cons
 bool HgmProcessToServiceInfo::MarshallingVRateData(MessageParcel* message) const
 {
     if (vRateMap.size() > MAX_DATA_SIZE) {
-        RS_LOGE("HgmProcessToServiceInfo Marshalling VRateData Failed size:%{public}zu", vRateMap.size());
+        HGM_LOGE("Marshalling VRateData Failed size:%{public}zu", vRateMap.size());
         if (!message->WriteBool(false)) {
             return false;
         }
