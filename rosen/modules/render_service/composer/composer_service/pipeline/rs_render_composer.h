@@ -75,8 +75,8 @@ protected:
     void OnHwcDead();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void SurfaceDump(std::string& dumpString);
-    void FpsDump(std::string& dumpString, std::string& layerName);
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
+    void FpsDump(std::string& dumpString, const std::string& layerName);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
     void ClearFpsDump(std::string& dumpString, std::string& layerName);
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);

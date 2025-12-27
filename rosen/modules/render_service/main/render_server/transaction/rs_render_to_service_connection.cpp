@@ -14,6 +14,7 @@
  */
 
 #include "transaction/rs_render_to_service_connection.h"
+
 #include "dfx/rs_service_dump_manager.h"
 
 #undef LOG_TAG
@@ -22,10 +23,10 @@
 namespace OHOS {
 namespace Rosen {
 RSRenderToServiceConnection::RSRenderToServiceConnection(sptr<RSRenderServiceAgent> renderServiceAgent,
-    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent) :
-    renderServiceAgent_(renderServiceAgent),
-    renderProcessManagerAgent_(renderProcessManagerAgent),
-    screenManagerAgent_(screenManagerAgent) {}
+    sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent, sptr<RSScreenManagerAgent> screenManagerAgent)
+    : renderServiceAgent_(renderServiceAgent),
+      renderProcessManagerAgent_(renderProcessManagerAgent),
+      screenManagerAgent_(screenManagerAgent) {}
 
 void RSRenderToServiceConnection::ReplyDumpResultToService(std::string& dumpString)
 {
@@ -33,11 +34,10 @@ void RSRenderToServiceConnection::ReplyDumpResultToService(std::string& dumpStri
 }
 
 sptr<HgmServiceToProcessInfo> RSRenderToServiceConnection::NotifyRpHgmFrameRate(uint64_t timestamp,
-    uint64_t vsyncId, const std::unordered_set<ScreenId>& screenIds,
-    const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
+    uint64_t vsyncId, const sptr<HgmProcessToServiceInfo>& processToServiceInfo)
 {
     sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
-    renderServiceAgent_->ProcessHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo, serviceToProcessInfo);
+    renderServiceAgent_->ProcessHgmFrameRate(timestamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     return serviceToProcessInfo;
 }
 

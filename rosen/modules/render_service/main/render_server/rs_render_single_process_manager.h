@@ -21,9 +21,9 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderService;
-class RSSingleRenderProcessManager : public RSRenderProcessManager {
+class RSSingleRenderProcessManager final : public RSRenderProcessManager {
 public:
-    RSSingleRenderProcessManager(RSRenderService& renderService);
+    explicit RSSingleRenderProcessManager(RSRenderService& renderService);
     ~RSSingleRenderProcessManager() noexcept override = default;
 
     sptr<IRemoteObject> OnScreenConnected(ScreenId id,

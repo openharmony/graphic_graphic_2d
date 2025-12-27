@@ -245,7 +245,7 @@ void RSRenderComposerAgent::SurfaceDump(std::string& dumpString)
     ).wait();
 }
 
-void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
     if (rsRenderComposer_ == nullptr) {
         return;
@@ -262,7 +262,7 @@ void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& 
     ).wait();
 }
 
-void RSRenderComposerAgent::FpsDump(std::string& dumpString, std::string& layerName)
+void RSRenderComposerAgent::FpsDump(std::string& dumpString, const std::string& layerName)
 {
     if (rsRenderComposer_ == nullptr) {
         return;

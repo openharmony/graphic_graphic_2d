@@ -24,7 +24,7 @@ namespace OHOS::Rosen {
 class RSRenderComposerManager {
 public:
     RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler,
-        sptr<RSVsyncManagerAgent> rsVsyncManagerAgent);
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     ~RSRenderComposerManager() = default;
 
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
@@ -36,8 +36,8 @@ public:
     void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
     void SurfaceDump(std::string& dumpString);
-    void FpsDump(std::string& dumpString, std::string& arg);
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
+    void FpsDump(std::string& dumpString, const std::string& arg);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
     void ClearFpsDump(std::string& dumpString, std::string& arg);
     void HitchsDump(std::string& dumpString, std::string& arg);
     void RefreshRateCounts(std::string& dumpString);

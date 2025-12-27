@@ -85,31 +85,40 @@ private:
         RSRenderService& renderService_;
     };
 
-    int Dump(int fd, const std::vector<std::u16string>& args) override;
-    void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
-
+    // IPC related
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
-    void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
+    // Initialization related
     void InitCCMConfig();
-
     void CoreComponentsInit();
+    void VsyncComponentInit();
     void HgmInit();
     void FeatureComponentInit();
-    void VsyncComponentInit();
     void RenderProcessManagerInit();
     bool SAMgrRegister();
 
+    // VSync related
+    DVSyncFeatureParam InitDVSyncParams();
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
-    void FpsDump(std::string& dumpString, std::string& arg);
+
+    // Dfx related
+    int Dump(int fd, const std::vector<std::u16string>& args) override;
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
+    void FpsDump(std::string& dumpString, const std::string& arg);
+
+    // Hgm related
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+
     sptr<RSScreenManager> screenManager_ = nullptr;
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
+    std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
+    std::shared_ptr<HgmContext> hgmContext_ = nullptr;
+    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
+
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncSampler> vsyncSampler_ = nullptr;
     sptr<VSyncController> rsVSyncController_ = nullptr;
@@ -117,9 +126,6 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
-    std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
-    std::shared_ptr<HgmContext> hgmContext_ = nullptr;
-    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
 
     // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
@@ -134,7 +140,6 @@ private:
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
-
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif
