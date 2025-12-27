@@ -33,7 +33,6 @@ private:
 int RSRenderServiceStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
-    auto interfaceToken = data.ReadInterfaceToken();
     if (auto interfaceToken = data.ReadInterfaceToken();
         interfaceToken != RSIRenderService::GetDescriptor()) {
         RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
