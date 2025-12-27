@@ -24,6 +24,7 @@
 #include "draw/color.h"
 #include "feature/round_corner_display/rs_round_corner_display.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
+#include "feature_cfg/feature_param/performance_feature/hwc_param.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "modifier_ng/foreground/rs_env_foreground_color_render_modifier.h"
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
@@ -290,6 +291,10 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect002, TestSize.Level2)
     info.width = 0.f;
     info.height = 1.f;
     rsUniHwcVisitor->uniRenderVisitor_.curScreenNode_->SetScreenInfo(info);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
+
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
     rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
     ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 0);
 }
@@ -727,6 +732,39 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_003, TestSize.Level2)
     childNode->SetIsOnTheTree(false);
     ASSERT_FALSE(childNode->IsOnTheTree());
     surfaceNode->AddChildHardwareEnabledNode(childNode);
+    displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+
+    rsUniHwcVisitor->UpdateHwcNodeEnable();
+}
+
+/**
+ * @tc.name: UpdateHwcNodeEnable_004
+ * @tc.desc: Test UpdateHwcNodeEnable when hwcNodePtr is anco node.
+ * @tc.type: FUNC
+ * @tc.require: issueIAJY2P
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnable_004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+
+    NodeId screenNodeId = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(screenNodeId, 0, rsContext->weak_from_this());
+    auto hwcNodePtr = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNodePtr, nullptr);
+    hwcNodePtr->SetAncoFlags(static_cast<uint32_t>(AncoFlags::IS_ANCO_NODE));
+    hwcNodePtr->SetHardwareForcedDisabledState(false);
+    hwcNodePtr->SetIsOnTheTree(true);
+    ASSERT_TRUE(hwcNodePtr->IsOnTheTree());
+    surfaceNode->AddChildHardwareEnabledNode(hwcNodePtr);
     displayNode->curMainAndLeashSurfaceNodes_.push_back(surfaceNode);
     rsUniRenderVisitor->curScreenNode_ = displayNode;
 
@@ -1647,6 +1685,9 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateHwcNodeEnableByFilterRect001, TestSize.Level
     surfaceNode2->SetDstRect(rect);
     surfaceNode2->renderProperties_.boundsGeo_->absRect_ = rect;
     surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
+    std::weak_ptr<RSSurfaceRenderNode> surfaceNode3;
+    surfaceNode1->AddChildHardwareEnabledNode(surfaceNode2);
+    surfaceNode1->AddChildHardwareEnabledNode(surfaceNode3);
 
     constexpr NodeId id = 1;
     auto filterNode = std::make_shared<RSRenderNode>(id);
