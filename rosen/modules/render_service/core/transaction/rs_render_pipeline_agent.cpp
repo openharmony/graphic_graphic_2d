@@ -341,9 +341,6 @@ void TakeSurfaceCaptureForUiParallel(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig,
     const Drawing::Rect& specifiedAreaRect)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return;
-    }
 #ifdef RS_ENABLE_GPU
     RS_LOGI("TakeSurfaceCaptureForUiParallel nodeId:[%{public}" PRIu64 "], issync:%{public}s", id,
         captureConfig.isSync ? "true" : "false");
@@ -375,9 +372,6 @@ void TakeSurfaceCaptureForUiParallel(
 void TakeSurfaceCaptureForUIWithUni(NodeId id, sptr<RSISurfaceCaptureCallback> callback,
     const RSSurfaceCaptureConfig& captureConfig)
 {
-    if (rsRenderPipeline_ == nullptr) {
-        return;
-    }
 #ifdef RS_ENABLE_GPU
     std::function<void()> offscreenRenderTask = [id, callback, captureConfig]() -> void {
         RS_LOGD("RSRenderPipelineAgent::TakeSurfaceCaptureForUIWithUni callback->OnOffscreenRender"
@@ -599,7 +593,7 @@ ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze)
         if (!isFreeze) {
             return;
         }
-        auto unfreezeScreenTask = [renderPipeline = rsRenderPipeline_, screenId = screenNode->GetId()]() -> void {
+        auto unfreezeScreenTask = [renderPipeline, screenId = screenNode->GetId()]() -> void {
             RS_LOGW("unfreeze screen[%{public}" PRIu64 "] by timer", screenId);
             RS_TRACE_NAME_FMT("UnfreezeScreen[%lld]", screenId);
             auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(
