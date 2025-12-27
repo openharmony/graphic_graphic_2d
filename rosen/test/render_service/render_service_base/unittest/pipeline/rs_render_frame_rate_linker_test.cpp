@@ -114,11 +114,11 @@ HWTEST_F(RSRenderFrameRateLinkerTest, SetAnimatorExpectedFrameRate, TestSize.Lev
     EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 
     frameRateLinker = std::make_shared<RSRenderFrameRateLinker>();
-    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id, [] (const RSRenderFrameRateLinker& linker) {});
+    frameRateLinker = std::make_shared<RSRenderFrameRateLinker>(id, [] {});
     frameRateLinker->SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     EXPECT_EQ(frameRateLinker->GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 
-    RSRenderFrameRateLinker rsRenderFrameRateLinker();
+    RSRenderFrameRateLinker rsRenderFrameRateLinker;
     rsRenderFrameRateLinker.SetAnimatorExpectedFrameRate(animatorExpectedFrameRate);
     EXPECT_EQ(rsRenderFrameRateLinker.GetAceAnimatorExpectedFrameRate(), animatorExpectedFrameRate);
 

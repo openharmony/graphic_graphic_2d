@@ -671,7 +671,7 @@ void DoRegisterOcclusionChangeCallback()
 
 void DoSetAppWindowNum()
 {
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_APP_WINDOW_NUM);
+    uint32_t code = static_cast<uint32_t>(DO_SET_APP_WINDOW_NUM);
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
@@ -1020,7 +1020,7 @@ void DoRepaintEverything()
 void DoForceRefreshOneFrameWithNextVSync()
 {
     uint32_t code =
-        static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
+        static_cast<uint32_t>(DO_FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC);
     MessageOption option;
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -1225,11 +1225,11 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
 
-    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid,
-        OHOS::wptr<OHOS::Rosen::RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_,
+    OHOS::Rosen::toServiceConnectionStub_ = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         OHOS::Rosen::mainThread_, screenManagerAgent_, token_->AsObject(), appVSyncDistributor_);
     OHOS::Rosen::toRenderConnectionStub_ = new OHOS::Rosen::RSClientToRenderConnection(
-        OHOS::Rosen::g_pid, nullptr, renderPipelineAgent_, token_->AsObject());
+        OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
     return 0;
 }
 

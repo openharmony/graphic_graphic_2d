@@ -276,8 +276,8 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, ReleaseBufferTest, TestSize.Level1)
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     Rect damage = {10, 10, 100, 100};
     int64_t timestamp = 0;
-    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(preBuffer, fence, damage, timestamp);
-    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(buffer1, fence, damage, timestamp);
+    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(preBuffer, fence, damage, timestamp, nullptr);
+    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(buffer1, fence, damage, timestamp, nullptr);
     EXPECT_NE(mockRSHeteroHDRBufferLayer->surfaceHandler_->GetPreBuffer(), nullptr);
     mockRSHeteroHDRBufferLayer->ReleaseBuffer();
 

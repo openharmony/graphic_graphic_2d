@@ -302,7 +302,7 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
         OHOS::sptr<OHOS::Rosen::RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
     OHOS::sptr<OHOS::Rosen::RSIConnectionToken> token_ = new OHOS::IRemoteStub<OHOS::Rosen::RSIConnectionToken>();
     OHOS::Rosen::toRenderConnectionStub_ = new OHOS::Rosen::RSClientToRenderConnection(
-        OHOS::Rosen::g_pid, nullptr, renderPipelineAgent_, token_->AsObject());
+        OHOS::Rosen::g_pid, renderPipelineAgent_, token_->AsObject());
     return 0;
 }
 

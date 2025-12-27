@@ -339,12 +339,12 @@ extern "C" int LLVMFuzzerInitialize(int *argc, char ***argv)
     OHOS::sptr<OHOS::Rosen::RSScreenManagerAgent> screenManagerAgent_ =
         new OHOS::Rosen::RSScreenManagerAgent(OHOS::Rosen::screenManagerPtr_);
 
-    OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(OHOS::Rosen::g_pid,
-        OHOS::wptr<OHOS::Rosen::RSRenderService>(&renderService_), renderServiceAgent_, renderProcessManagerAgent_,
+    OHOS::Rosen::g_toServiceConnection = new OHOS::Rosen::RSClientToServiceConnection(
+        OHOS::Rosen::g_pid, renderServiceAgent_, renderProcessManagerAgent_,
         OHOS::Rosen::g_mainThread, screenManagerAgent_, OHOS::Rosen::g_token->AsObject(), appVSyncDistributor);
 
     OHOS::Rosen::g_toRenderConnection =
-        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, nullptr, renderPipelineAgent_, OHOS::Rosen::g_token->AsObject());
+        new OHOS::Rosen::RSClientToRenderConnection(OHOS::Rosen::g_pid, renderPipelineAgent_, OHOS::Rosen::g_token->AsObject());
     OHOS::Rosen::g_toServiceConnectionStub = OHOS::Rosen::g_toServiceConnection;
     OHOS::Rosen::g_toRenderConnectionStub = OHOS::Rosen::g_toRenderConnection;
 

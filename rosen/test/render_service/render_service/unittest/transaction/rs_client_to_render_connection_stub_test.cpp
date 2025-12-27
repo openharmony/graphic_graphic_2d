@@ -117,7 +117,7 @@ void RSClientToRenderConnectionStubTest::SetUpTestCase()
     token_ = new IRemoteStub<RSIConnectionToken>();
     renderPipeline_ = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
     renderPipelineAgent_ = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline_);
-    connectionStub_ = new RSClientToRenderConnection(0, nullptr, renderPipelineAgent_, token_->AsObject());
+    connectionStub_ = new RSClientToRenderConnection(0, renderPipelineAgent_, token_->AsObject());
 }
 
 class RSSurfaceCaptureCallbackStubMock : public RSSurfaceCaptureCallbackStub {
@@ -170,7 +170,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, NotifySurfaceCaptureRemoteTest001, 
     auto newPid = getpid();
 
     connectionStub_ =
-        new RSClientToRenderConnection(newPid, nullptr, renderPipelineAgent_, token_->AsObject());
+        new RSClientToRenderConnection(newPid, renderPipelineAgent_, token_->AsObject());
     ASSERT_EQ(connectionStub_ != nullptr, true);
     sptr<RSISurfaceCaptureCallback> callback = new RSSurfaceCaptureCallbackStubMock();
     ASSERT_EQ(callback != nullptr, true);
@@ -450,7 +450,7 @@ HWTEST_F(RSClientToRenderConnectionStubTest, DropFrameByPid001, TestSize.Level2)
 HWTEST_F(RSClientToRenderConnectionStubTest, GetBrightnessInfoTest, TestSize.Level2)
 {
     sptr<RSClientToRenderConnectionStub> connectionStub =
-        new RSClientToRenderConnection(0, nullptr, renderPipelineAgent_, token_->AsObject());
+        new RSClientToRenderConnection(0, renderPipelineAgent_, token_->AsObject());
 
     // case 1: no data
     {

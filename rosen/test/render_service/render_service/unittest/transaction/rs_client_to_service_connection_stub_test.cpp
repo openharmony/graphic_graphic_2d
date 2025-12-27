@@ -125,7 +125,7 @@ void RSClientToServiceConnectionStubTest::SetUpTestCase()
     screenManagerAgent_ = new RSScreenManagerAgent(screenManager_);
 
     connectionStub_ =
-        new RSClientToServiceConnection(0, wptr<RSRenderService>(&renderService_), renderServiceAgent_,
+        new RSClientToServiceConnection(0, renderServiceAgent_,
             renderProcessManagerAgent_, mainThread_, screenManagerAgent_, token_->AsObject(), nullptr);
 }
 

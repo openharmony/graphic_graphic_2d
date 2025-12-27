@@ -100,7 +100,7 @@ int Initialize()
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(screenManagerPtr_);
 
     g_toServiceConnection =
-        new RSClientToServiceConnection(g_pid, wptr<RSRenderService>(&renderService_), renderServiceAgent_,
+        new RSClientToServiceConnection(g_pid, renderServiceAgent_,
             renderProcessManagerAgent_, g_mainThread, screenManagerAgent_, g_token->AsObject(), appVSyncDistributor);
     g_toServiceConnectionStub = g_toServiceConnection;
 #ifdef RS_ENABLE_VK
