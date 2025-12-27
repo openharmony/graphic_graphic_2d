@@ -1394,7 +1394,6 @@ VsyncError VSyncDistributor::SetQosVSyncRateByPidPublic(uint32_t pid, uint32_t r
         return VSYNC_ERROR_OK;
     }
     auto tmpVec = iter->second;
-    std::vector<uint64_t> tmpVec = pidWindowIdMap_[pid];
     for (const auto& windowId : tmpVec) {
         VsyncError ret = SetQosVSyncRate(windowId, rate, isSystemAnimateScene);
         if (ret != VSYNC_ERROR_OK) {
