@@ -1359,6 +1359,19 @@ HWTEST_F(PathTest, ApproximateTest001, TestSize.Level1)
 HWTEST_F(PathTest, CountPoints001, TestSize.Level1)
 {
     Path path;
+    int pointsCount = path.CountPoints();
+    ASSERT_EQ(pointsCount, 0);
+}
+
+/**
+ * @tc.name: CountPoints002
+ * @tc.desc: Test for counting the points in the path.
+ * @tc.type: FUNC
+ * @tc.require: ICAWXU
+ */
+HWTEST_F(PathTest, CountPoints002, TestSize.Level1)
+{
+    Path path;
     path.MoveTo(1.0f, 2.0f); // Start point of the path.
     path.LineTo(3.0f, 4.0f); // End point of the path.
     int pointsCount = path.CountPoints();

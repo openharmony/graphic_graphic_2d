@@ -43,6 +43,10 @@ Orientation TextPathUtil::ComputeOrientation(
 size_t TextPathUtil::FindMinPointIndex(const Drawing::Path& path)
 {
     int pointsCount = path.CountPoints();
+    if (pointsCount <= 0) {
+        return 0;
+    }
+    
     size_t index = 0;
     Drawing::Point minPoint{FLT_MAX, FLT_MAX};
     for (size_t i = 0; i < static_cast<size_t>(pointsCount - 1); i++) {

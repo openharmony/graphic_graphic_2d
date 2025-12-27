@@ -37,6 +37,7 @@ namespace Rosen {
 const double TEST_FONT_SIZE = 30;
 const Drawing::Color TEST_FONT_COLOR = Drawing::Color::ColorQuadSetARGB(255, 200, 255, 221);
 const float IMAGE_PADDING = 10;
+const float IMAGE_NEGATIVE_VALUE = -10;
 const std::string IMAGE_INPUT_PNG_PATH_TEST = "/data/local/tmp/image/";
 const std::string OPTION_FORMAT_TEST = "image/png";
 const std::int32_t OPTION_QUALITY_TEST = 100;
@@ -267,6 +268,23 @@ HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathImageByIndexTest00
         IMAGE_PADDING, IMAGE_PADDING};
     std::shared_ptr<OHOS::Media::PixelMap> pixelMap = typography_->GetTextPathImageByIndex(0, SIZE_MAX, options, false);
     ASSERT_NE(pixelMap, nullptr);
+}
+
+/*
+ * @tc.name: TypographyGetTextPathImageByIndexTest010
+ * @tc.desc: test for get text path image by index
+ * @tc.type: FUNC
+ */
+HWTEST_F(OH_Drawing_TypographyImageTest, TypographyGetTextPathImageByIndexTest010, TestSize.Level0)
+{
+    typographyCreate_->AppendText(u"0123456789:");
+    typography_ = typographyCreate_->CreateTypography();
+    ASSERT_NE(typography_, nullptr);
+    double maxWidth = 500;
+    typography_->Layout(maxWidth);
+    ImageOptions options{IMAGE_NEGATIVE_VALUE, IMAGE_NEGATIVE_VALUE, IMAGE_NEGATIVE_VALUE, IMAGE_NEGATIVE_VALUE};
+    std::shared_ptr<OHOS::Media::PixelMap> pixelMap = typography_->GetTextPathImageByIndex(0, SIZE_MAX, options, false);
+    ASSERT_EQ(pixelMap, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS
