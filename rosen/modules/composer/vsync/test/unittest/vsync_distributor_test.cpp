@@ -772,7 +772,7 @@ HWTEST_F(VSyncDistributorTest, OnVSyncTriggerTest005, Function | MediumTest| Lev
     vsyncDistributor->vsyncMode_ = vsyncMode;
 
     // pid not found
-    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(1, 2, false), VSYNC_ERROR_OK)
+    ASSERT_EQ(vsyncDistributor->SetQosVSyncRateByPidPublic(1, 2, false), VSYNC_ERROR_OK);
 }
 
 /**
