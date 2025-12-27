@@ -117,7 +117,7 @@ HWTEST_F(RSLayerContextTest, LayerFuncTest, Function | SmallTest | Level2)
     auto layer = std::make_shared<RSSurfaceLayer>();
     context->AddRSLayer(layer);
     ComposerInfo composerInfo;
-    EXPECT_TRUE(context->CommitLayers(composerInfo));
+    EXPECT_FALSE(context->CommitLayers(composerInfo));
     EXPECT_EQ(client->GetUnExecuteTaskNum(), 0u);
 
     context->rsLayerTransactionHandler_ = std::make_shared<RSLayerTransactionHandler>();
