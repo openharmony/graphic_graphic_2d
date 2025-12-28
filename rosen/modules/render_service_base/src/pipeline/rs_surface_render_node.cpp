@@ -497,7 +497,6 @@ void RSSurfaceRenderNode::OnTreeStateChanged()
 
     // sync skip & security info
     UpdateSpecialLayerInfoByOnTreeStateChange();
-    UpdateScreenSpecialLayerInfoByOnTreeStateChange();
     SyncPrivacyContentInfoToFirstLevelNode();
     SyncColorGamutInfoToFirstLevelNode();
 }
@@ -1098,73 +1097,13 @@ void RSSurfaceRenderNode::UpdateSpecialLayerInfoByOnTreeStateChange()
     }
 }
 
-void RSSurfaceRenderNode::UpdateScreenSpecialLayerInfoByOnTreeStateChange()
-{
-    if (GetFirstLevelNodeId() == GetId()) {
-        return;
-    }
-
-    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
-    // firstLevelNode is the nearest app window / leash node
-    if (firstLevelNode == nullptr) {
-        return;
-    }
-
-    const auto& screenIds = specialLayerManager_.FindScreenHasType(IS_GENERAL_SPECIAL);
-    if (screenIds.empty()) {
-        return;
-    }
-
-    if (IsOnTheTree()) {
-        for (const auto screenId: screenIds) {
-            firstLevelNode->specialLayerManager_.AddIdsWithScreen(
-                screenId, specialLayerManager_.GetWithScreen(screenId), GetId());
-        }
-    } else {
-        for (const auto screenId: screenIds) {
-            firstLevelNode->specialLayerManager_.RemoveIdsWithScreen(
-                screenId, specialLayerManager_.GetWithScreen(screenId), GetId());
-        }
-    }
-    firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
-}
-
-void RSSurfaceRenderNode::UpdateScreenSpecialLayerInfoByTypeChange(
-    ScreenId screenId, uint32_t type, bool isSpecialLayer)
-{
-    if (!IsOnTheTree() || GetFirstLevelNodeId() == GetId()) {
-        return;
-    }
-    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
-    // firstLevelNode is the nearest app window / leash node
-    if (firstLevelNode == nullptr) {
-        return;
-    }
-    if (isSpecialLayer) {
-        firstLevelNode->specialLayerManager_.AddIdsWithScreen(screenId, type, GetId());
-    } else {
-        firstLevelNode->specialLayerManager_.RemoveIdsWithScreen(screenId, type, GetId());
-    }
-    firstLevelNode->specialLayerChanged_ = specialLayerChanged_;
-}
-
 void RSSurfaceRenderNode::SetScreenSpecialLayerStatus(ScreenId screenId, uint32_t type, bool isSpecialLayer)
 {
-    specialLayerChanged_ = specialLayerManager_.SetWithScreen(screenId, type, isSpecialLayer);
-    SetDirty();
-    if (isSpecialLayer) {
-        specialLayerManager_.AddIdsWithScreen(screenId, type, GetId());
-    } else {
-        specialLayerManager_.RemoveIdsWithScreen(screenId, type, GetId());
+    specialLayerManager_.SetWithScreen(screenId, type, isSpecialLayer);
+    auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(GetFirstLevelNode());
+    if (firstLevelNode) {
+        firstLevelNode->specialLayerManager_.SetWithScreen(screenId, type << SPECIAL_TYPE_NUM, isSpecialLayer);
     }
-    UpdateScreenSpecialLayerInfoByTypeChange(screenId, type, isSpecialLayer);
-}
-
-void RSSurfaceRenderNode::ClearScreenSpecialLayerRecord(ScreenId screenId)
-{
-    specialLayerChanged_ =
-        specialLayerManager_.GetWithScreen(screenId) != SpecialLayerType::NONE;
-    specialLayerManager_.ClearScreenSpecialLayer(screenId);
 }
 
 void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
@@ -1172,7 +1111,8 @@ void RSSurfaceRenderNode::UpdateVirtualScreenWhiteListInfo()
     if (!IsLeashOrMainWindow()) {
         return;
     }
-    const auto screenIds =  specialLayerManager_.FindScreenHasType(SpecialLayerType::HAS_WHITE_LIST);
+    auto screenIds = ScreenSpecialLayerInfo::QueryEnableScreen(
+        SpecialLayerType::IS_WHITE_LIST, {GetId(), GetLeashPersistentId()});
     for (const auto screenId : screenIds) {
         SetHasWhiteListNode(screenId, true);
         auto nodeParent = GetParent().lock();

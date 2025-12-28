@@ -180,7 +180,7 @@ public:
     ErrCode GetHdrOnDuration(int64_t& hdrOnDuration);
     ErrCode SetOptimizeCanvasDirtyPidList(const std::vector<int32_t>& pidList);
     void OnScreenBacklightChanged(ScreenId screenId, uint32_t level);
-
+    void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
     int32_t NotifyScreenRefresh(ScreenId screenId);
     uint32_t SetSurfaceWatermark(pid_t pid, const std::string& name,
         const std::shared_ptr<Media::PixelMap> &watermark, const std::vector<NodeId>& nodeIdList,

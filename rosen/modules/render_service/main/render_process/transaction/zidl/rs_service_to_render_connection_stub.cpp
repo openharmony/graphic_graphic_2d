@@ -990,6 +990,17 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             OnScreenBacklightChanged(id, level);
             break;
         }
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::ON_GLOBAL_BLACKLIST_CHANGED) : {
+            ScreenId id{INVALID_SCREEN_ID};
+            std::vector<NodeId> globalBlackList;
+            if (!data.ReadUInt64Vector(&globalBlackList)) {
+                RS_LOGE("RSServiceToRenderStub::ON_GLOBAL_BLACKLIST_CHANGED Read ScreenId failed!");
+                ret = ERR_INVALID_DATA;
+                break;
+            }
+            OnGlobalBlacklistChanged({globalBlackList.begin(), globalBlackList.end()});
+            break;
+        }
         default:
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }

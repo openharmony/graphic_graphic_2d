@@ -42,16 +42,31 @@ template <class TYPE_T> inline bool HasType(TYPE_T x, TYPE_T y)
     return x & y;
 }
 
+template<typename K, typename V>
+void EraseEmptyValues(std::unordered_map<K, V>& map) {
+    auto it = map.begin();
+    while (it != map.end()) {
+        if (it->second.empty()) {
+            it = map.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 namespace OHOS {
 namespace Rosen {
 std::stack<LeashPersistentId> RSSpecialLayerManager::whiteListRootIds_ = {};
+std::unordered_map<SpecialLayerType, std::unordered_map<NodeId, std::unordered_set<ScreenId>>>
+    ScreenSpecialLayerInfo::screenSpecialLayerInfoByNode_ = {};
+std::unordered_set<NodeId> ScreenSpecialLayerInfo::globalBlackList_ = {};
 
 void RSSpecialLayerManager::SetWhiteListRootId(LeashPersistentId id)
 {
     if (id == INVALID_LEASH_PERSISTENTID) {
         return;
     }
-    if (whiteListRootIds_.size() >= MAX_IDS_SIZE) {
+    if (whiteListRootIds_.size() >= MAX_SPECIAL_LAYER_NUM) {
         RS_LOGE("RSSpecialLayerManager::SetWhiteListRootId whiteListRootIds_ exceeds size limit.");
         return;
     }
@@ -111,8 +126,8 @@ void RSSpecialLayerManager::AddIds(uint32_t type, NodeId id)
     uint32_t isType = type & IS_GENERAL_SPECIAL;
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
-        auto IsSpecial = isType & 1;
-        if (IsSpecial && specialLayerIds_[currentType].size() < MAX_IDS_SIZE) {
+        bool isSpecial = (isType & 1) != 0;
+        if (isSpecial && specialLayerIds_[currentType].size() < MAX_SPECIAL_LAYER_NUM) {
             specialLayerIds_[currentType].insert(id);
             AddType(specialLayerType_, currentType << SPECIAL_TYPE_NUM);
         }
@@ -169,8 +184,8 @@ void RSSpecialLayerManager::AddIdsWithScreen(uint64_t screenId, uint32_t type, N
     uint32_t isType = type & IS_GENERAL_SPECIAL;
     uint32_t currentType = SpecialLayerType::SECURITY;
     while (isType != 0) {
-        auto IsSpecial = isType & 1;
-        if (IsSpecial) {
+        bool isSpecial = (isType & 1) != 0;
+        if (isSpecial && screenSpecialLayerIds_[screenId][currentType].size() < MAX_SPECIAL_LAYER_NUM) {
             screenSpecialLayerIds_[screenId][currentType].insert(id);
             AddType(screenSpecialLayer_[screenId], currentType << SPECIAL_TYPE_NUM);
         }
@@ -221,16 +236,82 @@ const std::unordered_set<uint64_t> RSSpecialLayerManager::FindScreenHasType(uint
     return screenIds;
 }
 
-void RSSpecialLayerManager::ClearAllScreenSpecialLayer()
+void RSSpecialLayerManager::ClearScreenSpecialLayer()
 {
     screenSpecialLayer_.clear();
     screenSpecialLayerIds_.clear();
 }
 
-void RSSpecialLayerManager::ClearScreenSpecialLayer(uint64_t screenId)
+void ScreenSpecialLayerInfo::Update(
+    SpecialLayerType type, ScreenId screenId, const std::unordered_set<NodeId>& nodeIds)
 {
-    screenSpecialLayer_.erase(screenId);
-    screenSpecialLayerIds_.erase(screenId);
+    auto& typeInfo = screenSpecialLayerInfoByNode_[type];
+    // clear
+    for (const auto& [nodeId, screenIds] : typeInfo) {
+        typeInfo[nodeId].erase(screenId);
+    }
+    // reset
+    for (const auto& nodeId : nodeIds) {
+        typeInfo[nodeId].insert(screenId);
+    }
+    ClearEmptyInfo();
+}
+
+void ScreenSpecialLayerInfo::ClearByScreenId(ScreenId screenId)
+{
+    for (auto& [type, typeInfo] : screenSpecialLayerInfoByNode_) {
+        for (auto& [nodeId, nodeInfo] : typeInfo) {
+            nodeInfo.erase(screenId);
+        }
+    }
+    ClearEmptyInfo();
+}
+
+void ScreenSpecialLayerInfo::ClearEmptyInfo()
+{
+    for (auto& [_, typeInfo] : screenSpecialLayerInfoByNode_) {
+        EraseEmptyValues(typeInfo);
+    }
+    EraseEmptyValues(screenSpecialLayerInfoByNode_);
+}
+
+std::unordered_set<ScreenId> ScreenSpecialLayerInfo::QueryEnableScreen(SpecialLayerType type, std::pair<NodeId, LeashPersistentId> id)
+{
+    auto typeIter = screenSpecialLayerInfoByNode_.find(type);
+    if (typeIter == screenSpecialLayerInfoByNode_.end()) {
+        return {};
+    }
+
+    std::unordered_set<ScreenId> screenIds = {};
+    const auto& typeInfo = typeIter->second;
+    // find with nodeId
+    auto nodeIdIter =  typeInfo.find(id.first);
+    if (nodeIdIter != typeInfo.end()) {
+        const auto& screenIdsForNodeId = nodeIdIter->second;
+        screenIds.insert(screenIdsForNodeId.begin(), screenIdsForNodeId.end());
+    }
+    // find with persistId
+    auto persistIdIter =  typeInfo.find(id.second);
+    if (persistIdIter != typeInfo.end()) {
+        const auto& screenIdsForPersistId = persistIdIter->second;
+        screenIds.insert(screenIdsForPersistId.begin(), screenIdsForPersistId.end());
+    }
+    return screenIds;
+}
+
+bool ScreenSpecialLayerInfo::ExistEnableScreen(SpecialLayerType type)
+{
+    return screenSpecialLayerInfoByNode_.find(type) != screenSpecialLayerInfoByNode_.end();
+}
+
+void ScreenSpecialLayerInfo::SetGlobalBlackList(const std::unordered_set<NodeId>& globalBlackList)
+{
+    globalBlackList_ = globalBlackList;
+}
+
+const std::unordered_set<NodeId>& ScreenSpecialLayerInfo::GetGlobalBlackList()
+{
+    return globalBlackList_;
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -156,11 +156,19 @@ public:
     bool SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus);
     VirtualScreenStatus GetVirtualScreenStatus(ScreenId id) const;
 
-    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
-    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
+    // type blacklist
     int32_t SetVirtualScreenTypeBlackList(ScreenId id, const std::vector<uint8_t>& typeBlackList);
+    
+    // blacklist
+    int32_t SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
     int32_t AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
     int32_t RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList);
+
+    // global blacklist
+    int32_t SetCastScreenEnableSkipWindow(ScreenId id, bool enable);
+    int32_t SetGlobalBlackList(const std::unordered_set<NodeId>& blackList);
+    int32_t AddGlobalBlackList(const std::vector<NodeId>& blackList);
+    int32_t RemoveGlobalBlackList(const std::vector<uint64_t>& blackList);
 
     int32_t SetVirtualScreenSecurityExemptionList(
         ScreenId id, const std::vector<uint64_t>& securityExemptionList);
@@ -188,9 +196,6 @@ public:
 
 private:
     void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
-
-    void PrintScreenBlackList(
-        std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;
 
     // physical screen
     bool CheckFoldScreenIdBuiltIn(ScreenId id);
@@ -243,8 +248,8 @@ private:
     std::unordered_map<ScreenId, uint32_t> screenBacklight_;
     std::unordered_map<ScreenId, ScreenRotation> screenCorrection_;
 
-    std::mutex blackListMutex_;
-    std::unordered_set<uint64_t> globalBlackList_ = {};
+    std::mutex globalBlackListMutex_;
+    std::unordered_set<NodeId> globalBlackList_ = {};
 
     std::atomic<uint64_t> frameId_ = 0;
 

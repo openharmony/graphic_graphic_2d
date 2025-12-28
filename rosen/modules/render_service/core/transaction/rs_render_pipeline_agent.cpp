@@ -43,6 +43,7 @@
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
 #endif
+#include "feature/special_layer/rs_special_layer_utils.h"
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
 #include "memory/rs_canvas_dma_buffer_cache.h"
 #endif
@@ -1914,6 +1915,19 @@ void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t
             client->SetScreenBacklight(level);
         }
     }
+}
+
+void RSRenderPipelineAgent::OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    if (rsRenderPipeline_ == nullptr) {
+        RS_LOGE("RSRenderPipelineAgent:%{public}s rsRenderPipeline is nullptr.", __func__);
+        return;
+    }
+    auto task = [globalBlackList]() { 
+        ScreenSpecialLayerInfo::SetGlobalBlackList(globalBlackList);
+        RSSpecialLayerUtils::UpdateScreenSpecialLayer();
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
 }
 
 void RSRenderPipelineAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)

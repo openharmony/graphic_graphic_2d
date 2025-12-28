@@ -52,6 +52,7 @@ public:
     void NotifyVirtualScreenDisconnected(ScreenId id);
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
     void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
+    void NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList);
 
     sptr<IRemoteObject> GetClientToRenderConnection(ScreenId id) const;
 

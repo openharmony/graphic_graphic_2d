@@ -167,6 +167,15 @@ void RSScreenCallbackManager::NotifyScreenBacklightChanged(ScreenId id, uint32_t
     coreListener_->OnScreenBacklightChanged(id, level);
 }
 
+void RSScreenCallbackManager::NotifyGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList)
+{
+    if (!coreListener_) {
+        RS_LOGE("%{public}s: coreListener is nullptr", __func__);
+        return;
+    }
+    coreListener_->OnGlobalBlacklistChanged(globalBlackList);
+}
+
 sptr<IRemoteObject> RSScreenCallbackManager::GetClientToRenderConnection(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(clientToRenderMtx_);

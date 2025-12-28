@@ -70,6 +70,7 @@ private:
         void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
         void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
         void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
+        void OnGlobalBlacklistChanged(const std::unordered_set<NodeId>& globalBlackList) override;
 
     private:
         RSRenderService& renderService_;

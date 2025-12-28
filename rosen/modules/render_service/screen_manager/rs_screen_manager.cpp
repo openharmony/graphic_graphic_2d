@@ -22,6 +22,7 @@
 #include "common/rs_optional_trace.h"
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "gfx/first_frame_notifier/rs_first_frame_notifier.h"
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
@@ -237,10 +238,6 @@ bool RSScreenManager::CheckFoldScreenIdBuiltIn(ScreenId id)
 void RSScreenManager::ProcessScreenConnected(ScreenId id)
 {
     auto screen = std::make_shared<RSScreen>(id);
-    {
-        std::lock_guard<std::mutex> lock(blackListMutex_);
-        screen->SetGlobalBlackList(globalBlackList_);
-    }
     screen->SetOnPropertyChangedCallback(
         std::bind(&RSScreenManager::OnScreenPropertyChanged, this, std::placeholders::_1));
     screen->SetOnBacklightChangedCallback(
@@ -599,10 +596,6 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     configs.whiteList = std::unordered_set<NodeId>(whiteList.begin(), whiteList.end());
 
     auto screen = std::make_shared<RSScreen>(configs);
-    {
-        std::lock_guard<std::mutex> lock(blackListMutex_);
-        screen->SetGlobalBlackList(globalBlackList_);
-    }
     screen->SetOnPropertyChangedCallback(std::bind(&RSScreenManager::OnScreenPropertyChanged, this,
         std::placeholders::_1));
     {
@@ -617,31 +610,19 @@ ScreenId RSScreenManager::CreateVirtualScreen(
     return newId;
 }
 
-int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
+int32_t RSScreenManager::SetVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     std::unordered_set<NodeId> screenBlackList(blackList.begin(), blackList.end());
     if (id == INVALID_SCREEN_ID) {
-        std::lock_guard<std::mutex> lock(blackListMutex_);
-        RS_LOGI("%{public}s: set global blacklists for id %{public}" PRIu64, __func__, id);
-        globalBlackList_ = std::move(screenBlackList);
-        for (const auto&[_, screen] : screens_) {
-            if (screen == nullptr) {
-                RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-                continue;
-            }
-            screen->SetGlobalBlackList(globalBlackList_);
-        }
-        PrintScreenBlackList(std::string(__func__), id, globalBlackList_);
-        return SUCCESS;
+        return SetGlobalBlackList(screenBlackList);
     }
     auto virtualScreen = GetScreen(id);
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->SetBlackList(screenBlackList);
-    PrintScreenBlackList(std::string(__func__), id, screenBlackList);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(__func__, SpecialLayerType::IS_BLACK_LIST, id, screenBlackList);
     return SUCCESS;
 }
 
@@ -658,87 +639,90 @@ int32_t RSScreenManager::SetVirtualScreenTypeBlackList(ScreenId id, const std::v
     return SUCCESS;
 }
 
-static inline bool IsBlackListExceeded(const std::vector<uint64_t>& blackList,
-    const std::unordered_set<uint64_t>& screenBlacklist)
-{
-    return blackList.size() + screenBlacklist.size() > MAX_BLACK_LIST_NUM;
-}
-
 int32_t RSScreenManager::AddVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
-        std::lock_guard<std::mutex> lock(blackListMutex_);
-        if (IsBlackListExceeded(blackList, globalBlackList_)) {
-            RS_LOGW("%{public}s: global blacklist is over max size!", __func__);
-            return INVALID_ARGUMENTS;
-        }
-        RS_LOGI("%{public}s: add global screen blacklists", __func__);
-        globalBlackList_.insert(blackList.cbegin(), blackList.cend());
-        for (const auto&[_, screen] : screens_) {
-            if (screen == nullptr) {
-                RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-                continue;
-            }
-            screen->AddGlobalBlackList(blackList);
-        }
-        PrintScreenBlackList(std::string(__func__), id, globalBlackList_);
-        return SUCCESS;
+        return AddGlobalBlackList(blackList);
     }
     auto virtualScreen = GetScreen(id);
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    if (IsBlackListExceeded(blackList, virtualScreen->GetBlackList())) {
+    if (virtualScreen->GetBlackList().size() + blackList.size() > MAX_SPECIAL_LAYER_NUM) {
         RS_LOGW("%{public}s: blacklist is over max size!", __func__);
         return INVALID_ARGUMENTS;
     }
-    RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->AddBlackList(blackList);
-    PrintScreenBlackList(std::string(__func__), id, virtualScreen->GetBlackList());
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, id, virtualScreen->GetBlackList());
     return SUCCESS;
 }
 
 int32_t RSScreenManager::RemoveVirtualScreenBlackList(ScreenId id, const std::vector<uint64_t>& blackList)
 {
     if (id == INVALID_SCREEN_ID) {
-        RS_LOGI("%{public}s: remove global screen blacklists", __func__);
-        std::lock_guard<std::mutex> lock(blackListMutex_);
-        for (const auto& nodeId : blackList) {
-            globalBlackList_.erase(nodeId);
-        }
-        for (const auto&[_, screen] : screens_) {
-            if (screen == nullptr) {
-                RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
-                continue;
-            }
-            screen->RemoveGlobalBlackList(blackList);
-        }
-        PrintScreenBlackList(std::string(__func__), id, globalBlackList_);
-        return SUCCESS;
+        return RemoveGlobalBlackList(blackList);
     }
     auto virtualScreen = GetScreen(id);
     if (virtualScreen == nullptr) {
         RS_LOGW("%{public}s: There is no screen for id %{public}" PRIu64, __func__, id);
         return SCREEN_NOT_FOUND;
     }
-    RS_LOGI("%{public}s: Record screen blacklists for id %{public}" PRIu64, __func__, id);
     virtualScreen->RemoveBlackList(blackList);
-    PrintScreenBlackList(std::string(__func__), id, virtualScreen->GetBlackList());
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, id, virtualScreen->GetBlackList());
     return SUCCESS;
 }
 
-void RSScreenManager::PrintScreenBlackList(
-    std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const
+int32_t RSScreenManager::SetGlobalBlackList(const std::unordered_set<NodeId>& blackList)
 {
-    std::ostringstream out;
-    out << "[ ";
-    for (const auto& nodeId : set) {
-        out << nodeId << " ";
+    std::lock_guard<std::mutex> lock(globalBlackListMutex_);
+    if (blackList == globalBlackList_) {
+        RS_LOGI("%{public}s: The global blacklist has not changed!", __func__);
+        return SUCCESS;
     }
-    out << "]";
-    RS_LOGI("%{public}s: screenId: %{public}" PRIu64 "; blacklist: %{public}s", funcName.c_str(), id,
-        out.str().c_str());
+    globalBlackList_ = blackList;
+    callbackMgr_->NotifyGlobalBlacklistChanged(globalBlackList_);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, INVALID_SCREEN_ID, globalBlackList_);
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::AddGlobalBlackList(const std::vector<NodeId>& blackList)
+{
+    std::lock_guard<std::mutex> lock(globalBlackListMutex_);
+    if (globalBlackList_.size() + blackList.size() > MAX_SPECIAL_LAYER_NUM) {
+        RS_LOGW("%{public}s: global blacklist is over max size!", __func__);
+        return INVALID_ARGUMENTS;
+    }
+    auto oldGlobalBlackList = globalBlackList_;
+    globalBlackList_.insert(blackList.cbegin(), blackList.cend());
+    if (oldGlobalBlackList == globalBlackList_) {
+        RS_LOGI("%{public}s: The global blacklist has not changed!", __func__);
+        return SUCCESS;
+    }
+    callbackMgr_->NotifyGlobalBlacklistChanged(globalBlackList_);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, INVALID_SCREEN_ID, globalBlackList_);
+    return SUCCESS;
+}
+
+int32_t RSScreenManager::RemoveGlobalBlackList(const std::vector<uint64_t>& blackList)
+{
+    std::lock_guard<std::mutex> lock(globalBlackListMutex_);
+    auto oldGlobalBlackList = globalBlackList_;
+    for (const auto& nodeId : blackList) {
+        globalBlackList_.erase(nodeId);
+    }
+    if (oldGlobalBlackList == globalBlackList_) {
+        RS_LOGI("%{public}s: The global blacklist has not changed!", __func__);
+        return SUCCESS;
+    }
+    callbackMgr_->NotifyGlobalBlacklistChanged(globalBlackList_);
+    RSSpecialLayerUtils::DumpScreenSpecialLayer(
+        __func__, SpecialLayerType::IS_BLACK_LIST, INVALID_SCREEN_ID, globalBlackList_);
+    return SUCCESS;
 }
 
 int32_t RSScreenManager::SetVirtualScreenSecurityExemptionList(

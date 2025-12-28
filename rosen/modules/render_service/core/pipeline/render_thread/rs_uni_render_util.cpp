@@ -76,7 +76,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr const char* CAPTURE_WINDOW_NAME = "CapsuleWindow";
 constexpr float GAMMA2_2 = 2.2f;
 constexpr int64_t PERF_TIME_OUT = 950;
 constexpr uint32_t PERF_LEVEL_INTERVAL = 10;
