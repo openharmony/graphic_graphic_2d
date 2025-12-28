@@ -69,8 +69,7 @@ public:
     void NotifyXComponentExpectedFrameRate(pid_t remotePid, const std::string& id, int32_t expectedFrameRate);
     void NotifyHgmConfigEvent(const std::string& eventName, bool state);
     void UnregisterFrameRateLinker(FrameRateLinkerId id);
-    bool NotifySoftVsyncRateDiscountEvent(
-        uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor);
+    bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string& name, uint32_t rateDiscount);
     void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
 
     std::shared_ptr<RSRenderFrameRateLinker> GetRSFrameRateLinker() const { return rsFrameRateLinker_; }

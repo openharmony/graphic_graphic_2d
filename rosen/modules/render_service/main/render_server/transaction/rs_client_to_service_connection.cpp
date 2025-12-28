@@ -1572,7 +1572,7 @@ int32_t RSClientToServiceConnection::RegisterHgmConfigChangeCallback(sptr<RSIHgm
 {
     if (hgmContext_ == nullptr) {
         RS_LOGE("%{public}s hgmContext_ is nullptr", __func__);
-        return -1;
+        return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterHgmConfigChangeCallback(remotePid_, callback);
 }
@@ -1582,7 +1582,7 @@ int32_t RSClientToServiceConnection::RegisterHgmRefreshRateModeChangeCallback(
 {
     if (hgmContext_ == nullptr) {
         RS_LOGE("%{public}s hgmContext_ is nullptr", __func__);
-        return -1;
+        return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterHgmRefreshRateModeChangeCallback(remotePid_, callback);
 }
@@ -1592,7 +1592,7 @@ int32_t RSClientToServiceConnection::RegisterHgmRefreshRateUpdateCallback(
 {
     if (hgmContext_ == nullptr) {
         RS_LOGE("%{public}s hgmContext_ is nullptr", __func__);
-        return -1;
+        return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterHgmRefreshRateUpdateCallback(remotePid_, callback);
 }
@@ -1610,7 +1610,7 @@ int32_t RSClientToServiceConnection::RegisterFrameRateLinkerExpectedFpsUpdateCal
 {
     if (hgmContext_ == nullptr) {
         RS_LOGE("%{public}s hgmContext_ is nullptr", __func__);
-        return -1;
+        return StatusCode::INVALID_ARGUMENTS;
     }
     return hgmContext_->RegisterFrameRateLinkerExpectedFpsUpdateCallback(remotePid_, dstPid, callback);
 }

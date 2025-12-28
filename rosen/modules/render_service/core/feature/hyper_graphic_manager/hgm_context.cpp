@@ -469,13 +469,8 @@ void HgmContext::UnregisterFrameRateLinker(FrameRateLinkerId id)
     frameRateLinkerMap_.UnregisterFrameRateLinker(id);
 }
 
-bool HgmContext::NotifySoftVsyncRateDiscountEvent(
-    uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor)
+bool HgmContext::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string& name, uint32_t rateDiscount)
 {
-    if (!appVSyncDistributor) {
-        return false;
-    }
-
     std::vector<uint64_t> linkerIds = appVSyncDistributor_->GetVsyncNameLinkerIds(pid, name);
     if (linkerIds.empty()) {
         RS_LOGW("NotifySoftVsyncRateDiscountEvent: pid=%{public}d linkerIds is nullptr.", pid);
