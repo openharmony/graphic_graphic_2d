@@ -1734,7 +1734,7 @@ bool RSClientToServiceConnection::NotifySoftVsyncRateDiscountEvent(uint32_t pid,
         RS_LOGE("%{public}s hgmContext is nullptr", __func__);
         return false;
     }
-    return hgmContext_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount, appVSyncDistributor_);
+    return hgmContext_->NotifySoftVsyncRateDiscountEvent(pid, name, rateDiscount);
 }
 
 ErrCode RSClientToServiceConnection::NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt)
