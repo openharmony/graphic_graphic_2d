@@ -21,8 +21,8 @@
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "rs_layer.h"
-#include "rs_layer_cmd.h"
 #include "rs_render_composer_client.h"
+#include "rs_render_layer_cmd.h"
 #include "rs_render_layer_cmd_property.h"
 #include "surface.h"
 #include "sync_fence.h"
@@ -169,15 +169,10 @@ protected:
     bool AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
 
 private:
-    template<typename RSLayerCmdName, typename T>
+    template<typename RSRenderLayerCmdName, typename T>
     void SetRSLayerCmd(const T& value);
-
-    virtual void AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd);
-
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;
-    std::map<RSLayerPropertyId, std::shared_ptr<RSLayerCmd>> commands_;
-    std::map<RSLayerCmdType, std::shared_ptr<RSLayerCmd>> rsLayerCmds_;
     RSLayerId rsLayerId_;
     bool isNeedComposition_ = false;
 
