@@ -42,16 +42,6 @@ std::shared_ptr<RSLayer> RSSurfaceLayer::Create(const std::shared_ptr<RSComposer
     return layer;
 }
 
-std::shared_ptr<RSComposerContext> RSSurfaceLayer::GetComposerContext() const
-{
-    return rsComposerContext_.lock();
-}
-
-void RSSurfaceLayer::SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext)
-{
-    rsComposerContext_ = rsComposerContext;
-}
-
 RSSurfaceLayer::RSSurfaceLayer(RSLayerId rsLayerId, std::shared_ptr<RSComposerContext> rsComposerContext)
 {
     RS_TRACE_NAME_FMT("RSSurfaceLayer::RSSurfaceLayer id: %" PRIu64, rsLayerId);

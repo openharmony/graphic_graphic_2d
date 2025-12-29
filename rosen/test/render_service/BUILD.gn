@@ -213,8 +213,6 @@ group("test") {
     "render_service/systemtest/composer/composer_service/layer_backend:systemtest",
     "render_service/unittest/composer:unittest",
   ]
-
-
   if (graphic_2d_modifier_ng_enable) {
     deps += [
       "render_service_base/fuzztest/modifier_ng/rsappearancerendermodifier_fuzzer:fuzztest",
