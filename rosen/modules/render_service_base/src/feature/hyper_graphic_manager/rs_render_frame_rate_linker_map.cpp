@@ -18,25 +18,24 @@
 #include "platform/common/rs_log.h"
 #include "ipc_callbacks/rs_iframe_rate_linker_expected_fps_update_callback.h"
 
+#undef LOG_TAG
+#define LOG_TAG "graphic_2d_hgm"
+
 namespace OHOS {
 namespace Rosen {
 namespace {
-    constexpr uint32_t MAX_FRAME_RATE_LINKER_SIZE = 2048;
-}
-RSRenderFrameRateLinkerMap::RSRenderFrameRateLinkerMap()
-{
+constexpr uint32_t MAX_FRAME_RATE_LINKER_SIZE = 2048;
 }
 
 bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<RSRenderFrameRateLinker>& linkerPtr)
 {
     if (frameRateLinkerMap_.size() >= MAX_FRAME_RATE_LINKER_SIZE) {
-        ROSEN_LOGE("RegisterFrameRateLinker fail, linker max size %{public}" PRIu32 ", please check frame rate.",
-            MAX_FRAME_RATE_LINKER_SIZE);
+        ROSEN_LOGE("%{public}s: fail, linker max size %{public}" PRIu32 ", please check frame rate.",
+            __func__, MAX_FRAME_RATE_LINKER_SIZE);
         return false;
     }
-
-    FrameRateLinkerId id = linkerPtr->GetId();
-    if (frameRateLinkerMap_.count(id)) {
+    auto id = linkerPtr->GetId();
+    if (frameRateLinkerMap_.find(id) != frameRateLinkerMap_.end()) {
         return false;
     }
     frameRateLinkerMap_.emplace(id, linkerPtr);
@@ -45,23 +44,29 @@ bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinker(const std::shared_ptr<R
 
 void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
-    ROSEN_LOGI("RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker id: %{public}" PRIu64, id);
+    ROSEN_LOGI("%{public}s: RSRenderFrameRateLinkerMap id: %{public}" PRIu64, __func__, id);
     frameRateLinkerMap_.erase(id);
 }
 
 void RSRenderFrameRateLinkerMap::FilterFrameRateLinkerByPid(pid_t pid)
 {
-    ROSEN_LOGD("RSRenderFrameRateLinkerMap::FilterFrameRateLinkerByPid removing all linker belong to pid %{public}llu",
-        (unsigned long long)pid);
+    ROSEN_LOGD("%{public}s: removing all linker belong to pid %{public}d", __func__, pid);
     // remove all nodes belong to given pid (by matching higher 32 bits of node id)
-    EraseIf(frameRateLinkerMap_, [pid](const auto& pair) -> bool {
-        return ExtractPid(pair.first) == pid;
-    });
+    EraseIf(frameRateLinkerMap_, [pid](const auto& pair) -> bool { return ExtractPid(pair.first) == pid; });
 }
 
 std::shared_ptr<RSRenderFrameRateLinker> RSRenderFrameRateLinkerMap::GetFrameRateLinker(FrameRateLinkerId id)
 {
-    return frameRateLinkerMap_.count(id) ? frameRateLinkerMap_[id] : nullptr;
+    if (auto iter = frameRateLinkerMap_.find(id); iter != frameRateLinkerMap_.end()) {
+        return iter->second;
+    }
+    return nullptr;
+}
+
+const std::unordered_map<FrameRateLinkerId, std::shared_ptr<RSRenderFrameRateLinker>>&
+    RSRenderFrameRateLinkerMap::Get() const
+{
+    return frameRateLinkerMap_;
 }
 
 bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallback(pid_t listenerPid,
@@ -74,10 +79,9 @@ bool RSRenderFrameRateLinkerMap::RegisterFrameRateLinkerExpectedFpsUpdateCallbac
             success = true;
         }
     }
-
     if (!success) {
-        ROSEN_LOGE("RegisterFrameRateLinkerExpectedFpsUpdateCallback failed: cannot register callback to any linker by"
-            " dstPid=%{public}d", dstPid);
+        ROSEN_LOGE("%{public}s: failed: cannot register callback to any linker by dstPid=%{public}d",
+            __func__, dstPid);
     }
     return success;
 }
@@ -94,22 +98,19 @@ void RSRenderFrameRateLinkerMap::UnRegisterExpectedFpsUpdateCallbackByListener(p
 void RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker(const std::unordered_set<FrameRateLinkerId>& unregisterIds)
 {
     for (const auto destoryId : unregisterIds) {
-        ROSEN_LOGI("RSRenderFrameRateLinkerMap::UnregisterFrameRateLinker id: %{public}" PRIu64, destoryId);
+        ROSEN_LOGI("%{public}s: id: %{public}" PRIu64, __func__, destoryId);
         frameRateLinkerMap_.erase(destoryId);
     }
 }
 
-void RSRenderFrameRateLinkerMap::UpdateFrameRateLinker(const FrameRateLinkerUpdateInfoMap& updateInfoMap)
+void RSRenderFrameRateLinkerMap::UpdateFrameRateLinkers(const FrameRateLinkerUpdateInfoMap& updateInfoMap)
 {
     for (const auto& [linkerId, updateInfo] : updateInfoMap) {
-        auto linker = GetFrameRateLinker(linkerId);
-        if (linker == nullptr) {
-            continue;
+        if (auto linker = GetFrameRateLinker(linkerId)) {
+            linker->SetExpectedRange(updateInfo.range);
+            linker->SetAnimatorExpectedFrameRate(updateInfo.animatorExpectedFrameRate);
         }
-        linker->SetExpectedRange(updateInfo.range);
-        linker->SetAnimatorExpectedFrameRate(updateInfo.animatorExpectedFrameRate);
     }
 }
-
 } // namespace Rosen
 } // namespace OHOS
