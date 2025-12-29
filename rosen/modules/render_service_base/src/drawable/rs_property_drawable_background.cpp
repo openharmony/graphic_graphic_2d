@@ -986,10 +986,9 @@ bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
 
 void RSMaterialFilterDrawable::OnSync()
 {
-    if (!needSync_) {
-        return;
+    if (needSync_) {
+        emptyShape_ = stagingEmptyShape_;
     }
-    emptyShape_ = stagingEmptyShape_;
     RSFilterDrawable::OnSync();
 }
 
