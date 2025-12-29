@@ -48,6 +48,7 @@ public:
     int32_t offsetY = 0; // screenOffset on y axis equals to 0
     float mirrorAdaptiveCoefficient = 1.0f;
     static uint32_t screenId_;
+    static inline std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager = nullptr;
 };
 
 uint32_t RSComposerAdapterTest::screenId_ = 0;
@@ -60,7 +61,9 @@ void RSComposerAdapterTest::SetUpTestCase()
     RSTestUtil::InitRenderNodeGC();
 
     hdiOutput_ = HdiOutput::CreateHdiOutput(screenId_);
-    RSRenderComposerManager::GetInstance().OnScreenConnected(hdiOutput_);
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    rsRenderComposerManager = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    rsRenderComposerManager->OnScreenConnected(hdiOutput_);
     auto rsScreen = std::make_shared<RSScreen>(screenId_, hdiOutput_);
     screenManager_ = sptr<RSScreenManager>::MakeSptr();
     screenManager_->MockHdiScreenConnected(rsScreen);
@@ -72,7 +75,6 @@ void RSComposerAdapterTest::SetUpTestCase()
 
 void RSComposerAdapterTest::TearDownTestCase()
 {
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
     hdiOutput_ = nullptr;
     composerAdapter_ = nullptr;
     screenManager_ = nullptr;
@@ -404,7 +406,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
     composerAdapter_->SetHdiBackendDevice(hdiDeviceMock_);
     auto layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_NE(layer, nullptr);
-    composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_EQ(layer, nullptr);
 
@@ -417,7 +418,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayersTest009, Function | SmallTest | Leve
         ScreenRotation::ROTATION_180);
     layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_NE(layer, nullptr);
-    composerAdapter_->composerClient_ = nullptr;
     layer = composerAdapter_->CreateLayer(*surfaceNode1);
     EXPECT_EQ(layer, nullptr);
 }
@@ -470,7 +470,6 @@ HWTEST_F(RSComposerAdapterTest, CreateLayer011, Function | SmallTest | Level2)
     screenDrawable->GetRSSurfaceHandlerOnDraw()->SetBuffer(buffer, acquireFence, damage, timestamp, bufferOwnerCount);
      ASSERT_NE(composerAdapter_->CreateLayer(*node), nullptr);
 
-    composerAdapter_->composerClient_ = nullptr;
     EXPECT_EQ(composerAdapter_->CreateLayer(*node), nullptr);
 }
 

@@ -137,7 +137,7 @@ HWTEST_F(RSUniRenderEngineTest, DrawLayers001, TestSize.Level1)
     layers.emplace_back(layer1);
     layers.emplace_back(layer2);
     layers.emplace_back(layer3);
-    ScreenInfo screenInfo;
+    ComposerScreenInfo screenInfo;
     uniRenderEngine->DrawLayers(*canvas, layers, false, screenInfo);
 }
 

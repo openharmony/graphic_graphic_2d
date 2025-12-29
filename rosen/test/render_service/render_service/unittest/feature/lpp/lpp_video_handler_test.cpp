@@ -432,7 +432,8 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer001, TestSize.Level1)
 {
     auto& lppVideoHandler = LppVideoHandler::Instance();
     lppVideoHandler.lppConsumerMap_.clear();
-    lppVideoHandler.JudgeLppLayer(0);
+    std::set<uint64_t> lppLayerIds {};
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 }
 
@@ -454,7 +455,8 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     lppVideoHandler.lppConsumerMap_[0].push_back(nullConsumer);
 
     lppVideoHandler.lppRsState_ = LppState::LPP_LAYER;
-    lppVideoHandler.JudgeLppLayer(0);
+    std::set<uint64_t> lppLayerIds {};
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     // isInvalidNode is true
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
@@ -467,21 +469,21 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     bufferQueue->lppSkipCount_ = 11;
 
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     // ret == GSERROR_OUT_OF_RANGE
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
     bufferQueue->lppSkipCount_ = 0;
     // ret == GSERROR_OK
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
     // lpp -> uni
     lppVideoHandler.lppRsState_ = LppState::LPP_LAYER;
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
     bufferQueue->lppSkipCount_ = 0;
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_TRUE(lppVideoHandler.lppConsumerMap_.empty());
 
     // uni->uni
@@ -489,7 +491,7 @@ HWTEST_F(LppVideoHandlerTest, JudgeLppLayer002, TestSize.Level1)
     lppVideoHandler.lppConsumerMap_[0].push_back(consumer_);
     lppVideoHandler.lppConsumerMap_[1].push_back(consumer_);
     bufferQueue->lppSkipCount_ = 0;
-    lppVideoHandler.JudgeLppLayer(0);
+    lppVideoHandler.JudgeLppLayer(0, lppLayerIds);
     EXPECT_FALSE(lppVideoHandler.lppConsumerMap_.empty());
     lppVideoHandler.lppConsumerMap_.clear();
     delete bufferQueue->lppSlotInfo_;

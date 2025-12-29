@@ -80,10 +80,9 @@ HWTEST_F(RenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
 {
     int32_t timeStamp = 1;
     int32_t vsyncId = 1;
-    std::unordered_set<ScreenId> screenIds = {1, 2, 3};
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
     sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
-    rsAgent_->ProcessHgmFrameRate(timeStamp, vsyncId, screenIds, processToServiceInfo, serviceToProcessInfo);
+    rsAgent_->ProcessHgmFrameRate(timeStamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
     ASSERT_TRUE(rsAgent_);
 }
 } // namespace OHOS::Rosen

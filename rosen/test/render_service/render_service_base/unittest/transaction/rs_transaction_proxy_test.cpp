@@ -875,11 +875,7 @@ HWTEST_F(RSTransactionProxyTest, AddCommonCommandTest, TestSize.Level1)
 HWTEST_F(RSTransactionProxyTest, FlushImplicitTransactionFromRT004, TestSize.Level1)
 {
     uint64_t timestamp = 1;
-    auto renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    renderServiceClient.reset();
-    ASSERT_EQ(renderServiceClient, nullptr);
     RSTransactionProxy* instance = RSTransactionProxy::GetInstance();
-    instance->renderServiceClient_ = renderServiceClient;
     instance->FlushImplicitTransactionFromRT(timestamp);
     instance->SetSyncTransactionNum(0);
     instance->StartSyncTransaction();

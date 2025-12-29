@@ -70,6 +70,7 @@ public:
     static inline uint32_t screenId_ = 0;
     static inline std::shared_ptr<RSUniRenderProcessor> renderProcessor = nullptr;
     static inline std::unique_ptr<OHOS::Rosen::RSScreen> screen = nullptr;
+    static inline std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager = nullptr;
 };
 
 void RSUniRenderProcessorTest::SetUpTestCase()
@@ -79,7 +80,9 @@ void RSUniRenderProcessorTest::SetUpTestCase()
 #endif
     RSTestUtil::InitRenderNodeGC();
     auto output = std::make_shared<HdiOutput>(screenId_);
-    RSRenderComposerManager::GetInstance().OnScreenConnected(output);
+    std::shared_ptr<AppExecFwk::EventHandler> handler = nullptr;
+    rsRenderComposerManager = std::make_shared<RSRenderComposerManager>(handler, nullptr);
+    rsRenderComposerManager->OnScreenConnected(output);
     screen = std::make_unique<OHOS::Rosen::RSScreen>(output);
     auto screenManager = RSScreenManager::GetInstance();
     screenManager->screens_.insert(std::make_pair(0, std::move(screen)));
@@ -89,12 +92,12 @@ void RSUniRenderProcessorTest::SetUpTestCase()
     NodeId nodeId = 1;
     RSScreenRenderNode node(nodeId, screenId_);
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    renderProcessor->Init(node, 0, 0, 0, renderEngine);
+    renderProcessor->Init(node, 0, 0, renderEngine);
     EXPECT_NE(renderProcessor->composerClient_, nullptr);
 }
 void RSUniRenderProcessorTest::TearDownTestCase()
 {
-    RSRenderComposerManager::GetInstance().rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
+    rsRenderComposerManager->rsRenderComposerMap_[screenId_]->uniRenderEngine_ = nullptr;
     renderProcessor = nullptr;
 }
 void RSUniRenderProcessorTest::SetUp() {}
@@ -112,9 +115,9 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessorInit001, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE);
+        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, nullptr);
         RSScreenRenderNode node(nodeId, screenId, context);
-        EXPECT_EQ(processor->Init(node, 0, 0, 0, nullptr), false);
+        EXPECT_EQ(processor->Init(node, 0, 0, nullptr), false);
     }
 }
 
@@ -130,11 +133,11 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessSurface001, TestSize.Level1)
     ScreenId screenId = 0;
     std::weak_ptr<RSContext> context = {};
     if (RSUniRenderJudgement::IsUniRender()) {
-        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE);
+        auto processor = RSProcessorFactory::CreateProcessor(CompositeType::UNI_RENDER_COMPOSITE, nullptr);
         ASSERT_NE(processor, nullptr);
         RSScreenRenderNode node(nodeId, screenId, context);
         auto uniRenderEngine = std::make_shared<RSUniRenderEngine>();
-        processor->Init(node, 0, 0, 0, uniRenderEngine);
+        processor->Init(node, 0, 0, uniRenderEngine);
         RSSurfaceRenderNode surfaceNode(2);
         processor->ProcessSurface(surfaceNode);
     }
@@ -172,8 +175,8 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
         RSLayerInfo layerInfo;
         sptr<SurfaceBuffer> bufferTest = OHOS::SurfaceBuffer::Create();
         sptr<SurfaceBuffer> preBufferTest = OHOS::SurfaceBuffer::Create();
-        params->SetBuffer(bufferTest, {});
-        params->SetPreBuffer(preBufferTest);
+        params->SetBuffer(bufferTest, {}, DEFAULT_RECT);
+        params->SetPreBuffer(preBufferTest, nullptr);
         layerInfo.zOrder = 0;
         params->SetLayerInfo(layerInfo);
         renderProcessor->composerClient_ = nullptr;
@@ -182,7 +185,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerTest, TestSize.Level1)
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, 0, 0, renderEngine);
         renderProcessor->CreateLayer(*surfaceNode, *params);
         EXPECT_TRUE(params->GetLayerCreated());
     }
@@ -312,8 +315,6 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread002, TestS
         DrawableV2::RSScreenRenderNodeDrawable drawable(node);
         drawable.renderParams_= nullptr;
         ASSERT_NE(renderProcessor, nullptr);
-        auto output = std::make_shared<HdiOutput>(1);
-        renderProcessor->uniComposerAdapter_->output_ = output;
         renderProcessor->ProcessScreenSurfaceForRenderThread(drawable);
     }
 }
@@ -334,9 +335,6 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread003, TestS
 
         auto renderProcessor = std::make_shared<RSUniRenderProcessor>();
         ASSERT_NE(renderProcessor, nullptr);
-        auto output = std::make_shared<HdiOutput>(1);
-        ASSERT_NE(output, nullptr);
-        renderProcessor->uniComposerAdapter_->output_ = output;
         renderProcessor->ProcessScreenSurfaceForRenderThread(drawable);
     }
 }
@@ -359,9 +357,6 @@ HWTEST_F(RSUniRenderProcessorTest, ProcessScreenSurfaceForRenderThread004, TestS
         ASSERT_NE(drawable.surfaceHandler_, nullptr);
 
         ASSERT_NE(renderProcessor, nullptr);
-        auto output = std::make_shared<HdiOutput>(1);
-        ASSERT_NE(output, nullptr);
-        renderProcessor->uniComposerAdapter_->output_ = output;
         renderProcessor->ProcessScreenSurfaceForRenderThread(drawable);
     }
 }
@@ -404,7 +399,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
         ASSERT_NE(surfaceDrawable->renderParams_, nullptr);
         sptr<SurfaceBuffer> buffer = OHOS::SurfaceBuffer::Create();
-        surfaceDrawable->renderParams_->SetBuffer(buffer, {});
+        surfaceDrawable->renderParams_->SetBuffer(buffer, {}, DEFAULT_RECT);
         ASSERT_EQ(renderProcessor, nullptr);
         renderProcessor->composerClient_ = nullptr;
         renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
@@ -412,7 +407,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateLayerForRenderThread002, TestSize.Level
         NodeId nodeId = 1;
         RSScreenRenderNode screenNode(nodeId, screenId_);
         auto renderEngine = std::make_shared<RSUniRenderEngine>();
-        renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+        renderProcessor->Init(screenNode, 0, 0, renderEngine);
         renderProcessor->CreateLayerForRenderThread(*surfaceDrawable);
     }
 }
@@ -681,7 +676,7 @@ HWTEST_F(RSUniRenderProcessorTest, GetLayerInfo006, TestSize.Level1)
     (*src) = RSUniRenderProcessorTest::defaultSelfDrawingRect;
 
     EXPECT_EQ(params.GetTunnelLayerId(), 1);
-    params.SetBuffer(buffer, DEFAULT_RECT);
+    params.SetBuffer(buffer, nullptr, DEFAULT_RECT);
     auto param = system::GetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "");
     system::SetParameter("rosen.graphic.selfdrawingdirtyregion.enabled", "1");
     RSLayerPtr result = renderProcessor->GetLayerInfo(params, buffer, preBuffer, consumer, acquireFence);
@@ -712,7 +707,7 @@ HWTEST_F(RSUniRenderProcessorTest, CreateSolidColorLayerTest, TestSize.Level1)
     NodeId nodeId = 1;
     RSScreenRenderNode screenNode(nodeId, screenId_);
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    renderProcessor->Init(screenNode, 0, 0, 0, renderEngine);
+    renderProcessor->Init(screenNode, 0, 0, renderEngine);
     renderProcessor->CreateSolidColorLayer(layer, *params);
     ASSERT_NE(renderProcessor->layers_.size(), 0);
 }

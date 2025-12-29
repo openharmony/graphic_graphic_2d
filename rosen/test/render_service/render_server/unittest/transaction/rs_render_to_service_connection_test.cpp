@@ -84,9 +84,8 @@ HWTEST_F(RSRenderToServiceConnectionTest, NotifyRpHgmFrameRateTest, TestSize.Lev
 {
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
-    std::unordered_set<ScreenId> screenIds = {1, 2, 3};
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    ASSERT_TRUE(rsConn_->NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo));
+    ASSERT_TRUE(rsConn_->NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo));
 }
 
 /**

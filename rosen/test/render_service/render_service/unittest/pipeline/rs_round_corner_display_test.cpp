@@ -508,7 +508,7 @@ HWTEST_F(RSRoundCornerDisplayTest, ConsumeAndUpdateBufferTest, TestSize.Level1)
 
     // 2 invalid node
     processorPtr =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
     visitor->SetUniProcessor(processorPtr);
     visitor->ProcessRcdSurfaceRenderNode(*inValidSurfaceNode, hardInfo.bottomLayer, true);
     visitor->ProcessRcdSurfaceRenderNodeMainThread(*inValidSurfaceNode, true);
@@ -1498,7 +1498,7 @@ HWTEST_F(RSRoundCornerDisplayTest, RSRcdRenderManager, TestSize.Level1)
     rs_rcd::RoundCornerLayer layerTmp{"top.png", 0, 0, "top.bin", 8112, 2028, 1, bitMap.get()};
     std::shared_ptr<rs_rcd::RoundCornerLayer> topPtr = std::make_shared<rs_rcd::RoundCornerLayer>(layerTmp);
     auto rsHardwareProcessor =
-        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+        RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
     RectU displayRect{0, 0, 896, 1848};
     info = {rsHardwareProcessor, topPtr, topPtr, displayRect, true};
     rcdManagerInstance.DoProcessRenderMainThreadTask(id, info);

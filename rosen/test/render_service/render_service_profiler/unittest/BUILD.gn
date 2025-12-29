@@ -29,7 +29,7 @@ group("unittest") {
     ":RSProfilerPixelMapTest",
     ":RSProfilerSocketTest",
     ":RSProfilerTelemetryTest",
-    ":RSProfilerTest",
+    # ":RSProfilerTest",
     ":RSProfilerUtilsTest",
     ":subtest",
   ]

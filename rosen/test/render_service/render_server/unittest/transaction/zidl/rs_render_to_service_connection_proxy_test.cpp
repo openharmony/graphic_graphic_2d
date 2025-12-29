@@ -60,13 +60,7 @@ HWTEST_F(RSRenderToServiceConnectionProxyTest, NotifyRpHgmFrameRateTest, TestSiz
 {
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
-    int32_t sizes = 10;
-    std::unordered_set<ScreenId> screenIds;
-    for (uint64_t i = 0; i < sizes; ++i)
-    {
-        screenIds.insert(i);
-    }
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    ASSERT_TRUE(proxy->NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo));
+    ASSERT_TRUE(proxy->NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo));
 }
 } // namespace OHOS::Rosen

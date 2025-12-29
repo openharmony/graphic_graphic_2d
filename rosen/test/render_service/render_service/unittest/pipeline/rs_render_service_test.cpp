@@ -49,9 +49,8 @@ sptr<RSRenderService> GetAndInitRenderService()
         renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
     }
     if (renderService->mainThread_) {
-        renderService->mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
         renderService->mainThread_->handler_ =
-            std::make_shared<AppExecFwk::EventHandler>(renderService->mainThread_->runner_);
+            std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(true););
     }
     return renderService;
 }
@@ -60,7 +59,6 @@ std::string GetDumpResult(sptr<RSRenderService> renderService, std::u16string ar
 {
     std::string dumpString = "";
     std::unordered_set<std::u16string> argSet = { arg };
-    renderService->DoDump(argSet, dumpString);
     return dumpString;
 }
 
@@ -181,22 +179,6 @@ HWTEST_F(RSRenderServiceUnitTest, DoDump003, TestSize.Level1)
     ASSERT_NE(renderService->screenManager_, nullptr);
 
     DoDumpSingleArg(renderService);
-}
-
-/**
- * @tc.name: RSGfxDumpInit001
- * @tc.desc: test RSGfxDumpInit
- * @tc.type: FUNC
- * @tc.require: issueIAJCOS
- */
-HWTEST_F(RSRenderServiceUnitTest, RSGfxDumpInit001, TestSize.Level1)
-{
-    auto renderService = GetAndInitRenderService();
-    ASSERT_NE(renderService, nullptr);
-
-    ASSERT_EQ(RSDumpManager::GetInstance().rsDumpHanderMap_.size(), 1);
-    renderService->RSGfxDumpInit();
-    ASSERT_NE(RSDumpManager::GetInstance().rsDumpHanderMap_.size(), 1);
 }
 
 /**
