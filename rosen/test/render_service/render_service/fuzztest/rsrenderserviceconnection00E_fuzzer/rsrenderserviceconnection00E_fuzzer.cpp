@@ -133,24 +133,6 @@ void DoRegisterTypeface()
     std::shared_ptr<Drawing::Typeface> typeface = Drawing::Typeface::MakeDefault();
     RSMarshallingHelper::Marshalling(dataParcel, typeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
-
-    code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REGISTER_SHARED_TYPEFACE);
-    MessageParcel dataParcel1;
-    MessageParcel replyParcel1;
-    MessageOption option1;
-    uint64_t uniqueId1 = static_cast<NodeId>(g_pid) << 32 | GetData<uint32_t>();
-    uint32_t size = GetData<uint32_t>();
-    auto ashmem = Ashmem::CreateAshmem("test", size);
-    ashmem->MapReadAndWriteAshmem();
-    option.SetFlags(MessageOption::TF_SYNC);
-    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    Drawing::SharedTypeface sharedTypeface;
-    sharedTypeface.id_ = uniqueId1;
-    sharedTypeface.size_ = size;
-    sharedTypeface.index_ = GetData<uint32_t>();
-    sharedTypeface.fd_ = ashmem->GetAshmemFd();
-    RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
-    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterSharedTypeface()
@@ -159,15 +141,14 @@ void DoRegisterSharedTypeface()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     MessageOption option;
-    uint64_t id = static_cast<NodeId>(g_pid) << 32;
-    uint32_t hash = GetData<uint32_t>();
-    id |= static_cast<uint64_t>(hash);
     option.SetFlags(MessageOption::TF_SYNC);
     dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     Drawing::SharedTypeface sharedTypeface;
-    sharedTypeface.id_ = id;
+    // id is pid(int32_t) | unique id(random uint32_t)
+    sharedTypeface.id_ = (static_cast<NodeId>(g_pid) << 32) | GetData<uint32_t>();
     sharedTypeface.size_ = GetData<uint32_t>();
     sharedTypeface.fd_ = GetData<int32_t>();
+    sharedTypeface.hash_ = GetData<uint32_t>();
     RSMarshallingHelper::Marshalling(dataParcel, sharedTypeface);
     toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
