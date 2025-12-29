@@ -128,22 +128,13 @@ std::shared_ptr<Global::Resource::ResourceManager> AniTool::GetResourceManager()
     return resourceManager;
 }
 
-bool AniTool::IsUndefinedObject(ani_env* env, ani_ref objectRef)
-{
-    ani_boolean isUndefined;
-    if (env->Reference_IsUndefined(objectRef, &isUndefined) != ANI_OK) {
-        return false;
-    }
-    return (bool)isUndefined;
-}
-
 bool AniTool::GetTypeParam(ani_env* env, ani_object obj, int32_t& result)
 {
     ani_ref resultRef;
     if (env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().resourceGetType, &resultRef) != ANI_OK) {
         return false;
     }
-    if (IsUndefinedObject(env, resultRef)) {
+    if (IsUndefined(env, resultRef)) {
         return false;
     }
     ani_class typeClass = AniGlobalClass::GetInstance().intCls;
@@ -169,7 +160,7 @@ bool AniTool::GetParamsArray(ani_env* env, ani_object obj, std::vector<std::stri
     if (env->Object_CallMethod_Ref(obj, AniGlobalMethod::GetInstance().resourceGetParams, &paramsRef) != ANI_OK) {
         return false;
     }
-    if (IsUndefinedObject(env, paramsRef)) {
+    if (IsUndefined(env, paramsRef)) {
         return false;
     }
     ani_class paramsClass = AniGlobalClass::GetInstance().arrayCls;
@@ -189,7 +180,7 @@ bool AniTool::GetParamsArray(ani_env* env, ani_object obj, std::vector<std::stri
     std::vector<std::string> paramsArray;
     for (uint32_t i = 0; i < length; i++) {
         ani_ref itemRef;
-        ani_status ret = env->Array_Get(paramsArrayObj, (ani_int)i, &itemRef);
+        ani_status ret = env->Array_Get(paramsArrayObj, static_cast<ani_size>(i), &itemRef);
         if (ret != ANI_OK) {
             continue;
         }
@@ -557,7 +548,7 @@ bool AniTool::GetResourceColor(ani_env* env, ani_object obj, uint32_t& result)
     if (IsIntObject(env, obj)) {
         ani_int aniColor;
         if (ANI_OK != env->Object_CallMethod_Int(obj, AniGlobalMethod::GetInstance().intGet, &aniColor)) {
-            ROSEN_LOGE("AniTool::GetResourceColor failed by Object_CallMethodByName_Double");
+            ROSEN_LOGE("AniTool::GetResourceColor failed by Object_CallMethod_Int");
             return false;
         }
         result = GetColorNumberResult(static_cast<uint32_t>(aniColor));

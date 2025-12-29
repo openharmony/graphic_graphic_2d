@@ -192,6 +192,25 @@ inline bool CheckInt32OutOfRange(ani_int val, int32_t lowerBound, int32_t upperB
     return val < lowerBound || val > upperBound;
 }
 
+inline bool IsUndefined(ani_env* env, ani_ref ref)
+{
+    ani_boolean isUndefined = ANI_FALSE;
+    env->Reference_IsUndefined(ref, &isUndefined);
+    return isUndefined;
+}
+
+inline bool IsNull(ani_env* env, ani_ref ref)
+{
+    ani_boolean isNull = ANI_FALSE;
+    env->Reference_IsNull(ref, &isNull);
+    return isNull;
+}
+
+inline bool IsReferenceValid(ani_env* env, ani_ref ref)
+{
+    return !IsUndefined(env, ref) && !IsNull(env, ref);
+}
+
 bool DrawingPointConvertToAniPoint(ani_env* env, ani_object obj, const Drawing::Point& point);
 
 bool DrawingRectConvertToAniRect(ani_env* env, ani_object obj, const Drawing::Rect& rect);

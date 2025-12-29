@@ -51,9 +51,7 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
     ani_double aniSegLength, ani_double aniDev, ani_object aniSeedAssistObj)
 {
     uint32_t seedAssist = 0;
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniSeedAssistObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aniSeedAssistObj)) {
         ani_double aniSeedAssist = 0;
         ani_status ret =  env->Object_CallMethod_Double(
             aniSeedAssistObj, AniGlobalMethod::GetInstance().doubleGet, &aniSeedAssist);
@@ -69,8 +67,7 @@ ani_object AniPathEffect::CreateDiscretePathEffect(ani_env* env, [[maybe_unused]
         PathEffect::CreateDiscretePathEffect(aniSegLength, aniDev, seedAssist));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete pathEffect;
         ROSEN_LOGE("AniPathEffect::CreateDiscretePathEffect failed cause aniObj is undefined");
     }
@@ -96,9 +93,7 @@ ani_object AniPathEffect::CreateSumPathEffect(ani_env* env, [[maybe_unused]]ani_
         *(aniFirstPathEffect->GetPathEffect()), *(aniSecondPathEffect->GetPathEffect())));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete pathEffect;
         ROSEN_LOGE("AniPathEffect::CreateSumPathEffect failed cause aniObj is undefined");
     }
@@ -123,9 +118,7 @@ ani_object AniPathEffect::CreatePathDashEffect(ani_env* env, [[maybe_unused]]ani
         *aniPath->GetPath(), aniAdvance, aniPhase, static_cast<PathDashStyle>(aniStyle)));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete pathEffect;
         ROSEN_LOGE("AniPathEffect::CreatePathDashEffect failed cause aniObj is undefined");
     }
@@ -151,9 +144,7 @@ ani_object AniPathEffect::CreateComposePathEffect(ani_env* env, [[maybe_unused]]
         *(aniOuterPathEffect->GetPathEffect()), *(aniInnerPathEffect->GetPathEffect())));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete pathEffect;
         ROSEN_LOGE("AniPathEffect::CreateComposePathEffect failed cause aniObj is undefined");
     }
@@ -166,9 +157,7 @@ ani_object AniPathEffect::CreateCornerPathEffect(
     AniPathEffect* pathEffect = new AniPathEffect(PathEffect::CreateCornerPathEffect(aniRadius));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete pathEffect;
         ROSEN_LOGE("AniPathEffect::CreateCornerPathEffect failed cause aniObj is undefined");
     }
@@ -214,9 +203,7 @@ ani_object AniPathEffect::CreateDashPathEffect(
         aniPhase));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().pathEffect,
         AniGlobalMethod::GetInstance().pathEffectCtor, AniGlobalMethod::GetInstance().pathEffectBindNative, pathEffect);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete pathEffect;
         ROSEN_LOGE("AniPathEffect::CreateDashPathEffect failed cause aniObj is undefined");
     }

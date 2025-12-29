@@ -53,9 +53,7 @@ ani_object AniMaskFilter::CreateBlurMaskFilter(
         MaskFilter::CreateBlurMaskFilter(static_cast<BlurType>(blurType), sigma));
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().maskFilter,
         AniGlobalMethod::GetInstance().maskFilterCtor, AniGlobalMethod::GetInstance().maskFilterBindNative, maskFilter);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete maskFilter;
         ROSEN_LOGE("AniMaskFilter::CreateBlurMaskFilter failed cause aniObj is undefined");
     }

@@ -115,7 +115,7 @@ ani_object AniTextBlob::MakeFromPosText(ani_env* env, ani_object obj, ani_string
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Argv[0] is empty.");
         return CreateAniUndefined(env);
     }
-    if (len != (ani_int)aniLength) {
+    if (len != static_cast<ani_int>(aniLength)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
             "string length does not match points array length.");
         return CreateAniUndefined(env);
@@ -148,7 +148,7 @@ bool AniTextBlob::MakePoints(ani_env* env, Point* points, uint32_t size, ani_arr
     for (uint32_t i = 0; i < size; i++) {
         Drawing::Point point;
         ani_ref pointRef;
-        if (ANI_OK != env->Array_Get(array, (ani_int)i, &pointRef)) {
+        if (ANI_OK != env->Array_Get(array, static_cast<ani_size>(i), &pointRef)) {
             return false;
         }
         if (GetPointFromPointObj(env, static_cast<ani_object>(pointRef), point) != ANI_OK) {
@@ -216,9 +216,7 @@ ani_object AniTextBlob::MakeFromRunBuffer(ani_env* env, ani_object obj, ani_arra
     }
     TextBlobBuilder::RunBuffer runBuffer;
     std::shared_ptr<TextBlobBuilder> textBlobBuilder = std::make_shared<TextBlobBuilder>();
-    ani_boolean isRectUndefined = ANI_TRUE;
-    env->Reference_IsUndefined(aniRectObj, &isRectUndefined);
-    if (isRectUndefined) {
+    if (IsUndefined(env, aniRectObj)) {
         runBuffer = textBlobBuilder->AllocRunPos(*font, size);
     } else {
         ani_boolean isRectNullptr = ANI_TRUE;
@@ -260,9 +258,7 @@ ani_object AniTextBlob::CreateTextBlobObj(ani_env* env, const std::shared_ptr<Te
     AniTextBlob* aniTextBlob = new AniTextBlob(textBlob);
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().textBlob,
         AniGlobalMethod::GetInstance().textBlobCtor, AniGlobalMethod::GetInstance().textBlobBindNative, aniTextBlob);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete aniTextBlob;
         ROSEN_LOGE("AniTextBlob::CreateTextBlobObj failed cause aniObj is undefined");
     }
@@ -284,8 +280,8 @@ bool AniTextBlob::MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuf
     for (uint32_t i = 0; i < size; i++) {
         Drawing::Point point;
         ani_ref runBufferRef;
-        if (ANI_OK != env->Array_Get(posArray, (ani_int)i, &runBufferRef)) {
-            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Object_CallMethodByName_Ref failed");
+        if (ANI_OK != env->Array_Get(posArray, static_cast<ani_size>(i), &runBufferRef)) {
+            ROSEN_LOGE("AniTextBlob::MakeRunBuffer Array_Get failed");
             return false;
         }
         ani_object aniRunBuffer =  static_cast<ani_object>(runBufferRef);

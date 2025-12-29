@@ -40,7 +40,6 @@ public:
         ani_array colorsArray, ani_enum_item aniTileMode, ani_object aniPos, ani_object aniMatrix);
     std::shared_ptr<ShaderEffect> GetShaderEffect();
 private:
-    static ani_boolean IsReferenceValid(ani_env* env, ani_object obj);
     static ani_object CreateAniShaderEffect(ani_env* env, std::shared_ptr<ShaderEffect> shaderEffect);
     std::shared_ptr<ShaderEffect> shaderEffect_ = nullptr;;
 };

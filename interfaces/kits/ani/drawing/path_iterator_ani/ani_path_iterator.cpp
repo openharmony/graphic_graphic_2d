@@ -96,9 +96,7 @@ ani_object AniPathIterator::OnNext(ani_env* env, ani_array aniPointArray, ani_ob
 {
     int32_t offset = 0;
     ani_status ret = ANI_OK;
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniOffsetObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aniOffsetObj)) {
         ani_int aniOffset = 0;
         if (ANI_OK != env->Object_CallMethod_Int(
             aniOffsetObj, AniGlobalMethod::GetInstance().intGet, &aniOffset)) {

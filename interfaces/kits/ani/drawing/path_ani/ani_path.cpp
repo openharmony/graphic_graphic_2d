@@ -239,9 +239,7 @@ void AniPath::AddRoundRect(ani_env* env, ani_object obj, ani_object aniRoundRect
         return;
     }
 
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniPathDirectionObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniPathDirectionObj)) {
         aniPath->GetPath()->AddRoundRect(*aniRoundRect->GetRoundRect());
         return;
     }
@@ -289,9 +287,7 @@ ani_object AniPath::Offset(ani_env* env, ani_object obj, ani_double dx, ani_doub
     aniPath->GetPath()->Offset(path.get(), dx, dy);
     ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().path,
         AniGlobalMethod::GetInstance().pathCtor);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         ROSEN_LOGE("AniPath::Offset failed cause aniObj is undefined");
         return aniObj;
     }
@@ -413,7 +409,7 @@ void AniPath::AddPolygon(ani_env* env, ani_object obj, ani_array aniPointArray, 
     for (uint32_t i = 0; i < pointSize; i++) {
         ani_ref pointRef;
         Drawing::Point point;
-        ani_status ret = env->Array_Get(aniPointArray, static_cast<ani_int>(i), &pointRef);
+        ani_status ret = env->Array_Get(aniPointArray, static_cast<ani_size>(i), &pointRef);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniPath::AddPolygon get point from array failed: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param points.");
@@ -447,9 +443,7 @@ void AniPath::AddCircle(
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param.");
         return;
     }
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniPathDirectionObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniPathDirectionObj)) {
         aniPath->GetPath()->AddCircle(x, y, radius);
         return;
     }
@@ -515,9 +509,7 @@ void AniPath::AddRect(ani_env* env, ani_object obj, ani_object aniRectObj, ani_o
         return;
     }
 
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniPathDirectionObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniPathDirectionObj)) {
         aniPath->GetPath()->AddRect(drawingRect);
         return;
     }
@@ -599,9 +591,7 @@ void AniPath::AddOval(
             "Incorrect AddOval paramter1 range. It should be greater than 0.");
         return;
     }
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniPathDirectionObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniPathDirectionObj)) {
         aniPath->GetPath()->AddOval(oval, static_cast<int32_t>(aniStart));
         return;
     }
@@ -639,11 +629,7 @@ void AniPath::AddPath(ani_env* env, ani_object obj, ani_object aniPathObj, ani_o
         return;
     }
 
-    ani_boolean isUndefined;
-    ani_boolean isNull;
-    env->Reference_IsUndefined(aniMatrixObj, &isUndefined);
-    env->Reference_IsNull(aniMatrixObj, &isNull);
-    if (isUndefined || isNull) {
+    if (IsUndefined(env, aniMatrixObj) || IsNull(env, aniMatrixObj)) {
         aniPath->GetPath()->AddPath(*aniNewPath->GetPath(), Drawing::Matrix());
         return;
     }

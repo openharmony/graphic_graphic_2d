@@ -220,10 +220,10 @@ bool GetRectFromAniRectObj(ani_env* env, ani_object obj, Drawing::Rect& rect)
         return false;
     }
 
-    ani_double left;
-    ani_double top;
-    ani_double right;
-    ani_double bottom;
+    ani_double left = 0;
+    ani_double top = 0;
+    ani_double right = 0;
+    ani_double bottom = 0;
     if ((env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetLeft, &left) != ANI_OK) ||
         (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetTop, &top) != ANI_OK) ||
         (env->Object_CallMethod_Double(obj, AniGlobalMethod::GetInstance().rectGetRight, &right) != ANI_OK) ||
@@ -313,7 +313,7 @@ bool ConvertFromAniPointsArray(ani_env* env, ani_array aniPointArray, Drawing::P
     for (uint32_t i = 0; i < pointSize; i++) {
         ani_ref pointRef;
         Drawing::Point point;
-        if (ANI_OK != env->Array_Get(aniPointArray, (ani_int)i, &pointRef)) {
+        if (ANI_OK != env->Array_Get(aniPointArray, static_cast<ani_size>(i), &pointRef)) {
             ROSEN_LOGE("aniPointArray get pointRef failed.");
             return false;
         }
@@ -344,7 +344,7 @@ bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& poin
     ani_method point3dGetZ = AniGlobalMethod::GetInstance().point3dGetZ;
     if (point3dGetX == nullptr || point3dGetY == nullptr || point3dGetZ == nullptr) {
         ROSEN_LOGE("GetPoint3FromPoint3dObj failed by cls method is null");
-        return ANI_ERROR;
+        return false;
     }
 
     ani_double x = 0;
@@ -428,7 +428,7 @@ bool CreateAniEnumByEnumName(ani_env* env, const ani_enum enumType, const std::s
     }
     ani_status ret = env->Enum_GetEnumItemByName(enumType, itemName.c_str(), &enumItem);
     if (ret != ANI_OK) {
-        ROSEN_LOGE("CreateAniEnumByEnumName get enum by index failed. ret: %{public}d.", ret);
+        ROSEN_LOGE("CreateAniEnumByEnumName get enum by name failed. ret: %{public}d.", ret);
         return false;
     }
 

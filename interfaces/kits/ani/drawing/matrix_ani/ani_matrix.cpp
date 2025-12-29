@@ -275,9 +275,7 @@ ani_object AniMatrix::GetAll(ani_env* env, ani_object obj)
     for (ani_size index = 0; index < Drawing::Matrix::MATRIX_SIZE; index++) {
         ani_object aniValue = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
             AniGlobalMethod::GetInstance().doubleCtor, buffer[index]);
-        ani_boolean isUndefined = false;
-        env->Reference_IsUndefined(aniValue, &isUndefined);
-        if (isUndefined) {
+        if (IsUndefined(env, aniValue)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Create Double obj Faild");
             return aniValue;
         }
@@ -314,7 +312,7 @@ void AniMatrix::SetMatrix(ani_env* env, ani_object obj, ani_array aniValueArrayO
     for (uint32_t i = 0; i < matrixSize; i++) {
         ani_ref matrixRef;
         ani_double matrixValue;
-        ret = env->Array_Get(aniValueArrayObj, (ani_int)i, &matrixRef);
+        ret = env->Array_Get(aniValueArrayObj, static_cast<ani_size>(i), &matrixRef);
         if (ret != ANI_OK) {
             ROSEN_LOGE("AniMatrix::SetMatrix aniValueArrayObj get pointRef failed. ret: %{public}d", ret);
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "invalid param matrix array element.");

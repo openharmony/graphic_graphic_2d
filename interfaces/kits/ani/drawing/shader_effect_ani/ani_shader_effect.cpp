@@ -58,7 +58,7 @@ bool GetColorsArray(ani_env* env, ani_array corlorsArray, std::vector<ColorQuad>
     for (uint32_t i = 0; i < colorsSize; i++) {
         ani_int color;
         ani_ref colorRef;
-        if (ANI_OK != env->Array_Get(corlorsArray, (ani_int)i, &colorRef) ||
+        if (ANI_OK != env->Array_Get(corlorsArray, static_cast<ani_size>(i), &colorRef) ||
             ANI_OK != env->Object_CallMethod_Int(
                 static_cast<ani_object>(colorRef), AniGlobalMethod::GetInstance().intGet, &color)) {
             ROSEN_LOGE("get color ref failed.");
@@ -81,7 +81,7 @@ bool GetPosArray(ani_env* env, ani_array posArray, std::vector<float>& pos)
     for (uint32_t i = 0; i < size; i++) {
         ani_double value;
         ani_ref posRef;
-        if (ANI_OK != env->Array_Get(posArray, (ani_int)i, &posRef) ||
+        if (ANI_OK != env->Array_Get(posArray, static_cast<ani_size>(i), &posRef) ||
             ANI_OK != env->Object_CallMethod_Double(
                 static_cast<ani_object>(posRef), AniGlobalMethod::GetInstance().doubleGet, &value)) {
             ROSEN_LOGE("get pos ref failed.");
@@ -112,22 +112,11 @@ ani_object AniShaderEffect::CreateAniShaderEffect(ani_env* env, std::shared_ptr<
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().shaderEffect,
         AniGlobalMethod::GetInstance().shaderEffectCtor, AniGlobalMethod::GetInstance().shaderEffectBindNative,
         aniShaderEffect);
-    ani_boolean isUndefined = ANI_TRUE;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete aniShaderEffect;
         ROSEN_LOGE("AniShaderEffect::CreateAniShaderEffect failed cause aniObj is undefined");
     }
     return aniObj;
-}
-
-ani_boolean AniShaderEffect::IsReferenceValid(ani_env* env, ani_object obj)
-{
-    ani_boolean isUndefined = ANI_TRUE;
-    ani_boolean isNull = ANI_TRUE;
-    env->Reference_IsUndefined(obj, &isUndefined);
-    env->Reference_IsNull(obj, &isNull);
-    return !isUndefined && !isNull;
 }
 
 ani_object AniShaderEffect::CreateColorShader(ani_env* env, ani_object obj, ani_int color)

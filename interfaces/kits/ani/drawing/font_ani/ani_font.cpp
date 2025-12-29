@@ -82,10 +82,7 @@ ani_object CreateAniFontMetrics(ani_env* env, const FontMetrics& fontMetrics)
         ani_double(fontMetrics.fStrikeoutThickness),
         ani_double(fontMetrics.fStrikeoutPosition)
     );
-    
-    ani_boolean isUndefined = false;
-    env->Reference_IsUndefined(aniFontMetrics, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniFontMetrics)) {
         ROSEN_LOGE("[ANI] create aniFontMetrics failed.");
         return aniFontMetrics;
     }
@@ -442,7 +439,7 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
     for (uint32_t i = 0; i < fontSize; i++) {
         ani_int glyph;
         ani_ref glyphRef;
-        if (ANI_OK != env->Array_Get(glyphs, (ani_int)i, &glyphRef) ||
+        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
             ANI_OK != env->Object_CallMethod_Int(
                 static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
             ROSEN_LOGE("AniFont::GetWidths Incorrect parameter glyph type.");
@@ -464,10 +461,8 @@ ani_object AniFont::GetWidths(ani_env* env, ani_object obj, ani_array glyphs)
     for (uint32_t i = 0; i < fontSize; i++) {
         ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().doubleCls,
             AniGlobalMethod::GetInstance().doubleCtor, widthPtr[i]);
-        ani_boolean isUndefined = false;
-        env->Reference_IsUndefined(aniObj, &isUndefined);
-        if (isUndefined) {
-            ROSEN_LOGE("AniFont::GetWidths failed.");
+        if (IsUndefined(env, aniObj)) {
+            ROSEN_LOGE("AniFont::GetWidths Failed to create width item");
             return aniObj;
         }
         ani_status ret = env->Array_Set(arrayObj, static_cast<ani_size>(i), aniObj);
@@ -493,9 +488,7 @@ ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniTex
     std::shared_ptr<Font> realFont = themeFont == nullptr ? font : themeFont;
     uint32_t count = static_cast<uint32_t>(realFont->CountText(text.c_str(), text.length(), TextEncoding::UTF8));
 
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(glyphCount, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, glyphCount)) {
         ani_int aniGlyphCount;
         if (ANI_OK != env->Object_CallMethod_Int(glyphCount, AniGlobalMethod::GetInstance().intGet, &aniGlyphCount)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -519,9 +512,7 @@ ani_object AniFont::TextToGlyphs(ani_env* env, ani_object obj, ani_string aniTex
     for (uint32_t i = 0; i < count; i++) {
         ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().intCls,
             AniGlobalMethod::GetInstance().intCtor, glyphPtr[i]);
-        ani_boolean isUndefined = false;
-        env->Reference_IsUndefined(aniObj, &isUndefined);
-        if (isUndefined) {
+        if (IsUndefined(env, aniObj)) {
             ROSEN_LOGE("AniFont::TextToGlyphs Failed to create Int object");
             return aniObj;
         }
@@ -689,7 +680,7 @@ ani_enum_item AniFont::GetHinting(ani_env* env, ani_object obj)
     ani_enum_item enumItem;
     if (!CreateAniEnumByEnumName(env, AniGlobalEnum::GetInstance().fontHinting, itemName, enumItem)) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
-            "Find enum for FontHinting failed.");
+            "Failed to obtain the FontHinting enumeration.");
         return {};
     }
     return enumItem;
@@ -706,7 +697,7 @@ ani_enum_item AniFont::GetEdging(ani_env* env, ani_object obj)
     std::string itemName = GetFontEdgingItemName(edging);
     ani_enum_item enumItem;
     if (!CreateAniEnumByEnumName(env, AniGlobalEnum::GetInstance().fontEdging, itemName, enumItem)) {
-        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Find enum for FontEdging failed.");
+        ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Failed to obtain the FontEdging enumeration.");
         return {};
     }
 
@@ -761,7 +752,7 @@ ani_object AniFont::GetBounds(ani_env* env, ani_object obj, ani_array glyphs)
     for (uint32_t i = 0; i < glyphscnt; i++) {
         ani_int glyph;
         ani_ref glyphRef;
-        if (ANI_OK != env->Array_Get(glyphs, (ani_int)i, &glyphRef) ||
+        if (ANI_OK != env->Array_Get(glyphs, static_cast<ani_size>(i), &glyphRef) ||
             ANI_OK != env->Object_CallMethod_Int(
                 static_cast<ani_object>(glyphRef), AniGlobalMethod::GetInstance().intGet, &glyph)) {
             ROSEN_LOGE("AniFont::GetBounds Incorrect parameter glyph type.");

@@ -93,9 +93,7 @@ ani_object AniShadowLayer::CreateLooper(ani_env* env, const std::shared_ptr<Blur
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().shadowLayer,
         AniGlobalMethod::GetInstance().shadowLayerCtor, AniGlobalMethod::GetInstance().shadowLayerBindNative,
         aniShadowLayer);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete aniShadowLayer;
         ROSEN_LOGE("AniShadowLayer::CreateLooper failed cause aniObj is undefined");
     }

@@ -53,7 +53,7 @@ bool GetLatticeDividers(ani_env* env, ani_array dividersArray, uint32_t count, s
         for (uint32_t i = 0; i < dividersSize; i++) {
             ani_int divider;
             ani_ref dividerRef;
-            ani_status ret = env->Array_Get(dividersArray, (ani_int)i, &dividerRef);
+            ani_status ret = env->Array_Get(dividersArray, static_cast<ani_size>(i), &dividerRef);
             if (ret != ANI_OK) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice  get divider ref failed. ret: %{public}d", ret);
                 return false;
@@ -90,7 +90,7 @@ bool GetLatticeRectTypes(ani_env* env, ani_object rectTypesArray, uint32_t count
         for (uint32_t i = 0; i < rectTypesSize; i++) {
             ani_int rectType;
             ani_ref rectTypeRef;
-            if (ANI_OK != env->Array_Get(arrayObj, (ani_int)i, &rectTypeRef) ||
+            if (ANI_OK != env->Array_Get(arrayObj, static_cast<ani_size>(i), &rectTypeRef) ||
                 ANI_OK != env->EnumItem_GetValue_Int((ani_enum_item)rectTypeRef, &rectType)) {
                 ROSEN_LOGE("AniLattice::CreateImageLattice Incorrect parameter dividers type.");
                 return false;
@@ -155,7 +155,7 @@ bool GetLatticeColors(
         latticeColors.reserve(colorsSize);
         for (uint32_t i = 0; i < colorsSize; i++) {
             ani_ref colorRef;
-            if (ANI_OK != env->Array_Get(arrayObj, (ani_int)i, &colorRef)) {
+            if (ANI_OK != env->Array_Get(arrayObj, static_cast<ani_size>(i), &colorRef)) {
                 ROSEN_LOGE("GetLatticeColors: colors is invalid %{public}s, %{public}d", __FUNCTION__, __LINE__);
                 return false;
             }
@@ -220,29 +220,22 @@ ani_object CreateImageLatticeInternal(const LatticeCreationParams& params)
     lat.fXCount = static_cast<int>(xCount);
     lat.fYCount = static_cast<int>(yCount);
 
-    ani_boolean isUndefined = ANI_TRUE;
-    ani_boolean isNull = ANI_TRUE;
-    params.env->Reference_IsUndefined(params.fBounds, &isUndefined);
-    params.env->Reference_IsNull(params.fBounds, &isNull);
     Drawing::Rect drawingRect;
-    if (!isUndefined && !isNull && GetRectFromAniRectObj(params.env, params.fBounds, drawingRect)) {
+    if (IsReferenceValid(params.env, params.fBounds) &&
+        GetRectFromAniRectObj(params.env, params.fBounds, drawingRect)) {
         lat.fBounds.push_back(Drawing::RectI(
             drawingRect.left_, drawingRect.top_, drawingRect.right_, drawingRect.bottom_));
     }
 
-    params.env->Reference_IsUndefined(params.fRectTypes, &isUndefined);
-    params.env->Reference_IsNull(params.fRectTypes, &isNull);
     uint32_t count = (xCount + 1) * (yCount + 1); // 1: grid size need + 1
-    if (!isUndefined && !isNull) {
+    if (IsReferenceValid(params.env, params.fRectTypes)) {
         if (!GetLatticeRectTypes(params.env, params.fRectTypes, count, lat.fRectTypes)) {
             ThrowBusinessError(params.env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter6 type.");
             return CreateAniUndefined(params.env);
         }
     }
 
-    params.env->Reference_IsUndefined(params.fColors, &isUndefined);
-    params.env->Reference_IsNull(params.fColors, &isNull);
-    if (!isUndefined && !isNull) {
+    if (IsReferenceValid(params.env, params.fColors)) {
         if (!GetLatticeColors(params.env, params.fColors, count, lat.fColors, params.isColorArray)) {
             ThrowBusinessError(params.env, DrawingErrorCode::ERROR_INVALID_PARAM, "Incorrect parameter7 type.");
             return CreateAniUndefined(params.env);
@@ -252,9 +245,7 @@ ani_object CreateImageLatticeInternal(const LatticeCreationParams& params)
     AniLattice* aniLattice = new AniLattice(std::make_shared<Lattice>(lat));
     ani_object aniObj = CreateAniObjectStatic(params.env, AniGlobalClass::GetInstance().lattice,
         AniGlobalMethod::GetInstance().latticeCtor, AniGlobalMethod::GetInstance().latticeBindNative, aniLattice);
-    ani_boolean objIsUndefined;
-    params.env->Reference_IsUndefined(aniObj, &objIsUndefined);
-    if (objIsUndefined) {
+    if (IsUndefined(params.env, aniObj)) {
         delete aniLattice;
         ROSEN_LOGE("AniLattice::CreateImageLatticeInternal failed cause aniObj is undefined");
     }
@@ -303,9 +294,7 @@ ani_object AniLattice::LatticeTransferStatic(ani_env* env, [[maybe_unused]]ani_o
 
     ani_object aniLatticeObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().lattice,
         AniGlobalMethod::GetInstance().latticeCtor, AniGlobalMethod::GetInstance().latticeBindNative, aniLattice);
-    ani_boolean objIsUndefined;
-    env->Reference_IsUndefined(aniLatticeObj, &objIsUndefined);
-    if (objIsUndefined) {
+    if (IsUndefined(env, aniLatticeObj)) {
         delete aniLattice;
         ROSEN_LOGE("AniLattice::CreateImageLatticeInternal failed cause aniObj is undefined");
     }

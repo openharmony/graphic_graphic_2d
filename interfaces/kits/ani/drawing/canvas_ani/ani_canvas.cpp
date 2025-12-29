@@ -382,9 +382,7 @@ void AniCanvas::NotifyDirty()
 
 void AniCanvas::Constructor(ani_env* env, ani_object obj, ani_object pixelmapObj)
 {
-    ani_boolean isUndefined = ANI_TRUE;
-    env->Reference_IsUndefined(pixelmapObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, pixelmapObj)) {
         AniCanvas *aniCanvas = new AniCanvas();
         if (ANI_OK != env->Object_SetField_Long(
             obj, AniGlobalField::GetInstance().canvasNativeObj, reinterpret_cast<ani_long>(aniCanvas))) {
@@ -642,9 +640,7 @@ void AniCanvas::DrawImage(ani_env* env, ani_object obj, ani_object pixelmapObj,
     }
 
     Drawing::SamplingOptions samplingOptions;
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(samplingOptionsObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, samplingOptionsObj)) {
         AniSamplingOptions* aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, samplingOptionsObj,
             AniGlobalField::GetInstance().samplingOptionsNativeObj);
         if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
@@ -805,9 +801,7 @@ void AniCanvas::DrawImageRect(ani_env* env, ani_object obj,
     }
 
     AniSamplingOptions* aniSamplingOptions = nullptr;
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(samplingOptionsObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, samplingOptionsObj)) {
         aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, samplingOptionsObj,
             AniGlobalField::GetInstance().samplingOptionsNativeObj);
         if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
@@ -874,7 +868,7 @@ bool AniCanvas::GetVertices(ani_env* env, ani_array verticesObj, float* vertices
     for (uint32_t i = 0; i < verticesSize; i++) {
         ani_double vertex;
         ani_ref vertexRef;
-        if (ANI_OK !=  env->Array_Get(verticesObj, (ani_int)i, &vertexRef) ||
+        if (ANI_OK !=  env->Array_Get(verticesObj, static_cast<ani_size>(i), &vertexRef) ||
             ANI_OK !=  env->Object_CallMethod_Double(
                 static_cast<ani_object>(vertexRef), AniGlobalMethod::GetInstance().doubleGet, &vertex)) {
             delete []vertices;
@@ -891,7 +885,7 @@ bool AniCanvas::GetVerticesUint16(ani_env* env, ani_array verticesObj, uint16_t*
         ani_int vertex;
         ani_ref vertexRef;
         if (ANI_OK != env->Array_Get(
-            verticesObj, (ani_int)i, &vertexRef) ||
+            verticesObj, static_cast<ani_size>(i), &vertexRef) ||
             ANI_OK != env->Object_CallMethod_Int(
                 static_cast<ani_object>(vertexRef), AniGlobalMethod::GetInstance().intGet, &vertex)) {
             ROSEN_LOGE("AniCanvas::GetVerticesUint16 vertices is invalid");
@@ -911,7 +905,7 @@ bool AniCanvas::GetColorsUint32(ani_env* env, ani_array colorsObj, uint32_t* col
     for (uint32_t i = 0; i < colorsSize; i++) {
         ani_int color;
         ani_ref colorRef;
-        if (ANI_OK != env->Array_Get(colorsObj, (ani_int)i, &colorRef) ||
+        if (ANI_OK != env->Array_Get(colorsObj, static_cast<ani_size>(i), &colorRef) ||
             ANI_OK != env->Object_CallMethod_Int(
                 static_cast<ani_object>(colorRef), AniGlobalMethod::GetInstance().intGet, &color)) {
             ROSEN_LOGE("AniCanvas::GetColorsUint32 colors is invalid");
@@ -957,7 +951,7 @@ void AniCanvas::GetColorsAndDraw(ani_env* env, ani_array colorsObj, int32_t colo
     for (uint32_t i = 0; i < colorsSize; i++) {
         ani_int color;
         ani_ref colorRef;
-        if (ANI_OK != env->Array_Get(colorsObj, (ani_int)i, &colorRef) ||
+        if (ANI_OK != env->Array_Get(colorsObj, static_cast<ani_size>(i), &colorRef) ||
             ANI_OK != env->Object_CallMethod_Int(
                 static_cast<ani_object>(colorRef), AniGlobalMethod::GetInstance().intGet, &color)) {
             delete []colors;
@@ -1051,7 +1045,7 @@ bool AniCanvas::GetPositions(ani_env* env, ani_int vertexCount,
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid positions params.");
         return false;
     }
-    if ((ani_int)aniPositionsLength != vertexCount) {
+    if (static_cast<ani_int>(aniPositionsLength) != vertexCount) {
         ROSEN_LOGE("AniCanvas::DrawVertices positionsSize is invalid");
         ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid positions params.");
         return false;
@@ -1079,7 +1073,7 @@ bool AniCanvas::GetTexs(ani_env* env, ani_int vertexCount,
     env->Array_GetLength(arrayObj, &aniTexsLength);
     uint32_t texsSize = static_cast<uint32_t>(aniTexsLength);
     if (texsSize != 0) {
-        if ((ani_int)aniTexsLength != vertexCount) {
+        if (static_cast<ani_int>(aniTexsLength) != vertexCount) {
             ROSEN_LOGE("AniCanvas::DrawVertices texsSize is invalid");
             ThrowBusinessError(env, DrawingErrorCode::ERROR_PARAM_VERIFICATION_FAILED, "Invalid texsObj params.");
             return false;
@@ -1227,9 +1221,7 @@ void AniCanvas::DrawImageRectWithSrc(ani_env* env, ani_object obj, ani_object pi
     }
 
     AniSamplingOptions* aniSamplingOptions = nullptr;
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(samplingOptionsObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, samplingOptionsObj)) {
         aniSamplingOptions = GetNativeFromObj<AniSamplingOptions>(env, samplingOptionsObj,
             AniGlobalField::GetInstance().samplingOptionsNativeObj);
         if (aniSamplingOptions == nullptr || aniSamplingOptions->GetSamplingOptions() == nullptr) {
@@ -1239,10 +1231,8 @@ void AniCanvas::DrawImageRectWithSrc(ani_env* env, ani_object obj, ani_object pi
         }
     }
 
-    isUndefined = true;
     int32_t srcRectConstraint = 0;
-    env->Reference_IsUndefined(constraintObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, constraintObj)) {
         ani_int constraint;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(constraintObj), &constraint)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -1278,9 +1268,7 @@ void AniCanvas::DrawColorWithObject(ani_env* env, ani_object obj, ani_object col
     }
 
     Canvas* canvas = aniCanvas->GetCanvas();
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aniBlendMode, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aniBlendMode)) {
         ani_int blendMode;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(aniBlendMode), &blendMode)) {
             ROSEN_LOGE("AniCanvas::DrawColor failed cause by blendMode");
@@ -1331,9 +1319,7 @@ void AniCanvas::DrawColorWithArgb(ani_env* env, ani_object obj, ani_int alpha, a
     auto color = Drawing::Color::ColorQuadSetARGB(alpha, red, green, blue);
 
     Canvas* canvas = aniCanvas->GetCanvas();
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aniBlendMode, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aniBlendMode)) {
         ani_int blendMode;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(aniBlendMode), &blendMode)) {
             ROSEN_LOGE("AniCanvas::DrawColor failed cause by blendMode");
@@ -1364,9 +1350,7 @@ void AniCanvas::DrawColor(ani_env* env, ani_object obj, ani_int color, ani_objec
     }
 
     Canvas* canvas = aniCanvas->GetCanvas();
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aniBlendMode, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aniBlendMode)) {
         ani_int blendMode;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(aniBlendMode), &blendMode)) {
             ROSEN_LOGE("AniCanvas::DrawColor failed cause by blendMode");
@@ -1559,7 +1543,7 @@ bool GetPoints(ani_env* env, ani_array pointsObj, uint32_t size, Drawing::Point*
     ani_boolean isPointClass = false;
     for (uint32_t i = 0; i < size; i++) {
         ani_ref pointRef;
-        if (ANI_OK != env->Array_Get(pointsObj, (ani_int)i, &pointRef)) {
+        if (ANI_OK != env->Array_Get(pointsObj, static_cast<ani_size>(i), &pointRef)) {
             ROSEN_LOGE("GetPoints get points failed");
             return false;
         }
@@ -1608,9 +1592,7 @@ void AniCanvas::DrawPoints(ani_env* env, ani_object obj, ani_array pointsObj, an
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "AniCanvas::DrawPoints get points failed.");
         return;
     }
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aniPointMode, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aniPointMode)) {
         ani_int pointMode;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(aniPointMode), &pointMode)) {
             delete [] points;
@@ -1725,21 +1707,16 @@ ani_long AniCanvas::SaveLayer(ani_env* env, ani_object obj, ani_object rectObj, 
     }
     Canvas* canvas = aniCanvas->GetCanvas();
 
-    ani_boolean rectIsUndefined = ANI_TRUE;
-    env->Reference_IsUndefined(rectObj, &rectIsUndefined);
-    if (rectIsUndefined) {
+    if (IsUndefined(env, rectObj)) {
         ani_long ret = canvas->GetSaveCount();
         canvas->SaveLayer(SaveLayerOps());
         return ret;
     }
 
-    ani_boolean brushIsUndefined = ANI_TRUE;
-    env->Reference_IsUndefined(brushObj, &brushIsUndefined);
-
     Drawing::Rect drawingRect;
     Drawing::Rect* drawingRectPtr = GetRectFromAniRectObj(env, rectObj, drawingRect) ?  &drawingRect : nullptr;
 
-    if (brushIsUndefined) {
+    if (IsUndefined(env, brushObj)) {
         ani_long ret = canvas->GetSaveCount();
         canvas->SaveLayer(SaveLayerOps(drawingRectPtr, nullptr));
         return ret;
@@ -1961,9 +1938,7 @@ void AniCanvas::ClipPath(ani_env* env, ani_object obj, ani_object pathObj, ani_o
 
     Drawing::Canvas* canvas = aniCanvas->GetCanvas();
     bool doAntiAlias = false;
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aaObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aaObj)) {
         ani_boolean aniDoAntiAlias;
         ani_status result = env->Object_CallMethod_Boolean(
             aaObj, AniGlobalMethod::GetInstance().booleanGet, &aniDoAntiAlias);
@@ -1975,9 +1950,7 @@ void AniCanvas::ClipPath(ani_env* env, ani_object obj, ani_object pathObj, ani_o
         doAntiAlias = static_cast<bool>(aniDoAntiAlias);
     }
 
-    isUndefined = true;
-    env->Reference_IsUndefined(clipOpObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, clipOpObj)) {
         ani_int clipOp;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(clipOpObj), &clipOp)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -2012,9 +1985,7 @@ void AniCanvas::ClipRect(ani_env* env, ani_object obj, ani_object rectObj, ani_o
 
     Drawing::Canvas* canvas = aniCanvas->GetCanvas();
     bool doAntiAlias = false;
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aaObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aaObj)) {
         ani_boolean aniDoAntiAlias;
         ani_status result = env->Object_CallMethod_Boolean(
             aaObj, AniGlobalMethod::GetInstance().booleanGet, &aniDoAntiAlias);
@@ -2026,9 +1997,7 @@ void AniCanvas::ClipRect(ani_env* env, ani_object obj, ani_object rectObj, ani_o
         doAntiAlias = static_cast<bool>(aniDoAntiAlias);
     }
 
-    isUndefined = true;
-    env->Reference_IsUndefined(clipOpObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, clipOpObj)) {
         ani_int clipOp;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(clipOpObj), &clipOp)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -2060,9 +2029,7 @@ void AniCanvas::ClipRegion(ani_env* env, ani_object obj, ani_object regionObj, a
     }
 
     Drawing::Canvas* canvas = aniCanvas->GetCanvas();
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(clipOpObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, clipOpObj)) {
         ani_int clipOp;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(clipOpObj), &clipOp)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -2098,9 +2065,7 @@ void AniCanvas::ClipRoundRect(ani_env* env, ani_object obj, ani_object roundRect
 
     Drawing::Canvas* canvas = aniCanvas->GetCanvas();
     bool doAntiAlias = false;
-    ani_boolean isUndefined = true;
-    env->Reference_IsUndefined(aaObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, aaObj)) {
         ani_boolean aniDoAntiAlias;
         ani_status result = env->Object_CallMethod_Boolean(
             aaObj, AniGlobalMethod::GetInstance().booleanGet, &aniDoAntiAlias);
@@ -2112,9 +2077,7 @@ void AniCanvas::ClipRoundRect(ani_env* env, ani_object obj, ani_object roundRect
         doAntiAlias = static_cast<bool>(aniDoAntiAlias);
     }
 
-    isUndefined = true;
-    env->Reference_IsUndefined(clipOpObj, &isUndefined);
-    if (!isUndefined) {
+    if (!IsUndefined(env, clipOpObj)) {
         ani_int clipOp;
         if (ANI_OK != env->EnumItem_GetValue_Int(reinterpret_cast<ani_enum_item>(clipOpObj), &clipOp)) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM,
@@ -2279,8 +2242,10 @@ ani_object AniCanvas::CanvasTransferStatic(ani_env* env, [[maybe_unused]]ani_obj
 #ifdef ROSEN_OHOS
     aniCanvas->mPixelMap_ = jsCanvas->GetPixelMap();
 #endif
+    ani_ref aniRef;
+    env->GetUndefined(&aniRef);
     ani_object aniCanvasObj = CreateAniObject(env, AniGlobalClass::GetInstance().canvas,
-        AniGlobalMethod::GetInstance().canvasCtor, nullptr);
+        AniGlobalMethod::GetInstance().canvasCtor, aniRef);
     if (ANI_OK != env->Object_SetField_Long(
         aniCanvasObj, AniGlobalField::GetInstance().canvasNativeObj, reinterpret_cast<ani_long>(aniCanvas))) {
         ROSEN_LOGE("AniCanvas::CanvasTransferStatic failed create aniBrush");

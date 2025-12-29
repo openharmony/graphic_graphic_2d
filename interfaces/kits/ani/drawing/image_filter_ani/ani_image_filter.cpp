@@ -52,12 +52,8 @@ ani_object AniImageFilter::CreateFromColorFilter(
         return CreateAniUndefined(env);
     }
 
-    ani_boolean isImageFilterNull;
-    ani_boolean isImageFilterUndefined;
-    env->Reference_IsNull(aniImageFilterObj, &isImageFilterNull);
-    env->Reference_IsUndefined(aniImageFilterObj, &isImageFilterUndefined);
     AniImageFilter* aniImageFilter = nullptr;
-    if (!isImageFilterNull && !isImageFilterUndefined) {
+    if (!IsNull(env, aniImageFilterObj) && !IsUndefined(env, aniImageFilterObj)) {
         aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj,
             AniGlobalField::GetInstance().imageFilterNativeObj);
         if (aniImageFilter == nullptr) {
@@ -70,9 +66,7 @@ ani_object AniImageFilter::CreateFromColorFilter(
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().imageFilter,
         AniGlobalMethod::GetInstance().imageFilterCtor, AniGlobalMethod::GetInstance().imageFilterBindNative,
         imageFilter);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete imageFilter;
         ROSEN_LOGE("AniImageFilter::CreateFromColorFilter failed cause aniObj is undefined");
     }
@@ -82,12 +76,8 @@ ani_object AniImageFilter::CreateFromColorFilter(
 ani_object AniImageFilter::CreateBlurImageFilter(ani_env* env, [[maybe_unused]]ani_object obj,
     ani_double sigmaX, ani_double sigmaY, ani_enum_item aniTileMode, ani_object aniImageFilterObj)
 {
-    ani_boolean isImageFilterNull;
-    ani_boolean isImageFilterUndefined;
-    env->Reference_IsNull(aniImageFilterObj, &isImageFilterNull);
-    env->Reference_IsUndefined(aniImageFilterObj, &isImageFilterUndefined);
     AniImageFilter* aniImageFilter = nullptr;
-    if (!isImageFilterNull && !isImageFilterUndefined) {
+    if (!IsNull(env, aniImageFilterObj) && !IsUndefined(env, aniImageFilterObj)) {
         aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj,
             AniGlobalField::GetInstance().imageFilterNativeObj);
         if (aniImageFilter == nullptr) {
@@ -109,9 +99,7 @@ ani_object AniImageFilter::CreateBlurImageFilter(ani_env* env, [[maybe_unused]]a
     ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().imageFilter,
         AniGlobalMethod::GetInstance().imageFilterCtor, AniGlobalMethod::GetInstance().imageFilterBindNative,
         imageFilter);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    if (IsUndefined(env, aniObj)) {
         delete imageFilter;
         ROSEN_LOGE("AniImageFilter::CreateBlurImageFilter failed cause aniObj is undefined");
     }
