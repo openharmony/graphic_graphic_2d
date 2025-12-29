@@ -47,7 +47,6 @@ namespace Drawing {
 #ifdef RS_ENABLE_GPU
 static constexpr int TEXTURE_SAMPLE_COUNT = 0;
 static constexpr int FB_SAMPLE_COUNT = 0;
-static constexpr int STENCIL_BITS = 8;
 static constexpr uint32_t SURFACE_PROPS_FLAGS = 0;
 
 namespace {
@@ -188,6 +187,7 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
     GrBackendRenderTarget backendRenderTarget = GrBackendRenderTargets::MakeGL(
         frameBuffer.width, frameBuffer.height, FB_SAMPLE_COUNT, 0, framebufferInfo);
 #else
+    static constexpr int STENCIL_BITS = 8;
     GrBackendRenderTarget backendRenderTarget(
         frameBuffer.width, frameBuffer.height, FB_SAMPLE_COUNT, STENCIL_BITS, framebufferInfo);
 #endif
