@@ -329,6 +329,72 @@ bool ConvertVector3fFromAniTuple(OHOS::Rosen::Vector3f& vector3f, uintptr_t opaq
     return true;
 }
 
+bool ParseRipplePositionValues(const ::taihe::optional<taihe::array<uintptr_t>> ripplePositions,
+    std::vector<OHOS::Rosen::Vector2f>& positions)
+{
+    if (!ripplePositions.has_value()) {
+        UIEFFECT_LOG_E("ParseRipplePositionValues: the array has noValue");
+        return false;
+    }
+    size_t length = ripplePositions->size();
+    if (length > NUM_10) {
+        UIEFFECT_LOG_E("ParseRipplePositionValues: the length of array is over 10");
+        return false;
+    }
+    positions.reserve(length);
+
+    OHOS::Rosen::Vector2f vector2f;
+    for (size_t i = 0; i < length; ++i) {
+        if (!ConvertVector2fFromAniTuple(vector2f, ripplePositions.value()[i])) {
+            return false;
+        }
+        positions.emplace_back(vector2f);
+    }
+
+    return true;
+}
+
+bool ConvertVector4fFromAniTuple(OHOS::Rosen::Vector4f& vector4f, uintptr_t opaque)
+{
+    ani_env* env = get_env();
+    if (env == nullptr) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, env is nullptr");
+        return false;
+    }
+
+    if (!IsAniTuple(opaque)) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, opaque is not tuple");
+        return false;
+    }
+
+    auto tuple = reinterpret_cast<ani_tuple_value>(opaque);
+    ani_size length = 0;
+    ani_status status = env->TupleValue_GetNumberOfItems(tuple, &length);
+    if (status != ANI_OK) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
+            "TupleValue_GetNumberOfItems failed, status: %{public}d", status);
+        return false;
+    }
+
+    if (length < OHOS::Rosen::Vector4f::V4SIZE) {
+        UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, array size is less than 4");
+        return false;
+    }
+
+    ani_double itemValue = 0.f;
+    for (uint32_t i = 0; i < OHOS::Rosen::Vector4f::V4SIZE; ++i) {
+        ani_status getItemStatus = env->TupleValue_GetItem_Double(tuple, i, &itemValue);
+        if (getItemStatus != ANI_OK) {
+            UIEFFECT_LOG_E("ConvertVector4fFromAniTuple failed, "
+                "get item as double from tuple value failed, status: %{public}d", getItemStatus);
+            return false;
+        }
+        vector4f.data_[i] = itemValue;
+    }
+
+    return true;
+}
+
 // without OHOS::Rosen::BrightnessBlender SetHdr
 bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const BrightnessBlender& brightnessBlender)
 {
@@ -352,6 +418,54 @@ bool ParseBrightnessBlender(OHOS::Rosen::BrightnessBlender& blender, const Brigh
     blender.SetNegativeCoeff(vector3f);
 
     blender.SetFraction(brightnessBlender.fraction);
+    return true;
+}
+
+bool ParseLiquidMaterialEffectParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumPara,
+    const ::ohos::graphics::uiEffect::uiEffect::LiquidMaterialEffectParam& liquidMaterialEffectParam)
+{
+    harmoniumPara.SetEnable(liquidMaterialEffectParam.enable);
+    harmoniumPara.SetDistortProgress(liquidMaterialEffectParam.distortProgress);
+    harmoniumPara.SetDistortFactor(liquidMaterialEffectParam.distortFactor);
+    harmoniumPara.SetRippleProgress(liquidMaterialEffectParam.rippleProgress);
+    // rippleposition
+    std::vector<OHOS::Rosen::Vector2f> ripplePositions;
+    ParseRipplePositionValues(liquidMaterialEffectParam.ripplePosition, ripplePositions);
+    harmoniumPara.SetRipplePosition(ripplePositions);
+    harmoniumPara.SetRefractionFactor(liquidMaterialEffectParam.refractionFactor);
+    harmoniumPara.SetReflectionFactor(liquidMaterialEffectParam.reflectionFactor);
+    harmoniumPara.SetMaterialFactor(liquidMaterialEffectParam.materialFactor);
+    OHOS::Rosen::Vector4f vector4f;
+    if (!ConvertVector4fFromAniTuple(vector4f, liquidMaterialEffectParam.tintColor)) {
+        UIEFFECT_LOG_E("ParseBrightnessBlender parse negativeCoefficient failed");
+        return false;
+    }
+    harmoniumPara.SetTintColor(vector4f);
+    return true;
+}
+
+bool ParseBrightnessParam(OHOS::Rosen::HarmoniumEffectPara& harmoniumPara,
+    optional_view<::ohos::graphics::uiEffect::uiEffect::BrightnessParam> brightnessParam)
+{
+    if (!brightnessParam.has_value()) {
+        return false;
+    }
+    harmoniumPara.SetRate(brightnessParam->rate);
+    harmoniumPara.SetLightUpDegree(brightnessParam->lightUpDegree);
+    harmoniumPara.SetCubicCoeff(brightnessParam->cubicCoeff);
+    harmoniumPara.SetQuadCoeff(brightnessParam->quadCoeff);
+    harmoniumPara.SetSaturation(brightnessParam->saturation);
+    OHOS::Rosen::Vector3f posRgb;
+    if (!ConvertVector3fFromAniTuple(posRgb, brightnessParam->posRgb)) {
+        UIEFFECT_LOG_E("ParseLiquidMaterialEffectParam parse posRgb failed");
+        return false;
+    }
+    OHOS::Rosen::Vector3f negRgb;
+    if (!ConvertVector3fFromAniTuple(negRgb, brightnessParam->negRgb)) {
+        UIEFFECT_LOG_E("ParseLiquidMaterialEffectParam parse negRgb failed");
+        return false;
+    }
+    harmoniumPara.SetFraction(brightnessParam->fraction);
     return true;
 }
 } // namespace ANI::UIEffect

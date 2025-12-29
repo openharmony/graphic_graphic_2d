@@ -37,6 +37,10 @@ public:
     VisualEffect ColorGradient(array_view<Color> colors, array_view<uintptr_t> positions, array_view<double> strengths,
         optional_view<Mask> alphaMask);
     VisualEffect BorderLight(uintptr_t lightPosition, uintptr_t lightColor, double lightIntensity, double borderWidth);
+    VisualEffect LiquidMaterial(
+        ::ohos::graphics::uiEffect::uiEffect::LiquidMaterialEffectParam const& liquidMaterialEffectParam,
+        Mask useEffectMask, optional_view<Mask> distortMask,
+        optional_view<::ohos::graphics::uiEffect::uiEffect::BrightnessParam> brightnessParam);
 
 private:
     bool IsVisualEffectValid() const;
