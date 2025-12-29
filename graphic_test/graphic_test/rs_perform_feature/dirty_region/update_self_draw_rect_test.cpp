@@ -66,7 +66,7 @@ public:
         if (pixelMap) {
             pixelMap->crop({ 0, 0, 1200, 2000 });
             const ::testing::TestInfo* const testInfo =
-            ::testing::UnitTest::GetInstance()->current_test_info();
+                ::testing::UnitTest::GetInstance()->current_test_info();
             std::string fileName = "/data/local/graphic_test/rs_perform_feature/dirty_region/";
             namespace fs = std::filesystem;
             if (!fs::exists(fileName)) {
@@ -81,8 +81,7 @@ public:
                     return;
                 }
             }
-            fileName += testInfo->test_case_name() + std::string("_");
-            fileName += testInfo->name() + std::string(".png");
+            fileName += testInfo->test_case_name() + std::string("_") + testInfo->name() + std::string(".png");
             if (!WriteToPngWithPixelMap(fileName, *pixelMap)) {
                 // NOT MODIFY THE COMMENTS
                 std::cout << "[   FAILED   ] " << fileName << std::endl;
@@ -828,8 +827,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion01)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNodeBackGround =
-            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNodeBackGround);
     testNodeBackGround->SetDistortionK(1);
     testNodeBackGround->SetClipToBounds(true);
@@ -860,8 +858,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion02)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNodeBackGround =
-            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNodeBackGround);
     testNodeBackGround->SetDistortionK(0);
     testNodeBackGround->SetClipToBounds(true);
@@ -892,8 +889,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion03)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNodeBackGround =
-            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNodeBackGround);
     testNodeBackGround->SetDistortionK(0.5);
     testNodeBackGround->SetClipToBounds(true);
@@ -924,8 +920,7 @@ GRAPHIC_N_TEST(DirtyRegionTest03, CONTENT_DISPLAY_TEST, Distortion04)
     DoAnimation(testNode, DEFAULT_TRANSLATE);
 
     Vector4f bounds2 = { 0, 800, 400, 400 };
-    auto testNodeBackGround =
-            SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
+    auto testNodeBackGround = SetUpNodeBgImage(TEST_IMG_PATH, bounds2);
     RegisterNode(testNodeBackGround);
     testNodeBackGround->SetDistortionK(-0.5);
     testNodeBackGround->SetClipToBounds(true);
