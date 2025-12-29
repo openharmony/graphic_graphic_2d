@@ -303,25 +303,22 @@ bool PixelMapStorage::PushHeapMemory(uint64_t id, const ImageInfo& info, const P
 
 bool PixelMapStorage::PushHeapMemory(uint64_t id, PixelMap& map)
 {
-    if (!map.GetFd()) {
+    const auto *data = map.GetPixels();
+    const auto size = static_cast<size_t>(map.GetByteCount());
+    if (!data || !size) {
         return false;
     }
 
-    constexpr size_t skipBytes = 24u;
-    const auto baseSize = static_cast<size_t>(const_cast<PixelMap&>(map).GetByteCount());
+    constexpr size_t skipFdSize = 24u; // skip fd size
+    const auto skipBytes = (size <= PixelMap::MIN_IMAGEDATA_SIZE) ? size : skipFdSize;
     const ImageProperties properties(map);
-    const uint8_t *base = map.GetPixels();
-    if (base && baseSize) {
-        const auto pixels = GenerateImageData(0, base, baseSize, map);
-        return PushImage(id, pixels, skipBytes, nullptr, &properties);
-    }
-    return false;
+    return PushImage(id, GenerateImageData(0, data, size, map), skipBytes, nullptr, &properties);
 }
 
 bool PixelMapStorage::PullHeapMemory(uint64_t id, const ImageInfo& info, PixelMemInfo& memory, size_t& skipBytes)
 {
     if (memory.bufferSize <= static_cast<int32_t>(PixelMap::MIN_IMAGEDATA_SIZE)) {
-        return false;
+        return PullSharedMemory(id, info, memory, skipBytes);
     }
 
     auto retCode = PullSharedMemory(id, info, memory, skipBytes);
