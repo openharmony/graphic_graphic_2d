@@ -232,8 +232,8 @@ void RSCanvasNode::OnBoundsSizeChanged() const
 
 void RSCanvasNode::SetBoundsChangedCallback(BoundsChangedCallback callback)
 {
-  std::lock_guard<std::mutex> lock(mutex_);
-  boundsChangedCallback_ = callback;
+    std::lock_guard<std::mutex> lock(mutex_);
+    boundsChangedCallback_ = callback;
 }
 
 bool RSCanvasNode::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::DrawCmdList> drawCmdList)

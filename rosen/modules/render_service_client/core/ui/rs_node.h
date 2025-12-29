@@ -250,7 +250,8 @@ public:
     /**
      * @brief Casts this object to a shared pointer of the specified type T.
      *
-     * @return std::shared_ptr<const T> A shared pointer to the object as type T if the cast is valid, nullptr otherwise.
+     * @return std::shared_ptr<const T> A shared pointer to the object as type T if the cast is valid,
+     *         nullptr otherwise.
      */
     template<typename T>
     std::shared_ptr<const T> ReinterpretCastTo() const
@@ -562,7 +563,8 @@ public:
     /**
      * @brief Sets the corner radius of the node.
      *
-     * @param cornerRadius A Vector4f representing the corner radius for each corner (top-left, top-right, bottom-right, bottom-left).
+     * @param cornerRadius A Vector4f representing the corner radius for each corner (top-left, top-right,
+     *                     bottom-right, bottom-left).
      */
     void SetCornerRadius(const Vector4f& cornerRadius);
 
@@ -1450,7 +1452,8 @@ public:
      * @brief Sets a rounded rectangle clipping region for the node.
      *
      * @param clipRect The bounds of the clipping rectangle,represented as (x, y, width, height).
-     * @param clipRadius The radii for the rectangle's corners,represented as (topLeft, topRight, bottomRight, bottomLeft).
+     * @param clipRadius The radii for the rectangle's corners,represented as (topLeft, topRight, bottomRight,
+     *                   bottomLeft).
      */
     void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
 
