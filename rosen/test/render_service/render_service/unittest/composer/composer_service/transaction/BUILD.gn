@@ -21,6 +21,7 @@ group("unittest") {
 
   deps = [
     ":RSLayerTransactionTest",
+    ":RSTransactionUnittest",
   ]
 }
 
@@ -100,6 +101,47 @@ ohos_unittest("RSLayerTransactionTest") {
     defines = [ "RES_SCHED_ENABLE" ]
   }
 
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+}
+
+## Build RSTransactionUnittest
+ohos_unittest("RSTransactionUnittest") {
+  module_out_path = module_output_path
+  sources = [
+    "rs_layer_transaction_data_test.cpp",
+    "rs_layer_marshalling_helper_test.cpp",
+    "rs_layer_transaction_handler_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
+  ]
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public"
+  ]
+  deps = [
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+  external_deps = [
+    "googletest:gtest_main",
+    "graphic_surface:surface",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
   subsystem_name = "graphic"
   part_name = "graphic_2d"
 }

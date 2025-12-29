@@ -14,7 +14,17 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_client/connection"
+module_output_path = "graphic_2d/graphic_2d/render_service/composer/composer_service/connection"
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":RSRenderToComposerConnectionTest",
+  ]
+}
+
+###############################################################################
+
 _common_deps = [
   "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
   "$graphic_2d_root/rosen/modules/render_service:librender_service",
@@ -56,16 +66,8 @@ template("connection_unittest") {
   }
 }
 
-connection_unittest("RSComposerToRenderConnectionProxyTest") {
-  sources = [ "rs_composer_to_render_connection_proxy_test.cpp" ]
-}
-
-connection_unittest("RSComposerToRenderConnectionStubTest") {
-  sources = [ "rs_composer_to_render_connection_stub_test.cpp" ]
-}
-
-connection_unittest("RSComposerToRenderConnectionTest") {
-  sources = [ "rs_composer_to_render_connection_test.cpp" ]
+connection_unittest("RSRenderToComposerConnectionTest") {
+  sources = [ "rs_render_to_composer_connection_test.cpp" ]
 }
 
 config("connection_common_test_config") {
@@ -76,17 +78,25 @@ config("connection_common_test_config") {
     "$graphic_2d_root/rosen/modules/render_service",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/render_service_base/include",
+    # service-side composer includes
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    # client-side (interfaces often cross-used by tests)
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    # legacy base paths kept for compatibility
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/connection",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_base/layer_backend",
     "$graphic_2d_root/rosen/modules/render_service/core",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
@@ -101,14 +111,5 @@ config("connection_common_test_config") {
     "-g3",
     "-Dprivate=public",
     "-Dprotected=public",
-  ]
-}
-
-group("unittest") {
-  testonly = true
-  deps = [
-    ":RSComposerToRenderConnectionProxyTest",
-    ":RSComposerToRenderConnectionStubTest",
-    ":RSComposerToRenderConnectionTest",
   ]
 }

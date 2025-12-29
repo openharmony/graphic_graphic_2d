@@ -14,14 +14,24 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_service/transaction"
+module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_service/transaction/command"
 
-ohos_unittest("RSTransactionUnittest") {
+group("unittest") {
+  testonly = true
+  deps = [ ":RSRenderLayerUnittest" ]
+}
+
+###############################################################################
+
+ohos_unittest("RSRenderLayerUnittest") {
   module_out_path = module_output_path
   sources = [
-    "rs_layer_transaction_data_test.cpp",
-    "rs_layer_marshalling_helper_test.cpp",
-    "rs_layer_transaction_handler_test.cpp",
+    "rs_layer_parcel_factory_test.cpp",
+    "rs_layer_parcel_template_test.cpp",
+    "rs_render_layer_cmd_property_test.cpp",
+    "rs_layer_cmd_property_test.cpp",
+    "rs_layer_parcel_helper_test.cpp",
+    "rs_render_layer_cmd_test.cpp",
   ]
   deps = [
     "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
@@ -33,19 +43,15 @@ ohos_unittest("RSTransactionUnittest") {
     "hilog:libhilog",
     "ipc:ipc_core",
   ]
-  configs = [ ":transaction_common_test_config" ]
+  configs = [ ":render_layer_common_test_config" ]
   subsystem_name = "graphic"
 }
 
-config("transaction_common_test_config") {
+config("render_layer_common_test_config") {
   include_dirs = [
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection",
-    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
     "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
     "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
@@ -53,9 +59,4 @@ config("transaction_common_test_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
   cflags = [ "-Dprivate=public", "-Dprotected=public" ]
-}
-
-group("unittest") {
-  testonly = true
-  deps = [ ":RSTransactionUnittest" ]
 }

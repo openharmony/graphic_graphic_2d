@@ -14,7 +14,13 @@
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
 
-module_output_path = "graphic_2d/graphic_2d/rosen/modules/composer/composer_service/render_layer"
+module_output_path = "graphic_2d/graphic_2d/render_service/composer/composer_service/render_layer"
+group("unittest") {
+  testonly = true
+  deps = [ ":RSRenderSurfaceLayerUnittest" ]
+}
+
+###############################################################################
 
 ohos_unittest("RSRenderSurfaceLayerUnittest") {
   module_out_path = module_output_path
@@ -48,9 +54,4 @@ config("render_surface_layer_common_test_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/src",
   ]
   cflags = [ "-Dprivate=public", "-Dprotected=public" ]
-}
-
-group("unittest") {
-  testonly = true
-  deps = [ ":RSRenderSurfaceLayerUnittest" ]
 }
