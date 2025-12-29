@@ -355,7 +355,7 @@ GRAPHIC_TEST(
         canvasNode->SetBounds({ 0, 0, 900, 900 });
         canvasNode->SetFrame({ 0, 0, 900, 900 });
         canvasNode->SetBackgroundColor(SK_ColorRED);
-        canvasNode->SetCornerRadius({10.0,10.0,10.0,10.0});
+        canvasNode->SetCornerRadius({10.0, 10.0, 10.0, 10.0});
         rootNode->AddChild(canvasNode, -1);
 
         auto allocatorType = Media::AllocatorType::SHARE_MEM_ALLOC;
@@ -503,7 +503,7 @@ GRAPHIC_TEST(
         canvasNode->SetBackgroundColor(SK_ColorRED);
         canvasNode->SetBorderStyle(0, 0, 0, 0);
         canvasNode->SetBorderColor(SK_ColorGREEN);
-        canvasNode->SetBorderWidth({8,8,8,8});
+        canvasNode->SetBorderWidth({8, 8, 8, 8});
         rootNode->AddChild(canvasNode, -1);
         RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
         usleep(SLEEP_TIME_FOR_PROXY);
