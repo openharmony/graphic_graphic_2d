@@ -159,7 +159,7 @@ void HgmHardwareUtils::SwitchRefreshRate(const std::shared_ptr<HdiOutput>& hdiOu
 
     RSScreenManager* screenManager = hgmCore_.GetScreenManager();
     if (screenManager == nullptr) {
-        HGM_LOGE("screenManager == nullptr");
+        HGM_LOGE("screenManager is nullptr");
         return;
     }
 
@@ -191,7 +191,7 @@ void HgmHardwareUtils::AddRefreshRateCount(ScreenId screenId)
 void HgmHardwareUtils::RefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
-        HGM_LOGI("refreshRateCounts_ is empty");
+        HGM_LOGI("refreshRateCounts is empty");
         return;
     }
     for (const auto& countInfo : refreshRateCounts_) {
@@ -203,7 +203,7 @@ void HgmHardwareUtils::RefreshRateCounts(std::string& dumpString)
 void HgmHardwareUtils::ClearRefreshRateCounts(std::string& dumpString)
 {
     if (refreshRateCounts_.empty()) {
-        HGM_LOGI("refreshRateCounts_ is empty");
+        HGM_LOGI("refreshRateCounts is empty");
         return;
     }
     refreshRateCounts_.clear();

@@ -39,8 +39,6 @@ public:
 
     RSLayerId GetRSLayerId() const override;
     void SetRSLayerId(RSLayerId rsLayerId) override;
-    std::shared_ptr<RSComposerContext> GetComposerContext() const override;
-    void SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext) override {}
     void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override;
 
     void SetAlpha(const GraphicLayerAlpha& alpha) override;
@@ -170,7 +168,6 @@ public:
 
 private:
     // rs layer pipeline info
-    std::weak_ptr<RSComposerContext> rsComposerContext_;
     RSLayerId rsLayerId_;
 
     // rs layer property info

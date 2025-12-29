@@ -83,8 +83,6 @@ public:
     virtual ~RSLayer() = default;
     virtual RSLayerId GetRSLayerId() const = 0;
     virtual void SetRSLayerId(RSLayerId rsLayerId) = 0;
-    virtual std::shared_ptr<RSComposerContext> GetComposerContext() const = 0;
-    virtual void SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext) = 0;
     virtual void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) = 0;
 
     virtual void SetAlpha(const GraphicLayerAlpha& alpha) = 0;

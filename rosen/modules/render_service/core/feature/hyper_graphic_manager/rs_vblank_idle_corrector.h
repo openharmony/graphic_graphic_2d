@@ -18,7 +18,7 @@
 
 #include <memory>
 
-#include <screen_manager/screen_types.h>
+#include "screen_manager/screen_types.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -33,8 +33,6 @@ private:
     int32_t idleFrameCount_ = 0;
     bool isVBlankIdle_ = false;
 };
-
 } // namespace Rosen
 } // namespace OHOS
-
 #endif // RS_VBLANK_IDLE_CORRECTOR_H

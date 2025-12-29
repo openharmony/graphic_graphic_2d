@@ -14,7 +14,7 @@
  */
 
 #include "gtest/gtest.h"
-#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
+#include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 
 #include "parameters.h"
 #include "pipeline/rs_context.h"
@@ -63,12 +63,14 @@ HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_001, TestSize.Level1)
     RSRenderNodeMap renderNodeMap;
     ScreenId screenId = 1;
     RegisterScreenNode(renderNodeMap, screenId, ScreenPowerStatus::POWER_STATUS_ON, false);
-    RSPowerOffRenderSkipManager::Instance().CheckRenderSkipStatus(renderNodeMap);
+
+    auto renderController = std::make_shared<RSPowerOffRenderController>();
+    renderController->CheckScreenPowerRenderControlStatus(renderNodeMap);
     // with wrong screen id, nothing to skip
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(INVALID_SCREEN_ID));
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(INVALID_SCREEN_ID));
     // with correct screen id, but screen is on, nothing to skip
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(screenId));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus());
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(screenId));
+    ASSERT_FALSE(renderController->GetAllScreenRenderSkipped());
 }
 
 /*
@@ -82,10 +84,11 @@ HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_002, TestSize.Level1)
     RSRenderNodeMap renderNodeMap;
     ScreenId screenId = 1;
     RegisterScreenNode(renderNodeMap, screenId, ScreenPowerStatus::POWER_STATUS_OFF, false);
-    RSPowerOffRenderSkipManager::Instance().CheckRenderSkipStatus(renderNodeMap);
+    auto renderController = std::make_shared<RSPowerOffRenderController>();
+    renderController->CheckScreenPowerRenderControlStatus(renderNodeMap);
     // with correct screen id, but screen is off, should skip render
-    ASSERT_TRUE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(screenId));
-    ASSERT_TRUE(RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus());
+    ASSERT_TRUE(renderController->GetScreenRenderSkipped(screenId));
+    ASSERT_TRUE(renderController->GetAllScreenRenderSkipped());
 }
 
 /*
@@ -101,12 +104,13 @@ HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_003, TestSize.Level1)
     ScreenId powerOffId = 2;
     RegisterScreenNode(renderNodeMap, powerOnId, ScreenPowerStatus::POWER_STATUS_ON, false);
     RegisterScreenNode(renderNodeMap, powerOffId, ScreenPowerStatus::POWER_STATUS_OFF, false);
-    RSPowerOffRenderSkipManager::Instance().CheckRenderSkipStatus(renderNodeMap);
+    auto renderController = std::make_shared<RSPowerOffRenderController>();
+    renderController->CheckScreenPowerRenderControlStatus(renderNodeMap);
 
     // only the correct power off screen id should skip render
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(powerOnId));
-    ASSERT_TRUE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(powerOffId));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus());
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(powerOnId));
+    ASSERT_TRUE(renderController->GetScreenRenderSkipped(powerOffId));
+    ASSERT_FALSE(renderController->GetAllScreenRenderSkipped());
 }
 
 /*
@@ -122,12 +126,13 @@ HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_004, TestSize.Level1)
     ScreenId powerOffId = 2;
     RegisterScreenNode(renderNodeMap, powerOnId, ScreenPowerStatus::POWER_STATUS_ON, true);
     RegisterScreenNode(renderNodeMap, powerOffId, ScreenPowerStatus::POWER_STATUS_OFF, true);
-    RSPowerOffRenderSkipManager::Instance().CheckRenderSkipStatus(renderNodeMap);
+    auto renderController = std::make_shared<RSPowerOffRenderController>();
+    renderController->CheckScreenPowerRenderControlStatus(renderNodeMap);
 
     // render skip is disabled for both screens
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(powerOnId));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(powerOffId));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus());
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(powerOnId));
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(powerOffId));
+    ASSERT_FALSE(renderController->GetAllScreenRenderSkipped());
 }
 
 /*
@@ -138,20 +143,21 @@ HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_004, TestSize.Level1)
  */
 HWTEST_F(RSPowerOffRenderSkipTest, CheckRenderSkipStatus_005, TestSize.Level1)
 {
+    bool sysProp = RSSystemProperties::GetSkipDisplayIfScreenOffEnabled();
+    system::SetParameter("rosen.graphic.screenoffskipdisplayenabled", "0");
     RSRenderNodeMap renderNodeMap;
     ScreenId powerOnId = 1;
     ScreenId powerOffId = 2;
     RegisterScreenNode(renderNodeMap, powerOnId, ScreenPowerStatus::POWER_STATUS_ON, false);
     RegisterScreenNode(renderNodeMap, powerOffId, ScreenPowerStatus::POWER_STATUS_OFF, false);
-    RSPowerOffRenderSkipManager::Instance().CheckRenderSkipStatus(renderNodeMap);
+    auto renderController = std::make_shared<RSPowerOffRenderController>();
+    renderController->CheckScreenPowerRenderControlStatus(renderNodeMap);
 
-    bool sysProp = RSSystemProperties::GetSkipDisplayIfScreenOffEnabled();
-    system::SetParameter("rosen.graphic.screenoffskipdisplayenabled", "0");
     // render skip is disabled for both screens
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(INVALID_SCREEN_ID));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(powerOnId));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(powerOffId));
-    ASSERT_FALSE(RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus());
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(INVALID_SCREEN_ID));
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(powerOnId));
+    ASSERT_FALSE(renderController->GetScreenRenderSkipped(powerOffId));
+    ASSERT_FALSE(renderController->GetAllScreenRenderSkipped());
     // restore sysProp
     system::SetParameter("rosen.graphic.screenoffskipdisplayenabled", sysProp ? "1" : "0");
 }

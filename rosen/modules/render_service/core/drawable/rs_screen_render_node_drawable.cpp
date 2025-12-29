@@ -37,7 +37,6 @@
 #endif
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
-#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
@@ -570,7 +569,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // if screen power off, skip on draw, needs to draw one more frame.
-    isRenderSkipIfScreenOff_ = RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(params->GetScreenId());
+    isRenderSkipIfScreenOff_ = uniParam->GetPowerOffRenderController().GetScreenRenderSkipped(params->GetScreenId());
     if (isRenderSkipIfScreenOff_) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;
@@ -716,9 +715,17 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     RS_LOGE("RSScreenRenderNodeDrawable::OnDraw DrawingSurface is null");
                     return;
                 }
+                RSUniRenderThread::Instance().OnDrawStart();
                 curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
                 RSRenderNodeDrawable::OnDraw(*curCanvas_);
                 expandRenderFrame_->Flush();
+
+                sptr<SyncFence> expandAcquireFence = expandRenderFrame_->GetAcquireFence();
+                if (!expandAcquireFence || !expandAcquireFence->IsValid()) {
+                    expandAcquireFence = SyncFence::InvalidFence();
+                }
+                RSUniRenderThread::Instance().OnDrawEnd(expandAcquireFence);
+
                 processor->ProcessScreenSurfaceForRenderThread(*this);
                 RSPointerWindowManager::Instance().HardCursorCreateLayer(processor, GetId());
                 processor->PostProcess();
@@ -730,12 +737,14 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw virtualProcessor is null!");
                 return;
             }
+            RSUniRenderThread::Instance().OnDrawStart();
             curCanvas_ = virtualProcessor->GetCanvas();
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
             if (virtualProcessor->GetDisplaySkipInMirror()) {
                 RS_TRACE_NAME("skip in virtual screen and cancelbuffer");
                 virtualProcessor->SetDisplaySkipInMirror(false);
                 virtualProcessor->CancelCurrentFrame();
+                RSUniRenderThread::Instance().OnDrawEnd(SyncFence::InvalidFence());
                 return;
             }
             params->ResetVirtualExpandAccumulatedParams();
@@ -749,6 +758,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
+            RSUniRenderThread::Instance().OnDrawStart();
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
             RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);

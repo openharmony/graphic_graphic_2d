@@ -41,27 +41,26 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
 {
     RSScreenManager* scmFromHgm = HgmCore::Instance().GetScreenManager();
     if (scmFromHgm == nullptr) {
-        RS_LOGE("%{public}s, scmFromHgm == nullptr", __func__);
+        HGM_LOGE("scmFromHgm is nullptr");
         return;
     }
 
     auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
     if (frameRateMgr == nullptr) {
-        RS_LOGE("%{public}s, frameRateMgr is null!", __func__);
+        HGM_LOGE("frameRateMgr is null!");
         return;
     }
 
     ScreenId curScreenId = frameRateMgr->GetCurScreenId();
     if (screenId != curScreenId) {
-        RS_LOGW("%{public}s screenId:%{public}" PRIu64 " curScreenId:%{public}" PRIu64 "",
-            __func__, screenId, curScreenId);
+        HGM_LOGW("screenId:%{public}" PRIu64 " curScreenId:%{public}" PRIu64 "", screenId, curScreenId);
         return;
     }
 
     bool isScreenNeedAdaptive = frameRateMgr->AdaptiveStatus() == SupportASStatus::SUPPORT_AS &&
         frameRateMgr->IsGameNodeOnTree();
     if (isScreenNeedAdaptive) {
-        RS_TRACE_NAME("RSVBlankIdleCorrector::ProcessScreenConstraint set 3 in Adaptive Mode!");
+        RS_TRACE_NAME_FMT("%s: set 3 in Adaptive Mode!", __func__);
         scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_ADAPTIVE);
         return;
     }
@@ -78,8 +77,7 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
         uint64_t pipelineOffset = static_cast<uint64_t>(HgmCore::Instance().GetPipelineOffset());
         if (idleFrameCount_ > 0) {
             uint64_t absoluteTime = timestamp + pipelineOffset;
-            scmFromHgm->SetScreenConstraint(screenId,
-                absoluteTime, ScreenConstraintType::CONSTRAINT_ABSOLUTE);
+            scmFromHgm->SetScreenConstraint(screenId, absoluteTime, ScreenConstraintType::CONSTRAINT_ABSOLUTE);
         } else {
             scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
         }
@@ -89,8 +87,7 @@ void RSVBlankIdleCorrector::ProcessScreenConstraint(ScreenId screenId, uint64_t 
             isVBlankIdle_ = false;
         }
     } else if (constraintRelativeTime > 0) {
-        scmFromHgm->SetScreenConstraint(screenId,
-            constraintRelativeTime, ScreenConstraintType::CONSTRAINT_RELATIVE);
+        scmFromHgm->SetScreenConstraint(screenId, constraintRelativeTime, ScreenConstraintType::CONSTRAINT_RELATIVE);
     } else {
         scmFromHgm->SetScreenConstraint(screenId, 0, ScreenConstraintType::CONSTRAINT_NONE);
     }

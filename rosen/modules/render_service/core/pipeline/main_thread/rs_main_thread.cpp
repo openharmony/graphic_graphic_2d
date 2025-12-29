@@ -58,7 +58,7 @@
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/anco_manager/rs_anco_manager.h"
 #include "feature/opinc/rs_opinc_manager.h"
-#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
+#include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -2246,8 +2246,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (isAccessibilityConfigChanged_) {
         RS_LOGD("UniRender AccessibilityConfig has Changed");
     }
+    GetContext().GetPowerOffRenderController().CheckScreenPowerRenderControlStatus(GetContext().GetNodeMap());
     RSUifirstManager::Instance().RefreshUIFirstParam();
-    RSPowerOffRenderSkipManager::Instance().CheckRenderSkipStatus(GetContext().GetNodeMap());
     auto uniVisitor = std::make_shared<RSUniRenderVisitor>();
     uniVisitor->SetProcessorRenderEngine(GetRenderEngine());
     int64_t rsPeriod = 0;
@@ -2269,7 +2269,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     doDirectComposition_ &= !uiFirstNeedNextDraw;
 
     // if screen is power-off, DirectComposition should be disabled.
-    if (RSPowerOffRenderSkipManager::Instance().GetAllScreenRenderSkipStatus()) {
+    if (GetContext().GetPowerOffRenderController().GetAllScreenRenderSkipped()) {
         RS_OPTIONAL_TRACE_NAME("hwc debug: disable directComposition by PowerOff");
         doDirectComposition_ = false;
     }
@@ -2371,6 +2371,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         renderThreadParams_->hardwareEnabledTypeDrawables_ = std::move(hardwareEnabledDrwawables_);
         renderThreadParams_->isOverDrawEnabled_ = isOverDrawEnabledOfCurFrame_;
         renderThreadParams_->isDrawingCacheDfxEnabled_ = isDrawingCacheDfxEnabledOfCurFrame_;
+        renderThreadParams_->powerOffRenderController_.SyncFrom(GetContext().GetPowerOffRenderController());
         isAccessibilityConfigChanged_ = false;
         isCurtainScreenUsingStatusChanged_ = false;
         systemAnimatedScenesEnabled_ = RSSystemParameters::GetSystemAnimatedScenesEnabled();

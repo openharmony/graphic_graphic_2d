@@ -53,8 +53,6 @@ public:
 
     RSLayerId GetRSLayerId() const override { return id_; }
     void SetRSLayerId(RSLayerId rsLayerId) override { id_ = rsLayerId; }
-    std::shared_ptr<RSComposerContext> GetComposerContext() const override { return rsComposerContext_; }
-    void SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext) override { rsComposerContext_ = rsComposerContext; }
     void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override { (void)command; }
 
     void SetAlpha(const GraphicLayerAlpha &alpha) override { alpha_ = alpha; }
@@ -195,7 +193,6 @@ private:
     RSLayerId id_ = 0;
     bool isNeedComposition_ = false;
     std::string surfaceName_;
-    std::shared_ptr<RSComposerContext> rsComposerContext_ = nullptr;
 
     GraphicLayerAlpha alpha_ {};
     int32_t zOrder_ = 0;

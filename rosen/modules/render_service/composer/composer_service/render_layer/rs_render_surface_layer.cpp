@@ -63,11 +63,6 @@ void RSRenderSurfaceLayer::SetRSLayerId(RSLayerId rsLayerId)
     rsLayerId_ = rsLayerId;
 }
 
-std::shared_ptr<RSComposerContext> RSRenderSurfaceLayer::GetComposerContext() const
-{
-    return rsComposerContext_.lock();
-}
-
 void RSRenderSurfaceLayer::SetAlpha(const GraphicLayerAlpha& alpha)
 {
     layerAlpha_ = alpha;

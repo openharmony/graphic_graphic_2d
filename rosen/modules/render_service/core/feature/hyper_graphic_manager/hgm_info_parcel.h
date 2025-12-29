@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_PROCESS_HYPER_GRAPHIC_MANAGER_HGM_INFO_PARCEL_H
-#define RENDER_PROCESS_HYPER_GRAPHIC_MANAGER_HGM_INFO_PARCEL_H
+#ifndef HGM_INFO_PARCEL_H
+#define HGM_INFO_PARCEL_H
 
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "iremote_object.h"
@@ -37,7 +38,7 @@ using HgmDataChangeTypes = std::bitset<HgmDataChangeType::MAX_CHANGE_TYPE>;
 
 struct HgmServiceToProcessInfo : public Parcelable {
     HgmServiceToProcessInfo() = default;
-    ~HgmServiceToProcessInfo() = default;
+    ~HgmServiceToProcessInfo() noexcept = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static HgmServiceToProcessInfo* Unmarshalling(Parcel& data);
@@ -60,10 +61,11 @@ struct HgmServiceToProcessInfo : public Parcelable {
 
 struct HgmProcessToServiceInfo : public Parcelable {
     HgmProcessToServiceInfo() = default;
-    ~HgmProcessToServiceInfo() = default;
+    ~HgmProcessToServiceInfo() noexcept = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static HgmProcessToServiceInfo* Unmarshalling(Parcel& data);
+
     bool MarshallingFrameRateLinker(MessageParcel* message) const;
     bool MarshallingSurfaceData(MessageParcel* message) const;
     bool MarshallingEnergyData(MessageParcel* message) const;
@@ -85,5 +87,4 @@ struct HgmProcessToServiceInfo : public Parcelable {
 };
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // RENDER_PROCESS_HYPER_GRAPHIC_MANAGER_HGM_INFO_PARCEL_H
+#endif // HGM_INFO_PARCEL_H

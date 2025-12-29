@@ -92,8 +92,6 @@ public:
 
     RSLayerId GetRSLayerId() const override { return id_; }
     void SetRSLayerId(RSLayerId rsLayerId) override { id_ = rsLayerId; }
-    std::shared_ptr<RSComposerContext> GetComposerContext() const override { return rsComposerContext_; }
-    void SetComposerContext(std::shared_ptr<RSComposerContext> rsComposerContext) override { rsComposerContext_ = rsComposerContext; }
     void UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerCmd>& command) override { (void)command; }
     void SetSurfaceUniqueId(uint64_t uniqueId) override { surfaceUniqueId_ = uniqueId; }
     uint64_t GetSurfaceUniqueId() const override { return surfaceUniqueId_; }
@@ -231,7 +229,6 @@ private:
     RSLayerId id_ = 0;
     bool isNeedComposition_ = false;
     std::string surfaceName_;
-    std::shared_ptr<RSComposerContext> rsComposerContext_ = nullptr;
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> bufferOwnerCount_ = nullptr;
     GraphicSolidColorLayerProperty solidColorLayerProperty_ {};
 

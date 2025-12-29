@@ -148,19 +148,19 @@ void HgmEnergyConsumptionPolicy::SetAnimationEnergyConsumptionAssuranceMode(bool
     lastAnimationTimestamp_ = firstAnimationTimestamp_.load();
 }
 
-void HgmEnergyConsumptionPolicy::StatisticAnimationTime(const std::unordered_map<std::string, std::string> &commonData)
+void HgmEnergyConsumptionPolicy::StatisticAnimationTime(const std::unordered_map<std::string, std::string>& commonData)
 {
-    if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
+    if (!isAnimationEnergyAssuranceEnable_.load() || !isAnimationEnergyConsumptionAssuranceMode_.load()) {
         return;
     }
     auto timeIter = commonData.find("STATIC_ANIMATION_TIME");
     if (timeIter == commonData.end()) {
         return;
     }
-    lastAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
+    lastAnimationTimestamp_.store(HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS);
 }
 
-void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::unordered_map<std::string, std::string> &commonData)
+void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::unordered_map<std::string, std::string>& commonData)
 {
     auto componentIter = commonData.find("COMPONENT_NAME");
     std::string componentName = "";
@@ -171,11 +171,11 @@ void HgmEnergyConsumptionPolicy::StartNewAnimation(const std::unordered_map<std:
     if (idleFps != UNKNOWN_IDLE_FPS) {
         return;
     }
-    if (!isAnimationEnergyAssuranceEnable_ || !isAnimationEnergyConsumptionAssuranceMode_) {
+    if (!isAnimationEnergyAssuranceEnable_.load() || !isAnimationEnergyConsumptionAssuranceMode_.load()) {
         return;
     }
-    firstAnimationTimestamp_ = HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS;
-    lastAnimationTimestamp_ = firstAnimationTimestamp_.load();
+    firstAnimationTimestamp_.store(HgmCore::Instance().GetCurrentTimestamp() / NS_PER_MS);
+    lastAnimationTimestamp_.store(firstAnimationTimestamp_.load());
 }
 
 void HgmEnergyConsumptionPolicy::SetTouchState(TouchState touchState)
@@ -290,7 +290,7 @@ void HgmEnergyConsumptionPolicy::PrintEnergyConsumptionLog(const FrameRateRange&
     HGM_LOGD("change power policy is %{public}s", lastAssuranceLog.c_str());
 }
 
-void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo &eventInfo)
+void HgmEnergyConsumptionPolicy::SetVideoCallSceneInfo(const EventInfo& eventInfo)
 {
     if (isEnableVideoCall_.load() && !eventInfo.eventStatus) {
         videoCallVsyncName_ = "";
@@ -440,7 +440,6 @@ int32_t HgmEnergyConsumptionPolicy::GetComponentEnergyConsumptionConfig(const st
 
 void HgmEnergyConsumptionPolicy::HandleEnergyCommonData(const EnergyCommonDataMap& commonData)
 {
-    RS_TRACE_NAME_FMT("HandleEnergyCommonData");
     for (const auto& dataIter : commonData) {
         auto energyDataFunc = commonDataMapFunc_.find(dataIter.first);
         if (energyDataFunc != commonDataMapFunc_.end()) {
@@ -458,7 +457,6 @@ void HgmEnergyConsumptionPolicy::VoterVideoFrameRate(const std::unordered_map<st
     auto refreshRateIter = commonData.find("REFRESH_RATE");
     if (pidIter == commonData.end() || !XMLParser::IsNumber(pidIter->second) || eventNameIter == commonData.end() ||
         eventStatusIter == commonData.end()) {
-        RS_TRACE_NAME_FMT("HgmEnergyConsumptionPolicy::VoterVideoFrameRate params verify faild.");
         return;
     }
     pid_t pid = std::stoi(pidIter->second.c_str());
@@ -475,13 +473,13 @@ void HgmEnergyConsumptionPolicy::VoterVideoFrameRate(const std::unordered_map<st
         .minRefreshRate = refreshRate,
         .maxRefreshRate = refreshRate,
     };
-    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    if (frameRateMgr == nullptr) {
-        RS_TRACE_NAME_FMT("HgmEnergyConsumptionPolicy::VoterVideoFrameRate frameRateMgr is nullptr");
-        return;
-    }
-    frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
-    RS_TRACE_NAME_FMT("HgmEnergyConsumptionPolicy::VoterVideoFrameRate voter success, [%s, %d, %d]", eventName.c_str(), eventStatus, refreshRate);
+    HgmTaskHandleThread::Instance().PostTask([eventInfo, pid]() {
+        auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+        if (frameRateMgr == nullptr) {
+            return;
+        }
+        frameRateMgr->HandleRefreshRateEvent(pid, eventInfo);
+    });
 }
 
 bool HgmEnergyConsumptionPolicy::GetPowerIdle()

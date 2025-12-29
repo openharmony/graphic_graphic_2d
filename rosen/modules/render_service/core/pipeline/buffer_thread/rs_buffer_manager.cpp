@@ -32,6 +32,7 @@ void RSBufferCollectorHelper::OnCanvasDrawEnd()
     }
 }
 
+// set the acquireFence of unirender buffer, indicating that all buffers have been fully rendered on the GPU
 void RSBufferCollectorHelper::SetAcquireFence(sptr<SyncFence> fence)
 {
     if (fence == nullptr) {
@@ -62,7 +63,13 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
         pendingReleaseBuffers_[seqNum] = { consumer, buffer, fence };
     } else {
         if (fence != nullptr) {
-            iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
+            // Merge the fences on the GPU and the fences on the DSS;
+            // the buffer can only be released when both sides have finished using it.
+            if (iter->second.mergedFence_ && iter->second.mergedFence_->Get() != -1) {
+                iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
+            } else {
+                iter->second.mergedFence_ = fence;
+            }
         }
         iter->second.buffer_ = buffer;
         iter->second.consumer_ = consumer;
@@ -72,31 +79,24 @@ void RSBufferManager::AddPendingReleaseBuffer(sptr<IConsumerSurface> consumer,
 void RSBufferManager::AddPendingReleaseBuffer(uint64_t seqNum, sptr<SyncFence> fence)
 {
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::AddPendingReleaseBuffer seqNum %u fence %d", uint32_t(seqNum),
+        fence->Get());
+    if (fence == nullptr) {
+        RS_LOGE("RSBufferManager::AddPendingReleaseBuffer(without consumer) fence is null");
+        return;
+    }
     auto iter = pendingReleaseBuffers_.find(seqNum);
     if (iter == pendingReleaseBuffers_.end()) {
-        if (fence == nullptr) {
-            return;
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager AddPendingReleaseBuffer not find seqNum %u fence %d",
-                        uint32_t(seqNum), fence->Get());
         pendingReleaseBuffers_[seqNum] = { nullptr, nullptr, fence };
     } else {
-        if (fence == nullptr) {
-            return;
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager AddPendingReleaseBuffer seqNum %u mergedFence_ %d fence %d",
-                        uint32_t(seqNum),
-                        iter->second.mergedFence_ ? iter->second.mergedFence_->Get() : -1, fence->Get());
-        {
-            iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
-            RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager AddPendingReleaseBuffer After Merge seqNum %u mergedFence_ %d "
-                "fence %d", uint32_t(seqNum),
-                iter->second.mergedFence_ ? iter->second.mergedFence_->Get() : -1, fence->Get());
-        }
+        iter->second.mergedFence_ = SyncFence::MergeFence("bufferFence", iter->second.mergedFence_, fence);
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager AddPendingReleaseBuffer After Merge seqNum %u mergedFence_ %d "
+            "fence %d", uint32_t(seqNum),
+            iter->second.mergedFence_ ? iter->second.mergedFence_->Get() : -1, fence->Get());
     }
 }
 
-void RSBufferManager::ReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+void RSBufferManager::OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)
 {
     std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> uniBufferCount = nullptr;
@@ -104,12 +104,12 @@ void RSBufferManager::ReleaseLayerBuffers(std::unordered_map<RSLayerId, std::wea
     std::set<uint32_t> decedSet = {};
     for (const auto& [id, buffer, fence] : releaseBufferFenceVec) {
         if (rsLayers.count(id) == 0) {
-            RS_LOGE("RSBufferManager::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
+            RS_LOGE("RSBufferManager::OnReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
             continue;
         }
         auto layer = rsLayers[id].lock();
         if (layer == nullptr) {
-            RS_LOGE("RSBufferManager::ReleaseLayerBuffers layer is nullptr");
+            RS_LOGE("RSBufferManager::OnReleaseLayerBuffers layer is nullptr");
             continue;
         }
         if (buffer == nullptr) {
@@ -118,7 +118,7 @@ void RSBufferManager::ReleaseLayerBuffers(std::unordered_map<RSLayerId, std::wea
         auto seqNum = buffer->GetSeqNum();
         auto bufferOwnerCount = layer->GetSeqNumFromBufferOwnerCounts(seqNum);
 
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseLayerBuffers seqNum %u fence %d",
+        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::OnReleaseLayerBuffers seqNum %u fence %d",
             uint32_t(seqNum), fence ? fence->Get() : -1);
 
         if (bufferOwnerCount) {
@@ -133,56 +133,63 @@ void RSBufferManager::ReleaseLayerBuffers(std::unordered_map<RSLayerId, std::wea
          }
     }
 
-    if (uniBufferCount) {
-        std::lock_guard<std::mutex> lock(uniBufferCount->mapMutex_);
-        for (auto [id, seqNum] : uniBufferCount->uniOnDrawBufferMap_) {
-            if (decedSet.find(seqNum) != decedSet.end()) {
-                continue;
-            }
-            if (rsLayers.count(id) == 0) {
-                RS_LOGE("RSBufferManager::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
-                continue;
-            }
-            auto layer = rsLayers[id].lock();
-            if (layer == nullptr) {
-                RS_LOGE("RSBufferManager::ReleaseLayerBuffers layer is nullptr");
-                continue;
-            }
-
-            auto bufferOwnerCount = layer->GetSeqNumFromBufferOwnerCounts(seqNum);
-            if (bufferOwnerCount == nullptr) {
-                continue;
-            }
-
-            AddPendingReleaseBuffer(bufferOwnerCount->seqNum_, uniFence);
-            if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->seqNum_)) {
-                layer->SetBufferOwnerCount(bufferOwnerCount);
-            }
-            bufferOwnerCount->OnBufferReleased();
-        }
-        uniBufferCount->uniOnDrawBufferMap_.clear();
-    }
+    ReleaseUniOnDrawBuffers(uniBufferCount, uniFence, decedSet, rsLayers);
 }
 
-void RSBufferManager::BufferReleaseCallBack(uint64_t seqNum)
+void RSBufferManager::ReleaseUniOnDrawBuffers(std::shared_ptr<RSSurfaceHandler::BufferOwnerCount>& uniBufferCount,
+    sptr<SyncFence>& uniFence, std::set<uint32_t>& decedSet,
+    std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers)
 {
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager BufferReleaseCallBack %u", uint32_t(seqNum));
+    if (uniBufferCount) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(uniBufferCount->mapMutex_);
+    for (auto [id, seqNum] : uniBufferCount->uniOnDrawBufferMap_) {
+        if (decedSet.find(seqNum) != decedSet.end()) {
+            continue;
+        }
+        if (rsLayers.count(id) == 0) {
+            RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers has no id: %{public}" PRIu64 " layer", id);
+            continue;
+        }
+        auto layer = rsLayers[id].lock();
+        if (layer == nullptr) {
+            RS_LOGE("RSBufferManager::ReleaseUniOnDrawBuffers layer is nullptr");
+            continue;
+        }
+
+        auto bufferOwnerCount = layer->GetSeqNumFromBufferOwnerCounts(seqNum);
+        if (bufferOwnerCount == nullptr) {
+            continue;
+        }
+
+        AddPendingReleaseBuffer(bufferOwnerCount->seqNum_, uniFence);
+        if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->seqNum_)) {
+            layer->SetBufferOwnerCount(bufferOwnerCount);
+        }
+        bufferOwnerCount->OnBufferReleased();
+    }
+    uniBufferCount->uniOnDrawBufferMap_.clear();
+}
+
+void RSBufferManager::ReleaseBufferById(uint64_t seqNum)
+{
     std::lock_guard<std::mutex> lock(screenNodeBufferReleasedMutex_);
     auto iter = pendingReleaseBuffers_.find(seqNum);
-    if (iter != pendingReleaseBuffers_.end()) {
-        auto info = iter->second;
-        auto consumer = info.consumer_;
-        if (consumer == nullptr || info.buffer_ == nullptr) {
-            return;
-        }
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager BufferReleaseCallBack ReleaseBuffer SeqNum %u Fence %d",
-            uint32_t(info.buffer_->GetSeqNum()),
-            info.mergedFence_ ? info.mergedFence_->Get() : -1);
-        consumer->ReleaseBuffer(info.buffer_, info.mergedFence_);
-        pendingReleaseBuffers_.erase(iter);
-    } else {
-        RS_LOGE("RSBufferManager BufferReleaseCallBack Release not find %{public}u", uint32_t(seqNum));
+    if (iter == pendingReleaseBuffers_.end()) {
+        RS_LOGE("RSBufferManager::ReleaseBufferById not find seqNum:%{public}u", uint32_t(seqNum));
+        return;
     }
+    auto info = iter->second;
+    auto consumer = info.consumer_;
+    if (consumer == nullptr || info.buffer_ == nullptr) {
+        RS_LOGE("RSBufferManager::ReleaseBufferById consumer or info.buffer_ is null");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById SeqNum %u Fence %d",
+        uint32_t(info.buffer_->GetSeqNum()), info.mergedFence_ ? info.mergedFence_->Get() : -1);
+    consumer->ReleaseBuffer(info.buffer_, info.mergedFence_);
+    pendingReleaseBuffers_.erase(iter);
 }
 
 } // OHOS

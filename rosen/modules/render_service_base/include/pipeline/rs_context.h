@@ -26,6 +26,7 @@
 #endif
 #include "animation/rs_render_interactive_implict_animator_map.h"
 #include "feature/capture/rs_ui_capture_helper.h"
+#include "feature/power_off_render_skip/rs_power_off_render_controller.h"
 #include "ipc_callbacks/brightness_info_change_callback.h"
 #include "pipeline/rs_render_node_map.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
@@ -236,6 +237,11 @@ public:
         visibleLeashWindowCount_.store(count);
     }
 
+    RSPowerOffRenderController& GetPowerOffRenderController()
+    {
+        return powerOffRenderController_;
+    }
+
     std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();
 private:
     // This function is used for initialization, should be called once after constructor.
@@ -272,6 +278,7 @@ private:
 
     std::unique_ptr<RSUiCaptureHelper> uiCaptureHelper_;
     std::atomic<uint32_t> visibleLeashWindowCount_ = 0;
+    RSPowerOffRenderController powerOffRenderController_;
 
     friend class RSRenderThread;
     friend class RSMainThread;

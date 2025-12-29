@@ -46,7 +46,7 @@ public:
     void ReleaseLayerBuffers(uint64_t screenId,
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
-    bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc);
+    void RegistOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB cb);
     std::shared_ptr<RSComposerContext> GetComposerContext();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void ClearFrameBuffers();

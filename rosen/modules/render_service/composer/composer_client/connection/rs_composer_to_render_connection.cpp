@@ -36,9 +36,9 @@ int32_t RSComposerToRenderConnection::ReleaseLayerBuffers(ReleaseLayerBuffersInf
         RS_LOGE("GetRSRenderComposerClient failed, screenId:%{public}" PRIu64, screenId);
         return COMPOSITOR_ERROR_NULLPTR;
     }
-    composerClient->RegistOnBufferReleaseFunc([](std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+    composerClient->RegistOnReleaseLayerBuffersCB([](std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec) {
-        RSUniRenderThread::OnComposedBufferCallBack(rsLayers, releaseBufferFenceVec);
+        RSUniRenderThread::Instance().OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
     });
     composerClient->ReleaseLayerBuffers(screenId, releaseLayerInfo.timestampVec, releaseLayerInfo.releaseBufferFenceVec);
     uniRenderThread->NotifyScreenNodeBufferReleased(screenId);

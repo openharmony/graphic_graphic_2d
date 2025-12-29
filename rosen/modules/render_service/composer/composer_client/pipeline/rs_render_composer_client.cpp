@@ -81,10 +81,10 @@ void RSRenderComposerClient::UpdatePipelineParam(const PipelineParam& pipelinePa
     pipelineParam_ = pipelineParam;
 }
 
-bool RSRenderComposerClient::RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc)
+void RSRenderComposerClient::RegistOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB cb)
 {
     std::unique_lock<std::mutex> lock(clientMutex_);
-    return rsComposerContext_->RegistOnBufferReleaseFunc(onBufferReleaseFunc);
+    rsComposerContext_->RegistOnReleaseLayerBuffersCB(cb);
 }
 
 void RSRenderComposerClient::ReleaseLayerBuffers(uint64_t screenId,

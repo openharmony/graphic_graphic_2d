@@ -24,8 +24,8 @@
 #include <iservice_registry.h>
 #include "accesstoken_kit.h"
 #include "layer/rs_surface_layer.h"
-#include "irs_composer_to_render_connection.h"
-#include "irs_render_to_composer_connection.h"
+#include "rs_composer_to_render_connection.h"
+#include "rs_render_to_composer_connection.h"
 #include "pipeline/rs_render_composer_client.h"
 #include "nativetoken_kit.h"
 #include "rs_render_composer_manager.h"
@@ -41,7 +41,7 @@ public:
     static void TearDownTestCase();
 
     static inline sptr<IRemoteObject> robj_ = nullptr;
-    std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
+    static inline std::shared_ptr<RSRenderComposerClient> composerClient_ = nullptr;
     static inline pid_t pid_ = 0;
     static inline int pipeFd_[2] = {};
     static inline int pipe1Fd_[2] = {};
@@ -85,6 +85,9 @@ void RSRenderComposerClientRemoteTest::SetUpTestCase()
     }
     if (pid_ == 0) {
         // render_service
+#ifdef RS_ENABLE_VK
+        RsVulkanContext::SetRecyclable(false);
+#endif
         InitNativeTokenInfo();
         uint32_t screenId = 10;
         std::shared_ptr<HdiOutput> output = std::make_shared<HdiOutput>(screenId);
@@ -111,14 +114,17 @@ void RSRenderComposerClientRemoteTest::SetUpTestCase()
         exit(0);
     } else {
         // render_process
+#ifdef RS_ENABLE_VK
+        RsVulkanContext::SetRecyclable(false);
+#endif
         close(pipeFd_[0]);
         close(pipe1Fd_[1]);
         char buf[10];
         read(pipe1Fd_[0], buf, sizeof(buf));
         auto sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
         robj_ = sam->GetSystemAbility(systemAbilityID_);
-        sptr<RSRenderToComposerConnection> renderToComposer = iface_cast<RSRenderToComposerConnection>(robj_);
-        sptr<RSRenderToComposerConnection> composerToRender = sptr<RSComposerToRenderConnection>::MakeSptr();
+        sptr<IRSRenderToComposerConnection> renderToComposer = iface_cast<IRSRenderToComposerConnection>(robj_);
+        sptr<IRSComposerToRenderConnection> composerToRender = sptr<RSComposerToRenderConnection>::MakeSptr();
         composerClient_ = RSRenderComposerClient::Create(renderToComposer, composerToRender, nullptr);
     }
 }
@@ -140,14 +146,18 @@ void RSRenderComposerClientRemoteTest::TearDownTestCase()
 }
 
 /*
-* Function: IsProxyObject
-* Type: Function
-* Rank: Important(2)
-* EnvConditions: N/A
-* CaseDescription: 1. check ret for IsProxyObject func
+ * Function: CommitLayers
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. check ret for CommitLayers func
  */
-HWTEST_F(RSRenderComposerClientRemoteTest, IsProxy001, TestSize.Level0)
+HWTEST_F(RSRenderComposerClientRemoteTest, CommitLayers001, TestSize.Level0)
 {
-    ASSERT_TRUE(robj_->IsProxyObject());
+    std::shared_ptr<RSLayer> rsLayer = RSSurfaceLayer::Create(composerClient_->GetComposerContext(), 1);
+    EXPECT_NE(rsLayer, nullptr);
+    rsLayer->SetZorder(1);
+    ComposerInfo composerInfo;
+    composerClient_->CommitLayers(composerInfo);
 }
 }

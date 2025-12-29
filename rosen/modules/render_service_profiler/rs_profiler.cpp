@@ -232,13 +232,29 @@ void RSProfiler::MarshalFirstFrameNodesLoop()
 
 bool RSProfiler::IsPowerOffScreen()
 {
-    // TODO Car
-    // auto screenManager = CreateOrGetScreenManager();
-    // if (!screenManager) {
-    //     return false;
-    // }
-    // return screenManager->IsAllScreensPowerOff();
-    return false;
+    if (!context_) {
+        HRPE("RSProfiler::IsPowerOffScreen context is nullptr");
+        return false;
+    }
+    const auto& nodeMap = context_->GetNodeMap();
+    if (nodeMap.screenNodeMap_.empty()) {
+        HRPI("RSProfiler::IsPowerOffScreen has no screenRenderNode");
+        return false;
+    }
+    bool hasScreenPowerOn = false;
+    nodeMap.TraverseScreenNodes(
+        [&hasScreenPowerOn](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
+            if (!screenRenderNode) {
+                return;
+            }
+            ScreenPowerStatus powerStatus = screenRenderNode->GetScreenProperty().GetScreenInfo().powerStatus;
+            if (powerStatus != ScreenPowerStatus::POWER_STATUS_OFF &&
+                powerStatus != ScreenPowerStatus::POWER_STATUS_SUSPEND) {
+                hasScreenPowerOn = true;
+            }
+        }
+    );
+    return !hasScreenPowerOn;
 }
 
 void DeviceInfoToCaptureData(double time, const DeviceInfo& in, RSCaptureData& out)

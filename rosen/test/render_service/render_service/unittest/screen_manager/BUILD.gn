@@ -194,6 +194,57 @@ ohos_unittest("RSScreenManagerTest") {
   ]
 }
 
+##############################  RSScreenCallbackManagerTest  ##################################
+ohos_unittest("RSScreenCallbackManagerTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "rs_screen_callback_manager_test.cpp",
+  ]
+
+  include_dirs = [
+    "$graphic_2d_root/rosen/modules/render_service",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager",
+    "$graphic_2d_root/rosen/modules/render_service/screen_manager/public",
+  ]
+
+  deps = [
+    "$graphic_2d_root/rosen/modules/composer:libcomposer",
+    "$graphic_2d_root/rosen/modules/render_service:librender_service",
+    "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+  ]
+
+  external_deps = [
+    "eventhandler:libeventhandler",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "samgr:samgr_proxy",
+  ]
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+    defines = [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+  }
+
+  subsystem_name = "graphic"
+  part_name = "graphic_2d"
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+}
+
 ##############################  TouchScreenTest  ##################################
 ohos_unittest("TouchScreenTest") {
   module_out_path = module_output_path

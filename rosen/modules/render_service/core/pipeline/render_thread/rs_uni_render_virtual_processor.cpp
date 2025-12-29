@@ -495,10 +495,9 @@ void RSUniRenderVirtualProcessor::SetVirtualScreenFenceToRenderThread()
     }
     auto acquireFence = renderFrame_->GetAcquireFence();
     if (!acquireFence || !acquireFence->IsValid()) {
-        RS_LOGE("RSUniRenderVirtualProcessor::%{public}s acquireFence not valid!", __func__);
-        return;
+        acquireFence = SyncFence::InvalidFence();
     }
-    RSUniRenderThread::Instance().SetAcquireFence(acquireFence);
+    RSUniRenderThread::Instance().OnDrawEnd(acquireFence);
     RS_TRACE_NAME_FMT("RSUniRenderVirtualProcessor::%s: screen: %" PRIu64 " fence set to render thread!",
             __func__, virtualScreenId_);
     RS_LOGD("RSUniRenderVirtualProcessor::%{public}s: screen: %{public}" PRIu64 " fence set to render thread!",
