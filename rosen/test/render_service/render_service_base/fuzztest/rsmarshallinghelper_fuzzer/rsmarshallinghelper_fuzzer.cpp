@@ -82,7 +82,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     std::shared_ptr<ParticleRenderParams> params;
     std::vector<std::shared_ptr<ParticleRenderParams>> particleRenderParams;
     std::shared_ptr<RSPath> path;
-    std::shared_ptr<RSFilter> filter;
     std::shared_ptr<RSRenderPropertyBase> property;
     std::shared_ptr<RSImageBase> base = std::make_shared<RSImageBase>();
     std::shared_ptr<RSImage> image = std::make_shared<RSImage>();
@@ -106,9 +105,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     valChangeOverLife.push_back(changeInOverLife);
     RenderParticleParaType<float> val2(value, ParticleUpdator::RANDOM, randomValue, std::move(valChangeOverLife));
 
-    filter = RSFilter::CreateBlurFilter(start, end);
-    filter->type_ = RSFilter::BLUR;
-
     RSTransactionData rsTransactionData;
     rsTransactionData.UnmarshallingCommand(parcel);
     RSMarshallingHelper::Unmarshalling(parcel, val);
@@ -124,7 +120,6 @@ bool DoUnmarshalling(const uint8_t* data, size_t size)
     RSMarshallingHelper::Unmarshalling(parcel, params);
     RSMarshallingHelper::Unmarshalling(parcel, particleRenderParams);
     RSMarshallingHelper::Unmarshalling(parcel, path);
-    RSMarshallingHelper::Unmarshalling(parcel, filter);
     RSMarshallingHelper::Unmarshalling(parcel, base);
     RSMarshallingHelper::Unmarshalling(parcel, image);
     RSMarshallingHelper::Unmarshalling(parcel, map);
@@ -728,34 +723,6 @@ bool DoMarshallingHelper020(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoMarshallingHelper021(const uint8_t* data, size_t size)
-{
-    if (data == nullptr) {
-        return false;
-    }
-
-    Parcel parcel;
-    float blurRadiusX = GetData<float>();
-    float blurRadiusY = GetData<float>();
-    std::shared_ptr<RSFilter> filter = RSFilter::CreateBlurFilter(blurRadiusX, blurRadiusY);
-    RSMarshallingHelper::Marshalling(parcel, filter);
-    RSMarshallingHelper::Unmarshalling(parcel, filter);
-
-    Parcel parcel2;
-    int styleInt = GetData<int>();
-    float dipScale = GetData<float>();
-    std::shared_ptr<RSFilter> filter2 = RSFilter::CreateMaterialFilter(styleInt, dipScale);
-    RSMarshallingHelper::Marshalling(parcel2, filter2);
-    RSMarshallingHelper::Unmarshalling(parcel2, filter2);
-
-    Parcel parcel3;
-    float lightUpDegree = GetData<float>();
-    auto filter3 = RSFilter::CreateLightUpEffectFilter(lightUpDegree);
-    RSMarshallingHelper::Marshalling(parcel3, filter3);
-    RSMarshallingHelper::Unmarshalling(parcel3, filter3);
-    return true;
-}
-
 bool DoMarshallingHelper022()
 {
     Parcel parcel;
@@ -825,7 +792,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoMarshallingHelper018();
     OHOS::Rosen::DoMarshallingHelper019(data, size);
     OHOS::Rosen::DoMarshallingHelper020(data, size);
-    OHOS::Rosen::DoMarshallingHelper021(data, size);
     OHOS::Rosen::DoMarshallingHelper022();
     return 0;
 }
