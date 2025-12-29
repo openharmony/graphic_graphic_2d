@@ -295,6 +295,7 @@ bool RSRcdSurfaceRenderNode::SetRCDMetaData() const
         RS_LOGE("[%s] set cldInfoMetaData failed, error code[%{public}d]", __func__, setValueErr);
         return false;
     }
+    return true;
 }
 
 void RSRcdSurfaceRenderNode::PrintRcdNodeInfo()
