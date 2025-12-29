@@ -251,7 +251,7 @@ public:
      * @brief Casts this object to a shared pointer of the specified type T.
      *
      * @return std::shared_ptr<const T> A shared pointer to the object as type T if the cast is valid,
-      *        nullptr otherwise.
+     *         nullptr otherwise.
      */
     template<typename T>
     std::shared_ptr<const T> ReinterpretCastTo() const
