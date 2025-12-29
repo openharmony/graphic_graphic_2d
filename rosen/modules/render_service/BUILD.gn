@@ -321,7 +321,7 @@ ohos_shared_library("librender_service") {
   }
 
   if (graphic_2d_feature_enable_vulkan) {
-    sources += [ "core/pipeline/rs_vk_image_manager.cpp" ]
+    sources += [ "core/feature/gpuComposition/rs_vk_image_manager.cpp" ]
   }
 
   if ((rs_enable_eglimage && rs_enable_gpu) || graphic_2d_feature_enable_vulkan) {

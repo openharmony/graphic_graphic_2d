@@ -19,6 +19,9 @@
 #include <parameters.h>
 #include <sys/mman.h>
 
+#include "parameter.h"
+#include "parameters.h"
+
 #include "draw/surface.h"
 #include "draw/color.h"
 
