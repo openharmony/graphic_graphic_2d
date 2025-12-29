@@ -60,6 +60,7 @@ protected:
             onReleaseLayerBuffersCB_ = onReleaseLayerBuffersCB;
         }
     }
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer);
 
 private:
     void ANCOTransactionOnComplete(const std::shared_ptr<RSLayer>& rsLayer, const sptr<SyncFence>& previousReleaseFence);
