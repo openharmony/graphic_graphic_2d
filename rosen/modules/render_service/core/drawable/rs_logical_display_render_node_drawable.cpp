@@ -906,7 +906,8 @@ void RSLogicalDisplayRenderNodeDrawable::DrawMirrorScreen(
     uniParam->SetScreenInfo(screenParams->GetScreenInfo());
     // When mirrorSource is paused, mirrorScreen needs to redraw to avoid using an expired cacheImage
     bool mirroredScreenIsPause =
-        mirroredScreenParams->GetScreenProperty().GetVirtualScreenStatus() == VIRTUAL_SCREEN_PAUSE;
+        mirroredScreenParams->GetScreenProperty().GetVirtualScreenStatus() == VIRTUAL_SCREEN_PAUSE ||
+        mirroredScreenDrawable->IsRenderSkipIfScreenOff();
     // if specialLayer is visible and no CacheImg
     if ((mirroredParams->IsSecurityDisplay() != params.IsSecurityDisplay() && specialLayerType == HAS_SPECIAL_LAYER)
         || !cacheImage || params.GetVirtualScreenMuteStatus() || mirroredScreenIsPause ||

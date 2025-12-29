@@ -37,7 +37,6 @@
 #endif
 #include "feature/dirty/rs_uni_dirty_compute_util.h"
 #include "feature/drm/rs_drm_util.h"
-#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
 #include "feature/round_corner_display/rs_rcd_render_manager.h"
 #include "feature/round_corner_display/rs_message_bus.h"
@@ -570,7 +569,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     // if screen power off, skip on draw, needs to draw one more frame.
-    isRenderSkipIfScreenOff_ = RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(params->GetScreenId());
+    isRenderSkipIfScreenOff_ = uniParam->GetPowerOffRenderController().GetScreenRenderSkipped(params->GetScreenId());
     if (isRenderSkipIfScreenOff_) {
         SetDrawSkipType(DrawSkipType::RENDER_SKIP_IF_SCREEN_OFF);
         return;

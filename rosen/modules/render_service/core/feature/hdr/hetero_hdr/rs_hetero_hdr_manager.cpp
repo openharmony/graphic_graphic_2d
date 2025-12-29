@@ -21,7 +21,6 @@
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_hpae.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_util.h"
 #include "feature/hdr/rs_hdr_util.h"
-#include "feature/power_off_render_skip/rs_power_off_render_skip_manager.h"
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "hetero_hdr/rs_hdr_pattern_manager.h"
 #include "metadata_helper.h"
@@ -551,11 +550,6 @@ bool RSHeteroHDRManager::IsHDRSurfaceNodeSkipped(
         RS_TRACE_NAME("[hdrHetero]:RSHeteroHDRManager IsHDRSurfaceNodeSkipped FilterCache Skip");
         return true;
     }
-    auto screenParams = GetScreenParamsByDrawable(surfaceDrawable);
-    auto screenId = screenParams ? screenParams->GetScreenId() : INVALID_SCREEN_ID;
-    if (RSPowerOffRenderSkipManager::Instance().GetScreenRenderSkipStatus(screenId)) {	
-        return true;	
-    }
     if (!surfaceDrawable->ShouldPaint()) {
         return true;
     }
@@ -564,7 +558,9 @@ bool RSHeteroHDRManager::IsHDRSurfaceNodeSkipped(
         RS_LOGE("[hdrHetero]:RSHeteroHDRManager IsHDRSurfaceNodeSkipped uniParam is nullptr");
         return true;
     }
-
+    if (uniParam->GetPowerOffRenderController().GetAllScreenRenderSkipped()) {	
+        return true;
+    }
     auto enableType = surfaceParams->GetUifirstNodeEnableParam();
     auto cacheStatus = surfaceDrawable->GetRsSubThreadCache().GetCacheSurfaceProcessedStatus();
     bool noSkip = (!RSUniRenderThread::GetCaptureParam().isSnapshot_ && enableType == MultiThreadCacheType::NONE &&
