@@ -29,7 +29,7 @@
 namespace OHOS {
 namespace Rosen {
 RSComposerToRenderConnectionProxy::RSComposerToRenderConnectionProxy(const sptr<IRemoteObject>& impl) :
-    IRemoteProxy<RSIComposerToRenderConnection>(impl) {}
+    IRemoteProxy<IRSComposerToRenderConnection>(impl) {}
 
 int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffersInfo &releaseLayerInfo)
 {
@@ -40,7 +40,7 @@ int32_t RSComposerToRenderConnectionProxy::ReleaseLayerBuffers(ReleaseLayerBuffe
     auto timestampVec = releaseLayerInfo.timestampVec;
     auto releaseBufferFenceVec = releaseLayerInfo.releaseBufferFenceVec;
     option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIComposerToRenderConnection::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSComposerToRenderConnectionProxy::ReleaseLayerBuffers write InterfaceToken failed");
         return -1;
     }
@@ -120,7 +120,7 @@ int32_t RSComposerToRenderConnectionProxy::NotifyLppLayerToRender(
     MessageParcel reply;
     MessageOption option;
     option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteInterfaceToken(RSIComposerToRenderConnection::GetDescriptor())) {
+    if (!data.WriteInterfaceToken(IRSComposerToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSComposerToRenderConnectionProxy::NotifyLppLayerToRender write InterfaceToken failed");
         return -1;
     }

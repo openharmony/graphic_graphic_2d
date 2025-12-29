@@ -158,7 +158,7 @@ bool RSRenderServiceConnectHub::Connect()
     }
     auto [conn, renderConn] = renderService->CreateConnection(token_);
 
-    if (conn == nullptr) {
+    if (conn == nullptr || renderConn == nullptr) {
         ROSEN_LOGD("RSRenderServiceConnectHub::Connect, failed to CreateConnection to render service.");
         return false;
     }

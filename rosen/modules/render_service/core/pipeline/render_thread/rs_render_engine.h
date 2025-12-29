@@ -31,10 +31,10 @@ public:
         PreProcessFunc preProcess, PostProcessFunc postProcess) override;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
+        const ComposerScreenInfo& composerScreenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) override;
 #else
     void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-        const ScreenInfo& screenInfo = {}) override;
+        const ComposerScreenInfo& composerScreenInfo = {}) override;
 #endif
 
 private:

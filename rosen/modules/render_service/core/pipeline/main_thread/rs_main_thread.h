@@ -51,7 +51,6 @@
 #include "feature/vrate/rp_vsync_rate_reduce_manager.h"
 #include "feature/watermark/rs_surface_watermark.h"
 #include "platform/common/rs_event_manager.h"
-#include "screen_manager/rs_screen_node_listener.h"
 #include "platform/drawing/rs_vsync_client.h"
 #include "transaction/rs_transaction_data.h"
 #include "transaction/rs_uiextension_data.h"
@@ -620,7 +619,7 @@ private:
     void CollectInfoForHardwareComposer();
     void ResetHardwareEnabledState(bool isUniRender);
     void CheckIfHardwareForcedDisabled();
-    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode, bool waitForRT);
+    bool DoDirectComposition(std::shared_ptr<RSBaseRenderNode> rootNode);
     bool ExistBufferIsVisibleAndUpdate();
     bool NeedConsumeMultiCommand(int32_t& dvsyncPid);
     bool NeedConsumeDVSyncCommand(uint32_t& endIndex,

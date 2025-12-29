@@ -192,21 +192,21 @@ bool DoGetScreenSupportedModes()
 
 bool DoRegisterBufferAvailableListener()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId id = GetData<ScreenId>();
     BufferAvailableCallback callback;
     bool isFromRenderThread = GetData<bool>();
-    renderServiceClient->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
-    renderServiceClient->UnregisterBufferAvailableListener(id);
+    renderPipelineClient->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
+    renderPipelineClient->UnregisterBufferAvailableListener(id);
     return true;
 }
 
 bool DoRegisterBufferClearListener()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     NodeId id = GetData<ScreenId>();
     BufferClearCallback callback;
-    renderServiceClient->RegisterBufferClearListener(id, callback);
+    renderPipelineClient->RegisterBufferClearListener(id, callback);
     return true;
 }
 

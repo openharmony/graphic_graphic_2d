@@ -134,7 +134,6 @@ namespace OHOS {
         uint32_t height = 1920;
         g_hdiScreen->SetScreenOverlayResolution(width, height);
         g_hdiScreen->SetScreenPowerStatus(status);
-        g_hdiScreen->SetScreenBacklight(level);
         g_hdiScreen->SetScreenVsyncEnabled(enabled);
         g_hdiScreen->SetScreenColorGamut(gamut);
         g_hdiScreen->SetScreenColorTransform(matrix);

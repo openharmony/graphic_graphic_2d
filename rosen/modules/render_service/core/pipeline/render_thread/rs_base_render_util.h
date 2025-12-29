@@ -25,6 +25,7 @@
 #include "pipeline/rs_surface_handler.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "pixel_map.h"
+#include "rs_layer_transaction_data.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "sync_fence.h"
 #include "utils/matrix.h"
@@ -143,7 +144,8 @@ public:
     static bool IsNeedClient(RSRenderNode& node, const ComposeInfo& info);
     static void SetNeedClient(bool flag);
     static bool IsBufferValid(const sptr<SurfaceBuffer>& buffer);
-    static BufferRequestConfig GetFrameBufferRequestConfig(const ScreenInfo& screenInfo, bool isProtected = false,
+    static BufferRequestConfig GetFrameBufferRequestConfig(const ComposerScreenInfo& composerScreenInfo,
+        bool isProtected = false,
         GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB,
         GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_RGBA_8888);
 

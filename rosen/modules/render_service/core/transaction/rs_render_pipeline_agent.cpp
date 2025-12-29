@@ -163,6 +163,46 @@ ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNode
     return ERR_OK;
 }
 
+ErrCode RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
+{
+    if (!rsRenderPipeline_) {
+        RS_LOGE("%{public}s rsRenderPipeline_ is nullptr, return", __func__);
+        return ERR_INVALID_VALUE;
+    }
+
+    auto task = [weakThis = wptr<RSRenderPipelineAgent>(this)]() -> void {
+        sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+        if (agent == nullptr || agent->rsRenderPipeline_ == nullptr ||
+                agent->rsRenderPipeline_->mainThread_ == nullptr) {
+            return;
+        }
+
+        RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
+        agent->rsRenderPipeline_->mainThread_->SetDirtyFlag();
+        agent->rsRenderPipeline_->mainThread_->RequestNextVSync();
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+    return ERR_OK;
+}
+
+ErrCode RSRenderPipelineAgent::SetAppWindowNum(uint32_t num)
+{
+    if (!rsRenderPipeline_) {
+        return ERR_INVALID_VALUE;
+    }
+    auto task = [weakThis = wptr<RSRenderPipelineAgent>(this), num]() -> void {
+        sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+        if (agent == nullptr || agent->rsRenderPipeline_ == nullptr ||
+                agent->rsRenderPipeline_->mainThread_ == nullptr) {
+            return;
+        }
+        agent->rsRenderPipeline_->mainThread_->SetAppWindowNum(num);
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
+
+    return ERR_OK; 
+}
+
 ErrCode RSRenderPipelineAgent::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
 {
     if (!rsRenderPipeline_->mainThread_) {
@@ -1876,17 +1916,26 @@ void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t
     }
 }
 
-void RSRenderPipelineAgent::SetScreenFrameGravity(ScreenId id, Gravity gravity)
+void RSRenderPipelineAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
     if (rsRenderPipeline_ == nullptr) {
-        RS_LOGE("RSRenderPipelineAgent:%{public}s renderPipeline is nullptr", __func__);
         return;
-    }
-    if (!rsRenderPipeline_->mainThread_) {
-        RS_LOGE("RSRenderPipeline::%{public}s, mainThread_ is null.", __func__);
-        return;
-    }
-    rsRenderPipeline_->mainThread_->SetScreenFrameGravity(id, gravity);
+    } 
+    auto task = [weakThis = wptr<RSRenderPipelineAgent>(this), id, gravity] () -> void {
+        sptr<RSRenderPipelineAgent> agent = weakThis.promote();
+        if (agent == nullptr || agent->rsRenderPipeline_ == nullptr ||
+            agent->rsRenderPipeline_->mainThread_ == nullptr) {
+                return;
+        }
+        auto &context = agent->rsRenderPipeline_->mainThread_->GetContext();
+        context.GetNodeMap().
+            TraverseScreenNodes([id, gravity] (const std::shared_ptr<RSScreenRenderNode>& node) {
+            if (node && node->GetScreenId() == id) {
+                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
+            }
+        });
+    };
+    rsRenderPipeline_->PostMainThreadTask(task);
 }
 
 uint32_t RSRenderPipelineAgent::SetSurfaceWatermark(pid_t pid, const std::string &name,

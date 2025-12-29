@@ -29,9 +29,14 @@ public:
     RSIRenderToServiceConnection() = default;
     virtual ~RSIRenderToServiceConnection() noexcept = default;
 
+    // Dfx
     virtual void ReplyDumpResultToService(std::string& dumpString) = 0;
+
+    // Hgm
     virtual sptr<HgmServiceToProcessInfo> NotifyRpHgmFrameRate(uint64_t timestamp, uint64_t vsyncId,
-        const std::unordered_set<ScreenId>& screenIds, const sptr<HgmProcessToServiceInfo>& processToServiceInfo) = 0;
+        const sptr<HgmProcessToServiceInfo>& processToServiceInfo) = 0;
+
+    // Screen Manager
     virtual void NotifyScreenSwitchFinished(ScreenId screenId) = 0;
 };
 

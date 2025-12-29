@@ -43,108 +43,60 @@ bool RSLayerTransactionData::MarshallingRectI(std::shared_ptr<OHOS::MessageParce
         parcel->WriteInt32(rectI.width_) && parcel->WriteInt32(rectI.height_);
 }
 
-bool RSLayerTransactionData::UnMarshallingScreenInfo(OHOS::MessageParcel& parcel)
+bool RSLayerTransactionData::UnMarshallingComposerScreenInfo(OHOS::MessageParcel& parcel)
 {
-    bool result = parcel.ReadBool(isScreenInfoChanged_);
-    if (isScreenInfoChanged_) {
-        result = result && parcel.ReadUint64(screenInfo_.id);
-        result = result && parcel.ReadUint32(screenInfo_.width);
-        result = result && parcel.ReadUint32(screenInfo_.height);
-        result = result && parcel.ReadUint32(screenInfo_.phyWidth);
-        result = result && parcel.ReadUint32(screenInfo_.phyHeight);
-        result = result && parcel.ReadInt32(screenInfo_.offsetX);
-        result = result && parcel.ReadInt32(screenInfo_.offsetY);
-        result = result && parcel.ReadBool(screenInfo_.isSamplingOn);
-        result = result && parcel.ReadInt32(screenInfo_.samplingDistance);
-        result = result && parcel.ReadFloat(screenInfo_.samplingTranslateX);
-        result = result && parcel.ReadFloat(screenInfo_.samplingTranslateY);
-        result = result && parcel.ReadFloat(screenInfo_.samplingScale);
-        uint32_t value = 0;
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.colorGamut = static_cast<ScreenColorGamut>(value);
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.state = static_cast<ScreenState>(value);
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.rotation = static_cast<ScreenRotation>(value);
-        uint32_t whiteListSize = 0;
-        uint64_t white = 0;
-        result = result && parcel.ReadUint32(whiteListSize);
-        for (uint32_t i = 0; i < whiteListSize; i++) {
-            result = result && parcel.ReadUint64(white);
-            screenInfo_.whiteList.insert(white);
-        }
-        result = result && UnMarshallingRectI(parcel, screenInfo_.activeRect);
-        result = result && UnMarshallingRectI(parcel, screenInfo_.maskRect);
-        result = result && UnMarshallingRectI(parcel, screenInfo_.reviseRect);
-        result = result && parcel.ReadUint32(screenInfo_.skipFrameInterval);
-        result = result && parcel.ReadUint32(screenInfo_.expectedRefreshRate);
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.skipFrameStrategy = static_cast<SkipFrameStrategy>(value);
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.pixelFormat = static_cast<GraphicPixelFormat>(value);
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.hdrFormat = static_cast<ScreenHDRFormat>(value);
-        result = result && parcel.ReadBool(screenInfo_.enableVisibleRect);
-        result = result && parcel.ReadUint32(value);
-        screenInfo_.powerStatus = static_cast<ScreenPowerStatus>(value);
-    }
+    bool result = parcel.ReadUint64(composerInfo_.composerScreenInfo.id);
+    result = result && parcel.ReadUint32(composerInfo_.composerScreenInfo.width);
+    result = result && parcel.ReadUint32(composerInfo_.composerScreenInfo.height);
+    result = result && parcel.ReadUint32(composerInfo_.composerScreenInfo.phyWidth);
+    result = result && parcel.ReadUint32(composerInfo_.composerScreenInfo.phyHeight);
+    result = result && parcel.ReadBool(composerInfo_.composerScreenInfo.isSamplingOn);
+    result = result && parcel.ReadFloat(composerInfo_.composerScreenInfo.samplingTranslateX);
+    result = result && parcel.ReadFloat(composerInfo_.composerScreenInfo.samplingTranslateY);
+    result = result && parcel.ReadFloat(composerInfo_.composerScreenInfo.samplingScale);
+    result = result && UnMarshallingRectI(parcel, composerInfo_.composerScreenInfo.activeRect);
+    result = result && UnMarshallingRectI(parcel, composerInfo_.composerScreenInfo.maskRect);
+    result = result && UnMarshallingRectI(parcel, composerInfo_.composerScreenInfo.reviseRect);
+
     return result;
 }
 
-bool RSLayerTransactionData::MarshallingScreenInfo(std::shared_ptr<OHOS::MessageParcel>& parcel)
+bool RSLayerTransactionData::MarshallingComposerScreenInfo(std::shared_ptr<OHOS::MessageParcel>& parcel)
 {
-    bool result = parcel->WriteBool(isScreenInfoChanged_);
-    if (isScreenInfoChanged_) {
-        result = result && parcel->WriteUint64(screenInfo_.id);
-        result = result && parcel->WriteUint32(screenInfo_.width);
-        result = result && parcel->WriteUint32(screenInfo_.height);
-        result = result && parcel->WriteUint32(screenInfo_.phyWidth);
-        result = result && parcel->WriteUint32(screenInfo_.phyHeight);
-        result = result && parcel->WriteInt32(screenInfo_.offsetX);
-        result = result && parcel->WriteInt32(screenInfo_.offsetY);
-        result = result && parcel->WriteBool(screenInfo_.isSamplingOn);
-        result = result && parcel->WriteInt32(screenInfo_.samplingDistance);
-        result = result && parcel->WriteFloat(screenInfo_.samplingTranslateX);
-        result = result && parcel->WriteFloat(screenInfo_.samplingTranslateY);
-        result = result && parcel->WriteFloat(screenInfo_.samplingScale);
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.colorGamut));
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.state));
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.rotation));
-        result = result && parcel->WriteUint32(screenInfo_.whiteList.size());
-        for (auto it = screenInfo_.whiteList.begin(); it != screenInfo_.whiteList.end(); ++it) {
-            result = result && parcel->WriteUint64(*it);
-        }
-        result = result && MarshallingRectI(parcel, screenInfo_.activeRect);
-        result = result && MarshallingRectI(parcel, screenInfo_.maskRect);
-        result = result && MarshallingRectI(parcel, screenInfo_.reviseRect);
-        result = result && parcel->WriteUint32(screenInfo_.skipFrameInterval);
-        result = result && parcel->WriteUint32(screenInfo_.expectedRefreshRate);
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.skipFrameStrategy));
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.pixelFormat));
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.hdrFormat));
-        result = result && parcel->WriteBool(screenInfo_.enableVisibleRect);
-        result = result && parcel->WriteUint32(static_cast<uint32_t>(screenInfo_.powerStatus));
-    }
+    bool result = parcel->WriteUint64(composerInfo_.composerScreenInfo.id);
+    result = result && parcel->WriteUint32(composerInfo_.composerScreenInfo.width);
+    result = result && parcel->WriteUint32(composerInfo_.composerScreenInfo.height);
+    result = result && parcel->WriteUint32(composerInfo_.composerScreenInfo.phyWidth);
+    result = result && parcel->WriteUint32(composerInfo_.composerScreenInfo.phyHeight);
+    result = result && parcel->WriteBool(composerInfo_.composerScreenInfo.isSamplingOn);
+    result = result && parcel->WriteFloat(composerInfo_.composerScreenInfo.samplingTranslateX);
+    result = result && parcel->WriteFloat(composerInfo_.composerScreenInfo.samplingTranslateY);
+    result = result && parcel->WriteFloat(composerInfo_.composerScreenInfo.samplingScale);
+    result = result && MarshallingRectI(parcel, composerInfo_.composerScreenInfo.activeRect);
+    result = result && MarshallingRectI(parcel, composerInfo_.composerScreenInfo.maskRect);
+    result = result && MarshallingRectI(parcel, composerInfo_.composerScreenInfo.reviseRect);
+
     return result;
 }
 
 bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& parcel)
 {
-    bool flag = parcel.ReadUint64(pipelineParam_.frameTimestamp) &&
-        parcel.ReadInt64(pipelineParam_.actualTimestamp) &&
-        parcel.ReadUint64(pipelineParam_.fastComposeTimeStampDiff) &&
-        parcel.ReadUint64(pipelineParam_.vsyncId) &&
-        parcel.ReadBool(pipelineParam_.isForceRefresh) &&
-        parcel.ReadBool(pipelineParam_.hasGameScene) &&
-        parcel.ReadUint32(pipelineParam_.pendingScreenRefreshRate) &&
-        parcel.ReadUint64(pipelineParam_.pendingConstraintRelativeTime) &&
-        parcel.ReadUint32(pipelineParam_.SurfaceFpsOpNum);
+    bool flag = parcel.ReadUint64(composerInfo_.pipelineParam.frameTimestamp) &&
+        parcel.ReadInt64(composerInfo_.pipelineParam.actualTimestamp) &&
+        parcel.ReadUint64(composerInfo_.pipelineParam.fastComposeTimeStampDiff) &&
+        parcel.ReadUint64(composerInfo_.pipelineParam.vsyncId) &&
+        parcel.ReadBool(composerInfo_.pipelineParam.isForceRefresh) &&
+        parcel.ReadBool(composerInfo_.pipelineParam.hasGameScene) &&
+        parcel.ReadUint32(composerInfo_.pipelineParam.pendingScreenRefreshRate) &&
+        parcel.ReadUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
+        parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
 
-    pipelineParam_.SurfaceFpsOpList = std::vector<SurfaceFpsOp>(pipelineParam_.SurfaceFpsOpNum);
-    for (int i = 0; i < pipelineParam_.SurfaceFpsOpNum; i++) {
-        flag = flag && parcel.ReadUint32(pipelineParam_.SurfaceFpsOpList[i].surfaceFpsOpType) &&
-        parcel.ReadUint64(pipelineParam_.SurfaceFpsOpList[i].surfaceNodeId) &&
-        parcel.ReadString(pipelineParam_.SurfaceFpsOpList[i].surfaceName);
+    composerInfo_.pipelineParam.SurfaceFpsOpList = std::vector<SurfaceFpsOp>(
+        composerInfo_.pipelineParam.SurfaceFpsOpNum);
+    for (int i = 0; i < composerInfo_.pipelineParam.SurfaceFpsOpNum; i++) {
+        flag = flag && parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
+        parcel.ReadUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
+        parcel.ReadString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
     }
 
     if (!flag) {
@@ -155,20 +107,20 @@ bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& par
 
 bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::MessageParcel>& parcel)
 {
-    bool flag = parcel->WriteUint64(pipelineParam_.frameTimestamp) &&
-        parcel->WriteInt64(pipelineParam_.actualTimestamp) &&
-        parcel->WriteUint64(pipelineParam_.fastComposeTimeStampDiff)&&
-        parcel->WriteUint64(pipelineParam_.vsyncId) &&
-        parcel->WriteBool(pipelineParam_.isForceRefresh) &&
-        parcel->WriteBool(pipelineParam_.hasGameScene) &&
-        parcel->WriteUint32(pipelineParam_.pendingScreenRefreshRate) &&
-        parcel->WriteUint64(pipelineParam_.pendingConstraintRelativeTime) &&
-        parcel->WriteUint32(pipelineParam_.SurfaceFpsOpNum);
+    bool flag = parcel->WriteUint64(composerInfo_.pipelineParam.frameTimestamp) &&
+        parcel->WriteInt64(composerInfo_.pipelineParam.actualTimestamp) &&
+        parcel->WriteUint64(composerInfo_.pipelineParam.fastComposeTimeStampDiff)&&
+        parcel->WriteUint64(composerInfo_.pipelineParam.vsyncId) &&
+        parcel->WriteBool(composerInfo_.pipelineParam.isForceRefresh) &&
+        parcel->WriteBool(composerInfo_.pipelineParam.hasGameScene) &&
+        parcel->WriteUint32(composerInfo_.pipelineParam.pendingScreenRefreshRate) &&
+        parcel->WriteUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
+        parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
 
-    for (int i = 0; i < pipelineParam_.GetSurfaceFpsOpNum(); i++) {
-        flag = flag && parcel->WriteUint32(pipelineParam_.SurfaceFpsOpList[i].surfaceFpsOpType) &&
-        parcel->WriteUint64(pipelineParam_.SurfaceFpsOpList[i].surfaceNodeId) &&
-        parcel->WriteString(pipelineParam_.SurfaceFpsOpList[i].surfaceName);
+    for (int i = 0; i < composerInfo_.pipelineParam.GetSurfaceFpsOpNum(); i++) {
+        flag = flag && parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
+        parcel->WriteUint64(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceNodeId) &&
+        parcel->WriteString(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceName);
     }
 
     if (!flag) {
@@ -184,7 +136,6 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
         return false;
     }
     parcel->SetMaxCapacity(PARCEL_MAX_CPACITY);
-    // size_t recordPosition = parcel->GetWritePosition();
     std::unique_lock<std::mutex> lock(rsLayerParcelMutex_);
     bool success = parcel->WriteInt32(static_cast<int32_t>(payload_.size()));
     while (marshallingIndex_ < payload_.size()) {
@@ -209,7 +160,7 @@ bool RSLayerTransactionData::Marshalling(std::shared_ptr<OHOS::MessageParcel>& p
     success = success && parcel->WriteUint64(timestamp_);
     success = success && parcel->WriteInt32(pid_);
     success = success && parcel->WriteUint64(index_);
-    success = success && MarshallingScreenInfo(parcel);
+    success = success && MarshallingComposerScreenInfo(parcel);
     success = success && MarshallingPipelineParam(parcel);
     if (!success) {
         RS_LOGE("RSLayerTransactionData::Marshalling failed");
@@ -238,12 +189,9 @@ RSLayerTransactionData* RSLayerTransactionData::Unmarshalling(OHOS::MessageParce
 bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& parcel)
 {
     Clear();
-    // 0 : normal parcel
-    // 1 : ashmem parcel
-    int32_t isNormalParcel = 0;
     int32_t payloadSize = 0;
-    if (!parcel.ReadInt32(isNormalParcel) || !parcel.ReadInt32(payloadSize)) {
-        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel read isNormalParcel or payloadSize failed");
+    if (!parcel.ReadInt32(payloadSize)) {
+        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel read payloadSize failed");
         return false;
     }
     RSLayerId layerId = 0;
@@ -285,7 +233,7 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
         }
     }
     bool flag = parcel.ReadUint64(timestamp_) && parcel.ReadInt32(pid_) &&
-        parcel.ReadUint64(index_) && UnMarshallingScreenInfo(parcel) && UnMarshallingPipelineParam(parcel);
+        parcel.ReadUint64(index_) && UnMarshallingComposerScreenInfo(parcel) && UnMarshallingPipelineParam(parcel);
     if (!flag) {
         RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel failed");
     }

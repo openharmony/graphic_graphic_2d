@@ -39,6 +39,7 @@
 #include "feature/uifirst/rs_uifirst_manager.h"
 #include "feature/hdr/hetero_hdr/rs_hetero_hdr_manager.h"
 #include "feature/hdr/rs_hdr_util.h"
+#include "feature/special_layer/rs_special_layer_utils.h"
 #include "memory/rs_tag_tracker.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_screen_render_params.h"
@@ -161,6 +162,8 @@ std::string VisibleDataToString(const VisibleData& val)
 
 } // namespace
 
+std::unordered_set<NodeId> RSUniRenderVisitor::allBlackList_;
+std::unordered_set<NodeId> RSUniRenderVisitor::allWhiteList_;
 bool RSUniRenderVisitor::isLastFrameRotating_ = false;
 
 RSUniRenderVisitor::RSUniRenderVisitor()
@@ -190,7 +193,6 @@ RSUniRenderVisitor::RSUniRenderVisitor()
     isUIFirstDebugEnable_ = RSSystemProperties::GetUIFirstDebugEnabled();
     isCrossNodeOffscreenOn_ = RSSystemProperties::GetCrossNodeOffScreenStatus();
     isDumpRsTreeDetailEnabled_ = RSSystemProperties::GetDumpRsTreeDetailEnabled();
-    // screenManager_ = CreateOrGetScreenManager();
 }
 
 RSUniRenderVisitor::~RSUniRenderVisitor() {}
@@ -629,7 +631,8 @@ void RSUniRenderVisitor::ResetDisplayDirtyRegion()
         IsFirstFrameOfDrawingCacheDfxSwitch() ||
         IsAccessibilityConfigChanged() ||
         curScreenNode_->HasMirroredScreenChanged() ||
-        curScreenNode_->IsVirtualSurfaceChanged();
+        curScreenNode_->IsVirtualSurfaceChanged() ||
+        curScreenNode_->IsScreenResolutionChanged();
 
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
     // if overlay display status changed, ......
@@ -851,7 +854,6 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     rsScreenNodeChildNum_ = 0;
     RSHdrUtil::LuminanceChangeSetDirty(node);
     QuickPrepareChildren(node);
-    UpdateScreenValidity(node);
     TryNotifyUIBufferAvailable();
 
     PostPrepare(node);
@@ -903,24 +905,12 @@ bool RSUniRenderVisitor::InitLogicalDisplayInfo(RSLogicalDisplayRenderNode& node
     if (mirrorSourceScreenNode) {
         curScreenNode_->SetIsMirrorScreen(true);
         curScreenNode_->SetMirrorSource(mirrorSourceScreenNode);
-        isScreenHasMirrorDisplay_ = true;
     } else {
         curScreenNode_->SetIsMirrorScreen(false);
         curScreenNode_->ResetMirrorSource();
     }
     curScreenNode_->GetLogicalDisplayNodeDrawables().push_back(curLogicalDisplayNode_->GetRenderDrawable());
     return true;
-}
-
-void RSUniRenderVisitor::UpdateScreenValidity(RSScreenRenderNode& node)
-{
-    if (isScreenHasMirrorDisplay_ && node.GetChildrenCount() > 1) {
-        // for mirror screen, only one logical display is allowed
-        node.SetIsScreenValid(false);
-    } else {
-        node.SetIsScreenValid(true);
-    }
-    isScreenHasMirrorDisplay_ = false;  // reset visitor's screen node flag
 }
 
 void RSUniRenderVisitor::QuickPrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
@@ -2108,15 +2098,16 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
         curScreenNode_->GetScreenInfo().width, curScreenNode_->GetScreenInfo().height);
     curScreenDirtyManager_->SetActiveSurfaceRect(curScreenNode_->GetScreenInfo().activeRect);
     // screenManager_->SetScreenHasProtectedLayer(node.GetScreenId(), false);
-    // auto allBlackList = screenManager_->GetAllBlackList();
-    // auto allWhiteList = screenManager_->GetAllWhiteList();
-    // if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
-    //     allBlackList_ = std::move(allBlackList);
-    //     allWhiteList_ = std::move(allWhiteList);
-    //     needRecalculateOcclusion_ = true;
-    // } else {
-    //     needRecalculateOcclusion_ = false;
-    // }
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    auto allBlackList = RSSpecialLayerUtils::GetAllBlackList(nodeMap);
+    auto allWhiteList = RSSpecialLayerUtils::GetAllWhiteList(nodeMap);
+    if (allBlackList_ != allBlackList || allWhiteList_ != allWhiteList) {
+        allBlackList_ = std::move(allBlackList);
+        allWhiteList_ = std::move(allWhiteList);
+        needRecalculateOcclusion_ = true;
+    } else {
+        needRecalculateOcclusion_ = false;
+    }
     // screenWhiteList_ = screenManager_->GetScreenWhiteList(); // ??? todo
     screenState_ = screenInfo.state;
     node.GetLogicalDisplayNodeDrawables().clear();
@@ -3219,11 +3210,11 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool subTreeS
         bool isInBlackList = false;
         if (node.GetType() == RSRenderNodeType::SURFACE_NODE) {
             auto& surfaceNode = static_cast<RSSurfaceRenderNode&>(node);
-            // if ((surfaceNode.IsLeashWindow() &&
-            //     allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) ||
-            //     allBlackList_.find(surfaceNode.GetId()) != allBlackList_.end()) {
-            //     isInBlackList = true;
-            // }
+            if ((surfaceNode.IsLeashWindow() &&
+                allBlackList_.find(surfaceNode.GetLeashPersistentId()) != allBlackList_.end()) ||
+                allBlackList_.find(surfaceNode.GetId()) != allBlackList_.end()) {
+                isInBlackList = true;
+            }
         }
         node.UpdateDrawingCacheInfoAfterChildren(isInBlackList);
     }
@@ -3720,12 +3711,11 @@ void RSUniRenderVisitor::CheckMergeDebugRectforRefreshRate(std::vector<RSBaseRen
 void RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay() const
 {
     if (!curScreenNode_) {
-        RS_LOGE(
-            "RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay screenmanager or displaynode is nullptr");
+        RS_LOGE("CheckMergeScreenDirtyByRoundCornerDisplay screenmanager or displaynode is nullptr");
         return;
     }
     if (!RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
-        RS_LOGD("RSUniRenderVisitor::CheckMergeScreenDirtyByRoundCornerDisplay rcd disabled!");
+        RS_LOGD("CheckMergeScreenDirtyByRoundCornerDisplay rcd disabled!");
         return;
     }
     auto screenType = curScreenNode_->GetScreenProperty().GetScreenType();

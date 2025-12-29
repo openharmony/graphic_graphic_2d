@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_STUB_H
-#define ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_STUB_H
+#ifndef RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_ZIDL_RS_RENDER_SERVICE_STUB_H
+#define RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_ZIDL_RS_RENDER_SERVICE_STUB_H
 
 #include <iremote_stub.h>
 #include <message_option.h>
@@ -33,8 +33,8 @@ public:
     ~RSRenderServiceStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
-    // virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-    //     GetConnection(sptr<RSIConnectionToken>& token) = 0;  // todo
+    virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
+        GetConnection(sptr<RSIConnectionToken>& token) = 0;
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
     RSRenderServiceSecurityUtils securityUtils_;
@@ -42,4 +42,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 
-#endif // ROSEN_RENDER_SERVICE_BASE_TRANSACTION_RS_RENDER_SERVICE_STUB_H
+#endif // RENDER_SERVICE_MAIN_RENDER_SERVER_TRANSACTION_ZIDL_RS_RENDER_SERVICE_STUB_H

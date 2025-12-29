@@ -74,12 +74,10 @@ std::shared_ptr<RSIRenderClient> RSIRenderClient::CreateRenderPiplineClient()
 
 void RSRenderServiceClient::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    // todo
 }
 
 void RSRenderServiceClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
-    // todo
 }
 
 bool RSRenderServiceClient::GetUniRenderEnabled()
@@ -674,17 +672,6 @@ int32_t RSRenderServiceClient::SetRogScreenResolution(ScreenId id, uint32_t widt
     return clientToService->SetRogScreenResolution(id, width, height);
 }
 
-int32_t RSRenderServiceClient::GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("%{public}s: render service is null", __func__);
-        return RENDER_SERVICE_NULL;
-    }
-
-    return clientToService->GetRogScreenResolution(id, width, height);
-}
-
 int32_t RSRenderServiceClient::SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height)
 {
     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
@@ -736,17 +723,6 @@ void RSRenderServiceClient::RepaintEverything()
     }
 
     clientToService->RepaintEverything();
-}
-
-void RSRenderServiceClient::ForceRefreshOneFrameWithNextVSync()
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGE("ForceRefreshOneFrameWithNextVSync clientToService is nullptr, return");
-        return;
-    }
-
-    clientToService->ForceRefreshOneFrameWithNextVSync();
 }
 
 void RSRenderServiceClient::DisablePowerOffRenderControl(ScreenId id)
@@ -931,16 +907,6 @@ bool RSRenderServiceClient::SetVirtualMirrorScreenScaleMode(ScreenId id, ScreenS
     }
     return clientToService->SetVirtualMirrorScreenScaleMode(id, scaleMode);
 }
-
-// bool RSRenderServiceClient::SetGlobalDarkColorMode(bool isDark)
-// {
-//     auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-//     if (clientToService == nullptr) {
-//         ROSEN_LOGE("RSRenderServiceClient::SetGlobalDarkColorMode: clientToService is nullptr");
-//         return false;
-//     }
-//     return clientToService->SetGlobalDarkColorMode(isDark) == ERR_OK;
-// }
 
 int32_t RSRenderServiceClient::GetScreenGamutMap(ScreenId id, ScreenGamutMap& mode)
 {
@@ -1432,14 +1398,6 @@ int32_t RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback(
 
     ROSEN_LOGD("RSRenderServiceClient::RegisterFrameRateLinkerExpectedFpsUpdateCallback called");
     return clientToService->RegisterFrameRateLinkerExpectedFpsUpdateCallback(dstPid, cb);
-}
-
-void RSRenderServiceClient::SetAppWindowNum(uint32_t num)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService != nullptr) {
-        clientToService->SetAppWindowNum(num);
-    }
 }
 
 void RSRenderServiceClient::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)

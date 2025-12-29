@@ -48,7 +48,7 @@ struct VirtualScreenConfigs {
 
 class RSScreen {
 public:
-    explicit RSScreen(std::shared_ptr<HdiOutput> output);
+    explicit RSScreen(ScreenId id);
     explicit RSScreen(const VirtualScreenConfigs& configs);
     ~RSScreen() = default;
 
@@ -64,8 +64,6 @@ public:
     ScreenConnectionType GetConnectionType() const;
 
     int32_t SetResolution(uint32_t width, uint32_t height);
-    void SetRogResolution(uint32_t width, uint32_t height);
-    int32_t GetRogResolution(uint32_t& width, uint32_t& height);
     // render resolution
     uint32_t Width() const;
     uint32_t Height() const;
@@ -84,9 +82,6 @@ public:
     uint32_t GetScreenExpectedRefreshRate() const;
     SkipFrameStrategy GetScreenSkipFrameStrategy() const;
     void SetScreenVsyncEnabled(bool enabled) const;
-
-    // physical screen
-    std::shared_ptr<HdiOutput> GetOutput() const;
 
     uint32_t SetActiveMode(uint32_t modeId);
     std::optional<GraphicDisplayModeInfo> GetActiveMode() const;
@@ -130,8 +125,6 @@ public:
     RectI GetActiveRect() const;
     RectI GetMaskRect() const;
     RectI GetReviseRect() const;
-    void SetHasProtectedLayer(bool hasProtectedLayer);
-    bool GetHasProtectedLayer();
     int32_t SetScreenLinearMatrix(const std::vector<float>& matrix);
 
     // virtual screen
@@ -207,10 +200,10 @@ private:
     void CapabilityTypeDump(GraphicInterfaceType capabilityType, std::string& dumpString);
     void ScreenTypeDump(std::string& dumpString);
 
-    ScreenId associatedScreenId_ = INVALID_SCREEN_ID;
-    std::atomic<bool> isRogResolution_ = false;
+    void UpdateSamplingScale(uint32_t phyWidth, uint32_t phyHeight, uint32_t width, uint32_t height);
 
-    std::shared_ptr<HdiOutput> hdiOutput_ = nullptr; // has value if the screen is physical
+    ScreenId associatedScreenId_ = INVALID_SCREEN_ID;
+
     std::unique_ptr<HdiScreen> hdiScreen_ = nullptr; // has value if the screen is physical
     std::vector<GraphicDisplayModeInfo> supportedModes_;
     GraphicDisplayCapability capability_ = {"test1", GRAPHIC_DISP_INTF_HDMI, 1921, 1081, 0, 0, true, 0};
@@ -238,7 +231,6 @@ private:
 
     std::function<void(ScreenId, uint32_t)> onBackLightChange_;
     std::atomic<int32_t> backlightLevel_ = INVALID_BACKLIGHT_VALUE;
-    std::atomic<bool> hasProtectedLayer_ = false;
 
     std::vector<float> linearMatrix_ = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 

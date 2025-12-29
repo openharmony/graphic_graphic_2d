@@ -33,6 +33,11 @@ private:
 int RSRenderServiceStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
+    if (auto interfaceToken = data.ReadInterfaceToken();
+        interfaceToken != RSIRenderService::GetDescriptor()) {
+        RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
+        return ERR_INVALID_STATE;
+    }
 #ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     auto accessCount = securityUtils_.GetCodeAccessCounter(code);
     if (!securityManager_.IsAccessTimesRestricted(code, accessCount)) {
@@ -47,13 +52,6 @@ int RSRenderServiceStub::OnRemoteRequest(
     int ret = ERR_NONE;
     switch (code) {
         case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::CREATE_CONNECTION): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIRenderService::GetDescriptor()) {
-                RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
-
             auto remoteObj = data.ReadRemoteObject();
             if (remoteObj == nullptr) {
                 RS_LOGE("RSRenderServiceStub::CREATE_CONNECTION Read remoteObj failed!");
@@ -76,38 +74,31 @@ int RSRenderServiceStub::OnRemoteRequest(
             }
             break;
         }
-        // case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION): {
-        //     auto interfaceToken = data.ReadInterfaceToken();
-        //     if (interfaceToken != RSIRenderService::GetDescriptor()) {
-        //         RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read interfaceToken failed!");
-        //         ret = ERR_INVALID_STATE;
-        //         break;
-        //     }
+        case static_cast<uint32_t>(RSIRenderServiceInterfaceCode::REMOVE_CONNECTION): {
+            auto remoteObj = data.ReadRemoteObject();
+            if (remoteObj == nullptr) {
+                RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read remoteObj failed!");
+                ret = ERR_NULL_OBJECT;
+                break;
+            }
 
-        //     auto remoteObj = data.ReadRemoteObject();
-        //     if (remoteObj == nullptr) {
-        //         RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION Read remoteObj failed!");
-        //         ret = ERR_NULL_OBJECT;
-        //         break;
-        //     }
+            if (!remoteObj->IsProxyObject()) {
+                RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
+                ret = ERR_UNKNOWN_OBJECT;
+                break;
+            }
 
-        //     if (!remoteObj->IsProxyObject()) {
-        //         RS_LOGE("RSRenderServiceStub::REMOVE_CONNECTION remoteObj !IsProxyObject() failed!");
-        //         ret = ERR_UNKNOWN_OBJECT;
-        //         break;
-        //     }
-
-        //     auto token = iface_cast<RSIConnectionToken>(remoteObj);
-        //     auto [rsConn, renderConn] = GetConnection(token);
-        //     if (rsConn) {
-        //         auto connection = static_cast<RSClientToServiceConnection*>(rsConn.GetRefPtr());
-        //         connection->CleanAll(true);
-        //         reply.WriteBool(true);
-        //     } else {
-        //         reply.WriteBool(false);
-        //     }
-        //     break;
-        // } // todo
+            auto token = iface_cast<RSIConnectionToken>(remoteObj);
+            auto [rsConn, renderConn] = GetConnection(token);
+            if (rsConn) {
+                auto connection = static_cast<RSClientToServiceConnection*>(rsConn.GetRefPtr());
+                connection->CleanAll(true);
+                reply.WriteBool(true);
+            } else {
+                reply.WriteBool(false);
+            }
+            break;
+        }
         default: {
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
         }

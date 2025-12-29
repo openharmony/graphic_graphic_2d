@@ -34,41 +34,5 @@ void HgmContextTest::SetUpTestCase() {}
 void HgmContextTest::TearDownTestCase() {}
 void HgmContextTest::SetUp() {}
 void HgmContextTest::TearDown() {}
-
-/**
- * @tc.name: TestInitHgmConfig
- * @tc.desc: test HgmContextTest.InitHgmConfig
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, TestInitHgmConfig, TestSize.Level1)
-{
-    HgmContext hgmContext;
-    std::unordered_map<std::string, std::string> sourceTuningConfig;
-    std::unordered_map<std::string, std::string> solidLayerConfig;
-    std::vector<std::string> appBufferList;
-    hgmContext.InitHgmConfig(sourceTuningConfig, solidLayerConfig, appBufferList);
-    EXPECT_EQ(hgmContext.convertFrameRateFunc_(static_cast<RSPropertyUnit>(0xff), 0.f, 1000.f, 0.f), 0);
-}
-
-/**
- * @tc.name: TestInitHgmUpdateCallback
- * @tc.desc: test HgmContext.InitHgmUpdateCallback
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(HgmContextTest, TestInitHgmUpdateCallback, TestSize.Level1)
-{
-    HgmContext hgmContext;
-    hgmContext.InitHgmUpdateCallback();
-    auto generator = CreateVSyncGenerator();
-    sptr<VSyncController> rsVSyncController = new VSyncController(generator, 0);
-    sptr<VSyncDistributor> rsVSyncDistributor = new VSyncDistributor(rsVSyncController, "rs");
-    hgmContext.ProcessHgmFrameRate(0, rsVSyncDistributor, 1);
-    hgmContext.rpHgmConfigDataChange_ = true;
-    hgmContext.ProcessHgmFrameRate(1, rsVSyncDistributor, 2);
-    EXPECT_EQ(hgmContext.rpHgmConfigDataChange_, false);
-    usleep(110000);
-}
 } // namespace OHOS::Rosen
 

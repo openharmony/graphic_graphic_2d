@@ -435,11 +435,6 @@ bool RSUniDirtyComputeUtil::CheckCurrentFrameHasDirtyInVirtual(
         RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get mirroredRenderParams!");
         return false;
     }
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("CheckCurrentFrameHasDirtyInVirtual, failed to get screen manager!");
-        return false;
-    }
 
     auto screenDirtyManager = mainDrawable->GetSyncDirtyManager();
     if (screenDirtyManager == nullptr) {

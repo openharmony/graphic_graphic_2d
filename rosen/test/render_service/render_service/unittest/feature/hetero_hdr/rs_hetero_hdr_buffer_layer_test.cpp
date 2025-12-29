@@ -102,33 +102,33 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, PrepareHDRDstBufferTest, TestSize.Level1)
     surfaceParams->SetCacheSize(boundSize);
 
     auto mockRSHeteroHDRBufferLayer = make_shared<MockRSHeteroHDRBufferLayer>("ut test", surfaceNode->GetId());
-    sptr<SurfaceBuffer> surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(nullptr, 0);
+    sptr<SurfaceBuffer> surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(nullptr);
     EXPECT_EQ(surfaceBuffer, nullptr);
-    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams, 0);
+    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams);
     EXPECT_EQ(surfaceBuffer, nullptr);
 
     RSHeteroHDRManager::Instance().curHandleStatus_ = HdrStatus::HDR_VIDEO;
     layerInfo.transformType = GRAPHIC_ROTATE_90;
     surfaceParams->SetLayerInfo(layerInfo);
-    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams, 0);
+    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams);
     EXPECT_EQ(surfaceBuffer, nullptr);
 
     layerInfo.transformType = GRAPHIC_ROTATE_180;
     surfaceParams->SetLayerInfo(layerInfo);
-    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams, 0);
+    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams);
     EXPECT_EQ(surfaceBuffer, nullptr);
 
     layerInfo.transformType = GRAPHIC_ROTATE_270;
     surfaceParams->SetLayerInfo(layerInfo);
-    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams, 0);
+    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams);
     EXPECT_EQ(surfaceBuffer, nullptr);
 
     RSHeteroHDRManager::Instance().curHandleStatus_ = HdrStatus::AI_HDR_VIDEO_GAINMAP;
-    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams, 0);
+    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams);
     EXPECT_EQ(surfaceBuffer, nullptr);
 
     RSHeteroHDRManager::Instance().curHandleStatus_ = HdrStatus::NO_HDR;
-    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams, 0);
+    surfaceBuffer = mockRSHeteroHDRBufferLayer->PrepareHDRDstBuffer(surfaceParams);
     EXPECT_EQ(surfaceBuffer, nullptr);
 }
 
@@ -276,8 +276,8 @@ HWTEST_F(RSHeteroHDRBufferLayerTest, ReleaseBufferTest, TestSize.Level1)
     sptr<SyncFence> fence = SyncFence::InvalidFence();
     Rect damage = {10, 10, 100, 100};
     int64_t timestamp = 0;
-    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(preBuffer, fence, damage, timestamp);
-    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(buffer1, fence, damage, timestamp);
+    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(preBuffer, fence, damage, timestamp, nullptr);
+    mockRSHeteroHDRBufferLayer->surfaceHandler_->SetBuffer(buffer1, fence, damage, timestamp, nullptr);
     EXPECT_NE(mockRSHeteroHDRBufferLayer->surfaceHandler_->GetPreBuffer(), nullptr);
     mockRSHeteroHDRBufferLayer->ReleaseBuffer();
 

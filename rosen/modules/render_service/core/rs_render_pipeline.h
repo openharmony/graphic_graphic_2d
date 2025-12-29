@@ -93,7 +93,9 @@ public:
     }
 
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
-        const std::shared_ptr<RSRenderComposerClient>& composerClient);
+        const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
+        const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void OnScreenDisconnected(ScreenId screenId);
     void OnScreenPropertyChanged(const sptr<RSScreenProperty>& rsScreenProperty);
     void OnScreenRefresh(ScreenId screenId);
@@ -107,15 +109,12 @@ private:
     void InitCCMConfig();
     // RS Filter CCM init
     void FilterCCMInit();
-    void RegisterRcdMsg();
     void InitMainThread(const std::shared_ptr<AppExecFwk::EventHandler>& handler,
         const std::shared_ptr<VSyncReceiver>& receiver,
         const sptr<RSIRenderToServiceConnection>& renderToServiceConnection,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     void InitUniRenderThread();
     void InitDumper();
-
-    bool isRcdServiceRegister_ = false;
 
     RSMainThread* mainThread_ = nullptr;
     RSUniRenderThread* uniRenderThread_ = nullptr;

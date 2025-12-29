@@ -409,41 +409,42 @@ uint64_t RSProfiler::WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel&
     return g_recordParcelNumber;
 }
 
-uint64_t RSProfiler::OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code,
+uint64_t RSProfiler::OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code,
     MessageParcel& parcel, MessageParcel& /*reply*/, MessageOption& option)
 {
-    g_counterOnRemoteRequest++;
-    if (!IsEnabled()) {
-        return 0;
-    }
+    // ToDo Car
+    // g_counterOnRemoteRequest++;
+    // if (!IsEnabled()) {
+    //     return 0;
+    // }
 
-    if (IsRecording()) {
-        constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
-        if (code == static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::COMMIT_TRANSACTION) &&
-            parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
-            const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
-            if (data && *data) {
-                // ashmem parcel - don't save
-                return 0;
-            }
-        }
-        const pid_t pid = GetConnectionPid(connection);
-        const auto& pids = g_recordFile.GetHeaderPids();
-        if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
-            return WriteRemoteRequest(pid, code, parcel, option);
-        }
-    } else {
-        g_recordParcelNumber = 0;
-    }
+    // if (IsRecording()) {
+    //     constexpr size_t BYTE_SIZE_FOR_ASHMEM = 4;
+    //     if (code == static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::COMMIT_TRANSACTION) &&
+    //         parcel.GetDataSize() >= BYTE_SIZE_FOR_ASHMEM) {
+    //         const uint32_t *data = reinterpret_cast<const uint32_t*>(parcel.GetData());
+    //         if (data && *data) {
+    //             // ashmem parcel - don't save
+    //             return 0;
+    //         }
+    //     }
+    //     const pid_t pid = GetConnectionPid(connection);
+    //     const auto& pids = g_recordFile.GetHeaderPids();
+    //     if (std::find(std::begin(pids), std::end(pids), pid) != std::end(pids)) {
+    //         return WriteRemoteRequest(pid, code, parcel, option);
+    //     }
+    // } else {
+    //     g_recordParcelNumber = 0;
+    // }
 
-    if (IsLoadSaveFirstScreenInProgress()) {
-        // saving screen right now
-    }
-    if (IsPlaying()) {
-        SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
-        SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
-        SetMode(Mode::READ);
-    }
+    // if (IsLoadSaveFirstScreenInProgress()) {
+    //     // saving screen right now
+    // }
+    // if (IsPlaying()) {
+    //     SetTransactionTimeCorrection(g_playbackStartTime, g_playbackFile.GetWriteTime());
+    //     SetSubstitutingPid(g_playbackFile.GetHeaderPids(), g_playbackPid, g_playbackParentNodeId);
+    //     SetMode(Mode::READ);
+    // }
     return 0;
 }
 

@@ -20,24 +20,16 @@
 
 namespace OHOS {
 namespace Rosen {
-RSRenderProcessManagerAgent::RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager) :
-    renderProcessManager_(renderProcessManager) {}
+RSRenderProcessManagerAgent::RSRenderProcessManagerAgent(sptr<RSRenderProcessManager> renderProcessManager)
+    : renderProcessManager_(renderProcessManager) {}
 
 sptr<RSIServiceToRenderConnection> RSRenderProcessManagerAgent::GetServiceToRenderConn(ScreenId screenId) const
 {
-    if (renderProcessManager_ == nullptr) {
-        RS_LOGE("dmulti_process RSRenderProcessManagerAgent renderProcessManager_ is nullptr");
-        return nullptr;
-    }
     return renderProcessManager_->GetServiceToRenderConn(screenId);
 }
 
-std::vector<sptr<RSIServiceToRenderConnection>> RSRenderProcessManagerAgent::GetServiceToRenderConns()
+std::vector<sptr<RSIServiceToRenderConnection>> RSRenderProcessManagerAgent::GetServiceToRenderConns() const
 {
-    if (renderProcessManager_ == nullptr) {
-        RS_LOGE("dmulti_process RSRenderProcessManagerAgent renderProcessManager_ is nullptr");
-        return {};
-    }
     return renderProcessManager_->GetServiceToRenderConns();
 }
 } // namespace Rosen

@@ -239,7 +239,7 @@ HWTEST_F(RSNodeTest, destruction001, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     ASSERT_TRUE(rootNode != nullptr);
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     rootNode->rsUIContext_ = uiDirector1->GetRSUIContext();
     rootNode->skipDestroyCommandInDestructor_ = true;
 }
@@ -254,7 +254,7 @@ HWTEST_F(RSNodeTest, destruction002, TestSize.Level1)
 {
     auto rootNode = RSCanvasNode::Create();
     ASSERT_TRUE(rootNode != nullptr);
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     rootNode->rsUIContext_ = uiDirector1->GetRSUIContext();
     rootNode->skipDestroyCommandInDestructor_ = false;
 }
@@ -3207,7 +3207,7 @@ HWTEST_F(RSNodeTest, GetAnimationsCount, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId animationId = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.clear();
@@ -4581,7 +4581,7 @@ HWTEST_F(RSNodeTest, OpenImplicitAnimationTest001, TestSize.Level1)
     std::function<void()> finishCallback = nullptr;
     RSAnimationTimingProtocol timingProtocal;
     RSAnimationTimingCurve timingCurve;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     RSNode::OpenImplicitAnimation(uiContext, timingProtocal, timingCurve, finishCallback);
     EXPECT_TRUE(finishCallback == nullptr);
@@ -4597,7 +4597,7 @@ HWTEST_F(RSNodeTest, OpenImplicitAnimationTest001, TestSize.Level1)
  */
 HWTEST_F(RSNodeTest, CloseImplicitAnimationTest, TestSize.Level1)
 {
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     RSNode::CloseImplicitAnimation(uiContext);
     std::vector<std::shared_ptr<RSAnimation>> vec;
@@ -4616,7 +4616,7 @@ HWTEST_F(RSNodeTest, AnimateTest, TestSize.Level1)
     PropertyCallback propertyCallback = nullptr;
     std::function<void()> finishCallback = nullptr;
     std::function<void()> repeatCallback = nullptr;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animate = RSNode::Animate(uiContext, timingProtocol, timingCurve, propertyCallback, finishCallback);
     std::vector<std::shared_ptr<RSAnimation>> vec;
@@ -4644,7 +4644,7 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentOptionsTest, TestSize.Level1)
     PropertyCallback propertyCallback = nullptr;
     std::function<void()> finishCallback = nullptr;
     bool timingSensitive = true;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animateWithCurrentOptions =
         RSNode::AnimateWithCurrentOptions(uiContext, propertyCallback, finishCallback, timingSensitive);
@@ -4669,7 +4669,7 @@ HWTEST_F(RSNodeTest, AnimateWithCurrentCallbackTest, TestSize.Level1)
     RSAnimationTimingProtocol timingProtocol;
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = nullptr;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto Callback = RSNode::AnimateWithCurrentCallback(uiContext, timingProtocol, timingCurve, propertyCallback);
     std::vector<std::shared_ptr<RSAnimation>> vec;
@@ -4938,7 +4938,7 @@ HWTEST_F(RSNodeTest, AddKeyFrame, TestSize.Level1)
     ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->AddKeyFrame(uiContext, 1.f, timingCurve, propertyCallback);
     rsNode->AddKeyFrame(uiContext, 1.f, propertyCallback);
@@ -4972,7 +4972,7 @@ HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
     ASSERT_NE(rsNode, nullptr);
     RSAnimationTimingCurve timingCurve;
     PropertyCallback propertyCallback = []() {};
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->AddDurationKeyFrame(uiContext, 1, timingCurve, propertyCallback);
 }
@@ -4986,7 +4986,7 @@ HWTEST_F(RSNodeTest, AddDurationKeyFrame, TestSize.Level1)
 HWTEST_F(RSNodeTest, IsImplicitAnimationOpen, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     bool res = rsNode->IsImplicitAnimationOpen(uiContext);
     EXPECT_EQ(res, false);
@@ -5009,7 +5009,7 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
     callback = []() {};
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     rsUIContext = uiDirector1->GetRSUIContext();
     rsNode->ExecuteWithoutAnimation(callback, rsUIContext, implicitAnimator);
     EXPECT_NE(rsUIContext, nullptr);
@@ -5062,7 +5062,7 @@ HWTEST_F(RSNodeTest, ExecuteWithoutAnimation, TestSize.Level1)
 HWTEST_F(RSNodeTest, AddAnimationInner, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     std::shared_ptr<RSAnimation> animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimationInner(animation);
@@ -5078,7 +5078,7 @@ HWTEST_F(RSNodeTest, AddAnimationInner, TestSize.Level1)
 HWTEST_F(RSNodeTest, RemoveAnimationInner, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimationInner(animation);
@@ -5108,7 +5108,7 @@ HWTEST_F(RSNodeTest, FinishAnimationByProperty, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0; // for test
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimationInner(animation);
@@ -5168,7 +5168,7 @@ HWTEST_F(RSNodeTest, AddAnimation, TestSize.Level1)
     rsNode->AddAnimation(animation);
     EXPECT_EQ(animation, nullptr);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->AddAnimation(animation);
@@ -5202,7 +5202,7 @@ HWTEST_F(RSNodeTest, RemoveAllAnimations, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
     AnimationId id = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.insert({ id, animation });
@@ -5223,7 +5223,7 @@ HWTEST_F(RSNodeTest, RemoveAnimation, TestSize.Level1)
     rsNode->RemoveAnimation(animation);
     EXPECT_EQ(animation, nullptr);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->RemoveAnimation(animation);
@@ -5291,7 +5291,7 @@ HWTEST_F(RSNodeTest, GetAnimationByPropertyId, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     PropertyId id = 0;
     AnimationId animationId = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.insert({ animationId, animation });
@@ -6222,7 +6222,7 @@ HWTEST_F(RSNodeTest, NotifyTransition, TestSize.Level1)
     bool isTransitionIn = true;
     std::shared_ptr<const RSTransitionEffect> effect = std::make_shared<const RSTransitionEffect>();
     rsNode->rsUIContext_.reset();
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->NotifyTransition(uiContext, effect, isTransitionIn);
     EXPECT_NE(isTransitionIn, false);
@@ -6476,7 +6476,7 @@ HWTEST_F(RSNodeTest, AnimationCallback, TestSize.Level1)
     bool res = rsNode->AnimationCallback(animationId, event);
     EXPECT_EQ(res, false);
 
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto animation = std::make_shared<RSAnimation>(uiContext);
     rsNode->animations_.insert({ animationId, animation });
@@ -6730,7 +6730,7 @@ HWTEST_F(RSNodeTest, RegisterTransitionPair, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->RegisterTransitionPair(uiContext, inNodeId, outNodeId, true);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
@@ -6747,7 +6747,7 @@ HWTEST_F(RSNodeTest, UnregisterTransitionPair, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->UnregisterTransitionPair(uiContext, inNodeId, outNodeId);
     EXPECT_NE(RSTransactionProxy::instance_, nullptr);
@@ -6792,7 +6792,7 @@ HWTEST_F(RSNodeTest, UnregisterTransitionPairWithEmptyRSUIContext, TestSize.Leve
 HWTEST_F(RSNodeTest, RegisterTransitionPairWithRSUIContext, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto rsUIContext = uiDirector1->GetRSUIContext();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
@@ -6811,7 +6811,7 @@ HWTEST_F(RSNodeTest, RegisterTransitionPairWithRSUIContext, TestSize.Level1)
 HWTEST_F(RSNodeTest, UnregisterTransitionPairWithRSUIContext, TestSize.Level1)
 {
     auto rsNode = RSCanvasNode::Create();
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto rsUIContext = uiDirector1->GetRSUIContext();
     NodeId inNodeId = 1;
     NodeId outNodeId = 1;
@@ -7175,8 +7175,8 @@ HWTEST_F(RSNodeTest, AddChildTest002, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
-        auto uiDirector2 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
+        auto uiDirector2 = RSUIDirector::Create();
         auto rsNode = RSCanvasNode::Create(false, false, uiDirector1->GetRSUIContext());
         auto childNode = RSCanvasNode::Create(false, false, uiDirector2->GetRSUIContext());
         rsNode->AddChild(childNode, -1);
@@ -7209,11 +7209,11 @@ HWTEST_F(RSNodeTest, AddChildTest003, TestSize.Level1)
 {
     auto enable = RSSystemProperties::GetRSClientMultiInstanceEnabled();
     if (enable) {
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
         auto rsUIContext = uiDirector1->GetRSUIContext();
         ASSERT_NE(rsUIContext, nullptr);
         auto rsNode = RSCanvasNode::Create(false, false, rsUIContext);
-        auto uiDirector2 = RSUIDirector::Create(nullptr);
+        auto uiDirector2 = RSUIDirector::Create();
         auto rsUIContext2 = uiDirector2->GetRSUIContext();
         ASSERT_NE(rsUIContext2, nullptr);
         auto childNode = RSCanvasNode::Create(false, false, rsUIContext2);
@@ -7594,7 +7594,7 @@ HWTEST_F(RSNodeTest, SetRSUIContext, TestSize.Level1)
         ASSERT_NE(rsNode, nullptr);
         rsNode->SetRSUIContext(nullptr);
         EXPECT_EQ(rsNode->GetRSUIContext(), nullptr);
-        auto uiDirector1 = RSUIDirector::Create(nullptr);
+        auto uiDirector1 = RSUIDirector::Create();
         auto rsUIContext = uiDirector1->GetRSUIContext();
         rsNode->SetRSUIContext(rsUIContext);
         rsNode->SetRSUIContext(rsUIContext);
@@ -7739,7 +7739,7 @@ HWTEST_F(RSNodeTest, Dump, TestSize.Level1)
     };
     RSSurfaceNode::SharedPtr rsNode = RSSurfaceNode::Create(config);
     string out1;
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     rsNode->Dump(out1);
     ASSERT_TRUE(!out1.empty());
@@ -7786,7 +7786,7 @@ HWTEST_F(RSNodeTest, SetIsOnTheTree001, TestSize.Level2)
  */
 HWTEST_F(RSNodeTest, SetIsOnTheTree002, TestSize.Level2)
 {
-    auto uiDirector1 = RSUIDirector::Create(nullptr);
+    auto uiDirector1 = RSUIDirector::Create();
     auto uiContext = uiDirector1->GetRSUIContext();
     auto rsNode = RSCanvasNode::Create(false, false, uiContext);
     rsNode->SetIsOnTheTree(false);
@@ -7902,7 +7902,7 @@ HWTEST_F(RSNodeTest, SetUIContextToken, TestSize.Level1)
         ASSERT_NE(rsNode, nullptr);
         rsNode->SetUIContextToken();
         rsNode = nullptr;
-        auto uiDirector = RSUIDirector::Create(nullptr);
+        auto uiDirector = RSUIDirector::Create();
         auto uiContext = uiDirector->GetRSUIContext();
         rsNode = RSCanvasNode::Create(false, false, uiContext);
         rsNode->SetUIContextToken();

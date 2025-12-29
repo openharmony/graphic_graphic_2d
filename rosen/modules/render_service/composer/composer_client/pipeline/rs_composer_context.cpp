@@ -81,7 +81,9 @@ void RSComposerContext::DumpLayersInfo(std::string &dumpString)
     std::unique_lock<std::mutex> lock(rsLayerMutex_);
     for (auto iter = rsLayers_.begin(); iter != rsLayers_.end(); iter++) {
         auto rsLayer = iter->second.lock();
-        if (rsLayer == nullptr) {
+        if (rsLayer == nullptr ||
+            std::find(lastCommitLayersId_.begin(), lastCommitLayersId_.end(),
+                rsLayer->GetNodeId()) == lastCommitLayersId_.end()) {
             continue;
         }
         const std::string& name = rsLayer->GetSurfaceName();
@@ -134,6 +136,15 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
     std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
     std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)
 {
+    std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers;
+    {
+        std::unique_lock<std::mutex> lock(rsLayerMutex_);
+        rsLayers = rsLayers_;
+        lastCommitLayersId_.clear();
+        for (const auto& [id, _1, _2] : releaseBufferFenceVec) {
+            lastCommitLayersId_.push_back(id);
+        }
+    }
     auto layerPresentTimestamp = [](const std::shared_ptr<RSLayer>& layer, const sptr<IConsumerSurface>& cSurface) -> void {
         if (cSurface == nullptr) {
             RS_LOGE("layerPresentTimestamp cSurface is nullptr");
@@ -153,11 +164,11 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
     };
     RS_LOGI("RSComposerContext::ReleaseLayerBuffers screenId: %{public}" PRIu64, screenId);
     for (const auto& [id, isGraphicPresentTimestamp, graphicPresentTimestamp] : timestampVec) {
-        if (rsLayers_.count(id) == 0) {
+        if (rsLayers.count(id) == 0) {
             RS_LOGE("RSComposerContext::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
             continue;
         }
-        auto layer = rsLayers_[id].lock();
+        auto layer = rsLayers[id].lock();
         if (layer == nullptr) {
             RS_LOGE("RSComposerContext::ReleaseLayerBuffers layer is nullptr");
             continue;
@@ -167,76 +178,10 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
         layerPresentTimestamp(layer, layer->GetSurface());
     }
 
-    std::shared_ptr<RSSurfaceHandler::BufferOwnerCount> uniBufferCount = nullptr;
-    sptr<SyncFence> uniFence = nullptr;
-    std::set<uint32_t> decedSet = {};
-    for (const auto& [id, buffer, fence] : releaseBufferFenceVec) {
-        if (rsLayers_.count(id) == 0) {
-            RS_LOGE("RSComposerContext::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
-            continue;
-        }
-        auto layer = rsLayers_[id].lock();
-        if (layer == nullptr) {
-            RS_LOGE("RSComposerContext::ReleaseLayerBuffers layer is nullptr");
-            continue;
-        }
-        if (buffer == nullptr) {
-            continue;
-        }
-        auto seqNum = buffer->GetSeqNum();
-        auto bufferOwnerCount = layer->GetSeqNumFromBufferOwnerCounts(seqNum);
-
-        RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager ReleaseLayerBuffers seqNum %u fence %d",
-            uint32_t(seqNum), fence ? fence->Get() : -1);
-
-        if (bufferOwnerCount) {
-            if (layer->GetUniRenderFlag()) {
-                uniBufferCount = bufferOwnerCount;
-                uniFence = fence;
-            }
-
-            if (onBufferReleaseFunc_) {
-                onBufferReleaseFunc_(seqNum, fence);
-            } else {
-                RS_LOGE("RSBufferManager onBufferReleaseFunc_ is nullptr");
-            }
-
-            bufferOwnerCount->OnBufferReleased();
-            decedSet.insert(seqNum);
-         }
-    }
-
-    if (uniBufferCount) {
-        std::lock_guard<std::mutex> lock(uniBufferCount->mapMutex_);
-        for (auto [id, seqNum] : uniBufferCount->uniOnDrawBufferMap_) {
-            if (decedSet.find(seqNum) != decedSet.end()) {
-                continue;
-            }
-            if (rsLayers_.count(id) == 0) {
-                RS_LOGE("RSComposerContext::ReleaseLayerBuffers has no id: %{public}" PRIu64 " layer", id);
-                continue;
-            }
-            auto layer = rsLayers_[id].lock();
-            if (layer == nullptr) {
-                RS_LOGE("RSComposerContext::ReleaseLayerBuffers layer is nullptr");
-                continue;
-            }
-
-            auto bufferOwnerCount = layer->GetSeqNumFromBufferOwnerCounts(seqNum);
-            if (bufferOwnerCount == nullptr) {
-                continue;
-            }
-            if (onBufferReleaseFunc_) {
-                onBufferReleaseFunc_(bufferOwnerCount->seqNum_, uniFence);
-            } else {
-                RS_LOGE("RSBufferManager onBufferReleaseFunc_ is nullptr");
-            }
-            if (!bufferOwnerCount->CheckLastUniBufferOwner(uniBufferCount->seqNum_)) {
-                layer->SetBufferOwnerCount(bufferOwnerCount);
-            }
-            bufferOwnerCount->OnBufferReleased();
-        }
-        uniBufferCount->uniOnDrawBufferMap_.clear();
+    if (onReleaseLayerBuffersCB_) {
+        onReleaseLayerBuffersCB_(rsLayers, releaseBufferFenceVec);
+    } else {
+        RS_LOGE("RSBufferManager onReleaseLayerBuffersCB_ is nullptr");
     }
 }
 

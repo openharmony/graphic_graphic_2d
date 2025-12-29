@@ -14,9 +14,11 @@
  */
 
 #include <sched.h>
-#include <signal.h>
-#include <sys/time.h>
+#include <csignal>
+
 #include <sys/resource.h>
+#include <sys/time.h>
+
 #include <hilog/log.h>
 
 #include "platform/common/rs_log.h"
@@ -39,7 +41,7 @@ int main(int argc, const char *argv[])
         RS_LOGE("RSRenderService set SCHED_FIFO succeed.");
     }
 
-    sptr<RSRenderService> renderService(new RSRenderService());
+    auto renderService = sptr<RSRenderService>::MakeSptr();
     if (!renderService->Init()) {
         RS_LOGE("RSRenderService init failed.");
         return -1;

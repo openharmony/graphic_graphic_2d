@@ -117,12 +117,12 @@ public:
 
 bool DoExecuteSynchronousTask()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     uint64_t timeOutNs = GetData<uint64_t>();
     auto task = std::make_shared<DerivedSyncTask>(timeOutNs);
-    renderServiceClient->ExecuteSynchronousTask(task);
+    renderPipelineClient->ExecuteSynchronousTask(task);
     task = nullptr;
-    renderServiceClient->ExecuteSynchronousTask(task);
+    renderPipelineClient->ExecuteSynchronousTask(task);
     return true;
 }
 
@@ -152,7 +152,7 @@ bool DoGetTotalAppMemSize()
 
 bool DoCreateNode()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     RSDisplayNodeConfig displayNodeConfig = {
         .screenId = GetData<uint64_t>(),
         .isMirrored = GetData<bool>(),
@@ -160,23 +160,23 @@ bool DoCreateNode()
         .isSync = GetData<bool>()
     };
     NodeId nodeId = GetData<NodeId>();
-    renderServiceClient->CreateNode(displayNodeConfig, nodeId);
+    renderPipelineClient->CreateNode(displayNodeConfig, nodeId);
     RSSurfaceRenderNodeConfig surfaceRenderNodeConfig = {
         .id = GetData<NodeId>(),
         .name = "fuzztest"
     };
-    renderServiceClient->CreateNode(surfaceRenderNodeConfig);
+    renderPipelineClient->CreateNode(surfaceRenderNodeConfig);
     return true;
 }
 
 bool DoCreateNodeAndSurface()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     RSSurfaceRenderNodeConfig surfaceRenderNodeConfig = {
         .id = GetData<NodeId>(),
         .name = "fuzztest"
     };
-    renderServiceClient->CreateNodeAndSurface(surfaceRenderNodeConfig);
+    renderPipelineClient->CreateNodeAndSurface(surfaceRenderNodeConfig);
     return true;
 }
 

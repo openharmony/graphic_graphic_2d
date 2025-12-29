@@ -26,7 +26,7 @@ public:
     explicit RSRenderComposerAgent(const std::shared_ptr<RSRenderComposer>& rsRenderComposer);
     ~RSRenderComposerAgent() = default;
 
-    void SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn);
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     bool ComposerProcess(const std::shared_ptr<RSLayerTransactionData>& transactionData);
     void OnScreenConnected(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     void OnScreenDisconnected();
@@ -38,8 +38,8 @@ public:
     void SetScreenBacklight(uint32_t level);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void SurfaceDump(std::string& dumpString);
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
-    void FpsDump(std::string& dumpString, std::string& layerName);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
+    void FpsDump(std::string& dumpString, const std::string& layerName);
     void ClearFpsDump(std::string& dumpString, std::string& layerName);
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);

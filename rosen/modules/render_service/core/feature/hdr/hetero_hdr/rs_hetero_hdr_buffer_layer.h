@@ -37,7 +37,7 @@ public:
         return surfaceHandler_;
     }
     void ConsumeAndUpdateBuffer();
-    sptr<SurfaceBuffer> PrepareHDRDstBuffer(RSSurfaceRenderParams* surfaceParams, ScreenId screenId);
+    sptr<SurfaceBuffer> PrepareHDRDstBuffer(RSSurfaceRenderParams* surfaceParams);
     void CleanCache();
     bool ReleaseBuffer();
 private:

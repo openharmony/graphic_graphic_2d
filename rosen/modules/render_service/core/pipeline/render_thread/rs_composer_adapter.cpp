@@ -40,12 +40,7 @@ namespace Rosen {
 bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int32_t offsetY,
     float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSComposerAdapter::Init: ScreenManager is nullptr");
-        return false;
-    }
-    output_ = screenManager->GetOutput(ToScreenPhysicalId(screenInfo.id));
+    std::shared_ptr<HdiOutput> output_; // 待composer适配
     if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::Init: output_ is nullptr");
         return false;
@@ -73,12 +68,7 @@ bool RSComposerAdapter::Init(const ScreenInfo& screenInfo, int32_t offsetX, int3
 bool RSComposerAdapter::Init(const RSScreenRenderNode& node, const ScreenInfo& screenInfo,
     const ScreenInfo& mirroredScreenInfo, float mirrorAdaptiveCoefficient, const FallbackCallback& cb)
 {
-    auto screenManager = CreateOrGetScreenManager();
-    if (screenManager == nullptr) {
-        RS_LOGE("RSComposerAdapter::Init: ScreenManager is nullptr");
-        return false;
-    }
-    output_ = screenManager->GetOutput(ToScreenPhysicalId(screenInfo.id));
+    std::shared_ptr<HdiOutput> output_; // 待composer适配
     if (output_ == nullptr) {
         RS_LOGE("RSComposerAdapter::Init: output_ is nullptr");
         return false;

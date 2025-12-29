@@ -30,7 +30,6 @@ enum class ScreenState : uint8_t {
     HDI_OUTPUT_ENABLE,
     SOFTWARE_OUTPUT_ENABLE,
     DISABLED,
-    NOT_EXISTED,
     UNKNOWN,
 };
 
@@ -102,7 +101,6 @@ struct ScreenInfo {
     {
         return powerStatus == ScreenPowerStatus::POWER_STATUS_SUSPEND || powerStatus == ScreenPowerStatus::POWER_STATUS_OFF;
     }
-
 
     // dfx
     std::string ToString() const

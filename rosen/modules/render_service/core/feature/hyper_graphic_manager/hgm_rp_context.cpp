@@ -31,11 +31,12 @@ constexpr const char* HGM_CONFIG_PATH = "/sys_prod/etc/graphic/hgm_policy_config
 }
 
 HgmRPContext::HgmRPContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection)
-    : renderToServiceConnection_(renderToServiceConnection)
+    : renderToServiceConnection_(renderToServiceConnection),
+      rpFrameRatePolicy_(std::make_shared<RPFrameRatePolicy>()),
+      hgmRPEnergy_(std::make_shared<HgmRPEnergy>())
 {
-    hgmRPEnergy_ = std::make_shared<HgmRPEnergy>();
     convertFrameRateFunc_ = [this](const RSPropertyUnit unit, float velocity, int32_t area, int32_t length) -> int32_t {
-        return rpFrameRatePolicy_.GetExpectedFrameRate(unit, velocity, area, length);
+        return rpFrameRatePolicy_->GetExpectedFrameRate(unit, velocity, area, length);
     };
 }
 
@@ -44,18 +45,17 @@ int32_t HgmRPContext::InitHgmConfig(std::unordered_map<std::string, std::string>
 {
     auto parser = std::make_unique<RPHgmXMLParser>();
     if (parser->LoadConfiguration(HGM_CONFIG_PATH) != EXEC_SUCCESS) {
-        HGM_LOGW("HgmRPContext failed to load hgm xml configuration file");
+        HGM_LOGW("failed to load hgm xml configuration file");
         return XML_FILE_LOAD_FAIL;
     }
     sourceTuningConfig = parser->GetSourceTuningConfig();
     solidLayerConfig = parser->GetSolidLayerConfig();
     appBufferList = parser->GetAppBufferList();
-
     return EXEC_SUCCESS;
 }
 
-void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
-    const std::shared_ptr<RSContext>& rsContext, std::map<NodeId, int> vRateMap, PipelineParam& pipelineParam)
+void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_ptr<RSContext>& rsContext,
+    const std::unordered_map<NodeId, int>& vRateMap, bool isNeedRefreshVRate, PipelineParam& pipelineParam)
 {
     int changed = 0;
     if (bool enable = RSSystemParameters::GetShowRefreshRateEnabled(&changed); changed != 0) {
@@ -63,7 +63,7 @@ void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
     }
 
     HandleGameNode(rsContext->GetNodeMap());
-    sptr<HgmProcessToServiceInfo> info = sptr<HgmProcessToServiceInfo>::MakeSptr();
+    auto info = sptr<HgmProcessToServiceInfo>::MakeSptr();
     info->isGameNodeOnTree = isGameNodeOnTree_;
     info->rsCurrRange = rsCurrRange_;
     rsCurrRange_.Reset();
@@ -74,11 +74,12 @@ void HgmRPContext::NotifyRpHgmFrameRate(uint64_t vsyncId,
     rsContext->ClearFrameRateLinker();
     info->uiFrameworkDirtyNodeNameMap = rsContext->GetUIFrameworkDirtyNodeNameMap();
     info->energyCommonData = hgmRPEnergy_->GetEnergyCommonData();
-    info->vRateMap = std::move(vRateMap);
+    info->vRateMap = vRateMap;
+    info->isNeedRefreshVRate = isNeedRefreshVRate;
     auto serviceToProcessInfo =
-        renderToServiceConnection_->NotifyRpHgmFrameRate(pipelineParam.frameTimestamp, vsyncId, screenIds_, info);
+        renderToServiceConnection_->NotifyRpHgmFrameRate(pipelineParam.frameTimestamp, vsyncId, info);
     SetServiceToProcessInfo(serviceToProcessInfo,
-        &pipelineParam.pendingScreenRefreshRate, &pipelineParam.pendingConstraintRelativeTime);
+        pipelineParam.pendingScreenRefreshRate, pipelineParam.pendingConstraintRelativeTime);
     hgmRPEnergy_->ClearEnergyCommonData();
 }
 
@@ -102,11 +103,11 @@ void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
     }
     bool isGameSelfNodeOnTree = false;
     bool isOtherSelfNodeOnTree = false;
-    nodeMap.TraverseSurfaceNodes(
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
         [this, &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree, &nodeMap]
-        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
+        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
         if (surfaceNode == nullptr) {
-            return;
+            return false;
         }
         if (surfaceNode->IsOnTheTree() &&
             surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
@@ -116,8 +117,10 @@ void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
                 isGameSelfNodeOnTree = true;
             } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
                 isOtherSelfNodeOnTree = true;
+                return true;
             }
         }
+        return false;
     });
     RS_TRACE_NAME_FMT("HgmRPContext::HandleGameNode, game node on tree: %d, other node no tree: %d",
         isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
@@ -125,18 +128,18 @@ void HgmRPContext::HandleGameNode(const RSRenderNodeMap& nodeMap)
 }
 
 void HgmRPContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo,
-    uint32_t *pendingScreenRefreshRate, uint64_t *pendingConstraintRelativeTime)
+    uint32_t& pendingScreenRefreshRate, uint64_t& pendingConstraintRelativeTime)
 {
     if (serviceToProcessInfo == nullptr) {
-        HGM_LOGW("HgmRPContext serviceToProcessInfo is null");
+        HGM_LOGW("serviceToProcessInfo is null");
         return;
     }
 
-    RS_TRACE_NAME_FMT("HgmRPContext::SetServiceToProcessInfo %d, %s",
+    RS_TRACE_NAME_FMT("%s: %d, %s", __func__,
         serviceToProcessInfo->pendingScreenRefreshRate, serviceToProcessInfo->hgmDataChangeTypes.to_string().c_str());
 
-    *pendingScreenRefreshRate = serviceToProcessInfo->pendingScreenRefreshRate;
-    *pendingConstraintRelativeTime = serviceToProcessInfo->pendingConstraintRelativeTime;
+    pendingScreenRefreshRate = serviceToProcessInfo->pendingScreenRefreshRate;
+    pendingConstraintRelativeTime = serviceToProcessInfo->pendingConstraintRelativeTime;
 
     if (serviceToProcessInfo->hgmDataChangeTypes.test(HgmDataChangeType::ADAPTIVE_VSYNC)) {
         isAdaptive_ = serviceToProcessInfo->isAdaptive;
@@ -147,10 +150,14 @@ void HgmRPContext::SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> service
         ltpoEnabled_ = serviceToProcessInfo->ltpoEnabled;
         isDelayMode_ = serviceToProcessInfo->isDelayMode;
         pipelineOffsetPulseNum_ = serviceToProcessInfo->pipelineOffsetPulseNum;
-        rpFrameRatePolicy_.HgmConfigUpdateCallback(serviceToProcessInfo->rpHgmConfigData);
+        rpFrameRatePolicy_->HgmConfigUpdateCallback(serviceToProcessInfo->rpHgmConfigData);
         hgmRPEnergy_->HgmConfigUpdateCallback(serviceToProcessInfo->rpHgmConfigData);
     }
     hgmRPEnergy_->SetTouchState(serviceToProcessInfo->isPowerIdle);
+}
+
+void HgmRPContext::UpdateSurfaceData(const std::string& surfaceName, pid_t pid) {
+    surfaceData_.emplace_back(std::tuple<std::string, pid_t>({surfaceName, pid}));
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -429,6 +429,11 @@ public:
         return isMirrorScreenDirty_;
     }
 
+    RSPowerOffRenderController& GetPowerOffRenderController()
+    {
+        return powerOffRenderController_;
+    }
+
     void SetImplicitAnimationEnd(bool isImplicitAnimationEnd)
     {
         isImplicitAnimationEnd_ = isImplicitAnimationEnd;
@@ -623,7 +628,7 @@ private:
     std::shared_ptr<Drawing::Image> watermarkImg_ = nullptr;
     std::unordered_map<std::string, std::pair<std::shared_ptr<Drawing::Image>, pid_t>> surfaceWatermarks_;
     std::shared_ptr<RSSLRScaleFunction> slrManager_ = nullptr;
-
+    RSPowerOffRenderController powerOffRenderController_;
     bool isOverDrawEnabled_ = false;
     bool isDrawingCacheDfxEnabled_ = false;
 

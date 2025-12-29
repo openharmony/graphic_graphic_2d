@@ -44,6 +44,7 @@ public:
     {
         return pixelMap_;
     }
+
 private:
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
 };

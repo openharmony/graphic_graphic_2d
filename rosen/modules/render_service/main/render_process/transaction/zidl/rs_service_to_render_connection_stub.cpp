@@ -29,6 +29,7 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t MAX_PID_SIZE_NUMBER = 100000;
+constexpr uint32_t MAX_LIST_SIZE = 50;
 }
 
 static void TypefaceXcollieCallback(void* arg)
@@ -52,11 +53,11 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
     bool isNonSystemAppCalling = false;
     RSInterfaceCodeAccessVerifierBase::GetAccessType(isTokenTypeValid, isNonSystemAppCalling);
     if (!isTokenTypeValid) {
-        RS_LOGE("RSServiceToRenderConnectionStub::OnRemoteRequest invalid token type");
+        RS_LOGE("%{public}s: invalid token type", __func__);
         return ERR_INVALID_STATE;
     }
     if (isNonSystemAppCalling) {
-        RS_LOGE("RSServiceToRenderConnectionStub::OnRemoteRequest isNonSystemAppCalling");
+        RS_LOGE("%{public}s: isNonSystemAppCalling", __func__);
         return ERR_INVALID_STATE;
     }
     switch (code) {
@@ -143,12 +144,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK): {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIServiceToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Read interfaceToken failed!");
-                ret = ERR_INVALID_STATE;
-                break;
-            }
             pid_t pid;
             if (!data.ReadInt32(pid)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BRIGHTNESS_INFO_CHANGE_CALLBACK Read pid failed!");
@@ -278,7 +273,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP): {
             std::string nodeIdStr;
             bool isTop{false};
             if (!data.ReadString(nodeIdStr) ||
@@ -297,15 +292,14 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            RS_TRACE_NAME_FMT("ccc: RSClientToRenderConnectionStub::CLEAN_RESOURCE pid is %d", pid);
             CleanResources(pid);
             break;
         }
         case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE): {
             float cpuMemSize = 0.f;
             float gpuMemSize = 0.f;
-            if (GetTotalAppMemSize(cpuMemSize, gpuMemSize) != ERR_OK || !reply.WriteFloat(cpuMemSize)
-                || !reply.WriteFloat(gpuMemSize)) {
+            if (GetTotalAppMemSize(cpuMemSize, gpuMemSize) != ERR_OK || !reply.WriteFloat(cpuMemSize) ||
+                !reply.WriteFloat(gpuMemSize)) {
                 RS_LOGE("RSServiceToRenderStub::GET_TOTAL_APP_MEM_SIZE Write parcel failed!");
                 ret = ERR_INVALID_REPLY;
             }
@@ -332,7 +326,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS): {
             bool flag{false};
             if (!data.ReadBool(flag)) {
                 RS_LOGE("RSClientToRenderConnectionStub::SET_VMA_CACHE_STATUS read flag failed!");
@@ -400,7 +394,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FORCE_REFRESH) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_FORCE_REFRESH): {
             std::string nodeIdStr;
             bool isForceRefresh{false};
             if (!data.ReadString(nodeIdStr) ||
@@ -433,7 +427,6 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                 ret = ERR_INVALID_DATA;
                 break;
             }
-            const uint32_t MAX_LIST_SIZE = 50;
             if (listSize > MAX_LIST_SIZE) {
                 ret = ERR_INVALID_STATE;
                 break;
@@ -447,7 +440,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
                     errFlag = true;
                     break;
                 }
-                packageList.push_back(package);
+                packageList.emplace_back(package);
             }
             if (errFlag) {
                 ret = ERR_INVALID_DATA;
@@ -457,7 +450,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             break;
         }
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OVERLAY_DISPLAY_MODE): {
             RS_LOGI("RSServiceToRenderConnectionStub::OnRemoteRequest SET_OVERLAY_DISPLAY_MODE");
             int32_t mode{0};
             if (!data.ReadInt32(mode)) {
@@ -864,7 +857,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetGpuCrcDirtyEnabledPidList(pidList);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO): {
             const auto& activeDirtyRegionInfos = GetActiveDirtyRegionInfo();
             if (!reply.WriteInt32(activeDirtyRegionInfos.size())) {
                 RS_LOGE("RSClientToRenderConnectionStub::GET_ACTIVE_DIRTY_REGION_INFO Write activeDirtyRegionInfosSize "
@@ -885,7 +878,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO): {
             const auto& globalDirtyRegionInfo = GetGlobalDirtyRegionInfo();
             if (!reply.WriteInt64(globalDirtyRegionInfo.globalDirtyRegionAreas) ||
                 !reply.WriteInt32(globalDirtyRegionInfo.globalFramesNumber) ||
@@ -897,7 +890,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO): {
             const auto& layerComposeInfo = GetLayerComposeInfo();
             if (!reply.WriteInt32(layerComposeInfo.uniformRenderFrameNumber) ||
                 !reply.WriteInt32(layerComposeInfo.offlineComposeFrameNumber) ||
@@ -938,7 +931,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             }
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_HDR_ON_DURATION) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_HDR_ON_DURATION): {
             int64_t hdrOnDuration = 0;
             auto errCode = GetHdrOnDuration(hdrOnDuration);
             if (errCode != ERR_OK || !reply.WriteInt64(hdrOnDuration)) {
@@ -981,7 +974,7 @@ int RSServiceToRenderConnectionStub::OnRemoteRequest(
             SetCurtainScreenUsingStatus(isCurtainScreenOn);
             break;
         }
-        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL) : {
+        case static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL): {
             ScreenId id{INVALID_SCREEN_ID};
             if (!data.ReadUint64(id)) {
                 RS_LOGE("RSServiceToRenderStub::SET_BACKLIGHT_LEVEL Read ScreenId failed!");

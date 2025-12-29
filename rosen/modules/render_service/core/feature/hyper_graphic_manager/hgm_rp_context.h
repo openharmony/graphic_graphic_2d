@@ -18,9 +18,10 @@
 
 #include <set>
 #include <unordered_map>
+
 #include "animation/rs_frame_rate_range.h"
-#include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 #include "feature/hyper_graphic_manager/hgm_info_parcel.h"
+#include "feature/hyper_graphic_manager/hgm_rp_energy.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
 #include "rp_frame_rate_policy.h"
@@ -34,63 +35,58 @@ struct PipelineParam;
 
 class HgmRPContext {
 public:
+    using ConvertFrameRateFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
+
     HgmRPContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     ~HgmRPContext() noexcept = default;
 
     int32_t InitHgmConfig(std::unordered_map<std::string, std::string>& sourceTuningConfig,
         std::unordered_map<std::string, std::string>& solidLayerConfig, std::vector<std::string>& appBufferList);
-    void NotifyRpHgmFrameRate(uint64_t vsyncId,
-        const std::shared_ptr<RSContext>& rsContext, std::map<NodeId, int> vRateMap, PipelineParam& pipelineParam);
+
+    const ConvertFrameRateFunc& GetConvertFrameRateFunc() const { return convertFrameRateFunc_; }
+
+    void NotifyRpHgmFrameRate(uint64_t vsyncId, const std::shared_ptr<RSContext>& rsContext,
+        const std::unordered_map<NodeId, int>& vRateMap, bool isNeedRefreshVRate, PipelineParam& pipelineParam);
+    void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
+        uint32_t& pendingScreenRefreshRate, uint64_t& pendingConstraintRelativeTime);
+
     void AddScreenId(ScreenId screenId);
     void RemoveScreenId(ScreenId screenId);
-    void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> hgmServiceToProcessInfo,
-        uint32_t *pendingScreenRefreshRate, uint64_t *pendingConstraintRelativeTime);
-
-    bool AdaptiveStatus() const { return isAdaptive_; }
-
-    bool GetLtpoEnabled() const { return ltpoEnabled_; }
-
-    bool IsDelayMode() const { return isDelayMode_; }
-
-    int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
 
     std::shared_ptr<HgmRPEnergy> GetHgmRPEnergy() { return hgmRPEnergy_; }
 
-    const std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>& GetConvertFrameRateFunc() const
-    {
-        return convertFrameRateFunc_;
-    }
-
+    bool AdaptiveStatus() const { return isAdaptive_; }
     bool IsGameNodeOnTree() const { return isGameNodeOnTree_; }
 
+    bool GetLtpoEnabled() const { return ltpoEnabled_; }
+    bool IsDelayMode() const { return isDelayMode_; }
+    int32_t GetPipelineOffsetPulseNum() const { return pipelineOffsetPulseNum_; }
+
     FrameRateRange& GetRSCurrRangeRef() { return rsCurrRange_; }
-    
-    void UpdateSurfaceData(const std::string& surfaceName, pid_t pid)
-    {
-        surfaceData_.emplace_back(std::tuple<std::string, pid_t>({surfaceName, pid}));
-    }
+    void UpdateSurfaceData(const std::string& surfaceName, pid_t pid);
 
 private:
     void HandleGameNode(const RSRenderNodeMap& nodeMap);
 
-    sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
+    const sptr<RSIRenderToServiceConnection> renderToServiceConnection_;
     std::unordered_set<ScreenId> screenIds_; // Accessed ONLY on main thread
 
-    RPFrameRatePolicy rpFrameRatePolicy_;
-    std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
+    const std::shared_ptr<RPFrameRatePolicy> rpFrameRatePolicy_;
+    ConvertFrameRateFunc convertFrameRateFunc_ = nullptr;
+
+    const std::shared_ptr<HgmRPEnergy> hgmRPEnergy_;
+
     bool isAdaptive_ = false;
     std::string gameNodeName_ = "";
+    bool isGameNodeOnTree_ = false;
 
     bool ltpoEnabled_ = false;
     bool isDelayMode_ = false;
     int32_t pipelineOffsetPulseNum_ = 0;
 
-    bool isGameNodeOnTree_ = false;
     FrameRateRange rsCurrRange_;
     std::vector<std::tuple<std::string, pid_t>> surfaceData_;
-    std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)> convertFrameRateFunc_ = nullptr;
 };
 } // namespace OHOS
 } // namespace Rosen
-
 #endif // HGM_RP_CONTEXT_H

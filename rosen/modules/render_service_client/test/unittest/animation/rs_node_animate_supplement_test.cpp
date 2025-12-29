@@ -117,13 +117,13 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest003, TestSize.Level1)
     node->AddAnimation(nullptr);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property, endProperty);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
     curveAnimation->SetDuration(300);
     node->AddAnimation(curveAnimation);
     node->AddAnimation(curveAnimation);
     auto property2 = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty2 = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    auto curveAnimation2 = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property2, endProperty2);
+    auto curveAnimation2 = std::make_shared<RSCurveAnimation>(property2, endProperty2);
     curveAnimation2->SetDuration(0);
     node->AddAnimation(curveAnimation2);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest003 end";
@@ -145,13 +145,13 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest004, TestSize.Level1)
     node->AddAnimation(nullptr);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property, endProperty);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
     node->AddAnimation(curveAnimation);
     node->RemoveAllAnimations();
 
     auto property2 = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty2 = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    auto curveAnimation2 = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property2, endProperty2);
+    auto curveAnimation2 = std::make_shared<RSCurveAnimation>(property2, endProperty2);
     node->AddAnimation(curveAnimation2);
     node->RemoveAnimation(nullptr);
     node->RemoveAnimation(curveAnimation);
@@ -399,7 +399,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest013, TestSize.Level1)
     node->DumpNode(1);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property, endProperty);
+    auto curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
     node->AddAnimation(curveAnimation);
     node->DumpNode(1);
     GTEST_LOG_(INFO) << "RSNodeAnimateTest RSNodeAnimateSupplementTest013 end";
@@ -461,7 +461,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest015, TestSize.Level1)
     node->AddAnimation(curveAnimation);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    curveAnimation = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property, endProperty);
+    curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
     curveAnimation->SetDuration(0);
     node->AddAnimation(curveAnimation);
     node->AddAnimation(curveAnimation);
@@ -486,7 +486,7 @@ HWTEST_F(RSNodeAnimateTest, RSNodeAnimateSupplementTest016, TestSize.Level1)
     node->RemoveAnimation(curveAnimation);
     auto property = std::make_shared<RSAnimatableProperty<float>>(0.0f);
     auto endProperty = std::make_shared<RSAnimatableProperty<float>>(1.0f);
-    curveAnimation = std::make_shared<RSCurveAnimation>(rsUiDirector->GetRSUIContext(), property, endProperty);
+    curveAnimation = std::make_shared<RSCurveAnimation>(property, endProperty);
     node->RemoveAnimation(curveAnimation);
     GTEST_LOG_(INFO) << "RSAnimationTest RSNodeAnimateSupplementTest016 end";
 }

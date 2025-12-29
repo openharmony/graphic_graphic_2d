@@ -20,7 +20,7 @@
 #include <iremote_proxy.h>
 #include <memory>
 #include <platform/ohos/transaction/zidl/rs_iclient_to_service_connection.h>
-#include <platform/ohos/transaction/rs_irender_service_connection_ipc_interface_code.h>
+#include <platform/ohos/transaction/rs_iclient_to_service_connection_ipc_interface_code.h>
 #include "sandbox_utils.h"
 
 namespace OHOS {
@@ -127,8 +127,6 @@ public:
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
-    int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) override;
-
     int32_t SetPhysicalScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
     int32_t SetVirtualScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
@@ -136,8 +134,6 @@ public:
     ErrCode MarkPowerOffNeedProcessOneFrame() override;
 
     ErrCode RepaintEverything() override;
-
-    ErrCode ForceRefreshOneFrameWithNextVSync() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
 
@@ -228,7 +224,6 @@ public:
 
     int32_t RegisterHgmRefreshRateModeChangeCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
     int32_t RegisterHgmRefreshRateUpdateCallback(sptr<RSIHgmConfigChangeCallback> callback) override;
 
     int32_t RegisterFirstFrameCommitCallback(sptr<RSIFirstFrameCommitCallback> callback) override;

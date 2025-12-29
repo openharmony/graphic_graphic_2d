@@ -240,7 +240,8 @@ void RSRenderComposer::ComposerPrepare(uint32_t& currentRate, int64_t& delayTime
 #endif
     unExecuteTaskNum_++;
     auto& hgmCore = OHOS::Rosen::HgmCore::Instance();
-    delayTime_ = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
+    delayTime = UpdateDelayTime(hgmCore, currentRate, pipelineParam);
+    delayTime_ = delayTime;
 }
 
 void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const PipelineParam& pipelineParam)
@@ -268,9 +269,8 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
         size:%{public}zu, %{public}s", currentRate, pipelineParam.frameTimestamp, pipelineParam.vsyncId, layers.size(),
         GetSurfaceNameInLayersForTrace(layers).c_str());
 
-    bool isScreenPoweringOff = RSSystemProperties::IsFoldDeviceOfOldDss() && screenInfo_.IsScreenPowerOff();
     bool shouldDropFrame = IsDropDirtyFrame(layers);
-    if (!(shouldDropFrame || isScreenPoweringOff)) {
+    if (!shouldDropFrame) {
         hgmHardwareUtils_->SwitchRefreshRate(hdiOutput_);
     }
 
@@ -438,11 +438,11 @@ void RSRenderComposer::ChangeLayersForActiveRectOutside(std::vector<std::shared_
         return;
     }
 
-    const RectI& reviseRect = screenInfo_.reviseRect;
+    const RectI& reviseRect = composerScreenInfo_.reviseRect;
     if (reviseRect.width_ <= 0 || reviseRect.height_ <= 0) {
         return;
     }
-    const RectI& maskRect = screenInfo_.maskRect;
+    const RectI& maskRect = composerScreenInfo_.maskRect;
     if (maskRect.width_ > 0 && maskRect.height_ > 0) {
         auto solidColorLayer = std::make_shared<RSRenderSurfaceLayer>();
         solidColorLayer->SetZorder(INT_MAX - 1);
@@ -682,9 +682,7 @@ void RSRenderComposer::PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer)
     auto usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_MEM_FB | BUFFER_USAGE_PROTECTED |
         BUFFER_USAGE_DRM_REDRAW;
     rsSurface->SetSurfaceBufferUsage(usage);
-    auto screenManager = CreateOrGetScreenManager();
-    auto screenInfo = screenManager->QueryScreenInfo(screenId_);
-    auto ret = rsSurface->PreAllocateProtectedBuffer(screenInfo.phyWidth, screenInfo.phyHeight);
+    auto ret = rsSurface->PreAllocateProtectedBuffer(composerScreenInfo_.phyWidth, composerScreenInfo_.phyHeight);
     hdiOutput_->SetProtectedFrameBufferState(ret);
 #endif
 }
@@ -742,7 +740,7 @@ bool RSRenderComposer::IsDropDirtyFrame(const std::vector<std::shared_ptr<RSLaye
         return false;
     }
 
-    auto rect = screenInfo_.activeRect;
+    auto rect = composerScreenInfo_.activeRect;
     if (rect.IsEmpty()) {
         RS_LOGW("%{public}s: activeRect is empty", __func__);
         return false;
@@ -895,8 +893,8 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
     GraphicPixelFormat pixelFormat = ComputeTargetPixelFormat(layers);
     RS_LOGD("Redraw computed target color gamut: %{public}d,"
         "pixel format: %{public}d, frame width: %{public}u, frame height: %{public}u",
-        colorGamut, pixelFormat, screenInfo_.phyWidth, screenInfo_.phyHeight);
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_,
+        colorGamut, pixelFormat, composerScreenInfo_.phyWidth, composerScreenInfo_.phyHeight);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo_,
         isProtected, colorGamut, pixelFormat);
     drawingColorSpace = RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(colorGamut);
     // set color space to surface buffer metadata
@@ -908,11 +906,11 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
         }
     }
 #else
-    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_, isProtected);
+    auto renderFrameConfig = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo_, isProtected);
 #endif
     // override redraw frame buffer with physical screen resolution.
-    renderFrameConfig.width = static_cast<int32_t>(screenInfo_.phyWidth);
-    renderFrameConfig.height = static_cast<int32_t>(screenInfo_.phyHeight);
+    renderFrameConfig.width = static_cast<int32_t>(composerScreenInfo_.phyWidth);
+    renderFrameConfig.height = static_cast<int32_t>(composerScreenInfo_.phyHeight);
 
     std::shared_ptr<RSSurfaceOhos> frameBufferSurfaceOhos;
     auto surfaceId = surface->GetUniqueId();
@@ -945,9 +943,9 @@ void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<st
 #endif
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
-    uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo_, colorGamut);
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_, colorGamut);
 #else
-    uniRenderEngine_->DrawLayers(*canvas, layers, false, screenInfo_);
+    uniRenderEngine_->DrawLayers(*canvas, layers, false, composerScreenInfo_);
 #endif
     RedrawScreenRCD(*canvas, layers);
 #ifdef RS_ENABLE_TV_PQ_METADATA
@@ -1125,7 +1123,7 @@ void RSRenderComposer::ContextRegisterPostTask()
 #endif
 }
 
-void RSRenderComposer::SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
+void RSRenderComposer::SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     composerToRenderConnection_ = composerToRenderConn;
 }
@@ -1144,7 +1142,6 @@ void RSRenderComposer::ReInit(const std::shared_ptr<HdiOutput>& output,
         OnPrepareComplete(surface, param, data);
     };
     hdiOutput_->RegPrepareComplete(onPrepareCompleteFunc, this);
-    rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
 }
 
 void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
@@ -1154,6 +1151,7 @@ void RSRenderComposer::OnScreenConnected(const std::shared_ptr<HdiOutput>& outpu
     RS_LOGI("RSRenderComposer::OnScreenConnected screenId: %{public}" PRIu64, screenId_);
     isDisconnected_ = false;
     ReInit(output, property);
+    rsRenderComposerContext_ = std::make_shared<RSRenderComposerContext>();
 }
 
 void RSRenderComposer::OnScreenDisconnected()
@@ -1184,6 +1182,9 @@ void RSRenderComposer::OnHwcDead()
     RS_LOGI("RSRenderComposer::OnHwcDead screenId: %{public}" PRIu64, screenId_);
     ClearFrameBuffersInner();
     isHwcDead_ = true;
+    if (hdiOutput_) {
+        hdiOutput_->ResetDevice();
+    }
 }
 
 void RSRenderComposer::DestroyComposerLayer(std::shared_ptr<RSLayerParcel> rsLayerParcel)
@@ -1225,16 +1226,15 @@ void RSRenderComposer::UpdateTransactionData(std::shared_ptr<RSLayerTransactionD
             }
         }
     }
-    if (transactionData->GetIsScreenInfoChanged()) {
-        if (screenInfo_.activeRect != transactionData->GetScreenInfo().activeRect) {
-            auto reviseRect = transactionData->GetScreenInfo().reviseRect;
-            const GraphicIRect graphicIRect = {
-                reviseRect.left_, reviseRect.top_, reviseRect.width_, reviseRect.height_
-            };
-            hdiOutput_->SetActiveRectSwitchStatus(true, graphicIRect);
-        }
-        screenInfo_ = transactionData->GetScreenInfo();
+
+    if (composerScreenInfo_.activeRect != transactionData->GetComposerScreenInfo().activeRect) {
+        auto reviseRect = transactionData->GetComposerScreenInfo().reviseRect;
+        const GraphicIRect graphicIRect = {
+            reviseRect.left_, reviseRect.top_, reviseRect.width_, reviseRect.height_
+        };
+        hdiOutput_->SetActiveRectSwitchStatus(true, graphicIRect);
     }
+    composerScreenInfo_ = transactionData->GetComposerScreenInfo();
     UpdateForSurfaceFps(pipelineParam_);
 }
 
@@ -1303,12 +1303,12 @@ void RSRenderComposer::SurfaceDump(std::string& dumpString)
     hdiOutput_->Dump(dumpString);
 }
 
-void RSRenderComposer::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+void RSRenderComposer::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
     RSSurfaceFpsManager::GetInstance().Dump(dumpString, nodeId);
 }
 
-void RSRenderComposer::FpsDump(std::string& dumpString, std::string& layerName)
+void RSRenderComposer::FpsDump(std::string& dumpString, const std::string& layerName)
 {
     if (hdiOutput_ == nullptr) {
         RS_LOGW("%{public}s: hdiOutput_ is nullptr.", __func__);
@@ -1355,6 +1355,6 @@ void RSRenderComposer::SetScreenPowerOnChanged(bool flag)
 
 int64_t RSRenderComposer::GetDelayTime()
 {
-    return delayTime_;
+    return delayTime_.load();
 }
 }

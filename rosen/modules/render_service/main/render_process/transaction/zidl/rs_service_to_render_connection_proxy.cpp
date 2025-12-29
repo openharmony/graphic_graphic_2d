@@ -63,12 +63,13 @@ ErrCode RSServiceToRenderConnectionProxy::SetForceRefresh(const std::string& nod
     return ERR_OK;
 }
 
-ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect &srcRect,
-    std::shared_ptr<Media::PixelMap> &pixelMap)
+ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface> surface, const Rect& srcRect,
+    std::shared_ptr<Media::PixelMap>& pixelMap)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (surface == nullptr) {
         return ERR_INVALID_VALUE;
     }
@@ -91,7 +92,6 @@ ErrCode RSServiceToRenderConnectionProxy::CreatePixelMapFromSurface(sptr<Surface
         ROSEN_LOGE("CreatePixelMapFromSurface: WriteInt32 srcRect err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::CREATE_PIXEL_MAP_FROM_SURFACE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -112,16 +112,13 @@ ErrCode RSServiceToRenderConnectionProxy::CleanResources(pid_t pid)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d", pid);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-        RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d GetDescriptor err", pid);
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInterfaceToken failed.");
         return RS_CONNECTION_ERROR;
     }
-
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInt32(pid)) {
-        RS_TRACE_NAME_FMT("ccc: RSServiceToRenderConnectionProxy::CleanResources pid is %d WriteUint64 err", pid);
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::CleanResources: WriteInt32 failed.");
         return RS_CONNECTION_ERROR;
     }
@@ -134,16 +131,16 @@ ErrCode RSServiceToRenderConnectionProxy::CleanResources(pid_t pid)
     return ERR_OK;
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetLayerTop(const std::string &nodeIdStr, bool isTop)
+ErrCode RSServiceToRenderConnectionProxy::SetLayerTop(const std::string& nodeIdStr, bool isTop)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSClientToServiceConnectionProxy::SetLayerTop: write token err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (data.WriteString(nodeIdStr) && data.WriteBool(isTop)) {
         uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_LAYER_TOP);
         int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -160,13 +157,11 @@ ErrCode RSServiceToRenderConnectionProxy::GetTotalAppMemSize(float& cpuMemSize, 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("GetTotalAppMemSize: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
     }
-
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_TOTAL_APP_MEM_SIZE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -284,11 +279,11 @@ ErrCode RSServiceToRenderConnectionProxy::SetDiscardJankFrames(bool discardJankF
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("SetDiscardJankFrames: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteBool(discardJankFrames)) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetDiscardJankFrames: WriteBool discardJankFrames err.");
         return ERR_INVALID_VALUE;
@@ -307,11 +302,11 @@ ErrCode RSServiceToRenderConnectionProxy::ReportJankStats()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportJankStats: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_JANK_STATS);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -326,6 +321,7 @@ ErrCode RSServiceToRenderConnectionProxy::ReportEventResponse(DataBaseRs info)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportEventResponse: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
@@ -345,6 +341,7 @@ ErrCode RSServiceToRenderConnectionProxy::ReportEventComplete(DataBaseRs info)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportEventComplete: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
@@ -364,6 +361,7 @@ ErrCode RSServiceToRenderConnectionProxy::ReportEventJankFrame(DataBaseRs info)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportEventJankFrame: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
@@ -383,6 +381,7 @@ ErrCode RSServiceToRenderConnectionProxy::ReportRsSceneJankStart(AppInfo info)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportRsSceneJankStart: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
@@ -407,12 +406,11 @@ int32_t RSServiceToRenderConnectionProxy::RegisterUIExtensionCallback(pid_t pid,
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterUIExtensionCallback: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
-
     if (data.WriteInt32(pid) && data.WriteUint64(userId) && data.WriteRemoteObject(callback->AsObject()) && data.WriteBool(unobscured)) {
         uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REGISTER_UIEXTENSION_CALLBACK);
         int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -436,6 +434,7 @@ ErrCode RSServiceToRenderConnectionProxy::ReportRsSceneJankEnd(AppInfo info)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("ReportRsSceneJankEnd: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
@@ -456,12 +455,11 @@ ErrCode RSServiceToRenderConnectionProxy::AvcodecVideoStart(const std::vector<ui
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("AvcodecVideoStart: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUInt64Vector(uniqueIdList)) {
         ROSEN_LOGE("AvcodecVideoStart: WriteUInt64Vector uniqueIdList err.");
         return ERR_INVALID_VALUE;
@@ -498,12 +496,11 @@ ErrCode RSServiceToRenderConnectionProxy::AvcodecVideoStop(const std::vector<uin
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("AvcodecVideoStop: WriteInterfaceToken GetDescriptor err.");
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUInt64Vector(uniqueIdList)) {
         ROSEN_LOGE("AvcodecVideoStop: WriteUInt64Vector uniqueIdList err.");
         return ERR_INVALID_VALUE;
@@ -535,13 +532,12 @@ ErrCode RSServiceToRenderConnectionProxy::GetMemoryGraphics(std::vector<MemoryGr
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("GetMemoryGraphics: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
     }
 
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_MEMORY_GRAPHICS);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -582,11 +578,11 @@ int32_t RSServiceToRenderConnectionProxy::RegisterOcclusionChangeCallback(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInt32(static_cast<int32_t>(pid))) {
         ROSEN_LOGE("dmulti_process %{public}s WriteInt32 failed.", __func__);
         return INVALID_ARGUMENTS;
@@ -610,11 +606,11 @@ int32_t RSServiceToRenderConnectionProxy::SetBrightnessInfoChangeCallback(pid_t 
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInt32(static_cast<int32_t>(pid))) {
         ROSEN_LOGE("dmulti_process %{public}s WriteInt32 failed.", __func__);
         return INVALID_ARGUMENTS;
@@ -643,11 +639,11 @@ int32_t RSServiceToRenderConnectionProxy::RegisterSurfaceOcclusionChangeCallback
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s WriteUint64 id err.", __func__);
         return WRITE_PARCEL_ERR;
@@ -680,16 +676,15 @@ int32_t RSServiceToRenderConnectionProxy::UnRegisterSurfaceOcclusionChangeCallba
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s WriteInterfaceToken GetDescriptor err.", __func__);
         return RS_CONNECTION_ERROR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("%{public}s WriteUint64 id err.", __func__);
         return WRITE_PARCEL_ERR;
     }
-
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SURFACE_OCCLUSION_CHANGE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -710,6 +705,7 @@ ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return ERR_INVALID_VALUE;
     }
@@ -741,7 +737,7 @@ ErrCode RSServiceToRenderConnectionProxy::GetPixelMapByProcessId(
     return ERR_OK;
 }
 
-void RSServiceToRenderConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow)
+void RSServiceToRenderConnectionProxy::ShowWatermark(const std::shared_ptr<Media::PixelMap>& watermarkImg, bool isShow)
 {
     if (watermarkImg == nullptr) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::ShowWatermark: watermarkImg is nullptr.");
@@ -750,11 +746,11 @@ void RSServiceToRenderConnectionProxy::ShowWatermark(const std::shared_ptr<Media
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::ShowWatermark: WriteInterfaceToken GetDescriptor err.");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteParcelable(watermarkImg.get())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::ShowWatermark: WriteParcelable watermarkImg.get() err.");
         return;
@@ -776,11 +772,11 @@ ErrCode RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId(NodeId& windowNod
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: WriteInterfaceToken GetDescriptor err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint64(windowNodeId)) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetSurfaceRootNodeId: windowNodeId:%{public}" PRIu64 "err.", windowNodeId);
         return ERR_INVALID_VALUE;
@@ -803,6 +799,7 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("SetVmaCacheStatus: WriteInterfaceToken GetDescriptor err.");
         return;
@@ -811,7 +808,6 @@ void RSServiceToRenderConnectionProxy::SetVmaCacheStatus(bool flag)
         ROSEN_LOGE("SetVmaCacheStatus: WriteBool flag err.");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_VMA_CACHE_STATUS);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -826,12 +822,12 @@ ErrCode RSServiceToRenderConnectionProxy::SetWatermark(pid_t callingPid, const s
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: WriteInterfaceToken GetDescriptor err.");
         success = false;
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInt32(callingPid)) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::SetWatermark: WriteUint64 pid err.");
         success = false;
@@ -863,6 +859,7 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return;
     }
@@ -871,8 +868,6 @@ void RSServiceToRenderConnectionProxy::DoDump(std::unordered_set<std::u16string>
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::DoDump: WriteString16Vector failed");
         return;
     }
-
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::DFX_DUMP);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -919,11 +914,11 @@ ErrCode RSServiceToRenderConnectionProxy::SetOverlayDisplayMode(int32_t mode)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("%{public}s: Write InterfaceToken val err.", __func__);
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInt32(mode)) {
         ROSEN_LOGE("%{public}s: Write Int32 val err.", __func__);
         return ERR_INVALID_VALUE;
@@ -944,7 +939,7 @@ void RSServiceToRenderConnectionProxy::ReportGameStateData(GameStateData info)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::ReportGameStateData failed to get descriptor");
         return;
@@ -969,7 +964,6 @@ void RSServiceToRenderConnectionProxy::ReportGameStateData(GameStateData info)
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::ReportGameStateData WriteString bundleName failed");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
 
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPORT_EVENT_GAMESTATE);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -984,11 +978,11 @@ ErrCode RSServiceToRenderConnectionProxy::SetBehindWindowFilterEnabled(bool enab
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetBehindWindowFilterEnabled WriteInterfaceToken failed.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteBool(enabled)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetBehindWindowFilterEnabled WriteBool err.");
         return ERR_INVALID_VALUE;
@@ -1007,11 +1001,11 @@ ErrCode RSServiceToRenderConnectionProxy::GetBehindWindowFilterEnabled(bool& ena
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetBehindWindowFilterEnabled WriteInterfaceToken failed.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_BEHIND_WINDOW_FILTER_ENABLED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1030,12 +1024,11 @@ ErrCode RSServiceToRenderConnectionProxy::GetMemoryGraphic(int pid, MemoryGraphi
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInterfaceToken failed.");
         return ERR_INVALID_VALUE;
     }
-
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInt32(static_cast<int32_t>(pid))) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetMemoryGraphic: WriteInt32 failed.");
         return ERR_INVALID_VALUE;
@@ -1062,6 +1055,7 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterTypeface: WriteInterfaceToken GetDescriptor err.");
         return false;
@@ -1070,7 +1064,6 @@ bool RSServiceToRenderConnectionProxy::RegisterTypeface(uint64_t globalUniqueId,
         RS_LOGW("typeface is nullptr");
         return false;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t hash = typeface->GetHash();
     if (!data.WriteUint64(globalUniqueId)) {
         ROSEN_LOGE("RegisterTypeface: WriteUint64 globalUniqueId err.");
@@ -1102,11 +1095,11 @@ bool RSServiceToRenderConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueI
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("UnRegisterTypeface: WriteInterfaceToken GetDescriptor err.");
         return false;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint64(globalUniqueId)) {
         ROSEN_LOGE("UnRegisterTypeface: WriteUint64 globalUniqueId err.");
         return false;
@@ -1117,7 +1110,6 @@ bool RSServiceToRenderConnectionProxy::UnRegisterTypeface(uint64_t globalUniqueI
         RS_LOGD("RSServiceToRenderConnectionProxy::UnRegisterTypeface: send request failed");
         return false;
     }
-
     return true;
 }
 
@@ -1153,6 +1145,7 @@ void RSServiceToRenderConnectionProxy::HandleHwcEvent(uint32_t deviceId, uint32_
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         RS_LOGE("HandleHwcEvent: WriteInterfaceToken failed.");
         return;
@@ -1169,7 +1162,6 @@ void RSServiceToRenderConnectionProxy::HandleHwcEvent(uint32_t deviceId, uint32_
         RS_LOGE("HandleHwcEvent: WriteInt32Vector err.");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::HANDLE_HWC_EVENT);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1181,16 +1173,15 @@ void RSServiceToRenderConnectionProxy::HandleHwcEvent(uint32_t deviceId, uint32_
 int32_t RSServiceToRenderConnectionProxy::GetPidGpuMemoryInMB(pid_t pid, float& gpuMemInMB)
 {
     MessageParcel data;
+    MessageOption option;
+    MessageParcel reply;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         return RS_CONNECTION_ERROR;
     }
     if (!data.WriteInt32(pid)) {
         return WRITE_PARCEL_ERR;
     }
-
-    MessageOption option;
-    MessageParcel reply;
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_PID_GPU_MEMORY_IN_MB);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1213,7 +1204,6 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::RepaintEverything: WriteInterfaceToken failed.");
         return ERR_INVALID_VALUE;
     }
-
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::REPAINT_EVERYTHING);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1227,16 +1217,16 @@ ErrCode RSServiceToRenderConnectionProxy::RepaintEverything()
     return replyMessage;
 }
 
-ErrCode RSServiceToRenderConnectionProxy::SetColorFollow(const std::string &nodeIdStr, bool isColorFollow)
+ErrCode RSServiceToRenderConnectionProxy::SetColorFollow(const std::string& nodeIdStr, bool isColorFollow)
 {
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetColorFollow: write token err.");
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteString(nodeIdStr)) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::SetColorFollow: write nodeIdStr err.");
         return WRITE_PARCEL_ERR;
@@ -1259,11 +1249,11 @@ void RSServiceToRenderConnectionProxy::SetFreeMultiWindowStatus(bool enable)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("SetFreeMultiWindowStatus: WriteInterfaceToken GetDescriptor err.");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteBool(enable)) {
         ROSEN_LOGE("SetFreeMultiWindowStatus: WriteBool err.");
         return;
@@ -1286,13 +1276,11 @@ int32_t RSServiceToRenderConnectionProxy::RegisterSelfDrawingNodeRectChangeCallb
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
-
     if (!data.WriteInt32(remotePid)) {
         ROSEN_LOGE("RegisterSelfDrawingNodeRectChangeCallback: Write remotePid err.");
         return WRITE_PARCEL_ERR;
@@ -1335,18 +1323,15 @@ int32_t RSServiceToRenderConnectionProxy::UnRegisterSelfDrawingNodeRectChangeCal
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: WriteInterfaceToken GetDescriptor err.");
         return WRITE_PARCEL_ERR;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
-
     if (!data.WriteInt32(remotePid)) {
         ROSEN_LOGE("UnRegisterSelfDrawingNodeRectChangeCallback: Write remotePid err.");
         return WRITE_PARCEL_ERR;
     }
-
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::UNREGISTER_SELF_DRAWING_NODE_RECT_CHANGE_CALLBACK);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -1367,12 +1352,11 @@ uint32_t RSServiceToRenderConnectionProxy::GetRealtimeRefreshRate(ScreenId id)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("GetRealtimeRefreshRate: WriteInterfaceToken GetDescriptor err.");
         return SUCCESS;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("GetRealtimeRefreshRate: WriteUint64 id err.");
         return SUCCESS;
@@ -1396,12 +1380,11 @@ void RSServiceToRenderConnectionProxy::SetShowRefreshRateEnabled(bool enabled, i
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("SetShowRefreshRateEnabled: WriteInterfaceToken GetDescriptor err.");
         return;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteBool(enabled) || !data.WriteInt32(type)) {
         ROSEN_LOGE("SetShowRefreshRateEnabled: WriteBool[enable] OR WriteInt32[type] err.");
         return;
@@ -1419,12 +1402,11 @@ ErrCode RSServiceToRenderConnectionProxy::GetShowRefreshRateEnabled(bool& enable
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("GetShowRefreshRateEnabled: failed to get descriptor");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1443,13 +1425,13 @@ std::vector<ActiveDirtyRegionInfo> RSServiceToRenderConnectionProxy::GetActiveDi
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     std::vector<ActiveDirtyRegionInfo> activeDirtyRegionInfos;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE(
             "dmulti_process RSServiceToRenderConnectionProxy::GetActiveDirtyRegionInfo: WriteInterfaceToken failed");
         return activeDirtyRegionInfos;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_ACTIVE_DIRTY_REGION_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1483,35 +1465,35 @@ std::vector<ActiveDirtyRegionInfo> RSServiceToRenderConnectionProxy::GetActiveDi
 
 GlobalDirtyRegionInfo RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo()
 {
-    // MessageParcel data;
-    // MessageParcel reply;
-    // MessageOption option;
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     GlobalDirtyRegionInfo globalDirtyRegionInfo;
-    // if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
-    //     ROSEN_LOGE(
-    //         "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: WriteInterfaceToken failed");
-    //     return globalDirtyRegionInfo;
-    // }
-    // option.SetFlags(MessageOption::TF_SYNC);
-    // uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO);
-    // int32_t err = Remote()->SendRequest(code, data, reply, option);
-    // if (err != NO_ERROR) {
-    //     ROSEN_LOGE(
-    //         "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: SendRequest failed, err is "
-    //         "%{public}d.",
-    //         err);
-    //     return globalDirtyRegionInfo;
-    // }
-    // int64_t globalDirtyRegionAreas{0};
-    // int32_t globalFramesNumber{0};
-    // int32_t skipProcessFramesNumber{0};
-    // int32_t mostSendingPidWhenDisplayNodeSkip{0};
-    // if (!reply.ReadInt64(globalDirtyRegionAreas) || !reply.ReadInt32(globalFramesNumber) ||
-    //     !reply.ReadInt32(skipProcessFramesNumber) || !reply.ReadInt32(mostSendingPidWhenDisplayNodeSkip)) {
-    //     ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo Read parcel failed");
-    //     return globalDirtyRegionInfo;
-    // }
-    return globalDirtyRegionInfo; // Car
+    if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
+        ROSEN_LOGE(
+            "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: WriteInterfaceToken failed");
+        return globalDirtyRegionInfo;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_GLOBAL_DIRTY_REGION_INFO);
+    int32_t err = Remote()->SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE(
+            "dmulti_process RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo: SendRequest failed, err is "
+            "%{public}d.",
+            err);
+        return globalDirtyRegionInfo;
+    }
+    int64_t globalDirtyRegionAreas{0};
+    int32_t globalFramesNumber{0};
+    int32_t skipProcessFramesNumber{0};
+    int32_t mostSendingPidWhenDisplayNodeSkip{0};
+    if (!reply.ReadInt64(globalDirtyRegionAreas) || !reply.ReadInt32(globalFramesNumber) ||
+        !reply.ReadInt32(skipProcessFramesNumber) || !reply.ReadInt32(mostSendingPidWhenDisplayNodeSkip)) {
+        ROSEN_LOGE("RSServiceToRenderConnectionProxy::GetGlobalDirtyRegionInfo Read parcel failed");
+        return globalDirtyRegionInfo;
+    }
+    return globalDirtyRegionInfo;
 }
 
 LayerComposeInfo RSServiceToRenderConnectionProxy::GetLayerComposeInfo()
@@ -1519,12 +1501,12 @@ LayerComposeInfo RSServiceToRenderConnectionProxy::GetLayerComposeInfo()
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     LayerComposeInfo layerComposeInfo;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetLayerComposeInfo: WriteInterfaceToken failed");
         return layerComposeInfo;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_LAYER_COMPOSE_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1549,13 +1531,13 @@ HwcDisabledReasonInfos RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInf
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     HwcDisabledReasonInfos hwcDisabledReasonInfos;
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE(
             "dmulti_process RSServiceToRenderConnectionProxy::GetHwcDisabledReasonInfo: WriteInterfaceToken failed.");
         return hwcDisabledReasonInfos;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::
         GET_HARDWARE_COMPOSE_DISABLED_REASON_INFO);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -1596,12 +1578,11 @@ ErrCode RSServiceToRenderConnectionProxy::GetHdrOnDuration(int64_t& hdrOnDuratio
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_SYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::GetHdrOnDuration: WriteInterfaceToken failed");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_SYNC);
-
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::GET_HDR_ON_DURATION);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1616,6 +1597,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetOptimizeCanvasDirtyPidList(const st
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         RS_LOGE("SetOptimizeCanvasDirtyPidList: WriteInterfaceToken failed.");
         return ERR_INVALID_VALUE;
@@ -1624,7 +1606,6 @@ ErrCode RSServiceToRenderConnectionProxy::SetOptimizeCanvasDirtyPidList(const st
         RS_LOGE("SetOptimizeCanvasDirtyPidList: WriteInt32Vector err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code =
         static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_OPTIMIZE_CANVAS_DIRTY_ENABLED_PIDLIST);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
@@ -1640,12 +1621,12 @@ int32_t RSServiceToRenderConnectionProxy::NotifyScreenRefresh(ScreenId id)
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenRefresh: WriteInterfaceToken failed.");
         return -1;
     }
 
-    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteUint64(id)) {
         ROSEN_LOGE("dmulti_process RSServiceToRenderConnectionProxy::NotifyScreenRefresh: WriteUint64 failed.");
         return -1;
@@ -1665,6 +1646,7 @@ ErrCode RSServiceToRenderConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(RSIServiceToRenderConnection::GetDescriptor())) {
         RS_LOGE("SetGpuCrcDirtyEnabledPidList: WriteInterfaceToken failed.");
         return ERR_INVALID_VALUE;
@@ -1673,7 +1655,6 @@ ErrCode RSServiceToRenderConnectionProxy::SetGpuCrcDirtyEnabledPidList(const std
         RS_LOGE("SetGpuCrcDirtyEnabledPidList: WriteInt32Vector err.");
         return ERR_INVALID_VALUE;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_GPU_CRC_DIRTY_ENABLED_PIDLIST);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1688,7 +1669,7 @@ void RSServiceToRenderConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtai
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy failed to get descriptor");
         return;
@@ -1697,7 +1678,6 @@ void RSServiceToRenderConnectionProxy::SetCurtainScreenUsingStatus(bool isCurtai
         ROSEN_LOGE("SetCurtainScreenUsingStatus: WriteBool isCurtainScreenOn err.");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_CURTAIN_SCREEN_USING_STATUS);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {
@@ -1711,7 +1691,7 @@ void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(ScreenId screenI
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
-
+    option.SetFlags(MessageOption::TF_ASYNC);
     if (!data.WriteInterfaceToken(GetDescriptor())) {
         ROSEN_LOGE("RSServiceToRenderConnectionProxy failed to get descriptor");
         return;
@@ -1724,7 +1704,6 @@ void RSServiceToRenderConnectionProxy::OnScreenBacklightChanged(ScreenId screenI
         ROSEN_LOGE("RSServiceToRenderConnectionProxy::OnScreenBacklightChanged WriteUint32 level failed");
         return;
     }
-    option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(RSIServiceToRenderConnectionInterfaceCode::SET_BACKLIGHT_LEVEL);
     int32_t err = Remote()->SendRequest(code, data, reply, option);
     if (err != NO_ERROR) {

@@ -23,14 +23,37 @@
 #include "message_parcel.h"
 #include "params/rs_render_params.h"
 #include "rs_layer_parcel.h"
-#include "screen_manager/rs_screen_info.h"
 
 namespace OHOS::Rosen {
 class RSComposerContext;
 #define RSLayerId uint64_t
 
+struct ComposerScreenInfo {
+    ScreenId id = INVALID_SCREEN_ID;
+    uint32_t width = 0;  // render resolution
+    uint32_t height = 0;
+    uint32_t phyWidth = 0;  // physical screen resolution
+    uint32_t phyHeight = 0;
+    bool isSamplingOn = false;
+    float samplingTranslateX = 0.f;
+    float samplingTranslateY = 0.f;
+    float samplingScale = 1.f;
+    RectI activeRect;
+    RectI maskRect;
+    RectI reviseRect;
+
+    float GetRogWidthRatio() const
+    {
+        return (width == 0) ? 1.f : static_cast<float>(phyWidth) / width;
+    }
+
+    float GetRogHeightRatio() const
+    {
+        return (height == 0) ? 1.f : static_cast<float>(phyHeight) / height;
+    }
+};
 struct ComposerInfo {
-    ScreenInfo screenInfo;
+    ComposerScreenInfo composerScreenInfo;
     PipelineParam pipelineParam;
 };
 
@@ -88,36 +111,26 @@ public:
     {
         return payload_;
     }
-    ScreenInfo GetScreenInfo()
+    ComposerScreenInfo GetComposerScreenInfo()
     {
-        return screenInfo_;
-    }
-    void SetScreenInfo(ScreenInfo& screenInfo)
-    {
-        screenInfo_ = screenInfo;
-    }
-    void SetIsScreenInfoChanged(bool isChanged)
-    {
-        isScreenInfoChanged_ = isChanged;
-    }
-    bool GetIsScreenInfoChanged()
-    {
-        return isScreenInfoChanged_;
+        return composerInfo_.composerScreenInfo;
     }
     PipelineParam GetPipelineParam() const
     {
-        return pipelineParam_;
+        return composerInfo_.pipelineParam;
     }
-    void SetPipelineParam(PipelineParam& pipelineParam)
+    void SetComposerInfo(ComposerInfo& composerInfo)
     {
-        pipelineParam_ = pipelineParam;
+        composerInfo_.composerScreenInfo = composerInfo.composerScreenInfo;
+        composerInfo_.pipelineParam = composerInfo.pipelineParam;
     }
+
 private:
     bool UnmarshallingRsLayerParcel(OHOS::MessageParcel& parcel);
     bool UnMarshallingRectI(OHOS::MessageParcel& parcel, RectI& rectI);
     bool MarshallingRectI(std::shared_ptr<OHOS::MessageParcel>& parcel, RectI& rectI);
-    bool UnMarshallingScreenInfo(OHOS::MessageParcel& parcel);
-    bool MarshallingScreenInfo(std::shared_ptr<OHOS::MessageParcel>& parcel);
+    bool UnMarshallingComposerScreenInfo(OHOS::MessageParcel& parcel);
+    bool MarshallingComposerScreenInfo(std::shared_ptr<OHOS::MessageParcel>& parcel);
     bool UnMarshallingPipelineParam(OHOS::MessageParcel& parcel);
     bool MarshallingPipelineParam(std::shared_ptr<OHOS::MessageParcel>& parcel);
     void AddRSLayerParcel(std::shared_ptr<RSLayerParcel>& layerParcel, RSLayerId layerId);
@@ -126,9 +139,7 @@ private:
     uint64_t timestamp_ = 0;
     pid_t pid_ = 0;
     uint64_t index_ = 0;
-    bool isScreenInfoChanged_ = false;
-    ScreenInfo screenInfo_;
-    PipelineParam pipelineParam_;
+    ComposerInfo composerInfo_;
     mutable size_t marshallingIndex_ = 0;
     int32_t parentPid_ = -1;
     uint32_t parcelNumber_ = 0;

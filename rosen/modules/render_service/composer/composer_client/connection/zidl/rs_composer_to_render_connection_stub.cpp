@@ -34,7 +34,7 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     switch (code) {
         case ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS: {
             auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIComposerToRenderConnection::GetDescriptor()) {
+            if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
                 RS_LOGE("RSComposerToRenderConnectionStub::CREATE_CONNECTION Read interfaceToken failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -76,7 +76,7 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
         }
         case NOTIFY_LPP_LAYER_TO_RENDER: {
             auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != RSIComposerToRenderConnection::GetDescriptor()) {
+            if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
                 RS_LOGE("RSComposerToRenderConnectionStub::CREATE_CONNECTION Read interfaceToken failed!");
                 ret = ERR_INVALID_DATA;
                 break;

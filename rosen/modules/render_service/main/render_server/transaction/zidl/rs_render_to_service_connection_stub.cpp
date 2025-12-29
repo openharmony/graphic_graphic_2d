@@ -66,17 +66,7 @@ int RSRenderToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadSize failed.", __func__);
                 return ERR_INVALID_STATE;
             }
-            std::unordered_set<ScreenId> screenIds;
-            for (uint32_t i = 0; i < size; ++i) {
-                uint64_t screenId = 0;
-                if (!data.ReadUint64(screenId)) {
-                    RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE ReadScreenId failed at index %{public}u",
-                        __func__, i);
-                    return ERR_INVALID_STATE;
-                }
-                screenIds.insert(screenId);
-            }
-            auto serviceToProcessInfo = NotifyRpHgmFrameRate(timestamp, vsyncId, screenIds, processToServiceInfo);
+            auto serviceToProcessInfo = NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo);
             if (serviceToProcessInfo == nullptr || !reply.WriteParcelable(serviceToProcessInfo.GetRefPtr())) {
                 RS_LOGE("%{public}s::NOTIFY_PROCESS_FRAME_RATE WriteParcelable failed.", __func__);
                 return ERR_INVALID_STATE;

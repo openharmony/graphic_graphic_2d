@@ -38,7 +38,6 @@ const uint8_t DO_TAKE_SELF_SURFACE_CAPTURE = 1;
 const uint8_t DO_SET_WINDOW_FREEZE_IMMEDIATELY = 2;
 const uint8_t DO_SET_SCREEN_SECURITY_MASK = 3;
 const uint8_t DO_REPAINT_EVERYTHING = 4;
-const uint8_t DO_FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC = 5;
 const uint8_t DO_REGISTER_TYPEFACE = 6;
 const uint8_t DO_REPORT_RS_SCENE_JANK = 7;
 const uint8_t DO_GET_HDR_ON_DURATION = 8;
@@ -190,16 +189,10 @@ bool DoRepaintEverything()
     return true;
 }
 
-bool DoForceRefreshOneFrameWithNextVSync()
-{
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
-    renderServiceClient->ForceRefreshOneFrameWithNextVSync();
-    return true;
-}
-
 bool DoRegisterTypeface()
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     ScreenId screenId = GetData<ScreenId>();
     RSScreenType screenType = RSScreenType::BUILT_IN_TYPE_SCREEN;
     Drawing::Bitmap bm;
@@ -210,8 +203,8 @@ bool DoRegisterTypeface()
     std::shared_ptr<Drawing::Typeface> typeface;
     RSRenderServiceConnectHub::GetInstance()->Destroy();
     renderServiceClient->GetScreenType(screenId, screenType);
-    renderServiceClient->GetBitmap(nodeId, bm);
-    renderServiceClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
+    renderPipelineClient->GetBitmap(nodeId, bm);
+    renderPipelineClient->GetPixelmap(nodeId, pixelmap, rect, drawCmdList);
     renderServiceClient->RegisterTypeface(typeface);
     renderServiceClient->RegisterTypeface(typeface, GetData<uint32_t>());
     if (typeface) {
@@ -324,9 +317,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
             break;
         case OHOS::Rosen::DO_REPAINT_EVERYTHING:
             OHOS::Rosen::DoRepaintEverything();
-            break;
-        case OHOS::Rosen::DO_FORCE_REFRESH_ONE_FRAME_WITH_NEXT_VSYNC:
-            OHOS::Rosen::DoForceRefreshOneFrameWithNextVSync();
             break;
         case OHOS::Rosen::DO_REGISTER_TYPEFACE:
             OHOS::Rosen::DoRegisterTypeface();

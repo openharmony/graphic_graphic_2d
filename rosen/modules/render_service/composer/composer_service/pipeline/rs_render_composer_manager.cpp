@@ -24,7 +24,7 @@
 namespace OHOS {
 namespace Rosen {
 RSRenderComposerManager::RSRenderComposerManager(std::shared_ptr<AppExecFwk::EventHandler>& handler,
-    sptr<RSVsyncManagerAgent> rsVsyncManagerAgent)
+    const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
     : handler_(handler), rsVsyncManagerAgent_(rsVsyncManagerAgent) {}
 
 void RSRenderComposerManager::OnScreenConnected(const std::shared_ptr<HdiOutput>& output,
@@ -168,7 +168,7 @@ void RSRenderComposerManager::SurfaceDump(std::string& dumpString)
     }
 }
 
-void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::GetRefreshInfoToSP");
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;
@@ -186,7 +186,7 @@ void RSRenderComposerManager::GetRefreshInfoToSP(std::string& dumpString, NodeId
     }
 }
 
-void RSRenderComposerManager::FpsDump(std::string& dumpString, std::string& layerName)
+void RSRenderComposerManager::FpsDump(std::string& dumpString, const std::string& layerName)
 {
     RS_OPTIONAL_TRACE_NAME_FMT("RSRenderComposerManager::FpsDump");
     std::unordered_map<ScreenId, std::shared_ptr<RSRenderComposerAgent>> rsRenderComposerAgentMap;

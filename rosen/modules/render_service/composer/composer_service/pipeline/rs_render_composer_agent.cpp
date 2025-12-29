@@ -27,7 +27,7 @@ RSRenderComposerAgent::RSRenderComposerAgent(const std::shared_ptr<RSRenderCompo
     : rsRenderComposer_(rsRenderComposer)
 {}
 
-void RSRenderComposerAgent::SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
+void RSRenderComposerAgent::SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     if (rsRenderComposer_ == nullptr) {
         RS_LOGE("rsRenderComposer is nullptr");
@@ -132,7 +132,7 @@ void RSRenderComposerAgent::OnHwcRestored(const std::shared_ptr<HdiOutput>& outp
         return;
     }
     std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
-    rsRenderComposer_->PostTask(
+    rsRenderComposer_->PostSyncTask(
         [weakThis, output, property]() {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
@@ -149,7 +149,7 @@ void RSRenderComposerAgent::OnHwcDead()
         return;
     }
     std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
-    rsRenderComposer_->PostTask(
+    rsRenderComposer_->PostSyncTask(
         [weakThis]() {
             std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
             if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
@@ -245,7 +245,7 @@ void RSRenderComposerAgent::SurfaceDump(std::string& dumpString)
     ).wait();
 }
 
-void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId)
+void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId)
 {
     if (rsRenderComposer_ == nullptr) {
         return;
@@ -262,7 +262,7 @@ void RSRenderComposerAgent::GetRefreshInfoToSP(std::string& dumpString, NodeId& 
     ).wait();
 }
 
-void RSRenderComposerAgent::FpsDump(std::string& dumpString, std::string& layerName)
+void RSRenderComposerAgent::FpsDump(std::string& dumpString, const std::string& layerName)
 {
     if (rsRenderComposer_ == nullptr) {
         return;

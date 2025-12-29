@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef RENDER_PROCESS_HYPER_GRAPHIC_MANAGER_HGM_INFO_PARCEL_H
-#define RENDER_PROCESS_HYPER_GRAPHIC_MANAGER_HGM_INFO_PARCEL_H
+#ifndef HGM_INFO_PARCEL_H
+#define HGM_INFO_PARCEL_H
 
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
+
 #include "animation/rs_frame_rate_range.h"
 #include "common/rs_common_def.h"
 #include "iremote_object.h"
@@ -37,7 +38,7 @@ using HgmDataChangeTypes = std::bitset<HgmDataChangeType::MAX_CHANGE_TYPE>;
 
 struct HgmServiceToProcessInfo : public Parcelable {
     HgmServiceToProcessInfo() = default;
-    ~HgmServiceToProcessInfo() = default;
+    ~HgmServiceToProcessInfo() noexcept = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static HgmServiceToProcessInfo* Unmarshalling(Parcel& data);
@@ -60,18 +61,19 @@ struct HgmServiceToProcessInfo : public Parcelable {
 
 struct HgmProcessToServiceInfo : public Parcelable {
     HgmProcessToServiceInfo() = default;
-    ~HgmProcessToServiceInfo() = default;
+    ~HgmProcessToServiceInfo() noexcept = default;
 
     bool Marshalling(Parcel& data) const override;
     [[nodiscard]] static HgmProcessToServiceInfo* Unmarshalling(Parcel& data);
+
     bool MarshallingFrameRateLinker(MessageParcel* message) const;
     bool MarshallingSurfaceData(MessageParcel* message) const;
     bool MarshallingEnergyData(MessageParcel* message) const;
-    bool MarshallingVRateMap(MessageParcel* message) const;
+    bool MarshallingVRateData(MessageParcel* message) const;
     bool UnmarshallingFrameRateLinker(MessageParcel* message);
     bool UnmarshallingSurfaceData(MessageParcel* message);
     bool UnmarshallingEnergyData(MessageParcel* message);
-    bool UnmarshallingVRateMap(MessageParcel* message);
+    bool UnmarshallingVRateData(MessageParcel* message);
 
     bool isGameNodeOnTree = false;
     std::unordered_set<FrameRateLinkerId> frameRateLinkerDestroyIds;
@@ -80,9 +82,9 @@ struct HgmProcessToServiceInfo : public Parcelable {
     std::vector<std::tuple<std::string, pid_t>> surfaceData;
     std::unordered_map<std::string, pid_t> uiFrameworkDirtyNodeNameMap;
     EnergyCommonDataMap energyCommonData;
-    std::map<NodeId, int> vRateMap;
+    std::unordered_map<NodeId, int> vRateMap;
+    bool isNeedRefreshVRate = false;
 };
 } // namespace Rosen
 } // namespace OHOS
-
-#endif // RENDER_PROCESS_HYPER_GRAPHIC_MANAGER_HGM_INFO_PARCEL_H
+#endif // HGM_INFO_PARCEL_H

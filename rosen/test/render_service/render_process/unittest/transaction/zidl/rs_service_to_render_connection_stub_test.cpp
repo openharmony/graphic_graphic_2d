@@ -29,6 +29,8 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "parameters.h"
+#include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "rs_render_service.h"
 #include "transaction/rs_service_to_render_connection.h"
 #include "transaction/zidl/rs_service_to_render_connection_stub.h"
@@ -38,13 +40,16 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+namespace {
+RSRenderService renderService;
+static inline sptr<RSServiceToRenderConnectionStub> connectionStub_ = nullptr;
+}
 class RSServiceToRenderConnectionStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static inline sptr<RSServiceToRenderConnectionStub> connectionStub_ = nullptr;
 };
 
 void RSServiceToRenderConnectionStubTest::SetUpTestCase()
@@ -52,7 +57,9 @@ void RSServiceToRenderConnectionStubTest::SetUpTestCase()
     auto runner = AppExecFwk::EventRunner::Create(false);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
     auto renderPipeline = RSRenderPipeline::Create(handler, nullptr, nullptr);
-    RSRenderService renderService;
+    OHOS::system::SetParameter("bootevent.samgr.ready", "false");
+    renderService.Init();
+    RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     auto rsRenderServceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline);
     connectionStub_ = sptr<RSServiceToRenderConnection>::MakeSptr(rsRenderServceAgent, renderPipelineAgent);

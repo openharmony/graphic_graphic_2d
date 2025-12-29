@@ -101,17 +101,16 @@ void RSRenderServiceVisitor::PrepareScreenRenderNode(RSScreenRenderNode& node)
 
 void RSRenderServiceVisitor::PrepareLogicalDisplayRenderNode(RSLogicalDisplayRenderNode& node)
 {
-    sptr<RSScreenManager> screenManager = CreateOrGetScreenManager();
-    if (!screenManager) {
-        RS_LOGE("PrepareScreenRenderNode ScreenManager is nullptr");
+    if (!curScreenNode_) {
+        RS_LOGE("PrepareLogicalDisplayRenderNode curScreenNode is nullptr");
         return;
     }
-    ScreenInfo curScreenInfo = screenManager->QueryScreenInfo(node.GetScreenId());
+    const auto& screenProperty = curScreenNode_->GetScreenProperty();
     int32_t logicalScreenWidth = static_cast<int32_t>(node.GetRenderProperties().GetFrameWidth());
     int32_t logicalScreenHeight = static_cast<int32_t>(node.GetRenderProperties().GetFrameHeight());
     if (logicalScreenWidth <= 0 || logicalScreenHeight <= 0) {
-        logicalScreenWidth = static_cast<int32_t>(curScreenInfo.width);
-        logicalScreenHeight = static_cast<int32_t>(curScreenInfo.height);
+        logicalScreenWidth = static_cast<int32_t>(screenProperty.GetWidth());
+        logicalScreenHeight = static_cast<int32_t>(screenProperty.GetHeight());
         auto rotation = node.GetRotation();
         if (rotation == ScreenRotation::ROTATION_90 || rotation == ScreenRotation::ROTATION_270) {
             std::swap(logicalScreenWidth, logicalScreenHeight);

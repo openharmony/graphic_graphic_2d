@@ -46,8 +46,7 @@ HWTEST_F(RSCurveAnimationTest, GetTimingCurveTest001, TestSize.Level1)
     rsUiDirector->SendMessages();
     sleep(DELAY_TIME_ONE);
     auto endProperty = std::make_shared<RSAnimatableProperty<Vector4f>>(ANIMATION_END_BOUNDS);
-    sptr<IRemoteObject> remoteObject = nullptr;
-    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(remoteObject);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext();
     auto curveAnimation = std::make_shared<RSCurveAnimation>(rsUIContext, property, startProperty, endProperty);
     curveAnimation->SetTimingCurve(RSAnimationTimingCurve::EASE_IN_OUT);
     curveAnimation->SetDuration(ANIMATION_DURATION);

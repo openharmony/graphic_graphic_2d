@@ -21,14 +21,17 @@
 namespace OHOS {
 namespace Rosen {
 class RSRenderService;
-class RSSingleRenderProcessManager : public RSRenderProcessManager {
+class RSSingleRenderProcessManager final : public RSRenderProcessManager {
 public:
-    RSSingleRenderProcessManager(RSRenderService& renderService);
+    explicit RSSingleRenderProcessManager(RSRenderService& renderService);
     ~RSSingleRenderProcessManager() noexcept override = default;
 
     sptr<IRemoteObject> OnScreenConnected(ScreenId id,
-        const ScreenEventData& data, const sptr<RSScreenProperty>& property) override;
+        const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property) override;
     void OnScreenDisconnected(ScreenId id) override;
+    void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+        const sptr<RSScreenProperty>& property) override;
+    void OnHwcDead(ScreenId id) override;
     void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
     void OnScreenRefresh(ScreenId id) override;
     void OnVirtualScreenConnected(ScreenId id,
@@ -41,7 +44,7 @@ public:
 
 private:
     sptr<RSIServiceToRenderConnection> serviceToRenderConnection_ = nullptr;
-    sptr<RSIComposerToRenderConnection> composerToRenderConnection_ = nullptr;
+    sptr<IRSComposerToRenderConnection> composerToRenderConnection_ = nullptr;
     sptr<RSIRenderToServiceConnection> renderToServiceConnection_ = nullptr;
     sptr<RSIConnectToRenderProcess> connectToRenderConnection_ = nullptr;
 };

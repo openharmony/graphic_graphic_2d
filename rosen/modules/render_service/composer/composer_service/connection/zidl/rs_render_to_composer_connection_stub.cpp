@@ -125,8 +125,8 @@ int32_t RSRenderToComposerConnectionStub::SetComposerToRenderConnectionStub(OHOS
     if (composerToRenderObject == nullptr) {
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
-    sptr<RSIComposerToRenderConnection> composerToRenderConn =
-        iface_cast<RSIComposerToRenderConnection>(composerToRenderObject);
+    sptr<IRSComposerToRenderConnection> composerToRenderConn =
+        iface_cast<IRSComposerToRenderConnection>(composerToRenderObject);
     if (composerToRenderConn == nullptr) {
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }

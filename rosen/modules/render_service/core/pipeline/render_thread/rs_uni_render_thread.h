@@ -271,9 +271,10 @@ public:
         bufferManager_.AddPendingReleaseBuffer(consumer, buffer, fence);
     }
 
-    void AddPendingReleaseBuffer(uint64_t seqNum, sptr<SyncFence> fence)
+    void OnReleaseLayerBuffers(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+        std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)
     {
-        bufferManager_.AddPendingReleaseBuffer(seqNum, fence);
+        bufferManager_.OnReleaseLayerBuffers(rsLayers, releaseBufferFenceVec);
     }
 
     void OnDrawStart()
@@ -291,14 +292,9 @@ public:
         bufferManager_.OnDrawEnd(canvasAcquireFence);
     }
 
-    void BufferReleaseCallBack(uint64_t seqNum)
+    void ReleaseBufferById(uint64_t seqNum)
     {
-        bufferManager_.BufferReleaseCallBack(seqNum);
-    }
-
-    static void OnComposedBufferCallBack(uint64_t seqNum, sptr<SyncFence> fence)
-    {
-        Instance().AddPendingReleaseBuffer(seqNum, fence);
+        bufferManager_.ReleaseBufferById(seqNum);
     }
 
 private:

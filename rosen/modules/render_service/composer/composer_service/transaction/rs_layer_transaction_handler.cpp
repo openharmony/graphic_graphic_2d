@@ -38,15 +38,6 @@ void RSLayerTransactionHandler::AddRSLayerParcel(std::shared_ptr<RSLayerParcel>&
     rsLayerTransactionData_->AddRSLayerParcel(layerParcel, layerId);
 }
 
-void RSLayerTransactionHandler::CheckScreenInfoIsChanged(ScreenInfo& screenInfo)
-{
-    if (memcmp(&screenInfo_, &screenInfo, sizeof(ScreenInfo)) != 0) {
-        rsLayerTransactionData_->SetIsScreenInfoChanged(true);
-        rsLayerTransactionData_->SetScreenInfo(screenInfo);
-        screenInfo_ = screenInfo;
-    }
-}
-
 bool RSLayerTransactionHandler::CommitRSLayerTransaction(ComposerInfo& composerInfo, uint64_t timestamp, const std::string& abilityName)
 {
     timestamp_ = std::max(timestamp_, timestamp);
@@ -55,8 +46,7 @@ bool RSLayerTransactionHandler::CommitRSLayerTransaction(ComposerInfo& composerI
         return false;
     }
     rsLayerTransactionData_->timestamp_ = timestamp;
-    CheckScreenInfoIsChanged(composerInfo.screenInfo);
-    rsLayerTransactionData_->SetPipelineParam(composerInfo.pipelineParam);
+    rsLayerTransactionData_->SetComposerInfo(composerInfo);
     if (!rsComposerConnection_->CommitLayers(rsLayerTransactionData_)) {
         RS_LOGE("RSLayerTransactionHandler::CommitRSLayerTransaction CommitLayers failed");
         return false;

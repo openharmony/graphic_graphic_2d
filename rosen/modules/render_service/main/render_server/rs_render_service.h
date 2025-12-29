@@ -46,6 +46,18 @@ public:
 
     bool Init();
     void Run();
+    std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
+        sptr<RSIConnectionToken>& token) override
+    {
+        std::unique_lock<std::mutex> lock(mutex_);
+        auto tokenObj = token->AsObject();
+        auto iter = connections_.find(tokenObj);
+        if (iter == connections_.end()) {
+            RS_LOGE("GetConnection: connections_ cannot find token");
+            return {nullptr, nullptr};
+        }
+        return iter->second;
+    }
 
 private:
     class ScreenManagerListener : public RSIScreenManagerListener {
@@ -53,9 +65,12 @@ private:
         explicit ScreenManagerListener(RSRenderService& renderService) : renderService_(renderService) {}
         ~ScreenManagerListener() noexcept override = default;
 
-        sptr<IRemoteObject> OnScreenConnected(ScreenId id,
-            const ScreenEventData& data, const sptr<RSScreenProperty>& property) override;
+        sptr<IRemoteObject> OnScreenConnected(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+                                              const sptr<RSScreenProperty>& property) override;
         void OnScreenDisconnected(ScreenId id) override;
+        void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+                           const sptr<RSScreenProperty>& property) override;
+        void OnHwcDead(ScreenId id) override;
         void OnScreenPropertyChanged(ScreenId id, const sptr<RSScreenProperty>& property) override;
         void OnScreenRefresh(ScreenId id) override;
         void OnVBlankIdle(ScreenId id, uint64_t ns) override;
@@ -70,31 +85,40 @@ private:
         RSRenderService& renderService_;
     };
 
-    int Dump(int fd, const std::vector<std::u16string>& args) override;
-    void DumpSurfaceNode(std::string& dumpString, NodeId id) const;
-
+    // IPC related
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> CreateConnection(const sptr<RSIConnectionToken>& token) override;
     bool RemoveConnection(const sptr<RSIConnectionToken>& token) override;
 
-    void InitDVSyncParams(DVSyncFeatureParam &dvsyncParam);
+    // Initialization related
     void InitCCMConfig();
-
     void CoreComponentsInit();
+    void VsyncComponentInit();
     void HgmInit();
     void FeatureComponentInit();
-    void VsyncComponentInit();
     void RenderProcessManagerInit();
     bool SAMgrRegister();
 
+    // VSync related
+    DVSyncFeatureParam InitDVSyncParams();
     void HandleTouchEvent(int32_t touchStatus, int32_t touchCnt);
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
-    void FpsDump(std::string& dumpString, std::string& arg);
+
+    // Dfx related
+    int Dump(int fd, const std::vector<std::u16string>& args) override;
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
+    void FpsDump(std::string& dumpString, const std::string& arg);
+
+    // Hgm related
     const std::shared_ptr<HgmContext>& GetHgmContext() const { return hgmContext_; }
 
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
     std::shared_ptr<AppExecFwk::EventHandler> handler_ = nullptr;
+
     sptr<RSScreenManager> screenManager_ = nullptr;
     sptr<RSRenderProcessManager> renderProcessManager_ = nullptr;
+    std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
+    std::shared_ptr<HgmContext> hgmContext_ = nullptr;
+    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
+
     sptr<VSyncGenerator> vsyncGenerator_ = nullptr;
     sptr<VSyncSampler> vsyncSampler_ = nullptr;
     sptr<VSyncController> rsVSyncController_ = nullptr;
@@ -102,24 +126,20 @@ private:
     sptr<VSyncDistributor> rsVSyncDistributor_ = nullptr;
     sptr<VSyncDistributor> appVSyncDistributor_ = nullptr;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
-    std::shared_ptr<RSRenderComposerManager> rsRenderComposerManager_ = nullptr;
-    std::shared_ptr<HgmContext> hgmContext_ = nullptr;
-    std::shared_ptr<RSServiceDumper> rsDumper_ = nullptr;
 
     // TODO: DO NOT USE. Will be removed asap
     RSMainThread* mainThread_ = nullptr;
     std::shared_ptr<RSRenderPipeline> renderPipeline_ = nullptr;
-
+    mutable std::mutex mutex_;
+    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
+        connections_;
+    
     friend class RSRenderServiceAgent;
     friend class RSRenderProcessManager;
     friend class RSSingleRenderProcessManager;
     friend class RSConnectToRenderProcess;
     friend class RSClientToRenderConnection;
     friend class RSClientToServiceConnection;
-    mutable std::mutex mutex_;
-    std::map<sptr<IRemoteObject>, std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>>
-        connections_;
-
 #ifdef RS_PROFILER_ENABLED
     friend class RSProfiler;
 #endif

@@ -167,24 +167,6 @@ HWTEST_F(RSLogicalDisplayRenderNodeTest, GetWindowContainerTest, TestSize.Level1
 }
 
 /**
- * @tc.name: NotifyScreenNotSwitchingTest
- * @tc.desc: test results of NotifyScreenNotSwitching
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSLogicalDisplayRenderNodeTest, NotifyScreenNotSwitchingTest, TestSize.Level1)
-{
-    constexpr NodeId nodeId = 0;
-    RSDisplayNodeConfig config;
-    auto renderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
-    EXPECT_NE(renderNode, nullptr);
-    renderNode->NotifyScreenNotSwitching();
-    renderNode->SetScreenStatusNotifyTask([](bool status) {
-    });
-    renderNode->NotifyScreenNotSwitching();
-}
-
-/**
  * @tc.name: GetRotationTest
  * @tc.desc: test results of GetRotation
  * @tc.type: FUNC

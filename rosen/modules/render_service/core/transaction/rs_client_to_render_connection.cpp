@@ -113,11 +113,9 @@ const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 // all these pointers are valid, so will not check them.
 RSClientToRenderConnection::RSClientToRenderConnection(
     pid_t remotePid,
-    RSMainThread* mainThread,
     sptr<RSRenderPipelineAgent> renderPipelineAgent,
     sptr<IRemoteObject> token)
     : remotePid_(remotePid),
-      mainThread_(mainThread),
       renderPipelineAgent_(renderPipelineAgent),
       token_(token),
       connDeathRecipient_(new RSConnectionDeathRecipient(this)),
@@ -125,9 +123,6 @@ RSClientToRenderConnection::RSClientToRenderConnection(
 {
     if (token_ == nullptr) {
         RS_LOGW("RSClientToRenderConnection: Failed to set death recipient.");
-    }
-    if (mainThread_ == nullptr) {
-        RS_LOGW("RSClientToRenderConnection: mainThread_ is nullptr");
     }
 
     if (renderPipelineAgent_ == nullptr) {
@@ -139,43 +134,8 @@ RSClientToRenderConnection::~RSClientToRenderConnection() noexcept
 {
 }
 
-void RSClientToRenderConnection::CleanVirtualScreens() noexcept
-{
-    // std::lock_guard<std::mutex> lock(mutex_);
-
-    // if (screenManager_ != nullptr) {
-    //     for (const auto id : virtualScreenIds_) {
-    //         screenManager_->RemoveVirtualScreen(id);
-    //     }
-    // }
-    // virtualScreenIds_.clear();
-
-    // if (screenChangeCallback_ != nullptr && screenManager_ != nullptr) {
-    //     screenManager_->RemoveScreenChangeCallback(screenChangeCallback_);
-    //     screenChangeCallback_ = nullptr;
-    // }
-}
-
 void RSClientToRenderConnection::CleanRenderNodes() noexcept
 {
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    auto& context = mainThread_->GetContext();
-    auto& nodeMap = context.GetMutableNodeMap();
-
-    nodeMap.FilterNodeByPid(remotePid_);
-}
-
-void RSClientToRenderConnection::CleanFrameRateLinkers() noexcept
-{
-    // if (mainThread_ == nullptr) {
-    //     return;
-    // }
-    // auto& context = mainThread_->GetContext();
-    // auto& frameRateLinkerMap = context.GetMutableFrameRateLinkerMap();
-
-    // frameRateLinkerMap.FilterFrameRateLinkerByPid(remotePid_);
 }
 
 void RSClientToRenderConnection::CleanAll(bool toDelete) noexcept
@@ -201,9 +161,6 @@ void RSClientToRenderConnection::RSApplicationRenderThreadDeathRecipient::OnRemo
 
 ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData)
 {
-    if (!mainThread_) {
-        return ERR_INVALID_VALUE;
-    }
     pid_t callingPid = GetCallingPid();
     bool isTokenTypeValid = true;
     bool isNonSystemAppCalling = false;
@@ -215,6 +172,22 @@ ErrCode RSClientToRenderConnection::CommitTransaction(std::unique_ptr<RSTransact
 ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     return renderPipelineAgent_->ExecuteSynchronousTask(task);
+}
+
+ErrCode RSClientToRenderConnection::ForceRefreshOneFrameWithNextVSync()
+{
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->ForceRefreshOneFrameWithNextVSync();
+}
+
+ErrCode RSClientToRenderConnection::SetAppWindowNum(uint32_t num)
+{
+    if (!renderPipelineAgent_) {
+        return ERR_INVALID_VALUE;
+    }
+    return renderPipelineAgent_->SetAppWindowNum(num);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
@@ -366,7 +339,7 @@ void RSClientToRenderConnection::TakeSelfSurfaceCapture(
     NodeId id, sptr<RSISurfaceCaptureCallback> callback, const RSSurfaceCaptureConfig& captureConfig)
 {
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SELF_SURFACE_CAPTURE");
+        RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::TAKE_SELF_SURFACE_CAPTURE");
     renderPipelineAgent_->TakeSelfSurfaceCapture(id, callback, captureConfig, isSystemCalling);
 }
 
@@ -397,7 +370,7 @@ ErrCode RSClientToRenderConnection::SetWindowFreezeImmediately(NodeId id, bool i
         return ERR_INVALID_VALUE;
     }
     bool isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::SET_WINDOW_FREEZE_IMMEDIATELY");
+        RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ + "::SET_WINDOW_FREEZE_IMMEDIATELY");
     return renderPipelineAgent_->SetWindowFreezeImmediately(
         id, isFreeze, callback, captureConfig, blurParam, isSystemCalling);
 }
@@ -492,19 +465,7 @@ ErrCode RSClientToRenderConnection::SetWindowContainer(NodeId nodeId, bool value
 
 void RSClientToRenderConnection::SetScreenFrameGravity(ScreenId id, int32_t gravity)
 {
-    auto task = [weakThis = wptr<RSClientToRenderConnection>(this), id, gravity]() -> void {
-        sptr<RSClientToRenderConnection> connection = weakThis.promote();
-        if (connection == nullptr || connection->mainThread_ == nullptr) {
-            return;
-        }
-        auto& context = connection->mainThread_->GetContext();
-        context.GetNodeMap().TraverseScreenNodes([id, gravity](auto& node) {
-            if (node && node->GetScreenId() == id) {
-                node->GetMutableRenderProperties().SetFrameGravity(static_cast<Gravity>(gravity));
-            }
-        });
-    };
-    mainThread_->PostTask(task);
+    renderPipelineAgent_->SetScreenFrameGravity(id, gravity);
 }
 
 void RSClientToRenderConnection::ClearUifirstCache(NodeId id)
@@ -536,7 +497,7 @@ uint32_t RSClientToRenderConnection::SetSurfaceWatermark(pid_t pid, const std::s
         return WATER_MARK_RS_CONNECTION_ERROR;
     }
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+        RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::SET_SURFACE_WATERMARK");
     return renderPipelineAgent_->SetSurfaceWatermark(pid, name, watermark,
             nodeIdList, watermarkType, isSystemCalling);
@@ -549,7 +510,7 @@ void RSClientToRenderConnection::ClearSurfaceWatermarkForNodes(pid_t pid, const 
         return;
     }
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+        RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK_FOR_NODES");
     renderPipelineAgent_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, isSystemCalling);
 }
@@ -560,7 +521,7 @@ void RSClientToRenderConnection::ClearSurfaceWatermark(pid_t pid, const std::str
         return;
     }
     auto isSystemCalling = RSInterfaceCodeAccessVerifierBase::IsSystemCalling(
-        RSIRenderServiceConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
+        RSIClientToRenderConnectionInterfaceCodeAccessVerifier::codeEnumTypeName_ +
         "::CLEAR_SURFACE_WATERMARK");
     renderPipelineAgent_->ClearSurfaceWatermark(pid, name, isSystemCalling);
 }

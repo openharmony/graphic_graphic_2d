@@ -133,10 +133,10 @@ bool DoSetScreenPowerStatus()
 
 bool DoGetBitmap()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     Drawing::Bitmap bm;
     NodeId id = GetData<uint64_t>();
-    renderServiceClient->GetBitmap(id, bm);
+    renderPipelineClient->GetBitmap(id, bm);
     return true;
 }
 

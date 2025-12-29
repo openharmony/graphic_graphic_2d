@@ -86,7 +86,7 @@ void RSRenderToComposerConnection::SetScreenBacklight(uint32_t level)
 }
 
 void RSRenderToComposerConnection::SetComposerToRenderConnection(
-    const sptr<RSIComposerToRenderConnection>& composerToRenderConn)
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn)
 {
     RS_TRACE_NAME_FMT("RSComposerConnection::SetComposerToRenderConnection");
     if (rsRenderComposerAgent_ == nullptr) {

@@ -20,6 +20,10 @@
 #include <vector>
 #include <event_handler.h>
 #include <hdi_backend.h>
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+#include <sensor_agent.h>
+#include <sensor_agent_type.h>
+#endif
 
 #include "callback/rs_screen_callback_manager.h"
 
@@ -30,11 +34,10 @@ struct ScreenHotPlugEvent {
     std::shared_ptr<HdiOutput> output;
     bool connected = false;
 };
-
 class RSScreenPreprocessor {
 public:
-    explicit RSScreenPreprocessor(wptr<RSScreenManager> screenManager,
-        std::shared_ptr<RSScreenCallbackManager> callbackMgr, std::shared_ptr<AppExecFwk::EventHandler> handler);
+    RSScreenPreprocessor(wptr<RSScreenManager> screenManager, std::shared_ptr<RSScreenCallbackManager> callbackMgr,
+        std::shared_ptr<AppExecFwk::EventHandler> handler, bool isFoldScreen);
     ~RSScreenPreprocessor() = default;
 
     static void OnHotPlug(std::shared_ptr<HdiOutput>& output, bool connected, void* data);
@@ -53,6 +56,17 @@ private:
 
     void ConfigureScreenConnected(std::shared_ptr<HdiOutput>& output);
     void ConfigureScreenDisconnected(std::shared_ptr<HdiOutput>& output);
+
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    void InitFoldSensor();
+    void RegisterSensorCallback();
+    void UnRegisterSensorCallback();
+    static void OnBootComplete(const char* key, const char* value, void *context);
+    void OnBootCompleteEvent();
+    void HandlePostureData(const SensorEvent* const event);
+#endif
+
+    void ProcessScreenHotPlugEvents();
     void ScheduleTask(std::function<void()> task);
 
     std::atomic<bool> isHwcDead_ = false;
@@ -62,6 +76,12 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     std::map<ScreenId, ScreenHotPlugEvent> pendingHotPlugEvents_;
     mutable std::mutex hotPlugMutex_;
+    bool isFoldScreenFlag_ = false;
+#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
+    SensorUser sensorUser_;
+    bool hasRegisterSensorCallback_ = false;
+    mutable std::mutex registerSensorMutex_;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

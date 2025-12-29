@@ -22,7 +22,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSComposerToRenderConnectionProxy : public IRemoteProxy<RSIComposerToRenderConnection> {
+class RSComposerToRenderConnectionProxy : public IRemoteProxy<IRSComposerToRenderConnection> {
 public:
     explicit RSComposerToRenderConnectionProxy(const sptr<IRemoteObject>& impl);
     virtual ~RSComposerToRenderConnectionProxy() noexcept = default;

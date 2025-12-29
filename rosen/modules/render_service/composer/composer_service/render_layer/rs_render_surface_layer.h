@@ -167,6 +167,7 @@ public:
     void DumpCurrentFrameLayer() const override {};
     void SetIsNeedComposition(bool isNeedComposition) override;
     bool GetIsNeedComposition() const override;
+
 private:
     // rs layer pipeline info
     std::weak_ptr<RSComposerContext> rsComposerContext_;

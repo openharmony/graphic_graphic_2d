@@ -505,7 +505,7 @@ private:
         sptr<RSRenderService> renderService(new RSRenderService());
         if (renderService) {
             renderService->mainThread_ = RSMainThread::Instance();
-            renderService->screenManager_ = CreateOrGetScreenManager();
+            renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
         }
         if (renderService->mainThread_) {
             renderService->mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);

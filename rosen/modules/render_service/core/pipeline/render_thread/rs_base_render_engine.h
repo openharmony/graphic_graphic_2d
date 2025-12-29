@@ -33,6 +33,7 @@
 #include "include/gpu/GrDirectContext.h"
 #endif
 #include "rs_base_render_util.h"
+#include "rs_layer_transaction_data.h"
 
 #include "platform/drawing/rs_surface_frame.h"
 #include "platform/ohos/rs_surface_ohos.h"
@@ -214,10 +215,11 @@ public:
         BufferDrawParam& params, VideoInfo& videoInfo);
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
-        const ScreenInfo& screenInfo = {}, GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
+        const ComposerScreenInfo& composerScreenInfo = {},
+        GraphicColorGamut colorGamut = GRAPHIC_COLOR_GAMUT_SRGB) = 0;
 #else
     virtual void DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU = false,
-        const ScreenInfo& screenInfo = {}) = 0;
+        const ComposerScreenInfo& composerScreenInfo = {}) = 0;
 #endif
 
     static void DrawBuffer(RSPaintFilterCanvas& canvas, BufferDrawParam& params);

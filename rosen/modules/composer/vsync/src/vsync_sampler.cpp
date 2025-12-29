@@ -66,6 +66,9 @@ VSyncSampler::VSyncSampler()
 void VSyncSampler::RegSetScreenVsyncEnabledCallbackForRenderService(ScreenId vsyncEnabledScreenId,
     std::shared_ptr<AppExecFwk::EventHandler> handler)
 {
+    if (updateVsyncEnabledScreenIdCallback_ == nullptr) {
+        return;
+    }
     if(!updateVsyncEnabledScreenIdCallback_(vsyncEnabledScreenId)) {
         return;
     }
@@ -103,6 +106,9 @@ void VSyncSampler::ProcessVSyncScreenIdWhilePowerStatusChanged(ScreenId id, Scre
 
 uint64_t VSyncSampler::JudgeVSyncEnabledScreenWhileHotPlug(ScreenId screenId, bool connected)
 {
+    if (updateFoldScreenConnectStatusLockedCallback_ == nullptr) {
+        return INVALID_SCREEN_ID;
+    }
     updateFoldScreenConnectStatusLockedCallback_(screenId, connected);
     uint64_t vsyncEnabledScreenId = GetVsyncEnabledScreenId();
     std::lock_guard<std::mutex> lock(mutex_);

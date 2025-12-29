@@ -102,6 +102,199 @@ public:
 };
 
 /**
+ * @tc.name: CommitTransaction Test
+ * @tc.desc: CommitTransaction Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, CommitTransaction, TestSize.Level1)
+{
+    std::unique_ptr<RSTransactionData> transactionData;
+    proxy->CommitTransaction(transactionData);
+    transactionData = std::make_unique<RSTransactionData>();
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSAnimationCallback>(1, 1, 1, AnimationCallbackEvent::FINISHED);
+    NodeId nodeId = 1;
+    FollowType followType = FollowType::FOLLOW_TO_PARENT;
+    transactionData->AddCommand(command, nodeId, followType);
+    proxy->CommitTransaction(transactionData);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: ExecuteSynchronousTask Test
+ * @tc.desc: ExecuteSynchronousTask Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, ExecuteSynchronousTask, TestSize.Level1)
+{
+    std::shared_ptr<RSSyncTask> task;
+    proxy->ExecuteSynchronousTask(task);
+    NodeId targetId;
+    std::shared_ptr<RSRenderPropertyBase> property = std::make_shared<RSRenderProperty<bool>>();
+    task = std::make_shared<RSNodeGetShowingPropertyAndCancelAnimation>(targetId, property);
+    proxy->ExecuteSynchronousTask(task);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: CreateNode Test
+ * @tc.desc: CreateNode Test
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeTest, TestSize.Level1)
+{
+    RSDisplayNodeConfig rsDisplayNodeConfig;
+    NodeId nodeId = 100;
+    bool success = false;
+    ASSERT_EQ(proxy->CreateNode(rsDisplayNodeConfig, nodeId, success), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: CreateNodeAndSurface Test
+ * @tc.desc: CreateNodeAndSurface Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeAndSurface, TestSize.Level1)
+{
+    bool success;
+    ASSERT_EQ(proxy->CreateNode(RSSurfaceRenderNodeConfig(), success), ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+    sptr<Surface> surface = nullptr;
+    bool unobscure = false;
+    ASSERT_EQ(proxy->CreateNodeAndSurface(RSSurfaceRenderNodeConfig(), surface, unobscure), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: FillParcelWithTransactionData Test
+ * @tc.desc: FillParcelWithTransactionData Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, FillParcelWithTransactionData, TestSize.Level1)
+{
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    auto transactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
+}
+
+/**
+ * @tc.name: FillParcelWithTransactionData Test
+ * @tc.desc: FillParcelWithTransactionData Test
+ * @tc.type:FUNC
+ * @tc.require: issueICGEDM
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, FillParcelWithTransactionData002, TestSize.Level1)
+{
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    parcel->SetDataSize(102401);
+    auto transactionData = std::make_unique<RSTransactionData>();
+    ASSERT_TRUE(proxy->FillParcelWithTransactionData(transactionData, parcel));
+}
+
+/**
+ * @tc.name: RegisterApplicationAgent Test
+ * @tc.desc: RegisterApplicationAgent Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterApplicationAgent, TestSize.Level1)
+{
+    uint32_t pid = 1;
+    sptr<IApplicationAgent> app;
+    proxy->RegisterApplicationAgent(pid, app);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    app = iface_cast<IApplicationAgent>(remoteObject);
+    proxy->RegisterApplicationAgent(pid, app);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: RegisterBufferAvailableListener Test
+ * @tc.desc: RegisterBufferAvailableListener Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, RegisterBufferAvailableListener, TestSize.Level1)
+{
+    NodeId id = 1;
+    sptr<RSIBufferAvailableCallback> callback;
+    bool isFromRenderThread = true;
+    proxy->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSIBufferAvailableCallback>(remoteObject);
+    proxy->RegisterBufferAvailableListener(id, callback, isFromRenderThread);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
+}
+
+/**
+ * @tc.name: GetBitmap Test
+ * @tc.desc: GetBitmap Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetBitmap, TestSize.Level1)
+{
+    ScreenId id = 1;
+    // RSScreenType screenType = RSScreenType::VIRTUAL_TYPE_SCREEN;
+    // ASSERT_EQ(proxy->GetScreenType(id, screenType), 2);
+    Drawing::Bitmap bitmap;
+    bool success;
+    ASSERT_EQ(proxy->GetBitmap(id, bitmap, success), ERR_INVALID_VALUE);
+    ASSERT_FALSE(success);
+}
+
+/**
+ * @tc.name: SetGlobalDarkColorMode Test
+ * @tc.desc: SetGlobalDarkColorMode Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SetGlobalDarkColorMode, TestSize.Level1)
+{
+    ASSERT_TRUE(proxy->SetGlobalDarkColorMode(true) == ERR_OK);
+}
+
+/**
+ * @tc.name: GetPixelmap Test
+ * @tc.desc: GetPixelmap Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, GetPixelmap, TestSize.Level1)
+{
+    std::shared_ptr<Media::PixelMap> pixelmap = std::make_shared<Media::PixelMap>();
+    Drawing::Rect rect;
+    NodeId id = 1;
+    std::shared_ptr<Drawing::DrawCmdList> drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    bool result;
+    ASSERT_EQ(proxy->GetPixelmap(id, pixelmap, &rect, drawCmdList, result), ERR_INVALID_VALUE);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetSystemAnimatedScenes Test
+ * @tc.desc: SetSystemAnimatedScenes Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, SetSystemAnimatedScenes, TestSize.Level1)
+{
+    // proxy->SetAppWindowNum(1);
+    bool success;
+    proxy->SetSystemAnimatedScenes(SystemAnimatedScenes::ENTER_MISSION_CENTER, false, success);
+    ASSERT_FALSE(success);
+}
+
+/**
  * @tc.name: SetFocusAppInfo Test
  * @tc.desc: SetFocusAppInfo Test
  * @tc.type:FUNC
@@ -378,6 +571,25 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, SetScreenFrameGravity, TestSize.Le
     int32_t gravity = 5;
     proxy->SetScreenFrameGravity(id, gravity);
     ASSERT_NE(proxy->transactionDataIndex_, 5);
+}
+
+/**
+ * @tc.name: RegisterBufferClearListener Test
+ * @tc.desc: RegisterBufferClearListener Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, RegisterBufferClearListener, TestSize.Level1)
+{
+    NodeId id = 1;
+    sptr<RSIBufferClearCallback> callback;
+    proxy->RegisterBufferClearListener(id, callback);
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    ASSERT_NE(samgr, nullptr);
+    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
+    callback = iface_cast<RSIBufferClearCallback>(remoteObject);
+    proxy->RegisterBufferClearListener(id, callback);
+    ASSERT_EQ(proxy->transactionDataIndex_, 0);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -19,6 +19,7 @@
 #include "hdi_backend.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "hgm_info_parcel.h"
+#include "screen_manager/rs_screen_property.h"
 #include "transaction/rp_hgm_config_data.h"
 #include "variable_frame_rate/rs_variable_frame_rate.h"
 #include "vsync_distributor.h"
@@ -71,31 +72,14 @@ public:
     bool NotifySoftVsyncRateDiscountEvent(
         uint32_t pid, const std::string& name, uint32_t rateDiscount, sptr<VSyncDistributor> appVSyncDistributor);
     void NotifyPageName(pid_t pid, const std::string& packageName, const std::string& pageName, bool isEnter);
-    void UpdateRenderProcessPid(ScreenId screenId, pid_t pid);
 
-    FrameRateRange& GetRSCurrRangeRef()
-    {
-        return rsCurrRange_;
-    }
-    std::shared_ptr<RSRenderFrameRateLinker> GetRSFrameRateLinker() const
-    {
-        return rsFrameRateLinker_;
-    }
+    std::shared_ptr<RSRenderFrameRateLinker> GetRSFrameRateLinker() const { return rsFrameRateLinker_; }
 
-    uint64_t GetCurrVsyncId()
-    {
-        return currVsyncId_;
-    }
-    uint64_t GetLastForceUpdateVsyncId()
-    {
-        return lastForceUpdateVsyncId_;
-    }
-    void SetLastForceUpdateVsyncId(uint64_t currVsyncId)
-    {
-        lastForceUpdateVsyncId_ = currVsyncId;
-    }
+    uint64_t GetCurrVsyncId() { return currVsyncId_; }
+    uint64_t GetLastForceUpdateVsyncId() { return lastForceUpdateVsyncId_; }
+    void SetLastForceUpdateVsyncId(uint64_t currVsyncId) { lastForceUpdateVsyncId_ = currVsyncId; }
 
-    void AddScreenToHgm(ScreenId screenId);
+    void AddScreenToHgm(const sptr<RSScreenProperty>& property);
 
     void RemoveScreenFromHgm(ScreenId screenId);
 

@@ -49,6 +49,7 @@ public:
     void SetFocusedNodeId(NodeId focusedNodeId);
     void PushWindowNodeId(NodeId nodeId);
     void ClearLastVisMapForVsyncRate();
+    bool CheckNeedNotify();
     bool GetVRateReduceEnabled() const
     {
         return vRateReduceEnabled_;
@@ -67,7 +68,7 @@ public:
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
 
-    std::map<NodeId, int> GetVrateMap()
+    const std::unordered_map<NodeId, int> GetVrateMap() const
     {
         return vSyncRateMap_;
     }
@@ -79,7 +80,6 @@ public:
 private:
     int UpdateRatesLevel();
     void CalcRates();
-    bool CheckNeedNotify();
     int GetRateByBalanceLevel(double vVal);
     void EnqueueFrameDuration(float duration);
     static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);
@@ -95,8 +95,8 @@ private:
     bool vRateReduceEnabled_ = false;
     bool vRateConditionQualified_ = false;
     bool vSyncRatesChanged_ = false;
-    std::map<NodeId, int> vSyncRateMap_;
-    std::map<NodeId, int> lastVSyncRateMap_;
+    std::unordered_map<NodeId, int> vSyncRateMap_;
+    std::unordered_map<NodeId, int> lastVSyncRateMap_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     std::vector<NodeId> lastAllMainAndLeashWindowNodesIds_;
     std::map<NodeId, RSVisibleLevel> visMapForVSyncVisLevel_;
@@ -124,13 +124,13 @@ private:
 
 class RSVsyncRateReduceManager {
 public:
-    static void TransformNodeToLinkersRateMap(
-        const std::map<NodeId, int>& vRateMap, sptr<VSyncDistributor> appVSyncDistributor);
+    static void TransformNodeToLinkersRateMap(const std::unordered_map<NodeId, int>& vRateMap,
+        bool isNeedRefreshVRate, sptr<VSyncDistributor> appVSyncDistributor);
     static bool SetVSyncRatesChangeStatus(bool newState);
     static std::map<uint64_t, int> GetLinkersRateMap();
 private:
         static inline std::map<uint64_t, int> linkersRateMap_;
-        static inline std::map<NodeId, int> lastVSyncRateMap_;
+        static inline std::unordered_map<NodeId, int> lastVSyncRateMap_;
         static inline std::atomic<bool> needPostTask_ { false };
 };
 } // namespace Rosen

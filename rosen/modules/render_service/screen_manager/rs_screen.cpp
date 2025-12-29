@@ -77,19 +77,14 @@ std::map<ScreenHDRFormat, GraphicHDRFormat> RSScreen::RS_TO_HDI_HDR_FORMAT_MAP {
 
 constexpr int MAX_LUM = 1000;
 
-RSScreen::RSScreen(std::shared_ptr<HdiOutput> output) : hdiOutput_(std::move(output))
+RSScreen::RSScreen(ScreenId id)
 {
-    ScreenId id = hdiOutput_ ? ToScreenId(hdiOutput_->GetScreenId()) : INVALID_SCREEN_ID;
     property_.SetId(id);
     property_.SetIsVirtual(false);
     hdrCapability_.formatCount = 0;
     std::string name = "Screen_" + std::to_string(id);
     property_.SetName(name);
-    if (hdiOutput_) {
-        property_.SetState(ScreenState::HDI_OUTPUT_ENABLE);
-    } else {
-        property_.SetState(ScreenState::DISABLED);
-    }
+    property_.SetState(ScreenState::HDI_OUTPUT_ENABLE);
     PhysicalScreenInit();
     HILOG_COMM_WARN("init physical: {id: %{public}" PRIu64 ", w * h: [%{public}u * %{public}u], "
         "screenType: %{public}u}", id, property_.GetWidth(), property_.GetHeight(), property_.GetScreenType());
@@ -145,7 +140,7 @@ void RSScreen::PhysicalScreenInit() noexcept
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenSupportedModes.", __func__, id);
     } else {
         std::string logString;
-        decltype(supportedModes_.size()) modeIndex = 0;
+        size_t modeIndex = 0;
         for (; modeIndex < supportedModes_.size(); ++modeIndex) {
             AppendFormat(logString, ";supportedMode[%zu]: %ux%u, refreshRate=%u, modeId=%d",
                          modeIndex, supportedModes_[modeIndex].width, supportedModes_[modeIndex].height,
@@ -421,6 +416,9 @@ uint32_t RSScreen::SetActiveMode(uint32_t modeId)
             ", activeModeId: %{public}d, size:[%{public}u, %{public}u], RefreshRate:[%{public}u]",
             __func__, property_.GetId(), activeMode->id, activeMode->width, activeMode->height, activeMode->freshRate);
     }
+    if (resolutionChanging) {
+        UpdateSamplingScale(activeMode->width, activeMode->height, property_.GetWidth(), property_.GetHeight());
+    }
     property_.SetState(preState);
     if (onPropertyChange_) {
         onPropertyChange_(property_.Clone());
@@ -495,50 +493,13 @@ bool RSScreen::CalculateMaskRectAndReviseRect(const GraphicIRect& activeRect, Gr
     return false;
 }
 
-void RSScreen::SetRogResolution(uint32_t width, uint32_t height)
-{
-    if (!hdiScreen_) {
-        RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
-        return;
-    }
-
-    if ((width == 0 || height == 0) ||
-        (width == property_.GetWidth() && height == property_.GetHeight()) ||
-        (width > property_.GetPhyWidth() || height > property_.GetPhyHeight())) {
-        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
-        return;
-    }
-
-    if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
-        RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
-        return;
-    }
-    isRogResolution_ = true;
-    property_.SetWidth(width);
-    property_.SetHeight(height);
-    RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 "), width: %{public}u,"
-        " height: %{public}u, phywidth: %{public}u, phyHeight: %{public}u.",
-        __func__, property_.GetId(), width, height, property_.GetPhyWidth(), property_.GetPhyHeight());
-}
-
-int32_t RSScreen::GetRogResolution(uint32_t& width, uint32_t& height)
-{
-    if (isRogResolution_) {
-        width = property_.GetWidth();
-        height = property_.GetHeight();
-        RS_LOGD("%{public}s: width: %{public}u, height: %{public}u.", __func__, width, height);
-        return StatusCode::SUCCESS;
-    }
-    return StatusCode::INVALID_ARGUMENTS;
-}
-
 int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
 {
-    HILOG_COMM_INFO("SetResolution screenId:%{public}" PRIu64 " width: %{public}u height: %{public}u",
-                    property_.GetId(), width, height);
-    if (width == property_.GetWidth() && height == property_.GetHeight()) {
-        return StatusCode::SUCCESS;
-    }
+    auto phyWidth = property_.GetPhyWidth();
+    auto phyHeight = property_.GetPhyHeight();
+    HILOG_COMM_INFO("%{public}s screenId: %{public}" PRIu64 " width: %{public}u height: %{public}u,"
+                    "phyWidth: %{public}u, phyHeight: %{public}u.",
+                    __func__, property_.GetId(), width, height, phyWidth, phyHeight);
     if (IsVirtual()) {
         property_.SetWidth(width);
         property_.SetHeight(height);
@@ -547,34 +508,51 @@ int32_t RSScreen::SetResolution(uint32_t width, uint32_t height)
         }
         return StatusCode::SUCCESS;
     }
-    auto phyWidth = property_.GetPhyWidth();
-    auto phyHeight = property_.GetPhyHeight();
-    if (width < phyWidth || height < phyHeight) {
-        HILOG_COMM_ERROR("SetResolution phyWidth: %{public}u phyHeight: %{public}u", phyWidth, phyHeight);
+    bool isValidArgs = (width > 0 && width <= phyWidth && height > 0 && height <= phyHeight) ||
+                       (width >= phyWidth && height >= phyHeight);
+    if (!isValidArgs) {
+        HILOG_COMM_ERROR("%{public}s invalid arguments width: %{public}u, height: %{public}u", __func__, width, height);
         return StatusCode::INVALID_ARGUMENTS;
+    }
+    if (!hdiScreen_) {
+        RS_LOGE("%{public}s failed, hdiScreen_ is nullptr", __func__);
+        return StatusCode::HDI_ERROR;
+    }
+
+    if (width <= phyWidth && height <= phyHeight) {
+        // smaller size to set rog resolution
+        if (hdiScreen_->SetScreenOverlayResolution(width, height) < 0) {
+            RS_LOGE("%{public}s: hdi set screen rog resolution failed.", __func__);
+            return StatusCode::HDI_ERROR;
+        }
     }
     property_.SetWidth(width);
     property_.SetHeight(height);
-    bool isSamplingOn = (width > phyWidth || height > phyHeight) && width > 0 && height > 0;
-    property_.SetIsSamplingOn(isSamplingOn);
-    if (isSamplingOn) {
-        auto samplingScale = std::min(static_cast<float>(phyWidth) / width, static_cast<float>(phyHeight) / height);
-        property_.SetSamplingScale(samplingScale);
-        property_.SetSamplingTranslateX((phyWidth - width * samplingScale) / 2.f);
-        property_.SetSamplingTranslateY((phyHeight - height * samplingScale) / 2.f);
-        HILOG_COMM_INFO("SetResolution: sampling is enabled. "
-            "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
-            samplingScale, property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY());
-    }
+    UpdateSamplingScale(phyWidth, phyHeight, width, height);
     if (onPropertyChange_) {
         onPropertyChange_(property_.Clone());
     }
     return StatusCode::SUCCESS;
 }
 
+void RSScreen::UpdateSamplingScale(uint32_t phyWidth, uint32_t phyHeight, uint32_t width, uint32_t height)
+{
+    bool isSamplingOn = (width >= phyWidth && height >= phyHeight) && !(width == phyWidth && height == phyHeight);
+    property_.SetIsSamplingOn(isSamplingOn);
+    if (isSamplingOn) {
+        auto samplingScale = std::min(static_cast<float>(phyWidth) / width, static_cast<float>(phyHeight) / height);
+        property_.SetSamplingScale(samplingScale);
+        property_.SetSamplingTranslateX((phyWidth - width * samplingScale) / 2.f);
+        property_.SetSamplingTranslateY((phyHeight - height * samplingScale) / 2.f);
+        HILOG_COMM_INFO("%{public}s: sampling is enabled. "
+            "scale: %{public}f, translateX: %{public}f, translateY: %{public}f",
+            __func__, samplingScale, property_.GetSamplingTranslateX(), property_.GetSamplingTranslateY());
+    }
+}
+
 int32_t RSScreen::GetActiveModePosByModeId(int32_t modeId) const
 {
-    decltype(supportedModes_.size()) modeIndex = 0;
+    size_t modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
         if (supportedModes_[modeIndex].id == modeId) {
             return static_cast<int32_t>(modeIndex);
@@ -685,11 +663,6 @@ ScreenPowerStatus RSScreen::GetPowerStatus()
     return static_cast<ScreenPowerStatus>(status);
 }
 
-std::shared_ptr<HdiOutput> RSScreen::GetOutput() const
-{
-    return hdiOutput_;
-}
-
 sptr<Surface> RSScreen::GetProducerSurface() const
 {
     return property_.GetProducerSurface();
@@ -710,7 +683,7 @@ void RSScreen::SetProducerSurface(sptr<Surface> producerSurface)
 
 void RSScreen::ModeInfoDump(std::string& dumpString)
 {
-    decltype(supportedModes_.size()) modeIndex = 0;
+    size_t modeIndex = 0;
     for (; modeIndex < supportedModes_.size(); ++modeIndex) {
         AppendFormat(dumpString, "supportedMode[%d]: %dx%d, refreshRate=%d\n",
                      modeIndex, supportedModes_[modeIndex].width,
@@ -1560,16 +1533,6 @@ void RSScreen::InitDisplayPropertyForHardCursor()
     property_.SetIsHardCursorSupport(isHardCursorSupport);
     RS_LOGI("%{public}s, RSScreen(id %{public}" PRIu64 ", isHardCursorSupport:%{public}d)",
         __func__, property_.GetId(), property_.GetIsHardCursorSupport());
-}
-
-void RSScreen::SetHasProtectedLayer(bool hasProtectedLayer)
-{
-    hasProtectedLayer_ = hasProtectedLayer;
-}
-
-bool RSScreen::GetHasProtectedLayer()
-{
-    return hasProtectedLayer_;
 }
 
 int32_t RSScreen::GetDisplayIdentificationData(uint8_t& outPort, std::vector<uint8_t>& edidData) const

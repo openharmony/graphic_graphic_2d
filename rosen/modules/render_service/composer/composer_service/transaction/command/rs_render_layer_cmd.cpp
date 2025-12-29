@@ -63,7 +63,7 @@ bool RSRenderLayer##CMD_NAME##Cmd::Marshalling(OHOS::MessageParcel& parcel)     
     bool flag = parcel.WriteUint16(static_cast<uint16_t>(RSLayerCmdType::CMD_TYPE)) &&                            \
         (renderProperty != nullptr && renderProperty->OnMarshalling(parcel, renderProperty->Get()));              \
     if (!flag) {                                                                                                  \
-        ROSEN_LOGE("RSRenderLayerProperty::Marshalling failed");                                               \
+        ROSEN_LOGE("RSRenderLayerProperty::Marshalling failed");                                                  \
     }                                                                                                             \
     return flag;                                                                                                  \
 }                                                                                                                 \

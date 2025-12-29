@@ -124,9 +124,9 @@ bool DoSetVirtualMirrorScreenScaleMode()
 
 bool DoSetGlobalDarkColorMode()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     bool isDark = GetData<bool>();
-    renderServiceClient->SetGlobalDarkColorMode(isDark);
+    renderPipelineClient->SetGlobalDarkColorMode(isDark);
     return true;
 }
 
@@ -231,9 +231,9 @@ bool DoRegisterHgmConfigChangeCallback()
 
 bool DoSetSystemAnimatedScenes()
 {
-    std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
+    std::shared_ptr<RSRenderPipelineClient> renderPipelineClient = std::make_shared<RSRenderPipelineClient>();
     SystemAnimatedScenes systemAnimatedScenes = SystemAnimatedScenes::ENTER_MISSION_CENTER;
-    renderServiceClient->SetSystemAnimatedScenes(systemAnimatedScenes, false);
+    renderPipelineClient->SetSystemAnimatedScenes(systemAnimatedScenes, false);
     return true;
 }
 

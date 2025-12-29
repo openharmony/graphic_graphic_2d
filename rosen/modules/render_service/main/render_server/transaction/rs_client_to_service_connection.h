@@ -40,7 +40,6 @@ class RSClientToServiceConnection : public RSClientToServiceConnectionStub {
 public:
     RSClientToServiceConnection(
         pid_t remotePid,
-        wptr<RSRenderService> renderService,
         sptr<RSRenderServiceAgent> renderServiceAgent,
         sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent,
         RSMainThread* mainThread,
@@ -64,7 +63,6 @@ public:
 private:
     void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
-    void CleanFrameRateLinkers() noexcept;
     void CleanBrightnessInfoChangeCallbacks();
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     void CleanCanvasCallbacksAndPendingBuffer() noexcept;
@@ -179,13 +177,9 @@ private:
 
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height) override;
 
-    int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height) override;
-
     ErrCode MarkPowerOffNeedProcessOneFrame() override;
 
     ErrCode RepaintEverything() override;
-
-    ErrCode ForceRefreshOneFrameWithNextVSync() override;
 
     void DisablePowerOffRenderControl(ScreenId id) override;
 
@@ -284,8 +278,6 @@ private:
     int32_t RegisterFrameRateLinkerExpectedFpsUpdateCallback(int32_t dstPid,
         sptr<RSIFrameRateLinkerExpectedFpsUpdateCallback> callback) override;
 
-    ErrCode SetAppWindowNum(uint32_t num) override;
-
     void ShowWatermark(const std::shared_ptr<Media::PixelMap> &watermarkImg, bool isShow) override;
 
     ErrCode SetWatermark(const std::string& name,
@@ -334,7 +326,7 @@ private:
 
     ErrCode SetCacheEnabledForRotation(bool isEnabled) override;
 
-    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& success) override;
+    ErrCode SetVirtualScreenStatus(ScreenId id, VirtualScreenStatus screenStatus, bool& res) override;
 
     std::vector<ActiveDirtyRegionInfo> GetActiveDirtyRegionInfo() override;
 
@@ -404,14 +396,10 @@ private:
     std::string GetBundleName(pid_t pid) override;
 
     pid_t remotePid_;
-    wptr<RSRenderService> renderService_;
     sptr<RSRenderServiceAgent> renderServiceAgent_;
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent_ = nullptr;
     RSMainThread* mainThread_ = nullptr;
     std::shared_ptr<HgmContext> hgmContext_ = nullptr;
-#ifdef RS_ENABLE_GPU
-    RSUniRenderThread& renderThread_;
-#endif
     sptr<RSScreenManagerAgent> screenManagerAgent_;
     sptr<IRemoteObject> token_;
 
@@ -449,9 +437,6 @@ private:
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
     
-    // save all virtual screenIds created by this connection.
-    std::unordered_set<ScreenId> virtualScreenIds_;
-    sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
 
 #ifdef RS_PROFILER_ENABLED

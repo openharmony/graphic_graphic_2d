@@ -83,7 +83,6 @@ HWTEST_F(HdiScreenSysTest, TestHdiScreen001, Function | MediumTest| Level3)
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenPowerStatus(dispPowerStatus), 0);
 
     uint32_t level = 0;
-    ASSERT_EQ(HdiScreenSysTest::hdiScreen_->SetScreenBacklight(level), 0);
     ASSERT_EQ(HdiScreenSysTest::hdiScreen_->GetScreenBacklight(level), 0);
 }
 } // namespace

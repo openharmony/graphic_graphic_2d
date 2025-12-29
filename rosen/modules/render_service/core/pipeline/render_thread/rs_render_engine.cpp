@@ -67,13 +67,13 @@ void RSRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas, RSSu
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ScreenInfo& screenInfo, GraphicColorGamut colorGamut)
+    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut)
 #else
 void RSRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ScreenInfo& screenInfo)
+    const ComposerScreenInfo& composerScreenInfo)
 #endif
 {
-    (void) screenInfo;
+    (void) composerScreenInfo;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
     (void) colorGamut;
 #endif

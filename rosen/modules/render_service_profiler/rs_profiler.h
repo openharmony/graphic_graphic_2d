@@ -480,7 +480,7 @@ public:
     static void OnCreateConnection(pid_t pid);
 
     // see RenderServiceConnection::OnRemoteRequest
-    static uint64_t OnRemoteRequest(RSIClientToServiceConnection* connection, uint32_t code, MessageParcel& parcel,
+    static uint64_t OnRemoteRequest(RSIClientToRenderConnection* connection, uint32_t code, MessageParcel& parcel,
         MessageParcel& reply, MessageOption& option);
     static uint64_t WriteRemoteRequest(pid_t pid, uint32_t code, MessageParcel& parcel, MessageOption& option);
 

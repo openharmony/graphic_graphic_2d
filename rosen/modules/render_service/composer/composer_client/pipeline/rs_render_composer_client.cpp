@@ -23,26 +23,26 @@ constexpr uint32_t COMPOSER_THREAD_TASK_NUM = 2;
 constexpr uint32_t WAIT_FOR_COMPOSER_THREAD_TASK_TIMEOUT = 3000;
 };
 
-RSRenderComposerClient::RSRenderComposerClient(bool isMultiProcess,
+RSRenderComposerClient::RSRenderComposerClient(
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
     const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
-    : isMultiProcess_(isMultiProcess), rsVsyncManagerAgent_(rsVsyncManagerAgent)
+    : rsVsyncManagerAgent_(rsVsyncManagerAgent)
 {
     rsComposerContext_ = std::make_shared<RSComposerContext>();
     rsComposerContext_->SetRenderComposerClientConnection(renderToComposerConn);
     renderToComposerConn_ = renderToComposerConn;
 }
 
-std::shared_ptr<RSRenderComposerClient> RSRenderComposerClient::Create(bool isMultiProcess,
+std::shared_ptr<RSRenderComposerClient> RSRenderComposerClient::Create(
     const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-    const sptr<RSIComposerToRenderConnection>& composerToRenderConn,
+    const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
     const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent)
 {
     RS_TRACE_NAME_FMT("RSRenderComposerClient::Create");
     if (renderToComposerConn != nullptr) {
         renderToComposerConn->SetComposerToRenderConnection(composerToRenderConn);
     }
-    return std::make_shared<RSRenderComposerClient>(isMultiProcess, renderToComposerConn, rsVsyncManagerAgent);
+    return std::make_shared<RSRenderComposerClient>(renderToComposerConn, rsVsyncManagerAgent);
 }
 
 std::shared_ptr<RSLayer> RSRenderComposerClient::GetRSLayer(RSLayerId rsLayerId)
@@ -81,10 +81,10 @@ void RSRenderComposerClient::UpdatePipelineParam(const PipelineParam& pipelinePa
     pipelineParam_ = pipelineParam;
 }
 
-bool RSRenderComposerClient::RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc)
+void RSRenderComposerClient::RegistOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB cb)
 {
     std::unique_lock<std::mutex> lock(clientMutex_);
-    return rsComposerContext_->RegistOnBufferReleaseFunc(onBufferReleaseFunc);
+    rsComposerContext_->RegistOnReleaseLayerBuffersCB(cb);
 }
 
 void RSRenderComposerClient::ReleaseLayerBuffers(uint64_t screenId,
@@ -97,11 +97,11 @@ void RSRenderComposerClient::ReleaseLayerBuffers(uint64_t screenId,
         NotifyComposerThreadCanExecuteTask();
     }
     rsComposerContext_->ReleaseLayerBuffers(screenId, timestampVec, releaseBufferFenceVec);
-
 }
 
-std::shared_ptr<RSComposerContext> RSRenderComposerClient::GetComposerContext() const
+std::shared_ptr<RSComposerContext> RSRenderComposerClient::GetComposerContext()
 {
+    std::unique_lock<std::mutex> lock(clientMutex_);
     return rsComposerContext_;
 }
 
@@ -186,5 +186,22 @@ void RSRenderComposerClient::DumpCurrentFrameLayers()
     std::lock_guard<std::mutex> lock(clientMutex_);
     rsComposerContext_->DumpCurrentFrameLayers();
 }
+
+void RSRenderComposerClient::ConvertScreenInfo(const ScreenInfo& screenInfo, ComposerScreenInfo& composerScreenInfo)
+{
+    composerScreenInfo.id = screenInfo.id;
+    composerScreenInfo.width = screenInfo.width;
+    composerScreenInfo.height = screenInfo.height;
+    composerScreenInfo.phyWidth = screenInfo.phyWidth;
+    composerScreenInfo.phyHeight = screenInfo.phyHeight;
+    composerScreenInfo.isSamplingOn = screenInfo.isSamplingOn;
+    composerScreenInfo.samplingTranslateX = screenInfo.samplingTranslateX;
+    composerScreenInfo.samplingTranslateY = screenInfo.samplingTranslateY;
+    composerScreenInfo.samplingScale = screenInfo.samplingScale;
+    composerScreenInfo.activeRect = screenInfo.activeRect;
+    composerScreenInfo.maskRect = screenInfo.maskRect;
+    composerScreenInfo.reviseRect = screenInfo.reviseRect;
+}
+
 } // namespace Rosen
 } // namespace OHOS

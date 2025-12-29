@@ -281,6 +281,16 @@ bool RSRenderInterface::RegisterTransactionDataCallback(
     return renderPipelineClient_->RegisterTransactionDataCallback(token, timeStamp, callback);
 }
 
+void RSRenderInterface::SetAppWindowNum(uint32_t num)
+{
+    renderPipelineClient_->SetAppWindowNum(num);
+}
+
+void RSRenderInterface::ForceRefreshOneFrameWithNextVSync()
+{
+    renderPipelineClient_->ForceRefreshOneFrameWithNextVSync();
+}
+
 void RSRenderInterface::ClearUifirstCache(NodeId id)
 {
     if (renderPipelineClient_ == nullptr) {

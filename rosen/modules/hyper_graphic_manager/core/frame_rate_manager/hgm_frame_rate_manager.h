@@ -179,11 +179,11 @@ public:
     void UpdateSoftVSync(bool followRs);
     void SetHgmConfigUpdateCallback(
         std::function<void(std::shared_ptr<RPHgmConfigData>, bool, bool, int32_t)> hgmConfigUpdateCallback);
+    void SyncHgmConfigUpdateCallback();
     void SetAdaptiveVsyncUpdateCallback(std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback)
     {
-        adaptiveVsyncUpdateCallback_ = adaptiveVsyncUpdateCallback;
+        adaptiveVsyncUpdateCallback_ = std::move(adaptiveVsyncUpdateCallback);
     }
-    void UpdateRenderProcessPid(ScreenId screenId, pid_t pid);
 
 private:
     friend class HgmUserDefineImpl;
@@ -261,16 +261,7 @@ private:
             hgmConfigUpdateCallback_(configData, ltpoEnabled, isDelayMode, pipelineOffsetPulseNum);
         }
     }
-    void SyncHgmConfigUpdateCallback();
-    void TriggerAdaptiveVsyncUpdateCallback()
-    {
-        if (adaptiveVsyncUpdateCallback_ &&
-            (lastIsAdaptive_.load() != isAdaptive_.load() || lastGameNodeName_ != curGameNodeName_)) {
-            lastIsAdaptive_.store(isAdaptive_.load());
-            lastGameNodeName_ = curGameNodeName_;
-            adaptiveVsyncUpdateCallback_(lastIsAdaptive_, lastGameNodeName_);
-        }
-    }
+    void TriggerAdaptiveVsyncUpdateCallback();
 
     std::atomic<uint32_t> currRefreshRate_ = 0;
 
@@ -349,7 +340,6 @@ private:
     bool isLowPowerSlide_ = false;
     bool slideModeChange_ = false;
 
-    pid_t renderProcessPid_;
     std::atomic<int32_t> lastIsAdaptive_ = SupportASStatus::NOT_SUPPORT;
     std::string lastGameNodeName_;
     std::function<void(bool, const std::string&)> adaptiveVsyncUpdateCallback_ = nullptr;

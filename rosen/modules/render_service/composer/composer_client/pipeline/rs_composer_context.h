@@ -26,7 +26,8 @@
 namespace OHOS {
 namespace Rosen {
 
-using OnBufferReleaseFunc = std::function<void(uint64_t, sptr<SyncFence>)>;
+using OnReleaseLayerBuffersCB = std::function<void(std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>>& rsLayers,
+    std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec)>;
 
 class RSC_EXPORT RSComposerContext : public std::enable_shared_from_this<RSComposerContext> {
 public:
@@ -53,12 +54,11 @@ protected:
     void ClearFrameBuffers();
     void DumpLayersInfo(std::string &dumpString);
     void DumpCurrentFrameLayers();
-    bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc)
+    void RegistOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB onReleaseLayerBuffersCB)
     {
-        if (onBufferReleaseFunc_ == nullptr) {
-            onBufferReleaseFunc_ = onBufferReleaseFunc;
+        if (onReleaseLayerBuffersCB_ == nullptr) {
+            onReleaseLayerBuffersCB_ = onReleaseLayerBuffersCB;
         }
-        return true;
     }
 
 private:
@@ -68,8 +68,9 @@ private:
     mutable std::mutex rsLayerMutex_;
     std::unordered_map<RSLayerId, std::weak_ptr<RSLayer>> rsLayers_;
     sptr<IRSRenderToComposerConnection> rsComposerConnection_;
+    std::vector<RSLayerId> lastCommitLayersId_;
 
-    OnBufferReleaseFunc onBufferReleaseFunc_ = nullptr;
+    OnReleaseLayerBuffersCB onReleaseLayerBuffersCB_ = nullptr;
     friend class RSRenderComposerClient;
     friend class RSSurfaceLayer;
     friend class RSSurfaceRCDLayer;

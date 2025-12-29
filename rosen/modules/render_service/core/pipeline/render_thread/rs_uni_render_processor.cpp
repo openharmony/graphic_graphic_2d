@@ -201,7 +201,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     auto acquireFence = offlineResult ? offlineResult->acquireFence : params.GetAcquireFence();
     auto consumer = offlineResult ? offlineResult->consumer : surfaceDrawable.GetConsumerOnDraw();
     RSLayerPtr layer = GetLayerInfo(static_cast<RSSurfaceRenderParams&>(params), buffer, preBuffer,
-        surfaceDrawable.GetConsumerOnDraw(), params.GetAcquireFence());
+        consumer, acquireFence, offlineResult);
     if (layer == nullptr) {
         RS_LOGE("CreateLayerForRenderThread failed to get layer info.");
         return;

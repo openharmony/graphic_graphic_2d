@@ -41,7 +41,6 @@ group("unittest") {
     ":RSWindowKeyFrameDrawableTest",
     ":RSWindowCaptureTaskTest",
     ":RSHpaeRenderListenerTest",
-    ":RSPowerOffRenderSkipTest",
   ]
   if (graphic_2d_feature_enable_rdo) {
     deps += [ ":RSRDOTest" ]
@@ -134,6 +133,7 @@ ohos_unittest("RSSurfaceCaptureParallelTaskTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
@@ -170,6 +170,7 @@ ohos_unittest("RSSurfaceCaptureTaskTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
   ]
   include_dirs =
       [ "$graphic_2d_root/rosen/modules/render_service_base/include" ]
@@ -1211,17 +1212,6 @@ ohos_unittest("RSHpaeManagerTest") {
 ohos_unittest("RSChipsetVsyncTest") {
   module_out_path = module_output_path
   sources = [ "chipset_vsync/rs_chipset_vsync_test.cpp" ]
-  deps = [ ":rs_test_common" ]
-  external_deps = [
-    "c_utils:utils",
-    "hilog:libhilog",
-  ]
-}
-
-##Build RSPowerOffRenderSkipTest
-ohos_unittest("RSPowerOffRenderSkipTest") {
-  module_out_path = module_output_path
-  sources = [ "power_off_render_skip/power_off_render_skip_test.cpp" ]
   deps = [ ":rs_test_common" ]
   external_deps = [
     "c_utils:utils",

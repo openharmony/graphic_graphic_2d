@@ -70,7 +70,7 @@ void RSHeteroHDRBufferLayer::CleanCache()
     }
 }
 
-sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderParams* surfaceParams, ScreenId screenId)
+sptr<SurfaceBuffer> RSHeteroHDRBufferLayer::PrepareHDRDstBuffer(RSSurfaceRenderParams* surfaceParams)
 {
     if (!RSHeteroHDRUtil::ValidateSurface(surfaceParams)) {
         return nullptr;

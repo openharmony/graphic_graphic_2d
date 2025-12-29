@@ -1,0 +1,193 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
+
+module_out_path = "graphic_2d/graphic_2d/render_service/composer/composer_service/layer_backend"
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":hdibackend_unit_test",
+    ":hdilayer_unit_test",
+    ":hdioutput_unit_test",
+  ]
+}
+
+###############################################################################
+
+# Common settings for layer_backend unittest targets
+lb_include_dirs = [
+  "$graphic_2d_root/interfaces/inner_api/common",
+  "$graphic_2d_root/rosen/include/common",
+  "$graphic_2d_root/rosen/modules/2d_graphics/include",
+  "$graphic_2d_root/rosen/modules/composer/hdi_backend/include",
+  "$graphic_2d_root/rosen/modules/composer/vsync/include",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/common",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/config",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/frame_rate_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/hgm_screen_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/soft_vsync_manager",
+  "$graphic_2d_root/rosen/modules/hyper_graphic_manager/core/utils",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/render_layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/command",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/connection/zidl",
+  "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline",
+  "$graphic_2d_root/rosen/modules/render_service/core",
+  "$graphic_2d_root/rosen/modules/render_service_base/include",
+  "$graphic_2d_root/rosen/modules/render_service_base/src",
+  "$graphic_2d_root/rosen/modules/utils",
+]
+
+lb_core_deps = [
+  "$graphic_2d_root/rosen/modules/composer:libcomposer",
+  "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+  "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  "$graphic_2d_root/rosen/modules/render_service_base:librender_service_base",
+]
+
+lb_ext_common = [
+  "c_utils:utils",
+  "drivers_interface_display:libdisplay_commontype_proxy_1.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.0",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.1",
+  "drivers_interface_display:libdisplay_commontype_proxy_2.2",
+  "eventhandler:libeventhandler",
+  "graphic_surface:surface",
+  "hilog:libhilog",
+  "hisysevent:libhisysevent",
+  "init:libbegetutil",
+  "ipc:ipc_core",
+  "libxml2:libxml2",
+]
+
+lb_ext_unittest = lb_ext_common + [
+                    "drivers_interface_display:display_commontype_idl_headers",
+                    "drivers_interface_display:libdisplay_composer_proxy_1.0",
+                    "drivers_interface_display:libdisplay_composer_proxy_1.1",
+                    "googletest:gmock_main",
+                    "googletest:gtest_main",
+                    "hitrace:hitrace_meter",
+                    "samgr:samgr_proxy",
+                  ]
+
+lb_unittest_cflags = [
+  "-Wall",
+  "-Werror",
+  "-g3",
+  "-Dprivate=public",
+  "-Dprotected=public",
+]
+
+if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+  lb_ext_common += [ "sensor:sensor_interface_native" ]
+  lb_ext_unittest += [ "sensor:sensor_interface_native" ]
+}
+if (use_memmgr_plugin || use_memmgr) {
+  lb_ext_common += [ "memmgr:memmgrclient" ]
+  lb_ext_unittest += [ "memmgr:memmgrclient" ]
+}
+
+# Common impl library (merged from test_common/BUILD.gn)
+ohos_static_library("layer_backend_test_impl") {
+  sources = [
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/layer/rs_surface_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_composer_context.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_client/pipeline/rs_render_composer_client.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_backend.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_layer.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/layer_backend/hdi_output.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_data.cpp",
+    "$graphic_2d_root/rosen/modules/render_service/composer/composer_service/transaction/rs_layer_transaction_handler.cpp",
+  ]
+
+  include_dirs = lb_include_dirs
+
+  deps = lb_core_deps + [ "$graphic_2d_root/utils:scoped_bytrace" ]
+
+  external_deps = lb_ext_common
+
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  if (use_memmgr_plugin || use_memmgr) {
+    external_deps += [ "memmgr:memmgrclient" ]
+  }
+
+  defines = []
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    defines += [ "RS_SUBSCRIBE_SENSOR_ENABLE" ]
+  }
+
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  part_name = "graphic_2d"
+  subsystem_name = "graphic"
+}
+
+# Unit tests
+ohos_unittest("hdibackend_unit_test") {
+  module_out_path = module_out_path
+  sources = [
+    "hdibackend_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
+  include_dirs = lb_include_dirs
+  cflags = lb_unittest_cflags
+  deps = lb_core_deps + [
+           "$graphic_2d_root/utils:scoped_bytrace",
+           ":layer_backend_test_impl",
+         ]
+  external_deps = lb_ext_unittest
+}
+
+ohos_unittest("hdilayer_unit_test") {
+  module_out_path = module_out_path
+  sources = [
+    "hdilayer_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
+  include_dirs = lb_include_dirs
+  cflags = lb_unittest_cflags
+  deps = lb_core_deps + [
+           "$graphic_2d_root/utils:scoped_bytrace",
+           ":layer_backend_test_impl",
+         ]
+  external_deps = lb_ext_unittest
+}
+
+ohos_unittest("hdioutput_unit_test") {
+  module_out_path = module_out_path
+  sources = [
+    "hdioutput_test.cpp",
+    "mock_hdi_device.cpp",
+  ]
+  include_dirs = lb_include_dirs
+  cflags = lb_unittest_cflags
+  deps = lb_core_deps + [
+           "$graphic_2d_root/utils:scoped_bytrace",
+           ":layer_backend_test_impl",
+         ]
+  external_deps = lb_ext_unittest
+}

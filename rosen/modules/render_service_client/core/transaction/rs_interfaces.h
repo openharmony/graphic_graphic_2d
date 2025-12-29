@@ -459,14 +459,6 @@ public:
      */
     int32_t SetRogScreenResolution(ScreenId id, uint32_t width, uint32_t height);
 
-    /**
-     * @brief Get rog resolution of screen.
-     * @param id Id of the screen.
-     * @param width Width of rog resolution.
-     * @param height Height of rog resolution.
-     * @return StatusCode. Returns value, return value == 0 success, otherwise, failed or never set rog resolution.
-     */
-    int32_t GetRogScreenResolution(ScreenId id, uint32_t& width, uint32_t& height);
 #ifndef ROSEN_ARKUI_X
     /**
      * @brief Set render resolution of physical screen.

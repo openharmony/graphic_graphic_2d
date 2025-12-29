@@ -15,6 +15,7 @@
 
 #include "anim_custom_modifier_test.h"
 #include "rs_graphic_test.h"
+#include "ui/rs_ui_context_manager.h"
 
 using namespace testing;
 using namespace testing::ext;

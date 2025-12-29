@@ -73,10 +73,10 @@ void RSUniRenderEngine::DrawSurfaceNodeWithParams(RSPaintFilterCanvas& canvas,
 
 #ifdef USE_VIDEO_PROCESSING_ENGINE
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ScreenInfo& screenInfo, GraphicColorGamut colorGamut)
+    const ComposerScreenInfo& composerScreenInfo, GraphicColorGamut colorGamut)
 #else
 void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vector<RSLayerPtr>& layers, bool forceCPU,
-    const ScreenInfo& screenInfo)
+    const ComposerScreenInfo& composerScreenInfo)
 #endif
 {
     for (const auto& layer : layers) {
@@ -112,11 +112,11 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
             continue;
         }
         Drawing::AutoCanvasRestore acr(canvas, true);
-        DrawLayerPreProcess(canvas, layer, screenInfo);
+        DrawLayerPreProcess(canvas, layer, composerScreenInfo);
         // prepare BufferDrawParam
         auto params = RSUniRenderUtil::CreateLayerBufferDrawParam(layer, forceCPU);
-        params.matrix.PostScale(screenInfo.GetRogWidthRatio(), screenInfo.GetRogHeightRatio());
-        params.screenId = screenInfo.id;
+        params.matrix.PostScale(composerScreenInfo.GetRogWidthRatio(), composerScreenInfo.GetRogHeightRatio());
+        params.screenId = composerScreenInfo.id;
 #ifdef USE_VIDEO_PROCESSING_ENGINE
         params.targetColorGamut = colorGamut;
 
@@ -149,7 +149,7 @@ void RSUniRenderEngine::DrawLayers(RSPaintFilterCanvas& canvas, const std::vecto
 }
 
 void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const RSLayerPtr& layer,
-    const ScreenInfo& screenInfo)
+    const ComposerScreenInfo& composerScreenInfo)
 {
     const auto& dstRect = layer->GetLayerSize();
     const auto& drmCornerRadiusInfo = layer->GetCornerRadiusInfoForDRM();
@@ -182,8 +182,8 @@ void RSUniRenderEngine::DrawLayerPreProcess(RSPaintFilterCanvas& canvas, const R
         auto skMatrix = Drawing::Matrix();
         skMatrix.SetMatrix(layerMatrix.scaleX, layerMatrix.skewX, layerMatrix.transX, layerMatrix.skewY,
             layerMatrix.scaleY, layerMatrix.transY, layerMatrix.pers0, layerMatrix.pers1, layerMatrix.pers2);
-        skMatrix.PostTranslate(screenInfo.samplingTranslateX, screenInfo.samplingTranslateY);
-        skMatrix.PostScale(screenInfo.samplingScale, screenInfo.samplingScale);
+        skMatrix.PostTranslate(composerScreenInfo.samplingTranslateX, composerScreenInfo.samplingTranslateY);
+        skMatrix.PostScale(composerScreenInfo.samplingScale, composerScreenInfo.samplingScale);
         Drawing::AutoCanvasRestore acr(canvas, true);
         canvas.ConcatMatrix(skMatrix);
         Drawing::Rect drawRect = Drawing::Rect(0.f, 0.f,

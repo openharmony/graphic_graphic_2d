@@ -25,32 +25,29 @@
 #include <vector>
 #include "irs_render_to_composer_connection.h"
 #include "rs_composer_context.h"
+#include "screen_manager/rs_screen_info.h"
 #include "vsync_manager_agent.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSRenderComposerClient {
 public:
-    explicit RSRenderComposerClient(bool isMultiProcess,
+    explicit RSRenderComposerClient(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     ~RSRenderComposerClient() = default;
 
-    static std::shared_ptr<RSRenderComposerClient> Create(bool isMultiProcess,
+    static std::shared_ptr<RSRenderComposerClient> Create(
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
-        const sptr<RSIComposerToRenderConnection>& composerToRenderConn,
+        const sptr<IRSComposerToRenderConnection>& composerToRenderConn,
         const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
     std::shared_ptr<RSLayer> GetRSLayer(RSLayerId rsLayerId);
     void CommitLayers(ComposerInfo& composerInfo);
     void ReleaseLayerBuffers(uint64_t screenId,
         std::vector<std::tuple<RSLayerId, bool, GraphicPresentTimestamp>>& timestampVec,
         std::vector<std::tuple<RSLayerId, sptr<SurfaceBuffer>, sptr<SyncFence>>>& releaseBufferFenceVec);
-    bool RegistOnBufferReleaseFunc(OnBufferReleaseFunc onBufferReleaseFunc);
-    std::shared_ptr<RSComposerContext> GetComposerContext() const;
-    inline bool IsMultiProcess() const
-    {
-        return isMultiProcess_;
-    }
+    void RegistOnReleaseLayerBuffersCB(OnReleaseLayerBuffersCB cb);
+    std::shared_ptr<RSComposerContext> GetComposerContext();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void ClearFrameBuffers();
     uint32_t GetUnExecuteTaskNum();
@@ -61,6 +58,7 @@ public:
     void DumpCurrentFrameLayers();
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
+    static void ConvertScreenInfo(const ScreenInfo& screenInfo, ComposerScreenInfo& composerScreenInfo);
 
 private:
     bool WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock);
@@ -69,7 +67,6 @@ private:
     void SubUnExecuteTaskNum();
     std::mutex clientMutex_;
     std::shared_ptr<RSComposerContext> rsComposerContext_;
-    bool isMultiProcess_;
     sptr<IRSRenderToComposerConnection> renderToComposerConn_;
     std::condition_variable composerThreadTaskCond_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;

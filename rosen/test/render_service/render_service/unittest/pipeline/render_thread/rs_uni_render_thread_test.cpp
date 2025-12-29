@@ -596,28 +596,23 @@ HWTEST_F(RSUniRenderThreadTest, ReleaseSelfDrawingNodeBuffer001, TestSize.Level1
     renderThreadParams->selfDrawables_.push_back(surfaceRenderNode->renderDrawable_);
     instance.Sync(move(renderThreadParams));
     auto params = static_cast<RSSurfaceRenderParams*>(surfaceRenderNode->GetRenderParams().get());
-    instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
     params->isOnTheTree_ = true;
     params->isHardwareEnabled_ = false;
     params->isLastFrameHardwareEnabled_ = true;
     params->preBuffer_ = SurfaceBuffer::Create();
-    instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
     params->isOnTheTree_ = false;
     params->isHardwareEnabled_ = true;
     params->isLastFrameHardwareEnabled_ = true;
     params->preBuffer_ = SurfaceBuffer::Create();
-    instance.ReleaseSelfDrawingNodeBuffer();
     ASSERT_EQ(params->GetPreBuffer(), nullptr);
 
     // RSHardwareThread::Instance().delayTime_ = 1;
-    instance.ReleaseSelfDrawingNodeBuffer();
     params->isHardwareEnabled_ = true;
     params->layerCreated_ = true;
-    instance.ReleaseSelfDrawingNodeBuffer();
     EXPECT_TRUE(params->isHardwareEnabled_);
 }
 

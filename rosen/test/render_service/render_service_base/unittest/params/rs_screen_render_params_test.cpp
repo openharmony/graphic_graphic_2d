@@ -267,4 +267,5 @@ HWTEST_F(RSScreenRenderParamsTest, SetHasMirroredScreenChanged, TestSize.Level1)
     params.SetHasMirroredScreenChanged(false);
     ASSERT_FALSE(params.GetHasMirroredScreenChanged());
 }
+
 } // namespace OHOS::Rosen

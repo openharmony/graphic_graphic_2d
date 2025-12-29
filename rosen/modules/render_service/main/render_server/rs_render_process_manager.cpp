@@ -28,7 +28,7 @@ namespace OHOS {
 namespace Rosen {
 sptr<RSRenderProcessManager> RSRenderProcessManager::Create(RSRenderService& renderService)
 {
-    sptr<RSRenderProcessManager> renderProcessManager = new RSSingleRenderProcessManager(renderService);
+    auto renderProcessManager = sptr<RSSingleRenderProcessManager>::MakeSptr(renderService);
     return renderProcessManager;
 }
 

@@ -265,7 +265,6 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->forceFreeze_ = forceFreeze_;
     targetScreenParams->hasMirroredScreenChanged_ = hasMirroredScreenChanged_;
     targetScreenParams->isVirtualSurfaceChanged_ = isVirtualSurfaceChanged_;
-    targetScreenParams->isScreenValid_ = isScreenValid_;
     RSRenderParams::OnSync(target);
 }
 
@@ -342,19 +341,5 @@ void RSScreenRenderParams::SetHasMirroredScreenChanged(bool hasMirroredScreenCha
 bool RSScreenRenderParams::GetHasMirroredScreenChanged() const
 {
     return hasMirroredScreenChanged_;
-}
-
-void RSScreenRenderParams::SetIsScreenValid(bool isValid)
-{
-    if (isScreenValid_ == isValid) {
-        return;
-    }
-    isScreenValid_ = isValid;
-    needSync_ = true;
-}
-
-bool RSScreenRenderParams::GetIsScreenValid() const
-{
-    return isScreenValid_;
 }
 } // namespace OHOS::Rosen

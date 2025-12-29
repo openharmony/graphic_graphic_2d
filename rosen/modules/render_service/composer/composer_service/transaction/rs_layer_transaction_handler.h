@@ -40,12 +40,10 @@ private:
     RSLayerTransactionHandler(const RSLayerTransactionHandler&&) = delete;
     RSLayerTransactionHandler& operator=(const RSLayerTransactionHandler&) = delete;
     RSLayerTransactionHandler& operator=(const RSLayerTransactionHandler&&) = delete;
-    void CheckScreenInfoIsChanged(ScreenInfo& screenInfo);
 
     std::unique_ptr<RSLayerTransactionData> rsLayerTransactionData_ = std::make_unique<RSLayerTransactionData>();
     sptr<IRSRenderToComposerConnection> rsComposerConnection_;
     uint64_t timestamp_ = 0;
-    ScreenInfo screenInfo_;
 };
 
 } // namespace OHOS::Rosen

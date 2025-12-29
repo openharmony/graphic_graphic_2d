@@ -25,7 +25,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 using RSLayerPtr = std::shared_ptr<RSLayer>;
 struct FPSInfo {
     int64_t presentTime;

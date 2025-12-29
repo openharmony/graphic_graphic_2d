@@ -14,10 +14,16 @@
  */
 #ifndef RENDER_SERVICE_CORE_FEATURE_RS_SPECIAL_LAYER_UTILS_H
 #define RENDER_SERVICE_CORE_FEATURE_RS_SPECIAL_LAYER_UTILS_H
+#include <unordered_set>
+
+#include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSSpecialLayerUtils {
+public:
+    static std::unordered_set<uint64_t> GetAllBlackList(const RSRenderNodeMap& nodeMap);
+    static std::unordered_set<uint64_t> GetAllWhiteList(const RSRenderNodeMap& nodeMap);
 };
 } // namespace Rosen
 } // namespace OHOS

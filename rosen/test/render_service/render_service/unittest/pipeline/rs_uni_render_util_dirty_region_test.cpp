@@ -627,9 +627,9 @@ HWTEST_F(RSUniRenderUtilDirtyRegionTest, MergeDirtyHistoryInVirtual007, Function
     screenParams->screenInfo_.id = otherId;
     auto screenId = screenParams->GetScreenId();
 
-    auto screenManager = CreateOrGetScreenManager();
+    auto screenManager = sptr<RSScreenManager>::MakeSptr();
     ASSERT_NE(screenManager, nullptr);
-    screenManager->screens_[screenId] = std::make_shared<RSScreen>(nullptr);
+    screenManager->screens_[screenId] = std::make_shared<RSScreen>(screenId);
     int32_t result = screenManager->AddVirtualScreenBlackList(screenId, blockList);
     ASSERT_EQ(result, SCREEN_NOT_FOUND);
 

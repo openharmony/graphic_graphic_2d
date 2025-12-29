@@ -14,8 +14,34 @@
  */
 
 #include "rs_special_layer_utils.h"
+#include <unordered_set>
 
 namespace OHOS {
 namespace Rosen {
+std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllBlackList(const RSRenderNodeMap& nodeMap)
+{
+    std::unordered_set<uint64_t> allBlackList;
+    nodeMap.TraverseScreenNodes(
+        [&allBlackList](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
+        if (screenRenderNode != nullptr) {
+            auto currentBlackList = screenRenderNode->GetScreenProperty().GetMergeBlackList();
+            allBlackList.insert(currentBlackList.begin(), currentBlackList.end());
+        }
+    });
+    return allBlackList;
+}
+
+std::unordered_set<uint64_t> RSSpecialLayerUtils::GetAllWhiteList(const RSRenderNodeMap& nodeMap)
+{
+    std::unordered_set<uint64_t> allWhiteList;
+    nodeMap.TraverseScreenNodes(
+        [&allWhiteList](const std::shared_ptr<RSScreenRenderNode>& screenRenderNode) {
+        if (screenRenderNode != nullptr) {
+            auto currentWhiteList = screenRenderNode->GetScreenProperty().GetWhiteList();
+            allWhiteList.insert(currentWhiteList.begin(), currentWhiteList.end());
+        }
+    });
+    return allWhiteList;
+}
 } // namespace Rosen
 } // namespace OHOS

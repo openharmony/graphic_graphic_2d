@@ -35,7 +35,7 @@ class HgmFrameRateManager;
 class RSClientToRenderConnection : public RSClientToRenderConnectionStub {
 public:
     RSClientToRenderConnection(
-    pid_t remotePid, RSMainThread* mainThread,
+    pid_t remotePid,
     sptr<RSRenderPipelineAgent> renderPipelineAgent, sptr<IRemoteObject> token);
     ~RSClientToRenderConnection() noexcept;
     RSClientToRenderConnection(const RSClientToRenderConnection&) = delete;
@@ -52,9 +52,7 @@ public:
     }
 
 private:
-    void CleanVirtualScreens() noexcept;
     void CleanRenderNodes() noexcept;
-    void CleanFrameRateLinkers() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -160,9 +158,13 @@ private:
         const std::vector<NodeId>& nodeIdList) override;
         
     void ClearSurfaceWatermark(pid_t pid, const std::string &name) override;
+
+    ErrCode ForceRefreshOneFrameWithNextVSync() override;
+
+    ErrCode SetAppWindowNum(uint32_t num) override;
+
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;
-    RSMainThread* mainThread_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent_;
     sptr<RSScreenManager> screenManager_;
     sptr<IRemoteObject> token_;
@@ -197,10 +199,6 @@ private:
     bool cleanDone_ = false;
     const std::string VOTER_SCENE_BLUR = "VOTER_SCENE_BLUR";
     const std::string VOTER_SCENE_GPU = "VOTER_SCENE_GPU";
-    
-    // save all virtual screenIds created by this connection.
-    std::unordered_set<ScreenId> virtualScreenIds_;
-    sptr<RSIScreenChangeCallback> screenChangeCallback_;
     sptr<VSyncDistributor> appVSyncDistributor_;
 
 #ifdef RS_PROFILER_ENABLED

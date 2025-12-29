@@ -28,8 +28,6 @@ namespace OHOS {
 namespace Rosen {
 struct ScreenPresenceEvent {
     ScreenId id;
-    bool connected = false;
-    ScreenChangeReason reason;
     std::shared_ptr<HdiOutput> output;
     const sptr<RSScreenProperty> property;
 };
@@ -42,9 +40,11 @@ public:
     void AddAgentListener(const sptr<RSIScreenManagerAgentListener>& listener);
     void RemoveAgentListener(const sptr<RSIScreenManagerAgentListener>& listener);
 
-    void NotifyScreenPresenceChanged(const ScreenPresenceEvent& event);
+    void NotifyScreenConnected(const ScreenPresenceEvent& event);
+    void NotifyScreenDisconnected(ScreenId id);
     void NotifyScreenPropertyUpdated(ScreenId id, const sptr<RSScreenProperty>& property);
     void NotifyScreenRefresh(ScreenId id);
+    void NotifyHwcRestored(const ScreenPresenceEvent& event);
     void NotifyHwcDead(ScreenId id);
     void NotifyHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
     void NotifyVBlankIdle(ScreenId id, uint64_t ns);

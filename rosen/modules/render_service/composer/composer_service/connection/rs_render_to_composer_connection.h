@@ -31,7 +31,7 @@ public:
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) override;
     void SetScreenBacklight(uint32_t level) override;
-    void SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn) override;
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) override;
 
 private:
     uint64_t screenId_ = 0;

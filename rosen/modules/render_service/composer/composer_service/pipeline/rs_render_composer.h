@@ -61,10 +61,11 @@ public:
     explicit RSRenderComposer(const std::shared_ptr<HdiOutput>& output, const sptr<RSScreenProperty>& property);
     ~RSRenderComposer() = default;
     void InitRsVsyncManagerAgent(const sptr<RSVsyncManagerAgent>& rsVsyncManagerAgent);
+
 protected:
     void ComposerPrepare(uint32_t& currentRate, int64_t& delayTime, const PipelineParam& pipelineParam);
     void ComposerProcess(uint32_t currentRate, std::shared_ptr<RSLayerTransactionData> transactionData);
-    void SetComposerToRenderConnection(const sptr<RSIComposerToRenderConnection>& composerToRenderConn);
+    void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn);
     void PostTask(const std::function<void()>& task);
     void PostSyncTask(const std::function<void()>& task);
     void PostDelayTask(const std::function<void()>& task, int64_t delayTime);
@@ -74,8 +75,8 @@ protected:
     void OnHwcDead();
     void CleanLayerBufferBySurfaceId(uint64_t surfaceId);
     void SurfaceDump(std::string& dumpString);
-    void FpsDump(std::string& dumpString, std::string& layerName);
-    void GetRefreshInfoToSP(std::string& dumpString, NodeId& nodeId);
+    void FpsDump(std::string& dumpString, const std::string& layerName);
+    void GetRefreshInfoToSP(std::string& dumpString, NodeId nodeId);
     void ClearFpsDump(std::string& dumpString, std::string& layerName);
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);
@@ -151,15 +152,15 @@ private:
     std::mutex surfaceMutex_;
     std::mutex preAllocMutex_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
-    int64_t delayTime_ = 0;
+    std::atomic<int64_t> delayTime_ = 0;
     int64_t lastCommitTime_ = 0;
     int64_t intervalTimePoints_ = 0;
     int64_t lastActualTime_ = 0;
     std::unordered_map<uint64_t, std::shared_ptr<RSSurfaceOhos>> frameBufferSurfaceOhosMap_;
     int exceptionCnt_ = 0;
     ExceptionCheck exceptionCheck_;
-    sptr<RSIComposerToRenderConnection> composerToRenderConnection_;
-    ScreenInfo screenInfo_;
+    sptr<IRSComposerToRenderConnection> composerToRenderConnection_;
+    ComposerScreenInfo composerScreenInfo_;
     PipelineParam pipelineParam_;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
     bool isDisconnected_ = false;

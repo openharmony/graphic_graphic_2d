@@ -24,7 +24,7 @@
 
 namespace OHOS {
 namespace Rosen {
-class RSComposerToRenderConnectionStub : public IRemoteStub<RSIComposerToRenderConnection> {
+class RSComposerToRenderConnectionStub : public IRemoteStub<IRSComposerToRenderConnection> {
 public:
     RSComposerToRenderConnectionStub() = default;
     virtual ~RSComposerToRenderConnectionStub() noexcept = default;

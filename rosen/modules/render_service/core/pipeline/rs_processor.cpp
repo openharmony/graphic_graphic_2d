@@ -62,7 +62,9 @@ bool RSProcessor::InitForRenderThread(DrawableV2::RSScreenRenderNodeDrawable& sc
     screenInfo_ = screenProperty.GetScreenInfo();
 
     // set default render frame config
-    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);
+    ComposerScreenInfo composerScreenInfo;
+    RSRenderComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
+    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
 #endif
     return true;
 }
@@ -128,7 +130,9 @@ bool RSProcessor::Init(RSScreenRenderNode& node, int32_t offsetX, int32_t offset
     }
 
     // set default render frame config
-    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(screenInfo_);
+    ComposerScreenInfo composerScreenInfo;
+    RSRenderComposerClient::ConvertScreenInfo(screenInfo_, composerScreenInfo);
+    renderFrameConfig_ = RSBaseRenderUtil::GetFrameBufferRequestConfig(composerScreenInfo);
     return true;
 }
 

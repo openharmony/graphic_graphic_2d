@@ -145,7 +145,6 @@ ohos_shared_library("librender_service") {
     "core/feature/occlusion_culling/rs_occlusion_node.cpp",
     "core/feature/opinc/rs_opinc_draw_cache.cpp",
     "core/feature/param_manager/rs_param_manager.cpp",
-    "core/feature/power_off_render_skip/rs_power_off_render_skip_manager.cpp",
     "core/feature/special_layer/rs_special_layer_utils.cpp",
     "core/feature/vrate/rp_vsync_rate_reduce_manager.cpp",
     "core/feature/watermark/rs_surface_watermark.cpp",
@@ -171,7 +170,8 @@ ohos_shared_library("librender_service") {
     "core/pipeline/rs_unmarshal_task_manager.cpp",
     "core/pipeline/slr_scale/rs_slr_scale.cpp",
     "core/system/rs_system_parameters.cpp",
-    "core/transaction/rs_irender_service_connection_ipc_interface_code_access_verifier.cpp",
+    "core/transaction/rs_iclient_to_service_connection_ipc_interface_code_access_verifier.cpp",
+    "core/transaction/rs_iclient_to_render_connection_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_client_to_render_connection.cpp",
     "core/transaction/rs_connect_to_render_process.cpp",
@@ -691,16 +691,6 @@ ohos_executable("render_service") {
   part_name = "graphic_2d"
   subsystem_name = "graphic"
 }
-
-group("test") {
-  testonly = true
-
-  deps = [
-    "composer/composer_service/layer_backend/test:test",
-    "composer/composer_service/pipeline/test:test",
-  ]
-}
-
 
 ## Build render_process.bin
 ohos_executable("render_process") {

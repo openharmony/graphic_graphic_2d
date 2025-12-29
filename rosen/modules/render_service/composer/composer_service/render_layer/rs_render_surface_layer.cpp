@@ -18,7 +18,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
 using RSLayerCmdHandler = std::function<void(std::shared_ptr<RSRenderSurfaceLayer>,
     const std::shared_ptr<Rosen::RSRenderLayerPropertyBase>&)>;
 #define DECLARE_RSLAYER_CMD(CMD_NAME, TYPE, CMD_TYPE)                                                            \
