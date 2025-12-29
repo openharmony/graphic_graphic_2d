@@ -234,6 +234,9 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight001, TestSize.Level1)
     instance->AddDirtyLightSource(node.weak_from_this());
     instance->PrepareLight();
     EXPECT_TRUE(!instance->illuminatedNodeMap_.empty());
+    instance->previousFrameIlluminatedNodeMap_.emplace(rsRenderNode->GetId(), rsRenderNode);
+    instance->PrepareLight();
+    EXPECT_TRUE(instance->dirtyIlluminatedList_.empty());
 }
 
 /**
@@ -380,7 +383,7 @@ HWTEST_F(RSPointLightManagerTest, PrepareLight005, TestSize.Level1)
     std::shared_ptr<RSRenderNode> lightSourceNode = std::make_shared<RSRenderNode>(1);
     dirtyList.push_back(lightSourceNode);
     instance->PrepareLight();
-    EXPECT_TRUE(instance->lastFrameIlluminatedNodeSet_.empty());
+    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
 }
 
 /**
@@ -495,10 +498,16 @@ HWTEST_F(RSPointLightManagerTest, CheckIlluminated003, TestSize.Level1)
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_FALSE(illuminatedNode->IsDirty());
 
-    instance->lastFrameIlluminatedNodeSet_.insert(illuminatedNode->GetId());
+    instance->previousFrameIlluminatedNodeMap_.emplace(illuminatedNode->GetId(), illuminatedNode);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
-    EXPECT_TRUE(illuminatedNode->IsDirty());
+    EXPECT_FALSE(illuminatedNode->IsDirty());
 
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
+        lightSourceNode->GetMutableRenderProperties().GetEffect().lightSourcePtr_, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    instance->CheckIlluminated(lightSourceNode, illuminatedNode);
+    EXPECT_FALSE(illuminatedNode->IsDirty());
+
+    illuminatedNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
     illuminatedNode->GetMutableRenderProperties().boundsGeo_->absRect_ = RectI(0, 0, 100, 100);
     instance->CheckIlluminated(lightSourceNode, illuminatedNode);
     EXPECT_TRUE(illuminatedNode->IsDirty());
@@ -524,6 +533,112 @@ HWTEST_F(RSPointLightManagerTest, ChildHasVisibleIlluminatedTest001, TestSize.Le
     EXPECT_TRUE(instance->GetChildHasVisibleIlluminated(node));
     instance->SetChildHasVisibleIlluminated(node, false);
     EXPECT_FALSE(instance->GetChildHasVisibleIlluminated(node));
+}
+
+/**
+ * @tc.name: CollectPreviousFrameIlluminatedNodesTest001
+ * @tc.desc: test results of CollectPreviousFrameIlluminatedNodes
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, CollectPreviousFrameIlluminatedNodesTest001, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> nullptrNode = nullptr;
+    std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
+    std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    instance->CollectPreviousFrameIlluminatedNodes();
+    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
+
+    instance->illuminatedNodeMap_[0] = nullptrNode;
+    instance->CollectPreviousFrameIlluminatedNodes();
+    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
+
+    instance->illuminatedNodeMap_[1] = sharedRenderNode;
+    instance->CollectPreviousFrameIlluminatedNodes();
+    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
+    
+    sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    instance->CollectPreviousFrameIlluminatedNodes();
+    EXPECT_TRUE(instance->previousFrameIlluminatedNodeMap_.empty());
+
+    sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
+        lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    instance->CollectPreviousFrameIlluminatedNodes();
+    EXPECT_FALSE(instance->previousFrameIlluminatedNodeMap_.empty());
+}
+
+/**
+ * @tc.name: ProcessLostIlluminationNodeTest001
+ * @tc.desc: test results of ProcessLostIlluminationNode
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, ProcessLostIlluminationNodeTest001, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> sharedRenderNode = std::make_shared<RSRenderNode>(1);
+    std::shared_ptr<RSLightSource> lightSourcePtr = std::make_shared<RSLightSource>();
+    instance->previousFrameIlluminatedNodeMap_.clear();
+    instance->ProcessLostIlluminationNode();
+    EXPECT_FALSE(sharedRenderNode->IsDirty());
+
+    std::shared_ptr<RSRenderNode> nullptrNode = nullptr;
+    instance->previousFrameIlluminatedNodeMap_[0] = nullptrNode;
+    instance->ProcessLostIlluminationNode();
+    instance->MarkIlluminatedNodeDirty(nullptrNode);
+    EXPECT_FALSE(sharedRenderNode->IsDirty());
+
+    instance->previousFrameIlluminatedNodeMap_[1] = sharedRenderNode;
+    instance->ProcessLostIlluminationNode();
+    EXPECT_FALSE(sharedRenderNode->IsDirty());
+    
+    sharedRenderNode->isOnTheTree_ = true;
+    instance->ProcessLostIlluminationNode();
+    EXPECT_FALSE(sharedRenderNode->IsDirty());
+    
+    sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = std::make_shared<RSIlluminated>();
+    sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.emplace(
+        lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    instance->ProcessLostIlluminationNode();
+    EXPECT_FALSE(sharedRenderNode->IsDirty());
+
+    sharedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_->lightSourcesAndPosMap_.clear();
+    instance->ProcessLostIlluminationNode();
+    EXPECT_TRUE(sharedRenderNode->IsDirty());
+}
+
+/**
+ * @tc.name: HasVisibleIlluminatedTest001
+ * @tc.desc: test results of HasVisibleIlluminated
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPointLightManagerTest, HasVisibleIlluminatedTest001, TestSize.Level1)
+{
+    auto instance = RSPointLightManager::Instance();
+    std::shared_ptr<RSRenderNode> illuminatedRenderNode = std::make_shared<RSRenderNode>(0);
+    illuminatedRenderNode->instanceRootNodeId_ = 0;
+    std::shared_ptr<RSRenderNode> lightSourceRenderNode = std::make_shared<RSRenderNode>(1);
+    lightSourceRenderNode->instanceRootNodeId_ = 1;
+    EXPECT_FALSE(instance->HasVisibleIlluminated(nullptr));
+    EXPECT_FALSE(instance->HasVisibleIlluminated(illuminatedRenderNode));
+    auto illuminatedPtr = std::make_shared<RSIlluminated>();
+    illuminatedRenderNode->GetMutableRenderProperties().GetEffect().illuminatedPtr_ = illuminatedPtr;
+    EXPECT_FALSE(instance->HasVisibleIlluminated(illuminatedRenderNode));
+    illuminatedPtr->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
+    EXPECT_FALSE(instance->HasVisibleIlluminated(illuminatedRenderNode));
+    std::shared_ptr<RSRenderNode> nullptrNode = nullptr;
+    instance->lightSourceNodeMap_[1000] = nullptrNode;
+    EXPECT_FALSE(instance->HasVisibleIlluminated(illuminatedRenderNode));
+    instance->lightSourceNodeMap_[1] = lightSourceRenderNode;
+    EXPECT_FALSE(instance->HasVisibleIlluminated(illuminatedRenderNode));
+    lightSourceRenderNode->isOnTheTree_ = true;
+    EXPECT_FALSE(instance->HasVisibleIlluminated(illuminatedRenderNode));
+    illuminatedRenderNode->instanceRootNodeId_ = 2;
+    lightSourceRenderNode->instanceRootNodeId_ = 2;
+    EXPECT_TRUE(instance->HasVisibleIlluminated(illuminatedRenderNode));
 }
 /**
  * @tc.name: CalculateLightPosForIlluminated001
