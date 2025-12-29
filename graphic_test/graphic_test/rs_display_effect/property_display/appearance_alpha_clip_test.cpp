@@ -38,19 +38,19 @@ public:
 GRAPHIC_TEST(AppearanceTest06, CONTENT_DISPLAY_TEST, Alpha_ClipRRect_Test_1)
 {
     const Vector4f rect[] = {
-        { 0.0, 0.0, 250.0, 250.0 },
-        { 100.0, 100.0, 450.0, 450.0 },
-        { 100.0, 100.0, 200.0, 200.0 },
+        { 0.0f, 0.0f, 250.0f, 250.0f },
+        { 100.0f, 100.0f, 450.0f, 450.0f },
+        { 100.0f, 100.0f, 200.0f, 200.0f },
     };
     const Vector4f radius[] = {
-        { 100.0, 100.0, 100.0, 100.0 },
-        { 250.0, 250.0, 250.0, 250.0 },
-        { 500.0, 500.0, 500.0, 500.0 },
+        { 100.0f, 100.0f, 100.0f, 100.0f },
+        { 250.0f, 250.0f, 250.0f, 250.0f },
+        { 500.0f, 500.0f, 500.0f, 500.0f },
     };
     const int counts = 3;
     for (int i = 0; i < counts; i++) {
         for (int j = 0; j < counts; j++) {
-            Vector4f bounds = { i * 410.0, j * 500.0, 400.0, 400.0 };
+            Vector4f bounds = { i * 410.0f, j * 500.0f, 400.0f, 400.0f };
             const int nodeSize = 400;
             const int fontSize = 50;
 

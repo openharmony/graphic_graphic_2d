@@ -26,13 +26,13 @@ private:
     const int screenHeight = 2000;
 
 public:
-    // called before each tests
+    // called before each test
     void BeforeEach() override
     {
         SetScreenSize(screenWidth, screenHeight);
     }
 
-    void setNode(std::shared_ptr<RSCanvasNode>& node, const Vector4f& bounds, Vector4<Color> outLineColor)
+    void SetNode(std::shared_ptr<RSCanvasNode>& node, const Vector4f& bounds, Vector4<Color> outLineColor)
     {
         Vector4<BorderStyle> style = Vector4<BorderStyle>(BorderStyle::SOLID);
         if (!node) {
@@ -46,7 +46,7 @@ public:
         node->SetBorderStyle(style);
         Vector4f borderWidth = { 5, 5, 5, 5 };
         node->SetBorderWidth(borderWidth);
-        float radius = 50.0;
+        float radius = 50.0f;
         node->SetCornerRadius(radius);
         node->SetBorderColor(outLineColor);
     };
@@ -67,34 +67,34 @@ GRAPHIC_TEST(AppearanceTest11, CONTENT_DISPLAY_TEST, Appearance_Alpha_Border_Rad
         int x = (i % columnCount) * nodePos;
         int y = (i / columnCount) * nodePos;
         auto testNodeColor = RSCanvasNode::Create();
-        setNode(testNodeColor, { x, y, nodeSize, nodeSize }, Vector4<Color>(colorList[i]));
+        SetNode(testNodeColor, { x, y, nodeSize, nodeSize }, Vector4<Color>(colorList[i]));
         GetRootNode()->AddChild(testNodeColor);
         RegisterNode(testNodeColor);
     }
 
     // parent black, child red color, white border
     auto testNodeParent = RSCanvasNode::Create();
-    setNode(testNodeParent, { 0, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(colorList[0]));
+    SetNode(testNodeParent, { 0, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(colorList[0]));
     testNodeParent->SetBackgroundColor(0xff000000);
     GetRootNode()->AddChild(testNodeParent);
     RegisterNode(testNodeParent);
 
     const int testPos = 50;
     auto testNodeChild = RSCanvasNode::Create();
-    setNode(testNodeChild, { testPos, testPos, nodeHalfSize, nodeHalfSize }, Vector4<Color>(Color(0xffffffff)));
+    SetNode(testNodeChild, { testPos, testPos, nodeHalfSize, nodeHalfSize }, Vector4<Color>(Color(0xffffffff)));
     testNodeChild->SetForegroundColor(0xffff0000);
     testNodeParent->AddChild(testNodeChild);
     RegisterNode(testNodeChild);
 
     // alpha border
     auto testNodeAlphaColor = RSCanvasNode::Create();
-    setNode(testNodeAlphaColor, { nodePos, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(Color(0x7dffffff)));
+    SetNode(testNodeAlphaColor, { nodePos, nodePos * 2, nodeSize, nodeSize }, Vector4<Color>(Color(0x7dffffff)));
     GetRootNode()->AddChild(testNodeAlphaColor);
     RegisterNode(testNodeAlphaColor);
 
     // four different color
     auto testNodeFourColor = RSCanvasNode::Create();
-    setNode(testNodeFourColor, { 0, nodePos * 3, nodeSize, nodeSize },
+    SetNode(testNodeFourColor, { 0, nodePos * 3, nodeSize, nodeSize },
         Vector4<Color>(colorList[0], colorList[1], colorList[2], colorList[3]));
     GetRootNode()->AddChild(testNodeFourColor);
     RegisterNode(testNodeFourColor);

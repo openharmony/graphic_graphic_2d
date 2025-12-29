@@ -54,7 +54,7 @@ T GetData()
     g_pos += objectSize;
     return object;
 }
-bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
+bool DoSomethingInterestingWithMyAPI(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -92,7 +92,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     rsScreenRenderNode.SetOffScreenCacheImgForCapture(cacheImgForCapture);
     return true;
 }
-bool DoOnSync(const uint8_t* data, size_t size)
+bool DoOnSync(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -119,7 +119,7 @@ bool DoOnSync(const uint8_t* data, size_t size)
     rsScreenRenderNode.UpdatePartialRenderParams();
     return true;
 }
-bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
+bool DoGetCurAllSurfaces(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -146,7 +146,7 @@ bool DoGetCurAllSurfaces(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
+bool DoUpdateScreenRenderParams(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -166,7 +166,7 @@ bool DoUpdateScreenRenderParams(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
+bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -182,7 +182,7 @@ bool DoHandleCurMainAndLeashSurfaceNodes(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoIsZoomStateChange(const uint8_t* data, size_t size)
+bool DoIsZoomStateChange(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -198,7 +198,7 @@ bool DoIsZoomStateChange(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoGetSortedChildren(const uint8_t* data, size_t size)
+bool DoGetSortedChildren(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -213,7 +213,7 @@ bool DoGetSortedChildren(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
+bool DoSetBrightnessRatio(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -229,7 +229,7 @@ bool DoSetBrightnessRatio(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoOnSyncWithDrawable(const uint8_t* data, size_t size)
+bool DoOnSyncWithDrawable(const uint8_t* data)
 {
     if (data == nullptr) {
         return false;
@@ -257,14 +257,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::g_pos = 0;
 
     /* Run your code on data */
-    OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size);
-    OHOS::Rosen::DoOnSync(data, size);
-    OHOS::Rosen::DoGetCurAllSurfaces(data, size);
-    OHOS::Rosen::DoUpdateScreenRenderParams(data, size);
-    OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data, size);
-    OHOS::Rosen::DoIsZoomStateChange(data, size);
-    OHOS::Rosen::DoGetSortedChildren(data, size);
-    OHOS::Rosen::DoSetBrightnessRatio(data, size);
-    OHOS::Rosen::DoOnSyncWithDrawable(data, size);
+    OHOS::Rosen::DoSomethingInterestingWithMyAPI(data);
+    OHOS::Rosen::DoOnSync(data);
+    OHOS::Rosen::DoGetCurAllSurfaces(data);
+    OHOS::Rosen::DoUpdateScreenRenderParams(data);
+    OHOS::Rosen::DoHandleCurMainAndLeashSurfaceNodes(data);
+    OHOS::Rosen::DoIsZoomStateChange(data);
+    OHOS::Rosen::DoGetSortedChildren(data);
+    OHOS::Rosen::DoSetBrightnessRatio(data);
+    OHOS::Rosen::DoOnSyncWithDrawable(data);
     return 0;
 }
