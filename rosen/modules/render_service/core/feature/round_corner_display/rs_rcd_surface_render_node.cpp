@@ -217,7 +217,7 @@ bool RSRcdSurfaceRenderNode::SetHardwareResourceToBuffer()
         return false;
     }
     if (!SetRCDMetaData()) {
-        RS_LOGE("[%s] set hardware resource to buffer metadata failed", __func__);
+        RS_LOGE("RSRcdSurfaceRenderNode:: set hardware resource to buffer metadata failed");
         return false;
     }
     return true;
