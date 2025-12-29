@@ -188,3 +188,6 @@ rosen/modules/render_service_base/include/pipeline/rs_dirty_region_manager.h @ch
 rosen/modules/render_service_base/src/pipeline/rs_dirty_region_manager.cpp @chenlushen
 rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.h @chenlushen
 rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushen
+
+[capture]
+rosen/modules/render_service/core/feature/capture @chuchengcheng
