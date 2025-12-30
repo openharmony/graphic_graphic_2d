@@ -541,7 +541,7 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpa
     if (!isAutoAdjust && dynamicRangeMode != DEFAULT_DYNAMIC_RANGE_MODE_STANDARD &&
         dynamicRangeMode != DYNAMIC_RANGE_MODE_HIGH && dynamicRangeMode != DYNAMIC_RANGE_MODE_CONSTRAINT) {
         errorCode_ = CaptureError::DYNAMIC_RANGE_NOT_SUPPORT;
-        RS_LOGE("RSUiCaptureTaskParallel::IsHdrUiCapture %{public}d not support", dynamicRangeMode);
+        RS_LOGW("RSUiCaptureTaskParallel::IsHdrUiCapture dynamicRangeMode %{public}d not support", dynamicRangeMode);
         return false;
     }
     if (!isAutoAdjust && dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD) {
@@ -550,6 +550,7 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpa
     if (colorSpace != ColorManager::BT2020 && colorSpace != ColorManager::BT2020_HLG &&
         colorSpace != ColorManager::BT2020_PQ && colorSpace != ColorManager::BT2020_HLG_LIMIT &&
         colorSpace != ColorManager::BT2020_PQ_LIMIT) {
+        RS_LOGW("RSUiCaptureTaskParallel::IsHdrUiCapture colorSpace %{public}d not support", colorSpace);
         return false;
     }
     auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);

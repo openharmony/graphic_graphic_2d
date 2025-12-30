@@ -736,7 +736,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             captureConfig.useDma, rotation) ||
             !PixelMapCopy(pixelmapHDR, surfaceInfoHDR.GetColorSpace(), backendTextureHDR, surfaceInfoHDR.GetColorType(),
             captureConfig.useDma, rotation)) {
-            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_PIXELMAP_NULL, nullptr);
+            callback->OnSurfaceCapture(id, captureConfig, nullptr, CaptureError::CAPTURE_PIXELMAP_COPY_ERROR, nullptr);
             RSUniRenderUtil::ClearNodeCacheSurface(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             RSUniRenderUtil::ClearNodeCacheSurface(
@@ -769,7 +769,7 @@ std::function<void()> RSSurfaceCaptureTaskParallel::CreateSurfaceSyncCopyTaskWit
             return;
         }
 #endif
-        callback->OnSurfaceCapture(id, captureConfig, pixelmap.get(), CaptureError::HDR_SET_FAIL, pixelmapHDR.get());
+        callback->OnSurfaceCapture(id, captureConfig, pixelmap.get(), CaptureError::CAPTURE_OK, pixelmapHDR.get());
         RSBackgroundThread::Instance().CleanGrResource();
         RSUniRenderUtil::ClearNodeCacheSurface(
             std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
