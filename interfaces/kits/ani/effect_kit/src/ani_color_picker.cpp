@@ -133,7 +133,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
         EFFECT_LOG_E("[GetTopProportionColors] Error2, failed to retrieve native ColorPicker wrapper");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    constexpr int PROPORTION_COLORS_NUM_LIMIT = 10;
+    constexpr int PROPORTION_COLORS_NUM_LIMIT = 20;
     unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0, PROPORTION_COLORS_NUM_LIMIT));
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
