@@ -34,8 +34,9 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSRenderToServiceConnection> rsConn_ = nullptr;
+sptr<RSRenderToServiceConnection> g_rsConn = nullptr;
 }
+
 class RSRenderToServiceConnectionTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -54,7 +55,7 @@ void RSRenderToServiceConnectionStubTest::SetUpTestCase()
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
     auto rsScreenManager = RSScreenManager::GetInstance();
     sptr<RSScreenManagerAgent> screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(rsScreenManager);
-    rsConn_ = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
+    g_rsConn = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
         renderProcessManagerAgent, screenManagerAgent);
 }
 void RSRenderToServiceConnectionTest::TearDownTestCase() {}
@@ -70,8 +71,8 @@ void RSRenderToServiceConnectionTest::TearDown() {}
 HWTEST_F(RSRenderToServiceConnectionTest, ReplyDumpResultToServiceTest, TestSize.Level1)
 {
     std::string dumpString = "dump";
-    rsConn_->ReplyDumpResultToService(dumpString);
-    ASSERT_TRUE(rsConn_);
+    g_rsConn->ReplyDumpResultToService(dumpString);
+    ASSERT_TRUE(g_rsConn);
 }
 
 /**
@@ -85,7 +86,7 @@ HWTEST_F(RSRenderToServiceConnectionTest, NotifyRpHgmFrameRateTest, TestSize.Lev
     uint64_t timestamp = 1;
     uint64_t vsyncId = 1;
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
-    ASSERT_TRUE(rsConn_->NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo));
+    ASSERT_TRUE(g_rsConn->NotifyRpHgmFrameRate(timestamp, vsyncId, processToServiceInfo));
 }
 
 /**
@@ -97,7 +98,7 @@ HWTEST_F(RSRenderToServiceConnectionTest, NotifyRpHgmFrameRateTest, TestSize.Lev
 HWTEST_F(RSRenderToServiceConnectionTest, NotifyScreenSwitchFinishedTest, TestSize.Level1)
 {
     ScreenId screenId = 1;
-    rsConn_->NotifyScreenSwitchFinished(screenId);
-    ASSERT_TRUE(rsConn_);
+    g_rsConn->NotifyScreenSwitchFinished(screenId);
+    ASSERT_TRUE(g_rsConn);
 }
 } // namespace OHOS::Rosen

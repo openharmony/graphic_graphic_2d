@@ -33,8 +33,9 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSServiceToRenderConnection> rsConn_ = nullptr;
+sptr<RSServiceToRenderConnection> g_rsConn = nullptr;
 }
+
 class RSServiceToRenderConnectionTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -53,7 +54,7 @@ void RSServiceToRenderConnectionTest::SetUpTestCase()
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     sptr<RSRenderPipelineAgent> renderPipelineAgent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
-    rsConn_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
+    g_rsConn = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
 }
 void RSServiceToRenderConnectionTest::TearDownTestCase() {}
 void RSServiceToRenderConnectionTest::SetUp() {}
@@ -67,8 +68,8 @@ void RSServiceToRenderConnectionTest::TearDown() {}
  */
 HWTEST_F(RSServiceToRenderConnectionTest, GetRealtimeRefreshRateTest, TestSize.Level1)
 {
-    EXPECT_GE(rsConn_->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
-    ASSERT_TRUE(rsConn_);
+    EXPECT_GE(g_rsConn->GetRealtimeRefreshRate(INVALID_SCREEN_ID), 0);
+    ASSERT_TRUE(g_rsConn);
 }
 
 /**
@@ -82,9 +83,9 @@ HWTEST_F(RSServiceToRenderConnectionTest, SetShowRefreshRateEnabledTest, TestSiz
     bool enabled = true;
     bool enabled1 = false;
     int32_t type = 1;
-    rsConn_->SetShowRefreshRateEnabled(enabled, type);
-    rsConn_->SetShowRefreshRateEnabled(enabled1, type);
-    ASSERT_TRUE(rsConn_);
+    g_rsConn->SetShowRefreshRateEnabled(enabled, type);
+    g_rsConn->SetShowRefreshRateEnabled(enabled1, type);
+    ASSERT_TRUE(g_rsConn);
 }
 
 /**
@@ -97,8 +98,8 @@ HWTEST_F(RSServiceToRenderConnectionTest, GetShowRefreshRateEnabledTest, TestSiz
 {
     bool enabled = true;
     bool enabled1 = false;
-    rsConn_->GetShowRefreshRateEnabled(enabled);
-    rsConn_->GetShowRefreshRateEnabled(enabled1);
-    ASSERT_TRUE(rsConn_);
+    g_rsConn->GetShowRefreshRateEnabled(enabled);
+    g_rsConn->GetShowRefreshRateEnabled(enabled1);
+    ASSERT_TRUE(g_rsConn);
 }
 } // namespace OHOS::Rosen

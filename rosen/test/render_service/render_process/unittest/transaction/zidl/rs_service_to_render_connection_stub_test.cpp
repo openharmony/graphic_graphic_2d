@@ -42,8 +42,9 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSServiceToRenderConnectionStub> connectionStub_ = nullptr;
+sptr<RSServiceToRenderConnectionStub> g_connectionStub = nullptr;
 }
+
 class RSServiceToRenderConnectionStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -62,7 +63,7 @@ void RSServiceToRenderConnectionStubTest::SetUpTestCase()
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
     auto rsRenderServceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline);
-    connectionStub_ = sptr<RSServiceToRenderConnection>::MakeSptr(rsRenderServceAgent, renderPipelineAgent);
+    g_connectionStub = sptr<RSServiceToRenderConnection>::MakeSptr(rsRenderServceAgent, renderPipelineAgent);
 }
 void RSServiceToRenderConnectionStubTest::TearDownTestCase() {}
 void RSServiceToRenderConnectionStubTest::SetUp() {}
@@ -87,8 +88,8 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
         RSIServiceToRenderConnectionInterfaceCode::GET_REALTIME_REFRESH_RATE);
     uint64_t screenId = 1;
     data.WriteUint64(screenId);
-    connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_TRUE(connectionStub_);
+    g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_TRUE(g_connectionStub);
 }
 
 /**
@@ -112,8 +113,8 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
     int32_t type = 1;
     data.WriteBool(enabled);
     data.WriteInt32(type);
-    connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_TRUE(connectionStub_);
+    g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_TRUE(g_connectionStub);
 }
 
 /**
@@ -133,7 +134,7 @@ HWTEST_F(RSServiceToRenderConnectionStubTest, TestRSServiceToRenderConnectionStu
     option.SetFlags(MessageOption::TF_ASYNC);
     uint32_t code = static_cast<uint32_t>(
         RSIServiceToRenderConnectionInterfaceCode::GET_SHOW_REFRESH_RATE_ENABLED);
-    connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_TRUE(connectionStub_);
+    g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_TRUE(g_connectionStub);
 }
 } // namespace OHOS::Rosen
