@@ -59,7 +59,7 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
         return result;
     }
     static const char *className = ANI_CLASS_COLOR.c_str();
-    
+
     result = AniEffectKitUtils::CreateAniObject(env, className, nullptr, reinterpret_cast<ani_long>(nullptr));
     ani_boolean resultIsUndefined = ANI_TRUE;
     env->Reference_IsUndefined(result, &resultIsUndefined);
@@ -225,7 +225,7 @@ ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object o
 
     uint32_t color = static_cast<uint32_t>(colorValue);
     ani_boolean rst = thisColorPicker->nativeColorPicker_->IsBlackOrWhiteOrGrayColor(color);
-    
+
     return rst;
 }
 
@@ -271,7 +271,7 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     if (int(length) >= REGION_COORDINATE_NUM) {
         for (int i = 0; i < REGION_COORDINATE_NUM; i++) {
             ani_ref doubleValueRef{};
-            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:C{std.core.Object}",
+            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:Y",
                 &doubleValueRef, (ani_int)i);
             ani_double doubleValue;
             status = env->Object_CallMethodByName_Double(static_cast<ani_object>(doubleValueRef),
