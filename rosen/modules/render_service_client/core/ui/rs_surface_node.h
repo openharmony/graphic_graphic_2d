@@ -258,7 +258,7 @@ public:
 
     /**
      * @brief Get the name of the node.
-     * 
+     *
      * @return A string representing the name of the node.
      */
     inline std::string GetName() const

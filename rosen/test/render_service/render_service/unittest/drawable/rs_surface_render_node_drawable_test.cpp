@@ -1696,7 +1696,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     surfaceDrawable_->OnDraw(*canvas_);
     surfaceParams->specialLayerManager_.Set(SpecialLayerType::SECURITY, true);
     surfaceDrawable_->OnDraw(*canvas_);
-    // test blacklist
+    // test exceptional
     surfaceParams->specialLayerManager_.SetWithScreen(
         surfaceDrawable_->curDisplayScreenId_, SpecialLayerType::HAS_BLACK_LIST, true);
     surfaceDrawable_->OnDraw(*canvas_);
