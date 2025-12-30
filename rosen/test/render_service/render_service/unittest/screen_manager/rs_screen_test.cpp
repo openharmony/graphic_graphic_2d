@@ -439,7 +439,7 @@ HWTEST_F(RSScreenTest, GetConnectionTypeTest, testing::ext::TestSize.Level1)
 {
     VirtualScreenConfigs config;
     auto virtualScreen = std::make_shared<RSScreen>(config);
-    ASSERT_EQ(virtualScreen, nulptr);
+    ASSERT_NE(virtualScreen, nullptr);
     virtualScreen->GetConnectionType();
 }
 
