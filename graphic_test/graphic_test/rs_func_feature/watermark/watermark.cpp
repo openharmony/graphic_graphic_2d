@@ -299,8 +299,6 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, SA_Surface_Watermark_Test10
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/AllBlack.jpg");
     std::vector<std::string> nameList;
