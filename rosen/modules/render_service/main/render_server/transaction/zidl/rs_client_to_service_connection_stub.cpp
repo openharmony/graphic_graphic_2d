@@ -2385,7 +2385,7 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
                 RS_LOGE("RSClientToServiceConnectionStub::REGISTER_SHARED_TYPEFACE Write needUpdate failed!");
                 ret = ERR_INVALID_REPLY;
             }
-            if (needUpdate == 0) {
+            if (needUpdate == 0 || needUpdate == -1) {
                 break;
             }
             if (!reply.WriteFileDescriptor(result)) {

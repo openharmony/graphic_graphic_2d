@@ -277,7 +277,7 @@ void RSRenderAnimation::ProcessOnRepeatFinish()
     RSMessageProcessor::Instance().AddUIMessage(ExtractPid(id_), command);
 }
 
-bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
+bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom)
 {
     // calculateAnimationValue_ is embedded modify for stat animate frame drop
     calculateAnimationValue_ = true;
@@ -303,7 +303,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
 
     if (needInitialize_) {
         // normally this only run once, but in spring animation with blendDuration, it may run multiple times
-        OnInitialize(time);
+        OnInitialize(time, isCustom);
     }
 
     // calculate frame time interval in seconds
@@ -311,7 +311,7 @@ bool RSRenderAnimation::Animate(int64_t time, int64_t& minLeftDelayTime)
 
     // convert time to fraction
     auto [fraction, isInStartDelay, isFinished, isRepeatFinished] =
-        animationFraction_.GetAnimationFraction(time, minLeftDelayTime);
+        animationFraction_.GetAnimationFraction(time, minLeftDelayTime, isCustom);
     if (isInStartDelay) {
         calculateAnimationValue_ = false;
         ProcessFillModeOnStart(fraction);

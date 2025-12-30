@@ -24,6 +24,8 @@ namespace OHOS::Rosen {
 std::shared_ptr<RSNGShapeBase> CreateShape(RSNGEffectType type);
 void InitSmoothUnionShapes(
     std::shared_ptr<RSNGShapeBase>& rootShape, RRect rRectX, RRect rRectY, float spacing);
+void InitSmoothUnionShapesByPixelmap(std::shared_ptr<RSNGShapeBase>& rootShape,
+    std::shared_ptr<Media::PixelMap> pixelmapX, std::shared_ptr<Media::PixelMap> pixelmapY, float spacing);
 
 // Default values
 const Vector2f defaultBlurParams = Vector2f(48.0f, 4.0f);
@@ -110,5 +112,14 @@ const std::vector<Matrix3f> matrix3fParams3 = {
     Matrix3f{0.866f, -0.5f, 0.0f, 0.5f, 0.866f, 0.0f, 0.0f, 0.0006f, 1.0f}, // combination3
 };
 const std::vector<float> sdfShapeSpacingParams = {0.0f, 30.0f, 50.0f, 100.0f, 500000.0f, -5.0f};
+
+const std::vector<std::string> sdfPixelmapShapePath = {
+    "/data/local/tmp/sdfImage0.png",
+    "/data/local/tmp/sdfImage3.png",
+    "/data/local/tmp/sdfImage5.png",
+    "/data/local/tmp/sdfImage6.png",
+    "/data/local/tmp/sdfImage8.png",
+    "/data/local/tmp/sdfImage9.png",
+};
 }  // namespace OHOS::Rosen
 #endif // NG_SDF_TEST_UTILS_H

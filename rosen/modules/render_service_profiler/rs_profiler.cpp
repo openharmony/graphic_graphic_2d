@@ -1015,18 +1015,9 @@ void RSProfiler::MarshalSelfDrawingBuffers(std::stringstream& data, bool isBetaR
             HRPE("MarshalSelfDrawingBuffers: failed create surface buffer");
             return;
         }
-        if (!surfaceNode->GetRSSurfaceHandler()) {
-            HRPE("MarshalSelfDrawingBuffers: failed to find handler");
-            return;
-        }
-        auto fromSurfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
-        if (!fromSurfaceBuffer) {
-            HRPE("MarshalSelfDrawingBuffers: failed to find surface buffer");
-            return;
-        }
         BufferRequestConfig requestConfig = {
-            .width = fromSurfaceBuffer->GetWidth(),
-            .height = fromSurfaceBuffer->GetHeight(),
+            .width = surfaceNode->GetAbsRect().GetWidth(),
+            .height = surfaceNode->GetAbsRect().GetHeight(),
             .strideAlignment = 0x8,
             .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
             .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA,
@@ -1145,9 +1136,8 @@ void RSProfiler::RenderToReadableBuffer(std::shared_ptr<RSSurfaceRenderNode> nod
         auto drawableNode = std::static_pointer_cast<DrawableV2::RSRenderNodeDrawable>(
             DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(node));
         drawableNode->OnCapture(canvas);
-        RSUniRenderUtil::OptimizedFlushAndSubmit(drawingSurface, gpuContext.get(),
-            GetFeatureParamValue("SurfaceCaptureConfig", &SurfaceCaptureParam::IsUseOptimizedFlushAndSubmitEnabled)
-                .value_or(false));
+        drawingSurface->FlushAndSubmit(true);
+
         DrawableV2::RSRenderNodeDrawable::ClearSnapshotProcessedNodeCount();
         RSUniRenderThread::ResetCaptureParam();
         toSurfaceBuffer->FlushCache();

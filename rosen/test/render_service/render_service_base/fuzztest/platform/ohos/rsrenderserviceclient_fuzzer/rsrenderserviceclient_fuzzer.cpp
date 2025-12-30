@@ -198,6 +198,8 @@ bool DoCreatePixelMapFromSurfaceId(const uint8_t* data, size_t size)
     uint64_t surfaceId = GetData<uint64_t>();
     Rect srcRect = {0, 0, 100, 100};
     renderServiceClient->CreatePixelMapFromSurfaceId(surfaceId, srcRect);
+    renderServiceClient->CreatePixelMapFromSurfaceId(surfaceId, srcRect, true);
+    renderServiceClient->CreatePixelMapFromSurfaceId(surfaceId, srcRect, false);
     return true;
 }
 

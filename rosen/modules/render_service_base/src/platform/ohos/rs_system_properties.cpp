@@ -240,6 +240,12 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return isAnimationTraceDebugEnabled || isOpenTestModeTraceDebug;
 }
 
+bool RSSystemProperties::GetTestModeEnabled()
+{
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
+}
+
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
     static CachedHandle g_Handle = CachedParameterCreate("rosen.animationdelay.optimize.enabled", "1");
@@ -305,7 +311,11 @@ PartialRenderType RSSystemProperties::GetUniPartialRenderEnabled()
 
 bool RSSystemProperties::GetRenderNodeLazyLoadEnabled()
 {
+#ifdef RS_ENABLE_MEMORY_DOWNTREE
+    static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "1") != "0";
+#else
     static bool enabled = system::GetParameter("persist.rosen.rendernodelazyload.enabled", "0") != "0";
+#endif
     return enabled;
 }
 
@@ -1293,6 +1303,13 @@ bool RSSystemProperties::GetOpincCacheMemThresholdEnabled()
     return opincCacheMemThresholdEnabled;
 }
 
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
+{
+    static bool filterCacheMemThresholdEnabled =
+        (std::atoi(system::GetParameter("persist.rosen.filter.cacheMemThreshold", "1").c_str()) != 0);
+    return filterCacheMemThresholdEnabled;
+}
+
 DdgrOpincDfxType RSSystemProperties::GetDdgrOpincDfxType()
 {
     return ddgrOpincDfxType_;
@@ -1786,7 +1803,7 @@ bool RSSystemProperties::GetScaleImageAsyncEnabled()
 
 bool RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()
 {
-    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", true);
+    return system::GetBoolParameter("persist.sys.graphic.canvas_drawing_node_pre_allocate_dma", false);
 }
 
 bool RSSystemProperties::GetCanvasDrawingNodeRenderDmaEnabled()
@@ -1821,6 +1838,12 @@ bool RSSystemProperties::GetReleaseImageOneByOneFlag()
     int changed = 0;
     const char *enable = CachedParameterGetChanged(g_Handle, &changed);
     return ConvertToInt(enable, 1) != 0;
+}
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
+{
+    bool isOpenTestModeTraceDebug = system::GetParameter("sys.graphic.openTestModeTrace", "0") != "0";
+    return isOpenTestModeTraceDebug;
 }
 } // namespace Rosen
 } // namespace OHOS

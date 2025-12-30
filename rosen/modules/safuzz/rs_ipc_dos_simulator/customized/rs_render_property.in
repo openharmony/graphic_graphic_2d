@@ -39,6 +39,8 @@ DECLARE_PROPERTY(std::shared_ptr<RSMagnifierParams>, RandomData, RSMagnifierPara
 DECLARE_PROPERTY(std::shared_ptr<MotionBlurParam>, RandomData, MotionBlurParamSharedPtr)
 DECLARE_PROPERTY(std::vector<std::shared_ptr<EmitterUpdater>>, RandomData, SmallEmitterUpdaterSharedPtrVector)
 DECLARE_PROPERTY(std::shared_ptr<ParticleNoiseFields>, RandomData, SmallParticleNoiseFieldsSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<ParticleRippleFields>, RandomData, SmallParticleRippleFieldsSharedPtr)
+DECLARE_PROPERTY(std::shared_ptr<ParticleVelocityFields>, RandomData, SmallParticleVelocityFieldsSharedPtr)
 DECLARE_PROPERTY(std::shared_ptr<RSMask>, RandomRSMask, RSMask)
 DECLARE_PROPERTY(RSFlyOutPara, RandomData, RSFlyOutPara)
 DECLARE_PROPERTY(std::shared_ptr<OHOS::Media::PixelMap>, RandomData, PixelMap)
@@ -49,6 +51,7 @@ DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShaderBase>, RandomData, RSNGShaderPt
 DECLARE_PROPERTY(std::shared_ptr<RSNGRenderShapeBase>, RandomRSNGShapePtr, Value)
 DECLARE_PROPERTY(RSShadowBlenderPara, RandomData, RSShadowBlenderPara)
 DECLARE_PROPERTY(std::vector<Vector2f>, RandomData, VectorVector2f)
+DECLARE_PROPERTY(std::vector<Vector4f>, RandomData, SmallVectorVector4f)
 
 DECLARE_ANIMATABLE_PROPERTY(float, RandomData, Float)
 DECLARE_ANIMATABLE_PROPERTY(Quaternion, RandomData, Quaternion)

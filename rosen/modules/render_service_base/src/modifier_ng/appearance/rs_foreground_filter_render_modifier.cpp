@@ -38,6 +38,10 @@ const RSForegroundFilterRenderModifier::LegacyPropertyApplierMap
         { RSPropertyType::FOREGROUND_NG_FILTER,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
                 &RSProperties::SetForegroundNGFilter> },
+        {
+            RSPropertyType::COLOR_ADAPTIVE,
+            RSRenderModifier::PropertyApplyHelper<bool, &RSProperties::SetAdaptive>
+        }
     };
 
 void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
@@ -51,5 +55,6 @@ void RSForegroundFilterRenderModifier::ResetProperties(RSProperties& properties)
     properties.SetAttractionFraction(0.f);
     properties.SetAttractionDstPoint(Vector2f());
     properties.SetForegroundNGFilter({});
+    properties.SetAdaptive(false);
 }
 } // namespace OHOS::Rosen::ModifierNG

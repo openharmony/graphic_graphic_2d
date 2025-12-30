@@ -945,7 +945,7 @@ bool AniCanvas::GetColorsUint32(ani_env* env, ani_object colorsObj, uint32_t* co
         if (ANI_OK != env->Object_CallMethodByName_Ref(
             colorsObj, "$_get", "i:Y", &colorRef, (ani_int)i) ||
             ANI_OK != env->Object_CallMethodByName_Int(
-                static_cast<ani_object>(colorRef), "unboxed", ":i", &color)) {
+                static_cast<ani_object>(colorRef), "toInt", ":i", &color)) {
             ROSEN_LOGE("AniCanvas::GetColorsUint32 colors is invalid");
             return false;
         }

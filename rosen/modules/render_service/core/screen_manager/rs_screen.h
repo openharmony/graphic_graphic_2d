@@ -162,7 +162,7 @@ public:
     void SetCastScreenEnableSkipWindow(bool enable);
     bool GetCastScreenEnableSkipWindow();
     void SetBlackList(const std::unordered_set<NodeId>& blackList);
-    const std::unordered_set<NodeId>& GetBlackList() const;
+    std::unordered_set<NodeId> GetBlackList() const;
     void AddBlackList(const std::vector<NodeId>& blackList);
     void RemoveBlackList(const std::vector<NodeId>& blackList);
 
@@ -172,7 +172,7 @@ public:
 
     // whitelist
     void SetWhiteList(const std::unordered_set<NodeId>& whiteList);
-    const std::unordered_set<NodeId>& GetWhiteList() const;
+    std::unordered_set<NodeId> GetWhiteList() const;
     void AddWhiteList(const std::vector<NodeId>& whiteList);
     void RemoveWhiteList(const std::vector<NodeId>& whiteList);
 
@@ -230,7 +230,8 @@ private:
         COLOR_GAMUT_DCI_P3,
         COLOR_GAMUT_ADOBE_RGB,
         COLOR_GAMUT_DISPLAY_P3,
-        COLOR_GAMUT_BT2100_HLG };
+        COLOR_GAMUT_BT2100_HLG,
+        COLOR_GAMUT_NATIVE };
     std::vector<ScreenColorGamut> supportedPhysicalColorGamuts_;
     std::atomic<int32_t> currentVirtualColorGamutIdx_ = 0;
     std::atomic<int32_t> currentPhysicalColorGamutIdx_ = 0;

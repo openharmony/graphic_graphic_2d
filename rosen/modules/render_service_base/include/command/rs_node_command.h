@@ -68,6 +68,7 @@ enum RSNodeCommandType : uint16_t {
     UPDATE_MODIFIER_VELOCITY_FIELD_PTR = 0x0129,
     UPDATE_MODIFIER_DRAW_CMD_LIST = 0x012A,
     UPDATE_MODIFIER_NG_SHAPE_BASE_PTR = 0x012B,
+    UPDATE_MODIFIER_VECTOR_VECTOR4F = 0x012C,
 
     SET_FREEZE = 0x0200,
     SET_DRAW_REGION = 0x0201,
@@ -305,6 +306,10 @@ ADD_COMMAND(RSUpdatePropertyVectorVector2f,
         RSNodeCommandHelper::UpdateProperty<std::vector<Vector2f>>,
         NodeId, std::vector<Vector2f>, PropertyId, PropertyUpdateType))
 // =============================================================================
+ADD_COMMAND(RSUpdatePropertyVectorVector4f,
+    ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_VECTOR_VECTOR4F,
+        RSNodeCommandHelper::UpdateProperty<std::vector<Vector4f>>,
+        NodeId, std::vector<Vector4f>, PropertyId, PropertyUpdateType))
 ADD_COMMAND(RSUpdatePropertyPixelMap,
     ARG(PERMISSION_APP, RS_NODE, UPDATE_MODIFIER_PIXEL_MAP,
         RSNodeCommandHelper::UpdateProperty<std::shared_ptr<Media::PixelMap>>, NodeId,

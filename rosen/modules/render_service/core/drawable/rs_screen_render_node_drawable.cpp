@@ -62,6 +62,7 @@
 #endif
 #include "platform/common/rs_log.h"
 #include "platform/ohos/rs_jank_stats_helper.h"
+#include "render/rs_filter_cache_memory_controller.h"
 #include "render/rs_pixel_map_util.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "rs_frame_report.h"
@@ -86,6 +87,7 @@ namespace {
 constexpr const char* CLEAR_GPU_CACHE = "ClearGpuCache";
 constexpr const char* DEFAULT_CLEAR_GPU_CACHE = "DefaultClearGpuCache";
 constexpr int32_t CAPTURE_WINDOW = 2; // To be deleted after captureWindow being deleted
+constexpr int32_t MAX_DAMAGE_REGION_INFO = 300;
 constexpr int64_t MAX_JITTER_NS = 2000000; // 2ms
 
 std::string RectVectorToString(const std::vector<RectI>& regionRects)
@@ -858,7 +860,8 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         uniParam->Reset();
         clipRegion = GetFlippedRegion(damageRegionrects, screenInfo);
         RS_TRACE_NAME_FMT("SetDamageRegion damageRegionrects num: %zu, info: %s",
-            damageRegionrects.size(), RectVectorToString(damageRegionrects).c_str());
+            damageRegionrects.size(),
+            RectVectorToString(damageRegionrects).substr(0, MAX_DAMAGE_REGION_INFO).c_str());
         if (!uniParam->IsRegionDebugEnabled()) {
             renderFrame->SetDamageRegion(damageRegionrects);
         }
@@ -891,6 +894,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RSOpincDrawCache::SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     }
 #endif
+    RSFilterCacheMemoryController::Instance().SetScreenRectInfo({0, 0, screenInfo.width, screenInfo.height});
     UpdateSurfaceDrawRegion(curCanvas_, params);
 
     // canvas draw

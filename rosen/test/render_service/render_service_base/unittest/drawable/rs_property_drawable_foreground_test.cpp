@@ -371,7 +371,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest003, TestSize.Level1)
 
     auto lightSourcePtr = std::make_shared<RSLightSource>();
     pointLightDrawableTest2->stagingLightSourcesAndPosVec_.emplace_back(
-        std::make_pair(lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
+        std::make_pair(*lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     pointLightDrawableTest2->stagingIlluminatedType_ = IlluminatedType::BORDER_CONTENT;
     pointLightDrawableTest2->needSync_ = true;
     pointLightDrawableTest2->OnSync();
@@ -379,7 +379,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest003, TestSize.Level1)
 
     lightSourcePtr->SetLightIntensity(2.0f);
     pointLightDrawableTest2->stagingLightSourcesAndPosVec_.emplace_back(
-        std::make_pair(lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
+        std::make_pair(*lightSourcePtr, Vector4f(0.0f, 0.0f, 1.0f, 1.0f)));
     pointLightDrawableTest2->stagingIlluminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
     pointLightDrawableTest2->needSync_ = true;
     pointLightDrawableTest2->OnSync();
@@ -429,56 +429,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnSyncTest004, TestSize.Level1)
         pointLightDrawableTest2->borderRRect_.GetRect().GetWidth() + 1.0f);
 }
 
-
-/**
- * @tc.name: CreateDrawFuncTest001
- * @tc.desc: CreateDrawFunc test
- * @tc.type: FUNC
- * @tc.require:issueI9SCBR
- */
-HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncTest001, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSBinarizationDrawable> binarizationDrawable =
-        std::make_shared<DrawableV2::RSBinarizationDrawable>();
-    EXPECT_NE(binarizationDrawable, nullptr);
-    EXPECT_NE(binarizationDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSColorFilterDrawable> colorFilterDrawable =
-        std::make_shared<DrawableV2::RSColorFilterDrawable>();
-    EXPECT_NE(colorFilterDrawable, nullptr);
-    EXPECT_NE(colorFilterDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSLightUpEffectDrawable> lightUpEffectDrawable =
-        std::make_shared<DrawableV2::RSLightUpEffectDrawable>();
-    EXPECT_NE(lightUpEffectDrawable, nullptr);
-    EXPECT_NE(lightUpEffectDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSDynamicDimDrawable> dynamicDimDrawable =
-        std::make_shared<DrawableV2::RSDynamicDimDrawable>();
-    EXPECT_NE(dynamicDimDrawable, nullptr);
-    EXPECT_NE(dynamicDimDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSForegroundFilterDrawable> foregroundFilterDrawable =
-        std::make_shared<DrawableV2::RSForegroundFilterDrawable>();
-    EXPECT_NE(foregroundFilterDrawable, nullptr);
-    EXPECT_NE(foregroundFilterDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
-        std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
-    EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
-    EXPECT_NE(foregroundFilterRestoreDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSPixelStretchDrawable> pixelStretchDrawable =
-        std::make_shared<DrawableV2::RSPixelStretchDrawable>();
-    EXPECT_NE(pixelStretchDrawable, nullptr);
-    EXPECT_NE(pixelStretchDrawable->CreateDrawFunc(), nullptr);
-
-    std::shared_ptr<DrawableV2::RSPointLightDrawable> pointLightDrawableTest =
-        std::make_shared<DrawableV2::RSPointLightDrawable>();
-    EXPECT_NE(pointLightDrawableTest, nullptr);
-    EXPECT_NE(pointLightDrawableTest->CreateDrawFunc(), nullptr);
-}
-
 /**
  * @tc.name: DrawLightTest001
  * @tc.desc: DrawLight test
@@ -493,37 +443,33 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest001, TestSize.Level1)
     Drawing::Canvas canvasTest1;
     pointLightDrawableTest->DrawLight(&canvasTest1);
     Drawing::Canvas canvasTest2;
+    RSLightSource lightSource;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER_CONTENT;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest2);
     pointLightDrawableTest->lightSourcesAndPosVec_.clear();
 
     Drawing::Canvas canvasTest3;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::CONTENT;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest3);
     pointLightDrawableTest->lightSourcesAndPosVec_.clear();
 
     Drawing::Canvas canvasTest4;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::BORDER;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest4);
     pointLightDrawableTest->lightSourcesAndPosVec_.clear();
 
     Drawing::Canvas canvasTest5;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest5);
 
     Drawing::Canvas canvasTest6;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
     pointLightDrawableTest->enableEDREffect_ = true;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest6);
 }
 
@@ -545,15 +491,14 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest002, TestSize.Level1)
     pointLightDrawableTest->DrawLight(&canvasTest1);
 
     Drawing::Canvas canvasTest2;
+    RSLightSource lightSource;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest2);
 
     Drawing::Canvas canvasTest3;
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::NORMAL_BORDER_CONTENT;
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->contentRRect_.SetRect(Drawing::RectF(0.f, 0.f, 200.f, 200.f));
     pointLightDrawableTest->DrawLight(&canvasTest3);
 }
@@ -569,8 +514,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
     std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();
     EXPECT_NE(foregroundFilterRestoreDrawable, nullptr);
-    auto drawFunction = foregroundFilterRestoreDrawable->CreateDrawFunc();
-    EXPECT_NE(drawFunction, nullptr);
 
     // initialize drawing filter
     auto imageFilter = std::make_shared<Drawing::ImageFilter>();
@@ -597,7 +540,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
 
     Drawing::Canvas canvasTest;
     RSPaintFilterCanvas paintFilterCanvas(&canvasTest);
-    drawFunction(&paintFilterCanvas, nullptr);
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, nullptr);
     // rect == nullptr, still initial width/height
     for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
         EXPECT_EQ(filter->GetCanvasInfo().geoWidth, 0.0f);
@@ -607,7 +550,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
     const auto width = 100.0f;
     const auto height = 100.0f;
     Drawing::Rect rect(0.0f, 0.0f, width, height);
-    drawFunction(&paintFilterCanvas, &rect);
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect);
     // properly initialized
     for (auto filter : drawingFilter->visualEffectContainer_->GetFilters()) {
         EXPECT_EQ(filter->GetCanvasInfo().geoWidth, width);
@@ -616,14 +559,14 @@ HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize
 
     // in case foregroundFilter_ happens to be nullptr
     foregroundFilterRestoreDrawable->foregroundFilter_ = nullptr;
-    drawFunction(&paintFilterCanvas, &rect); // should not crash or anything
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect); // should not crash or anything
 
     // RSFilter is used instead of RSDrawingFilter
     stagingForegroundFilter = std::make_shared<RSFilter>();
     foregroundFilterRestoreDrawable->stagingForegroundFilter_ = stagingForegroundFilter;
     foregroundFilterRestoreDrawable->needSync_ = true;
     foregroundFilterRestoreDrawable->OnSync();
-    drawFunction(&paintFilterCanvas, &rect);
+    foregroundFilterRestoreDrawable->OnDraw(&paintFilterCanvas, &rect);
 }
 
 /**
@@ -1187,8 +1130,8 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest003, TestSize.Level1)
     pointLightDrawableTest->illuminatedType_ = IlluminatedType::FEATHERING_BORDER;
     pointLightDrawableTest->sdfShaderEffect_ = std::make_shared<Drawing::ShaderEffect>();
     EXPECT_NE(pointLightDrawableTest->sdfShaderEffect_, nullptr);
-    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(
-        std::make_shared<RSLightSource>(), Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
+    RSLightSource lightSource;
+    pointLightDrawableTest->lightSourcesAndPosVec_.emplace_back(lightSource, Vector4f(0.0f, 0.0f, 1.0f, 1.0f));
     pointLightDrawableTest->DrawLight(&canvasTest);
 }
 

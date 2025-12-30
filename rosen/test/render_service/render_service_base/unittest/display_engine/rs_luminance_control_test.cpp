@@ -56,7 +56,7 @@ public:
     MOCK_METHOD(void, HandleGamutSpecialRender, (std::vector<ScreenColorGamut>& modes), (override));
     MOCK_METHOD(uint32_t, ConvertScalerFromFloatToLevel, (float& scaler), (override, const));
     MOCK_METHOD(float, ConvertScalerFromLevelToFloat, (uint32_t& level), (override, const));
-    using HdrToBrightnessScalerMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
+    using HdrToBrightnessScalerMap = const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
     MOCK_METHOD(void, SetCurDisplayHdrBrightnessScaler, (ScreenId screenId,
         HdrToBrightnessScalerMap& curDisplayHdrBrightnessScaler), (override));
     MOCK_METHOD(bool, IsHardwareHdrDisabled, (bool checkBrightnessRatio, ScreenId screenId), (override));

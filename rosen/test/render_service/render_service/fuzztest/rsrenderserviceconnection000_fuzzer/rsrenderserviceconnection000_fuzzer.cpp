@@ -583,12 +583,12 @@ void DoRegisterBufferAvailableListener()
     sptr<RSIBufferAvailableCallback> rsIBufferAvailableCallback_ = iface_cast<RSIBufferAvailableCallback>(remoteObject);
     auto nodeId = static_cast<NodeId>(g_pid) << 32;
     bool isFromRenderThread = GetData<bool>();
-    dataParcel.WriteInterfaceToken(RSIClientToRenderConnection::GetDescriptor());
+    dataParcel.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
     dataParcel.WriteUint64(nodeId);
     dataParcel.WriteRemoteObject(rsIBufferAvailableCallback_->AsObject());
     dataParcel.WriteBool(isFromRenderThread);
     dataParcel.RewindRead(0);
-    toRenderConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
+    toServiceConnectionStub_->OnRemoteRequest(code, dataParcel, replyParcel, option);
 }
 
 void DoRegisterBufferClearListener()

@@ -112,6 +112,7 @@ enum class RSPropertyType : uint8_t {
     RS_RENDER_FILTER,
     VECTOR_FLOAT,
     VECTOR_VECTOR2F,
+    VECTOR_VECTOR4F,
     SHORT, // HRP: move it to the middle of FLOAT and INT
     RS_NG_RENDER_FILTER_BASE,
     RS_NG_RENDER_MASK_BASE,

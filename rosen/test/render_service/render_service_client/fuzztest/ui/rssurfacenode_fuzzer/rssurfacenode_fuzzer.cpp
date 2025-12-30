@@ -501,7 +501,7 @@ bool DoSetFrameGravityNewVersionEnabled(const uint8_t* data, size_t size)
     return true;
 }
 
-bool DoSetSurfaceBufferOpaque(const uint8_t* data, size_t size)
+bool DoSetSurfaceBufferOpaque()
 {
     // test
     auto config = GetRSSurfaceNodeConfigFromData();
@@ -554,7 +554,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Rosen::DoSetHardwareEnableHint(data, size);
     OHOS::Rosen::DoSetSourceVirtualScreenId(data, size);
     OHOS::Rosen::DoSetFrameGravityNewVersionEnabled(data, size);
-    OHOS::Rosen::DoSetSurfaceBufferOpaque(data, size);
+    OHOS::Rosen::DoSetSurfaceBufferOpaque();
     return 0;
 }
 

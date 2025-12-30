@@ -86,6 +86,9 @@ public:
     static std::tuple<std::string, pid_t, int32_t> AnalyzePkgParam(const std::string& param);
 
     void SetDisableSafeVoteValue(bool disableSafeVote) { disableSafeVote_ = disableSafeVote; }
+
+    pid_t GetSceneBoardPid() const { return sceneBoardPid_; }
+
 private:
     void UseStrategyNum();
     void FollowFocus();
@@ -121,6 +124,7 @@ private:
     PolicyConfigData::ScreenSetting& screenSettingCache_;
     PolicyConfigData::StrategyConfigMap& strategyConfigMapCache_;
     bool disableSafeVote_ = false;
+    pid_t sceneBoardPid_ = DEFAULT_PID;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -250,7 +250,8 @@ public:
     /**
      * @brief Casts this object to a shared pointer of the specified type T.
      *
-     * @return std::shared_ptr<const T> A shared pointer to the object as type T if the cast is valid, nullptr otherwise.
+     * @return std::shared_ptr<const T> A shared pointer to the object as type T if the cast is valid,
+     *         nullptr otherwise.
      */
     template<typename T>
     std::shared_ptr<const T> ReinterpretCastTo() const
@@ -562,7 +563,8 @@ public:
     /**
      * @brief Sets the corner radius of the node.
      *
-     * @param cornerRadius A Vector4f representing the corner radius for each corner (top-left, top-right, bottom-right, bottom-left).
+     * @param cornerRadius A Vector4f representing the corner radius for each corner (top-left, top-right,
+     *                     bottom-right, bottom-left).
      */
     void SetCornerRadius(const Vector4f& cornerRadius);
 
@@ -1339,7 +1341,6 @@ public:
      */
     void SetBgBrightnessNegCoeff(const Vector4f& coeff);
     void SetBgBrightnessFract(const float& fract);
-    void SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara);
 
     /**
      * @brief Sets the grey coefficient.
@@ -1451,7 +1452,8 @@ public:
      * @brief Sets a rounded rectangle clipping region for the node.
      *
      * @param clipRect The bounds of the clipping rectangle,represented as (x, y, width, height).
-     * @param clipRadius The radii for the rectangle's corners,represented as (topLeft, topRight, bottomRight, bottomLeft).
+     * @param clipRadius The radii for the rectangle's corners,represented as (topLeft, topRight, bottomRight,
+     *                   bottomLeft).
      */
     void SetClipRRect(const Vector4f& clipRect, const Vector4f& clipRadius);
 
@@ -1639,15 +1641,17 @@ public:
      * @param isNodeGroup       Whether to enable group rendering optimization for this node
      * @param isForced          When true, forces group marking ignoring system property checks
      * @param includeProperty   When true, packages node properties with the group
+     * @param colorAdaptive     When true, apply a color adaptive filter to the node group
      */
-    void MarkNodeGroup(bool isNodeGroup, bool isForced = true, bool includeProperty = false);
+    void MarkNodeGroup(
+        bool isNodeGroup, bool isForced = true, bool includeProperty = false, bool colorAdaptive = false);
 
     /**
      * @brief Mark node exclude from nodeGroup
      *
      * When node is marked ExcludedFromNodeGroup, it will not cached by renderGroup
      *
-     * @param isExcluded     When true, When node and its subtree will be exluded on renderGroup cache
+     * @param isExcluded     When true, When node and its subtree will be excluded on renderGroup cache
      */
     void ExcludedFromNodeGroup(bool isExcluded);
 
@@ -1870,10 +1874,6 @@ protected:
     explicit RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode = false,
         std::shared_ptr<RSUIContext> rsUIContext = nullptr, bool isOnTheTree = false);
 
-    virtual void CreateRenderNode() const
-    {
-    }
-
     void DumpModifiers(std::string& out) const;
 
     mutable bool lazyLoad_ = false;
@@ -1963,16 +1963,22 @@ protected:
      */
     virtual void SetIsOnTheTree(bool flag);
 
-    bool IsCreateNodeCommand(const RSCommand& command) const
-    {
-        return createNodeCommandTypes_.find(std::make_pair(command.GetType(), command.GetSubType())) !=
-            createNodeCommandTypes_.end();
-    }
-
     bool IsLazyLoadCommand(const RSCommand& command) const
     {
-        return lazyLoadCommandTypes_.find(std::make_pair(command.GetType(), command.GetSubType())) !=
-            lazyLoadCommandTypes_.end();
+        return std::find(lazyLoadCommandTypes_.begin(), lazyLoadCommandTypes_.end(),
+            std::make_pair(command.GetType(), command.GetSubType())) != lazyLoadCommandTypes_.end();
+    }
+
+    bool IsChildOperationCommand(const RSCommand& command) const
+    {
+        return std::find(childOpCommandTypes_.begin(), childOpCommandTypes_.end(),
+            std::make_pair(command.GetType(), command.GetSubType())) != childOpCommandTypes_.end();
+    }
+
+    void AddLazyLoadCommand(std::unique_ptr<RSCommand>&& command, bool isRenderServiceCommand = false,
+        FollowType followType = FollowType::NONE, NodeId nodeId = 0)
+    {
+        lazyLoadCommands_.emplace_back(std::move(command), isRenderServiceCommand, followType, nodeId);
     }
 
     /**
@@ -2030,8 +2036,8 @@ private:
     static NodeId GenerateId();
     static void InitUniRenderEnabled();
 
-    static const std::set<std::pair<uint16_t, uint16_t>> createNodeCommandTypes_; // <CommandType, CommandSubType>
-    static const std::set<std::pair<uint16_t, uint16_t>> lazyLoadCommandTypes_; // <CommandType, CommandSubType>
+    static const std::array<std::pair<uint16_t, uint16_t>, 3> lazyLoadCommandTypes_; // <CommandType, CommandSubType>
+    static const std::array<std::pair<uint16_t, uint16_t>, 4> childOpCommandTypes_; // <CommandType, CommandSubType>
     NodeId id_;
     WeakPtr parent_;
     int32_t instanceId_ = INSTANCE_ID_UNDEFINED;

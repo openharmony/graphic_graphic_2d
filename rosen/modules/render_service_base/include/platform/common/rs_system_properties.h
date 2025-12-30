@@ -173,6 +173,7 @@ public:
     static bool GetDrawOpTraceEnabled();
     static bool GetDrawOpLimitEnabled();
     static bool GetAnimationTraceEnabled();
+    static bool GetTestModeEnabled();
     static bool GetAnimationDelayOptimizeEnabled();
     static bool GetRSClientMultiInstanceEnabled();
     static bool GetRenderNodePurgeEnabled();
@@ -319,6 +320,7 @@ public:
     static DdgrOpincDfxType GetDdgrOpincDfxType();
     static bool IsOpincRealDrawCacheEnable();
     static bool GetOpincCacheMemThresholdEnabled();
+    static bool GetFilterCacheMemThresholdEnabled();
     static bool GetSkipDisplayIfScreenOffEnabled();
     static bool GetBatchRemovingOnRemoteDiedEnabled();
 
@@ -407,6 +409,7 @@ public:
 
     static bool GetSceneBoardIsPcMode();
     static bool GetReleaseImageOneByOneFlag();
+    static bool GetTransactionDataTraceEnabled();
 
 private:
     RSSystemProperties() = default;

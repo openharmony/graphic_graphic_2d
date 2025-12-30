@@ -48,7 +48,6 @@ public:
 
     void SetFocusedNodeId(NodeId focusedNodeId);
     void PushWindowNodeId(NodeId nodeId);
-    void ClearLastVisMapForVsyncRate();
     bool GetVRateReduceEnabled() const
     {
         return vRateReduceEnabled_;
@@ -57,18 +56,10 @@ public:
     void FrameDurationBegin();
     void FrameDurationEnd();
 
-    bool GetIsReduceBySystemAnimatedScenes() const
-    {
-        return isReduceBySystemAnimatedScenes_;
-    }
-    void SetIsReduceBySystemAnimatedScenes(bool isReduceBySystemAnimatedScenes);
     void Init(const sptr<VSyncDistributor>& appVSyncDistributor);
     void ResetFrameValues(uint32_t refreshRate);
     void CollectSurfaceVsyncInfo(const ScreenInfo& screenInfo, RSSurfaceRenderNode& node);
     void SetUniVsync();
-
-    void SetVSyncRateByVisibleLevel(std::map<NodeId, RSVisibleLevel>& pidVisMap,
-        std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces);
 
     std::map<uint64_t, int> GetVrateMap()
     {
@@ -91,7 +82,6 @@ private:
     bool CheckNeedNotify();
     int GetRateByBalanceLevel(double vVal);
     void EnqueueFrameDuration(float duration);
-    void NotifyVSyncRates(const std::map<NodeId, RSVisibleLevel>& vSyncRates);
     static inline Occlusion::Rect GetMaxVerticalRect(const Occlusion::Region& region);
     static Occlusion::Rect CalcMaxVisibleRect(const Occlusion::Region& region, int appWindowArea);
     static float CalcVValByAreas(int windowArea, int maxVisRectArea, int visTotalArea);
@@ -109,8 +99,6 @@ private:
     std::map<NodeId, int> lastVSyncRateMap_;
     std::vector<NodeId> curAllMainAndLeashWindowNodesIds_;
     std::vector<NodeId> lastAllMainAndLeashWindowNodesIds_;
-    std::map<NodeId, RSVisibleLevel> visMapForVSyncVisLevel_;
-    std::map<NodeId, RSVisibleLevel> lastVisMapForVSyncVisLevel_;
 
     NodeId focusedNodeId_ = 0;
     NodeId lastFocusedNodeId_ = 0;
@@ -124,7 +112,6 @@ private:
     std::deque<float> frameDurations_;
 
     bool isSystemAnimatedScenes_ = false;
-    bool isReduceBySystemAnimatedScenes_ = false;
 
     bool isDeviceSupprotVRate_ = false;
     std::map<NodeId, SurfaceVRateInfo> surfaceVRateMap_;

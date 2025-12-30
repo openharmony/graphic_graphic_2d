@@ -43,6 +43,7 @@ public:
     virtual void SetGeometry(Drawing::Canvas& canvas, float geoWidth, float geoHeight) {};
     virtual void IsOffscreenCanvas(bool isOffscreenCanvas) {};
     virtual void DisableMotionBlur(bool isDisableMotionBlur) {};
+    virtual void UpdateColor(Drawing::ColorQuad color) {};
 
 protected:
     std::shared_ptr<Drawing::ImageFilter> imageFilter_ = nullptr;

@@ -127,8 +127,9 @@ public:
 
     // Type definitions
     using Ptr = std::shared_ptr<RSDrawable>;
-    using Vec = std::array<Ptr, static_cast<size_t>(RSDrawableSlot::MAX)>;
+    using Vec = std::map<int8_t, Ptr>;
     using Generator = std::function<Ptr(const RSRenderNode&)>;
+    using DrawList = std::vector<Ptr>;
 
     // UI methods: OnUpdate and OnGenerate (static method defined in every subclass) can only access the UI (staging)
     // members, else may cause crash.
@@ -141,8 +142,8 @@ public:
 
     // Render helper methods: This func is called in UI thread, but the generated DrawFunc will be called in RT thread,
     // they can only access the RT members, else may cause crash
-    virtual Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const = 0;
-
+    virtual void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const = 0;
+    
     // Sync methods, then can access all members and do UI->RT sync
     virtual void OnSync() = 0;
 

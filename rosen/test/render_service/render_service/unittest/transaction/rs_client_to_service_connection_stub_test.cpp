@@ -2613,135 +2613,6 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenStatusTest004, Tes
     ASSERT_EQ(res, ERR_OK);
 }
 
-/**
- * @tc.name: SetSurfaceWatermarkSub001
- * @tc.desc: Test SetSurfaceWatermarkSub001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, SetSurfaceWatermarkSub001, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    std::string name = "watermark";
-    int width = 10;
-    int height = 10;
-    Media::InitializationOptions opts;
-    opts.size.width = width;
-    opts.size.height = height;
-    std::shared_ptr<Media::PixelMap> pixelmap = Media::PixelMap::Create(opts);
-    std::vector<NodeId> nodeList;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_SURFACE_WATERMARK);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data0;
-    data0.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data0.WriteInt32(2);
-    res = connectionStub_->OnRemoteRequest(code, data0, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data20;
-    data20.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data20.WriteInt32(2);
-    data20.WriteString(name);
-    res = connectionStub_->OnRemoteRequest(code, data20, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data2.WriteInt32(2);
-    data2.WriteString(name);
-    data2.WriteBool(false);
-    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data3;
-    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data3.WriteInt32(2);
-    data3.WriteString(name);
-    data3.WriteBool(true);
-    data3.WriteParcelable(pixelmap.get());
-    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data4;
-    data4.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data4.WriteInt32(2);
-    data4.WriteString(name);
-    data4.WriteBool(true);
-    data4.WriteParcelable(pixelmap.get());
-    data4.WriteUInt64Vector(nodeList);
-    res = connectionStub_->OnRemoteRequest(code, data4, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data5;
-    data5.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data5.WriteInt32(2);
-    data5.WriteString(name);
-    data5.WriteBool(true);
-    data5.WriteParcelable(pixelmap.get());
-    data5.WriteUInt64Vector(nodeList);
-    data5.WriteUint8(static_cast<uint8_t>(0));
-    res = connectionStub_->OnRemoteRequest(code, data5, reply, option);
-}
-
-/**
- * @tc.name: ClearSurfaceWatermarkForNodesStub001
- * @tc.desc: Test ClearSurfaceWatermarkForNodesStub001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkForNodesStub001, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    std::string name = "watermark";
-    std::vector<NodeId> nodeList;
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data2.WriteString(name);
-    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
-
-    MessageParcel data3;
-    data3.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data3.WriteString(name);
-    data3.WriteUInt64Vector(nodeList);
-    res = connectionStub_->OnRemoteRequest(code, data3, reply, option);
-}
-/**
- * @tc.name: ClearSurfaceWatermarkStub001
- * @tc.desc: Test ClearSurfaceWatermarkStub001
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSClientToServiceConnectionStubTest, ClearSurfaceWatermarkStub001, TestSize.Level1)
-{
-    ASSERT_NE(connectionStub_, nullptr);
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
-    std::string name = "watermark";
-    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CLEAR_SURFACE_WATERMARK_FOR_NODES);
-    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
-    EXPECT_EQ(res, ERR_INVALID_DATA);
-
-    MessageParcel data2;
-    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-    data2.WriteString(name);
-    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
-}
 
 /**
  * @tc.name: SetDualScreenStateTest001
@@ -2927,6 +2798,90 @@ HWTEST_F(RSClientToServiceConnectionStubTest, SetSystemAnimatedScenesTest005, Te
     ASSERT_EQ(ret, ERR_NONE);
  
     clientToServiceConnection->mainThread_ = mainThread;
+}
+
+/**
+ * @tc.name: AddVirtualScreenWhiteList001
+ * @tc.desc: Test AddVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, AddVirtualScreenWhiteList001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::ADD_VIRTUAL_SCREEN_WHITELIST);
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<NodeId> whiteList;
+
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
+    EXPECT_NE(res, ERR_NONE);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(id);
+    data2.WriteUInt64Vector(whiteList);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: RemoveVirtualScreenWhiteList001
+ * @tc.desc: Test RemoveVirtualScreenWhiteList
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, RemoveVirtualScreenWhiteList001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::REMOVE_VIRTUAL_SCREEN_WHITELIST);
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<NodeId> whiteList;
+
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
+    EXPECT_NE(res, ERR_NONE);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(id);
+    data2.WriteUInt64Vector(whiteList);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
+}
+
+/**
+ * @tc.name: SetVirtualScreenBlackList001
+ * @tc.desc: Test SetVirtualScreenBlackList
+ * @tc.type: FUNC
+ * @tc.require: issue21114
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, SetVirtualScreenBlackList001, TestSize.Level2)
+{
+    ASSERT_NE(connectionStub_, nullptr);
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::SET_VIRTUAL_SCREEN_BLACKLIST);
+    ScreenId id = INVALID_SCREEN_ID;
+    std::vector<NodeId> blackList;
+
+    MessageParcel data1;
+    data1.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    auto res = connectionStub_->OnRemoteRequest(code, data1, reply, option);
+    EXPECT_NE(res, ERR_NONE);
+
+    MessageParcel data2;
+    data2.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data2.WriteUint64(id);
+    data2.WriteUInt64Vector(blackList);
+    res = connectionStub_->OnRemoteRequest(code, data2, reply, option);
+    EXPECT_EQ(res, ERR_NONE);
 }
 
 /**

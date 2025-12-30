@@ -15,6 +15,8 @@
 
 #include "ui/rs_root_node.h"
 
+#include "rs_trace.h"
+
 #include "command/rs_root_node_command.h"
 #include "pipeline/rs_node_map.h"
 #include "platform/common/rs_log.h"
@@ -35,6 +37,10 @@ std::shared_ptr<RSNode> RSRootNode::Create(
         if (transaction == nullptr) {
             return node;
         }
+        RS_LOGI("RSRootNode::Create, Node:%{public}" PRIu64 ", Token:%{public}" PRIu64, node->GetId(),
+            rsUIContext->GetToken());
+        RS_TRACE_NAME_FMT(
+            "RSRootNode::Create, Node:%" PRIu64 ", Token:%" PRIu64, node->GetId(), rsUIContext->GetToken());
         std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode);
         transaction->AddCommand(command, node->IsRenderServiceNode());
     } else {
@@ -43,6 +49,8 @@ std::shared_ptr<RSNode> RSRootNode::Create(
         if (transactionProxy == nullptr) {
             return node;
         }
+        RS_LOGI("RSRootNode::Create, Node:%{public}" PRIu64, node->GetId());
+        RS_TRACE_NAME_FMT("RSRootNode::Create, Node:%" PRIu64, node->GetId());
         std::unique_ptr<RSCommand> command = std::make_unique<RSRootNodeCreate>(node->GetId(), isTextureExportNode);
         transactionProxy->AddCommand(command, node->IsRenderServiceNode());
     }
@@ -74,6 +82,10 @@ void RSRootNode::AttachRSSurfaceNode(std::shared_ptr<RSSurfaceNode> surfaceNode)
             std::make_unique<RSRootNodeAttachToUniSurfaceNode>(GetId(), surfaceNode->GetId());
         AddCommand(command, true);
     }
+    RS_LOGI("RSRootNode::AttachRSSurfaceNode, SurfaceNode:%{public}" PRIu64 ", Node:%{public}" PRIu64,
+        surfaceNode->GetId(), GetId());
+    RS_TRACE_NAME_FMT(
+        "RSRootNode::AttachRSSurfaceNode, SurfaceNode:%" PRIu64 ", Node:%" PRIu64, surfaceNode->GetId(), GetId());
     SetIsOnTheTree(surfaceNode->GetIsOnTheTree());
 }
 

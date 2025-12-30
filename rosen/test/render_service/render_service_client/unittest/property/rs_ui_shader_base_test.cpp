@@ -86,4 +86,16 @@ HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateCircleFlowlight, TestSize.Level
     EXPECT_EQ(shader->GetType(), RSNGEffectType::CIRCLE_FLOWLIGHT);
 }
 
+/**
+ * @tc.name: RSNGShaderBaseCreateAIBarRectHalo
+ * @tc.desc: Calling Create(RSNGEffectType::AIBAR_RECT_HALO)
+ *           should return a non-null RSNGAIBarRectHalo instance
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSUIShaderBaseTest, RSNGShaderBaseCreateAIBarRectHalo, TestSize.Level1)
+{
+    auto shader = RSNGShaderBase::Create(RSNGEffectType::AIBAR_RECT_HALO);
+    EXPECT_NE(shader, nullptr);
+    EXPECT_EQ(shader->GetType(), RSNGEffectType::AIBAR_RECT_HALO);
+}
 } // namespace OHOS::Rosen

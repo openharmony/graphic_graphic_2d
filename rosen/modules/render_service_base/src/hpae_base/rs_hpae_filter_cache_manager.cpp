@@ -394,7 +394,7 @@ int RSHpaeFilterCacheManager::ProcessGpuBlur(const HpaeBufferInfo &inputBuffer,
             std::make_shared<RSKawaseBlurShaderFilter>(radius);
         kawaseBlurFilter->GenerateGEVisualEffect(effectContainer);
         auto blurImage = geRender->ApplyImageEffect(
-            *outCanvas, *effectContainer, image, srcRect, srcRect, Drawing::SamplingOptions());
+            *outCanvas, *effectContainer, {image, srcRect, srcRect}, Drawing::SamplingOptions());
         if (blurImage == nullptr) {
             ROSEN_LOGE("ProcessGpuBlur::DrawImageRect blurImage is null");
             return -1;

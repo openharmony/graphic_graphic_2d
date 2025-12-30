@@ -54,37 +54,45 @@ void RSUnionRenderNode::QuickPrepare(const std::shared_ptr<RSNodeVisitor>& visit
     visitor->QuickPrepareUnionRenderNode(*this);
 }
 
-void RSUnionRenderNode::UpdateVisibleUnionChildren(RSRenderNode& childNode)
+void RSUnionRenderNode::AddUnionChild(NodeId id)
 {
-    if (childNode.GetRenderProperties().GetUseUnion() && !childNode.GetOldDirtyInSurface().IsEmpty()) {
-        visibleUnionChildren_.emplace(childNode.GetId());
-    }
+    unionChildren_.emplace(id);
 }
 
-void RSUnionRenderNode::ResetVisibleUnionChildren()
+void RSUnionRenderNode::RemoveUnionChild(NodeId id)
 {
-    visibleUnionChildren_.clear();
+    unionChildren_.erase(id);
+}
+
+void RSUnionRenderNode::ResetUnionChildren()
+{
+    unionChildren_.clear();
 }
 
 void RSUnionRenderNode::ProcessSDFShape()
 {
-    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, visibleUnionChildren_[%lu], UnionSpacing[%f]",
-        visibleUnionChildren_.size(), GetRenderProperties().GetUnionSpacing());
-    if (visibleUnionChildren_.empty()) {
-        return;
-    }
-    std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
+    RS_TRACE_NAME_FMT("RSUnionRenderNode::ProcessSDFShape, unionChildren_[%lu], UnionSpacing[%f]",
+        unionChildren_.size(), GetRenderProperties().GetUnionSpacing());
     std::shared_ptr<RSNGRenderShapeBase> root;
-    if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f)) {
-        root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
-            SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
-        GenerateSDFLeaf<RSNGRenderSDFSmoothUnionOpShape, SDFSmoothUnionOpShapeShapeXRenderTag,
-            SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
+    if (unionChildren_.empty()) {
+        if (GetRenderProperties().GetSDFShape() &&
+            GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE) {
+            return;
+        }
+        root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
     } else {
-        root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
-            SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
-        GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
-            SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+        std::queue<std::shared_ptr<RSNGRenderShapeBase>> shapeQueue;
+        if (ROSEN_NE(GetRenderProperties().GetUnionSpacing(), 0.f)) {
+            root = GenerateSDFNonLeaf<RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE, RSNGRenderSDFSmoothUnionOpShape,
+                SDFSmoothUnionOpShapeShapeXRenderTag, SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFSmoothUnionOpShape, SDFSmoothUnionOpShapeShapeXRenderTag,
+                SDFSmoothUnionOpShapeShapeYRenderTag>(shapeQueue);
+        } else {
+            root = GenerateSDFNonLeaf<RSNGEffectType::SDF_UNION_OP_SHAPE, RSNGRenderSDFUnionOpShape,
+                SDFUnionOpShapeShapeXRenderTag, SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+            GenerateSDFLeaf<RSNGRenderSDFUnionOpShape, SDFUnionOpShapeShapeXRenderTag,
+                SDFUnionOpShapeShapeYRenderTag>(shapeQueue);
+        }
     }
     GetMutableRenderProperties().SetSDFShape(root);
     UpdateDrawableAfterPostPrepare(ModifierNG::RSModifierType::BOUNDS);
@@ -104,17 +112,11 @@ bool RSUnionRenderNode::GetChildRelativeMatrixToUnionNode(Drawing::Matrix& relat
         RS_LOGE("RSUnionRenderNode::GetChildRelativeMatrixToUnionNode unionAbsMatrix Invert fail");
         return false;
     }
-    auto childGeoPtr = child->GetRenderProperties().GetBoundsGeometry();
-    if (!childGeoPtr) {
-        RS_LOGE("RSUnionRenderNode::GetChildRelativeMatrixToUnionNode childGeoPtr GetBoundsGeometry fail");
+    if (!child->GetAbsMatrixReverse(*this, relativeMatrix)) {
+        RS_LOGE("RSUnionRenderNode::GetChildRelativeMatrixToUnionNode get child absMatrix fail");
         return false;
     }
-    relativeMatrix = childGeoPtr->GetAbsMatrix();
     relativeMatrix.PostConcat(invertUnionAbsMatrix);
-    // GE need inverted matrix
-    Drawing::Matrix invertMat;
-    relativeMatrix.Invert(invertMat);
-    relativeMatrix = invertMat;
     return true;
 }
 
@@ -173,11 +175,48 @@ std::shared_ptr<RSNGRenderShapeBase> RSUnionRenderNode::GetOrCreateChildSDFShape
     return childShape;
 }
 
-void RSUnionRenderNode::ResetChildRelevantFlags()
+void RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged(const std::shared_ptr<RSRenderNode> node)
 {
-    visibleUnionChildren_.clear();
-    RSRenderNode::ResetChildRelevantFlags();
+    if (!node->GetRenderProperties().GetUseUnion()) {
+        return;
+    }
+    auto unionNode = FindClosestUnionAncestor(node);
+    if (!unionNode) {
+        ROSEN_LOGD("RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged: invalid unionNode");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUnionRenderNode::ProcessUnionInfoOnTreeStateChanged node[%llu], unionNode[%llu], "
+        "isOnTheTree[%d]", node->GetId(), unionNode->GetId(), node->IsOnTheTree());
+    node->IsOnTheTree() ? unionNode->AddUnionChild(node->GetId()) : unionNode->RemoveUnionChild(node->GetId());
 }
 
+void RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers(const std::shared_ptr<RSRenderNode> node)
+{
+    if (!node->IsOnTheTree()) {
+        return;
+    }
+    auto unionNode = FindClosestUnionAncestor(node);
+    if (!unionNode) {
+        ROSEN_LOGD("RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers: invalid unionNode");
+        return;
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("RSUnionRenderNode::ProcessUnionInfoAfterApplyModifiers node[%llu], unionNode[%llu], "
+        "useUnion[%d]", node->GetId(), unionNode->GetId(), node->GetRenderProperties().GetUseUnion());
+    node->GetRenderProperties().GetUseUnion() ?
+        unionNode->AddUnionChild(node->GetId()) : unionNode->RemoveUnionChild(node->GetId());
+}
+
+std::shared_ptr<RSUnionRenderNode> RSUnionRenderNode::FindClosestUnionAncestor(
+    const std::shared_ptr<RSRenderNode> node)
+{
+    std::shared_ptr<RSRenderNode> curNode = node;
+    while (auto parent = curNode->GetParent().lock()) {
+        if (parent->IsInstanceOf<RSUnionRenderNode>()) {
+            return std::static_pointer_cast<RSUnionRenderNode>(parent);
+        }
+        curNode = parent;
+    }
+    return nullptr;
+}
 } // namespace Rosen
 } // namespace OHOS

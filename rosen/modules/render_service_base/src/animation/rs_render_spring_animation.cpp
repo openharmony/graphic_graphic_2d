@@ -126,15 +126,17 @@ void RSRenderSpringAnimation::OnAttach()
     auto prevAnimation = target->GetAnimationManager().QuerySpringAnimation(propertyId);
     target->GetAnimationManager().RegisterSpringAnimation(propertyId, GetAnimationId());
     // stop running the previous animation and inherit velocity from it
-    InheritSpringAnimation(prevAnimation);
+    InheritSpringAnimation(prevAnimation, false);
 }
 
-void RSRenderSpringAnimation::InheritSpringAnimation(const std::shared_ptr<RSRenderAnimation>& prevAnimation)
+void RSRenderSpringAnimation::InheritSpringAnimation(
+    const std::shared_ptr<RSRenderAnimation>& prevAnimation, bool isCustom)
 {
     // return if no other spring animation(s) running, or the other animation is finished
     // meanwhile, align run time for both spring animations, prepare for status inheritance
     int64_t delayTime = 0;
-    if (prevAnimation == nullptr || prevAnimation->Animate(animationFraction_.GetLastFrameTime(), delayTime)) {
+    if (prevAnimation == nullptr ||
+        prevAnimation->Animate(animationFraction_.GetLastFrameTime(), delayTime, isCustom)) {
         blendDuration_ = 0;
         return;
     }
@@ -148,7 +150,7 @@ void RSRenderSpringAnimation::InheritSpringAnimation(const std::shared_ptr<RSRen
     auto prevSpringAnimation = std::static_pointer_cast<RSRenderSpringAnimation>(prevAnimation);
 
     // inherit spring status from previous spring animation
-    if (!InheritSpringStatus(prevSpringAnimation.get())) {
+    if (!InheritSpringStatus(prevSpringAnimation.get(), isCustom)) {
         blendDuration_ = 0;
         return;
     }
@@ -189,11 +191,11 @@ void RSRenderSpringAnimation::OnDetach()
     target->GetAnimationManager().UnregisterSpringAnimation(propertyId, id);
 }
 
-void RSRenderSpringAnimation::OnInitialize(int64_t time)
+void RSRenderSpringAnimation::OnInitialize(int64_t time, bool isCustom)
 {
     if (springValueEstimator_ == nullptr) {
         ROSEN_LOGD("RSRenderSpringAnimation::OnInitialize failed, springValueEstimator is null");
-        RSRenderPropertyAnimation::OnInitialize(time);
+        RSRenderPropertyAnimation::OnInitialize(time, isCustom);
         return;
     }
 
@@ -201,12 +203,13 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
         auto lastFrameTime = animationFraction_.GetLastFrameTime();
 
         // reset animation fraction
-        InheritSpringStatus(this);
+        InheritSpringStatus(this, isCustom);
         animationFraction_.ResetFraction();
         prevMappedTime_ = 0.0f;
 
         // blend response by linear interpolation
-        uint64_t blendTime = (time - lastFrameTime) * animationFraction_.GetAnimationScale();
+        const float animationScale = isCustom ? 1.0f : RSAnimationFraction::GetAnimationScale();
+        uint64_t blendTime = (time - lastFrameTime) * animationScale;
         if (blendTime < blendDuration_) {
             auto blendRatio = static_cast<float>(blendTime) / static_cast<float>(blendDuration_);
             auto response = springValueEstimator_->GetResponse();
@@ -237,18 +240,18 @@ void RSRenderSpringAnimation::OnInitialize(int64_t time)
         // blend finished, estimate duration until the spring system reaches rest
         SetDuration(std::lroundf(springValueEstimator_->UpdateDuration() * SECOND_TO_MILLISECOND));
         // this will set needInitialize_ to false
-        RSRenderPropertyAnimation::OnInitialize(time);
+        RSRenderPropertyAnimation::OnInitialize(time, isCustom);
     }
 }
 
 std::tuple<std::shared_ptr<RSRenderPropertyBase>, std::shared_ptr<RSRenderPropertyBase>,
     std::shared_ptr<RSRenderPropertyBase>>
-RSRenderSpringAnimation::GetSpringStatus() const
+RSRenderSpringAnimation::GetSpringStatus(bool isCustom) const
 {
     // if animation is never started, return start value and initial velocity
     // fraction_threshold will change with animationScale.
-    if (ROSEN_EQ(animationFraction_.GetAnimationScale(), 0.0f) ||
-        ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationFraction_.GetAnimationScale())) {
+    const float animationScale = isCustom ? 1.0f : RSAnimationFraction::GetAnimationScale();
+    if (ROSEN_EQ(animationScale, 0.0f) || ROSEN_EQ(prevMappedTime_, 0.0f, FRACTION_THRESHOLD / animationScale)) {
         return { startValue_, endValue_, initialVelocity_ };
     }
 
@@ -263,7 +266,7 @@ RSRenderSpringAnimation::GetSpringStatus() const
     return { springValueEstimator_->GetAnimationProperty(), endValue_, velocity };
 }
 
-bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation* from)
+bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation* from, bool isCustom)
 {
     if (from == nullptr) {
         ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus failed, from is null!");
@@ -275,7 +278,7 @@ bool RSRenderSpringAnimation::InheritSpringStatus(const RSRenderSpringAnimation*
         return false;
     }
 
-    auto [lastValue, endValue, velocity] = from->GetSpringStatus();
+    auto [lastValue, endValue, velocity] = from->GetSpringStatus(isCustom);
     if (lastValue == nullptr) {
         ROSEN_LOGD("RSRenderSpringAnimation::InheritSpringStatus, unexpected lastValue null pointer!");
         return false;

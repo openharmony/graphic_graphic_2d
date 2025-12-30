@@ -137,9 +137,10 @@ void DoCreateVirtualScreen()
     MessageParcel dataParcel;
     MessageParcel replyParcel;
     uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::CREATE_VIRTUAL_SCREEN);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    auto remoteObject = samgr->GetSystemAbility(RENDER_SERVICE);
-    sptr<IBufferProducer> bufferProducer_ = iface_cast<IBufferProducer>(remoteObject);
+    sptr<IBufferProducer> bufferProducer = IConsumerSurface::Create()->GetProducer();
+    if (!bufferProducer) {
+        return;
+    }
 
     uint32_t width = GetData<uint32_t>();
     uint32_t height = GetData<uint32_t>();
@@ -157,7 +158,7 @@ void DoCreateVirtualScreen()
     dataParcel.WriteUint32(width);
     dataParcel.WriteUint32(height);
     dataParcel.WriteBool(useSurface);
-    dataParcel.WriteRemoteObject(bufferProducer_->AsObject());
+    dataParcel.WriteRemoteObject(bufferProducer->AsObject());
     dataParcel.WriteUint64(mirrorId);
     dataParcel.WriteInt32(flags);
     dataParcel.WriteUInt64Vector(whiteList);

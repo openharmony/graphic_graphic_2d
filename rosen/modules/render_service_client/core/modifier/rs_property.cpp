@@ -417,6 +417,7 @@ RSC_EXPORT std::shared_ptr<RSRenderPropertyBase> RSProperty<std::shared_ptr<RSNG
 #define UPDATE_TO_RENDER(Command, value, type)                                                                       \
     auto node = target_.lock();                                                                                      \
     if (node != nullptr) {                                                                                           \
+        node->LoadRenderNodeIfNeed();                                                                                \
         auto transaction = node->GetRSTransaction();                                                                 \
         if (!transaction) {                                                                                          \
             do {                                                                                                     \
@@ -469,6 +470,12 @@ void RSProperty<std::vector<Vector2f>>::UpdateToRender(
     UPDATE_TO_RENDER(RSUpdatePropertyVectorVector2f, value, type);
 }
 // =============================================================================
+template<>
+void RSProperty<std::vector<Vector4f>>::UpdateToRender(
+    const std::vector<Vector4f>& value, PropertyUpdateType type) const
+{
+    UPDATE_TO_RENDER(RSUpdatePropertyVectorVector4f, value, type);
+}
 template<>
 void RSProperty<int>::UpdateToRender(const int& value, PropertyUpdateType type) const
 {

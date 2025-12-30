@@ -323,6 +323,13 @@ void DrawingSurfaceUtils::RemoveSurface(Drawing::Surface* surface)
         if (iter == g_eglSurfaceMap.end()) {
             return;
         }
+        auto renderContext = DrawingGpuContextManager::GetInstance().GetRenderContext();
+        if (renderContext != nullptr) {
+            EGLSurface eglSurface = (iter->second).second;
+            renderContext->DestroyEGLSurface(eglSurface);
+        } else {
+            LOGD("RemoveSurface: get renderContext failed.");
+        }
         g_eglSurfaceMap.erase(iter);
     }
 

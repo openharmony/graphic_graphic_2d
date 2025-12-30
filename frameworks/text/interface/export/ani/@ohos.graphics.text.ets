@@ -1014,4 +1014,5 @@ namespace text {
   }
 
   export native function setTextUndefinedGlyphDisplay(noGlyphShow: TextUndefinedGlyphDisplay): void;
+  export native function isFontSupported(fontURL: Resource | string): boolean;
 }

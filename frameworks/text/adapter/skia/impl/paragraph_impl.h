@@ -161,6 +161,20 @@ public:
 
     std::string GetDumpInfo() const override;
 
+#ifdef ENABLE_OHOS_ENHANCE
+    /**
+     * Get the text path image by index.
+     * This function retrieves the image representation of the text path within the specified range.
+     * @param start The starting index of the text path.
+     * @param end The ending index of the text path.
+     * @param options The image options to be applied.
+     * @param fill Whether to fill the path.
+     * @return A shared pointer to the pixel map representing the text path image.
+     */
+    std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
+        size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+#endif
+
 private:
     void ParagraphStyleUpdater(skt::Paragraph& skiaParagraph, const ParagraphStyle& spParagraphStyle,
         skt::InternalState& state);

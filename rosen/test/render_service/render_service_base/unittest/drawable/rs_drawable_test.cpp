@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 
+#include "common/rs_common_tools.h"
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_misc_drawable.h"
 #include "drawable/rs_property_drawable.h"
@@ -25,7 +26,7 @@
 
 using namespace testing;
 using namespace testing::ext;
-
+using namespace OHOS::Rosen::TemplateUtils;
 namespace OHOS::Rosen {
 class RSDrawableTest : public testing::Test {
 public:
@@ -80,7 +81,10 @@ HWTEST_F(RSDrawableTest, UpdateDirtySlots, TestSize.Level1)
     std::unordered_set<RSDrawableSlot> dirtySlots = RSDrawable::CalculateDirtySlotsNG(dirtyTypes, drawableVec);
     std::shared_ptr<RSShader> shader = RSShader::CreateRSShader();
     node.GetMutableRenderProperties().SetBackgroundShader(shader);
-    for (auto& drawable : drawableVec) {
+    for (auto i = static_cast<int8_t>(RSDrawableSlot::SAVE_ALL); i < static_cast<int8_t>(RSDrawableSlot::MAX); ++i) {
+        drawableVec[i] = nullptr;
+    }
+    for (auto& [slot, drawable] : drawableVec) {
         drawable = DrawableV2::RSBackgroundShaderDrawable::OnGenerate(node);
         ASSERT_TRUE(drawable);
     }
@@ -124,7 +128,7 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
     auto stretchDrawable = std::make_shared<DrawableV2::RSPixelStretchDrawable>();
     drawableVec[static_cast<size_t>(RSDrawableSlot::PIXEL_STRETCH)] = stretchDrawable;
     ASSERT_FALSE(RSDrawable::FuzeDrawableSlots(node, drawableVec));
-    
+
     // -1.f: stretch param
     std::optional<Vector4f> pixelStretchPara = { Vector4f(-1.f, -1.f, -1.f, -1.f) };
     node.GetMutableRenderProperties().SetPixelStretch(pixelStretchPara);
@@ -144,7 +148,7 @@ HWTEST_F(RSDrawableTest, FuzeDrawableSlots, TestSize.Level1)
 HWTEST_F(RSDrawableTest, UpdateSaveRestore001, TestSize.Level1)
 {
     NodeId id = 1;
-    RSEffectRenderNode node(id); 
+    RSEffectRenderNode node(id);
     RSDrawable::Vec drawableVec;
     uint8_t drawableVecStatus = 0;
     RSDrawable::UpdateSaveRestore(node, drawableVec, drawableVecStatus);

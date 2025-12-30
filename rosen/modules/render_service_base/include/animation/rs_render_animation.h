@@ -51,7 +51,7 @@ public:
     void SetFraction(float fraction);
     void SetReversed(bool isReversed);
     bool Marshalling(Parcel& parcel) const override;
-    virtual bool Animate(int64_t time, int64_t& minLeftDelayTime);
+    virtual bool Animate(int64_t time, int64_t& minLeftDelayTime, bool isCustom = false);
 
     bool IsStarted() const;
     bool IsRunning() const;
@@ -200,7 +200,7 @@ protected:
 
     virtual void OnDetach() {}
 
-    virtual void OnInitialize(int64_t time)
+    virtual void OnInitialize(int64_t time, bool isCustom = false)
     {
         needInitialize_ = false;
     }

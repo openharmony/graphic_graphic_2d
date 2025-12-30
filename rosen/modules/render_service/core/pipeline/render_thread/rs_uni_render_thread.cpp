@@ -855,15 +855,8 @@ void RSUniRenderThread::DumpMem(DfxString& log, bool isLite)
     });
 }
 
-void RSUniRenderThread::DumpGpuMem(DfxString& log)
+void RSUniRenderThread::DumpGpuMem(DfxString& log, const std::vector<std::pair<NodeId, std::string>>& nodeTags)
 {
-    std::vector<std::pair<NodeId, std::string>> nodeTags;
-    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
-        NodeId nodeId = node->GetId();
-        std::string name = node->GetName() + " " + std::to_string(ExtractPid(nodeId)) + " " + std::to_string(nodeId);
-        nodeTags.push_back({nodeId, name});
-    });
     PostSyncTask([&log, &nodeTags, this]() {
         if (!uniRenderEngine_) {
             return;

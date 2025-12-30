@@ -24,7 +24,6 @@
 #include "rs_mhc_manager.h"
 #endif
 #if defined(ROSEN_OHOS)
-#include "cpp/ffrt_dynamic_graph.h"
 #include "hpae_base/rs_hpae_ffrt_pattern_manager.h"
 #include "hpae_base/rs_hpae_scheduler.h"
 #include "hpae_base/rs_hpae_log.h"
@@ -62,11 +61,7 @@ RSSurfaceOhosVulkan::RSSurfaceOhosVulkan(const sptr<Surface>& producer) : RSSurf
 
 RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
 {
-    if (cleanUpHelper_) {
-        cleanUpHelper_(mSurfaceMap);
-    } else {
-        mSurfaceMap.clear();
-    }
+    mSurfaceMap.clear();
     mSurfaceList.clear();
     ReleasePreAllocateBuffer();
     DestoryNativeWindow(mNativeWindow);
@@ -74,6 +69,9 @@ RSSurfaceOhosVulkan::~RSSurfaceOhosVulkan()
     if (mReservedFlushFd != -1) {
         fdsan_close_with_tag(mReservedFlushFd, LOG_DOMAIN);
         mReservedFlushFd = -1;
+    }
+    if (cleanUpHelper_) {
+        cleanUpHelper_();
     }
 }
 
@@ -248,7 +246,7 @@ std::unique_ptr<RSSurfaceFrame> RSSurfaceOhosVulkan::RequestFrame(
         mSurfaceList.emplace_back(nativeWindowBuffer);
         hpaeSurfaceBufferList_.pop_front();
     } else {
-        bool isUsingPreAllocateProtectedBuffer= isProtected && mPreAllocateProtectedBuffer && (mProtectedFenceFd != -1);
+        bool isUsingPreAllocateProtectedBuffer = isProtected && mPreAllocateProtectedBuffer;
         if (isUsingPreAllocateProtectedBuffer) {
             RS_TRACE_NAME_FMT("use protectedSurfaceBuffer");
             nativeWindowBuffer = mPreAllocateProtectedBuffer;
@@ -679,8 +677,7 @@ void RSSurfaceOhosVulkan::ResetBufferAge()
     ROSEN_LOGD("RSSurfaceOhosVulkan: Reset Buffer Age!");
 }
 
-void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void(std::unordered_map<NativeWindowBuffer*,
-    NativeBufferUtils::NativeSurfaceInfo>& mSurfaceMap)> func)
+void RSSurfaceOhosVulkan::SetCleanUpHelper(std::function<void()> func)
 {
     cleanUpHelper_ = func;
 }

@@ -186,6 +186,7 @@ static const std::unordered_map<RSPropertyType, ThresholdType> g_propertyTypeToT
     { RSPropertyType::COLOR_PICKER_PLACEHOLDER, ThresholdType::DEFAULT },
     { RSPropertyType::COLOR_PICKER_STRATEGY, ThresholdType::DEFAULT },
     { RSPropertyType::COLOR_PICKER_INTERVAL, ThresholdType::COARSE },
+    { RSPropertyType::COLOR_ADAPTIVE, ThresholdType::ZERO },
     { RSPropertyType::CHILDREN, ThresholdType::DEFAULT }
 };
 

@@ -135,6 +135,7 @@ public:
         Drawing::Canvas& canvas, RSScreenRenderParams& params);
     static void SwitchColorFilter(RSPaintFilterCanvas& canvas, float hdrBrightnessRatio = 1.f,
         bool displayP3Enable = false);
+    static Drawing::Matrix GetMatrixByDegree(int degree, const RectF& bounds);
 
 private:
     static void SetSrcRect(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer);

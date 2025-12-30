@@ -520,8 +520,6 @@ void RecorRsProfileRecordTest::SetUpTestCase()
 
 void RecorRsProfileRecordTest::TearDownTestCase()
 {
-    RSProfiler::Init(nullptr);
-
     // Wait for all tasks in the main thread to complete.
     mainThread_->ScheduleTask([]() -> int { return 0; }).get();
 }

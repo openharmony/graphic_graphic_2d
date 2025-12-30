@@ -90,6 +90,11 @@ public:
     bool GetTextEffectAssociation() const override { return textEffectAssociation_; }
     bool CanPaintAllText() const override;
     std::string GetDumpInfo() const override;
+#ifdef ENABLE_OHOS_ENHANCE
+    std::shared_ptr<OHOS::Media::PixelMap> GetTextPathImageByIndex(
+        size_t start, size_t end, const ImageOptions& options, bool fill) const override;
+#endif
+
 private:
     std::unique_ptr<SPText::Paragraph> paragraph_ = nullptr;
     std::vector<TextStyle> lineMetricsStyles_;

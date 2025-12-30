@@ -71,6 +71,11 @@ bool RSSystemProperties::GetAnimationTraceEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetTestModeEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetAnimationDelayOptimizeEnabled()
 {
     return false;
@@ -646,6 +651,11 @@ bool RSSystemProperties::GetOptimizeCanvasDrawRegionEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetFilterCacheMemThresholdEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetSurfaceOffscreenEnadbled()
 {
     return true;
@@ -860,6 +870,11 @@ bool RSSystemProperties::GetSceneBoardIsPcMode()
 }
 
 bool RSSystemProperties::GetReleaseImageOneByOneFlag()
+{
+    return false;
+}
+
+bool RSSystemProperties::GetTransactionDataTraceEnabled()
 {
     return false;
 }

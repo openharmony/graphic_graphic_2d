@@ -3342,18 +3342,18 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale001, TestSize.Lev
     };
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when scaleManager is nullptr
-    displayDrawable_->UpdateSlrScale(screenInfo);
+    displayDrawable_->UpdateSlrScale(screenInfo, 200, 200);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
     EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->scaleManager_->GetKernelSize());
     // when scaleManager is not nullptr
     displayDrawable_->scaleManager_ = std::make_unique<RSSLRScaleFunction>(
         screenInfo.phyWidth, screenInfo.phyHeight, screenInfo.width, screenInfo.height);
-    displayDrawable_->UpdateSlrScale(screenInfo);
+    displayDrawable_->UpdateSlrScale(screenInfo, 200, 200);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
     EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->scaleManager_->GetKernelSize());
 
     system::SetParameter("rosen.SLRScale.enabled", "0");
-    displayDrawable_->UpdateSlrScale(screenInfo);
+    displayDrawable_->UpdateSlrScale(screenInfo, 200, 200);
     EXPECT_EQ(displayDrawable_->scaleManager_, nullptr);
     system::SetParameter("rosen.SLRScale.enabled", param);
 }
@@ -3378,7 +3378,7 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, UpdateSlrScale002, TestSize.Lev
     system::SetParameter("rosen.SLRScale.enabled", "1");
     // when params is not nullptr
     auto screenParams = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
-    displayDrawable_->UpdateSlrScale(screenInfo, screenParams);
+    displayDrawable_->UpdateSlrScale(screenInfo, 200, 200, screenParams);
     ASSERT_NE(displayDrawable_->scaleManager_, nullptr);
     EXPECT_EQ(screenInfo.samplingDistance, displayDrawable_->scaleManager_->GetKernelSize());
     // recover rosen.SLRScale.enabled

@@ -404,6 +404,66 @@ HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_005, TestSize.Level2)
     // release buffer
     surfaceConsumer->ReleaseBuffer(buffer, SyncFence::INVALID_FENCE);
 }
+
+/*
+ * @tc.name: ConsumeAndUpdateBuffer_006
+ * @tc.desc: Test ConsumeAndUpdateBuffer while need drop frame by screen frozen
+ * @tc.type: FUNC
+ * @tc.require: issue21227
+ */
+HWTEST_F(RSBaseRenderUtilTest, ConsumeAndUpdateBuffer_006, TestSize.Level2)
+{
+    // create producer and consumer
+    auto rsSurfaceRenderNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    const auto& surfaceConsumer = rsSurfaceRenderNode->GetRSSurfaceHandler()->GetConsumer();
+    ASSERT_NE(surfaceConsumer, nullptr);
+    auto producer = surfaceConsumer->GetProducer();
+    ASSERT_NE(producer, nullptr);
+    psurf = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurf, nullptr);
+    psurf->SetQueueSize(2);
+
+    // acquire buffer
+    uint64_t parentNodeId = 0;
+    uint64_t presentWhen = 100; // let presentWhen smaller than INT64_MAX
+    auto& surfaceHandler = *(rsSurfaceRenderNode->GetRSSurfaceHandler());
+    surfaceHandler.SetConsumer(surfaceConsumer);
+    surfaceHandler.SetAvailableBufferCount(1);
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, true));
+    IConsumerSurface::AcquireBufferReturnValue holdReturnValue;
+    holdReturnValue.buffer = sptr<SurfaceBufferImpl>::MakeSptr();
+    surfaceHandler.SetHoldReturnValue(holdReturnValue);
+    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+
+    // produce buffer
+    sptr<SurfaceBuffer> buffer1 = sptr<SurfaceBufferImpl>::MakeSptr();
+    sptr<SyncFence> requestFence = SyncFence::INVALID_FENCE;
+    GSError ret = psurf->RequestBuffer(buffer1, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    sptr<SyncFence> flushFence = SyncFence::INVALID_FENCE;
+    ret = psurf->FlushBuffer(buffer1, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+
+    // consume buffer
+    surfaceHandler.ResetHoldReturnValue();
+    surfaceHandler.SetAvailableBufferCount(1);
+    EXPECT_TRUE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, false));
+    RSBaseRenderUtil::ReleaseBuffer(surfaceHandler);
+
+    // produce buffer
+    sptr<SurfaceBuffer> buffer2 = sptr<SurfaceBufferImpl>::MakeSptr();
+    ret = psurf->RequestBuffer(buffer2, requestFence, requestConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    ret = psurf->FlushBuffer(buffer2, flushFence, flushConfig);
+    ASSERT_EQ(ret, GSERROR_OK);
+    // consume buffer
+    surfaceHandler.SetHoldReturnValue(holdReturnValue);
+    surfaceHandler.SetAvailableBufferCount(1);
+    EXPECT_FALSE(RSBaseRenderUtil::ConsumeAndUpdateBuffer(surfaceHandler, presentWhen, false, parentNodeId, true));
+}
+
 /*
  * @tc.name: ReleaseBuffer_001
  * @tc.desc: Test ReleaseBuffer

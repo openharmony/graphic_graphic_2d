@@ -52,14 +52,25 @@ public:
         return nullptr;
     }
 
+    void UpdateColor(Drawing::ColorQuad color) override {
+        grayScale_ = static_cast<float>(Drawing::Color::ColorQuadGetB(color)) / Drawing::Color::RGB_MAX;
+    }
+
+    void SetColorPreprocess(bool colorPreprocess)
+    {
+        colorPreprocess_ = colorPreprocess;
+    }
+
     float GetRadius() const;
 
 private:
     float blurScale_ {};
-    float blurRadius_ {}; //kawase blur's blur radius
-    int numberOfPasses_{};
-    float radiusByPasses_{};
-    float unit_{};
+    float blurRadius_ {}; // kawase blur's blur radius
+    int numberOfPasses_ {};
+    float radiusByPasses_ {};
+    float unit_ {};
+    float grayScale_ {};
+    bool colorPreprocess_ = false;
 
     static std::mutex blurEffectMutex_;
     static std::shared_ptr<Drawing::RuntimeEffect> blurEffect_;

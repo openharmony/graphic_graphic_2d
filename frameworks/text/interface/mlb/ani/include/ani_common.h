@@ -38,8 +38,8 @@ namespace OHOS::Text::ANI {
 #define ANI_INT "std.core.Int"
 #define ANI_BOOLEAN "std.core.Boolean"
 #define ANI_STRING "std.core.String"
-#define ANI_MAP "escompat.Map"
-#define ANI_ARRAY "escompat.Array"
+#define ANI_MAP "std.core.Map"
+#define ANI_ARRAY "std.core.Array"
 #define ANI_BUSINESS_ERROR "@ohos.base.BusinessError"
 #define ANI_GLOBAL_RESOURCE "global.resource.Resource"
 /**

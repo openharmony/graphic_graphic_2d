@@ -430,6 +430,20 @@ HWTEST_F(RSScreenTest, GetScreenTypeTest, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetConnectionTypeTest
+ * @tc.desc: GetConnectionType Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, GetConnectionTypeTest, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
+    virtualScreen->GetConnectionType();
+}
+
+/*
  * @tc.name: SetScreenSkipFrameIntervalTest
  * @tc.desc: SetScreenSkipFrameInterval Test
  * @tc.type: FUNC
@@ -726,8 +740,6 @@ HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
     ScreenId screenId = mockScreenId_;
     uint32_t width{0};
     uint32_t height{0};
-    uint32_t setWidth{1920};
-    uint32_t setHeight{1080};
     auto hdiOutput = HdiOutput::CreateHdiOutput(screenId);
     auto rsScreen = std::make_shared<RSScreen>(hdiOutput);
     
@@ -742,7 +754,7 @@ HWTEST_F(RSScreenTest, GetRogResolution_001, testing::ext::TestSize.Level1)
 
     // case 2: GetRogResolution with prior setup
     EXPECT_CALL(*hdiDeviceMock_, SetScreenOverlayResolution(_, _, _)).Times(1).WillOnce(testing::Return(0));
-    rsScreen->SetRogResolution(setWidth, setHeight);
+    rsScreen->isRogResolution_ = true;
     ASSERT_EQ(rsScreen->GetRogResolution(width, height), StatusCode::SUCCESS);
 }
 
@@ -1794,7 +1806,7 @@ HWTEST_F(RSScreenTest, SetScreenColorSpace_002, testing::ext::TestSize.Level1)
     auto rsScreen = std::make_shared<RSScreen>(nullptr);
     ASSERT_NE(nullptr, rsScreen);
 
-    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_COLORSPACE_NONE;
+    GraphicCM_ColorSpaceType colorSpace = GRAPHIC_CM_BT601_SMPTE_C_LIMIT;
     ASSERT_EQ(rsScreen->SetScreenColorSpace(colorSpace), StatusCode::INVALID_ARGUMENTS);
 }
 

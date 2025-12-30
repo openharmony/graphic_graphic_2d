@@ -51,7 +51,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -117,7 +117,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 private:
     bool needSync_ = false;
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
@@ -136,7 +136,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 private:
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     static Drawing::ColorType GetColorTypeFromVKFormat(VkFormat vkFormat);
@@ -181,7 +181,7 @@ public:
 
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 private:
     Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
         EffectRectType type, const RectF& bound) const override;
@@ -199,7 +199,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     bool needSync_ = false;
@@ -216,7 +216,7 @@ public:
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
     void OnSync() override;
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
     static std::shared_ptr<Drawing::Blender> MakeDynamicLightUpBlender(float rate, float degree, float alpha);
@@ -235,10 +235,16 @@ public:
 
     static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
     bool OnUpdate(const RSRenderNode& node) override;
+    void OnSync() override;
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+
     Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
         EffectRectType type, const RectF& bound) const override;
     void CalVisibleRect(const Drawing::Matrix& absMatrix, const std::optional<RectI>& clipRect,
         const RectF& defaultRelativeRect) override;
+private:
+    bool stagingEmptyShape_ = false;
+    bool emptyShape_ = false;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

@@ -31,6 +31,7 @@
 #include "pipeline/rs_logical_display_render_node.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_render_node.h"
+#include "pipeline/rs_union_render_node.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "render_thread/rs_render_thread_visitor.h"
 #include "pipeline/rs_root_render_node.h"
@@ -394,11 +395,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateBufferDirtyRegion002, TestSize.Level1)
     auto buffer = SurfaceBuffer::Create();
     auto ret = buffer->Alloc(requestConfig);
     ASSERT_EQ(ret, GSERROR_OK);
- 
+
     auto src = RSGpuDirtyCollector::GetBufferSelfDrawingData(buffer);
     ASSERT_NE(src, nullptr);
     (*src) = defaultSelfDrawingRect;
- 
+
     surfaceNode->GetRSSurfaceHandler()->buffer_.buffer = buffer;
     ASSERT_TRUE(surfaceNode->GetRSSurfaceHandler()->GetBuffer() != nullptr);
     surfaceNode->GetRSSurfaceHandler()->buffer_.damageRect = DEFAULT_RECT;
@@ -1129,6 +1130,40 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterRegionInSkippedSubTree002, TestSize.Leve
 }
 
 /**
+ * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree001
+ * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is equal to filterRect
+ * @tc.type: FUNC
+ * @tc.require: issue21301
+ */
+HWTEST_F(RSRenderNodeTest2, FilterRectMergeDirtyRectInSkippedSubtree001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect{0, 0, 1000, 1000};
+    node.lastFilterRegion_ = filterRect;
+    node.FilterRectMergeDirtyRectInSkippedSubtree(*rsDirtyManager, filterRect);
+    EXPECT_FALSE(node.isDirtyRegionUpdated_);
+    EXPECT_TRUE(rsDirtyManager->GetCurrentFrameDirtyRegion().IsEmpty());
+}
+
+/**
+ * @tc.name: FilterRectMergeDirtyRectInSkippedSubtree002
+ * @tc.desc: test FilterRectMergeDirtyRectInSkippedSubtree last filter region is not equal to filterRect
+ * @tc.type: FUNC
+ * @tc.require: issue21301
+ */
+HWTEST_F(RSRenderNodeTest2, FilterRectMergeDirtyRectInSkippedSubtree002, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
+    RectI filterRect{1000, 1000, 1500, 1500};
+    node.lastFilterRegion_ = RectI(0, 0, 500, 500);
+    node.FilterRectMergeDirtyRectInSkippedSubtree(*rsDirtyManager, filterRect);
+    EXPECT_TRUE(node.isDirtyRegionUpdated_);
+    EXPECT_EQ(rsDirtyManager->GetCurrentFrameDirtyRegion(), filterRect);
+}
+
+/**
  * @tc.name: CheckBlurFilterCacheNeedForceClearOrSave
  * @tc.desc: test
  * @tc.type: FUNC
@@ -1299,7 +1334,7 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty003, TestSize.Level1)
         filterDrawable;
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::COMPOSITING_FILTER)] =
         filterDrawable;
-    
+
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffect().backgroundFilter_ = std::make_shared<RSFilter>();
     properties.GetEffect().filter_ = std::make_shared<RSFilter>();
@@ -3201,6 +3236,86 @@ HWTEST_F(RSRenderNodeTest2, GetFilterDrawableSnapshotRegion001, TestSize.Level1)
         filterDrawable;
     node->UpdateFilterRectInfo();
     EXPECT_EQ(node->GetFilterDrawableSnapshotRegion(), RectI());
+}
+
+/**
+ * @tc.name: UpdateDrawableEnableEDR
+ * @tc.desc: Test function UpdateDrawableEnableEDR
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateDrawableEnableEDR, TestSize.Level1)
+{
+    auto node = std::make_shared<RSRenderNode>(2);
+    node->UpdateDrawableEnableEDR();
+}
+
+/**
+ * @tc.name: UpdateFilterCacheWithBackgroundAndAlphaDirtyTest
+ * @tc.desc: Test function UpdateFilterCacheWithBackgroundAndAlphaDirtyTest
+ * @tc.type: FUNC
+ * @tc.require: issueICD8D6
+ */
+HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithBackgroundAndAlphaDirtyTest, TestSize.Level1)
+{
+    // both false
+    {
+        auto renderNode = std::make_shared<RSRenderNode>(1);
+        ASSERT_NE(renderNode, nullptr);
+        renderNode->UpdateFilterCacheWithBackgroundDirty();
+    }
+
+    // alphaDirty
+    {
+        auto renderNode = std::make_shared<RSRenderNode>(1);
+        ASSERT_NE(renderNode, nullptr);
+        renderNode->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA), true);
+        renderNode->UpdateFilterCacheWithBackgroundDirty();
+    }
+
+    // both true
+    {
+        auto renderNode = std::make_shared<RSRenderNode>(1);
+        renderNode->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::ALPHA), true);
+        auto backgroundColorDrawable = std::make_shared<DrawableV2::RSBackgroundColorDrawable>();
+        EXPECT_NE(backgroundColorDrawable, nullptr);
+        renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_COLOR)]
+            = backgroundColorDrawable;
+        renderNode->UpdateFilterCacheWithBackgroundDirty();
+    }
+}
+
+/**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.desc: test ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::BOUNDS), true);
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.useUnion_);
+}
+
+/**
+ * @tc.name: ApplyModifiersProcessUnionInfoAfterApplyModifiers002
+ * @tc.desc: test ApplyModifiersProcessUnionInfoAfterApplyModifiers001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeTest2, ApplyModifiersProcessUnionInfoAfterApplyModifiers002, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto node = std::make_shared<RSRenderNode>(0, rsContext);
+    node->dirtyStatus_ = RSRenderNode::NodeDirty::DIRTY;
+    node->stagingRenderParams_ = std::make_unique<RSRenderParams>(0);
+
+    node->ApplyModifiers();
+    ASSERT_FALSE(node->renderProperties_.useUnion_);
 }
 } // namespace Rosen
 } // namespace OHOS

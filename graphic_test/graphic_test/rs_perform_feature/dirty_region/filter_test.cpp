@@ -33,9 +33,12 @@ constexpr uint32_t SLEEP_TIME_FOR_PROXY = 1000000;
 constexpr float DEFAULT_ALPHA = 0.5f;
 constexpr float DEFAULT_FOREGROUND_RADIUS = 10.0f;
 constexpr float DEFAULT_RADIUS = 50.0f;
+constexpr int ABILITY_BGALPHA = 255;
 
 Vector2f DEFAULT_TRANSLATE = { 600, 0 };
 Vector4f DEFAULT_BOUNDS = { 0, 100, 400, 400 };
+
+const std::string TEST_IMG_PATH = "/data/local/tmp/dr_test.jpg";
 } //namespace
 
 class DirtyRegionTest04 : public RSGraphicTest {
@@ -45,6 +48,7 @@ public:
     void BeforeEach() override
     {
         SetSurfaceBounds({ 0, 0, screenSize.x_, screenSize.y_ });
+        GetRootNode()->testSurfaceNodes_.back()->SetAbilityBGAlpha(ABILITY_BGALPHA);
     }
 
     void TestCaseCapture()
@@ -106,7 +110,7 @@ public:
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter01)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
@@ -134,7 +138,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter01)
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter02)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
@@ -155,14 +159,14 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter02)
 
 /*
  * @tc.name: Filter03
- * @tc.desc: test filter case, foreground blur with two different node
+ * @tc.desc: two moving nodes above one full screen foreground blur
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter03)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
@@ -199,7 +203,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter03)
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter04)
 {
     Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
     testNode->SetAlpha(DEFAULT_ALPHA);
@@ -221,13 +225,13 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter04)
 
 /*
  * @tc.name: Filter05
- * @tc.desc: test filter case, with dirty region lies between two background blur
+ * @tc.desc: test filter case, check node's track clears after it shifting between two background blur views
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter05)
 {
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", DEFAULT_BOUNDS);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, DEFAULT_BOUNDS);
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
@@ -240,7 +244,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter05)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 600, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
@@ -255,14 +259,14 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter05)
 
 /*
  * @tc.name: Filter06
- * @tc.desc: test filter case, with dirty region lies beyond two background blur
+ * @tc.desc: test filter case, check node's track clears after it shifting above two background blur views
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter06)
 {
     Vector4f bounds = { 800, 800, 400, 400 };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
@@ -274,7 +278,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter06)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 800, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetBackgroundBlurRadius(DEFAULT_RADIUS);
 
@@ -289,14 +293,14 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter06)
 
 /*
  * @tc.name: Filter07
- * @tc.desc: test filter case, with dirty region intersect one foreground blur and out of another
+ * @tc.desc: check node's track clears after it shifting intersects one foreground blur, not the other
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter07)
 {
     Vector4f bounds = { 0, 0, 1000, 1000 };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
@@ -308,7 +312,7 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter07)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 800, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
@@ -323,14 +327,14 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter07)
 
 /*
  * @tc.name: Filter08
- * @tc.desc: test filter case, with dirty region in one foreground blur and out of another
+ * @tc.desc: check node's track clears after it shifting in one foreground blur, out of the other
  * @tc.type: FUNC
  * @tc.require: issueICP02F
  */
 GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter08)
 {
     Vector4f bounds = { 0, 0, 1000, 1000 };
-    auto testNode = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds);
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
     RegisterNode(testNode);
     testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
@@ -342,13 +346,196 @@ GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter08)
     DoAnimation(testNode2, DEFAULT_TRANSLATE);
 
     Vector4f bounds3 = { 800, 1500, 400, 400 };
-    auto testNode3 = SetUpNodeBgImage("/data/local/tmp/dr_test.jpg", bounds3);
+    auto testNode3 = SetUpNodeBgImage(TEST_IMG_PATH, bounds3);
     RegisterNode(testNode3);
     testNode3->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
 
     GetRootNode()->AddChild(testNode);
     testNode->AddChild(testNode2);
     GetRootNode()->AddChild(testNode3);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Filter09
+ * @tc.desc: check node's track clears after it shifting between two background blur views on the Z-axis
+ * @tc.type: FUNC
+ * @tc.require: issue21265
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter09)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+
+    auto testNode2 = RSCanvasNode::Create();
+    RegisterNode(testNode2);
+    testNode2->SetBounds(DEFAULT_BOUNDS);
+    testNode2->SetTranslate({ 0, 0 });
+    testNode2->SetBackgroundColor(COLOR_RED);
+    DoAnimation(testNode2, DEFAULT_TRANSLATE);
+
+    auto testNode3 = RSCanvasNode::Create();
+    RegisterNode(testNode3);
+    testNode3->SetBounds(bounds);
+    testNode3->SetBackgroundColor(COLOR_BLUE);
+    testNode3->SetAlpha(DEFAULT_ALPHA);
+    testNode3->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+
+    GetRootNode()->AddChild(testNode);
+    GetRootNode()->AddChild(testNode2);
+    GetRootNode()->AddChild(testNode3);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Filter10
+ * @tc.desc: check node's track clears after it shifting between two foreground blur views on the Z-axis
+ * @tc.type: FUNC
+ * @tc.require: issue21265
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter10)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
+
+    auto testNode2 = RSCanvasNode::Create();
+    RegisterNode(testNode2);
+    testNode2->SetBounds(DEFAULT_BOUNDS);
+    testNode2->SetTranslate({ 0, 0 });
+    testNode2->SetBackgroundColor(COLOR_RED);
+    DoAnimation(testNode2, DEFAULT_TRANSLATE);
+
+    auto testNode3 = RSCanvasNode::Create();
+    RegisterNode(testNode3);
+    testNode3->SetBounds(bounds);
+    testNode3->SetForegroundColor(COLOR_BLUE);
+    testNode3->SetAlpha(DEFAULT_ALPHA);
+    testNode3->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
+
+    GetRootNode()->AddChild(testNode);
+    GetRootNode()->AddChild(testNode2);
+    GetRootNode()->AddChild(testNode3);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Filter11
+ * @tc.desc: two moving nodes above one full screen background blur
+ * @tc.type: FUNC
+ * @tc.require: issue21265
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter11)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+
+    auto testNode2 = RSCanvasNode::Create();
+    RegisterNode(testNode2);
+    testNode2->SetBounds(DEFAULT_BOUNDS);
+    testNode2->SetTranslate({ 0, 0 });
+    testNode2->SetBackgroundColor(COLOR_RED);
+    DoAnimation(testNode2, DEFAULT_TRANSLATE);
+
+    Vector4f bounds3 = { 0, 800, 400, 400 };
+    auto testNode3 = RSCanvasNode::Create();
+    RegisterNode(testNode3);
+    testNode3->SetBounds(bounds3);
+    testNode3->SetTranslate({ 0, 0 });
+    testNode3->SetBackgroundColor(COLOR_BLUE);
+    DoAnimation(testNode3, DEFAULT_TRANSLATE);
+
+    GetRootNode()->AddChild(testNode);
+    testNode->AddChild(testNode2);
+    GetRootNode()->AddChild(testNode3);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Filter12
+ * @tc.desc: test filter case, background blur between two moving nodes on the Z-axis
+ * @tc.type: FUNC
+ * @tc.require: issue21265
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter12)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetBackgroundBlurRadius(DEFAULT_RADIUS);
+
+    auto testNode2 = RSCanvasNode::Create();
+    RegisterNode(testNode2);
+    testNode2->SetBounds(DEFAULT_BOUNDS);
+    testNode2->SetTranslate({ 0, 0 });
+    testNode2->SetBackgroundColor(COLOR_RED);
+    DoAnimation(testNode2, DEFAULT_TRANSLATE);
+
+    Vector4f bounds3 = { 0, 800, 400, 400 };
+    auto testNode3 = RSCanvasNode::Create();
+    RegisterNode(testNode3);
+    testNode3->SetBounds(bounds3);
+    testNode3->SetTranslate({ 0, 0 });
+    testNode3->SetBackgroundColor(COLOR_BLUE);
+    DoAnimation(testNode3, DEFAULT_TRANSLATE);
+
+    GetRootNode()->AddChild(testNode3);
+    GetRootNode()->AddChild(testNode);
+    testNode->AddChild(testNode2);
+
+    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    usleep(SLEEP_TIME_FOR_PROXY);
+    TestCaseCapture();
+}
+
+/*
+ * @tc.name: Filter13
+ * @tc.desc: test filter case, foreground blur between two moving nodes on the Z-axis
+ * @tc.type: FUNC
+ * @tc.require: issue21265
+ */
+GRAPHIC_N_TEST(DirtyRegionTest04, CONTENT_DISPLAY_TEST, Filter13)
+{
+    Vector4f bounds = { 0, 0, screenSize.x_, screenSize.y_ };
+    auto testNode = SetUpNodeBgImage(TEST_IMG_PATH, bounds);
+    RegisterNode(testNode);
+    testNode->SetForegroundBlurRadius(DEFAULT_FOREGROUND_RADIUS);
+
+    auto testNode2 = RSCanvasNode::Create();
+    RegisterNode(testNode2);
+    testNode2->SetBounds(DEFAULT_BOUNDS);
+    testNode2->SetTranslate({ 0, 0 });
+    testNode2->SetBackgroundColor(COLOR_RED);
+    DoAnimation(testNode2, DEFAULT_TRANSLATE);
+
+    Vector4f bounds3 = { 0, 800, 400, 400 };
+    auto testNode3 = RSCanvasNode::Create();
+    RegisterNode(testNode3);
+    testNode3->SetBounds(bounds3);
+    testNode3->SetTranslate({ 0, 0 });
+    testNode3->SetBackgroundColor(COLOR_BLUE);
+    DoAnimation(testNode3, DEFAULT_TRANSLATE);
+
+    GetRootNode()->AddChild(testNode3);
+    GetRootNode()->AddChild(testNode);
+    testNode->AddChild(testNode2);
 
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);

@@ -61,7 +61,7 @@ public:
     static void SuppressGpuCacheBelowCertainRatio(
         Drawing::GPUContext* gpuContext, const std::function<bool(void)>& nextFrameHasArrived);
     static void DumpAllGpuInfoNew(DfxString& log, const Drawing::GPUContext* grContext,
-        std::vector<std::pair<NodeId, std::string>>& nodeTags);
+        const std::vector<std::pair<NodeId, std::string>>& nodeTags);
     static void DumpGpuNodeMemory(DfxString& log);
 private:
     // rs memory = rs + skia cpu + skia gpu

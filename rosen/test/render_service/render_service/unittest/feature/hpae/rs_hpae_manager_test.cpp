@@ -42,11 +42,7 @@ public:
     ~RSChildrenDrawableAdapter() override = default;
     bool OnUpdate(const RSRenderNode& content) override { return true; }
     void OnSync() override {}
-    Drawing::RecordingCanvas::DrawFunc CreateDrawFunc() const override
-    {
-        auto ptr = std::static_pointer_cast<const RSChildrenDrawableAdapter>(shared_from_this());
-        return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {};
-    }
+    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override {}
 
 private:
     bool OnSharedTransition(const std::shared_ptr<RSRenderNode>& node) { return true; }
@@ -647,7 +643,6 @@ HWTEST_F(RSHpaeManagerTest, RegisterHpaeCallbackTest, TestSize.Level1)
     node4.UpdateDrawableVecV2();
     auto filterDrawable = node4.GetDrawableVec(__func__)[static_cast<uint32_t>(slot4)];
     EXPECT_NE(filterDrawable, nullptr);
-    node4.GetDrawableVec(__func__).fill(nullptr);
     node4.GetDrawableVec(__func__)[static_cast<uint32_t>(slot4)] = filterDrawable;
     auto rsDrawingFilter5 = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
     std::shared_ptr<RSFilter> backgroundFilter4 = std::static_pointer_cast<RSFilter>(rsDrawingFilter5);
@@ -723,7 +718,6 @@ HWTEST_F(RSHpaeManagerTest, IsHpaeBlurNodeTest, TestSize.Level1)
     node3.UpdateDrawableVecV2();
     filterDrawable = node3.GetDrawableVec(__func__)[static_cast<uint32_t>(slot3)];
     EXPECT_NE(filterDrawable, nullptr);
-    node3.GetDrawableVec(__func__).fill(nullptr);
     node3.GetDrawableVec(__func__)[static_cast<uint32_t>(slot3)] = filterDrawable;
     RSHpaeBaseData::GetInstance().SetDesktopOffTree(true);
     ASSERT_TRUE(RSHpaeManager::GetInstance().IsHpaeBlurNode(node3, 1000, 2000) == false);

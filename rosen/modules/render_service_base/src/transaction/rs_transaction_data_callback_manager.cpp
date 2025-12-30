@@ -16,10 +16,13 @@
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
 #include "transaction/rs_transaction_data_callback_manager.h"
+#include "platform/common/rs_system_properties.h"
 
 namespace OHOS {
 namespace Rosen {
 constexpr uint64_t MAX_TRANSACTION_DATA_CALLBACKS = 65535;
+constexpr const char* GRAPHIC_TEST_MODE_TRACE_NAME = "sys.graphic.openTestModeTrace";
+bool RSTransactionDataCallbackManager::isDebugEnabled_ = false;
 RSTransactionDataCallbackManager& RSTransactionDataCallbackManager::Instance()
 {
     static RSTransactionDataCallbackManager mgr;
@@ -79,6 +82,23 @@ sptr<RSITransactionDataCallback> RSTransactionDataCallbackManager::PopTransactio
         return callback;
     }
     return nullptr;
+}
+
+RSTransactionDataCallbackManager::RSTransactionDataCallbackManager()
+{
+    isDebugEnabled_ = RSSystemProperties::GetTransactionDataTraceEnabled();
+    RSSystemProperties::WatchSystemProperty(
+        GRAPHIC_TEST_MODE_TRACE_NAME, TransactionChangedCallback, nullptr);
+}
+
+void RSTransactionDataCallbackManager::TransactionChangedCallback(const char* key, const char* value, void* context)
+{
+    isDebugEnabled_ = RSSystemProperties::GetTransactionDataTraceEnabled();
+}
+
+bool RSTransactionDataCallbackManager::GetTransactionDataTestEnabled()
+{
+    return isDebugEnabled_;
 }
 } //namespace Rosen
 } //namespace OHOS

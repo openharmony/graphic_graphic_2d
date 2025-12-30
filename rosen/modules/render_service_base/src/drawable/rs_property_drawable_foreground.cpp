@@ -254,16 +254,13 @@ void RSBinarizationDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSBinarizationDrawable::CreateDrawFunc() const
+void RSBinarizationDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSBinarizationDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSBINARIZATIONDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSBINARIZATIONDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::DrawBinarization(canvas, ptr->aiInvert_);
-    };
+    RSPropertyDrawableUtils::DrawBinarization(canvas, aiInvert_);
 }
 
 RSDrawable::Ptr RSColorFilterDrawable::OnGenerate(const RSRenderNode& node)
@@ -294,16 +291,13 @@ void RSColorFilterDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSColorFilterDrawable::CreateDrawFunc() const
+void RSColorFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSColorFilterDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSCOLORFILTERDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSCOLORFILTERDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::DrawColorFilter(canvas, ptr->filter_);
-    };
+    RSPropertyDrawableUtils::DrawColorFilter(canvas, filter_);
 }
 RSDrawable::Ptr RSLightUpEffectDrawable::OnGenerate(const RSRenderNode& node)
 {
@@ -333,16 +327,13 @@ void RSLightUpEffectDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSLightUpEffectDrawable::CreateDrawFunc() const
+void RSLightUpEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSLightUpEffectDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSLIGHTUPEFFECTDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSLIGHTUPEFFECTDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::DrawLightUpEffect(canvas, ptr->lightUpEffectDegree_);
-    };
+    RSPropertyDrawableUtils::DrawLightUpEffect(canvas, lightUpEffectDegree_);
 }
 
 RSDrawable::Ptr RSDynamicDimDrawable::OnGenerate(const RSRenderNode& node)
@@ -372,16 +363,13 @@ void RSDynamicDimDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSDynamicDimDrawable::CreateDrawFunc() const
+void RSDynamicDimDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSDynamicDimDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSDYNAMICDIMDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSDYNAMICDIMDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::DrawDynamicDim(canvas, ptr->dynamicDimDegree_);
-    };
+    RSPropertyDrawableUtils::DrawDynamicDim(canvas, dynamicDimDegree_);
 }
 
 RSDrawable::Ptr RSForegroundColorDrawable::OnGenerate(const RSRenderNode& node)
@@ -451,16 +439,13 @@ void RSForegroundShaderDrawable::OnSync()
     }
 }
 
-Drawing::RecordingCanvas::DrawFunc RSForegroundShaderDrawable::CreateDrawFunc() const
+void RSForegroundShaderDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSForegroundShaderDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
-        if (canvas == nullptr || ptr->visualEffectContainer_ == nullptr || rect == nullptr) {
-            return;
-        }
-        geRender->DrawShaderEffect(*canvas, *(ptr->visualEffectContainer_), *rect);
-    };
+    auto geRender = std::make_shared<GraphicsEffectEngine::GERender>();
+    if (canvas == nullptr || visualEffectContainer_ == nullptr || rect == nullptr) {
+        return;
+    }
+    geRender->DrawShaderEffect(*canvas, *visualEffectContainer_, *rect);
 }
 
 RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
@@ -515,17 +500,14 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSForegroundFilterDrawable::CreateDrawFunc() const
+void RSForegroundFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSForegroundFilterDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE);
+    RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::BeginForegroundFilter(*paintFilterCanvas, ptr->boundsRect_);
-    };
+    RSPropertyDrawableUtils::BeginForegroundFilter(*paintFilterCanvas, boundsRect_);
 }
 
 void RSForegroundFilterDrawable::OnSync()
@@ -567,24 +549,21 @@ bool RSForegroundFilterRestoreDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSForegroundFilterRestoreDrawable::CreateDrawFunc() const
+void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSForegroundFilterRestoreDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
-        if (ptr->foregroundFilter_ && ptr->foregroundFilter_->IsDrawingFilter() && rect) {
-            auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(ptr->foregroundFilter_);
-            drawingFilter->SetGeometry(canvas->GetTotalMatrix(), canvas->GetDeviceClipBounds(), Drawing::Rect{},
-                rect->GetWidth(), rect->GetHeight());
-        }
+    if (foregroundFilter_ && foregroundFilter_->IsDrawingFilter() && rect) {
+        auto drawingFilter = std::static_pointer_cast<RSDrawingFilter>(foregroundFilter_);
+        drawingFilter->SetGeometry(canvas->GetTotalMatrix(), canvas->GetDeviceClipBounds(), Drawing::Rect{},
+            rect->GetWidth(), rect->GetHeight());
+    }
 
-        auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
+    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
+    RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
 #endif
-        RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::CreateDrawFunc node[%llu] ", ptr->renderNodeId_);
-        RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, ptr->foregroundFilter_);
-    };
+    RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::CreateDrawFunc node[%llu] ", renderNodeId_);
+    RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, foregroundFilter_);
 }
 
 void RSForegroundFilterRestoreDrawable::OnSync()
@@ -649,17 +628,14 @@ void RSPixelStretchDrawable::OnSync()
     needSync_ = false;
 }
 
-Drawing::RecordingCanvas::DrawFunc RSPixelStretchDrawable::CreateDrawFunc() const
+void RSPixelStretchDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSPixelStretchDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSPIXELSTRETCHDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSPIXELSTRETCHDRAWABLE);
 #endif
-        RSPropertyDrawableUtils::DrawPixelStretch(canvas, ptr->pixelStretch_, ptr->boundsRect_, ptr->boundsGeoValid_,
-            static_cast<Drawing::TileMode>(ptr->pixelStretchTileMode_));
-    };
+    RSPropertyDrawableUtils::DrawPixelStretch(canvas, pixelStretch_, boundsRect_, boundsGeoValid_,
+        static_cast<Drawing::TileMode>(pixelStretchTileMode_));
 }
 
 RSDrawable::Ptr RSBorderDrawable::OnGenerate(const RSRenderNode& node)
@@ -795,16 +771,13 @@ RSDrawable::Ptr RSPointLightDrawable::OnGenerate(const RSRenderNode& node)
     return nullptr;
 };
 
-Drawing::RecordingCanvas::DrawFunc RSPointLightDrawable::CreateDrawFunc() const
+void RSPointLightDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
 {
-    auto ptr = std::static_pointer_cast<const RSPointLightDrawable>(shared_from_this());
-    return [ptr](Drawing::Canvas* canvas, const Drawing::Rect* rect) {
 #ifdef RS_ENABLE_GPU
-        RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
-            RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
+    RSTagTracker tagTracker(canvas ? canvas->GetGPUContext() : nullptr,
+        RSTagTracker::SOURCETYPE::SOURCE_RSPOINTLIGHTDRAWABLE);
 #endif
-        ptr->DrawLight(canvas);
-    };
+    DrawLight(canvas);
 }
 
 bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
@@ -821,7 +794,9 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     }
     stagingLightSourcesAndPosVec_.clear();
     stagingLightSourcesAndPosVec_.reserve(lightSourcesAndPosMap.size());
-    stagingLightSourcesAndPosVec_.assign(lightSourcesAndPosMap.begin(), lightSourcesAndPosMap.end());
+    for (auto& [lightSourcePtr, pos] : lightSourcesAndPosMap) {
+        stagingLightSourcesAndPosVec_.emplace_back(std::move(*lightSourcePtr), std::move(pos));
+    }
     stagingIlluminatedType_ = illuminatedPtr->GetIlluminatedType();
     stagingBorderWidth_ = std::max(0.0f, std::ceil(properties.GetIlluminatedBorderWidth()));
     stagingRRect_ = RRect(properties.GetRRect());
@@ -837,7 +812,7 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
     auto begin = stagingLightSourcesAndPosVec_.begin();
     auto end = begin + std::min(static_cast<size_t>(MAX_LIGHT_SOURCES), stagingLightSourcesAndPosVec_.size());
     stagingEnableEDREffect_ = stagingIlluminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT &&
-        std::any_of(begin, end, [](const auto& pair) { return ROSEN_GNE(pair.first->GetLightIntensity(), 1.0f); });
+        std::any_of(begin, end, [](const auto& pair) { return ROSEN_GNE(pair.first.GetLightIntensity(), 1.0f); });
     needSync_ = true;
     return true;
 }
@@ -845,6 +820,7 @@ bool RSPointLightDrawable::OnUpdate(const RSRenderNode& node)
 void RSPointLightDrawable::OnSync()
 {
     if (!needSync_) {
+        lightSourcesAndPosVec_.clear();
         return;
     }
     lightSourcesAndPosVec_ = std::move(stagingLightSourcesAndPosVec_);
@@ -1038,8 +1014,8 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     bool needToneMapping = NeedToneMapping(displayHeadroom_);
     while (iter != lightSourcesAndPosVec_.end() && cnt < MAX_LIGHT_SOURCES) {
         auto lightPos = iter->second;
-        auto lightIntensity = iter->first->GetLightIntensity();
-        auto lightColor = iter->first->GetLightColor();
+        auto lightIntensity = iter->first.GetLightIntensity();
+        auto lightColor = iter->first.GetLightColor();
         Vector4f lightColorVec =
             Vector4f(lightColor.GetRed(), lightColor.GetGreen(), lightColor.GetBlue(), lightColor.GetAlpha());
         for (int i = 0; i < vectorLen; i++) {
@@ -1062,8 +1038,9 @@ void RSPointLightDrawable::DrawLight(Drawing::Canvas* canvas) const
     Drawing::Brush brush;
     pen.SetAntiAlias(true);
     brush.SetAntiAlias(true);
-    ROSEN_LOGD("RSPointLightDrawable::DrawLight illuminatedType:%{public}d displayHeadroom_:%{public}f",
-        illuminatedType_, displayHeadroom_);
+    ROSEN_LOGD("DrawLight type:%{public}d intensity:%{public}f enableEDR:%{public}d nodeId:%{public}" PRIu64 "",
+        illuminatedType_, lightIntensityArray[0], enableEDREffect_, nodeId_);
+    RS_OPTIONAL_TRACE_FMT("DrawLight intensity:%{public}f nodeId:%{public}" PRIu64 "", lightIntensityArray[0], nodeId_);
     if ((illuminatedType_ == IlluminatedType::BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::BLEND_BORDER_CONTENT) ||
         (illuminatedType_ == IlluminatedType::NORMAL_BORDER_CONTENT)) {

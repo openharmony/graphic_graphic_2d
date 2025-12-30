@@ -54,7 +54,7 @@ public:
     void ResetGrContext();
     void ThreadSafetyReleaseTexture();
     void DumpMem(DfxString& log, bool isLite = false);
-    void DumpGpuMem(DfxString& log);
+    void DumpGpuMem(DfxString& log, const std::vector<std::pair<NodeId, std::string>>& nodeTags);
     float GetAppGpuMemoryInMB();
     unsigned int GetDoingCacheProcessNum()
     {

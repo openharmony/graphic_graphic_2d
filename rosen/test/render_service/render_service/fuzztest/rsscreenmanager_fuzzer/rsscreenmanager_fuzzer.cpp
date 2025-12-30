@@ -515,6 +515,12 @@ void GetScreenType()
     CreateOrGetScreenManager()->GetScreenType(screenId, type);
 }
 
+void GetScreenConnectionType()
+{
+    ScreenId screenId = GetData<Rosen::ScreenId>();
+    CreateOrGetScreenManager()->GetScreenConnectionType(screenId);
+}
+
 void SetScreenSkipFrameInterval()
 {
     ScreenId screenId = GetData<Rosen::ScreenId>();
@@ -687,6 +693,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         OHOS::Rosen::GetScreenGamutMap,
         OHOS::Rosen::GetScreenHDRCapability,
         OHOS::Rosen::GetScreenType,
+        OHOS::Rosen::GetScreenConnectionType,
         OHOS::Rosen::SetScreenSkipFrameInterval,
         OHOS::Rosen::GetDisplayIdentificationData,
         OHOS::Rosen::SetPixelFormat,

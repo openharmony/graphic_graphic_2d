@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "common_utils/path_util.h"
+#include "common_utils/pixel_map_util.h"
 #include "convert.h"
 #include "drawing_painter_impl.h"
 #include "text_font_utils.h"
@@ -25,7 +27,11 @@
 #include "modules/skparagraph/include/Paragraph.h"
 #include "modules/skparagraph/include/TextStyle.h"
 #include "paragraph_builder_impl.h"
+#ifdef ENABLE_OHOS_ENHANCE
+#include "pixel_map.h"
+#endif
 #include "skia_adapter/skia_convert_utils.h"
+#include "static_factory.h"
 #include "symbol_engine/hm_symbol_run.h"
 #include "text/font_metrics.h"
 #include "text_line_impl.h"
@@ -600,6 +606,31 @@ std::string ParagraphImpl::GetDumpInfo() const
 {
     return paragraph_->GetDumpInfo();
 }
+
+#ifdef ENABLE_OHOS_ENHANCE
+std::shared_ptr<OHOS::Media::PixelMap> ParagraphImpl::GetTextPathImageByIndex(
+    size_t start, size_t end, const ImageOptions& options, bool fill) const
+{
+    if (start >= end) {
+        TEXT_LOGW("Invalid range: [%{public}zu, %{public}zu)", start, end);
+        return nullptr;
+    }
+    
+    skt::SkRange<size_t> range{start, end};
+    std::vector<skt::PathInfo> pathInfos = paragraph_->getTextPathByClusterRange(range);
+    if (fill) {
+        for (size_t i = 0; i < pathInfos.size(); i++) {
+            auto& pathInfo = pathInfos[i];
+            Drawing::Path tempPath;
+            std::vector<Drawing::Path> allPaths;
+            Drawing::StaticFactory::PathOutlineDecompose(pathInfo.path, allPaths);
+            TextPathUtil::ExtractOuterPath(allPaths, tempPath);
+            pathInfo.path = tempPath;
+        }
+    }
+    return TextPixelMapUtil::CreatePixelMap(options, pathInfos);
+}
+#endif
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS

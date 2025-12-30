@@ -154,15 +154,18 @@ static const std::unordered_map<RSUINodeType, std::string> RSUINodeTypeStrs = {
 std::once_flag flag_;
 } // namespace
 
-const std::set<std::pair<uint16_t, uint16_t>> RSNode::createNodeCommandTypes_{
-    {RSCommandType::CANVAS_NODE, RSCanvasNodeCommandType::CANVAS_NODE_CREATE}
-};
+const std::array<std::pair<uint16_t, uint16_t>, 3> RSNode::lazyLoadCommandTypes_{{
+    {RSCommandType::RS_NODE, RSNodeCommandType::ADD_MODIFIER_NG},
+    {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY}
+}};
 
-const std::set<std::pair<uint16_t, uint16_t>> RSNode::lazyLoadCommandTypes_{
-    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_DESTROY},
-    {RSCommandType::BASE_NODE, RSNodeCommandType::SET_UICONTEXT_TOKEN},
-    {RSCommandType::RS_NODE, RSNodeCommandType::MARK_REPAINT_BOUNDARY}
-};
+const std::array<std::pair<uint16_t, uint16_t>, 4> RSNode::childOpCommandTypes_{{
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_ADD_CHILD},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_REMOVE_CHILD},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_CLEAR_CHILDREN},
+    {RSCommandType::BASE_NODE, RSBaseNodeCommandType::BASE_NODE_MOVE_CHILD}
+}};
 
 RSNode::RSNode(bool isRenderServiceNode, NodeId id, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext,
     bool isOnTheTree)
@@ -1959,16 +1962,6 @@ void RSNode::SetOutlineRadius(const Vector4f& radius)
 
 void RSNode::SetColorPickerParams(ColorPlaceholder placeholder, ColorPickStrategyType strategy, uint64_t interval)
 {
-    if (placeholder == ColorPlaceholder::NONE || ColorPickStrategyType::NONE == strategy) {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
-        auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::COLOR_PICKER);
-        if (modifier != nullptr) {
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_PLACEHOLDER);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_INTERVAL);
-            modifier->DetachProperty(ModifierNG::RSPropertyType::COLOR_PICKER_STRATEGY);
-        }
-        return;
-    }
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
         &ModifierNG::RSColorPickerModifier::SetColorPickerPlaceholder>(placeholder);
     SetPropertyNG<ModifierNG::RSColorPickerModifier,
@@ -2107,7 +2100,7 @@ void RSNode::SetUIForegroundFilter(const OHOS::Rosen::Filter* foregroundFilter)
 void RSNode::SetUIMaterialFilter(const OHOS::Rosen::Filter* materialFilter)
 {
     if (materialFilter == nullptr) {
-        ROSEN_LOGE("Failed to set materialFilter, materialFilter is null!");
+        SetMaterialNGFilter(nullptr);
         return;
     }
     // To do: generate composed filter here.
@@ -2176,28 +2169,6 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             { brightnessBlender->GetNegativeCoeff().data_[0], brightnessBlender->GetNegativeCoeff().data_[1],
                 brightnessBlender->GetNegativeCoeff().data_[2] } });
     }
-}
-
-void RSNode::SetBorderLightShader(std::shared_ptr<VisualEffectPara> visualEffectPara)
-{
-    if (visualEffectPara == nullptr) {
-        ROSEN_LOGE("RSNode::SetBorderLightShader: visualEffectPara is null!");
-        return;
-    }
-    auto borderLightEffectPara = std::static_pointer_cast<BorderLightEffectPara>(visualEffectPara);
-    Vector3f rotationAngle;
-    float cornerRadius = 1.0f;
-    RSBorderLightParams borderLightParam = {
-        borderLightEffectPara->GetLightPosition(),
-        borderLightEffectPara->GetLightColor(),
-        borderLightEffectPara->GetLightIntensity(),
-        borderLightEffectPara->GetLightWidth(),
-        rotationAngle,
-        cornerRadius
-    };
-    auto borderLightShader = std::make_shared<RSBorderLightShader>();
-    borderLightShader->SetRSBorderLightParams(borderLightParam);
-    SetBackgroundShader(borderLightShader);
 }
 
 void RSNode::SetBlender(const Blender* blender)
@@ -2339,7 +2310,6 @@ void RSNode::SetForegroundShader(const std::shared_ptr<RSNGShaderBase>& foregrou
 void RSNode::SetMaterialNGFilter(const std::shared_ptr<RSNGFilterBase>& materialFilter)
 {
     if (!materialFilter) {
-        ROSEN_LOGW("RSNode::SetMaterialNGFilter filter is nullptr");
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         auto modifier = GetModifierCreatedBySetter(ModifierNG::RSModifierType::MATERIAL_FILTER);
         if (modifier != nullptr) {
@@ -2359,8 +2329,7 @@ void RSNode::SetMaterialWithQualityLevel(const std::shared_ptr<RSNGFilterBase> &
         return;
     }
     if (materialFilter->GetType() == RSNGEffectType::FROSTED_GLASS && quality == FilterQuality::ADAPTIVE) {
-        constexpr uint64_t DEFAULT_INTERVAL = 100; // unit: ms
-        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, DEFAULT_INTERVAL);
+        SetColorPickerParams(ColorPlaceholder::SURFACE_CONTRAST, ColorPickStrategyType::CONTRAST, 0);
     }
 }
 
@@ -2976,28 +2945,28 @@ void RSNode::LoadRenderNodeIfNeed() const
     if (!lazyLoad_) {
         return;
     }
-    CreateRenderNode();
-    lazyLoad_ = false;
 
     for (auto& command : lazyLoadCommands_) {
         AddCommandInner(command.command_, command.isRenderServiceCommand_, command.followType_, command.nodeId_);
     }
     lazyLoadCommands_.clear();
+    lazyLoad_ = false;
 
-    for (auto [_, modifier] : modifiersNG_) {
-        if (modifier == nullptr) {
+    int index{0};
+    for (auto weakChild : children_) {
+        auto child = weakChild.lock();
+        if (child == nullptr) {
             continue;
         }
-        if (modifier->IsCustom()) {
-            std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();
-        }
-        std::unique_ptr<RSCommand> command = std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
+        // construct command using child's GetHierarchyCommandNodeId(), not GetId()
+        auto childId = child->GetHierarchyCommandNodeId();
+        std::unique_ptr<RSCommand> command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
         AddCommandInner(command, IsRenderServiceNode(), GetFollowType(), id_);
-        if (NeedForcedSendToRemote()) {
-            std::unique_ptr<RSCommand> cmdForRemote =
-                std::make_unique<RSAddModifierNG>(id_, modifier->CreateRenderModifier());
-            AddCommandInner(cmdForRemote, true, GetFollowType(), id_);
+        if (child->GetRSUIContext() != GetRSUIContext()) {
+            std::unique_ptr<RSCommand> child_command = std::make_unique<RSBaseNodeAddChild>(id_, childId, index);
+            child->AddCommandInner(child_command, IsRenderServiceNode(), GetFollowType(), id_);
         }
+        ++index;
     }
     NotifyPageNodeChanged();
 }
@@ -3261,9 +3230,11 @@ void RSNode::UnregisterTransitionPair(const std::shared_ptr<RSUIContext> rsUICon
     }
 }
 
-void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty)
+void RSNode::MarkNodeGroup(bool isNodeGroup, bool isForced, bool includeProperty, bool colorAdaptive)
 {
     CHECK_FALSE_RETURN(CheckMultiThreadAccess(__func__));
+    SetPropertyNG<ModifierNG::RSForegroundFilterModifier,
+        &ModifierNG::RSForegroundFilterModifier::SetColorAdaptive>(colorAdaptive);
     if (isNodeGroup_ == isNodeGroup) {
         return;
     }
@@ -4194,16 +4165,23 @@ bool RSNode::AddCommandInner(std::unique_ptr<RSCommand>& command, bool isRenderS
 bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServiceCommand,
     FollowType followType, NodeId nodeId) const
 {
-    if (!IsCreateNodeCommand(*command)) {
+    {
         std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
         if (lazyLoad_) {
-            constexpr size_t maxLazyCommandSize{std::numeric_limits<uint8_t>::max()};
+            constexpr size_t maxLazyCommandSize{8};
             if (IsLazyLoadCommand(*command) && lazyLoadCommands_.size() < maxLazyCommandSize) {
                 lazyLoadCommands_.emplace_back(std::move(command), isRenderServiceCommand, followType, nodeId);
                 return true;
-            } else {
-                LoadRenderNodeIfNeed();
             }
+            // lazy loaded nodes intercept child operations
+            if (IsChildOperationCommand(*command)) {
+                constexpr size_t maxChildrenSize{8};
+                if (children_.size() >= maxChildrenSize) {
+                    LoadRenderNodeIfNeed();
+                }
+                return true;
+            }
+            LoadRenderNodeIfNeed();
         }
     }
     return AddCommandInner(command, isRenderServiceCommand, followType, nodeId);
@@ -4265,9 +4243,6 @@ void RSNode::AddModifier(const std::shared_ptr<ModifierNG::RSModifier> modifier)
         }
         NotifyPageNodeChanged();
         modifiersNG_.emplace(modifier->GetId(), modifier);
-        if (lazyLoad_) {
-            return;
-        }
     }
     if (modifier->IsCustom()) {
         std::static_pointer_cast<ModifierNG::RSCustomModifier>(modifier)->UpdateDrawCmdList();

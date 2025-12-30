@@ -87,6 +87,7 @@ public:
 
     bool Interpolate(const Path& ending, scalar weight, Path& out) override;
     int CountVerbs() const override;
+    int CountPoints() const override;
     Point GetPoint(int index) const override;
     bool IsInterpolate(const Path& other) override;
     void Transform(const Matrix& matrix) override;

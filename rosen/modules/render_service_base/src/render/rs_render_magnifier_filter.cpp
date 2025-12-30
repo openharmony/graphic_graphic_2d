@@ -14,6 +14,7 @@
  */
 #include "render/rs_render_magnifier_filter.h"
 
+#include "ge_shader_filter_params.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"
 #ifdef USE_M133_SKIA
@@ -49,25 +50,28 @@ void RSMagnifierShaderFilter::GenerateGEVisualEffect(
         return;
     }
 
-    auto magnifierFilter = std::make_shared<Drawing::GEVisualEffect>("MAGNIFIER", Drawing::DrawingPaintType::BRUSH);
+    auto magnifierFilter =
+        std::make_shared<Drawing::GEVisualEffect>(Drawing::GE_FILTER_MAGNIFIER, Drawing::DrawingPaintType::BRUSH);
     if (magnifierFilter == nullptr) {
         ROSEN_LOGD("RSMagnifierShaderFilter::GenerateGEVisualEffect magnifierFilter is nullptr!");
         return;
     }
-    magnifierFilter->SetParam("FACTOR", magnifierPara_->factor_);
-    magnifierFilter->SetParam("WIDTH", magnifierPara_->width_);
-    magnifierFilter->SetParam("HEIGHT", magnifierPara_->height_);
-    magnifierFilter->SetParam("CORNERRADIUS", magnifierPara_->cornerRadius_);
-    magnifierFilter->SetParam("BORDERWIDTH", magnifierPara_->borderWidth_);
-    magnifierFilter->SetParam("SHADOWOFFSETX", magnifierPara_->shadowOffsetX_);
-    magnifierFilter->SetParam("SHADOWOFFSETY", magnifierPara_->shadowOffsetY_);
-    magnifierFilter->SetParam("SHADOWSIZE", magnifierPara_->shadowSize_);
-    magnifierFilter->SetParam("SHADOWSTRENGTH", magnifierPara_->shadowStrength_);
-    magnifierFilter->SetParam("GRADIENTMASKCOLOR1", magnifierPara_->gradientMaskColor1_);
-    magnifierFilter->SetParam("GRADIENTMASKCOLOR2", magnifierPara_->gradientMaskColor2_);
-    magnifierFilter->SetParam("OUTERCONTOURCOLOR1", magnifierPara_->outerContourColor1_);
-    magnifierFilter->SetParam("OUTERCONTOURCOLOR2", magnifierPara_->outerContourColor2_);
-    magnifierFilter->SetParam("ROTATEDEGREE", rotateDegree_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_FACTOR, magnifierPara_->factor_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_WIDTH, magnifierPara_->width_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_HEIGHT, magnifierPara_->height_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_CORNER_RADIUS, magnifierPara_->cornerRadius_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_BORDER_WIDTH, magnifierPara_->borderWidth_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_ZOOM_OFFSET_X, magnifierPara_->zoomOffsetX_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_ZOOM_OFFSET_Y, magnifierPara_->zoomOffsetY_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_SHADOW_OFFSET_X, magnifierPara_->shadowOffsetX_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_SHADOW_OFFSET_Y, magnifierPara_->shadowOffsetY_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_SHADOW_SIZE, magnifierPara_->shadowSize_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_SHADOW_STRENGTH, magnifierPara_->shadowStrength_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_GRADIENT_MASK_COLOR_1, magnifierPara_->gradientMaskColor1_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_GRADIENT_MASK_COLOR_2, magnifierPara_->gradientMaskColor2_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_OUTER_CONTOUR_COLOR_1, magnifierPara_->outerContourColor1_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_OUTER_CONTOUR_COLOR_2, magnifierPara_->outerContourColor2_);
+    magnifierFilter->SetParam(Drawing::GE_FILTER_MAGNIFIER_ROTATE_DEGREE, rotateDegree_);
 
     visualEffectContainer->AddToChainedFilter(magnifierFilter);
 }

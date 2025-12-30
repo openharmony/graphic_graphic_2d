@@ -78,6 +78,7 @@ ohos_unittest("text_ndk_test") {
     "c_utils:utils",
     "hilog:libhilog",
     "icu:shared_icuuc",
+    "image_framework:image_native",
   ]
 
   platform = current_os

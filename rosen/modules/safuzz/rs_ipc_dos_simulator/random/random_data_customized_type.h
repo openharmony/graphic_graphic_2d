@@ -47,6 +47,10 @@ public:
     static ShapeType GetRandomShapeType();
     static std::shared_ptr<ParticleNoiseFields> GetRandomParticleNoiseFieldsSharedPtr(
         const std::string& sizeType = "normal");
+    static std::shared_ptr<ParticleRippleFields> GetRandomParticleRippleFieldsSharedPtr(
+        const std::string& sizeType = "normal");
+    static std::shared_ptr<ParticleVelocityFields> GetRandomParticleVelocityFieldsSharedPtr(
+        const std::string& sizeType = "normal");
     static Vector4<uint32_t> GetRandomUint32Vector4();
     static Vector4<Color> GetRandomColorVector4();
     static ModifierNG::RSPropertyType GetRandomRSPropertyType();
@@ -85,6 +89,7 @@ public:
     static RRect GetRandomRRect();
     static std::vector<Vector2f> GetRandomVectorVector2f();
     static std::vector<Vector2f> GetRandomSmallVectorVector2f();
+    static std::vector<Vector4f> GetRandomSmallVectorVector4f();
     static std::vector<float> GetRandomSmallFloatVector();
     static std::shared_ptr<Media::PixelMap> GetRandomPixelMap();
     static RSShadowBlenderPara GetRandomRSShadowBlenderPara();
@@ -129,6 +134,8 @@ public:
     static Range<Color> GetRandomColorRange();
     static std::vector<std::shared_ptr<EmitterUpdater>> GetRandomSmallEmitterUpdaterSharedPtrVector();
     static std::shared_ptr<ParticleNoiseFields> GetRandomSmallParticleNoiseFieldsSharedPtr();
+    static std::shared_ptr<ParticleRippleFields> GetRandomSmallParticleRippleFieldsSharedPtr();
+    static std::shared_ptr<ParticleVelocityFields> GetRandomSmallParticleVelocityFieldsSharedPtr();
 };
 } // namespace Rosen
 } // namespace OHOS

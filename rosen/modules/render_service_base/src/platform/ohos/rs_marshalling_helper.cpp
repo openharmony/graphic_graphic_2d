@@ -1066,6 +1066,8 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
     success &= Marshalling(parcel, val->borderWidth_);
     success &= Marshalling(parcel, val->offsetX_);
     success &= Marshalling(parcel, val->offsetY_);
+    success &= Marshalling(parcel, val->zoomOffsetX_);
+    success &= Marshalling(parcel, val->zoomOffsetY_);
 
     success &= Marshalling(parcel, val->shadowOffsetX_);
     success &= Marshalling(parcel, val->shadowOffsetY_);
@@ -1082,57 +1084,18 @@ bool RSMarshallingHelper::Marshalling(Parcel& parcel, const std::shared_ptr<RSMa
  
 bool RSMarshallingHelper::Unmarshalling(Parcel& parcel, std::shared_ptr<RSMagnifierParams>& val)
 {
-    float factor = 0.f;
-    float width = 0.f;
-    float height = 0.f;
-    float cornerRadius = 0.f;
-    float borderWidth = 0.f;
-    float offsetX = 0.f;
-    float offsetY = 0.f;
-    float shadowOffsetX = 0.f;
-    float shadowOffsetY = 0.f;
-    float shadowSize = 0.f;
-    float shadowStrength = 0.f;
-    uint32_t gradientMaskColor1 = 0x00000000;
-    uint32_t gradientMaskColor2 = 0x00000000;
-    uint32_t outerContourColor1 = 0x00000000;
-    uint32_t outerContourColor2 = 0x00000000;
-
     val = std::make_shared<RSMagnifierParams>();
     if (val == nullptr) { return false; }
 
-    bool success = Unmarshalling(parcel, factor);
-    if (success) { val->factor_ = factor; }
-    success &= Unmarshalling(parcel, width);
-    if (success) { val->width_ = width; }
-    success &= Unmarshalling(parcel, height);
-    if (success) { val->height_ = height; }
-    success &= Unmarshalling(parcel, cornerRadius);
-    if (success) { val->cornerRadius_ = cornerRadius; }
-    success &= Unmarshalling(parcel, borderWidth);
-    if (success) { val->borderWidth_ = borderWidth; }
-    success &= Unmarshalling(parcel, offsetX);
-    if (success) { val->offsetX_ = offsetX; }
-    success &= Unmarshalling(parcel, offsetY);
-    if (success) { val->offsetY_ = offsetY; }
-
-    success &= Unmarshalling(parcel, shadowOffsetX);
-    if (success) { val->shadowOffsetX_ = shadowOffsetX; }
-    success &= Unmarshalling(parcel, shadowOffsetY);
-    if (success) { val->shadowOffsetY_ = shadowOffsetY; }
-    success &= Unmarshalling(parcel, shadowSize);
-    if (success) { val->shadowSize_ = shadowSize; }
-    success &= Unmarshalling(parcel, shadowStrength);
-    if (success) { val->shadowStrength_ = shadowStrength; }
-
-    success &= Unmarshalling(parcel, gradientMaskColor1);
-    if (success) { val->gradientMaskColor1_ = gradientMaskColor1; }
-    success &= Unmarshalling(parcel, gradientMaskColor2);
-    if (success) { val->gradientMaskColor2_ = gradientMaskColor2; }
-    success &= Unmarshalling(parcel, outerContourColor1);
-    if (success) { val->outerContourColor1_ = outerContourColor1; }
-    success &= Unmarshalling(parcel, outerContourColor2);
-    if (success) { val->outerContourColor2_ = outerContourColor2; }
+    bool success = Unmarshalling(parcel, val->factor_) && Unmarshalling(parcel, val->width_) &&
+                   Unmarshalling(parcel, val->height_) && Unmarshalling(parcel, val->cornerRadius_) &&
+                   Unmarshalling(parcel, val->borderWidth_) && Unmarshalling(parcel, val->offsetX_) &&
+                   Unmarshalling(parcel, val->offsetY_) && Unmarshalling(parcel, val->zoomOffsetX_) &&
+                   Unmarshalling(parcel, val->zoomOffsetY_) && Unmarshalling(parcel, val->shadowOffsetX_) &&
+                   Unmarshalling(parcel, val->shadowOffsetY_) && Unmarshalling(parcel, val->shadowSize_) &&
+                   Unmarshalling(parcel, val->shadowStrength_) && Unmarshalling(parcel, val->gradientMaskColor1_) &&
+                   Unmarshalling(parcel, val->gradientMaskColor2_) && Unmarshalling(parcel, val->outerContourColor1_) &&
+                   Unmarshalling(parcel, val->outerContourColor2_);
 
     return success;
 }
@@ -3331,6 +3294,7 @@ MARSHALLING_AND_UNMARSHALLING(RSRenderAnimatableProperty)
     EXPLICIT_INSTANTIATION(TEMPLATE, Vector4f)                                     \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<float>)                           \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector2f>)                        \
+    EXPLICIT_INSTANTIATION(TEMPLATE, std::vector<Vector4f>)                        \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Media::PixelMap>)             \
     EXPLICIT_INSTANTIATION(TEMPLATE, std::shared_ptr<Drawing::DrawCmdList>)
 

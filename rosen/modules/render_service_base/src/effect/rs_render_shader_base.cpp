@@ -32,6 +32,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderContourDiagonalFlowLight>();
         }
     },
+    {RSNGEffectType::DOT_MATRIX_SHADER, [] {
+            return std::make_shared<RSNGRenderDotMatrixShader>();
+        }
+    },
     {RSNGEffectType::WAVY_RIPPLE_LIGHT, [] {
             return std::make_shared<RSNGRenderWavyRippleLight>();
         }
@@ -64,6 +68,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderAIBarGlow>();
         }
     },
+    {RSNGEffectType::AIBAR_RECT_HALO, [] {
+            return std::make_shared<RSNGRenderAIBarRectHalo>();
+        }
+    },
     {RSNGEffectType::ROUNDED_RECT_FLOWLIGHT, [] {
             return std::make_shared<RSNGRenderRoundedRectFlowlight>();
         }
@@ -78,6 +86,10 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
     },
     {RSNGEffectType::FROSTED_GLASS_EFFECT, [] {
             return std::make_shared<RSNGRenderFrostedGlassEffect>();
+        }
+    },
+    {RSNGEffectType::DISTORT_CHROMA, [] {
+            return std::make_shared<RSNGRenderDistortChroma>();
         }
     },
 };

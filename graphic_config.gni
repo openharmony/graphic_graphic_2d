@@ -56,6 +56,7 @@ declare_args() {
   graphic_2d_feature_enable_rdo = false
   graphic_2d_feature_enable_memory_info_manager = false
   graphic_2d_feature_enable_dvsync = false
+  graphic_2d_feature_enable_memory_downtree = false
 
   if (defined(is_arkui_x) && is_arkui_x) {
     is_cross_platform = true
@@ -92,7 +93,8 @@ if (graphic_2d_feature_product == "tablet") {
 gpu_defines = []
 accessibility_defines = []
 
-if (graphic_2d_feature_product == "phone") {
+if (graphic_2d_feature_product == "phone" ||
+    graphic_2d_feature_enable_memory_downtree) {
   gpu_defines += ["RS_ENABLE_MEMORY_DOWNTREE"]
 }
 
@@ -365,6 +367,8 @@ bundlefwk_path = "//foundation/bundlemanager/bundle_framework"
 bundlefwk_inner_api_path = "${bundlefwk_path}/interfaces/inner_api"
 mindspore_root = "//third_party/mindspore"
 rosen_root = "//foundation/graphic/graphic_2d/rosen"
+multimedia_root = "//foundation/multimedia"
+platform_root = "$rosen_root/modules/platform"
 drivers_display_interface = "//drivers/peripheral/display/interfaces"
 
 accessibility_enable = false

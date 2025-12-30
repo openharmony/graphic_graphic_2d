@@ -44,6 +44,7 @@ std::map<GraphicColorGamut, GraphicCM_ColorSpaceType> RSScreen::RS_TO_COMMON_COL
     {GRAPHIC_COLOR_GAMUT_BT2100_PQ, GRAPHIC_CM_BT2020_PQ_FULL},
     {GRAPHIC_COLOR_GAMUT_BT2100_HLG, GRAPHIC_CM_BT2020_HLG_FULL},
     {GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020, GRAPHIC_CM_DISPLAY_BT2020_SRGB},
+    {GRAPHIC_COLOR_GAMUT_NATIVE, GRAPHIC_CM_COLORSPACE_NONE},
 };
 std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> RSScreen::COMMON_COLOR_SPACE_TYPE_TO_RS_MAP {
     {GRAPHIC_CM_BT601_EBU_FULL, GRAPHIC_COLOR_GAMUT_STANDARD_BT601},
@@ -55,6 +56,7 @@ std::map<GraphicCM_ColorSpaceType, GraphicColorGamut> RSScreen::COMMON_COLOR_SPA
     {GRAPHIC_CM_BT2020_PQ_FULL, GRAPHIC_COLOR_GAMUT_BT2100_PQ},
     {GRAPHIC_CM_BT2020_HLG_FULL, GRAPHIC_COLOR_GAMUT_BT2100_HLG},
     {GRAPHIC_CM_DISPLAY_BT2020_SRGB, GRAPHIC_COLOR_GAMUT_DISPLAY_BT2020},
+    {GRAPHIC_CM_COLORSPACE_NONE, GRAPHIC_COLOR_GAMUT_NATIVE},
 };
 std::map<GraphicHDRFormat, ScreenHDRFormat> RSScreen::HDI_HDR_FORMAT_TO_RS_MAP {
     {GRAPHIC_NOT_SUPPORT_HDR, NOT_SUPPORT_HDR},
@@ -197,7 +199,7 @@ void RSScreen::PhysicalScreenInit() noexcept
 
     auto outType = GraphicDisplayConnectionType::GRAPHIC_DISPLAY_CONNECTION_TYPE_INTERNAL;
     if (hdiScreen_->GetScreenConnectionType(outType) != 0) {
-        RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
+        RS_LOGI("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetScreenConnectionType.", __func__, id);
         property_.SetConnectionType(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE);
     } else {
         property_.SetConnectionType(static_cast<ScreenConnectionType>(outType));
@@ -1457,7 +1459,7 @@ int32_t RSScreen::SetScreenColorSpace(GraphicCM_ColorSpaceType colorSpace)
     return StatusCode::SUCCESS;
 }
 
-const std::unordered_set<NodeId>& RSScreen::GetWhiteList() const
+std::unordered_set<NodeId> RSScreen::GetWhiteList() const
 {
     return property_.GetWhiteList();
 }
@@ -1537,7 +1539,7 @@ bool RSScreen::GetCastScreenEnableSkipWindow()
     return property_.GetCastScreenEnableSkipWindow();
 }
 
-const std::unordered_set<NodeId>& RSScreen::GetBlackList() const
+std::unordered_set<NodeId> RSScreen::GetBlackList() const
 {
     return property_.GetBlackList();
 }

@@ -3392,6 +3392,9 @@ int32_t RSClientToServiceConnectionProxy::RegisterTypeface(Drawing::SharedTypefa
 
     if (reply.ReadInt32(needUpdate) && needUpdate == 0) {
         return sharedTypeface.fd_;
+    } else if (needUpdate == -1) {
+        RS_LOGE("RegisterTypeface: Failed to register typeface in service.");
+        return -1;
     }
     int32_t result = reply.ReadFileDescriptor();
     return result;

@@ -60,7 +60,7 @@ public:
     void AddAnimationCancelTrace(const uint64_t nodeId, const uint64_t propertyId) const;
     void AddChangeAnimationValueTrace(
         const uint64_t propertyId, const std::shared_ptr<RSRenderPropertyBase>& endValue) const;
-    static bool GetAnimationEnabled();
+    static bool GetTestModeEnabled();
 
 private:
     RSAnimationTraceUtils();
@@ -77,6 +77,7 @@ private:
     std::string GetNodeTypeString(RSUINodeType type) const;
 
     static bool isDebugEnabled_;
+    static bool isTestModeEnabled_;
 };
 } // namespace Rosen
 } // namespace OHOS

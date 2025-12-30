@@ -25,6 +25,7 @@ group("unittest") {
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
     ":RSClientToServiceConnectionStubTest",
+    ":RSClientToServiceConnectionStubTestExt",
     ":RSClientToRenderConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
@@ -41,7 +42,11 @@ config("pipeline_test") {
 ## Build RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest
 ohos_unittest("RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest") {
   module_out_path = module_output_path
+  include_dirs = [
+    "mock",
+  ]
   sources = [
+    "mock/mock_accesstoken_kit.cpp",
     "rs_irender_service_connection_ipc_interface_code_access_verifier_test.cpp",
   ]
   deps = [
@@ -104,6 +109,35 @@ ohos_unittest("RSClientToServiceConnectionStubTest") {
   defines = []
   defines += gpu_defines
 }
+
+## Build RSClientToServiceConnectionStubTestExt
+ohos_unittest("RSClientToServiceConnectionStubTestExt") {
+  module_out_path = module_output_path
+  sources = [
+    "../pipeline/mock/mock_hdi_device.cpp",
+    "rs_client_to_service_connection_stub_test_ext.cpp",
+  ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/utils:socketpair",
+    "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
+  ]
+  external_deps = [
+    "googletest:gmock_main",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "hisysevent:libhisysevent",
+    "samgr:samgr_proxy",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.sensors_sensor)) {
+    external_deps += [ "sensor:sensor_interface_native" ]
+  }
+  defines = []
+  defines += gpu_defines
+}
+
 
 ## Build RSClientToRenderConnectionStubTest
 ohos_unittest("RSClientToRenderConnectionStubTest") {

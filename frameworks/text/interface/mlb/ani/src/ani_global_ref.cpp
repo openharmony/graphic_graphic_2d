@@ -23,7 +23,7 @@ namespace OHOS::Text::ANI {
 namespace {
 constexpr std::string_view RUNMETRICS_SIGN = "C{" ANI_INTERFACE_TEXT_STYLE "}C{" ANI_INTERFACE_FONT_METRICS "}:";
 constexpr CacheKey RUNMETRICS_KEY{ANI_CLASS_RUNMETRICS, "<ctor>", RUNMETRICS_SIGN};
-constexpr CacheKey MAP_SET_KEY{ANI_MAP, "set", "C{std.core.Object}C{std.core.Object}:C{escompat.Map}"};
+constexpr CacheKey MAP_SET_KEY{ANI_MAP, "set", "YY:C{std.core.Map}"};
 constexpr CacheKey BUSINESS_ERROR_KEY{ANI_BUSINESS_ERROR, "<ctor>", "C{std.core.String}C{escompat.ErrorOptions}:"};
 constexpr CacheKey ARRAY_KEY{ANI_ARRAY, "<ctor>", "i:"};
 constexpr CacheKey MAP_KEY{ANI_MAP, "<ctor>", ":"};
@@ -70,7 +70,7 @@ constexpr CacheKey LINE_TYPESET_KEY{ANI_CLASS_LINE_TYPESET, "<ctor>", ":"};
 constexpr CacheKey PARAGRAPH_BUILDER_KEY{ANI_CLASS_PARAGRAPH_BUILDER, "<ctor>", ":"};
 constexpr CacheKey CANVAS_GET_NATIVE_KEY{ANI_CLASS_CANVAS, TEXT_GET_NATIVE, ":l"};
 constexpr CacheKey PATH_GET_NATIVE_KEY{ANI_CLASS_PATH, TEXT_GET_NATIVE, ":l"};
-constexpr CacheKey ARRAY_SET_KEY{ANI_ARRAY, "$_set", "iC{std.core.Object}:"};
+constexpr CacheKey ARRAY_SET_KEY{ANI_ARRAY, "$_set", "iY:"};
 constexpr CacheKey POSITION_WITH_AFFINITY_KEY{ANI_CLASS_POSITION_WITH_AFFINITY, "<ctor>", "iE{" ANI_ENUM_AFFINITY "}:"};
 
 constexpr CacheKey PARAGRAPH_STYLE_MAX_LINES_KEY{
@@ -125,7 +125,7 @@ constexpr CacheKey STRUT_STYLE_FONT_FAMILIES_KEY{
 constexpr CacheKey TEXT_TAB_ALIGNMENT_KEY{
     ANI_INTERFACE_TEXT_TAB, "<get>alignment", ANI_WRAP_RETURN_E(ANI_ENUM_TEXT_ALIGN)};
 constexpr CacheKey TEXT_TAB_LOCATION_KEY{ANI_INTERFACE_TEXT_TAB, "<get>location", ":d"};
-constexpr CacheKey LINEMETRICS_KEY{ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC{escompat.Map}:"};
+constexpr CacheKey LINEMETRICS_KEY{ANI_CLASS_LINEMETRICS, "<ctor>", "iiddddddidC{std.core.Map}:"};
 
 constexpr CacheKey TEXT_STYLE_COLOR_KEY{ANI_INTERFACE_TEXT_STYLE, "<get>color", ANI_WRAP_RETURN_C(ANI_INTERFACE_COLOR)};
 constexpr CacheKey TEXT_STYLE_FONT_WEIGHT_KEY{

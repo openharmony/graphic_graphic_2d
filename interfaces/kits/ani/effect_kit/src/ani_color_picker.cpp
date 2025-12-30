@@ -31,8 +31,8 @@
 namespace OHOS {
 namespace Rosen {
 
-static const std::string ANI_CLASS_COLOR_PICKER = "L@ohos/effectKit/effectKit/ColorPickerInternal;";
-static const std::string ANI_CLASS_COLOR = "L@ohos/effectKit/effectKit/ColorInternal;";
+static const std::string ANI_CLASS_COLOR_PICKER = "@ohos.effectKit.effectKit.ColorPickerInternal";
+static const std::string ANI_CLASS_COLOR = "@ohos.effectKit.effectKit.ColorInternal";
 constexpr int REGION_COORDINATE_NUM = 4;
 
 struct AniColorPickerAsyncContext {
@@ -59,7 +59,7 @@ static ani_object BuildColor(ani_env *env, const ColorManager::Color &color)
         return result;
     }
     static const char *className = ANI_CLASS_COLOR.c_str();
-    
+
     result = AniEffectKitUtils::CreateAniObject(env, className, nullptr, reinterpret_cast<ani_long>(nullptr));
     ani_boolean resultIsUndefined = ANI_TRUE;
     env->Reference_IsUndefined(result, &resultIsUndefined);
@@ -137,20 +137,15 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
     unsigned int colorsNum = static_cast<unsigned int>(std::clamp(param, 0, PROPORTION_COLORS_NUM_LIMIT));
     std::vector<ColorManager::Color> colors;
     colors = thisColorPicker->nativeColorPicker_->GetTopProportionColors(colorsNum);
-    ani_class cls;
-    if (env->FindClass(ANI_CLASS_COLOR.c_str(), &cls) != ANI_OK) {
-        EFFECT_LOG_E("[GetTopProportionColors] Error3, failed to find Color class");
-        return AniEffectKitUtils::CreateAniUndefined(env);
-    }
 
     uint32_t arrLen = std::max(1u, static_cast<uint32_t>(colors.size()));
-    ani_array_ref arrayValue = nullptr;
+    ani_array arrayValue = nullptr;
     ani_ref nullRef = nullptr;
     if (env->GetUndefined(&nullRef) != ANI_OK) {
         EFFECT_LOG_E("GetUndefined failed");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
-    if (env->Array_New_Ref(cls, arrLen, nullRef, &arrayValue) != ANI_OK) {
+    if (env->Array_New(arrLen, nullRef, &arrayValue) != ANI_OK) {
         EFFECT_LOG_E("[GetTopProportionColors] Error4, failed to create array");
         return AniEffectKitUtils::CreateAniUndefined(env);
     }
@@ -162,7 +157,7 @@ ani_object AniColorPicker::GetTopProportionColors(ani_env *env, ani_object obj, 
             colorValue = AniEffectKitUtils::CreateAniUndefined(env);
         }
         ani_ref colorRef = static_cast<ani_ref>(colorValue);
-        if (env->Array_Set_Ref(arrayValue, i, colorRef) != ANI_OK) {
+        if (env->Array_Set(arrayValue, i, colorRef) != ANI_OK) {
             EFFECT_LOG_E("[GetTopProportionColors] Error5, failed to set array element");
             return AniEffectKitUtils::CreateAniUndefined(env);
         }
@@ -230,7 +225,7 @@ ani_boolean AniColorPicker::IsBlackOrWhiteOrGrayColor(ani_env *env, ani_object o
 
     uint32_t color = static_cast<uint32_t>(colorValue);
     ani_boolean rst = thisColorPicker->nativeColorPicker_->IsBlackOrWhiteOrGrayColor(color);
-    
+
     return rst;
 }
 
@@ -252,7 +247,7 @@ ani_object AniColorPicker::CreateColorPickerNormal(ani_env *env, ani_object para
     }
 
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
-    const char *methodSig = "J:V";
+    const char *methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(colorPicker.release()));
 }
@@ -276,11 +271,11 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     if (int(length) >= REGION_COORDINATE_NUM) {
         for (int i = 0; i < REGION_COORDINATE_NUM; i++) {
             ani_ref doubleValueRef{};
-            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:C{std.core.Object}",
+            ani_status status = env->Object_CallMethodByName_Ref(region, "$_get", "i:Y",
                 &doubleValueRef, (ani_int)i);
             ani_double doubleValue;
             status = env->Object_CallMethodByName_Double(static_cast<ani_object>(doubleValueRef),
-                "unboxed", ":d", &doubleValue);
+                "toDouble", ":d", &doubleValue);
             if (status != ANI_OK) {
                 EFFECT_LOG_E("[CreateColorPicker] region Object_CallMethodByName_Double failed at i=%d", i);
                 return AniEffectKitUtils::CreateAniUndefined(env);
@@ -307,9 +302,36 @@ ani_object AniColorPicker::CreateColorPickerWithRegion(ani_env* env, ani_object 
     }
 
     static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
-    const char* methodSig = "J:V";
+    const char* methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(env, className, methodSig,
         reinterpret_cast<ani_long>(colorPicker.release()));
+}
+
+ani_ref AniColorPicker::GetAlphaZeroTransparentProportion(ani_env* env, ani_object obj)
+{
+    AniColorPicker *thisColorPicker = AniEffectKitUtils::GetColorPickerFromEnv(env, obj);
+    if (!thisColorPicker) {
+        EFFECT_LOG_E("[GetAverageColor] Error1, failed to retrieve ColorPicker wrapper");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (!thisColorPicker->nativeColorPicker_) {
+        EFFECT_LOG_E("[GetAverageColor] Error2, failed to retrieve native ColorPicker wrapper");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    ani_double ret = thisColorPicker->nativeColorPicker_->GetAlphaZeroTransparentProportion();
+    static constexpr const char *className = "std.core.Double";
+    ani_class doubleCls {};
+    env->FindClass(className, &doubleCls);
+    ani_method ctor {};
+    env->Class_FindMethod(doubleCls, "<ctor>", "d:", &ctor);
+    ani_object obj_ret {};
+    if (env->Object_New(doubleCls, ctor, &obj_ret, ret) != ANI_OK) {
+        std::cerr << "Failed to allocate Double!" << std::endl;
+        ani_ref undefinedRef;
+        env->GetUndefined(&undefinedRef);
+        return undefinedRef;
+    }
+    return static_cast<ani_ref>(obj_ret);
 }
 
 ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap)
@@ -328,7 +350,7 @@ ani_object AniColorPicker::CreateColorPickerFromPtr(ani_env* env, std::shared_pt
     }
     static const char* className = ANI_CLASS_COLOR_PICKER.c_str();
     // ets constructor function, parameter type and return value type
-    const char* methodSig = "J:V";
+    const char* methodSig = "l:";
     return AniEffectKitUtils::CreateAniObject(
         env, className, methodSig, reinterpret_cast<ani_long>(aniColorPicker.release()));
 }
@@ -395,7 +417,7 @@ ani_status AniColorPicker::Init(ani_env *env)
     static const char *className = ANI_CLASS_COLOR_PICKER.c_str();
     ani_class cls;
     if (env->FindClass(className, &cls) != ANI_OK) {
-        EFFECT_LOG_E("Not found L@ohos/effectKit/effectKit/ColorPickerInternal");
+        EFFECT_LOG_E("Not found @ohos.effectKit.effectKit.ColorPickerInternal");
         return ANI_NOT_FOUND;
     }
 
@@ -419,9 +441,9 @@ ani_status AniColorPicker::Init(ani_env *env)
         return ANI_ERROR;
     }
     std::array static_methods = {
-        ani_native_function { "kitTransferStaticNative", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function { "kitTransferStaticNative", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::KitTransferStaticColorPicker) },
-        ani_native_function { "kitTransferDynamicNative", "J:Lstd/interop/ESValue;",
+        ani_native_function { "kitTransferDynamicNative", "l:C{std.interop.ESValue}",
             reinterpret_cast<void*>(OHOS::Rosen::AniColorPicker::kitTransferDynamicColorPicker) }
     };
     ret = env->Class_BindStaticNativeMethods(cls, static_methods.data(), static_methods.size());

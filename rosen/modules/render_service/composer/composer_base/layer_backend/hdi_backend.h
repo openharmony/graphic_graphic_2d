@@ -70,7 +70,7 @@ private:
     OnScreenRefreshFunc onScreenRefreshCb_ = nullptr;
     std::unordered_map<uint32_t, OutputPtr> outputs_;
 
-    static void OnHdiBackendHotPlugEvent(uint32_t deviceId, bool connected, void* data);
+    static void OnHdiBackendHotPlugEvent(uint32_t screenId, bool connected, void* data);
     static void OnHdiBackendRefreshEvent(uint32_t deviceId, void* data);
     RosenError InitDevice();
     void OnHdiBackendConnected(uint32_t screenId, bool connected);

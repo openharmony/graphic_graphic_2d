@@ -43,8 +43,6 @@ public:
     NATIVEEXPORT uint32_t GetHighestSaturationColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT uint32_t GetAverageColor(Drawing::ColorQuad &color) const;
     NATIVEEXPORT bool IsBlackOrWhiteOrGrayColor(uint32_t color) const;
-    uint32_t PickColor(Drawing::ColorQuad& color, ColorPickStrategyType strategy);
-    uint32_t GetContrastColor(Drawing::ColorQuad &color) const;
 
 private:
     RSColorPicker(std::shared_ptr<Drawing::Pixmap> pixmap);

@@ -27,6 +27,21 @@ DECLARE_SHADER(ContourDiagonalFlowLight, CONTOUR_DIAGONAL_FLOW_LIGHT,
     ADD_PROPERTY_TAG(ContourDiagonalFlowLight, HaloWeight)
 );
 
+DECLARE_SHADER(DotMatrixShader, DOT_MATRIX_SHADER,
+    ADD_PROPERTY_TAG(DotMatrixShader, PathDirection),
+    ADD_PROPERTY_TAG(DotMatrixShader, EffectColors),
+    ADD_PROPERTY_TAG(DotMatrixShader, ColorFractions),
+    ADD_PROPERTY_TAG(DotMatrixShader, StartPoints),
+    ADD_PROPERTY_TAG(DotMatrixShader, PathWidth),
+    ADD_PROPERTY_TAG(DotMatrixShader, InverseEffect),
+    ADD_PROPERTY_TAG(DotMatrixShader, DotColor),
+    ADD_PROPERTY_TAG(DotMatrixShader, DotSpacing),
+    ADD_PROPERTY_TAG(DotMatrixShader, DotRadius),
+    ADD_PROPERTY_TAG(DotMatrixShader, BgColor),
+    ADD_PROPERTY_TAG(DotMatrixShader, EffectType),
+    ADD_PROPERTY_TAG(DotMatrixShader, Progress)
+);
+
 DECLARE_SHADER(WavyRippleLight, WAVY_RIPPLE_LIGHT,
     ADD_PROPERTY_TAG(WavyRippleLight, Center),
     ADD_PROPERTY_TAG(WavyRippleLight, Radius),
@@ -96,7 +111,6 @@ DECLARE_SHADER(ColorGradientEffect, COLOR_GRADIENT_EFFECT,
 );
 
 DECLARE_SHADER(FrostedGlassEffect, FROSTED_GLASS_EFFECT,
-    ADD_PROPERTY_TAG(FrostedGlassEffect, BlurParam),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEmboss),
     ADD_PROPERTY_TAG(FrostedGlassEffect, WeightsEdl),
     ADD_PROPERTY_TAG(FrostedGlassEffect, BgRates),
@@ -175,6 +189,21 @@ DECLARE_SHADER(AIBarGlow, AIBAR_GLOW,
     ADD_PROPERTY_TAG(AIBarGlow, Progress)
 );
 
+DECLARE_SHADER(AIBarRectHalo, AIBAR_RECT_HALO,
+    ADD_PROPERTY_TAG(AIBarRectHalo, LTWH),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color0),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color1),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color2),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Color3),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position0),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position1),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position2),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Position3),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Strength),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Brightness),
+    ADD_PROPERTY_TAG(AIBarRectHalo, Progress)
+);
+
 DECLARE_SHADER(RoundedRectFlowlight, ROUNDED_RECT_FLOWLIGHT,
     ADD_PROPERTY_TAG(RoundedRectFlowlight, StartEndPosition),
     ADD_PROPERTY_TAG(RoundedRectFlowlight, WaveLength),
@@ -216,4 +245,19 @@ DECLARE_SHADER(CircleFlowlight, CIRCLE_FLOWLIGHT,
     ADD_PROPERTY_TAG(CircleFlowlight, DistortStrength),
     ADD_PROPERTY_TAG(CircleFlowlight, BlendGradient),
     ADD_PROPERTY_TAG(CircleFlowlight, Mask)
+);
+
+DECLARE_SHADER(DistortChroma, DISTORT_CHROMA,
+    ADD_PROPERTY_TAG(DistortChroma, Progress),
+    ADD_PROPERTY_TAG(DistortChroma, TurbulentMask),
+    ADD_PROPERTY_TAG(DistortChroma, Mask),
+    ADD_PROPERTY_TAG(DistortChroma, Granularity),
+    ADD_PROPERTY_TAG(DistortChroma, Frequency),
+    ADD_PROPERTY_TAG(DistortChroma, Sharpness),
+    ADD_PROPERTY_TAG(DistortChroma, Brightness),
+    ADD_PROPERTY_TAG(DistortChroma, Dispersion),
+    ADD_PROPERTY_TAG(DistortChroma, DistortFactor),
+    ADD_PROPERTY_TAG(DistortChroma, Saturation),
+    ADD_PROPERTY_TAG(DistortChroma, ColorStrength),
+    ADD_PROPERTY_TAG(DistortChroma, VerticalMoveDistance)
 );

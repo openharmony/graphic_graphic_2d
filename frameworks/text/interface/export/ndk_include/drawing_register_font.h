@@ -112,6 +112,25 @@ uint32_t OH_Drawing_RegisterFontBufferByIndex(OH_Drawing_FontCollection* fontCol
  * @version 1.0
  */
 uint32_t OH_Drawing_UnregisterFont(OH_Drawing_FontCollection* fontCollection, const char* fontFamily);
+
+/**
+ * @brief Checks if the font format specified by the path is supported.
+ *
+ * @param path The absolute path to the font file.
+ * @return Returns true if the font is supported; otherwise, returns false.
+ * @since 23
+ */
+bool OH_Drawing_IsFontSupportedFromPath(const char* fontPath);
+
+/**
+ * @brief Checks if the font format specified by the buffer is supported.
+ *
+ * @param data A pointer to the memory buffer containing the font data.
+ * @param dataLength The size of the font data in bytes.
+ * @return Returns true if the font is supported; otherwise, returns false.
+ * @since 23
+ */
+bool OH_Drawing_IsFontSupportedFromBuffer(uint8_t* fontBuffer, size_t length);
 #ifdef __cplusplus
 }
 #endif

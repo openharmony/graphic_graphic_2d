@@ -841,7 +841,6 @@ int32_t RSClientToServiceConnection::SetVirtualScreenBlackList(ScreenId id, cons
     }
     if (blackList.empty()) {
         RS_LOGW("%{public}s: blackList is empty.", __func__);
-        return StatusCode::BLACKLIST_IS_EMPTY;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     if (screenManager_ == nullptr) {
@@ -2401,13 +2400,14 @@ int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& s
 {
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
         RS_LOGE("RegisterTypeface: invalid parameters");
+        needUpdate = -1;
         return -1;
     }
     uint32_t realSize = AshmemGetSize(sharedTypeface.fd_);
     if (realSize < 0 || static_cast<uint32_t>(realSize) < sharedTypeface.size_) {
         RS_LOGE("RegisterTypeface, realSize < 0 or realSize < given size");
         ::close(sharedTypeface.fd_);
-        needUpdate = 0;
+        needUpdate = -1;
         return -1;
     }
     auto tf = RSTypefaceCache::Instance().UpdateDrawingTypefaceRef(sharedTypeface);
@@ -2428,6 +2428,7 @@ int32_t RSClientToServiceConnection::RegisterTypeface(Drawing::SharedTypeface& s
     }
     ::close(sharedTypeface.fd_);
     sharedTypeface.fd_ = -1;
+    needUpdate = -1;
     RS_LOGE("RegisterTypeface: failed to register typeface");
     return -1;
 }

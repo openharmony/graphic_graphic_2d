@@ -1361,6 +1361,7 @@ int32_t RSRenderServiceClient::RegisterTypeface(std::shared_ptr<Drawing::Typefac
             ptr, size, [](const void* ptr, void* context) { delete reinterpret_cast<Ashmem*>(context); },
             ashmem.release());
         typeface->UpdateStream(std::move(stream));
+        typeface->SetFd(fd);
     }
     return fd;
 }

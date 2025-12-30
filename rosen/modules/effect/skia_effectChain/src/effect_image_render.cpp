@@ -82,6 +82,11 @@ std::shared_ptr<EffectImageFilter> EffectImageFilter::Grayscale()
     return std::make_shared<EffectImageDrawingFilter>(filter);
 }
 
+std::shared_ptr<EffectImageFilter> EffectImageFilter::CreateSDF(int spreadFactor, bool generateDerivs)
+{
+    return std::make_shared<EffectImageSdfFromImageFilter>(spreadFactor, generateDerivs);
+}
+
 std::shared_ptr<EffectImageFilter> EffectImageFilter::Invert()
 {
     /* invert matrix */
@@ -121,6 +126,14 @@ DrawingError EffectImageBlurFilter::Apply(const std::shared_ptr<EffectImageChain
     }
 
     return image->ApplyBlur(radius_, tileMode_);
+}
+
+DrawingError EffectImageSdfFromImageFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplySDFCreation(spreadFactor_, generateDerivs_);
 }
 
 DrawingError EffectImageRender::Render(const std::shared_ptr<Media::PixelMap>& srcPixelMap,

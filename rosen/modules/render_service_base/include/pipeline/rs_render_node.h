@@ -677,6 +677,8 @@ public:
     void UpdateLastFilterCacheRegion();
     void UpdateFilterRegionInSkippedSubTree(RSDirtyRegionManager& dirtyManager,
         const RSRenderNode& subTreeRoot, RectI& filterRect, const RectI& clipRect);
+    void FilterRectMergeDirtyRectInSkippedSubtree(RSDirtyRegionManager& dirtyManager,
+        const RectI& filterRect);
     void MarkFilterStatusChanged(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         bool isForeground, bool isFilterRegionChanged);
     void UpdateFilterCacheWithBackgroundDirty();
@@ -1284,7 +1286,7 @@ private:
 
     std::unordered_set<RSDrawableSlot> dirtySlots_;
     DrawCmdIndex stagingDrawCmdIndex_;
-    std::vector<Drawing::RecordingCanvas::DrawFunc> stagingDrawCmdList_;
+    RSDrawable::DrawList stagingDrawCmdList_;
     std::vector<NodeId> visibleFilterChild_;
     std::unordered_set<NodeId> visibleEffectChild_;
     Drawing::Matrix oldMatrix_;

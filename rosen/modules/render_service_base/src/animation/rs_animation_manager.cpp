@@ -171,7 +171,7 @@ std::tuple<bool, bool, bool> RSAnimationManager::Animate(
                 "Animation finish background", animation->GetTargetId(), animation->GetAnimationId(), false);
             animation->Finish();
         }
-        bool isFinished = animation->Animate(time, minLeftDelayTime);
+        bool isFinished = animation->Animate(time, minLeftDelayTime, false);
         if (isFinished) {
             isCalculateAnimationValue = true;
             OnAnimationFinished(animation);

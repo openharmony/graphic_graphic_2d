@@ -82,7 +82,11 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateCanvasDrawingRenderNodeDra
 #if defined(ROSEN_OHOS) && defined(RS_ENABLE_VK)
     std::string info;
     drawable->DumpSubDrawableTree(info);
-    ASSERT_EQ(info, ", dmaAllocationCount:0, dmaFallbackCount:0");
+    if (RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled()) {
+        ASSERT_EQ(info, ", dmaAllocationCount:0, dmaFallbackCount:0");
+    } else {
+        ASSERT_EQ(info, "");
+    }
 #endif
 }
 
@@ -989,7 +993,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeDrawableTest, CreateDmaBackendTextureTest, Tes
     ASSERT_NE(buffer, nullptr);
     RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(1, buffer, 1);
     ret = drawable->CreateDmaBackendTexture(1, 100, 100);
-    ASSERT_EQ(ret, true);
+    ASSERT_EQ(ret, RSSystemProperties::GetCanvasDrawingNodePreAllocateDmaEnabled());
     drawable->backendTexture_ = {};
     ret = drawable->ReleaseSurfaceVk(100, 100);
     ASSERT_EQ(ret, true);

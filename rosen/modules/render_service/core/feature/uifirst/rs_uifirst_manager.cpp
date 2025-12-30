@@ -674,7 +674,7 @@ void RSUifirstManager::ShouldAutoCleanCache(NodeId id, DrawableV2::RsSubThreadCa
         return;
     }
     subThreadCache.AddCacheReuseCount();
-    if (subThreadCache.GetCacheReuseCount() >= clearCacheThreshold_) {
+    if (subThreadCache.GetCacheReuseCount() >= static_cast<uint32_t>(clearCacheThreshold_)) {
         AddMarkedClearCacheNode(id);
     }
 }
@@ -2125,7 +2125,7 @@ void RSUifirstManager::UifirstStateChange(RSSurfaceRenderNode& node, MultiThread
 
             auto tempNodeToClear = pendingNodeBehindWindow_.find(node.GetId());
             if (tempNodeToClear != pendingNodeBehindWindow_.end()) {
-                RS_OPTIONAL_TRACE_NAME_FMT("clear node in pendingNodeBehindWindow %{public}s id:%{public}" PRIu64,
+                RS_OPTIONAL_TRACE_NAME_FMT("clear node in pendingNodeBehindWindow %s id:%" PRIu64,
                     node.GetName().c_str(), node.GetId());
                 pendingNodeBehindWindow_.erase(tempNodeToClear);
             }

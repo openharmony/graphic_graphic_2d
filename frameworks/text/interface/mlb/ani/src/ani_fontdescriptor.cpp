@@ -45,6 +45,7 @@ const std::string GET_FONT_UNICODE_SET_SIGNATURE = std::string(FONT_PATH_IN_SIGN
 const std::string GET_FONT_COUNT_SIGNATURE = std::string(FONT_PATH_IN_SIGN) + ":i";
 const std::string GET_FONT_PATHS_BY_TYPE_SIGNATURE =
     "E{" + std::string(ANI_ENUM_SYSTEM_FONT_TYPE) + "}:C{" + std::string(ANI_ARRAY) + "}";
+const std::string IS_FONT_SUPPORTED_SIGNATURE = FONT_PATH_IN_SIGN + ":z";
 } // namespace
 
 #define READ_OPTIONAL_FIELD(env, obj, method, field, type, fontDescPtr, error_var)                                     \
@@ -80,6 +81,8 @@ ani_status AniFontDescriptor::AniInit(ani_vm* vm, uint32_t* result)
             reinterpret_cast<void*>(GetFontCount)},
         ani_native_function{"getFontPathsByType", GET_FONT_PATHS_BY_TYPE_SIGNATURE.c_str(),
             reinterpret_cast<void*>(GetFontPathsByType)},
+        ani_native_function{"isFontSupported", IS_FONT_SUPPORTED_SIGNATURE.c_str(),
+            reinterpret_cast<void*>(IsFontSupported)},
     };
 
     ret = env->Namespace_BindNativeFunctions(AniGlobalNamespace::GetInstance().text, methods.data(), methods.size());
@@ -508,5 +511,35 @@ ani_object AniFontDescriptor::GetFontPathsByType(ani_env* env, ani_enum_item fon
         index += 1;
     }
     return arrayObj;
+}
+
+ani_boolean AniFontDescriptor::IsFontSupported(ani_env* env, ani_object path)
+{
+    ani_boolean isString = false;
+    env->Object_InstanceOf(path, AniGlobalClass::GetInstance().aniString, &isString);
+
+    if (isString) {
+        std::string pathStr;
+        ani_status ret = AniTextUtils::AniToStdStringUtf8(env, reinterpret_cast<ani_string>(path), pathStr);
+        if (ret != ANI_OK) {
+            return false;
+        }
+        if (!AniTextUtils::SplitAbsoluteFontPath(pathStr)) {
+            TEXT_LOGE("Failed to split absolute font path");
+            return false;
+        }
+        return Drawing::Typeface::MakeFromFile(pathStr.c_str()) != nullptr;
+    }
+
+    ani_boolean isResource = false;
+    env->Object_InstanceOf(path, AniGlobalClass::GetInstance().globalResource, &isResource);
+    if (isResource) {
+        std::unique_ptr<uint8_t[]> data;
+        size_t size = 0;
+        AniResourceParser::ResolveResource(AniResourceParser::ParseResource(env, path), size, data);
+        auto stream = std::make_unique<Drawing::MemoryStream>(data.get(), size);
+        return Drawing::Typeface::MakeFromStream(std::move(stream)) != nullptr;
+    }
+    return false;
 }
 } // namespace OHOS::Text::ANI

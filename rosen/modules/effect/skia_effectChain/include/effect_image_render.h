@@ -26,6 +26,7 @@ public:
     static std::shared_ptr<EffectImageFilter> Blur(float radius, Drawing::TileMode tileMode = Drawing::TileMode::DECAL);
     static std::shared_ptr<EffectImageFilter> Brightness(float degree);
     static std::shared_ptr<EffectImageFilter> Grayscale();
+    static std::shared_ptr<EffectImageFilter> CreateSDF(int spreadFactor, bool generateDerivs);
     static std::shared_ptr<EffectImageFilter> Invert();
     static std::shared_ptr<EffectImageFilter> ApplyColorMatrix(const Drawing::ColorMatrix& colorMatrix);
     static std::shared_ptr<EffectImageFilter> EllipticalGradientBlur(float blurRadius, float center_x, float center_y,
@@ -78,6 +79,19 @@ private:
     float maskRadiusY_;
     std::vector<float> positions_;
     std::vector<float> degrees_;
+};
+
+class EffectImageSdfFromImageFilter : public EffectImageFilter {
+public:
+    EffectImageSdfFromImageFilter(int spreadFactor, bool generateDerivs)
+        : spreadFactor_(spreadFactor), generateDerivs_(generateDerivs) {}
+    ~EffectImageSdfFromImageFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    int spreadFactor_;
+    bool generateDerivs_;
 };
 
 class EffectImageRender {

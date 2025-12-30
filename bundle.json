@@ -61,7 +61,8 @@
         "graphic_2d_feature_tv_metadata_enable",
         "graphic_2d_feature_upgrade_skia",
         "graphic_2d_feature_enable_rdo",
-        "graphic_2d_feature_enable_memory_info_manager"
+        "graphic_2d_feature_enable_memory_info_manager",
+        "graphic_2d_feature_enable_memory_downtree"
       ],
       "rom": "10000KB",
       "ram": "10000KB",
@@ -164,12 +165,21 @@
             "//foundation/graphic/graphic_2d:default",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:librender_service",
             "//foundation/graphic/graphic_2d/rosen/modules/render_service:render_service",
-            "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
             "//foundation/graphic/graphic_2d/etc:ohos.para.dac",
             "//foundation/graphic/graphic_2d/etc:ohos.para"
           ]
       },
         "inner_kits": [
+          {
+            "type": "so",
+            "name": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common:effect_common",
+            "header": {
+              "header_files": [
+                "filter_common.h"
+              ],
+              "header_base": "//foundation/graphic/graphic_2d/rosen/modules/effect/effect_common/include"
+            }
+          },
           {
             "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/napi/graphic/drawing:drawing_napi_impl",
@@ -441,14 +451,6 @@
           },
           {
             "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect:cj_ui_effect_ffi",
-            "header": {
-            "header_files": [],
-            "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/ui_effect/include"
-            }
-          },
-          {
-            "type": "so",
             "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager:cj_color_manager_ffi",
             "header": {
               "header_files": [
@@ -456,24 +458,6 @@
                 "cj_color_mgr_utils.h"
               ],
               "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/color_manager"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_impl",
-            "header": {
-              "header_files": [
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
-            }
-          },
-          {
-            "type": "so",
-            "name": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing:cj_drawing_ffi",
-            "header": {
-              "header_files": [
-              ],
-              "header_base": "//foundation/graphic/graphic_2d/interfaces/kits/cj/drawing"
             }
           },
           {

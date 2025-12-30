@@ -76,6 +76,8 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyMagnifierPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyEmitterUpdater),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleNoiseFields),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleRippleFields),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyParticleVelocityFields),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyShader),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVector2f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVector3f),
@@ -87,6 +89,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyDrawCmdListNG),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVectorFloat),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVectorVector2f),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyVectorVector4f),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyPixelMap),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyShadowBlenderPara),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdatePropertyShort),
@@ -101,6 +104,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSForceUifirstNode),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetUIFirstSwitch),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetDrawRegion),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSSetTakeSurfaceForUIFlag),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetOutOfParent),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSSetNeedUseCmdlistDrawRegion),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSRegisterGeometryTransitionNodePair),
@@ -122,6 +126,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeUpdateRecording),
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeClearRecording),
     DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeSetHDRPresent),
+    DECLARE_ADD_RANDOM(RSCanvasNodeCommand, RSCanvasNodeSetColorGamut),
 
     /********** RSSurfaceNodeCommand **********/
     DECLARE_ADD_RANDOM(RSSurfaceNodeCommand, RSSurfaceNodeCreate),

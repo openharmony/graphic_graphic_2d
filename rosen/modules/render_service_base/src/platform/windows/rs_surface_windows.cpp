@@ -201,5 +201,9 @@ void RSSurfaceWindows::ResetBufferAge()
 {
     ROSEN_LOGD("RSSurfaceWindows: Reset Buffer Age!");
 }
+
+void RSSurfaceWindows::SetCleanUpHelper(std::function<void()> func)
+{
+}
 } // namespace Rosen
 } // namespace OHOS

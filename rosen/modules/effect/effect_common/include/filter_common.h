@@ -29,8 +29,9 @@ public:
     static bool Invert();
     static bool Brightness(float bright);
     static bool Grayscale();
+    static bool CreateSDF(int spreadFactor, bool generateDerivs = true);
     static bool SetColorMatrix(std::vector<float> cjcolorMatrix, uint32_t& code);
-    static std::shared_ptr<OHOS::Media::PixelMap> GetEffectPixelMap();
+    static std::shared_ptr<OHOS::Media::PixelMap> GetEffectPixelMap(bool forceCPU = false);
     static thread_local std::shared_ptr<FilterCommon> sConstructor_;
     void AddNextFilter(std::shared_ptr<EffectImageFilter> filter);
     std::shared_ptr<Media::PixelMap> GetDstPixelMap();

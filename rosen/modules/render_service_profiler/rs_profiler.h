@@ -809,6 +809,7 @@ private:
     static void DumpTreeToJson(const ArgList& args);
     static void DumpNodeSurface(const ArgList& args);
     static void ClearFilter(const ArgList& args);
+    static void ClearCaches(const ArgList& args);
     static void PrintNodeCache(const ArgList& args);
     static void PrintNodeCacheAll(const ArgList& args);
     static void PatchNode(const ArgList& args);

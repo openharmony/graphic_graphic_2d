@@ -133,7 +133,7 @@ void RSSpringAnimation::StartUIAnimation(const std::shared_ptr<RSRenderSpringAni
     auto prevAnimation = modifierManager->QuerySpringAnimation(propertyId);
     modifierManager->RegisterSpringAnimation(propertyId, GetId());
     // stop running the previous animation and inherit velocity from it
-    animation->InheritSpringAnimation(prevAnimation);
+    animation->InheritSpringAnimation(prevAnimation, true);
 }
 
 bool RSSpringAnimation::GetIsLogicallyFinishCallback() const

@@ -467,7 +467,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByRect(
     float pixmapWidth = specifiedAreaRect.GetWidth();
     float pixmapHeight = specifiedAreaRect.GetHeight();
     Media::InitializationOptions opts;
-    OHOS::ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
+    ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
     BuildPixelMapOpts(pixmapWidth, pixmapHeight, opts, colorSpace);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByRect:"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
@@ -486,7 +486,7 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
     float pixmapWidth = node->GetRenderProperties().GetBoundsWidth();
     float pixmapHeight = node->GetRenderProperties().GetBoundsHeight();
     Media::InitializationOptions opts;
-    OHOS::ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
+    ColorManager::ColorSpaceName colorSpace = ColorManager::SRGB;
     BuildPixelMapOpts(pixmapWidth, pixmapHeight, opts, colorSpace);
     RS_LOGD("RSUiCaptureTaskParallel::CreatePixelMapByNode: NodeId:[%{public}" PRIu64 "],"
         " origin pixelmap width is [%{public}f], height is [%{public}f],"
@@ -500,26 +500,26 @@ std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByNode(
 }
 
 void RSUiCaptureTaskParallel::BuildPixelMapOpts(float pixmapWidth, float pixmapHeight,
-    Media::InitializationOptions& opts, OHOS::ColorManager::ColorSpaceName& colorSpace)
+    Media::InitializationOptions& opts, ColorManager::ColorSpaceName& colorSpace)
 {
     opts.size.width = ceil(pixmapWidth * captureConfig_.scaleX);
     opts.size.height = ceil(pixmapHeight * captureConfig_.scaleY);
-    auto colorSpaceName = static_cast<OHOS::ColorManager::ColorSpaceName>(captureConfig_.colorSpace.first);
+    auto colorSpaceName = static_cast<ColorManager::ColorSpaceName>(captureConfig_.colorSpace.first);
     bool isAutoAdjust = captureConfig_.colorSpace.second;
     colorSpace = SelectColorSpace(colorSpaceName, isAutoAdjust);
     isHdrCapture_ = IsHdrCapture(colorSpace);
     opts.pixelFormat = isHdrCapture_ ? Media::PixelFormat::RGBA_F16 : Media::PixelFormat::RGBA_8888;
 }
 
-OHOS::ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
-    OHOS::ColorManager::ColorSpaceName capTureTargetColorSpace, bool isAutoAdjust)
+ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
+    ColorManager::ColorSpaceName captureTargetColorSpace, bool isAutoAdjust)
 {
-    auto retColorSpace = capTureTargetColorSpace;
+    auto retColorSpace = captureTargetColorSpace;
     if (!isAutoAdjust && retColorSpace != ColorManager::BT2020 && retColorSpace != ColorManager::SRGB &&
         retColorSpace != ColorManager::DISPLAY_P3) {
         errorCode_ = CaptureError::COLOR_SPACE_NOT_SUPPORT;
         retColorSpace = ColorManager::SRGB;
-        RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace %{public}d not support", capTureTargetColorSpace);
+        RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace %{public}d not support", captureTargetColorSpace);
     }
     if (isAutoAdjust) {
         auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(nodeId_);
@@ -527,17 +527,12 @@ OHOS::ColorManager::ColorSpaceName RSUiCaptureTaskParallel::SelectColorSpace(
             auto nodeColorSpace = node->GetNodeColorSpace();
             retColorSpace = RSColorSpaceUtil::GraphicGamutToColorSpaceName(
                 RSColorSpaceUtil::MapGamutToStandard(nodeColorSpace));
-            if (errorCode_ == CaptureError::COLOR_SPACE_NOT_SUPPORT) {
-                RS_LOGW("RSUiCaptureTaskParallel::SelectColorSpace Now use %{public}d "
-                    "colorspace(real colorspace for this node), rather than input %{public}d", retColorSpace,
-                    capTureTargetColorSpace);
-            }
         }
     }
     return retColorSpace;
 }
 
-bool RSUiCaptureTaskParallel::IsHdrCapture(OHOS::ColorManager::ColorSpaceName colorSpace)
+bool RSUiCaptureTaskParallel::IsHdrCapture(ColorManager::ColorSpaceName colorSpace)
 {
     // valid input hdr param valid, dynamic range mode should be 0 or 2.
     // color space should be 2020.
@@ -549,7 +544,7 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(OHOS::ColorManager::ColorSpaceName co
         RS_LOGE("RSUiCaptureTaskParallel::IsHdrUiCapture %{public}d not support", dynamicRangeMode);
         return false;
     }
-    if (dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD && isAutoAdjust == false) {
+    if (!isAutoAdjust && dynamicRangeMode == DEFAULT_DYNAMIC_RANGE_MODE_STANDARD) {
         return false;
     }
     if (colorSpace != ColorManager::BT2020 && colorSpace != ColorManager::BT2020_HLG &&
@@ -565,11 +560,11 @@ bool RSUiCaptureTaskParallel::IsHdrCapture(OHOS::ColorManager::ColorSpaceName co
 }
 
 std::unique_ptr<Media::PixelMap> RSUiCaptureTaskParallel::CreatePixelMapByColorSpace(
-    Media::InitializationOptions& opts, OHOS::ColorManager::ColorSpaceName colorSpaceName) const
+    Media::InitializationOptions& opts, ColorManager::ColorSpaceName colorSpaceName) const
 {
     std::unique_ptr<Media::PixelMap> pixelMap = Media::PixelMap::Create(opts);
     if (pixelMap) {
-        pixelMap->InnerSetColorSpace(static_cast<OHOS::ColorManager::ColorSpaceName>(colorSpaceName));
+        pixelMap->InnerSetColorSpace(static_cast<ColorManager::ColorSpaceName>(colorSpaceName));
     }
     return pixelMap;
 }
@@ -586,7 +581,7 @@ std::shared_ptr<Drawing::Surface> RSUiCaptureTaskParallel::CreateSurface(
         RS_LOGE("RSUiCaptureTaskParallel::CreateSurface: address == nullptr");
         return nullptr;
     }
-    OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+    ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
     auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
     auto colorType = pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16 ?
         Drawing::ColorType::COLORTYPE_RGBA_F16 :
@@ -649,7 +644,7 @@ std::function<void()> RSUiCaptureTaskParallel::CreateSurfaceSyncCopyTask(
                 std::move(std::get<0>(*wrapperSf)), nullptr, UNI_MAIN_THREAD_INDEX, 0);
             return;
         }
-        OHOS::ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
+        ColorManager::ColorSpaceName colorSpaceName = pixelmap->InnerGetGrColorSpace().GetColorSpaceName();
         auto colorSpace = RSBaseRenderEngine::ConvertColorSpaceNameToDrawingColorSpace(colorSpaceName);
         auto colorType = pixelmap->GetPixelFormat() == Media::PixelFormat::RGBA_F16 ?
             Drawing::ColorType::COLORTYPE_RGBA_F16 :

@@ -54,7 +54,7 @@
 #include "display_engine/rs_color_temperature.h"
 #include "display_engine/rs_luminance_control.h"
 #include "drawable/rs_canvas_drawing_render_node_drawable.h"
-#include "feature/colorpicker/rs_color_picker_thread.h"
+#include "feature/color_picker/rs_color_picker_thread.h"
 #include "feature/drm/rs_drm_util.h"
 #include "feature/hdr/rs_hdr_util.h"
 #include "feature/lpp/lpp_video_handler.h"
@@ -412,6 +412,7 @@ void RSMainThread::MarkNodeDirty(uint64_t nodeId)
         if (node) {
             RS_LOGD("MarkNodeDirty success: %{public}" PRIu64 ".", nodeId);
             RSMainThread::Instance()->SetDirtyFlag();
+            RSMainThread::Instance()->SetForceUpdateUniRenderFlag(true);
             node->SetDirty(true);
         }
     });
@@ -1552,7 +1553,7 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
             auto parentNode = surfaceNode->GetParent().lock();
             auto comsumeResult = RSBaseRenderUtil::ConsumeAndUpdateBuffer(
                 *surfaceHandler, timestamp_, IsNeedDropFrameByPid(surfaceHandler->GetNodeId()),
-                parentNode ? parentNode->GetId() : 0);
+                parentNode ? parentNode->GetId() : 0, surfaceNode->IsAncestorScreenFrozen());
             if (surfaceHandler->GetSourceType() ==
                 static_cast<uint32_t>(OHSurfaceSource::OH_SURFACE_SOURCE_LOWPOWERVIDEO)) {
                 LppVideoHandler::Instance().ConsumeAndUpdateLppBuffer(vsyncId_, surfaceNode);
@@ -2780,24 +2781,19 @@ RSVisibleLevel RSMainThread::CalcSurfaceNodeVisibleRegion(const std::shared_ptr<
 }
 
 void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRenderNode>& screenNode,
-    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec,
-    std::map<NodeId, RSVisibleLevel>& dstVisMapForVsyncRate)
+    std::vector<RSBaseRenderNode::SharedPtr>& curAllSurfaces, VisibleData& dstCurVisVec)
 {
     Occlusion::Region accumulatedRegion;
     VisibleData curVisVec;
     OcclusionRectISet occlusionSurfaces;
-    std::map<NodeId, RSVisibleLevel> visMapForVsyncRate;
     bool hasFilterCacheOcclusion = false;
     bool filterCacheOcclusionEnabled = RSSystemParameters::GetFilterCacheOcculusionEnabled();
 
-    vsyncControlEnabled_ = rsVsyncRateReduceManager_.GetVRateDeviceSupport() &&
-                           RSSystemParameters::GetVSyncControlEnabled();
-    auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec, &visMapForVsyncRate,
+    auto calculator = [this, &screenNode, &occlusionSurfaces, &accumulatedRegion, &curVisVec,
         &hasFilterCacheOcclusion, filterCacheOcclusionEnabled] (std::shared_ptr<RSSurfaceRenderNode>& curSurface,
         bool needSetVisibleRegion) {
-        curSurface->setQosCal(vsyncControlEnabled_);
         if (!CheckSurfaceNeedProcess(occlusionSurfaces, curSurface)) {
-            curSurface->SetVisibleRegionRecursive({}, curVisVec, visMapForVsyncRate);
+            curSurface->SetVisibleRegionRecursive({}, curVisVec);
             return;
         }
 
@@ -2806,7 +2802,7 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
         auto visibleLevel =
             CalcSurfaceNodeVisibleRegion(screenNode, curSurface, accumulatedRegion, curRegion, totalRegion);
 
-        curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, visMapForVsyncRate, needSetVisibleRegion,
+        curSurface->SetVisibleRegionRecursive(totalRegion, curVisVec, needSetVisibleRegion,
             visibleLevel, !systemAnimatedScenesList_.empty());
         curSurface->AccumulateOcclusionRegion(
             accumulatedRegion, curRegion, hasFilterCacheOcclusion, isUniRender_, filterCacheOcclusionEnabled);
@@ -2822,7 +2818,6 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     // if there are valid filter cache occlusion, recalculate surfacenode visibleregionforcallback for WMS/QOS callback
     if (hasFilterCacheOcclusion && isUniRender_) {
         curVisVec.clear();
-        visMapForVsyncRate.clear();
         occlusionSurfaces.clear();
         accumulatedRegion = {};
         for (auto it = curAllSurfaces.rbegin(); it != curAllSurfaces.rend(); ++it) {
@@ -2834,7 +2829,6 @@ void RSMainThread::CalcOcclusionImplementation(const std::shared_ptr<RSScreenRen
     }
 
     dstCurVisVec.insert(dstCurVisVec.end(), curVisVec.begin(), curVisVec.end());
-    dstVisMapForVsyncRate.insert(visMapForVsyncRate.begin(), visMapForVsyncRate.end());
 }
 
 void RSMainThread::CalcOcclusion()
@@ -2905,24 +2899,20 @@ void RSMainThread::CalcOcclusion()
             surface->CleanDirtyRegionUpdated();
         }
     }
-    bool needRefreshRates = systemAnimatedScenesList_.empty() &&
-        rsVsyncRateReduceManager_.GetIsReduceBySystemAnimatedScenes();
+    bool needRefreshRates = systemAnimatedScenesList_.empty();
     if (!winDirty && !needRefreshRates) {
         if (SurfaceOcclusionCallBackIfOnTreeStateChanged()) {
             SurfaceOcclusionCallback();
         }
         return;
     }
-    rsVsyncRateReduceManager_.SetIsReduceBySystemAnimatedScenes(false);
     VisibleData dstCurVisVec;
-    std::map<NodeId, RSVisibleLevel> dstVisMapForVsyncRate;
     for (auto& surfaces : curAllSurfacesInDisplay) {
-        CalcOcclusionImplementation(surfaces.first, surfaces.second, dstCurVisVec, dstVisMapForVsyncRate);
+        CalcOcclusionImplementation(surfaces.first, surfaces.second, dstCurVisVec);
     }
 
     // Callback to WMS and QOS
     CallbackToWMS(dstCurVisVec);
-    rsVsyncRateReduceManager_.SetVSyncRateByVisibleLevel(dstVisMapForVsyncRate, curAllSurfaces);
     // Callback for registered self drawing surfacenode
     SurfaceOcclusionCallback();
 }
@@ -3665,7 +3655,7 @@ void RSMainThread::SetAnimationOcclusionInfo(const std::string& sceneId, bool is
     if (!DirtyRegionParam::IsAnimationOcclusionEnable() || !RSSystemProperties::GetAnimationOcclusionEnabled()) {
         return;
     }
-    uint64_t curTime = static_cast<uint64_t>(
+    int64_t curTime = static_cast<int64_t>(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count());
     auto id = RSUifirstFrameRateControl::Instance().GetSceneId(sceneId);
@@ -4150,14 +4140,19 @@ void RSMainThread::DumpGpuMem(std::unordered_set<std::u16string>& argSets,
 {
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     DfxString log;
+    std::vector<std::pair<NodeId, std::string>> nodeTags;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    nodeMap.TraverseSurfaceNodes([&nodeTags](const std::shared_ptr<RSSurfaceRenderNode> node) {
+        nodeTags.push_back({node->GetId(), ""});
+    });
     auto status = type.empty() || type == MEM_GPU_TYPE;
     if (status) {
-        RSUniRenderThread::Instance().DumpGpuMem(log);
+        RSUniRenderThread::Instance().DumpGpuMem(log, nodeTags);
     }
     if (status && RSSystemProperties::GetGpuApiType() != GpuApiType::DDGR) {
         auto subThreadManager = RSSubThreadManager::Instance();
         if (subThreadManager) {
-            subThreadManager->DumpGpuMem(log);
+            subThreadManager->DumpGpuMem(log, nodeTags);
         }
     }
     MemoryManager::DumpGpuNodeMemory(log);
@@ -4377,9 +4372,7 @@ bool RSMainThread::CheckAdaptiveCompose()
         return false;
     }
     bool onlyGameNodeOnTree = frameRateMgr->IsGameNodeOnTree();
-    bool isNeedAdaptiveCompose = onlyGameNodeOnTree &&
-        context_->GetAnimatingNodeList().empty() &&
-        context_->GetNodeMap().GetVisibleLeashWindowCount() < MULTI_WINDOW_PERF_START_NUM;
+    bool isNeedAdaptiveCompose = onlyGameNodeOnTree && hgmContext_.GetIsAdaptiveVsyncComposeReady();
     // in game adaptive sync mode and ignore animation scenario and mult-window scenario
     // selfdrawing node request next vsync as UrgentSelfdrawing
     return isNeedAdaptiveCompose;

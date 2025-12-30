@@ -27,7 +27,7 @@ public:
     }
     ~FrostedGlassBlurPara() override = default;
 
-    void SetBlurRadius(float& radius)
+    void SetBlurRadius(float radius)
     {
         radius_ = radius;
     }
@@ -37,7 +37,17 @@ public:
         return radius_;
     }
 
-    void SetRefractOutPx(float& refractOutPx)
+    void SetBlurRadiusScaleK(float radiusScaleK)
+    {
+        radiusScaleK_ = radiusScaleK;
+    }
+
+    float GetBlurRadiusScaleK() const
+    {
+        return radiusScaleK_;
+    }
+
+    void SetRefractOutPx(float refractOutPx)
     {
         refractOutPx_ = refractOutPx;
     }
@@ -49,6 +59,7 @@ public:
 
 private:
     float radius_ = 0.0f;
+    float radiusScaleK_ = 0.0f;
     float refractOutPx_ = 0.0f;
 };
 } // namespace Rosen
