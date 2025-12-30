@@ -172,6 +172,7 @@ static int RunPlaybackProfilerTest(int argc, char **argv)
         return 0;
     }
     RSGraphicTestDirector::Instance().SetProfilerTest(true);
+    RSGraphicTestDirector::Instance().SetDynamicTest(true);
     RSGraphicTestDirector::Instance().Run();
     std::string path = argv[ARGS_TWO];
     bool useBufferDump = false;

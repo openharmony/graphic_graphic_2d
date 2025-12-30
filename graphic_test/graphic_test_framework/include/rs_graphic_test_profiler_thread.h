@@ -57,7 +57,8 @@ private:
     bool waitReceive_ = false;
     std::mutex queue_mutex_;
     std::mutex wait_mutex_;
-    std::condition_variable cv_;
+    std::condition_variable loopCv_;
+    std::condition_variable responseCv_;
     std::pair<double, double> timeRange_{0.0, 0.0};
     mutable std::mutex timeRange_mutex_;
 
