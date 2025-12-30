@@ -390,7 +390,7 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
         RS_LOGI("RSScreenPreprocessor::OnHwcDeadEvent.");
         isHwcDead_ = true;
         if (auto screenManager = screenManager_.promote()) {
-            std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> retScreens;
+            std::map<ScreenId, std::shared_ptr<RSScreen>> retScreens;
             screenManager->OnHwcDeadEvent(retScreens);
             #ifdef RS_ENABLE_GPU
             // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
@@ -426,12 +426,12 @@ void RSScreenPreprocessor::OnHwcEventCallback(
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
 {
-    ScreenId id = ToScreenId(devId);
-    #ifdef RS_ENABLE_GPU
-        if (auto callbackMgr = callbackMgrWeak_.lock()) {
-            callbackMgr->NotifyVBlankIdle(id, ns);
-        }
-    #endif
+#ifdef RS_ENABLE_GPU
+    if (auto callbackMgr = callbackMgrWeak_.lock()) {
+        ScreenId id = ToScreenId(devId);
+        callbackMgr->NotifyVBlankIdle(id, ns);
+    }
+#endif
 }
 
 void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
