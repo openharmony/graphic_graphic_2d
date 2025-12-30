@@ -20,6 +20,7 @@
 #include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
 #include "effect/include/color_gradient_effect_para.h"
+#include "effect/include/harmonium_effect_para.h"
 #include "effect/include/visual_effect.h"
 #include "ohos.graphics.uiEffect.uiEffect.BrightnessBlender.proj.1.hpp"
 #include "ohos.graphics.uiEffect.uiEffect.VisualEffect.proj.1.hpp"
@@ -151,6 +152,45 @@ VisualEffect VisualEffectImpl::ColorGradient(array_view<Color> colors, array_vie
         }
     }
     nativeVisualEffect_->AddPara(para);
+    return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
+}
+
+VisualEffect VisualEffectImpl::LiquidMaterial(
+    ::ohos::graphics::uiEffect::uiEffect::LiquidMaterialEffectParam const& liquidMaterialEffectParam,
+    Mask useEffectMask, optional_view<Mask> distortMask,
+    optional_view<::ohos::graphics::uiEffect::uiEffect::BrightnessParam> brightnessParam)
+{
+    if (!IsSystemApp()) {
+        UIEFFECT_LOG_E("call liquidMaterial failed, is not system app");
+        return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
+    }
+    if (!IsVisualEffectValid()) {
+        UIEFFECT_LOG_E("VisualEffectImpl::liquidMaterial failed, visual effect is invalid");
+        return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
+    }
+    auto harmoniumPara = std::make_shared<OHOS::Rosen::HarmoniumEffectPara>();
+    // parse liquidMaterial
+    if (!ParseLiquidMaterialEffectParam(*harmoniumPara, liquidMaterialEffectParam)) {
+        UIEFFECT_LOG_E("VisualEffectImpl::LiquidMaterial parse liquidMaterialEffectParam failed");
+        return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
+    }
+    // parse useEffect mask
+    MaskImpl* maskImpl = reinterpret_cast<MaskImpl*>(useEffectMask->GetImplPtr());
+    if (maskImpl && maskImpl->GetNativePtr()) {
+        harmoniumPara->SetUseEffectMask(maskImpl->GetNativePtr()->GetMaskPara());
+    }
+    // parse distortmask
+    if (distortMask.has_value()) {
+        MaskImpl* maskImpl = reinterpret_cast<MaskImpl*>(distortMask.value()->GetImplPtr());
+        if (maskImpl && maskImpl->GetNativePtr()) {
+            harmoniumPara->SetMask(maskImpl->GetNativePtr()->GetMaskPara());
+        }
+    }
+    // parse brightnessParam
+    if (brightnessParam.has_value()) {
+        ParseBrightnessParam(*harmoniumPara, brightnessParam);
+    }
+    nativeVisualEffect_->AddPara(harmoniumPara);
     return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
 }
 

@@ -76,8 +76,8 @@ Mask CreateRippleMask(uintptr_t center, double radius, double width, optional_vi
     return make_holder<MaskImpl, Mask>(std::move(mask));
 }
 
-Mask CreatePixelMapMask(ohos::multimedia::image::image::weak::PixelMap pixelMap, uintptr_t srcRect, uintptr_t dstRect,
-    optional_view<Color> fillColor)
+Mask CreatePixelMapMaskWithRect(ohos::multimedia::image::image::weak::PixelMap pixelMap, uintptr_t srcRect,
+    uintptr_t dstRect, optional_view<Color> fillColor)
 {
     auto mask = std::make_shared<OHOS::Rosen::Mask>();
     auto pixelMapPara = std::make_shared<OHOS::Rosen::PixelMapMaskPara>();
@@ -115,6 +115,24 @@ Mask CreatePixelMapMask(ohos::multimedia::image::image::weak::PixelMap pixelMap,
     }
 
     mask->SetMaskPara(pixelMapPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
+
+Mask CreatePixelMapMaskOnly(ohos::multimedia::image::image::weak::PixelMap pixelMap)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto imageMaskPara = std::make_shared<OHOS::Rosen::ImageMaskPara>();
+
+    Image::PixelMapImpl* pixelMapImpl = reinterpret_cast<Image::PixelMapImpl*>(pixelMap->GetImplPtr());
+    if (pixelMapImpl == nullptr) {
+        return make_holder<MaskImpl, Mask>(std::move(mask));
+    }
+    auto nativePixelMap = pixelMapImpl->GetNativePtr();
+    if (nativePixelMap == nullptr) {
+        return make_holder<MaskImpl, Mask>(std::move(mask));
+    }
+    imageMaskPara->SetPixelMap(nativePixelMap);
+    mask->SetMaskPara(imageMaskPara);
     return make_holder<MaskImpl, Mask>(std::move(mask));
 }
 
@@ -165,11 +183,22 @@ Mask CreateRadialGradientMask(uintptr_t center, double radiusX, double radiusY, 
     mask->SetMaskPara(radialGradientMaskPara);
     return make_holder<MaskImpl, Mask>(std::move(mask));
 }
+
+Mask CreateUseEffectMask(bool useEffect)
+{
+    auto mask = std::make_shared<OHOS::Rosen::Mask>();
+    auto useEffectMaskPara = std::make_shared<OHOS::Rosen::UseEffectMaskPara>();
+    useEffectMaskPara->SetUseEffect(useEffect);
+    mask->SetMaskPara(useEffectMaskPara);
+    return make_holder<MaskImpl, Mask>(std::move(mask));
+}
 } // namespace ANI::UIEffect
 
 // NOLINTBEGIN
 TH_EXPORT_CPP_API_CreateRippleMask(CreateRippleMask);
-TH_EXPORT_CPP_API_CreatePixelMapMask(CreatePixelMapMask);
+TH_EXPORT_CPP_API_CreatePixelMapMaskWithRect(CreatePixelMapMaskWithRect);
+TH_EXPORT_CPP_API_CreatePixelMapMaskOnly(CreatePixelMapMaskOnly);
 TH_EXPORT_CPP_API_CreateWaveGradientMask(CreateWaveGradientMask);
 TH_EXPORT_CPP_API_CreateRadialGradientMask(CreateRadialGradientMask);
+TH_EXPORT_CPP_API_CreateUseEffectMask(CreateUseEffectMask);
 // NOLINTEND
