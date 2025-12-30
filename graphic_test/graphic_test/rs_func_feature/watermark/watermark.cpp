@@ -38,8 +38,9 @@ public:
     // called before each tests
     void BeforeEach() override {}
     // called after each tests
-    void AfterEach() override {
-        RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), WatermarkName_);
+    void AfterEach() override
+    {
+        RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), watermarkName_);
         RSInterfaces::GetInstance().ShowWatermark(DisplayWaterMarkPixelMap_, false);
     }
 
@@ -74,7 +75,7 @@ public:
         }
         return pixelmap;
     }
-    std::string watermarkName_ = "";
+    std::string watermarkName_;
     std::shared_ptr<Media::PixelMap> displayWaterMarkpixelMap_;
 }
 
@@ -311,7 +312,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, SA_Surface_Watermark_Test10
     RSInterfaces::GetInstance().SetWatermark(watermarkName_, pixelMap2);
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    for (name : nameList) {
+    for (auto name : nameList) {
         RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), name);
     }
 };
@@ -475,7 +476,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, Display_Watermark_Test3)
     usleep(SLEEP_TIME_FOR_PROXY);
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
 
-    RSInterfaces::GetInstance().ShowWatermark(pixelMap, flase);
+    RSInterfaces::GetInstance().ShowWatermark(pixelMap, false);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
 
@@ -495,7 +496,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -515,7 +516,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -537,7 +538,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
     pixelMap->SetAstc(true);
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -558,7 +559,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test4
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
     pixelMap->SetAstc(true);
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -581,7 +582,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test5
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
     std::string name5(129, 't');
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -602,7 +603,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test6
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
     std::string name5(129, 't');
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -625,7 +626,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test7
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
     std::string name5;
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -646,7 +647,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test8
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
     std::string name5;
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name5, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -666,7 +667,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test9
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, nullptr, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, nullptr, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -685,7 +686,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, nullptr, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, nullptr, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -707,7 +708,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -727,7 +728,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -747,7 +748,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {},
         SurfaceWatermarkType::INVALID_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -767,7 +768,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(222, watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(222, watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -788,7 +789,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(222, watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(222, watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -809,7 +810,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), watermarkName_);
@@ -830,7 +831,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), watermarkName_);
@@ -851,7 +852,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().ClearSurfaceWatermark(222333, watermarkName_);
@@ -874,7 +875,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(getpid(), watermarkName_, surfaceNode->GetId());
@@ -895,7 +896,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(getpid(), watermarkName_, surfaceNode->GetId());
@@ -903,7 +904,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
 
 /*
  * @tc.name: App_Surface_Watermark_Test21
- * @tc.desc: pixelmap is valid, CUSTOM_WATER_MARK, clear surface watermark, pid != surfaceNodePid show watermark, 
+ * @tc.desc: pixelmap is valid, CUSTOM_WATER_MARK, clear surface watermark, pid != surfaceNodePid show watermark,
  * but native is systemCalling
  * @tc.type FUN
 */
@@ -917,7 +918,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(4445522, watermarkName_, surfaceNode->GetId());
@@ -925,7 +926,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
 
 /*
  * @tc.name: App_Surface_Watermark_Test22
- * @tc.desc: pixelmap is valid, CUSTOM_WATER_MARK, but not set surfaceNode, not show watermark 
+ * @tc.desc: pixelmap is valid, CUSTOM_WATER_MARK, but not set surfaceNode, not show watermark
  * @tc.type FUN
 */
 GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test22)
@@ -934,11 +935,10 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     GetRootNode()->AddChild(surfaceNode);
     RegisterNode(surfaceNode);
     watermarkName_ = "App_Surface_Watermark_Test22";
-    // RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -959,7 +959,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -967,7 +967,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
 
 /*
  * @tc.name: App_Surface_Watermark_Test24
- * @tc.desc: pixelmap is valid, CUSTOM_WATER_MARK, set canvas nodeId, not show watermark 
+ * @tc.desc: pixelmap is valid, CUSTOM_WATER_MARK, set canvas nodeId, not show watermark
  * @tc.type FUN
 */
 GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test24)
@@ -984,14 +984,14 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
 
 /*
  * @tc.name: App_Surface_Watermark_Test25
- * @tc.desc: pixelmap is valid, SYSTEM_WATER_MARK, set canvas nodeId, show watermark 
+ * @tc.desc: pixelmap is valid, SYSTEM_WATER_MARK, set canvas nodeId, show watermark
  * @tc.type FUN
 */
 GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test25)
@@ -1009,7 +1009,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/450x311.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1030,7 +1030,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/3200X2000.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1050,7 +1050,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/3200X2000.jpg");
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1076,7 +1076,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/3200X2000.jpg");
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap,
-        {surfaceNode->GetId(), surfaceNode2->GetId()}
+        {surfaceNode->GetId(), surfaceNode2->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1102,7 +1102,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/3200X2000.jpg");
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap,
-        {surfaceNode->GetId(), surfaceNode2->GetId()}
+        {surfaceNode->GetId(), surfaceNode2->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1122,8 +1122,6 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/AllBlack.jpg");
     std::vector<std::string> nameList;
@@ -1135,10 +1133,10 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
             SurfaceWatermarkType::SYSTEM_WATER_MARK);
     }
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name, pixelMap2,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
-    for (name : nameList) {
+    for (auto name : nameList) {
         RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), name);
     }
 };
@@ -1157,8 +1155,6 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/AllBlack.jpg");
     std::vector<std::string> nameList;
@@ -1170,10 +1166,10 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
             SurfaceWatermarkType::CUSTOM_WATER_MARK);
     }
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name, pixelMap2,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
-    for (name : nameList) {
+    for (auto name : nameList) {
         RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), name);
     }
 };
@@ -1193,15 +1189,14 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/AllBlack.jpg");
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap1,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap2,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1221,15 +1216,14 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/AllBlack.jpg");
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap1,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap2,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1249,15 +1243,14 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/3200x2000.jpg");
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap1,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap2,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1277,15 +1270,14 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-
     auto pixelMap1 = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
     auto pixelMap2 = DecodePixelMap("/data/local/tmp/Images/3200x2000.jpg");
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap1,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap2,
-        {surfaceNode->GetId()}
+        {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
@@ -1306,7 +1298,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
     usleep(SLEEP_TIME_FOR_PROXY);
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/AllWhite.jpg");
 
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap1, {}
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap1, {},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
