@@ -60,9 +60,8 @@ void RSServiceToRenderConnectionStubTest::SetUpTestCase()
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    auto rsRenderServceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline);
-    connectionStub_ = sptr<RSServiceToRenderConnection>::MakeSptr(rsRenderServceAgent, renderPipelineAgent);
+    connectionStub_ = sptr<RSServiceToRenderConnection>::MakeSptr(renderPipelineAgent);
 }
 void RSServiceToRenderConnectionStubTest::TearDownTestCase() {}
 void RSServiceToRenderConnectionStubTest::SetUp() {}

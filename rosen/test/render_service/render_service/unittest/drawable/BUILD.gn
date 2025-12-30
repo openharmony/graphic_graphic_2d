@@ -124,7 +124,10 @@ ohos_unittest("RSLogicalDisplayRenderNodeDrawableTest") {
 ohos_unittest("RSEffectRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_effect_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -162,7 +165,10 @@ ohos_unittest("RSRenderNodeDrawableAdapterTest") {
 ohos_unittest("RSRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -189,7 +195,10 @@ ohos_unittest("RSRootRenderNodeDrawableTest") {
 ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
   module_out_path = module_output_path
   sources = [ "rs_surface_render_node_drawable_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -205,7 +214,10 @@ ohos_unittest("RSSurfaceRenderNodeDrawableTest") {
 ohos_unittest("RSDirtyRectsDFXTest") {
   module_out_path = module_output_path
   sources = [ "dfx/rs_dirty_rects_dfx_test.cpp" ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
@@ -230,7 +242,10 @@ ohos_unittest("RSSkpCaptureDFXTest") {
     "-Dprivate=public",
     "-Dprotected=public",
   ]
-  deps = [ ":rs_test_common" ]
+  deps = [
+    ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
+  ]
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
