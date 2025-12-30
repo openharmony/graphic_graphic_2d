@@ -71,7 +71,7 @@ public:
     static void CheckPixelFormatForHdrEffect(RSSurfaceRenderNode& surfaceNode,
         std::shared_ptr<RSScreenRenderNode> screenNode);
     static bool UpdateSurfaceNodeNit(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, float& scaler);
-    static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag);
+    static void SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR);
     static void LuminanceChangeSetDirty(RSScreenRenderNode& node);
     static bool GetRGBA1010108Enabled();
     static void CheckNotifyCallback(RSContext& context, ScreenId screenId);

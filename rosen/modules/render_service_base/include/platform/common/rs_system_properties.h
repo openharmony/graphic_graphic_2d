@@ -256,6 +256,7 @@ public:
     static bool GetSkipGeometryNotChangeEnabled();
     static bool GetRenderParallelEnabled();
     static bool GetPropertyDrawableEnable();
+    static bool GetEDRCanvasReplaceEnabled();
 
     static bool GetDrawFilterWithoutSnapshotEnabled();
     static bool GetBlurExtraFilterEnabled();

@@ -368,6 +368,46 @@ bool RSScreenRenderNode::GetFixVirtualBuffer10Bit() const
     return isFixVirtualBuffer10Bit_;
 }
 
+HdrStatus RSScreenRenderNode::GetDisplayHdrStatus() const
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return HdrStatus::NO_HDR;
+    }
+    HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
+    lastDisplayTotalHdrStatus_ = currentHDRStatus;
+    return currentHDRStatus;
+}
+
+void RSScreenRenderNode::CollectHdrStatus(HdrStatus hdrStatus)
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    HdrStatus currentHDRStatus = screenParams->GetScreenHDRStatus();
+    HdrStatus newHDRStatus = static_cast<HdrStatus>(currentHDRStatus | hdrStatus);
+    screenParams->CollectHdrStatus(newHDRStatus);
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
+void RSScreenRenderNode::ResetDisplayHdrStatus()
+{
+    auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
+    if (screenParams == nullptr) {
+        RS_LOGE("%{public}s screenParams is nullptr", __func__);
+        return;
+    }
+    screenParams->ResetDisplayHdrStatus();
+    if (stagingRenderParams_->NeedSync()) {
+        AddToPendingSyncList();
+    }
+}
+
 void RSScreenRenderNode::SetExistHWCNode(bool existHWCNode)
 {
     if (existHWCNode_ == existHWCNode) {

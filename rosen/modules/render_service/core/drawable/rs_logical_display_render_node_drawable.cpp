@@ -1445,23 +1445,27 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
         curCanvas_->GetHDREnabledVirtualScreen();
     RSTagTracker tagTracker(curCanvas_->GetGPUContext(),
         hdrOrScRGB ? RSTagTracker::TAGTYPE::TAG_HDR_OFFSCREEN : RSTagTracker::TAGTYPE::TAG_COMMON_OFFSCREEN);
+    bool canvasReplacable = false;
     if (createOffscreenSurface) {
         RS_TRACE_NAME_FMT("make offscreen surface with fixed size: [%d, %d], HDR:%d", offscreenWidth, offscreenHeight,
             hdrOrScRGB);
         if (hdrOrScRGB) {
-            RS_LOGD("HDR PrepareHdrDraw");
             if (!params->GetNeedOffscreen() && useCanvasSize) {
                 offscreenWidth = curCanvas_->GetWidth();
                 offscreenHeight = curCanvas_->GetHeight();
             }
             auto colorType = Drawing::ColorType::COLORTYPE_RGBA_F16;
             auto colorSpace = Drawing::ColorSpace::CreateSRGB();
+            canvasReplacable = screenParams->GetScreenHDRStatus() == HdrStatus::HDR_EFFECT &&
+                RSSystemProperties::GetEDRCanvasReplaceEnabled();
             // Disable fp16 for hardware constrains. 'true' indicates check brightness ratio
-            if (RSLuminanceControl::Get().IsHardwareHdrDisabled(true, params->GetScreenId())) {
+            // If the HDR type on screen is only EDR, the canvas is replacable and replaced in onDraw
+            if (RSLuminanceControl::Get().IsHardwareHdrDisabled(true, params->GetScreenId()) || canvasReplacable) {
                 colorType = RSBaseRenderUtil::GetColorTypeFromBufferFormat(screenParams->GetNewPixelFormat());
                 colorSpace =
                     RSBaseRenderEngine::ConvertColorGamutToDrawingColorSpace(screenParams->GetNewColorSpace());
             }
+            RS_LOGD("RS_EDR canvasReplacable:%{public}d, colorType:%{public}d", canvasReplacable, colorType);
             Drawing::ImageInfo info = {
                 offscreenWidth, offscreenHeight, colorType, Drawing::ALPHATYPE_PREMUL, colorSpace };
             offscreenSurface_ = curCanvas_->GetSurface()->MakeSurface(info);
@@ -1485,6 +1489,8 @@ void RSLogicalDisplayRenderNodeDrawable::PrepareOffscreenRender(
 
     // copy HDR properties into offscreen canvas
     offscreenCanvas_->CopyHDRConfiguration(*curCanvas_);
+    // set canvas replacable if only edr effect
+    offscreenCanvas_->SetCanvasReplacable(canvasReplacable);
     // copy current canvas properties into offscreen canvas
     offscreenCanvas_->CopyConfigurationToOffscreenCanvas(*curCanvas_);
 

@@ -193,6 +193,29 @@ GraphicPixelFormat RSScreenRenderParams::GetNewPixelFormat() const
     return newPixelFormat_;
 }
 
+void RSScreenRenderParams::CollectHdrStatus(HdrStatus screenHDRStatus)
+{
+    if (screenHDRStatus_ == screenHDRStatus) {
+        return;
+    }
+    needSync_ = true;
+    screenHDRStatus_ = screenHDRStatus;
+}
+
+void RSScreenRenderParams::ResetDisplayHdrStatus()
+{
+    if (screenHDRStatus_ == HdrStatus::NO_HDR) {
+        return;
+    }
+    needSync_ = true;
+    screenHDRStatus_ = HdrStatus::NO_HDR;
+}
+
+HdrStatus RSScreenRenderParams::GetScreenHDRStatus() const
+{
+    return screenHDRStatus_;
+}
+
 void RSScreenRenderParams::SetZoomed(bool isZoomed)
 {
     if (isZoomed_ == isZoomed) {
@@ -254,6 +277,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->brightnessRatio_ = brightnessRatio_;
     targetScreenParams->isFixVirtualBuffer10Bit_ = isFixVirtualBuffer10Bit_;
     targetScreenParams->existHWCNode_ = existHWCNode_;
+    targetScreenParams->screenHDRStatus_ = screenHDRStatus_;
     targetScreenParams->zOrder_ = zOrder_;
     targetScreenParams->isZoomed_ = isZoomed_;
     targetScreenParams->hasMirrorScreen_ = hasMirrorScreen_;

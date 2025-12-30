@@ -1379,6 +1379,14 @@ bool RSSystemProperties::GetTextBlobAsPixelMap()
     return pixelMapEnabled;
 }
 
+bool RSSystemProperties::GetEDRCanvasReplaceEnabled()
+{
+    static CachedHandle g_Handle = CachedParameterCreate("rosen.EDRCanvasReplace.enabled", "0");
+    int changed = 0;
+    const char *enable = CachedParameterGetChanged(g_Handle, &changed);
+    return ConvertToInt(enable, 0) != 0;
+}
+
 bool RSSystemProperties::GetHdrImageEnabled()
 {
     static bool isHdrImageEnabled = system::GetBoolParameter("persist.sys.graphic.hdrimage.enabled", true);

@@ -632,6 +632,21 @@ HWTEST_F(RSSystemPropertiesTest, GetAnimationDelayOptimizeEnabled, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetEDRCanvasReplaceEnabled
+ * @tc.desc: GetEDRCanvasReplaceEnabled Test
+ * @tc.type:FUNC
+ * @tc.require: issueI9JZWC
+ */
+HWTEST_F(RSSystemPropertiesTest, GetEDRCanvasReplaceEnabledTest, TestSize.Level1)
+{
+    auto ret = system::GetParameter("rosen.EDRCanvasReplace.enabled", "0");
+    system::SetParameter("rosen.EDRCanvasReplace.enabled", "1");
+    EXPECT_TRUE(RSSystemProperties::GetEDRCanvasReplaceEnabled());
+    system::SetParameter("rosen.EDRCanvasReplace.enabled", ret);
+    EXPECT_FALSE(RSSystemProperties::GetEDRCanvasReplaceEnabled());
+}
+
+/**
  * @tc.name: GetHdrImageEnabled
  * @tc.desc: GetHdrImageEnabled Test
  * @tc.type:FUNC

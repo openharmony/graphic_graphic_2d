@@ -705,6 +705,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 #endif
 
+    if (surfaceParams->GetHDRStatus() == HdrStatus::HDR_EFFECT) {
+        rscanvas->ConvertToType(Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL,
+            Drawing::ColorSpace::CreateSRGB());
+    }
     const RectI& mergeHistoryDirty = syncDirtyManager_->GetDirtyRegion();
     // warning : don't delete this trace or change trace level to optional !!!
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::OnDraw[%s](%d, %d, %d, %d), id:%" PRIu64 ", alpha:[%f], "

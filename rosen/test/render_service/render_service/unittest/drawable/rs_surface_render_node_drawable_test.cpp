@@ -1688,6 +1688,7 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, OnDraw005, TestSize.Level2)
     surfaceParams->isSkipDraw_ = false;
     RSUniRenderThread::Instance().uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     RSUniRenderThread::Instance().SetEnableVisibleRect(false);
+    surfaceParams->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
 
     // test no special layer
     surfaceDrawable_->OnDraw(*canvas_);

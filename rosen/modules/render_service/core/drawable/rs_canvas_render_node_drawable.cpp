@@ -132,6 +132,10 @@ void RSCanvasRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
             return;
         }
     }
+    if (params->GetHDRStatus() == HdrStatus::HDR_EFFECT) {
+        paintFilterCanvas->ConvertToType(Drawing::ColorType::COLORTYPE_RGBA_F16, Drawing::ALPHATYPE_PREMUL,
+            Drawing::ColorSpace::CreateSRGB());
+    }
 
     if (LIKELY(isDrawingCacheEnabled_)) {
         GetOpincDrawCache().BeforeDrawCache(canvas, *params, isOpincDropNodeExt_);
