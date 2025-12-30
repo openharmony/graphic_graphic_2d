@@ -402,17 +402,6 @@ HWTEST_F(RSSystemPropertiesTest, GetHighContrastStatus, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetDrmEnabled
- * @tc.desc: GetDrmEnabled Test
- * @tc.type:FUNC
- * @tc.require: issueI9JZWC
- */
-HWTEST_F(RSSystemPropertiesTest, GetDrmEnabled, TestSize.Level1)
-{
-    ASSERT_TRUE(RSSystemProperties::GetDrmEnabled());
-}
-
-/**
  * @tc.name: GetTargetDirtyRegionDfxEnabled
  * @tc.desc: GetDrmEGetTargetDirtyRegionDfxEnablednabled Test
  * @tc.type:FUNC

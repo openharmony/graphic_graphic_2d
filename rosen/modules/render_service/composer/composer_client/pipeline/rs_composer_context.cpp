@@ -204,5 +204,15 @@ void RSComposerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     }
     rsComposerConnection_->CleanLayerBufferBySurfaceId(surfaceId);
 }
+
+void RSComposerContext::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
+{
+    std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
+    if (rsComposerConnection_ == nullptr) {
+        RS_LOGE("RSComposerContext::PreAllocProtectedFrameBuffers rsComposerConnection_ is nullptr");
+        return;
+    }
+    rsComposerConnection_->PreAllocProtectedFrameBuffers(buffer);
+}
 } // namespace Rosen
 } // namespace OHOS
