@@ -294,12 +294,15 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     sptr<SurfaceBuffer> dstSurfaceBuffer = nullptr;
     int32_t releaseFence = -1;
     auto srcSurfaceBuffer = params.GetBuffer();
-    if (!srcSurfaceBuffer) {
+    auto srcBufferOwnerCount = params.GetBufferOwnerCount();
+    if (!srcSurfaceBuffer || !srcBufferOwnerCount) {
         RS_OFFLINE_LOGW("Offline srcSurfaceBuffer get buffer failed!");
         return false;
     }
+    srcBufferOwnerCount->AddRef();
     if (!GetOfflineProcessInput(params, inputInfo, srcSurfaceBuffer, dstSurfaceBuffer, releaseFence)) {
         RS_OFFLINE_LOGW("Get offline process input failed.");
+        srcBufferOwnerCount->DecRef();
         return false;
     }
 
@@ -313,6 +316,7 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     if (ret != 0) {
         RS_OFFLINE_LOGW("Hpae offline process fail.");
         FlushAndReleaseOfflineLayer(dstSurfaceBuffer);
+        srcBufferOwnerCount->DecRef();
         return false;
     }
 
@@ -325,7 +329,14 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     if (!RSBaseRenderUtil::ConsumeAndUpdateBuffer(*offlineSurfaceHandler) || !offlineSurfaceHandler->GetBuffer()) {
         RS_OFFLINE_LOGW("DeviceOfflineLayer consume buffer failed. %{public}d",
             !offlineSurfaceHandler->GetBuffer());
+        srcBufferOwnerCount->DecRef();
         return false;
+    }
+    if (offlineSurfaceHandler->IsCurrentFrameBufferConsumed()) {
+        auto offlinePreBufferCount = offlineSurfaceHandler->GetPreBufferOwnerCount();
+        if (offlinePreBufferCount) {
+            offlinePreBufferCount->DecRef();
+        }
     }
 
     // set to offline result
@@ -338,6 +349,8 @@ bool RSHpaeOfflineProcessor::DoProcessOffline(
     processOfflineResult.preBuffer = offlineSurfaceHandler->GetPreBuffer();
     processOfflineResult.buffer = offlineSurfaceHandler->GetBuffer();
     processOfflineResult.acquireFence = offlineSurfaceHandler->GetAcquireFence();
+    processOfflineResult.bufferOwnerCount = offlineSurfaceHandler->GetBufferOwnerCount();
+    srcBufferOwnerCount->DecRef();
     RS_OFFLINE_LOGD("Offline process done, bufferRect: [%{public}d %{public}d %{public}d %{public}d]",
         processOfflineResult.bufferRect.x, processOfflineResult.bufferRect.y,
         processOfflineResult.bufferRect.w, processOfflineResult.bufferRect.h);

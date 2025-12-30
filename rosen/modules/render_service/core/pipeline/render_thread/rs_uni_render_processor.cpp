@@ -147,7 +147,7 @@ void RSUniRenderProcessor::CreateLayer(/*const ??? todo */ RSSurfaceRenderNode& 
     layer->SetDisplayNit(params.GetDisplayNit());
     layer->SetBrightnessRatio(params.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(params.GetLayerLinearMatrix());
-    auto bufferOwnerCount = params.GetBufferOwnerCount();
+    auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : params.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::CreateLayer seqNum %u layerID %" PRIu64,
             uint32_t(bufferOwnerCount->seqNum_), layer->GetRSLayerId());
@@ -213,7 +213,7 @@ void RSUniRenderProcessor::CreateLayerForRenderThread(DrawableV2::RSSurfaceRende
     layer->SetDisplayNit(renderParams.GetDisplayNit());
     layer->SetBrightnessRatio(renderParams.GetBrightnessRatio());
     layer->SetLayerLinearMatrix(renderParams.GetLayerLinearMatrix());
-    auto bufferOwnerCount = renderParams.GetBufferOwnerCount();
+    auto bufferOwnerCount = offlineResult ? offlineResult->bufferOwnerCount : renderParams.GetBufferOwnerCount();
     if (bufferOwnerCount) {
         RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager CreateLayerForRenderThread seqNum %u ",
             uint32_t(bufferOwnerCount->seqNum_));
