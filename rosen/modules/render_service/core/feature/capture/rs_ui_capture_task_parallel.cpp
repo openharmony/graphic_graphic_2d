@@ -353,12 +353,13 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
     if (HasEndNodeRect() && !isStartEndNodeSame_) {
         auto offScreenWidth = nodeParams->GetBounds().GetWidth();
         auto offScreenHeight = nodeParams->GetBounds().GetHeight();
+        auto offScreenSize = std::max(offScreenWidth, offScreenHeight);
         auto originSurface = canvas.GetSurface();
         if (originSurface == nullptr) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: originSurface is nullptr");
             return false;
         }
-        auto offScreenSurface = originSurface->MakeSurface(offScreenWidth, offScreenHeight);
+        auto offScreenSurface = originSurface->MakeSurface(offScreenSize, offScreenSize);
         if (offScreenSurface == nullptr) {
             RS_LOGE("RSUiCaptureTaskParallel::Run: offScreenSurface is nullptr");
             return false;
@@ -366,8 +367,6 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         RSPaintFilterCanvas offScreenCanvas(offScreenSurface.get());
         offScreenCanvas.SetDisableFilterCache(true);
         offScreenCanvas.SetUICapture(true);
-        offScreenCanvas.CopyHDRConfiguration(canvas);
-        offScreenCanvas.CopyConfigurationToOffscreenCanvas(canvas);
         offScreenCanvas.ResetMatrix();
         nodeDrawable_->OnCapture(offScreenCanvas);
         RS_LOGD("RSUiCaptureTaskParallel::Run: offScreenSurface width: %{public}d, height: %{public}d",
@@ -377,17 +376,11 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
         RSUniRenderThread::ResetCaptureParam();
         RSUniRenderThread::SetCaptureParam(CaptureParam(true, true, false, false, false, false, false, false,
             INVALID_NODEID, false));
-        auto offScreenCardSurface = offScreenSurface->MakeSurface(offScreenWidth, offScreenHeight);
-        if (offScreenCardSurface == nullptr) {
-            RS_LOGE("RSUiCaptureTaskParallel::Run: offScreenCardSurface is nullptr");
-            return false;
-        }
-        RSPaintFilterCanvas offScreenCardCanvas(offScreenCardSurface.get());
-        offScreenCardCanvas.SetDisableFilterCache(true);
-        offScreenCardCanvas.SetUICapture(true);
-        offScreenCardCanvas.CopyHDRConfiguration(offScreenCanvas);
-        offScreenCardCanvas.CopyConfigurationToOffscreenCanvas(offScreenCanvas);
-        offScreenCardCanvas.ResetMatrix();
+        canvas.SetDisableFilterCache(true);
+        canvas.SetUICapture(true);
+        canvas.CopyHDRConfiguration(offScreenCanvas);
+        canvas.CopyConfigurationToOffscreenCanvas(offScreenCanvas);
+        canvas.ResetMatrix();
         if (effectData != nullptr) {
             RS_LOGI("RSUiCaptureTaskParallel::Run: effectData set matrix");
             Drawing::Matrix endMatrixInvert;
@@ -396,16 +389,8 @@ bool RSUiCaptureTaskParallel::Run(sptr<RSISurfaceCaptureCallback> callback, cons
             matrix.PostConcat(endMatrixInvert);
             effectData->cachedMatrix_.PostConcat(matrix);
         }
-        offScreenCardCanvas.SetEffectData(effectData);
-        endNodeDrawable_->OnCapture(offScreenCardCanvas);
-        auto cardImage = offScreenCardSurface->GetImageSnapshot();
-        if (!cardImage) {
-            RS_LOGE("RSUiCaptureTaskParallel::Run: cardImage is nullptr");
-            return false;
-        }
-        RS_LOGI("RSUiCaptureTaskParallel::Run: offScreenCardSurface width: %{public}d, height: %{public}d",
-            offScreenCardSurface->Width(), offScreenCardSurface->Height());
-        canvas.DrawImage(*cardImage, 0, 0, Drawing::SamplingOptions());
+        canvas.SetEffectData(effectData);
+        endNodeDrawable_->OnCapture(canvas);
     } else {
         nodeDrawable_->OnCapture(canvas);
     }
