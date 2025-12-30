@@ -187,10 +187,7 @@ public:
     bool GetIsFoldScreenFlag();
 
 private:
-    void OnRefreshEvent(ScreenId id);
-    void OnHwcDeadEvent();
-    void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
-    void OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns);
+    void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>>& retScreens);
 
     void PrintScreenBlackList(
         std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;

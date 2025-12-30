@@ -174,58 +174,23 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
-void RSScreenManager::OnRefreshEvent(ScreenId id)
-{
-    if (callbackMgr_) {
-        callbackMgr_->NotifyScreenRefresh(id);
-    }
-}
-
-void RSScreenManager::OnHwcDeadEvent()
+void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>>& retScreens)
 {
     RS_TRACE_FUNC();
     RS_LOGW("%{public}s.", __func__);
     // Only clean the physical screen when hwc dead
-    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens;
     {
         std::lock_guard<std::mutex> lock(screenMapMutex_);
         for (auto it = screens_.begin(); it != screens_.end();) {
             if (it->second && !it->second->IsVirtual()) {
                 auto node = screens_.extract(it++);
-                screens.insert(std::move(node));
+                retScreens.insert(std::move(node));
             } else {
                 ++it;
             }
         }
     }
     defaultScreenId_ = INVALID_SCREEN_ID;
-#ifdef RS_ENABLE_GPU
-// The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
-// It may take a long time due to task accumulation, which can result in holding the screenMapMutex lock for too long.
-// That is why it is necessary to handle this notification independently.
-    for (const auto& [id, _] : screens) {
-        if (callbackMgr_) {
-            callbackMgr_->NotifyHwcDead(id);
-        }
-    }
-#endif
-}
-
-void RSScreenManager::OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
-{
-    if (callbackMgr_) {
-        callbackMgr_->NotifyHwcEvent(deviceId, eventId, eventData);
-    }
-}
-
-void RSScreenManager::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
-{
-    ScreenId id = ToScreenId(devId);
-#ifdef RS_ENABLE_GPU
-    if (callbackMgr_) {
-        callbackMgr_->NotifyVBlankIdle(id, ns);
-    }
-#endif
 }
 
 void RSScreenManager::ProcessPendingConnections()
@@ -645,9 +610,7 @@ ScreenId RSScreenManager::CreateVirtualScreen(
         screens_[newId] = screen;
     }
     ++currentVirtualScreenNum_;
-    if (callbackMgr_) {
-        callbackMgr_->NotifyVirtualScreenPresenceChanged(newId, true, associatedScreenId, screen->GetProperty());
-    }
+    preprocessor_->NotifyVirtualScreenConnected(newId, associatedScreenId, screen->GetProperty());
     RS_LOGI("%{public}s: create virtual screen(id %{public}" PRIu64 "), width %{public}u, height %{public}u."
         "associatedScreenId %{public}" PRIu64,
         __func__, newId, width, height, associatedScreenId);
@@ -922,9 +885,7 @@ void RSScreenManager::RemoveVirtualScreen(ScreenId id)
         std::lock_guard<std::mutex> lock(virtualScreenIdMutex_);
         freeVirtualScreenIds_.push(id);
     }
-    if (callbackMgr_) {
-        callbackMgr_->NotifyVirtualScreenPresenceChanged(id, false);
-    }
+    preprocessor_->NotifyVirtualScreenDisconnected(id);
 
     // when virtual screen doesn't exist no more, render control can be recovered.
     {

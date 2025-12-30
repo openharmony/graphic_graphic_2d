@@ -48,8 +48,8 @@ public:
     void NotifyHwcDead(ScreenId id);
     void NotifyHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
     void NotifyVBlankIdle(ScreenId id, uint64_t ns);
-    void NotifyVirtualScreenPresenceChanged(ScreenId id, bool connected,
-        ScreenId associatedScreenId = INVALID_SCREEN_ID, sptr<RSScreenProperty> property = nullptr);
+    void NotifyVirtualScreenConnected(ScreenId id, ScreenId associatedScreenId, sptr<RSScreenProperty> property);
+    void NotifyVirtualScreenDisconnected(ScreenId id);
     void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
     void NotifyScreenBacklightChanged(ScreenId id, uint32_t level);
 

@@ -57,6 +57,9 @@ private:
     void ConfigureScreenConnected(std::shared_ptr<HdiOutput>& output);
     void ConfigureScreenDisconnected(std::shared_ptr<HdiOutput>& output);
 
+    void NotifyVirtualScreenConnected(ScreenId newId, ScreenId associatedScreenId, sptr<RSScreenProperty> property);
+    void NotifyVirtualScreenDisconnected(ScreenId id);
+
 #ifdef RS_SUBSCRIBE_SENSOR_ENABLE
     void InitFoldSensor();
     void RegisterSensorCallback();
@@ -82,6 +85,8 @@ private:
     bool hasRegisterSensorCallback_ = false;
     mutable std::mutex registerSensorMutex_;
 #endif
+
+    friend class RSScreenManager;
 };
 } // namespace Rosen
 } // namespace OHOS

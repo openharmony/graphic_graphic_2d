@@ -43,14 +43,7 @@ void RSScreenPreprocessor::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool co
         return;
     }
 
-    RSScreenPreprocessor* processor = nullptr;
-    if (data != nullptr) {
-        RS_LOGI("%{public}s: data is not nullptr", __func__);
-        processor = static_cast<RSScreenPreprocessor*>(data);
-    } else {
-        RS_LOGI("%{public}s: data is nullptr", __func__);
-    }
-
+    RSScreenPreprocessor* processor = static_cast<RSScreenPreprocessor*>(data);
     if (processor == nullptr) {
         RS_LOGE("%{public}s: processor is nullptr", __func__);
         return;
@@ -61,14 +54,7 @@ void RSScreenPreprocessor::OnHotPlug(std::shared_ptr<HdiOutput>& output, bool co
 
 void RSScreenPreprocessor::OnRefresh(ScreenId id, void* data)
 {
-    RSScreenPreprocessor* processor = nullptr;
-    if (data != nullptr) {
-        RS_LOGI("%{public}s: data is not nullptr", __func__);
-        processor = static_cast<RSScreenPreprocessor*>(data);
-    } else {
-        RS_LOGI("%{public}s: data is nullptr", __func__);
-    }
-
+    RSScreenPreprocessor* processor = static_cast<RSScreenPreprocessor*>(data);
     if (processor == nullptr) {
         RS_LOGE("%{public}s: processor is nullptr", __func__);
         return;
@@ -79,18 +65,12 @@ void RSScreenPreprocessor::OnRefresh(ScreenId id, void* data)
 void RSScreenPreprocessor::OnHwcDead(void* data)
 {
     RS_LOGW("%{public}s: The composer_host is already dead.", __func__);
-    RSScreenPreprocessor* processor = nullptr;
-    if (data != nullptr) {
-        RS_LOGI("%{public}s: data is not nullptr", __func__);
-        processor = static_cast<RSScreenPreprocessor*>(data);
-    } else {
-        RS_LOGI("%{public}s: data is nullptr", __func__);
-    }
-
+    RSScreenPreprocessor* processor = static_cast<RSScreenPreprocessor*>(data);
     if (processor == nullptr) {
         RS_LOGE("%{public}s: processor is nullptr", __func__);
         return;
     }
+
     processor->OnHwcDeadEvent();
 }
 
@@ -98,18 +78,12 @@ void RSScreenPreprocessor::OnHwcEvent(uint32_t deviceId, uint32_t eventId, const
 {
     RS_LOGI("%{public}s: deviceId:%{public}" PRIu32 ", eventId:%{public}" PRIu32 "",
         __func__, deviceId, eventId);
-    RSScreenPreprocessor* processor = nullptr;
-    if (data != nullptr) {
-        RS_LOGI("%{public}s: data is not nullptr", __func__);
-        processor = static_cast<RSScreenPreprocessor*>(data);
-    } else {
-        RS_LOGI("%{public}s: data is nullptr", __func__);
-    }
-
+    RSScreenPreprocessor* processor = static_cast<RSScreenPreprocessor*>(data);
     if (processor == nullptr) {
         RS_LOGE("%{public}s: processor is nullptr", __func__);
         return;
     }
+
     processor->OnHwcEventCallback(deviceId, eventId, eventData);
 }
 
@@ -118,18 +92,12 @@ void RSScreenPreprocessor::OnScreenVBlankIdle(uint32_t devId, uint64_t ns, void*
     RS_LOGI("%{public}s: devid:%{public}u, ns:" RSPUBU64, __func__, devId, ns);
     RS_TRACE_NAME_FMT("OnScreenVBlankIdle devId:%u, ns:%u", devId, ns);
     CreateVSyncSampler()->StartSample(true);
-    RSScreenPreprocessor* processor = nullptr;
-    if (data != nullptr) {
-        RS_LOGI("%{public}s: data is not nullptr", __func__);
-        processor = static_cast<RSScreenPreprocessor*>(data);
-    } else {
-        RS_LOGI("%{public}s: data is nullptr", __func__);
-    }
-
+    RSScreenPreprocessor* processor = static_cast<RSScreenPreprocessor*>(data);
     if (processor == nullptr) {
         RS_LOGE("%{public}s: processor is nullptr", __func__);
         return;
     }
+
     processor->OnScreenVBlankIdleEvent(devId, ns);
 }
 
@@ -388,10 +356,25 @@ void RSScreenPreprocessor::ConfigureScreenDisconnected(std::shared_ptr<HdiOutput
     }
 }
 
+void RSScreenPreprocessor::NotifyVirtualScreenConnected(ScreenId newId,
+    ScreenId associatedScreenId, sptr<RSScreenProperty> property)
+{
+    if (auto callbackMgr = callbackMgrWeak_.lock()) {
+        callbackMgr->NotifyVirtualScreenConnected(newId, associatedScreenId, property);
+    }
+}
+
+void RSScreenPreprocessor::NotifyVirtualScreenDisconnected(ScreenId id)
+{
+    if (auto callbackMgr = callbackMgrWeak_.lock()) {
+        callbackMgr->NotifyVirtualScreenDisconnected(id);
+    }
+}
+
 void RSScreenPreprocessor::OnRefreshEvent(ScreenId id)
 {
-    if (auto screenManager = screenManager_.promote()) {
-        screenManager->OnRefreshEvent(id);
+    if (auto callbackMgr = callbackMgrWeak_.lock()) {
+        callbackMgr->NotifyScreenRefresh(id);
     }
 }
 
@@ -407,7 +390,18 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
         RS_LOGI("RSScreenPreprocessor::OnHwcDeadEvent.");
         isHwcDead_ = true;
         if (auto screenManager = screenManager_.promote()) {
-            screenManager->OnHwcDeadEvent();
+            std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> retScreens;
+            screenManager->OnHwcDeadEvent(retScreens);
+            #ifdef RS_ENABLE_GPU
+            // The `NotifyHwcDead` method synchronously calls the composition cleanup-related resources.
+            // It may take a long time due to task accumulation, resulting in holding screenMapMutex lock for too long.
+            // That is why it is necessary to handle this notification independently.
+            if (auto callbackMgr = callbackMgrWeak_.lock()) {
+                for (const auto& [id, _] : retScreens) {
+                    callbackMgr->NotifyHwcDead(id);
+                }
+            }
+            #endif
         }
         if (!composer_) {
             RS_LOGE("CleanAndReinit: Failed to get composer.");
@@ -425,16 +419,19 @@ void RSScreenPreprocessor::OnHwcDeadEvent()
 void RSScreenPreprocessor::OnHwcEventCallback(
     uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData)
 {
-    if (auto screenManager = screenManager_.promote()) {
-        screenManager->OnHwcEvent(deviceId, eventId, eventData);
+    if (auto callbackMgr = callbackMgrWeak_.lock()) {
+        callbackMgr->NotifyHwcEvent(deviceId, eventId, eventData);
     }
 }
 
 void RSScreenPreprocessor::OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns)
 {
-    if (auto screenManager = screenManager_.promote()) {
-        screenManager->OnScreenVBlankIdleEvent(devId, ns);
-    }
+    ScreenId id = ToScreenId(devId);
+    #ifdef RS_ENABLE_GPU
+        if (auto callbackMgr = callbackMgrWeak_.lock()) {
+            callbackMgr->NotifyVBlankIdle(id, ns);
+        }
+    #endif
 }
 
 void RSScreenPreprocessor::ScheduleTask(std::function<void()> task)
