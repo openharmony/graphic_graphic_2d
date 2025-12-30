@@ -525,25 +525,30 @@ HWTEST_F(RSHdrUtilTest, BufferFormatNeedUpdateTest, TestSize.Level1)
  */
 HWTEST_F(RSHdrUtilTest, SetHDRParamTest, TestSize.Level1)
 {
-    NodeId id = 0;
-    auto parentNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(parentNode, nullptr);
-    parentNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
-    id = 1;
-    auto childNode = std::make_shared<RSSurfaceRenderNode>(id);
-    ASSERT_NE(childNode, nullptr);
-    ScreenId screenId = 0;
+    NodeId parentId = 1;
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
+    auto parentNode = std::make_shared<RSSurfaceRenderNode>(parentId, context, true);
+    ASSERT_NE(parentNode, nullptr);
+    parentNode->InitRenderParams();
+    parentNode->context_ = context;
+
+    NodeId childId = 2;
+    auto childNode = std::make_shared<RSSurfaceRenderNode>(childId, context, true);
+    ASSERT_NE(childNode, nullptr);
+    childNode->InitRenderParams();
+    childNode->firstLevelNodeId_ = parentId;
+    childNode->context_ = context;
+
+    ScreenId screenId = 0;
     auto screenNode = std::make_shared<RSScreenRenderNode>(3, screenId, context);
     ASSERT_NE(screenNode, nullptr);
-    childNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
-    parentNode->AddChild(childNode);
-    parentNode->SetIsOnTheTree(true);
-    childNode->SetIsOnTheTree(true);
+    auto& nodeMap = context->GetMutableNodeMap();
+    EXPECT_TRUE(nodeMap.RegisterRenderNode(parentNode));
     screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.5f); // GetForceCloseHdr false
+    RSHdrUtil::SetHDRParam(*screenNode, *childNode, false);
     RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
     screenNode->GetMutableRenderProperties().SetHDRBrightnessFactor(0.0f); // GetForceCloseHdr true
-    RSHdrUtil::SetHDRParam(*screenNode, *childNode, true);
+    RSHdrUtil::SetHDRParam(*screenNode, *childNode, false);
 }
 
 /**
@@ -920,6 +925,7 @@ HWTEST_F(RSHdrUtilTest, CheckPixelFormatForHdrEffect001, TestSize.Level2)
     std::shared_ptr<RSContext> context = std::make_shared<RSContext>();
     auto screenNode = std::make_shared<RSScreenRenderNode>(id, screenId, context);
     ASSERT_NE(screenNode, nullptr);
+    screenNode->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(screenNode->GetId());
     auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
     RSHdrUtil::CheckPixelFormatForHdrEffect(*surfaceNode, nullptr);
     EXPECT_NE(static_cast<int>(screenNode->GetDisplayHdrStatus()), static_cast<int>(HdrStatus::HDR_EFFECT));

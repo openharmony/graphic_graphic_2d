@@ -383,14 +383,14 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
             node.GetId());
         curScreenNode_->SetHasUniRenderHdrSurface(true);
         curScreenNode_->CollectHdrStatus(HdrStatus::HDR_PHOTO);
-        RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
+        RSHdrUtil::SetHDRParam(*curScreenNode_, node, false);
     }
     if (node.GetHDRUIPresent()) {
         RS_LOGD("CheckPixelFormat HDRService GetHDRUIPresent true, surfaceNode: %{public}" PRIu64 "",
             node.GetId());
         curScreenNode_->SetHasUniRenderHdrSurface(true);
         curScreenNode_->CollectHdrStatus(HdrStatus::HDR_UICOMPONENT);
-        RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
+        RSHdrUtil::SetHDRParam(*curScreenNode_, node, false);
     }
 }
 

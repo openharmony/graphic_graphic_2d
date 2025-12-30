@@ -392,6 +392,7 @@ HWTEST(RSCanvasRenderNodeDrawableTest, OnDrawTest004, TestSize.Level2)
 
     Drawing::Canvas drawingCanvas;
     RSPaintFilterCanvas canvas(&drawingCanvas);
+    canvasDrawable->renderParams_->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
     canvasDrawable->OnDraw(canvas);
     ASSERT_FALSE(canvasDrawable->SkipDrawByWhiteList(canvas));
 

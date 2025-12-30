@@ -443,21 +443,11 @@ public:
     }
     void HandleCurMainAndLeashSurfaceNodes();
 
-    void CollectHdrStatus(HdrStatus hdrStatus)
-    {
-        displayTotalHdrStatus_ = static_cast<HdrStatus>(displayTotalHdrStatus_ | hdrStatus);
-    }
+    void CollectHdrStatus(HdrStatus hdrStatus);
 
-    void ResetDisplayHdrStatus()
-    {
-        displayTotalHdrStatus_ = HdrStatus::NO_HDR;
-    }
+    void ResetDisplayHdrStatus();
 
-    HdrStatus GetDisplayHdrStatus() const
-    {
-        lastDisplayTotalHdrStatus_ = displayTotalHdrStatus_;
-        return displayTotalHdrStatus_;
-    }
+    HdrStatus GetDisplayHdrStatus() const;
 
     HdrStatus GetLastDisplayHDRStatus() const
     {
@@ -544,7 +534,6 @@ private:
     bool curZoomState_ = false;
     bool preZoomState_ = false;
     CompositeType compositeType_ = CompositeType::HARDWARE_COMPOSITE;
-    HdrStatus displayTotalHdrStatus_ = HdrStatus::NO_HDR;
     mutable HdrStatus lastDisplayTotalHdrStatus_ = HdrStatus::NO_HDR;
     uint64_t screenId_ = 0;
     RectI screenRect_;

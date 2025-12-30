@@ -3687,8 +3687,14 @@ HWTEST_F(RSLogicalDisplayRenderNodeDrawableTest, PrepareOffscreenRenderTest010, 
     displayParams->needOffscreen_ = false;
     displayDrawable_->useFixedOffscreenSurfaceSize_ = true;
     displayDrawable_->offscreenSurface_ = std::make_shared<Drawing::Surface>();
+
+    displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
+    screenParam->screenHDRStatus_ = HdrStatus::HDR_EFFECT;
+    auto param = system::GetParameter("rosen.EDRCanvasReplace.enabled", "0");
+    system::SetParameter("rosen.EDRCanvasReplace.enabled", "1");
     displayDrawable_->PrepareOffscreenRender(*displayDrawable_, false);
     EXPECT_NE(displayParams->GetAncestorScreenDrawable().lock(), nullptr);
+    system::SetParameter("rosen.EDRCanvasReplace.enabled", param);
 }
 
 /**

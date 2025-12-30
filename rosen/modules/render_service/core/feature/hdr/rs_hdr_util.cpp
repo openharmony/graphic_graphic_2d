@@ -327,7 +327,7 @@ void RSHdrUtil::CheckPixelFormatWithSelfDrawingNode(RSSurfaceRenderNode& surface
         return;
     }
     if (surfaceNode.GetVideoHdrStatus() != HdrStatus::NO_HDR) {
-        SetHDRParam(screenNode, surfaceNode, true);
+        SetHDRParam(screenNode, surfaceNode, false);
         if (screenNode.GetIsLuminanceStatusChange()) {
             surfaceNode.SetContentDirty();
         }
@@ -365,7 +365,7 @@ bool RSHdrUtil::GetRGBA1010108Enabled()
     return isDDGR && rgba1010108 && debugSwitch;
 }
 
-void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool flag)
+void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode& node, bool isEDR)
 {
     if (screenNode.GetForceCloseHdr()) {
         RS_LOGD("RSHdrUtil::SetHDRParam curScreenNode forceclosehdr.");
@@ -373,11 +373,17 @@ void RSHdrUtil::SetHDRParam(RSScreenRenderNode& screenNode, RSSurfaceRenderNode&
     }
     auto firstLevelNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node.GetFirstLevelNode());
     if (firstLevelNode != nullptr && node.GetFirstLevelNodeId() != node.GetId()) {
-        firstLevelNode->SetHDRPresent(flag);
+        firstLevelNode->SetHDRPresent(true);
+        if (isEDR) {
+            firstLevelNode->UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+        }
         RS_LOGD("RSHdrUtil::SetHDRParam HDRService FirstLevelNode: %{public}" PRIu64 "",
             node.GetFirstLevelNodeId());
     }
-    node.SetHDRPresent(flag);
+    node.SetHDRPresent(true);
+    if (isEDR) {
+        node.UpdateHDRStatus(HdrStatus::HDR_EFFECT, true);
+    }
 }
 
 void RSHdrUtil::LuminanceChangeSetDirty(RSScreenRenderNode& node)
