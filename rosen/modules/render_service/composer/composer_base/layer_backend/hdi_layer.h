@@ -55,8 +55,8 @@ public:
     uint32_t GetLayerId() const;
     bool RecordPresentTime(int64_t timestamp);
     void RecordMergedPresentTime(int64_t timestamp); // used for uni render layer
-    void Dump(std::string& result);
-    void DumpMergedResult(std::string& result);  // used for uni render layer
+    void Dump(std::string& result) const;
+    void DumpMergedResult(std::string& result) const;  // used for uni render layer
     void ClearDump();
 
     void SetReleaseFence(const sptr<SyncFence>& layerReleaseFence);

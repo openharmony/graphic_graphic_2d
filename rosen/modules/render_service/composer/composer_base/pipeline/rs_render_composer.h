@@ -76,8 +76,8 @@ protected:
 #endif
         return std::move(taskFuture);
     }
-    uint32_t GetUnExecuteTaskNum();
-    int32_t GetAccumulatedBufferCount();
+    uint32_t GetUnExecuteTaskNum() const;
+    int32_t GetAccumulatedBufferCount() const;
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
     int32_t GetThreadTid() const;
@@ -87,7 +87,7 @@ protected:
     void PreAllocateProtectedBuffer(sptr<SurfaceBuffer> buffer);
     void ChangeLayersForActiveRectOutside(std::vector<std::shared_ptr<RSLayer>>& layers, ScreenId screenId);
     void DumpVkImageInfo(std::string& dumpString);
-    int64_t GetDelayTime() { return delayTime_; }
+    int64_t GetDelayTime() const { return delayTime_; }
     sptr<SyncFence> GetReleaseFence() const { return releaseFence_; }
     bool WaitComposerTaskExecute();
     void NotifyComposerCanExecuteTask();

@@ -1017,7 +1017,7 @@ void HdiOutput::ReorderLayerInfoLocked(std::vector<LayerDumpInfo>& dumpLayerInfo
     std::sort(dumpLayerInfos.begin(), dumpLayerInfos.end(), Cmp);
 }
 
-int HdiOutput::GetBufferCacheSize()
+int HdiOutput::GetBufferCacheSize() const
 {
     return bufferCache_.size();
 }

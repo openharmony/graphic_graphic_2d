@@ -95,14 +95,14 @@ public:
     int32_t StartVSyncSampler(bool forceReSample = false);
     void SetPendingMode(int64_t period, int64_t timestamp);
     void ReleaseLayers(sptr<SyncFence>& releaseFence);
-    int32_t GetBufferCacheSize();
+    int32_t GetBufferCacheSize() const;
     void SetVsyncSamplerEnabled(bool enabled);
     bool GetVsyncSamplerEnabled();
     void SetProtectedFrameBufferState(bool state)
     {
         isProtectedBufferAllocated_.store(state);
     }
-    bool GetProtectedFrameBufferState()
+    bool GetProtectedFrameBufferState() const
     {
         return isProtectedBufferAllocated_.load();
     }

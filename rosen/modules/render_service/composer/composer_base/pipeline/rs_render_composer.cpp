@@ -222,12 +222,12 @@ void RSRenderComposer::DumpVkImageInfo(std::string& dumpString)
     });
 }
 
-uint32_t RSRenderComposer::GetUnExecuteTaskNum()
+uint32_t RSRenderComposer::GetUnExecuteTaskNum() const
 {
     return unExecuteTaskNum_.load();
 }
 
-int32_t RSRenderComposer::GetAccumulatedBufferCount()
+int32_t RSRenderComposer::GetAccumulatedBufferCount() const
 {
     return std::max(acquiredBufferCount_.load() - 1, 0);
 }
