@@ -591,8 +591,9 @@ void RSUifirstManager::SyncHDRDisplayParam(std::shared_ptr<DrawableV2::RSSurface
     bool changeColorSpace = rsSubThreadCache.GetTargetColorGamut() != colorGamut;
     if (isHdrOn || isScRGBEnable || changeColorSpace) {
         // When ScRGB or Adaptive P3 is enabled, some operations may cause the window color gamut to change.
-        // In this case, the uifirst cache needs to be cleared.
-        if ((isScRGBEnable || ColorGamutParam::IsAdaptiveColorGamutEnabled()) && changeColorSpace) {
+        // If the buffer format is not FP16, the uifirst cache needs to be cleared when colorspace changed.
+        bool isNeedFP16 = screenParams->GetHDRPresent() || isScRGBEnable;
+        if (!isNeedFP16 && ColorGamutParam::IsAdaptiveColorGamutEnabled() && changeColorSpace) {
             HILOG_COMM_INFO("UIFirstHDR SyncDisplayParam: ColorSpace change, ClearCacheSurface,"
                 "nodeID: [%{public}" PRIu64"]", id);
             RS_TRACE_NAME_FMT("UIFirstHDR SyncHDRDisplayParam: ColorSpace change, ClearCacheSurface,"
