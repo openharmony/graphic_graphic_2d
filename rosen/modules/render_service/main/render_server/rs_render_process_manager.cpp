@@ -37,12 +37,12 @@ void RSRenderProcessManager::OnActiveScreenIdChanged(ScreenId activeScreenId)
 {
 }
 
-void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+void RSRenderProcessManager::OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
     const sptr<RSScreenProperty>& property)
 {
 }
 
-void OnHwcDead(ScreenId id)
+void RSRenderProcessManager::OnHwcDead(ScreenId id)
 {
 }
 
