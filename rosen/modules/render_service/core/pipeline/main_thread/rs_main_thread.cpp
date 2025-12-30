@@ -5412,9 +5412,7 @@ void RSMainThread::HandleScreenPropertyChange(const sptr<RSScreenProperty>& prop
             }
         });
     });
-    HgmTaskHandleThread::Instance().PostTask([id, refreshRate = property->GetRefreshRate()] {
-        RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, refreshRate);
-    });
+    RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, property->GetRefreshRate());
 }
 
 void RSMainThread::HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& lastProperty,
