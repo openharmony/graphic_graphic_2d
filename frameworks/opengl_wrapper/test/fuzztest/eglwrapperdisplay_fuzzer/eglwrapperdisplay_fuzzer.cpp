@@ -26,6 +26,8 @@ namespace OHOS {
         const uint8_t* data_ = nullptr;
         size_t size_ = 0;
         size_t pos;
+        bool g_inited = false;
+        EglWrapperDisplay* eglWrapperDisplay = nullptr;
     }
 
     /*
@@ -59,7 +61,6 @@ namespace OHOS {
         size_ = size;
         pos = 0;
 
-        auto eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
         EGLDisplay display1 = GetData<EGLDisplay>();
         EGLDisplay display2 = GetData<EGLDisplay>();
         EGLint major1 = GetData<EGLint>();
@@ -143,11 +144,15 @@ namespace OHOS {
         EGLSurface surf11 = GetData<EGLSurface>();
         EGLint rects2 = GetData<EGLint>();
         EGLint nRects2 = GetData<EGLint>();
+        if (g_inited == false) {
+            auto eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+            eglWrapperDisplay =  EglWrapperDisplay::GetWrapperDisplay(eglDisplay);
+            eglWrapperDisplay->Init(&major1, &minor1);
+            eglWrapperDisplay->MakeCurrent(draw1, read1, ctx1);
+            g_inited = true;
+        }
 
         // test
-        EglWrapperDisplay* eglWrapperDisplay =  EglWrapperDisplay::GetWrapperDisplay(eglDisplay);
-        eglWrapperDisplay->Init(&major1, &minor1);
-        eglWrapperDisplay->MakeCurrent(draw1, read1, ctx1);
         EglWrapperDisplay::GetEglDisplay(platform1, disp1, &attribList1);
         EglWrapperDisplay::GetEglDisplayExt(platform2, disp2, &attribList2);
         eglWrapperDisplay->ValidateEglContext(ctx2);
@@ -181,6 +186,8 @@ namespace OHOS {
         eglWrapperDisplay->SetDamageRegionKHR(surf11, &rects2, nRects2);
         eglWrapperDisplay->DestroyImage(image1);
         eglWrapperDisplay->DestroyImageKHR(image2);
+        obj1->Release();
+        obj2->Release();
         return true;
     }
 }
