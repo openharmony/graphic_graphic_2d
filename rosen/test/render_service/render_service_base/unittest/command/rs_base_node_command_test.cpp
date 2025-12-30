@@ -30,7 +30,6 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-    static inline std::shared_ptr<RSContext> context_ = {};
 };
 
 void RSBaseNodeCommandText::SetUpTestCase() {}
@@ -311,19 +310,22 @@ HWTEST_F(RSBaseNodeCommandText, RemoveCrossParentChild001, TestSize.Level1)
 HWTEST_F(RSBaseNodeCommandText, AddCrossScreenChild, TestSize.Level1)
 {
     NodeId nodeId = 1;
-    NodeId childId = 2;
+    NodeId childNodeId = 2;
     NodeId cloneNodeId = 3;
-    context_ = std::make_shared<RSContext>();
-    auto& nodeMap = context_->GetMutableNodeMap();
+    RSContext context;
+    BaseNodeCommandHelper::AddCrossScreenChild(context, nodeId, childNodeId, cloneNodeId, -1);
+
+    auto& nodeMap = context.GetMutableNodeMap();
     struct RSDisplayNodeConfig config;
     auto logicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
     bool res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(logicalDisplayRenderNode));
     ASSERT_EQ(res, true);
-    auto surfaceChildRenderNode = std::make_shared<RSSurfaceRenderNode>(childId);
+    auto surfaceChildRenderNode = std::make_shared<RSSurfaceRenderNode>(childNodeId);
     res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(surfaceChildRenderNode));
     ASSERT_EQ(res, true);
-
-    BaseNodeCommandHelper::AddCrossScreenChild(*context_.get(), nodeId, childId, cloneNodeId, -1);
+    BaseNodeCommandHelper::AddCrossScreenChild(context, nodeId, childNodeId, cloneNodeId, -1);
+    nodeMap.UnregisterRenderNode(childNodeId);
+    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**
@@ -336,14 +338,22 @@ HWTEST_F(RSBaseNodeCommandText, RemoveCrossScreenChild, TestSize.Level1)
 {
     NodeId nodeId = 1;
     NodeId childNodeId = 2;
-    auto& nodeMap = context_->GetMutableNodeMap();
-    auto node = nodeMap.GetRenderNode(nodeId);
-    ASSERT_NE(node, nullptr);
-    auto child = nodeMap.GetRenderNode(childNodeId);
-    ASSERT_NE(child, nullptr);
-    BaseNodeCommandHelper::RemoveCrossScreenChild(*context_.get(), nodeId, childNodeId);
-    nodeMap.UnregisterRenderNode(nodeId);
+    NodeId cloneNodeId = 3;
+    RSContext context;
+    BaseNodeCommandHelper::RemoveCrossScreenChild(context, nodeId, childNodeId);
+
+    auto& nodeMap = context.GetMutableNodeMap();
+    struct RSDisplayNodeConfig config;
+    auto logicalDisplayRenderNode = std::make_shared<RSLogicalDisplayRenderNode>(nodeId, config);
+    bool res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(logicalDisplayRenderNode));
+    ASSERT_EQ(res, true);
+    auto surfaceChildRenderNode = std::make_shared<RSSurfaceRenderNode>(childNodeId);
+    res = nodeMap.RegisterRenderNode(std::static_pointer_cast<RSBaseRenderNode>(surfaceChildRenderNode));
+    ASSERT_EQ(res, true);
+    BaseNodeCommandHelper::AddCrossScreenChild(context, nodeId, childNodeId, cloneNodeId, -1);
+    BaseNodeCommandHelper::RemoveCrossScreenChild(context, nodeId, childNodeId);
     nodeMap.UnregisterRenderNode(childNodeId);
+    nodeMap.UnregisterRenderNode(nodeId);
 }
 
 /**

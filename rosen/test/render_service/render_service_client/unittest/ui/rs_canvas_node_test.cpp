@@ -3714,6 +3714,21 @@ HWTEST_F(RSCanvasNodeTest, GetPixelmap003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetPixelmap
+ * @tc.desc: Test SetPixelmap
+ * @tc.type: FUNC
+ * @tc.require: IBFOIN
+ */
+HWTEST_F(RSCanvasNodeTest, SetPixelmap, TestSize.Level1)
+{
+    RSCanvasNode::SharedPtr canvasNode = RSCanvasNode::Create();
+    canvasNode->SetPixelmap(nullptr);
+    auto pixelmap = std::make_shared<OHOS::Media::PixelMap>();
+    EXPECT_NE(pixelmap, nullptr);
+    canvasNode->SetPixelmap(pixelmap);
+}
+
+/**
  * @tc.name: ResetSurface001
  * @tc.desc: Test ResetSurface
  * @tc.type: FUNC

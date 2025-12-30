@@ -2584,6 +2584,8 @@ void RSNode::SetHDRBrightness(const float& hdrBrightness)
 {
     SetPropertyNG<ModifierNG::RSHDRBrightnessModifier, &ModifierNG::RSHDRBrightnessModifier::SetHDRBrightness>(
         hdrBrightness);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetHDRUIBrightness>(GetId(), hdrBrightness);
+    AddCommand(command, IsRenderServiceNode());
 }
 
 void RSNode::SetHDRBrightnessFactor(float factor)

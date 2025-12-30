@@ -64,9 +64,11 @@
 #include "render/rs_effect_luminance_manager.h"
 #include "system/rs_system_parameters.h"
 #include "hgm_core.h"
+#ifndef ROSEN_CROSS_PLATFORM
 #include "metadata_helper.h"
 #include <v1_0/buffer_handle_meta_key_type.h>
 #include <v1_0/cm_color_space.h>
+#endif
 
 #include "feature_cfg/graphic_feature_param_manager.h"
 #include "feature/round_corner_display/rs_round_corner_display_manager.h"
@@ -376,15 +378,18 @@ void RSUniRenderVisitor::CheckPixelFormat(RSSurfaceRenderNode& node)
         RS_LOGD("CheckPixelFormat HdrImageEnabled false");
         return;
     }
-    if (curScreenNode_->GetForceCloseHdr()) {
-        RS_LOGD("CheckPixelFormat curScreenNode_ forceclosehdr.");
-        return;
-    }
-    if (node.GetHDRPresent()) {
-        RS_LOGD("CheckPixelFormat HDRService SetHDRPresent true, surfaceNode: %{public}" PRIu64 "",
+    if (node.GetHDRImagePresent()) {
+        RS_LOGD("CheckPixelFormat HDRService GetHDRImagePresent true, surfaceNode: %{public}" PRIu64 "",
             node.GetId());
         curScreenNode_->SetHasUniRenderHdrSurface(true);
         curScreenNode_->CollectHdrStatus(HdrStatus::HDR_PHOTO);
+        RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
+    }
+    if (node.GetHDRUIPresent()) {
+        RS_LOGD("CheckPixelFormat HDRService GetHDRUIPresent true, surfaceNode: %{public}" PRIu64 "",
+            node.GetId());
+        curScreenNode_->SetHasUniRenderHdrSurface(true);
+        curScreenNode_->CollectHdrStatus(HdrStatus::HDR_UICOMPONENT);
         RSHdrUtil::SetHDRParam(*curScreenNode_, node, true);
     }
 }
@@ -2099,6 +2104,7 @@ bool RSUniRenderVisitor::InitScreenInfo(RSScreenRenderNode& node)
     node.SetHasChildCrossNode(false);
     node.SetIsFirstVisitCrossNodeDisplay(false);
     node.SetHasUniRenderHdrSurface(false);
+    node.ResetVideoHeadroomInfo();
     node.SetIsLuminanceStatusChange(false);
     node.SetPixelFormat(GraphicPixelFormat::GRAPHIC_PIXEL_FMT_RGBA_8888);
     node.SetExistHWCNode(false);

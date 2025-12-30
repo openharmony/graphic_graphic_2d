@@ -93,5 +93,16 @@ void RSCanvasNodeCommandHelper::SetColorGamut(RSContext& context, NodeId nodeId,
     }
 }
 
+void RSCanvasNodeCommandHelper::SetPixelmap(
+    RSContext& context, NodeId nodeId, const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return;
+    }
+    if (auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeId)) {
+        node->OnSetPixelmap(pixelMap);
+    }
+}
+
 } // namespace Rosen
 } // namespace OHOS

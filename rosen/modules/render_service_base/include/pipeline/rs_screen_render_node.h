@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include "common/rs_common_def.h"
 
 #ifndef ROSEN_CROSS_PLATFORM
@@ -508,6 +509,14 @@ public:
 
     void CheckSurfaceChanged();
 
+    using HeadroomMap = std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>;
+    const HeadroomMap& GetHeadroomMap() const {
+        return headroomCounts_;
+    }
+    void UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level);
+    void UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level);
+    void ResetVideoHeadroomInfo();
+
 protected:
     void OnSync() override;
 private:
@@ -588,6 +597,8 @@ private:
     ScreenInfo screenInfo_;
     RSScreenProperty screenProperty_;
     friend class DisplayNodeCommandHelper;
+
+    HeadroomMap headroomCounts_;
 
     // Enable HWCompose
     RSHwcDisplayRecorder hwcDisplayRecorder_;

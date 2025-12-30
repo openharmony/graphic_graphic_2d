@@ -752,6 +752,16 @@ public:
         return hdrPhotoNum_ > 0 || hdrUIComponentNum_ > 0;
     }
 
+    bool GetHDRUIPresent() const
+    {
+        return hdrUIComponentNum_ > 0;
+    }
+
+    bool GetHDRImagePresent() const
+    {
+        return hdrPhotoNum_ > 0;
+    }
+
     void IncreaseHDRNum(HDRComponentType hdrType);
     void ReduceHDRNum(HDRComponentType hdrType);
 

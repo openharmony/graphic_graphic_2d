@@ -612,5 +612,25 @@ void RSScreenRenderNode::CheckSurfaceChanged()
 #endif
 }
 
+void RSScreenRenderNode::UpdateHeadroomMapIncrease(HdrStatus status, uint32_t level)
+{
+    headroomCounts_[status][level]++;
+}
+
+void RSScreenRenderNode::UpdateHeadroomMapDecrease(HdrStatus status, uint32_t level)
+{
+    auto& map = headroomCounts_[status];
+    if (map.count(level) && map[level] > 0U) {
+        map[level]--;
+    }
+}
+
+void RSScreenRenderNode::ResetVideoHeadroomInfo()
+{
+    headroomCounts_.erase(HdrStatus::HDR_VIDEO);
+    headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GTM);
+    headroomCounts_.erase(HdrStatus::AI_HDR_VIDEO_GAINMAP);
+}
+
 } // namespace Rosen
 } // namespace OHOS

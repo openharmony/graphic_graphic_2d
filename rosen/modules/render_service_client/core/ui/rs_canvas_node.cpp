@@ -293,6 +293,16 @@ bool RSCanvasNode::GetPixelmap(std::shared_ptr<Media::PixelMap> pixelMap,
     return ret;
 }
 
+void RSCanvasNode::SetPixelmap(const std::shared_ptr<Media::PixelMap>& pixelMap)
+{
+    if (!pixelMap) {
+        return;
+    }
+    std::unique_ptr<RSCommand> command =
+        std::make_unique<RSCanvasNodeSetPixelmap>(GetId(), pixelMap);
+    AddCommand(command, true);
+}
+
 bool RSCanvasNode::ResetSurface(int width, int height)
 {
     if (!IsHybridRenderCanvas()) {
