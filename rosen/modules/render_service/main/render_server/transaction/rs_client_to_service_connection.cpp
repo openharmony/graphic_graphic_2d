@@ -387,12 +387,8 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
         GetSurfaceRootNodeId(windowNodeId);
     }
     sptr<VSyncConnection> conn = new VSyncConnection(appVSyncDistributor_, name, token->AsObject(), 0, windowNodeId);
-    if (ExtractPid(id) == remotePid_) {
-        if (hgmContext_ != nullptr) {
-            renderServiceAgent_->ScheduleTask([hgmContext = hgmContext_, name, id, windowNodeId] {
-                hgmContext->CreateFrameRateLinker(name, id, windowNodeId);
-            }).wait();
-        }
+    auto linkerPid = ExtractPid(id);
+    if (linkerPid == remotePid_) {
         conn->id_ = id;
         RS_LOGD("%{public}s connect id: %{public}" PRIu64, __func__, id);
     }
@@ -401,6 +397,13 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
         vsyncConn = nullptr;
         UnregisterFrameRateLinker(id);
         return ERR_INVALID_VALUE;
+    }
+    if (linkerPid == remotePid_) {
+        if (hgmContext_ != nullptr) {
+            renderServiceAgent_->ScheduleTask([hgmContext = hgmContext_, name, id, windowNodeId] {
+                hgmContext->CreateFrameRateLinker(name, id, windowNodeId);
+            }).wait();
+        }
     }
     vsyncConn = conn;
     return ERR_OK;
