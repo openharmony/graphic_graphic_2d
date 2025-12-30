@@ -174,34 +174,15 @@ static BlendMode GetRandomBlendMode()
     return static_cast<BlendMode>(index);
 }
 
-static ColorType GetRandomColorType()
-{
-    uint32_t index = RandomEngine::GetRandomIndex(10);
-    return static_cast<ColorType>(index);
-}
-
-static AlphaType GetRandomAlphaType()
-{
-    uint32_t index = RandomEngine::GetRandomIndex(3);
-    return static_cast<AlphaType>(index);
-}
-
-static BitmapFormat GetRandomBitmapFormat()
-{
-    BitmapFormat bitMapFormat = { GetRandomColorType(), GetRandomAlphaType() };
-    return bitMapFormat;
-}
-
 static Bitmap GetRandomBitmap()
 {
     static constexpr int BITMAP_SIZE_MAX = 4096;
     static constexpr int BITMAP_SIZE_MIN = 1;
     int32_t width = RandomEngine::GetRandomIndex(BITMAP_SIZE_MAX, BITMAP_SIZE_MIN);
     int32_t height = RandomEngine::GetRandomIndex(BITMAP_SIZE_MAX, BITMAP_SIZE_MIN);
-    BitmapFormat bitMapFormat = GetRandomBitmapFormat();
-    int32_t stride = RandomEngine::GetRandomIndex(std::min<int>(width, height), 0);
+    BitmapFormat format {COLORTYPE_RGBA_8888, ALPHATYPE_OPAQUE};
     Bitmap bitMap;
-    if (!bitMap.Build(width, height, bitMapFormat, stride)) {
+    if (!bitMap.Build(width, height, format)) {
         SAFUZZ_LOGE("GetRandomBitmap bitmap build failed");
     }
     return bitMap;
