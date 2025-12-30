@@ -16,10 +16,9 @@
 #include "rs_render_to_composer_connection_proxy.h"
 #include <memory>
 #include <vector>
-#include "buffer_utils.h"
 #include "graphic_common.h"
-#include "rs_trace.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 #include "transaction/rs_ashmem_helper.h"
 
 namespace OHOS {
@@ -214,25 +213,6 @@ void RSRenderToComposerConnectionProxy::SetComposerToRenderConnection(
         return;
     }
     SendRequest(IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION, parcel, reply, option);
-}
-
-void RSRenderToComposerConnectionProxy::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
-{
-    MessageOption option;
-    MessageParcel reply;
-    MessageParcel parcel;
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!parcel.WriteInterfaceToken(GetDescriptor())) {
-        RS_LOGE("PreAllocProtectedFrameBuffers WriteInterfaceToken failed");
-        return;
-    }
-    uint32_t sequence = buffer->GetSeqNum();
-    GSError ret = WriteSurfaceBufferImpl(parcel, sequence, buffer);
-    if (ret != GSERROR_OK) {
-        RS_LOGE("PreAllocProtectedFrameBuffers WriteToMessageParcel err, ret = %{public}d", ret);
-        return;
-    }
-    SendRequest(IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS, parcel, reply, option);
 }
 } // namespace Rosen
 } // namespace OHOS

@@ -346,24 +346,5 @@ void RSRenderComposerAgent::ClearRefreshRateCounts(std::string& dumpString)
         }
     ).wait();
 }
-
-void RSRenderComposerAgent::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
-{
-    if (rsRenderComposer_ == nullptr) {
-        return;
-    }
-    std::weak_ptr<RSRenderComposerAgent> weakThis = shared_from_this();
-    if (buffer != nullptr) {
-        std::shared_ptr<RSRenderComposerAgent> renderComposerAgent = weakThis.lock();
-        if (renderComposerAgent == nullptr || renderComposerAgent->rsRenderComposer_ == nullptr) {
-            return;
-        }
-        auto composer = renderComposerAgent->rsRenderComposer_;
-        RS_TRACE_NAME_FMT("PreAllocateProtectedBuffer");
-        ffrt::submit([composer, buffer]() {
-            composer->PreAllocateProtectedBuffer(buffer);
-        });
-    }
-}
 } // namespace Rosen
 } // namespace OHOS

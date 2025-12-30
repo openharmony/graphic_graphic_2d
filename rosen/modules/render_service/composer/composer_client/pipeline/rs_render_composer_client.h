@@ -59,7 +59,6 @@ public:
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
     static void ConvertScreenInfo(const ScreenInfo& screenInfo, ComposerScreenInfo& composerScreenInfo);
-    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer);
 
 private:
     bool WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock);
@@ -72,7 +71,6 @@ private:
     std::condition_variable composerThreadTaskCond_;
     std::atomic<uint32_t> unExecuteTaskNum_ = 0;
     std::atomic<int> acquiredBufferCount_ = 0;
-    std::atomic<bool> isPreAllocProtectedFrameBuffer_ = false;
     PipelineParam pipelineParam_;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
 };

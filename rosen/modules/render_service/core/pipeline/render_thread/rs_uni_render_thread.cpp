@@ -847,12 +847,7 @@ void RSUniRenderThread::PostClearMemoryTask(ClearMemoryMoment moment, bool deepl
 #ifdef SUBTREE_PARALLEL_ENABLE
         RSParallelManager::Singleton().ClearMemoryCache();
 #endif
-        auto screenHasProtectedLayerSet = GetScreenHasProtectedLayerSet();
         for (auto [screenId, client] : rsRenderComposerClients_) {
-            if (screenHasProtectedLayerSet.count(screenId)) {
-                RS_TRACE_NAME_FMT("screenHasProtectedLayerSet %" PRIu64 "", screenId);
-                continue;
-            }
             client->ClearFrameBuffers();
         }
         grContext->FlushAndSubmit(true);

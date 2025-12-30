@@ -28,6 +28,7 @@ public:
     using DrawablesVec = std::vector<std::tuple<NodeId, NodeId, DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr>>;
 
     static void ClearDrmNodes();
+    static void CollectDrmNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
     static void AddDrmCloneCrossNode(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
         DrawablesVec& hardwareEnabledDrawables);
     static void DRMCreateLayer(std::shared_ptr<RSProcessor> processor, Drawing::Matrix hwcMatrix);
@@ -35,8 +36,6 @@ public:
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
         const std::shared_ptr<RSScreenRenderNode>& curScreenNode);
     static bool IsDRMNodesOnTheTree();
-    static void DealWithDRMNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const sptr<SurfaceBuffer> buffer);
 private:
     static void MarkAllBlurIntersectWithDRM(const std::shared_ptr<RSRenderNode>& node,
         const std::vector<std::weak_ptr<RSSurfaceRenderNode>>& drmNodes,
@@ -48,9 +47,6 @@ private:
         const std::shared_ptr<RSSurfaceRenderNode>& drmNode);
     static bool GetDarkColorMode(const std::shared_ptr<RSRenderNode>& node,
         const std::shared_ptr<RSSurfaceRenderNode>& appWindowNode);
-    static void CollectDrmNodes(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
-    static void PreAllocProtectedFrameBuffers(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
-        const sptr<SurfaceBuffer> buffer);
     inline static std::unordered_map<NodeId, // map<first level node ID, drm surface node>
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>> drmNodes_ = {};
 };

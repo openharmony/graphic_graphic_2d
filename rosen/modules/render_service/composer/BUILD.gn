@@ -164,7 +164,6 @@ ohos_shared_library("librender_composer") {
     "drivers_interface_display:libdisplay_commontype_proxy_1.0",
     "drivers_interface_display:libdisplay_commontype_proxy_2.2",
     "eventhandler:libeventhandler",
-    "ffrt:libffrt",
     "graphic_surface:surface",
     "hilog:libhilog",
     "hisysevent:libhisysevent",

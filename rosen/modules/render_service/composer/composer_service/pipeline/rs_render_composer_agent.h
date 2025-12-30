@@ -16,8 +16,6 @@
 #ifndef RENDER_SERVICE_COMPOSER_SERVICE_PIPELINE_RS_RENDER_COMPOSER_AGENT_H
 #define RENDER_SERVICE_COMPOSER_SERVICE_PIPELINE_RS_RENDER_COMPOSER_AGENT_H
 
-#include "ffrt.h"
-#include "ffrt_inner.h"
 #include "rs_render_composer.h"
 #include "rs_layer_transaction_data.h"
 #include "sync_fence.h"
@@ -46,7 +44,6 @@ public:
     void HitchsDump(std::string& dumpString, std::string& layerArg);
     void RefreshRateCounts(std::string& dumpString);
     void ClearRefreshRateCounts(std::string& dumpString);
-    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer);
 
 private:
     std::shared_ptr<RSRenderComposer> rsRenderComposer_;

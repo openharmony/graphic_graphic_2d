@@ -297,21 +297,6 @@ public:
         bufferManager_.ReleaseBufferById(seqNum);
     }
 
-    void AddScreenHasProtectedLayerSet(ScreenId screenId)
-    {
-        hasProtectedLayerScreenIdSet_.emplace(screenId);
-    }
-
-    const std::set<ScreenId>& GetScreenHasProtectedLayerSet()
-    {
-        return hasProtectedLayerScreenIdSet_;
-    }
-
-    void ClearScreenHasProtectedLayerSet()
-    {
-        hasProtectedLayerScreenIdSet_.clear();
-    }
-
 private:
     RSUniRenderThread();
     ~RSUniRenderThread() noexcept;
@@ -379,7 +364,6 @@ private:
     std::unordered_set<NodeType> typeBlackList_ = {};
     std::unordered_set<NodeId> whiteList_ = {};
     Drawing::RectI visibleRect_;
-    std::set<ScreenId> hasProtectedLayerScreenIdSet_;
 
     std::mutex vmaCacheCountMutex_;
 
