@@ -150,7 +150,7 @@ void RSComposerContext::ReleaseLayerBuffers(uint64_t screenId,
             RS_LOGE("layerPresentTimestamp cSurface is nullptr");
             return;
         }
-        if (!layer->IsSupportedPresentTimestamp()) {
+        if (!layer->GetIsSupportedPresentTimestamp()) {
             return;
         }
         const auto& buffer = layer->GetBuffer();

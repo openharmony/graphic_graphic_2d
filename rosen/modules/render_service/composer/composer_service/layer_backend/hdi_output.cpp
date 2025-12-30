@@ -139,7 +139,7 @@ void HdiOutput::SetRSLayers(const std::vector<std::shared_ptr<RSLayer>>& rsLayer
             HLOGE("current rsLayer is null");
             continue;
         }
-        if (rsLayer->IsMaskLayer()) {
+        if (rsLayer->GetIsMaskLayer()) {
             DirtyRegions(solidLayerCount, rsLayer);
             continue;
         }
@@ -301,7 +301,7 @@ int32_t HdiOutput::CreateLayerLocked(uint64_t surfaceId, const std::shared_ptr<R
 
     hdiLayer->UpdateRSLayer(rsLayer);
 
-    if (rsLayer->IsMaskLayer()) {
+    if (rsLayer->GetIsMaskLayer()) {
         maskLayer_ = hdiLayer;
     }
 
@@ -728,7 +728,8 @@ void HdiOutput::ReleaseLayers(ReleaseLayerBuffersInfo& releaseLayerInfo)
             HLOGW("HdiOutput::ReleaseLayers: hdiLayer or rsLayer is nullptr");
             continue;
         }
-        releaseLayerInfo.timestampVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(), hdiLayer->GetRSLayer()->IsSupportedPresentTimestamp(),
+        releaseLayerInfo.timestampVec.push_back(std::tuple(hdiLayer->GetRSLayer()->GetRSLayerId(),
+            hdiLayer->GetRSLayer()->GetIsSupportedPresentTimestamp(),
             hdiLayer->GetRSLayer()->GetPresentTimestamp()));
     }
     std::unordered_map<RSLayerId, sptr<SyncFence>> releaseBufferFenceMap;

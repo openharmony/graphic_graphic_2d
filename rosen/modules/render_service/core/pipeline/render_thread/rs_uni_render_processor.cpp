@@ -167,7 +167,7 @@ void RSUniRenderProcessor::CreateLayer(/*const ??? todo */ RSSurfaceRenderNode& 
         layerRect.x, layerRect.y, layerRect.w, layerRect.h,
         cropRect.x, cropRect.y, cropRect.w, cropRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
-        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType, layer->GetTransformType());
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layerInfo.layerType, layer->GetTransform());
     RS_LOGD_IF(DEBUG_PIPELINE,
         "CreateLayer name:%{public}s ScreenId:%{public}" PRIu64 " zorder:%{public}d layerRect:[%{public}d, %{public}d, "
         "%{public}d, %{public}d] cropRect:[%{public}d, %{public}d, %{public}d, %{public}d] "
@@ -177,7 +177,7 @@ void RSUniRenderProcessor::CreateLayer(/*const ??? todo */ RSSurfaceRenderNode& 
         layerRect.x, layerRect.y, layerRect.w, layerRect.h,
         cropRect.x, cropRect.y, cropRect.w, cropRect.h,
         dirtyRect.x, dirtyRect.y, dirtyRect.w, dirtyRect.h, buffer->GetSurfaceBufferWidth(),
-        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetTransformType());
+        buffer->GetSurfaceBufferHeight(), layerInfo.alpha, layer->GetTransform());
     layers_.emplace_back(layer);
     params.SetLayerCreated(true);
 }

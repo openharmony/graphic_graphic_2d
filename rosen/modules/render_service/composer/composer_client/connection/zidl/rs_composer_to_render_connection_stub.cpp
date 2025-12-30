@@ -44,11 +44,11 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
             auto vecSize = data.ReadUint32();
             for (uint32_t i = 0; i < vecSize; i++) {
                 auto layerId = data.ReadUint64();
-                bool IsSupportedPresentTimestamp = data.ReadBool();
+                bool isSupportedPresentTimestamp = data.ReadBool();
                 GraphicPresentTimestamp timestamp;
                 timestamp.type = static_cast<GraphicPresentTimestampType>(data.ReadUint32());
                 timestamp.time = data.ReadInt64();
-                releaseLayerInfo.timestampVec.push_back(std::tuple(layerId, IsSupportedPresentTimestamp, timestamp));
+                releaseLayerInfo.timestampVec.push_back(std::tuple(layerId, isSupportedPresentTimestamp, timestamp));
             }
             vecSize = data.ReadUint32();
             for (uint32_t i = 0; i < vecSize; i++) {

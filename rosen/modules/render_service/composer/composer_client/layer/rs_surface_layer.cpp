@@ -184,7 +184,7 @@ void RSSurfaceLayer::SetTransform(GraphicTransformType type)
     SetRSLayerCmd<RSLayerTransformCmd>(type);
 }
 
-GraphicTransformType RSSurfaceLayer::GetTransformType() const
+GraphicTransformType RSSurfaceLayer::GetTransform() const
 {
     return transformType_;
 }
@@ -399,7 +399,7 @@ const GraphicHDRMetaDataSet& RSSurfaceLayer::GetMetaDataSet() const
     return metaDataSet_;
 }
 
-void RSSurfaceLayer::SetMatrix(GraphicMatrix matrix)
+void RSSurfaceLayer::SetMatrix(const GraphicMatrix& matrix)
 {
     if (matrix_ == matrix) {
         return;
@@ -520,7 +520,7 @@ void RSSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
     SetRSLayerCmd<RSLayerIsSupportedPresentTimestampCmd>(isSupported);
 }
 
-bool RSSurfaceLayer::IsSupportedPresentTimestamp() const
+bool RSSurfaceLayer::GetIsSupportedPresentTimestamp() const
 {
     return isSupportedPresentTimestamp_;
 }
@@ -674,7 +674,7 @@ void RSSurfaceLayer::SetIsMaskLayer(bool isMaskLayer)
     SetRSLayerCmd<RSLayerIsMaskLayerCmd>(isMaskLayer);
 }
 
-bool RSSurfaceLayer::IsMaskLayer() const
+bool RSSurfaceLayer::GetIsMaskLayer() const
 {
     return isMaskLayer_;
 }
@@ -693,7 +693,7 @@ uint64_t RSSurfaceLayer::GetNodeId() const
     return nodeId_;
 }
 
-void RSSurfaceLayer::SetAncoFlags(const uint32_t ancoFlags)
+void RSSurfaceLayer::SetAncoFlags(uint32_t ancoFlags)
 {
     if (ancoFlags_ == ancoFlags) {
         return;
