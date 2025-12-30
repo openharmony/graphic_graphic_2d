@@ -1677,8 +1677,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->SetProtectedLayer(true);
                 }
                 const auto& instanceNode = surfaceNode->GetInstanceRootNode();
-                if (instanceNode && instanceNode->IsOnTheTree()) {
-                    RSDrmUtil::CollectDrmNodes(surfaceNode);
+                if (instanceNode && instanceNode->IsOnTheTree() && surfaceHandler->GetBuffer()) {
+                    RSDrmUtil::DealWithDRMNodes(surfaceNode, surfaceHandler->GetBuffer());
                 }
             }
 #endif
