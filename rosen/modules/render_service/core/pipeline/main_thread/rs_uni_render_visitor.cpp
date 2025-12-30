@@ -828,6 +828,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node)
     curScreenNode_->UpdatePartialRenderParams();
     curScreenNode_->SetFingerprint(hasFingerprint_);
     curScreenNode_->UpdateScreenRenderParams();
+    curScreenNode_->SetCloneNodeMap(cloneNodeMap_);
     UpdateColorSpaceAfterHwcCalc(node);
     RSHdrUtil::UpdatePixelFormatAfterHwcCalc(node);
 
@@ -1446,7 +1447,7 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
         return false;
     }
     node.SetIsClonedNodeOnTheTree(clonedNode->IsOnTheTree());
-    cloneNodeMap[node.GetClonedNodeId()] = node.GetId();
+    cloneNodeMap_[node.GetClonedNodeId()] = clonedNodeRenderDrawable;
     clonedSourceNodeId_ = node.GetClonedNodeId();
     node.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
     node.UpdateRenderParams();
@@ -1458,11 +1459,9 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
 void RSUniRenderVisitor::UpdateInfoForClonedNode(RSSurfaceRenderNode& node)
 {
     NodeId sourceId = node.GetId();
-    for (auto &[sid, cids] : cloneNodeMap) {
-        if (sourceId == sid) {
-            node.UpdateInfoForClonedNode(true);
-            return;
-        }
+    if (auto it = cloneNodeMap_.find(sourceId); it != cloneNodeMap_.end()) {
+        node.UpdateInfoForClonedNode(true);
+        return;
     }
     node.UpdateInfoForClonedNode(false);
 }

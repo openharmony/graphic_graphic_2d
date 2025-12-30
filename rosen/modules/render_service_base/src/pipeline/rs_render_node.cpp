@@ -1328,6 +1328,7 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         out += ", isSurfaceBufferOpaque: " + std::to_string(surfaceNode->GetSurfaceBufferOpaque());
         if (surfaceNode->IsCloneNode()) {
             out += ", isCloneNode: " + std::to_string(surfaceNode->IsCloneNode());
+            out += ", isRelated: " + std::to_string(surfaceNode->IsRelated());
             out += ", sourceNodeId: " + std::to_string(surfaceNode->GetClonedNodeId());
         }
     } else if (GetType() == RSRenderNodeType::ROOT_NODE) {

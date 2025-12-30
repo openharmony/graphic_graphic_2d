@@ -480,8 +480,8 @@ private:
     bool zoomStateChange_ = false;
 
     uint32_t layerNum_ = 0;
-
-    std::map<NodeId, std::vector<NodeId>> cloneNodeMap;
+    // first: cloneSource id; second: cloneSource drawable
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
 
     bool isDumpRsTreeDetailEnabled_ = false;
     uint32_t nodePreparedSeqNum_ = 0;

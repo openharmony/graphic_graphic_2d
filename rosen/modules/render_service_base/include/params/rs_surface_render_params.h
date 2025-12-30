@@ -628,6 +628,21 @@ public:
 
     bool IsRelated() const;
 
+    void SetRelated(bool value)
+    {
+        isRelated_ = value;
+    }
+
+    void SetRelatedSourceNode(bool value)
+    {
+        isRelatedSourceNode_ = value;
+    }
+
+    bool IsRelatedSourceNode()
+    {
+        return isRelatedSourceNode_;
+    }
+
     bool GetIsHwcEnabledBySolidLayer() const
     {
         return isHwcEnabledBySolidLayer_;
@@ -786,6 +801,7 @@ private:
     bool isCloneNode_ = false;
     bool isRelated_ = false;
     bool clonedSourceNode_ = false;
+    bool isRelatedSourceNode_ = false;
     bool isTransparent_ = false;
     bool isSpherizeValid_ = false;
     bool isAttractionValid_ = false;

@@ -697,7 +697,12 @@ public:
     {
         return isCloneNode_;
     }
+    bool IsRelated() const;
+    void SetRelated(bool value);
+    void SetRelatedSourceNode(bool value);
     void SetClonedNodeInfo(NodeId id, bool needOffscreen, bool isRelatde);
+    bool CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> currentNode,
+        std::shared_ptr<RSSurfaceRenderNode> cloneNode);
     void SetIsCloned(bool isCloned);
     void SetIsClonedNodeOnTheTree(bool isOnTheTree)
     {

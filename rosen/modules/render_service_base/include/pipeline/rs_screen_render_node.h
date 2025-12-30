@@ -508,6 +508,9 @@ public:
 
     void CheckSurfaceChanged();
 
+    void SetCloneNodeMap(
+        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
+
 protected:
     void OnSync() override;
 private:

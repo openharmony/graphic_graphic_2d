@@ -248,7 +248,7 @@ bool RSSurfaceRenderNode::IsYUVBufferFormat() const
 #endif
 }
 
-void RSSurfaceRenderNode::UpdateInfoForClonedNode(boll isClonedNode)
+void RSSurfaceRenderNode::UpdateInfoForClonedNode(bool isClonedNode)
 {
     if (isClonedNode && IsMainWindowType() && clonedSourceNodeNeedOffscreen_) {
         SetNeedCacheSurface(true);
@@ -1168,7 +1168,8 @@ void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool 
     }
     clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
     isCloneNode_ = (id != INVALID_NODEID);
-    isRelated_ = isCloneNode_ && isRelated;
+    clonedSurfaceNode->SetRelatedSourceNode(isRelated);
+    SetRelated(isCloneNode_ && isRelated);
     clonedSourceNodeId_ = id;
     RS_LOGD("RSSurfaceRenderNode::SetClonedNodeInfo clonedNode[%{public}" PRIu64 "] needOffscreen: %{public}d"
         "isRelated: %{public}d", id, needOffscreen, isRelated_);
@@ -3877,6 +3878,35 @@ bool RSSurfaceRenderNode::IsAncestorScreenFrozen() const
     }
     screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(firstLevelNode->GetAncestorScreenNode().lock());
     return screenNode == nullptr ? false : screenNode->GetForceFreeze();
+}
+
+void RSSurfaceRenderNode::SetRelated(bool value)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRelated(value);
+    AddToPendingSyncList();
+}
+
+void RSSurfaceRenderNode::SetRelatedSourceNode(bool value)
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return;
+    }
+    surfaceParams->SetRelatedSourceNode(value);
+    AddToPendingSyncList();
+}
+
+bool RSSurfaceRenderNode::IsRelated() const
+{
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(stagingRenderParams_.get());
+    if (surfaceParams == nullptr) {
+        return false;
+    }
+    surfaceParams->IsRelated();
 }
 } // namespace Rosen
 } // namespace OHOS

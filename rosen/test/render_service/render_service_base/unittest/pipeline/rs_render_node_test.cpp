@@ -4102,5 +4102,22 @@ HWTEST_F(RSRenderNodeTest, UpdateShadowRectTest001, TestSize.Level1)
     drawable->colorStrategy_ = SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_AVERAGE;
     nodeTest->UpdateShadowRect();
 }
+
+/**
+ * @tc.name: DumpSubClassNodeTest
+ * @tc.desc: DumpNodeType DumpTree and DumpSubClassNodeTest test
+ * @tc.type: FUNC
+ * @tc.require: issueI9US6V
+ */
+HWTEST_F(RSRenderNodeTest, DumpSubClassNodeTest005, TestSize.Level1)
+{
+    std::string outTest = "";
+    auto renderNode = std::make_shared<RSRenderNode>(0);
+    renderNode->isCloneNode_ = true;
+    renderNode->DumpSubClassNodeTest(outTest);
+    ASSERT_TRUE(outTest.find("isCloneNode") != std::string::npos);
+    ASSERT_TRUE(outTest.find("isRelated") != std::string::npos);
+    ASSERT_TRUE(outTest.find("sourceNodeId") != std::string::npos);
+}
 } // namespace Rosen
 } // namespace OHOS
