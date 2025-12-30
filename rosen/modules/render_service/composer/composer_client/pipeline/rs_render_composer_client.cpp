@@ -115,7 +115,7 @@ void RSRenderComposerClient::ClearFrameBuffers()
 {
     std::lock_guard<std::mutex> lock(clientMutex_);
     rsComposerContext_->ClearFrameBuffers();
-    isPreAllocProtectedFrameBuffer_.store(false);
+    isPreAllocProtectedFrameBuffer_ = false;
 }
 
 int RSRenderComposerClient::GetAccumulatedBufferCount()
@@ -207,11 +207,11 @@ void RSRenderComposerClient::ConvertScreenInfo(const ScreenInfo& screenInfo, Com
 void RSRenderComposerClient::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
 {
     std::lock_guard<std::mutex> lock(clientMutex_);
-    if (isPreAllocProtectedFrameBuffer_.load()) {
+    if (isPreAllocProtectedFrameBuffer_) {
         return;
     }
     rsComposerContext_->PreAllocProtectedFrameBuffers(buffer);
-    isPreAllocProtectedFrameBuffer_.store(true);
+    isPreAllocProtectedFrameBuffer_ = true;
 }
 } // namespace Rosen
 } // namespace OHOS
