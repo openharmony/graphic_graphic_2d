@@ -41,7 +41,7 @@ public:
     void AfterEach() override
     {
         RSInterfaces::GetInstance().ClearSurfaceWatermark(getpid(), watermarkName_);
-        RSInterfaces::GetInstance().ShowWatermark(DisplayWaterMarkPixelMap_, false);
+        RSInterfaces::GetInstance().ShowWatermark(displayWaterMarkpixelMap_, false);
     }
 
     RSSurfaceNode::SharedPtr CreateTestSurfaceNode()
@@ -77,7 +77,7 @@ public:
     }
     std::string watermarkName_;
     std::shared_ptr<Media::PixelMap> displayWaterMarkpixelMap_;
-}
+};
 
 /*
  * @tc.name: SA_Surface_Watermark_Test01
@@ -417,7 +417,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, SA_Surface_Watermark_Test15
 
     auto pixelMap = DecodePixelMap("/data/local/tmp/Images/AllBlack.jpg");
     pixelMap->SetAstc(true);
-    RSInterfaces::GetInstance().SetWatermark(name5, pixelMap);
+    RSInterfaces::GetInstance().SetWatermark(watermarkName_, pixelMap);
     usleep(SLEEP_TIME_FOR_PROXY);
 };
 
@@ -876,7 +876,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test1
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::SYSTEM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(getpid(), watermarkName_, surfaceNode->GetId());
+    RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(getpid(), watermarkName_, {surfaceNode->GetId()});
 };
 
 /*
@@ -897,7 +897,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(getpid(), watermarkName_, surfaceNode->GetId());
+    RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(getpid(), watermarkName_, {surfaceNode->GetId()});
 };
 
 /*
@@ -919,7 +919,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test2
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap, {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
-    RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(4445522, watermarkName_, surfaceNode->GetId());
+    RSInterfaces::GetInstance().ClearSurfaceWatermarkForNodes(4445522, watermarkName_, {surfaceNode->GetId()});
 };
 
 /*
@@ -1127,7 +1127,7 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
         std::string name("watermark" + std::to_string(i));
         nameList.push_back(name);
         RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name, pixelMap1,
-            {surfaceNode->GetId()}
+            {surfaceNode->GetId()},
             SurfaceWatermarkType::SYSTEM_WATER_MARK);
     }
     RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name, pixelMap2,
@@ -1160,10 +1160,10 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
         std::string name("watermark" + std::to_string(i));
         nameList.push_back(name);
         RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name, pixelMap1,
-            {surfaceNode->GetId()}
+            {surfaceNode->GetId()},
             SurfaceWatermarkType::CUSTOM_WATER_MARK);
     }
-    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), name, pixelMap2,
+    RSInterfaces::GetInstance().SetSurfaceWatermark(getpid(), watermarkName_, pixelMap2,
         {surfaceNode->GetId()},
         SurfaceWatermarkType::CUSTOM_WATER_MARK);
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -1254,16 +1254,16 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
 };
 
 /*
- * @tc.name: App_Surface_Watermark_Test36
+ * @tc.name: App_Surface_Watermark_Test37
  * @tc.desc: test pixelMap is valid, CUSTOM_WATER_MARK, update big watermark, not show watermark
  * @tc.type FUN
 */
-GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test36)
+GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test37)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->AddChild(surfaceNode);
     RegisterNode(surfaceNode);
-    watermarkName_ = "App_Surface_Watermark_Test36";
+    watermarkName_ = "App_Surface_Watermark_Test37";
     surfaceNode->SetWatermarkEnabled(watermarkName_, true);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
@@ -1281,16 +1281,16 @@ GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test3
 };
 
 /*
- * @tc.name: App_Surface_Watermark_Test36
+ * @tc.name: App_Surface_Watermark_Test38
  * @tc.desc: test pixelMap is valid, CUSTOM_WATER_MARK, pixelMap is asctc, nodeList is empty, not show watermark
  * @tc.type FUN
 */
-GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test36)
+GRAPHIC_N_TEST(WatermarktTest, CONTENT_DISPLAY_TEST, App_Surface_Watermark_Test38)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->AddChild(surfaceNode);
     RegisterNode(surfaceNode);
-    watermarkName_ = "App_Surface_Watermark_Test36";
+    watermarkName_ = "App_Surface_Watermark_Test38";
     surfaceNode->SetWatermarkEnabled(watermarkName_, true);
     RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
     usleep(SLEEP_TIME_FOR_PROXY);
