@@ -47,17 +47,7 @@ public:
     bool Init();
     void Run();
     std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> GetConnection(
-        sptr<RSIConnectionToken>& token) override
-    {
-        std::unique_lock<std::mutex> lock(mutex_);
-        auto tokenObj = token->AsObject();
-        auto iter = connections_.find(tokenObj);
-        if (iter == connections_.end()) {
-            RS_LOGE("GetConnection: connections_ cannot find token");
-            return {nullptr, nullptr};
-        }
-        return iter->second;
-    }
+        const sptr<RSIConnectionToken>& token) override;
 
 private:
     class ScreenManagerListener : public RSIScreenManagerListener {

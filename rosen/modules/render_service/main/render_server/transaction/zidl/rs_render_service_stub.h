@@ -34,7 +34,7 @@ public:
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
     virtual std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
-        GetConnection(sptr<RSIConnectionToken>& token) = 0;
+        GetConnection(const sptr<RSIConnectionToken>& token) = 0;
 private:
     static const RSInterfaceCodeSecurityManager securityManager_;
     RSRenderServiceSecurityUtils securityUtils_;

@@ -18,7 +18,6 @@
 
 #include <vector>
 
-#include "irs_composer_to_render_connection.h"
 #include "platform/ohos/transaction/zidl/rs_iconnect_to_render_process.h"
 #include "render_process/transaction/zidl/rs_iservice_to_render_connection.h"
 #include "render_server/transaction/zidl/rs_irender_to_service_connection.h"
@@ -39,6 +38,10 @@ public:
     void OnScreenBacklightChanged(ScreenId id, uint32_t level) override;
     void OnActiveScreenIdChanged(ScreenId activeScreenId) override;
     void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData) override;
+
+    void OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+        const sptr<RSScreenProperty>& property) override;
+    void OnHwcDead(ScreenId id) override;
 
     virtual sptr<RSIServiceToRenderConnection> GetServiceToRenderConn(ScreenId screenId) const = 0;
     virtual std::vector<sptr<RSIServiceToRenderConnection>> GetServiceToRenderConns() const = 0;
