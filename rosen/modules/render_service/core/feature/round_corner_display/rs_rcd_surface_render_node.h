@@ -138,9 +138,7 @@ public:
         displayRect_ = rect;
     }
 
-    static Drawing::Bitmap PareseBitmapFromRCDLayer(const std::shared_ptr<RSLayer>& layer);
-
-    static Drawing::Bitmap CreateBitmapFromPixelMap(const PixelMapPtr& pixelMap);
+    static void DrawRsRCDLayer(RSPaintFilterCanvas& canvas, const std::shared_ptr<RSLayer>& layer);
 
     static PixelMapPtr CreatePixelMapFromBitmap(const Drawing::Bitmap& src);
 

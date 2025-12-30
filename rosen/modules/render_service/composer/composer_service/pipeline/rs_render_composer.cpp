@@ -860,6 +860,7 @@ void RSRenderComposer::RedrawScreenRCD(RSPaintFilterCanvas& canvas, const std::v
             continue;
         }
     }
+    RSRcdRenderManager::DrawRoundCorner(canvas, rcdLayerInfoList);
 }
 
 void RSRenderComposer::Redraw(const sptr<Surface>& surface, const std::vector<std::shared_ptr<RSLayer>>& layers)

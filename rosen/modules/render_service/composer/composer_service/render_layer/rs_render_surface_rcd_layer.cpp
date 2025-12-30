@@ -56,5 +56,17 @@ void RSRenderSurfaceRCDLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLay
     }
     ROSEN_LOGD("RSRenderSurfaceRCDLayer::UpdateRSLayerCmd type:%{}d", static_cast<int32_t>(type));
 }
+
+void RSRenderSurfaceRCDLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer)
+{
+    if (rsLayer == nullptr) {
+        return;
+    }
+    RSRenderSurfaceLayer::CopyLayerInfo(rsLayer);
+    if (rsLayer->IsScreenRCDLayer()) {
+        auto rcdLayer = std::static_pointer_cast<RSRenderSurfaceRCDLayer>(rsLayer);
+        SetPixelMap(rcdLayer->GetPixelMap());
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
