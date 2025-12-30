@@ -147,7 +147,7 @@ void RSShadowDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect
 
     // skip shadow if cache is enabled
     if (canvas->GetCacheType() == Drawing::CacheType::ENABLED) {
-        ROSEN_LOGD("RSShadowDrawable::CreateDrawFunc cache type enabled.");
+        ROSEN_LOGD("RSShadowDrawable::OnDraw cache type enabled.");
         return;
     }
 #ifdef RS_ENABLE_GPU
@@ -821,7 +821,7 @@ void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* r
 #endif
     if (useEffectType_ == UseEffectType::BEHIND_WINDOW &&
         (paintFilterCanvas->GetIsWindowFreezeCapture() || paintFilterCanvas->GetIsDrawingCache())) {
-        RS_TRACE_NAME_FMT("RSUseEffectDrawable::CreateDrawFunc drawBehindWindow WindowFreezeCapture:%d, "
+        RS_TRACE_NAME_FMT("RSUseEffectDrawable::OnDraw drawBehindWindow WindowFreezeCapture:%d, "
             "DrawingCache:%d, CacheData_valid:%d, bounds:%s", paintFilterCanvas->GetIsWindowFreezeCapture(),
             paintFilterCanvas->GetIsDrawingCache(), paintFilterCanvas->GetCacheBehindWindowData() != nullptr,
             paintFilterCanvas->GetDeviceClipBounds().ToString().c_str());

@@ -562,7 +562,7 @@ void RSForegroundFilterRestoreDrawable::OnDraw(Drawing::Canvas* canvas, const Dr
     RSTagTracker tagTracker(paintFilterCanvas ? paintFilterCanvas->GetGPUContext() : nullptr,
         RSTagTracker::SOURCETYPE::SOURCE_RSFOREGROUNDFILTERRESTOREDRAWABLE);
 #endif
-    RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::CreateDrawFunc node[%llu] ", renderNodeId_);
+    RS_TRACE_NAME_FMT("RSForegroundFilterRestoreDrawable::OnDraw node[%llu] ", renderNodeId_);
     RSPropertyDrawableUtils::DrawForegroundFilter(*paintFilterCanvas, foregroundFilter_);
 }
 

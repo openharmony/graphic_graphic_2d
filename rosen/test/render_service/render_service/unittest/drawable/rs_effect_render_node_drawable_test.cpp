@@ -199,6 +199,7 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUI
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
     drawable->drawCmdIndex_.childrenIndex_ = 0;
 
+    paintFilterCanvas.SetEffectData(std::make_shared<RSPaintFilterCanvas::CachedEffectData>());
     RSEffectRenderParams params(nodeId);
     params.SetHasEffectChildrenWithoutEmptyRect(false);
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));

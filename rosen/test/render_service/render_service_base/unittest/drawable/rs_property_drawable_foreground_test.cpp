@@ -504,12 +504,12 @@ HWTEST_F(RSPropertyDrawableForegroundTest, DrawLightTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateDrawFuncAndRunTest001
- * @tc.desc: CreateDrawFuncAndRun test
+ * @tc.name: OnDrawAndRunTest001
+ * @tc.desc: OnDrawAndRun test
  * @tc.type: FUNC
  * @tc.require:issueI9SCBR
  */
-HWTEST_F(RSPropertyDrawableForegroundTest, CreateDrawFuncAndRunTest001, TestSize.Level1)
+HWTEST_F(RSPropertyDrawableForegroundTest, OnDrawAndRunTest001, TestSize.Level1)
 {
     std::shared_ptr<DrawableV2::RSForegroundFilterRestoreDrawable> foregroundFilterRestoreDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterRestoreDrawable>();

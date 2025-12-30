@@ -386,7 +386,7 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundImageDrawable002, TestSize.Le
 
 /**
  * @tc.name: RSBackgroundImageDrawable003
- * @tc.desc: Test CreateDrawFunc
+ * @tc.desc: Test OnDraw
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
@@ -614,12 +614,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundFilterDrawable002, TestSize.L
 #endif
 
 /**
- * @tc.name: RSBackgroundEffectDrawableCreateDrawFuncTest001
+ * @tc.name: RSBackgroundEffectDrawableOnDrawTest001
  * @tc.desc: Test OnDraw
  * @tc.type:FUNC
  * @tc.require: issueI9QIQO
  */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncTest001, TestSize.Level1)
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableOnDrawTest001, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     int width = 1270;
@@ -634,12 +634,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncT
 }
 
 /**
- * @tc.name: RSBackgroundEffectDrawableCreateDrawFuncTest002
+ * @tc.name: RSBackgroundEffectDrawableOnDrawTest002
  * @tc.desc: Test OnDraw with empty rect
  * @tc.type:FUNC
  * @tc.require: issue20322
  */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncTest002, TestSize.Level1)
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableOnDrawTest002, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     int width = 1270;
@@ -654,12 +654,12 @@ HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncT
 }
 
 /**
- * @tc.name: RSBackgroundEffectDrawableCreateDrawFuncTest003
- * @tc.desc: Test CreateDrawFunc
+ * @tc.name: RSBackgroundEffectDrawableOnDrawTest003
+ * @tc.desc: Test OnDraw
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableCreateDrawFuncTest003, TestSize.Level1)
+HWTEST_F(RSRSBinarizationDrawableTest, RSBackgroundEffectDrawableOnDrawTest003, TestSize.Level1)
 {
     auto drawable = std::make_shared<DrawableV2::RSBackgroundEffectDrawable>();
     int width = 1270;
