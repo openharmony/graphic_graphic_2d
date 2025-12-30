@@ -430,6 +430,20 @@ HWTEST_F(RSScreenTest, GetScreenTypeTest, testing::ext::TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetConnectionTypeTest
+ * @tc.desc: GetConnectionType Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenTest, GetConnectionTypeTest, testing::ext::TestSize.Level1)
+{
+    VirtualScreenConfigs config;
+    auto virtualScreen = std::make_shared<RSScreen>(config);
+    ASSERT_NE(virtualScreen, nullptr);
+    virtualScreen->GetConnectionType();
+}
+
+/*
  * @tc.name: SetScreenSkipFrameIntervalTest
  * @tc.desc: SetScreenSkipFrameInterval Test
  * @tc.type: FUNC

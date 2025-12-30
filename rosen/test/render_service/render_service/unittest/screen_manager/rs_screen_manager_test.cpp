@@ -950,6 +950,48 @@ HWTEST_F(RSScreenManagerTest, GetScreenType_001, TestSize.Level1)
 }
 
 /*
+ * @tc.name: GetScreenConnectionType_001
+ * @tc.desc: Test GetScreenConnectionType false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenConnectionType_001, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    ASSERT_EQ(ScreenConnectionType::INVALID_DISPLAY_CONNECTION_TYPE, screenManager->GetScreenConnectionType(SCREEN_ID));
+}
+
+/*
+ * @tc.name: GetScreenConnectionType_002
+ * @tc.desc: Test GetScreenConnectionType succeed.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerTest, GetScreenConnectionType_002, TestSize.Level1)
+{
+    auto screenManager = CreateOrGetScreenManager();
+    ASSERT_NE(nullptr, screenManager);
+    std::string name = "virtualScreen01";
+    uint32_t width = 480;
+    uint32_t height = 320;
+
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+
+    auto id = screenManager->CreateVirtualScreen(name, width, height, psurface);
+    ASSERT_NE(INVALID_SCREEN_ID, id);
+
+    screenManager->GetScreenConnectionType(id);
+
+    screenManager->RemoveVirtualScreen(id);
+    sleep(1);
+}
+
+/*
  * @tc.name: SetScreenConstraint_001
  * @tc.desc: Test SetScreenConstraint
  * @tc.type: FUNC
