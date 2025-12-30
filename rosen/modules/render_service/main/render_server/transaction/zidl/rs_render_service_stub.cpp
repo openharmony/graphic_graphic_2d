@@ -45,8 +45,6 @@ int RSRenderServiceStub::OnRemoteRequest(
             "by pid[%{public}d]", code, accessCount, GetCallingPid());
         return ERR_INVALID_STATE;
     }
-#endif
-#ifdef ENABLE_IPC_SECURITY_ACCESS_COUNTER
     securityUtils_.IncreaseAccessCounter(code);
 #endif
     int ret = ERR_NONE;

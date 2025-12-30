@@ -24,25 +24,24 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 
+#include "dfx/rs_service_dump_manager.h"
 #include "feature/param_manager/rs_param_manager.h"
-#include "feature/uifirst/rs_sub_thread_manager.h"
+#include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "hgm_core.h"
 #include "parameter.h"
 #include "render_process/transaction/rs_service_to_render_connection.h"
 #include "rs_profiler.h"
-#include "vsync_generator.h"
 
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "transaction/rs_client_to_render_connection.h"
 
-#include "dfx/rs_service_dump_manager.h"
-#include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "graphic_feature_param_manager.h"
 #include "pipeline/rs_uni_render_judgement.h"
 #include "rs_render_composer_manager.h"
 
 #include "rs_render_process_manager_agent.h"
 #include "transaction/rs_client_to_service_connection.h"
+#include "vsync_generator.h"
 #include "xcollie/watchdog.h"
 
 #ifdef RS_ENABLE_RDO
@@ -287,6 +286,19 @@ void RSRenderService::Run()
     }
 }
 
+std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::GetConnection(
+    const sptr<RSIConnectionToken>& token)
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto tokenObj = token->AsObject();
+    auto iter = connections_.find(tokenObj);
+    if (iter == connections_.end()) {
+        RS_LOGE("GetConnection: connections_ cannot find token");
+        return {nullptr, nullptr};
+    }
+    return iter->second;
+}
+
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
     if (!mainThread_ || !token) {
@@ -398,17 +410,6 @@ void RSRenderService::ScreenManagerListener::OnScreenDisconnected(ScreenId id)
     renderService_.renderProcessManager_->OnScreenDisconnected(id);
 }
 
-void RSRenderService::ScreenManagerListener::OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
-                                                           const sptr<RSScreenProperty>& property)
-{
-    renderService_.renderProcessManager_->OnHwcRestored(id, output, property);
-}
-
-void RSRenderService::ScreenManagerListener::OnHwcDead(ScreenId id)
-{
-    renderService_.renderProcessManager_->OnHwcDead(id);
-}
-
 void RSRenderService::ScreenManagerListener::OnScreenPropertyChanged(ScreenId id,
     const sptr<RSScreenProperty>& property)
 {
@@ -448,6 +449,19 @@ void RSRenderService::ScreenManagerListener::OnHwcEvent(uint32_t deviceId, uint3
     const std::vector<int32_t>& eventData)
 {
     renderService_.renderProcessManager_->OnHwcEvent(deviceId, eventId, eventData);
+}
+
+void RSRenderService::ScreenManagerListener::OnHwcRestored(ScreenId id, const std::shared_ptr<HdiOutput>& output,
+    const sptr<RSScreenProperty>& property)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
+    renderService_.rsRenderComposerManager_->OnHwcRestored(output, property);
+}
+
+void RSRenderService::ScreenManagerListener::OnHwcDead(ScreenId id)
+{
+    RS_LOGI("%{public}s: ScreenId[%{public}" PRIu64 "]", __func__, id);
+    renderService_.rsRenderComposerManager_->OnHwcDead(id);
 }
 
 void RSRenderService::ScreenManagerListener::OnActiveScreenIdChanged(ScreenId activeScreenId)
