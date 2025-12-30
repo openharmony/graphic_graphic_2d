@@ -174,7 +174,7 @@ ScreenId RSScreenManager::GetActiveScreenId()
 }
 #endif
 
-void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>>& retScreens)
+void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens)
 {
     RS_TRACE_FUNC();
     RS_LOGW("%{public}s.", __func__);
@@ -1029,7 +1029,7 @@ void RSScreenManager::GetDefaultScreenActiveMode(RSScreenModeInfo& screenModeInf
 }
 
 /* only used for mock tests */
-void RSScreenManager::MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen)
+void RSScreenManager::MockHdiScreenConnected(std::shared_ptr<RSScreen> rsScreen)
 {
     if (rsScreen == nullptr) {
         return;
@@ -1570,7 +1570,7 @@ void RSScreenManager::NotifySwitchingCallback(bool status) const
     screenSwitchingNotifyCallback_->OnScreenSwitchingNotify(status);
 }
 
-std::shared_ptr<OHOS::Rosen::RSScreen> RSScreenManager::GetScreen(ScreenId id) const
+std::shared_ptr<RSScreen> RSScreenManager::GetScreen(ScreenId id) const
 {
     std::lock_guard<std::mutex> lock(screenMapMutex_);
     auto iter = screens_.find(id);
