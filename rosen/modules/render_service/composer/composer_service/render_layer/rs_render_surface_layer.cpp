@@ -39,17 +39,15 @@ static std::unordered_map<RSLayerCmdType, RSLayerCmdHandler> cmdHandlers_ = {
 
 RSRenderSurfaceLayer::RSRenderSurfaceLayer()
 {
-    RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::RSRenderSurfaceLayer id: %" PRIu64 ", name: %s",
-        rsLayerId_, surfaceName_.c_str());
-    RS_LOGI("Constructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", name: %{public}s",
-        rsLayerId_, surfaceName_.c_str());
+    RS_TRACE_NAME_FMT("Constructing RSRenderSurfaceLayer");
+    RS_LOGD("Constructing RSRenderSurfaceLayer");
 }
 
 RSRenderSurfaceLayer::~RSRenderSurfaceLayer()
 {
     RS_TRACE_NAME_FMT("RSRenderSurfaceLayer::~RSRenderSurfaceLayer id: %" PRIu64 ", name: %s",
         rsLayerId_, surfaceName_.c_str());
-    RS_LOGI("Destructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", surface name: %{public}s",
+    RS_LOGD("Destructing RSRenderSurfaceLayer, id: %{public}" PRIu64 ", surface name: %{public}s",
         rsLayerId_, surfaceName_.c_str());
 }
 
@@ -325,12 +323,12 @@ uint32_t RSRenderSurfaceLayer::GetTunnelLayerProperty() const
 
 void RSRenderSurfaceLayer::SetIsSupportedPresentTimestamp(bool isSupported)
 {
-    IsSupportedPresentTimestamp_ = isSupported;
+    isSupportedPresentTimestamp_ = isSupported;
 }
 
 bool RSRenderSurfaceLayer::GetIsSupportedPresentTimestamp() const
 {
-    return IsSupportedPresentTimestamp_;
+    return isSupportedPresentTimestamp_;
 }
 
 void RSRenderSurfaceLayer::SetPresentTimestamp(const GraphicPresentTimestamp& timestamp)
@@ -492,12 +490,13 @@ LayerMask RSRenderSurfaceLayer::GetLayerMaskInfo() const
 
 void RSRenderSurfaceLayer::SetSurface(const sptr<IConsumerSurface>& surface)
 {
-    (void)surface;
+    // only used for separate rendering
+    cSurface_ = surface;
 }
 
 sptr<IConsumerSurface> RSRenderSurfaceLayer::GetSurface() const
 {
-    return nullptr;
+    return cSurface_;
 }
 
 void RSRenderSurfaceLayer::SetSurfaceUniqueId(uint64_t uniqueId)
@@ -620,6 +619,7 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
 {
     rsLayerId_ = rsLayer->GetRSLayerId();
     zOrder_ = rsLayer->GetZorder();
+    layerType_ = rsLayer->GetType();
     layerRect_ = rsLayer->GetLayerSize();
     boundRect_ = rsLayer->GetBoundSize();
     visibleRegions_ = rsLayer->GetVisibleRegions();
@@ -634,6 +634,9 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     colorTransformMatrix_ = rsLayer->GetColorTransform();
     colorSpace_ = rsLayer->GetColorDataSpace();
     layerColor_ = rsLayer->GetLayerColor();
+    backgroundColor_ = rsLayer->GetBackgroundColor();
+    drmCornerRadiusInfo_ = rsLayer->GetCornerRadiusInfoForDRM();
+    isUniRender_ = rsLayer->GetUniRenderFlag();
     metaData_ = rsLayer->GetMetaData();
     metaDataSet_ = rsLayer->GetMetaDataSet();
     tunnelHandle_ = rsLayer->GetTunnelHandle();
@@ -654,7 +657,14 @@ void RSRenderSurfaceLayer::CopyLayerInfo(const std::shared_ptr<RSLayer>& rsLayer
     needBilinearInterpolation_ = rsLayer->GetNeedBilinearInterpolation();
     tunnelLayerId_ = rsLayer->GetTunnelLayerId();
     tunnelLayerProperty_ = rsLayer->GetTunnelLayerProperty();
+    isSupportedPresentTimestamp_ = rsLayer->GetIsSupportedPresentTimestamp();
+    presentTimestamp_ = rsLayer->GetPresentTimestamp();
+    windowsName_ = rsLayer->GetWindowsName();
     ancoFlags_ = rsLayer->GetAncoFlags();
+    isMaskLayer_ = rsLayer->GetIsMaskLayer();
+    nodeId_ = rsLayer->GetNodeId();
+    cSurface_ = rsLayer->GetSurface();
+    layerMask_ = rsLayer->GetLayerMaskInfo();
     cycleBuffersNum_ = rsLayer->GetCycleBuffersNum();
     surfaceName_ = rsLayer->GetSurfaceName();
     solidColorLayerProperty_ = rsLayer->GetSolidColorLayerProperty();

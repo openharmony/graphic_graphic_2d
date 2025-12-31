@@ -195,7 +195,7 @@ private:
     sptr<SurfaceTunnelHandle> tunnelHandle_ = nullptr;
     std::vector<std::string> windowsName_;
     bool tunnelHandleChange_ = false;
-    bool IsSupportedPresentTimestamp_ = false;
+    bool isSupportedPresentTimestamp_ = false;
     GraphicPresentTimestamp presentTimestamp_ = {GRAPHIC_DISPLAY_PTS_UNSUPPORTED, 0};
     sptr<SyncFence> acquireFence_ = SyncFence::InvalidFence();
     sptr<SurfaceBuffer> sbuffer_ = nullptr;
@@ -225,6 +225,7 @@ private:
     bool useDeviceOffline_ = false;
     bool ignoreAlpha_ = false;
     GraphicIRect ancoSrcRect_ {-1, -1, -1, -1};
+    sptr<IConsumerSurface> cSurface_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
