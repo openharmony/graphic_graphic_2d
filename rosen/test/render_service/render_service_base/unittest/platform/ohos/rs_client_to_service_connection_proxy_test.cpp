@@ -1682,7 +1682,8 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, GetRefreshInfoByPidAndUniqueIdTes
 {
     pid_t pid = 1001; 
     uint64_t uniqueId = 0;
-    proxy->GetRefreshInfoByPidAndUniqueId(pid, uniqueId);
+    std::string result = "";
+    proxy->GetRefreshInfoByPidAndUniqueId(pid, uniqueId, result);
 }
 } // namespace Rosen
 } // namespace OHOS
