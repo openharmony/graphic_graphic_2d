@@ -1217,8 +1217,10 @@ void RSPropertyDrawableUtils::DrawUseEffect(RSPaintFilterCanvas* canvas, UseEffe
     canvas->AttachBrush(brush);
     // Draw the cached image in the coordinate system where the effect data is generated. The image content
     // outside the device clip bounds will be automatically clipped.
-    canvas->DrawImage(*effectData->cachedImage_, static_cast<float>(effectData->cachedRect_.GetLeft()),
-        static_cast<float>(effectData->cachedRect_.GetTop()), Drawing::SamplingOptions());
+    auto cachedImageSrcRect = Drawing::Rect(0, 0, effectData->cachedImage_->GetWidth(),
+        effectData->cachedImage_->GetHeight());
+    canvas->DrawImageRect(*effectData->cachedImage_, cachedImageSrcRect, effectData->cachedRect_,
+        Drawing::SamplingOptions(), Drawing::SrcRectConstraint::STRICT_SRC_RECT_CONSTRAINT);
     RS_OPTIONAL_TRACE_NAME_FMT("RSPropertyDrawableUtils::DrawUseEffect cachedRect_:%s, DeviceClipBounds:%s, "
         "IdentityMatrix: %d", effectData->cachedRect_.ToString().c_str(),
         canvas->GetDeviceClipBounds().ToString().c_str(), effectData->cachedMatrix_.IsIdentity());
