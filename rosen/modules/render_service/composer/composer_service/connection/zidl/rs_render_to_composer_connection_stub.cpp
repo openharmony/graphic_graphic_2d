@@ -66,21 +66,11 @@ int32_t RSRenderToComposerConnectionStub::OnRemoteRequest(uint32_t code, OHOS::M
             break;
         }
         case IRENDER_TO_COMPOSER_CONNECTION_SET_COMPOSER_TO_RENDER_CONNECTION: {
-            SetComposerToRenderConnectionStub(data);
+            ret = SetComposerToRenderConnectionStub(data);
             break;
         }
         case IRENDER_TO_COMPOSER_CONNECTION_PREALLOC_PROTECTED_FRAME_BUFFERS: {
-            uint32_t sequence;
-            sptr<SurfaceBuffer> buffer = nullptr;
-            auto readSafeFdFunc = [](OHOS::MessageParcel& parcel,
-                                      std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
-                return parcel.ReadFileDescriptor();
-            };
-            if (ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc) != GSERROR_OK) {
-                ret = COMPOSITOR_ERROR_BINDER_ERROR;
-                break;
-            }
-            PreAllocProtectedFrameBuffers(buffer);
+            ret = PreAllocProtectedFrameBuffersStub(data);
             break;
         }
         default: {
@@ -146,6 +136,21 @@ int32_t RSRenderToComposerConnectionStub::SetComposerToRenderConnectionStub(OHOS
         return COMPOSITOR_ERROR_BINDER_ERROR;
     }
     SetComposerToRenderConnection(composerToRenderConn);
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSRenderToComposerConnectionStub::PreAllocProtectedFrameBuffersStub(OHOS::MessageParcel& parcel)
+{
+    uint32_t sequence;
+    sptr<SurfaceBuffer> buffer = nullptr;
+    auto readSafeFdFunc = [](OHOS::MessageParcel& messageParcel,
+                                std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
+        return messageParcel.ReadFileDescriptor();
+    };
+    if (ReadSurfaceBufferImpl(parcel, sequence, buffer, readSafeFdFunc) != GSERROR_OK) {
+        return COMPOSITOR_ERROR_BINDER_ERROR;
+    }
+    PreAllocProtectedFrameBuffers(buffer);
     return COMPOSITOR_ERROR_OK;
 }
 } // namespace Rosen
