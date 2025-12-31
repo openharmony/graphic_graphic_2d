@@ -1430,15 +1430,15 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     auto originMatrix = clonedNodeSurfaceParams->GetMatrix();
     bool originShouldPaint = clonedNodeSurfaceParams->GetShouldPaint();
     bool originSkipDraw = clonedNodeSurfaceParams->GetSkipDraw();
-    float originAlpha = clonedNodeSurfaceParams->GetAlpha();
     // change some params in cloneNodeSurfaceParams like cloneNodeParams
     uniParam.SetOpDropped(false);
     clonedNodeSurfaceParams->SetOccludedByFilterCache(surfaceParams.GetOccludedByFilterCache());
     clonedNodeSurfaceParams->SetMatrix(surfaceParams.GetMatrix());
     clonedNodeSurfaceParams->SetShouldPaint(ShouldPaint());
     clonedNodeSurfaceParams->SetSkipDraw(surfaceParams.GetSkipDraw());
-    clonedNodeSurfaceParams->SetAlpha(surfaceParams.GetAlpha());
     // draw
+    RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    canvas.MultiplyAlpha(surfaceParams.GetAlpha());
     isCapture ? clonedNodeRenderDrawable->OnCapture(canvas) : clonedNodeRenderDrawable->OnDraw(canvas);
     // restore cloneNodeSurfaceParams origin params
     uniParam.SetOpDropped(originIsOpDropped);
@@ -1446,7 +1446,6 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     clonedNodeSurfaceParams->SetMatrix(originMatrix);
     clonedNodeSurfaceParams->SetShouldPaint(originShouldPaint);
     clonedNodeSurfaceParams->SetSkipDraw(originSkipDraw);
-    clonedNodeSurfaceParams->SetAlpha(originAlpha);
     return true;
 }
 

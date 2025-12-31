@@ -303,7 +303,7 @@ public:
      * @param nodeId the sourcenode id
      * @param needoffScrren enable cloneNode draw offscreen
      * @param isReltaed if is related，is related needoffScrren force be true
-     *                
+     *
      * @return return void
      */
     void SetClonedNodeInfo(NodeId nodeId, bool needOffscreen = true, bool isRelated = false);

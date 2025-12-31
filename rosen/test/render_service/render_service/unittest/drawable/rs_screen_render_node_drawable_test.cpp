@@ -2153,8 +2153,10 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, CheckAndClearRelatedSourceNodeCacheTest
     auto surfaceRenderNodeDrawable = std::static_pointer_cast<RSSurfaceRenderNodeDrawable>(
         DrawableV2::RSRenderNodeDrawableAdapter::OnGenerate(surfaceRenderNode));
     ASSERT_NE(surfaceRenderNodeDrawable, nullptr);
-    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr surfaceNodeRenderDrawableSharedPtr(surfaceRenderNodeDrawable);
-    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr surfaceNodeRenderDrawableWeakPtr(surfaceNodeRenderDrawableSharedPtr);
+    DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr
+        surfaceNodeRenderDrawableSharedPtr(surfaceRenderNodeDrawable);
+    DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr
+        surfaceNodeRenderDrawableWeakPtr(surfaceNodeRenderDrawableSharedPtr);
     surfaceRenderNodeDrawable->relatedSourceNodeCache_ = std::make_shared<Drawing::Image>();
     params->cloneNodeMap_[id] = surfaceNodeRenderDrawableWeakPtr;
     ASSERT_NE(surfaceRenderNodeDrawable->relatedSourceNodeCache_, nullptr);

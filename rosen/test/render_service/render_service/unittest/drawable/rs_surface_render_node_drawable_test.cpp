@@ -2309,3 +2309,4 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, ClearRelatedSourceCacheTest, TestSize.
     surfaceDrawable_->ClearRelatedSourceCache();
     ASSERT_EQ(surfaceDrawable_->relatedSourceNodeCache_, nullptr);
 }
+}
