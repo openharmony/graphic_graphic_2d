@@ -30,6 +30,10 @@ public:
     virtual ~RSComposerToRenderConnectionStub() noexcept = default;
 
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+
+private:
+    int32_t ReleaseLayerBuffersStub(MessageParcel& data, MessageParcel& reply, MessageOption& option);
+    int32_t NotifyLppLayerToRenderStub(MessageParcel& data, MessageParcel& reply, MessageOption& option);
 };
 } // namespace Rosen
 } // namespace OHOS

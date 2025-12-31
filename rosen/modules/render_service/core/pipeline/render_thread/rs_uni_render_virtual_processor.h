@@ -106,9 +106,9 @@ public:
     }
     void CanvasInit(DrawableV2::RSLogicalDisplayRenderNodeDrawable& displayDrawable);
     void CancelCurrentFrame();
+    sptr<SyncFence> GetFrameAcquireFence();
 private:
     void MergeMirrorFenceToHardwareEnabledDrawables();
-    void SetVirtualScreenFenceToRenderThread();
     void SetVirtualScreenSize(DrawableV2::RSScreenRenderNodeDrawable& screenDrawable);
     bool CheckIfBufferSizeNeedChange(ScreenRotation firstBufferRotation, ScreenRotation curBufferRotation);
     void OriginScreenRotation(ScreenRotation screenRotation, float width, float height);

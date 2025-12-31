@@ -341,7 +341,7 @@ HWTEST_F(HdiOutputTest, ReleaseLayers, Function | MediumTest | Level1)
     auto &map = HdiOutputTest::hdiOutput_->layerIdMap_;
     for (auto &layer : map) {
         layer.second->GetRSLayer()->SetIsSupportedPresentTimestamp(true);
-        EXPECT_EQ(layer.second->GetRSLayer()->IsSupportedPresentTimestamp(), true);
+        EXPECT_EQ(layer.second->GetRSLayer()->GetIsSupportedPresentTimestamp(), true);
     }
 
     // ReleaseLayerBuffersInfo releaseLayerInfo;

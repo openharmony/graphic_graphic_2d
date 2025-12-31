@@ -123,7 +123,7 @@ HWTEST_F(RSSpecialLayerManagerTest, SetWithScreen001, TestSize.Level1)
     ASSERT_FALSE(slManager.SetWithScreen(screenId1, SpecialLayerType::IS_BLACK_LIST, true));
     ASSERT_TRUE(slManager.SetWithScreen(screenId1, SpecialLayerType::IS_BLACK_LIST, false));
     ASSERT_TRUE(slManager.SetWithScreen(screenId2, SpecialLayerType::IS_BLACK_LIST, false));
-    slManager.ClearScreenSpecialLayer();
+    slManager.ClearScreenSpecialLayer(screenId1);
 }
 
 /**
@@ -160,7 +160,6 @@ HWTEST_F(RSSpecialLayerManagerTest, AddIds002, TestSize.Level1)
     }
     slManager.AddIds(SpecialLayerType::SKIP, id);
     ASSERT_EQ(slManager.specialLayerIds_[SpecialLayerType::SKIP].size(), MAX_IDS_SIZE);
-    slManager.ClearSpecialLayerIds();
 }
 
 /**

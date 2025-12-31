@@ -19,8 +19,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "hgm_log.h"
 #include "hgm_task_handle_thread.h"
-#include "rs_trace.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 
 namespace OHOS::Rosen {
@@ -62,7 +62,7 @@ RSRealtimeRefreshRateManager::RSRealtimeRefreshRateManager()
 
 void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32_t type)
 {
-    RS_LOGD("SetShowRefreshRateEnabled: enabled[%{public}d] type[%{public}d]", enabled, type);
+    HGM_LOGD("enabled[%{public}d] type[%{public}d]", enabled, type);
     if (type <= static_cast<int32_t>(RealtimeRefreshRateType::START) ||
         type >= static_cast<int32_t>(RealtimeRefreshRateType::END)) {
         return;
@@ -103,9 +103,6 @@ void RSRealtimeRefreshRateManager::SetShowRefreshRateEnabled(bool enabled, int32
 void RSRealtimeRefreshRateManager::UpdateScreenRefreshRate(ScreenId screenId, uint32_t refreshRate)
 {
     std::unique_lock<std::mutex> lock(realtimeRateMutex_);
-    if (!showEnabled_ && !collectEnabled_) {
-        return;
-    }
     bool isScreenRefreshRateChange = false;
     auto iter = screenRefreshRateMap_.find(screenId);
     if (iter == screenRefreshRateMap_.end()) {

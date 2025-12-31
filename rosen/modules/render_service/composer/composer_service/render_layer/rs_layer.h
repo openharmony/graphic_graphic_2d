@@ -92,7 +92,7 @@ public:
     virtual void SetType(const GraphicLayerType layerType) = 0;
     virtual GraphicLayerType GetType() const = 0;
     virtual void SetTransform(GraphicTransformType type) = 0;
-    virtual GraphicTransformType GetTransformType() const = 0;
+    virtual GraphicTransformType GetTransform() const = 0;
     virtual void SetCompositionType(GraphicCompositionType type) = 0;
     virtual GraphicCompositionType GetCompositionType() const = 0;
     virtual void SetVisibleRegions(const std::vector<GraphicIRect>& visibleRegions) = 0;
@@ -123,7 +123,7 @@ public:
     virtual const std::vector<GraphicHDRMetaData>& GetMetaData() const = 0;
     virtual void SetMetaDataSet(const GraphicHDRMetaDataSet& metaDataSet) = 0;
     virtual const GraphicHDRMetaDataSet& GetMetaDataSet() const = 0;
-    virtual void SetMatrix(GraphicMatrix matrix) = 0;
+    virtual void SetMatrix(const GraphicMatrix& matrix) = 0;
     virtual const GraphicMatrix& GetMatrix() const = 0;
     virtual void SetGravity(int32_t gravity) = 0;
     virtual int32_t GetGravity() const = 0;
@@ -138,7 +138,7 @@ public:
     virtual void SetTunnelLayerProperty(uint32_t tunnelLayerProperty) = 0;
     virtual uint32_t GetTunnelLayerProperty() const = 0;
     virtual void SetIsSupportedPresentTimestamp(bool isSupported) = 0;
-    virtual bool IsSupportedPresentTimestamp() const = 0;
+    virtual bool GetIsSupportedPresentTimestamp() const = 0;
     virtual void SetPresentTimestamp(const GraphicPresentTimestamp& timestamp) = 0;
     virtual const GraphicPresentTimestamp& GetPresentTimestamp() const = 0;
     virtual void SetSdrNit(float sdrNit) = 0;
@@ -162,10 +162,10 @@ public:
     virtual void SetNeedBilinearInterpolation(bool need) = 0;
     virtual bool GetNeedBilinearInterpolation() const = 0;
     virtual void SetIsMaskLayer(bool isMaskLayer) = 0;
-    virtual bool IsMaskLayer() const = 0;
+    virtual bool GetIsMaskLayer() const = 0;
     virtual void SetNodeId(uint64_t nodeId) = 0;
     virtual uint64_t GetNodeId() const = 0;
-    virtual void SetAncoFlags(const uint32_t ancoFlags) = 0;
+    virtual void SetAncoFlags(uint32_t ancoFlags) = 0;
     virtual uint32_t GetAncoFlags() const = 0;
     virtual bool IsAncoNative() const = 0;
     virtual void SetLayerMaskInfo(LayerMask mask) = 0;

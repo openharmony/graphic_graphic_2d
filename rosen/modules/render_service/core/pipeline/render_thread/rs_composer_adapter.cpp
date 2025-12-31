@@ -808,7 +808,7 @@ void RSComposerAdapter::LayerScaleDown(const RSLayerPtr& layer)
 // private func, guarantee the layer and surface are valid
 void RSComposerAdapter::LayerPresentTimestamp(const RSLayerPtr& layer, const sptr<IConsumerSurface>& surface)
 {
-    if (!layer->IsSupportedPresentTimestamp()) {
+    if (!layer->GetIsSupportedPresentTimestamp()) {
         return;
     }
     const auto& buffer = layer->GetBuffer();

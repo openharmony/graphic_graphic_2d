@@ -76,7 +76,7 @@ public:
     int32_t SetScreenSkipFrameInterval(ScreenId id, uint32_t skipFrameInterval);
 
     /* only used for mock tests */
-    void MockHdiScreenConnected(std::shared_ptr<OHOS::Rosen::RSScreen> rsScreen);
+    void MockHdiScreenConnected(std::shared_ptr<RSScreen> rsScreen);
 
     uint32_t SetScreenActiveMode(ScreenId id, uint32_t modeId);
     void GetScreenActiveMode(ScreenId id, RSScreenModeInfo& screenModeInfo) const;
@@ -187,10 +187,7 @@ public:
     bool GetIsFoldScreenFlag();
 
 private:
-    void OnRefreshEvent(ScreenId id);
-    void OnHwcDeadEvent();
-    void OnHwcEvent(uint32_t deviceId, uint32_t eventId, const std::vector<int32_t>& eventData);
-    void OnScreenVBlankIdleEvent(uint32_t devId, uint64_t ns);
+    void OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens);
 
     void PrintScreenBlackList(
         std::string funcName, ScreenId id, const std::unordered_set<uint64_t> &set) const;
@@ -209,14 +206,14 @@ private:
 #endif
 
     sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
-    std::shared_ptr<OHOS::Rosen::RSScreen> GetScreen(ScreenId id) const;
+    std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
     void NotifySwitchingCallback(bool status) const;
 
     // virtual screen
     ScreenId GenerateVirtualScreenId();
 
     mutable std::mutex screenMapMutex_;
-    std::map<ScreenId, std::shared_ptr<OHOS::Rosen::RSScreen>> screens_;
+    std::map<ScreenId, std::shared_ptr<RSScreen>> screens_;
     using ScreenNode = decltype(screens_)::value_type;
     bool AnyScreenFits(std::function<bool(const ScreenNode&)> func) const;
 

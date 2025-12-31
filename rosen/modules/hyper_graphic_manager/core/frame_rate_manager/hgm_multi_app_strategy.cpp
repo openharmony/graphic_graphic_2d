@@ -29,14 +29,14 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
+constexpr int32_t DEFAULT_APP_TYPE = -1;
+
 PolicyConfigData::ScreenSetting defaultScreenSetting;
 PolicyConfigData::StrategyConfigMap defaultStrategyConfigMap;
 }
 
 HgmMultiAppStrategy::HgmMultiAppStrategy()
-    : screenSettingCache_(defaultScreenSetting), strategyConfigMapCache_(defaultStrategyConfigMap)
-{
-}
+    : screenSettingCache_(defaultScreenSetting), strategyConfigMapCache_(defaultStrategyConfigMap) {}
 
 HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& pkgs)
 {
@@ -47,14 +47,14 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
     }
     pkgs_ = pkgs;
     // update pid of pkg
-    for (auto& it : foregroundPidAppMap_) {
+    for (const auto& it : foregroundPidAppMap_) {
         backgroundPid_.Put(it.first);
     }
     foregroundPidAppMap_.clear();
     pidAppTypeMap_.clear();
     HgmEnergyConsumptionPolicy::Instance().SetCurrentPkgName(pkgs);
-    for (auto& param : pkgs_) {
-        RS_TRACE_NAME_FMT("pkg update:%s", param.c_str());
+    for (const auto& param : pkgs_) {
+        RS_TRACE_NAME_FMT("%s: pkg update:%s", __func__, param.c_str());
         HGM_LOGI("pkg update:%{public}s", param.c_str());
         auto [pkgName, pid, appType] = AnalyzePkgParam(param);
 
@@ -82,8 +82,8 @@ HgmErrCode HgmMultiAppStrategy::HandlePkgsEvent(const std::vector<std::string>& 
 
 void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
 {
-    RS_TRACE_NAME_FMT("[HandleTouchInfo] pkgName:%s, touchState:%d, upExpectFps:%d",
-        touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
+    RS_TRACE_NAME_FMT("%s: pkgName:%s, touchState:%d, upExpectFps:%d",
+        __func__, touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
     HGM_LOGD("touch info update, pkgName:%{public}s, touchState:%{public}d, upExpectFps:%{public}d",
         touchInfo.pkgName.c_str(), touchInfo.touchState, touchInfo.upExpectFps);
     touchInfo_ = { touchInfo.pkgName, touchInfo.touchState, touchInfo.upExpectFps };
@@ -97,7 +97,7 @@ void HgmMultiAppStrategy::HandleTouchInfo(const TouchInfo& touchInfo)
 
 void HgmMultiAppStrategy::HandleLightFactorStatus(int32_t state)
 {
-    RS_TRACE_NAME_FMT("[HandleLightFactorStatus] state: %d", state);
+    RS_TRACE_NAME_FMT("%s: state: %d", __func__, state);
     if (lightFactorStatus_.load() == state) {
         return;
     }
@@ -112,7 +112,7 @@ void HgmMultiAppStrategy::SetScreenType(bool isLtpo)
 
 void HgmMultiAppStrategy::HandleLowAmbientStatus(bool isEffect)
 {
-    RS_TRACE_NAME_FMT("[HandleLowAmbientStatus] isEffect: %d", isEffect);
+    RS_TRACE_NAME_FMT("%s: isEffect: %d", __func__, isEffect);
     if (lowAmbientStatus_ == isEffect) {
         return;
     }
@@ -168,11 +168,18 @@ HgmErrCode HgmMultiAppStrategy::GetVoteRes(PolicyConfigData::StrategyConfig& str
     return voteRes_.first;
 }
 
+void HgmMultiAppStrategy::RegisterStrategyChangeCallback(StrategyChangeCallback callback)
+{
+    strategyChangeCallbacks_.emplace_back(std::move(callback));
+}
+
 bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 {
-    auto configData = HgmCore::Instance().GetPolicyConfigData();
-    if ((configData != nullptr && !configData->safeVoteEnabled) || disableSafeVote_) {
-        // disable safe vote
+    if (auto configData = HgmCore::Instance().GetPolicyConfigData();
+        configData != nullptr && !configData->safeVoteEnabled) {
+        return true;
+    }
+    if (disableSafeVote_) {
         return true;
     }
     if (onlyCheckForegroundApp) {
@@ -183,27 +190,26 @@ bool HgmMultiAppStrategy::CheckPidValid(pid_t pid, bool onlyCheckForegroundApp)
 
 std::string HgmMultiAppStrategy::GetGameNodeName(const std::string& pkgName)
 {
-    auto& appNodeMap = screenSettingCache_.gameAppNodeList;
-    if (appNodeMap.find(pkgName) != appNodeMap.end()) {
-        return appNodeMap.at(pkgName);
+    const auto& appNodeMap = screenSettingCache_.gameAppNodeList;
+    if (auto iter = appNodeMap.find(pkgName); iter != appNodeMap.end()) {
+        return iter->second;
     }
     return "";
 }
 
 std::string HgmMultiAppStrategy::GetAppStrategyConfigName(const std::string& pkgName)
 {
-    auto& appConfigMap = screenSettingCache_.appList;
-    if (appConfigMap.find(pkgName) != appConfigMap.end()) {
-        return appConfigMap.at(pkgName);
+    const auto& appConfigMap = screenSettingCache_.appList;
+    if (auto iter = appConfigMap.find(pkgName); iter != appConfigMap.end()) {
+        return iter->second;
     }
-    if (pidAppTypeMap_.find(pkgName) != pidAppTypeMap_.end()) {
-        auto& appType = pidAppTypeMap_.at(pkgName).second;
-        auto& appTypes = screenSettingCache_.appTypes;
-        if (appTypes.find(appType) != appTypes.end()) {
-            return appTypes.at(appType);
+    if (auto pidAppTypeMapIter = pidAppTypeMap_.find(pkgName); pidAppTypeMapIter != pidAppTypeMap_.end()) {
+        auto appType = pidAppTypeMapIter->second.second;
+        const auto& appTypes = screenSettingCache_.appTypes;
+        if (auto appTypesIter = appTypes.find(appType); appTypesIter != appTypes.end()) {
+            return appTypesIter->second;
         }
     }
-
     return screenSettingCache_.strategy;
 }
 
@@ -211,6 +217,11 @@ HgmErrCode HgmMultiAppStrategy::GetFocusAppStrategyConfig(PolicyConfigData::Stra
 {
     auto [pkgName, pid, appType] = AnalyzePkgParam(pkgs_.empty() ? "" : pkgs_.front());
     return GetAppStrategyConfig(pkgName, strategyRes);
+}
+
+const std::unordered_map<pid_t, std::pair<int32_t, std::string>>& HgmMultiAppStrategy::GetForegroundPidApp() const
+{
+    return foregroundPidAppMap_;
 }
 
 void HgmMultiAppStrategy::CleanApp(pid_t pid)
@@ -222,11 +233,14 @@ void HgmMultiAppStrategy::CleanApp(pid_t pid)
 void HgmMultiAppStrategy::UpdateXmlConfigCache()
 {
     auto& hgmCore = HgmCore::Instance();
-    auto frameRateMgr = hgmCore.GetFrameRateMgr();
-
     auto configData = hgmCore.GetPolicyConfigData();
-    if (configData == nullptr || frameRateMgr == nullptr) {
-        HGM_LOGD("configData or frameRateMgr is null");
+    if (configData == nullptr) {
+        HGM_LOGD("configData is null");
+        return;
+    }
+    auto frameRateMgr = hgmCore.GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        HGM_LOGD("frameRateMgr is null");
         return;
     }
 
@@ -234,27 +248,32 @@ void HgmMultiAppStrategy::UpdateXmlConfigCache()
     strategyConfigMapCache_ = configData->strategyConfigs_;
 
     // update screenSettingCache_
-    auto curScreenStrategyId = frameRateMgr->GetCurScreenStrategyId();
-    if (configData->screenConfigs_.find(curScreenStrategyId) == configData->screenConfigs_.end()) {
+    const auto& curScreenStrategyId = frameRateMgr->GetCurScreenStrategyId();
+    auto screenConfigsIter = configData->screenConfigs_.find(curScreenStrategyId);
+    if (screenConfigsIter == configData->screenConfigs_.end()) {
         HGM_LOGD("curScreenStrategyId not existed: %{public}s", curScreenStrategyId.c_str());
         return;
     }
-    auto& screenConfig = configData->screenConfigs_[curScreenStrategyId];
-
+    const auto& screenConfig = screenConfigsIter->second;
     auto curRefreshRateMode = std::to_string(frameRateMgr->GetCurRefreshRateMode());
-    if (screenConfig.find(curRefreshRateMode) == screenConfig.end()) {
+    auto screenConfigIter = screenConfig.find(curRefreshRateMode);
+    if (screenConfigIter == screenConfig.end()) {
         HGM_LOGD("curRefreshRateMode not existed: %{public}s", curRefreshRateMode.c_str());
         return;
     }
+    screenSettingCache_ = screenConfigIter->second;
+}
 
-    screenSettingCache_ = screenConfig[curRefreshRateMode];
+void HgmMultiAppStrategy::SetStrategyConfigs(const PolicyConfigData::StrategyConfigMap& strategyConfigs)
+{
+    strategyConfigMapCache_ = strategyConfigs;
 }
 
 HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
     const std::string& strategyName, PolicyConfigData::StrategyConfig& strategyRes)
 {
-    if (strategyConfigMapCache_.find(strategyName) != strategyConfigMapCache_.end()) {
-        strategyRes = strategyConfigMapCache_.at(strategyName);
+    if (auto iter = strategyConfigMapCache_.find(strategyName); iter != strategyConfigMapCache_.end()) {
+        strategyRes = iter->second;
         return EXEC_SUCCESS;
     }
     return HGM_ERROR;
@@ -263,8 +282,8 @@ HgmErrCode HgmMultiAppStrategy::GetStrategyConfig(
 HgmErrCode HgmMultiAppStrategy::GetAppStrategyConfig(
     const std::string& pkgName, PolicyConfigData::StrategyConfig& strategyRes)
 {
-    auto configVisitor = HgmCore::Instance().GetPolicyConfigVisitor();
-    if (configVisitor != nullptr && configVisitor->GetDynamicAppStrategyConfig(pkgName, strategyRes) == EXEC_SUCCESS) {
+    if (auto configVisitor = HgmCore::Instance().GetPolicyConfigVisitor();
+        configVisitor != nullptr && configVisitor->GetDynamicAppStrategyConfig(pkgName, strategyRes) == EXEC_SUCCESS) {
         return EXEC_SUCCESS;
     }
     return GetStrategyConfig(GetAppStrategyConfigName(pkgName), strategyRes);
@@ -273,10 +292,10 @@ HgmErrCode HgmMultiAppStrategy::GetAppStrategyConfig(
 void HgmMultiAppStrategy::UseStrategyNum()
 {
     auto& strategyName = screenSettingCache_.multiAppStrategyName;
-    RS_TRACE_NAME_FMT("[UseStrategyNum] strategyName:%s", strategyName.c_str());
-    if (strategyConfigMapCache_.find(strategyName) != strategyConfigMapCache_.end()) {
+    RS_TRACE_NAME_FMT("%s: strategyName:%s", __func__, strategyName.c_str());
+    if (auto iter = strategyConfigMapCache_.find(strategyName); iter != strategyConfigMapCache_.end()) {
         voteRes_.first = EXEC_SUCCESS;
-        voteRes_.second = strategyConfigMapCache_.at(strategyName);
+        voteRes_.second = iter->second;
         OnLightFactor(voteRes_.second);
         UpdateStrategyByTouch(voteRes_.second, touchInfo_.pkgName);
     }
@@ -364,7 +383,7 @@ void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strate
         return;
     }
     if (lightFactorStatus_.load() == LightFactorStatus::NORMAL_LOW && strategyRes.isFactor && !lowAmbientStatus_) {
-        RS_TRACE_NAME_FMT("OnLightFactor, strategy change: min -> max");
+        RS_TRACE_NAME_FMT("%s: strategy change: min -> max", __func__);
         strategyRes.min = strategyRes.max;
     }
 }
@@ -372,16 +391,17 @@ void HgmMultiAppStrategy::OnLightFactor(PolicyConfigData::StrategyConfig& strate
 void HgmMultiAppStrategy::UpdateStrategyByTouch(
     PolicyConfigData::StrategyConfig& strategy, const std::string& pkgName, bool forceUpdate)
 {
-    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
-    if (uniqueTouchInfo_ == nullptr || frameRateMgr == nullptr) {
+    if (uniqueTouchInfo_ == nullptr) {
         return;
     }
-
+    auto frameRateMgr = HgmCore::Instance().GetFrameRateMgr();
+    if (frameRateMgr == nullptr) {
+        return;
+    }
     if (uniqueTouchInfo_->touchState == TouchState::DOWN_STATE &&
         (!HgmCore::Instance().GetEnableDynamicMode() || strategy.dynamicMode == DynamicModeType::TOUCH_DISENABLED)) {
         return;
     }
-
     if (uniqueTouchInfo_->touchState == TouchState::IDLE_STATE) {
         uniqueTouchInfo_ = nullptr;
         frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID, {"VOTER_TOUCH", false});
@@ -391,14 +411,14 @@ void HgmMultiAppStrategy::UpdateStrategyByTouch(
     auto voteTouchFunc = [this, frameRateMgr](const PolicyConfigData::StrategyConfig& strategy) {
         auto touchInfo = std::move(uniqueTouchInfo_);
         if (touchInfo->touchState == TouchState::DOWN_STATE) {
-            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, downFps:%d",
-                touchInfo->pkgName.c_str(), touchInfo->touchState, strategy.down);
-            frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID, {"VOTER_TOUCH", true, strategy.down, strategy.down});
+            RS_TRACE_NAME_FMT("%s: pkgName:%s, state:%d, downFps:%d",
+                __func__, touchInfo->pkgName.c_str(), touchInfo->touchState, strategy.down);
+            frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID, { "VOTER_TOUCH", true, strategy.down, strategy.down });
         } else if (touchInfo->touchState == TouchState::UP_STATE && touchInfo->upExpectFps > 0) {
-            RS_TRACE_NAME_FMT("[UpdateStrategyByTouch] pkgName:%s, state:%d, upExpectFps:%d",
-                touchInfo->pkgName.c_str(), touchInfo->touchState, touchInfo->upExpectFps);
+            RS_TRACE_NAME_FMT("%s: pkgName:%s, state:%d, upExpectFps:%d",
+                __func__, touchInfo->pkgName.c_str(), touchInfo->touchState, touchInfo->upExpectFps);
             frameRateMgr->HandleRefreshRateEvent(DEFAULT_PID,
-                {"VOTER_TOUCH", true, touchInfo->upExpectFps, touchInfo->upExpectFps});
+                { "VOTER_TOUCH", true, touchInfo->upExpectFps, touchInfo->upExpectFps });
         }
     };
 
