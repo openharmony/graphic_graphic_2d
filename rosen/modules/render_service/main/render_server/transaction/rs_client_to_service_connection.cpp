@@ -60,9 +60,6 @@
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
-#endif
 #include "pipeline/hardware_thread/rs_realtime_refresh_rate_manager.h"
 #include "feature/hyper_graphic_manager/rs_render_frame_rate_linker_map.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -649,39 +646,6 @@ int32_t RSClientToServiceConnection::SetVirtualScreenSurface(ScreenId id, sptr<S
     }
     return screenManagerAgent_->SetVirtualScreenSurface(id, surface);
 }
-
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSClientToServiceConnection::SetPointerColorInversionConfig(float darkBuffer,
-    float brightBuffer, int64_t interval, int32_t rangeSize)
-{
-    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionConfig(darkBuffer, brightBuffer,
-        interval, rangeSize);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSClientToServiceConnection::SetPointerColorInversionEnabled(bool enable)
-{
-    RSMagicPointerRenderManager::GetInstance().SetPointerColorInversionEnabled(enable);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSClientToServiceConnection::RegisterPointerLuminanceChangeCallback(
-    sptr<RSIPointerLuminanceChangeCallback> callback)
-{
-    if (!callback) {
-        RS_LOGE("RegisterPointerLuminanceChangeCallback: callback is nullptr");
-        return StatusCode::INVALID_ARGUMENTS;
-    }
-    RSMagicPointerRenderManager::GetInstance().RegisterPointerLuminanceChangeCallback(remotePid_, callback);
-    return StatusCode::SUCCESS;
-}
-
-int32_t RSClientToServiceConnection::UnRegisterPointerLuminanceChangeCallback()
-{
-    RSMagicPointerRenderManager::GetInstance().UnRegisterPointerLuminanceChangeCallback(remotePid_);
-    return StatusCode::SUCCESS;
-}
-#endif
 
 void RSClientToServiceConnection::RemoveVirtualScreen(ScreenId id)
 {

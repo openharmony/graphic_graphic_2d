@@ -359,66 +359,6 @@ void RSRenderServiceClient::RemoveVirtualScreen(ScreenId id)
     clientToService->RemoveVirtualScreen(id);
 }
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-int32_t RSRenderServiceClient::SetPointerColorInversionConfig(float darkBuffer, float brightBuffer,
-    int64_t interval, int32_t rangeSize)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
- 
-    return clientToService->SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-}
- 
-int32_t RSRenderServiceClient::SetPointerColorInversionEnabled(bool enable)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
- 
-    return clientToService->SetPointerColorInversionEnabled(enable);
-}
- 
-class CustomPointerLuminanceChangeCallback : public RSPointerLuminanceChangeCallbackStub
-{
-public:
-    explicit CustomPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback) : cb_(callback) {}
-    ~CustomPointerLuminanceChangeCallback() override {};
- 
-    void OnPointerLuminanceChanged(int32_t brightness) override
-    {
-        if (cb_ != nullptr) {
-            cb_(brightness);
-        }
-    }
- 
-private:
-    PointerLuminanceChangeCallback cb_;
-};
- 
-int32_t RSRenderServiceClient::RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback)
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
- 
-    sptr<RSIPointerLuminanceChangeCallback> cb = new CustomPointerLuminanceChangeCallback(callback);
-    return clientToService->RegisterPointerLuminanceChangeCallback(cb);
-}
- 
-int32_t RSRenderServiceClient::UnRegisterPointerLuminanceChangeCallback()
-{
-    auto clientToService = RSRenderServiceConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        return RENDER_SERVICE_NULL;
-    }
-    return clientToService->UnRegisterPointerLuminanceChangeCallback();
-}
-#endif
-
 class CustomScreenChangeCallback : public RSScreenChangeCallbackStub
 {
 public:
