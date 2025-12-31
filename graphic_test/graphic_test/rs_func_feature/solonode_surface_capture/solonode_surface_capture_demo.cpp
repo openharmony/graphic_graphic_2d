@@ -169,7 +169,7 @@ public:
  * @tc.desc: test solonode surface capture function of node drawTextblob
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_01)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_01)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -206,7 +206,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node set alpha and scale
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_02)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_02)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -232,7 +232,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node set blendMode
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_03)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_03)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -258,7 +258,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node draw pixelmap and blur
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_04)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_04)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -300,7 +300,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node set translate
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_05)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_05)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetTranslate({ 100, 100 });
@@ -333,7 +333,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node set rotation
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_06)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_06)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetRotation(45);
@@ -366,7 +366,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node set scale
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_07)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_07)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetRotation(45);
@@ -399,7 +399,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of parent node set translate
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_08)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_08)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     surfaceNode->SetTranslate({ 50, 50 });
@@ -432,7 +432,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node draw dma pixelmap
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_9)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_9)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -473,7 +473,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node draw astc pixelmap
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_10)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_10)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -514,7 +514,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node is over parent node
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_11)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_11)
 {
     struct RSSurfaceNodeConfig rsSurfaceNodeConfig1;
     rsSurfaceNodeConfig1.SurfaceNodeName = "AppWindow";
@@ -552,7 +552,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node set properties before takeUICapture
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_12)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_12)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -584,7 +584,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of effectNode and child set use effect
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_13)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_13)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -634,7 +634,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur of brightness
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_14)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_14)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -672,7 +672,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur of brightness 1
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_15)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_15)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -710,7 +710,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur of brightness 200
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_16)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_16)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -748,7 +748,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background blur color node
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_17)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_17)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -795,7 +795,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background blur color node 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_18)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_18)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -842,7 +842,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 3
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_19)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_19)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -889,7 +889,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_20)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_20)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -936,7 +936,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_21)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_21)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -983,7 +983,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_22)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_22)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1030,7 +1030,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_23)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_23)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1077,7 +1077,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_24)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_24)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1124,7 +1124,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_25)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_25)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1171,7 +1171,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of background green color node 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_26)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_26)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1218,7 +1218,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_27)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_27)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1263,7 +1263,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_28)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_28)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1308,7 +1308,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color 3
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_29)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_29)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1353,7 +1353,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_30)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_30)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1398,7 +1398,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color 5
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_31)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_31)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1443,7 +1443,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color 5
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_32)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_32)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1488,7 +1488,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur and mask color 5
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_33)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_33)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1533,7 +1533,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_34)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_34)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1580,7 +1580,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_35)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_35)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1627,7 +1627,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 3
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_36)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_36)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1674,7 +1674,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_37)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_37)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1721,7 +1721,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 5
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_38)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_38)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1768,7 +1768,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 6
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_39)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_39)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1815,7 +1815,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 7
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_40)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_40)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1862,7 +1862,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blur mask color and alpha 8
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_41)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_41)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1909,7 +1909,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_42)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_42)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1948,7 +1948,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_43)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_43)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -1987,7 +1987,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius 3
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_44)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_44)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2026,7 +2026,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_45)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_45)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2065,7 +2065,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius 5
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_46)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_46)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2104,7 +2104,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius 6
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_47)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_47)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2143,7 +2143,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius X
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_48)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_48)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2183,7 +2183,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius X 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_49)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_49)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2223,7 +2223,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius X 3
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_50)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_50)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2263,7 +2263,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius X 4
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_51)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_51)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2303,7 +2303,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius Y
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_52)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_52)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2343,7 +2343,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius Y 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_53)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_53)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2383,7 +2383,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius Y 2
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_54)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_54)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
@@ -2423,7 +2423,7 @@ GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SO
  * @tc.desc: test solonode surface capture function of node of blackground blur radius Y 3
  * @tc.type: FUNC
  */
-GRAPHIC_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_55)
+GRAPHIC_N_TEST(RSSoloNodeSurfaceCaptureTest, CONTENT_DISPLAY_TEST, GRAPHIC_TEST_SOLONODE_SURFACE_CAPTURE_55)
 {
     auto surfaceNode = CreateTestSurfaceNode();
     GetRootNode()->SetTestSurface(surfaceNode);
