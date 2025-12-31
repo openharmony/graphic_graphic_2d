@@ -45,7 +45,7 @@ public:
     void TearDown() override;
 };
 
-void RSRenderToServiceConnectionStubTest::SetUpTestCase()
+void RSRenderToServiceConnectionTest::SetUpTestCase()
 {
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
@@ -53,7 +53,7 @@ void RSRenderToServiceConnectionStubTest::SetUpTestCase()
     sptr<RSRenderServiceAgent> renderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    auto rsScreenManager = RSScreenManager::GetInstance();
+    auto rsScreenManager = sptr<RSScreenManager>::MakeSptr();
     sptr<RSScreenManagerAgent> screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(rsScreenManager);
     g_rsConn = sptr<RSRenderToServiceConnection>::MakeSptr(renderServiceAgent,
         renderProcessManagerAgent, screenManagerAgent);

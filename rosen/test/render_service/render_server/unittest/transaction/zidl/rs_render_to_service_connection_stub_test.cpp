@@ -50,7 +50,7 @@ void RSRenderToServiceConnectionStubTest::SetUpTestCase()
     sptr<RSRenderServiceAgent> rsRenderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    auto rsScreenManager = RSScreenManager::GetInstance();
+    auto rsScreenManager = sptr<RSScreenManager>::MakeSptr();
     sptr<RSScreenManagerAgent> screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(rsScreenManager);
     g_connectionStub = sptr<RSRenderToServiceConnection>::MakeSptr(rsRenderServiceAgent,
         renderProcessManagerAgent, screenManagerAgent);
