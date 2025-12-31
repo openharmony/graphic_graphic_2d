@@ -474,6 +474,7 @@ const std::unordered_set<NodeId>& RSRenderNode::GetSubtreeParallelNodes()
 
 void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screenNodeId, HDRComponentType hdrType)
 {
+#ifndef ROSEN_CROSS_PLATFORM
     auto context = GetContext().lock();
     if (!context) {
         ROSEN_LOGE("RSRenderNode::SetHdrNum: Invalid context");
@@ -523,6 +524,7 @@ void RSRenderNode::SetHdrNum(bool flag, NodeId instanceRootNodeId, NodeId screen
             screenNode->UpdateHeadroomMapDecrease(fromHdrType, headroom);
         }
     }
+#endif
 }
 
 void RSRenderNode::ResetNodeColorSpace()
