@@ -21,7 +21,7 @@
 #include "hdi_display_type.h"
 #include "iconsumer_surface.h"
 #include "pixel_map.h"
-#include "rs_layer_cmd.h"
+#include "rs_render_layer_cmd.h"
 #include "rs_render_layer_cmd_property.h"
 #include "rs_surface_layer.h"
 #include "surface.h"
@@ -41,9 +41,8 @@ public:
     std::shared_ptr<Media::PixelMap> GetPixelMap() const;
 
 private:
-    template<typename RSLayerCmdName, typename T>
+    template<typename RSRenderLayerCmdName, typename T>
     void SetRSLayerCmd(const T& value);
-    void AddRSLayerCmd(const std::shared_ptr<RSLayerCmd> layerCmd) override;
     std::shared_ptr<Media::PixelMap> pixelMap_ = nullptr;
 };
 } // namespace Rosen
