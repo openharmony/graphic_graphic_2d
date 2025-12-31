@@ -507,7 +507,7 @@ bool DoGetRefreshInfoByPidAndUniqueId(const uint8_t* data, size_t size)
 {
     std::shared_ptr<RSRenderServiceClient> renderServiceClient = std::make_shared<RSRenderServiceClient>();
     pid_t pid = GetData<pid_t>();
-    uint64_t uniqueId = 0L;
+    uint64_t uniqueId = GetData<uint64_t>();
     renderServiceClient->GetRefreshInfoByPidAndUniqueId(pid, uniqueId);
     return true;
 }
