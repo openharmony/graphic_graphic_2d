@@ -32,6 +32,7 @@ public:
 
     void Run();
     void FlushMessage();
+    bool FlushMessageAndWait(int timeoutMs);
     std::shared_ptr<Media::PixelMap> TakeScreenCaptureAndWait(int ms, bool isScreenShot = false);
     void ResetImagePath();
 
@@ -44,6 +45,8 @@ public:
     bool IsSingleTest();
     void SetSingleTest(bool IsSingleTest);
     void SetProfilerTest(bool isProfilerTest);
+    void SetDynamicTest(bool isDynamicTest);
+    bool IsDynamicTest();
 
     void StartRunUIAnimation();
     bool HasUIRunningAnimation();
@@ -61,6 +64,7 @@ private:
     RectF screenBounds_;
     bool isSingleTest_ = false;
     bool isProfilerTest_ = false;
+    bool isDynamicTest_ = false;
     std::shared_ptr<RSGraphicRootNode> rootNode_;
     std::shared_ptr<RSUIDirector> rsUiDirector_;
 

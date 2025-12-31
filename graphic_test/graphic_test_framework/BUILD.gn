@@ -89,6 +89,10 @@ ohos_source_set("rs_graphic_test_src") {
     "image_framework:image_native",
   ]
 
+  external_deps = [
+    "ffrt:libffrt",
+  ]
+
   if (rosen_is_ohos && graphic_2d_feature_rs_enable_profiler &&
       player_framework_enable) {
     defines += [ "RS_PROFILER_ENABLED" ]

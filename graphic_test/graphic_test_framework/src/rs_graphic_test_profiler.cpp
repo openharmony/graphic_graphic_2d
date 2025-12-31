@@ -15,6 +15,7 @@
 
 #include "rs_graphic_test_profiler.h"
 
+#include "ffrt.h"
 #include "rs_graphic_test_director.h"
 #include "rs_graphic_test_utils.h"
 #include "rs_parameter_parse.h"
@@ -37,7 +38,9 @@ namespace OHOS {
 namespace Rosen {
 constexpr uint32_t SURFACE_COLOR = 0xffffffff;
 constexpr int FLUSH_RS_WAIT_TIME = 500;
-constexpr int LOAD_STATIC_WAIT_TIME = 3000;
+constexpr int NODETREE_TIMEOUT = 10000;
+constexpr int NODETREE_WAIT_TIME = 100;
+constexpr int LOAD_STATIC_WAIT_TIME = 100;
 constexpr int NORMAL_WAIT_TIME = 1000;
 constexpr int PLAYBACK_PREPARE_OUT_TIME = 10000;
 constexpr int PLAY_BACK_REPLAY_TIME_OUT_TIME = 10000;
@@ -47,6 +50,7 @@ constexpr int PLAYBACK_OPERATE_INTERVAL_TIME = 100;
 constexpr int SCREEN_WIDTH = 1316;
 constexpr int SCREEN_HEIGHT = 2832;
 constexpr int FRAME_WIDTH_NUM = 6;
+constexpr float MS_TO_S = 1000.0f;
 const std::string SAVE_IMAGE_PATH_NAME = "ScreenShot";
 const std::string OHR_CONFIG_FILE_NAME = "ohr_config.json";
 //json config
@@ -361,6 +365,10 @@ void RSGraphicTestProfiler::TearDown()
 
 void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath, const std::string& savePath)
 {
+    RS_TRACE_NAME("RSGraphicTestProfiler::LoadNodeTreeProfilerFile");
+    std::cout << "                                                        " << std::endl;
+    std::cout << "------------------------one testcase begin----------------------" << std::endl;
+    auto timepoint1 = std::chrono::high_resolution_clock::now();
     runTestCaseNum_++;
     // NOT MODIFY THE COMMENTS
     cout << "[   RUN   ] " << filePath << std::endl;
@@ -369,17 +377,18 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     loadNode->SetBounds({ 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT });
     GetRootNode()->AddChild(loadNode);
     // need flush client node to rs firstly
-    RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(FLUSH_RS_WAIT_TIME);
+    if (!RSGraphicTestDirector::Instance().FlushMessageAndWait(NODETREE_TIMEOUT)) {
+        std::cout << "warning: FlushMessageAndWait time out after adding loadNode." << std::endl;
+    }
+    WaitTimeout(NODETREE_WAIT_TIME);
 
     // 2.send load command
     std::cout << "load subbtree to node file path is " << filePath << std::endl;
     std::string command = "rssubtree_load " + std::to_string(loadNode->GetId()) + " " + filePath;
-    RSGraphicTestDirector::Instance().SendProfilerCommand(command);
-    WaitTimeout(LOAD_STATIC_WAIT_TIME);
+    RSGraphicTestDirector::Instance().SendProfilerCommand(command, NODETREE_TIMEOUT);
+    WaitTimeout(NODETREE_WAIT_TIME);
 
     // 3.testcase capture
-    WaitTimeout(NORMAL_WAIT_TIME);
     if (useBufferDump_) {
         TestCaseBufferDump(true, savePath);
     } else {
@@ -387,10 +396,12 @@ void RSGraphicTestProfiler::LoadNodeTreeProfilerFile(const std::string& filePath
     }
 
     // 4.clear
-    GetRootNode()->RemoveChild(loadNode);
-    RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear");
-    RSGraphicTestDirector::Instance().FlushMessage();
-    WaitTimeout(NORMAL_WAIT_TIME);
+    RSGraphicTestDirector::Instance().SendProfilerCommand("rssubtree_clear", NODETREE_TIMEOUT);
+    WaitTimeout(NODETREE_WAIT_TIME);
+    auto timepoint2 = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(timepoint2 - timepoint1);
+    std::cout << "-----------------------one testcase end, total cost: " <<
+        elapsed.count() / MS_TO_S << " ms. -----------------------" << std::endl;
 }
 
 void RSGraphicTestProfiler::LoadPlaybackProfilerFile(
@@ -442,11 +453,16 @@ void RSGraphicTestProfiler::TestCaseCapture(bool isScreenshot, const std::string
         if (std::filesystem::exists(filename)) {
             cout << "image has already exist " << filename << std::endl;
         }
-        if (!WriteToPngWithPixelMap(filename, *pixelMap)) {
-            // NOT MODIFY THE COMMENTS
-            cout << "[   FAILED   ] " << filename << std::endl;
-            return;
-        }
+        ffrt::submit(
+            [filename, pixelMap] {
+                if (!WriteToPngWithPixelMap(filename, *pixelMap)) {
+                    // NOT MODIFY THE COMMENTS
+                    cout << "[   FAILED   ] " << filename << std::endl;
+                    return;
+                }
+            },
+            {},
+            {});
         std::cout << "png write to " << filename << std::endl;
         // NOT MODIFY THE COMMENTS
         cout << "[   OK   ] " << filename << std::endl;

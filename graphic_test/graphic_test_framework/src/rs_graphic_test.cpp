@@ -194,6 +194,8 @@ void RSGraphicTest::TestCaseCapture(bool isScreenshot)
                 testInfo->test_case_name(), testInfo->name());
         }
         std::cout << "png write to " << filename << std::endl;
+    } else {
+        std::cout << "png TakeScreenCaptureAndWait failed" << std::endl;
     }
 }
 
