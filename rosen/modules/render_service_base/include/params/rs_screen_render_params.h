@@ -239,6 +239,12 @@ public:
     {
         return isEqualVsyncPeriod_;
     }
+    void SetCloneNodeMap(
+        const std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& cloneNodeMap);
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr>& GetCloneNodeMap()
+    {
+        return cloneNodeMap_;
+    }
 
 private:
 
@@ -287,6 +293,7 @@ private:
     Occlusion::Region drawnRegion_;
     bool forceFreeze_ = false;
     bool hasMirroredScreenChanged_ = false;
+    std::map<NodeId, DrawableV2::RSRenderNodeDrawableAdapter::WeakPtr> cloneNodeMap_;
 };
 } // namespace OHOS::Rosen
 

@@ -102,12 +102,17 @@ RSRenderNodeDrawable::Ptr RSSurfaceRenderNodeDrawable::OnGenerate(std::shared_pt
 }
 
 bool RSSurfaceRenderNodeDrawable::CheckDrawAndCacheWindowContent(RSSurfaceRenderParams& surfaceParams,
-    RSRenderThreadParams& uniParams) const
+    RSRenderThreadParams& uniParams)
 {
     if (RSUniRenderThread::GetCaptureParam().isMirror_) {
         return false;
     }
     if (!surfaceParams.GetNeedCacheSurface()) {
+        // relatedSourceNode need create cache
+        if (surfaceParams.IsRelatedSourceNode()) {
+            SetNeedCacheRelatedSourceNode(true);
+            return true;
+        }
         return false;
     }
 
@@ -739,6 +744,10 @@ void RSSurfaceRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         return;
     }
 
+    if (DrawRelatedSourceNode(*rscanvas, *surfaceParams)) {
+        return;
+    }
+
     // can't use NodeMatchOptimize if leash window is on draw
     auto cacheState = RSUifirstManager::Instance().GetCacheSurfaceProcessedStatus(*surfaceParams);
     auto useNodeMatchOptimize = rscanvas->GetIsParallelCanvas() &&
@@ -1228,6 +1237,11 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
             return;
         }
     }
+    
+    if (DrawRelatedSourceNode(canvas, surfaceParams)) {
+        return;
+    }
+
     if (!RSUiFirstProcessStateCheckerHelper::CheckMatchAndWaitNotify(surfaceParams, false)) {
         RS_LOGE("RSSurfaceRenderNodeDrawable::OnCapture CheckMatchAndWaitNotify failed");
         return;
@@ -1375,6 +1389,9 @@ bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
         clonedNodeRenderDrawable->subThreadCache_.GetRSDrawWindowCache().ClearCache();
         return false;
     }
+    if (surfaceParams.IsRelated()) {
+        return DrawRelatedNode(canvas, uniParam, surfaceParams, clonedNodeRenderDrawable, isCapture);
+    }
     RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawCloneNode Draw cloneNode %s", name_.c_str());
     bool isOpDropped = uniParam.IsOpDropped();
     uniParam.SetOpDropped(false);
@@ -1394,6 +1411,74 @@ bool RSSurfaceRenderNodeDrawable::DrawCloneNode(RSPaintFilterCanvas& canvas,
     clonedNodeSurfaceParams->SetOccludedByFilterCache(isOccludedByFilterCache);
     clonedNodeRenderDrawable->subThreadCache_.GetRSDrawWindowCache().ClearCache();
     return true;
+}
+
+bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
+    RSRenderThreadParams& uniParam, RSSurfaceRenderParams& surfaceParams,
+    std::shared_ptr<RSSurfaceRenderNodeDrawable> clonedNodeRenderDrawable, bool isCapture)
+{
+    RS_TRACE_NAME_FMT("RSSurfaceRenderNodeDrawable::DrawRelatedNode Draw relatedNode %s", name_.c_str());
+    auto clonedNodeSurfaceParams =
+        static_cast<RSSurfaceRenderParams*>(clonedNodeRenderDrawable->GetRenderParams().get());
+    if (!clonedNodeSurfaceParams) {
+        SetDrawSkipType(DrawSkipType::RENDER_PARAMS_NULL);
+        return false;
+    }
+    // save clonedNodeSurfaceParams origin params
+    bool originIsOpDropped = uniParam.IsOpDropped();
+    bool originIsOccludedByFilterCache = clonedNodeSurfaceParams->GetOccludedByFilterCache();
+    auto originMatrix = clonedNodeSurfaceParams->GetMatrix();
+    bool originShouldPaint = clonedNodeSurfaceParams->GetShouldPaint();
+    bool originSkipDraw = clonedNodeSurfaceParams->GetSkipDraw();
+    // change some params in cloneNodeSurfaceParams like cloneNodeParams
+    uniParam.SetOpDropped(false);
+    clonedNodeSurfaceParams->SetOccludedByFilterCache(surfaceParams.GetOccludedByFilterCache());
+    clonedNodeSurfaceParams->SetMatrix(surfaceParams.GetMatrix());
+    clonedNodeSurfaceParams->SetShouldPaint(ShouldPaint());
+    clonedNodeSurfaceParams->SetSkipDraw(surfaceParams.GetSkipDraw());
+    // draw
+    RSAutoCanvasRestore acr(&canvas, RSPaintFilterCanvas::SaveType::kCanvasAndAlpha);
+    canvas.MultiplyAlpha(surfaceParams.GetAlpha());
+    isCapture ? clonedNodeRenderDrawable->OnCapture(canvas) : clonedNodeRenderDrawable->OnDraw(canvas);
+    // restore cloneNodeSurfaceParams origin params
+    uniParam.SetOpDropped(originIsOpDropped);
+    clonedNodeSurfaceParams->SetOccludedByFilterCache(originIsOccludedByFilterCache);
+    clonedNodeSurfaceParams->SetMatrix(originMatrix);
+    clonedNodeSurfaceParams->SetShouldPaint(originShouldPaint);
+    clonedNodeSurfaceParams->SetSkipDraw(originSkipDraw);
+    return true;
+}
+
+bool RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
+    RSSurfaceRenderParams& surfaceParams)
+{
+    if (!surfaceParams.ClonedSourceNode()) {
+        return false;
+    }
+
+    if (!surfaceParams.IsRelatedSourceNode() || relatedSourceNodeCache_ == nullptr) {
+        return false;
+    }
+
+    if (ROSEN_EQ(relatedSourceNodeCache_->GetWidth(), 0) || ROSEN_EQ(relatedSourceNodeCache_->GetHeight(), 0)) {
+        RS_LOGE("RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode buffer size is zero");
+        return false;
+    }
+    RS_TRACE_NAME_FMT("DrawRelatedSourceNode node[%lld] %s", GetId(), GetName().c_str());
+    RSDrawWindowCache::DrawCache(this, canvas, surfaceParams, relatedSourceNodeCache_);
+    return true;
+}
+
+void RSSurfaceRenderNodeDrawable::SetRelatedSourceNodeCache(std::shared_ptr<Drawing::Image> image)
+{
+    relatedSourceNodeCache_ = image;
+    needCacheRelatedSourceNode_ = false;
+}
+
+void RSSurfaceRenderNodeDrawable::ClearRelatedSourceCache()
+{
+    RS_TRACE_NAME_FMT("ClearRelatedSourceCache node[%lld] %s", GetId(), GetName().c_str());
+    relatedSourceNodeCache_ = nullptr;
 }
 
 void RSSurfaceRenderNodeDrawable::ClipHoleForSelfDrawingNode(RSPaintFilterCanvas& canvas,
