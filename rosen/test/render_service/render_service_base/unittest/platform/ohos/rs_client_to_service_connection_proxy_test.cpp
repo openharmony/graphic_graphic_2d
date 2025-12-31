@@ -1671,5 +1671,18 @@ HWTEST_F(RSClientToServiceConnectionProxyTest, SetDualScreenState002, TestSize.L
     auto ret = mockproxy->SetDualScreenState(id, DualScreenStatus::DUAL_SCREEN_ENTER);
     EXPECT_EQ(ret, StatusCode::READ_PARCEL_ERR);
 }
+
+/**
+ * @tc.name: GetRefreshInfoByPidAndUniqueId Test
+ * @tc.desc: GetRefreshInfoByPidAndUniqueId Test
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionProxyTest, GetRefreshInfoByPidAndUniqueIdTest, TestSize.Level1)
+{
+    pid_t pid = 1001; 
+    uint64_t uniqueId = 0;
+    proxy->GetRefreshInfoByPidAndUniqueId(pid, uniqueId);
+}
 } // namespace Rosen
 } // namespace OHOS
