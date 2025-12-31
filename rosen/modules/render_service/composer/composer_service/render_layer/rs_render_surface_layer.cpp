@@ -677,9 +677,9 @@ void RSRenderSurfaceLayer::UpdateRSLayerCmd(const std::shared_ptr<RSRenderLayerC
     if (it != cmdHandlers_.end()) {
         it->second(rsRenderLayer, property);
     } else {
-        ROSEN_LOGE("RSRenderSurfaceLayer::UpdateRSLayerCmd type err");
+        ROSEN_LOGE("RSRenderSurfaceLayer::UpdateRSLayerCmd type err:%{public}d", static_cast<int32_t>(type));
     }
-    ROSEN_LOGD("RSRenderSurfaceLayer::UpdateRSLayerCmd type:%{}d", static_cast<int32_t>(type));
+    ROSEN_LOGD("RSRenderSurfaceLayer::UpdateRSLayerCmd type:%{public}d", static_cast<int32_t>(type));
 }
 } // namespace Rosen
 } // namespace OHOS

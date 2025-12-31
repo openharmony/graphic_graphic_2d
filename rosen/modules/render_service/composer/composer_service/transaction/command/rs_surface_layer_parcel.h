@@ -43,7 +43,7 @@ ADD_COMMAND(RSUpdateRSLayerCmd,
 
 ADD_COMMAND(RSUpdateRSRCDLayerCmd,
     ARG(RS_RCD_LAYER_UPDATE,
-        RSLayerParcelHelper::UpdateRSLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
+        RSLayerParcelHelper::UpdateRSRCDLayerCmd, RSLayerId, std::shared_ptr<RSRenderLayerCmd>))
 
 } // namespace Rosen
 } // namespace OHOS
