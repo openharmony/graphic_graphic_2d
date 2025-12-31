@@ -48,7 +48,7 @@ void RSServiceToRenderConnectionTest::SetUpTestCase()
 {
     auto runner = AppExecFwk::EventRunner::Create(true);
     auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
-    auto renderPipeline = RSRenderPipeline::Create(handler, nullptr, nullptr);
+    auto renderPipeline = RSRenderPipeline::Create(handler, nullptr, nullptr, nullptr);
 
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
