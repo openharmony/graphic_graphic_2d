@@ -1030,4 +1030,18 @@ HWTEST_F(RSInterfacesTest, ClearSurfaceWatermarkForNodes001, TestSize.Level1)
 
     instance.ClearSurfaceWatermarkForNodes(0, "name", {});
 }
+
+/**
+ * @tc.name: GetRefreshInfoByPidAndUniqueId001
+ * @tc.desc: test results of GetRefreshInfoByPidAndUniqueId
+ * @tc.type: FUNC
+ * @tc.require: issueI97N4E
+ */
+HWTEST_F(RSInterfacesTest, GetRefreshInfoByPidAndUniqueId001, TestSize.Level1)
+{
+    RSInterfaces& instance = RSInterfaces::GetInstance();
+    GameStateData info;
+    std::string str = instance.GetRefreshInfoByPidAndUniqueId(info.pid, 0L);
+    EXPECT_TRUE(str == "");
+}
 } // namespace OHOS::Rosen
