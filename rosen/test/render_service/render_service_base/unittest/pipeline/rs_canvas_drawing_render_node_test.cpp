@@ -169,6 +169,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurfaceTest002, TestSize.Level1)
     NodeId rootNodeId = 2;
     auto context = std::make_shared<RSContext>();
     RSCanvasDrawingRenderNode rsCanvasDrawingRenderNode(nodeId, context);
+    rsCanvasDrawingRenderNode.stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(rootNodeId);
     surfaceNode->SetColorSpace(GraphicColorGamut::GRAPHIC_COLOR_GAMUT_DISPLAY_P3);
     context->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
@@ -594,7 +595,7 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SetNeedProcessTest, TestSize.Level1)
     rsCanvasDrawingRenderNode->stagingRenderParams_ = std::make_unique<RSRenderParams>(nodeId);
     bool needProcess = true;
     rsCanvasDrawingRenderNode->SetNeedProcess(needProcess);
-    EXPECT_FALSE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
+    EXPECT_TRUE(rsCanvasDrawingRenderNode->stagingRenderParams_->NeedSync());
     EXPECT_TRUE(rsCanvasDrawingRenderNode->isNeedProcess_);
 }
 
