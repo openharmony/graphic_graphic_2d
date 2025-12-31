@@ -17,7 +17,6 @@
 #define HGM_CONTEXT_H
 
 #include "event_handler.h"
-#include "hdi_backend.h"
 #include "hgm_info_parcel.h"
 #include "ipc_callbacks/rs_ihgm_config_change_callback.h"
 #include "screen_manager/rs_screen_property.h"

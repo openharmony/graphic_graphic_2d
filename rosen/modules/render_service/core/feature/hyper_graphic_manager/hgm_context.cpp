@@ -15,16 +15,13 @@
 
 #include "hgm_context.h"
 
-#include "common/rs_optional_trace.h"
 #include "feature/vrate/rp_vsync_rate_reduce_manager.h"
 #include "hfbc_param.h"
 #include "hgm_config_callback_manager.h"
 #include "hgm_core.h"
-#include "parameters.h"
 #include "rs_frame_report.h"
 #include "rs_frame_blur_predict.h"
 #include "screen_manager/rs_screen_manager.h"
-#include "system/rs_system_parameters.h"
 
 namespace OHOS {
 namespace Rosen {
