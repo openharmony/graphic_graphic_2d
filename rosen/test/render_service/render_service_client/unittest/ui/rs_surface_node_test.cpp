@@ -129,16 +129,21 @@ HWTEST_F(RSSurfaceNodeTest, CreateShadowSurfaceNode, TestSize.Level1)
     RSSurfaceNodeConfig c;
     RSSurfaceNode::SharedPtr surfaceNode = RSSurfaceNode::Create(c);
     ASSERT_TRUE(surfaceNode != nullptr);
-    // {
-    //     RSSurfaceNode::SharedPtr shadowNode = surfaceNode->CreateShadowSurfaceNode();
-    //     EXPECT_TRUE(shadowNode->isShadowNode_);
-    // }
-    // {
-    //     RSSurfaceNode::SharedPtr shadowNode2 = surfaceNode->CreateShadowSurfaceNode();
-    //     auto rsUIContext = shadowNode2->GetRSUIContext();
-    //     ASSERT_TRUE(shadowNode2->isShadowNode_);
-    //     RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
-    // }
+    {
+        RSSurfaceNode::SharedPtr shadowNode = surfaceNode->CreateShadowSurfaceNode();
+        EXPECT_TRUE(shadowNode->isShadowNode_);
+    }
+    {
+        RSSurfaceNode::SharedPtr shadowNode2 = surfaceNode->CreateShadowSurfaceNode();
+        ASSERT_TRUE(shadowNode2->isShadowNode_);
+        auto rsUIContext = shadowNode2->GetRSUIContext();
+        if (RSUIContextManager::MutableInstance().isMultiInstanceOpen_) {
+            ASSERT_NE(rsUIContext, nullptr);
+            RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
+        } else {
+            ASSERT_EQ(rsUIContext, nullptr);
+        }
+    }
 }
 
 /**
