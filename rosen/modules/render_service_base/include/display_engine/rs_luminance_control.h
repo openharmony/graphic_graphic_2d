@@ -103,6 +103,7 @@ public:
     virtual float ConvertScalerFromLevelToFloat(uint32_t& level) const = 0;
     virtual void SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
        const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler) = 0;
+    virtual double GetConfigScalerLock(ScreenId screenId, HdrStatus type) const = 0;
 };
 
 class RSB_EXPORT RSLuminanceControl {
@@ -144,6 +145,7 @@ public:
     RSB_EXPORT float ConvertScalerFromLevelToFloat(uint32_t& level) const;
     RSB_EXPORT void SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
         const std::unordered_map<HdrStatus, std::unordered_map<uint32_t, uint32_t>>& curDisplayHdrBrightnessScaler);
+    RSB_EXPORT double GetConfigScalerLock(ScreenId screenId, HdrStatus type) const;
 
 private:
     RSLuminanceControl() = default;

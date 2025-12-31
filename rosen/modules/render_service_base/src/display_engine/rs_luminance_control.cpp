@@ -252,5 +252,11 @@ void RSLuminanceControl::SetCurDisplayHdrBrightnessScaler(ScreenId screenId,
         rSLuminanceControlInterface_->SetCurDisplayHdrBrightnessScaler(screenId, curDisplayHdrBrightnessScaler);
     }
 }
+
+double RSLuminanceControl::GetConfigScalerLock(ScreenId screenId, HdrStatus type) const
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->GetConfigScalerLock(screenId, type) : 1.0; // 1.0 means no headroom
+}
 } // namespace Rosen
 } // namespace OHOS
