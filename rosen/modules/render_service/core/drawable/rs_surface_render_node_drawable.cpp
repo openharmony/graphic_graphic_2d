@@ -1238,7 +1238,7 @@ void RSSurfaceRenderNodeDrawable::CaptureSurface(RSPaintFilterCanvas& canvas, RS
         }
     }
     
-    if (DrawRelatedSourceNode(*rscanvas, *surfaceParams)) {
+    if (DrawRelatedSourceNode(canvas, surfaceParams)) {
         return;
     }
 
@@ -1447,14 +1447,14 @@ bool RSSurfaceRenderNodeDrawable::DrawRelatedNode(RSPaintFilterCanvas& canvas,
     clonedNodeSurfaceParams->SetMatrix(originMatrix);
     clonedNodeSurfaceParams->SetShouldPaint(originShouldPaint);
     clonedNodeSurfaceParams->SetSkipDraw(originSkipDraw);
-    clonedNodeSurfaceParams->SetAlpha(originAlpha)
+    clonedNodeSurfaceParams->SetAlpha(originAlpha);
     return true;
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawRelatedSourceNode(RSPaintFilterCanvas& canvas,
     RSSurfaceRenderParams& surfaceParams)
 {
-    if (!surfaceParams.ClonedSurfaceNode()) {
+    if (!surfaceParams.ClonedSourceNode()) {
         return false;
     }
 

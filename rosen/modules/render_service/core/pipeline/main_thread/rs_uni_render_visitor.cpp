@@ -1459,7 +1459,6 @@ bool RSUniRenderVisitor::PrepareForCloneNode(RSSurfaceRenderNode& node)
     }
     node.SetIsClonedNodeOnTheTree(clonedNode->IsOnTheTree());
     cloneNodeMap_[node.GetClonedNodeId()] = clonedNodeRenderDrawable;
-    clonedSourceNodeId_ = node.GetClonedNodeId();
     node.SetClonedNodeRenderDrawable(clonedNodeRenderDrawable);
     node.UpdateRenderParams();
     node.AddToPendingSyncList();

@@ -1160,10 +1160,10 @@ void RSSurfaceRenderNode::SetClonedNodeInfo(NodeId id, bool needOffscreen, bool 
     auto clonedSurfaceNode = context->GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
     if (!clonedSurfaceNode) {
         RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo invalid clonedNodeId");
-        return
+        return;
     }
-    if (CheckCloneCircle(std:static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()), clonedSurfaceNode)) {
-        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo clone circle")
+    if (CheckCloneCircle(std::static_pointer_cast<RSSurfaceRenderNode>(shared_from_this()), clonedSurfaceNode)) {
+        RS_LOGE("RSSurfaceRenderNode::SetClonedNodeInfo clone circle");
         return;
     }
     clonedSurfaceNode->clonedSourceNodeNeedOffscreen_ = needOffscreen;
@@ -1183,7 +1183,7 @@ bool RSSurfaceRenderNode::CheckCloneCircle(std::shared_ptr<RSSurfaceRenderNode> 
         isCircle = true;
         return isCircle;
     }
-    auto parentNode = currentNode->GetParent().lcok();
+    auto parentNode = currentNode->GetParent().lock();
     if (parentNode) {
         std::shared_ptr<RSSurfaceRenderNode> parentSurfaceNode = parentNode->ReinterpretCastTo<RSSurfaceRenderNode>();
         if (parentSurfaceNode) {
@@ -3905,7 +3905,7 @@ bool RSSurfaceRenderNode::IsRelated() const
     if (surfaceParams == nullptr) {
         return false;
     }
-    surfaceParams->IsRelated();
+    return surfaceParams->IsRelated();
 }
 } // namespace Rosen
 } // namespace OHOS

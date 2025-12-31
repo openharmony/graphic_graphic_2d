@@ -157,7 +157,7 @@ bool RSDrawWindowCache::DealWithCachedWindow(DrawableV2::RSSurfaceRenderNodeDraw
     return true;
 }
 
-void RSDrawWindowCache::DrawCached(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
+void RSDrawWindowCache::DrawCache(DrawableV2::RSSurfaceRenderNodeDrawable* surfaceDrawable,
     RSPaintFilterCanvas& canvas, RSSurfaceRenderParams& surfaceParams, std::shared_ptr<Drawing::Image> cacheImage)
 {
     RSAutoCanvasRestore acr(&canvas);
