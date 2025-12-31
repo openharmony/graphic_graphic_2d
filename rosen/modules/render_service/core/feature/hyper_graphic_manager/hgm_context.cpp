@@ -100,6 +100,18 @@ void HgmContext::InitHgmUpdateCallback()
     });
 }
 
+void HgmContext::InitHfbcConfig()
+{
+    if (!HFBCParam::GetHfbcConfigMap().empty()) {
+        HgmTaskHandleThread::Instance().PostTask([this] {
+            HgmHfbcConfig& hfbcConfig = hgmCore_.GetHfbcConfig();
+            HGM_LOGI("postTask about hfbcConfig");
+            hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
+            hfbcConfig.SetHfbcControlMode(HFBCParam::GetHfbcControlMode());
+        });
+    }
+}
+
 void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
 {
     if (info == nullptr) {
@@ -496,18 +508,6 @@ bool HgmContext::NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::strin
         return false;
     }
     return true;
-}
-
-void HgmContext::InitHfbcConfig()
-{
-    if (!HFBCParam::GetHfbcConfigMap().empty()) {
-        HgmTaskHandleThread::Instance().PostTask([this] {
-            HgmHfbcConfig& hfbcConfig = hgmCore_.GetHfbcConfig();
-            HGM_LOGI("postTask about hfbcConfig");
-            hfbcConfig.SetHfbcConfigMap(HFBCParam::GetHfbcConfigMap());
-            hfbcConfig.SetHfbcControlMode(HFBCParam::GetHfbcControlMode());
-        });
-    }
 }
 } // namespace Rosen
 } // namespace OHOS

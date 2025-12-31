@@ -88,8 +88,8 @@ public:
 private:
     void InitHgmUpdateCallback();
 
-    void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
     void HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info);
+    void SetServiceToProcessInfo(sptr<HgmServiceToProcessInfo> serviceToProcessInfo);
 
     void InitHfbcConfig();
 

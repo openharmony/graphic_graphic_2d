@@ -395,7 +395,6 @@ ErrCode RSClientToServiceConnection::CreateVSyncConnection(sptr<IVSyncConnection
     auto ret = appVSyncDistributor_->AddConnection(conn, windowNodeId);
     if (ret != VSYNC_ERROR_OK) {
         vsyncConn = nullptr;
-        UnregisterFrameRateLinker(id);
         return ERR_INVALID_VALUE;
     }
     if (linkerPid == remotePid_) {
