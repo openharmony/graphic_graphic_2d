@@ -161,7 +161,7 @@ extern "C" void* dlsym(void* handle, const char* symbol)
 
 extern "C" void* dlopen(const char *filename, int flags)
 {
-    if (strcmp(filename, "/vendor/lib64/libmhc_framework.so") == 0) {
+    if (strcmp(filename, "libmhc_framework.so") == 0) {
         return reinterpret_cast<void *>(0x1234);
     }
     if (strcmp(filename, "libanimation.z.so") == 0) {
