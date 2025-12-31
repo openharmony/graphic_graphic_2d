@@ -92,12 +92,6 @@ static constexpr std::array descriptorCheckList = {
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::DISABLE_RENDER_CONTROL_SCREEN),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_DISPLAY_IDENTIFICATION_DATA),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_REFRESH_INFO_TO_SP),
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK),
-    static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK),
-#endif
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_POWER_STATUS),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_BACK_LIGHT),
     static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::GET_SCREEN_ACTIVE_MODE),
@@ -709,66 +703,6 @@ int RSClientToServiceConnectionStub::OnRemoteRequest(
             }
             break;
         }
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_CONFIG): {
-            float darkBuffer { 0.f };
-            float brightBuffer { 0.f };
-            int64_t interval { 0 };
-            int32_t rangeSize { 0 };
-            if (!data.ReadFloat(darkBuffer) || !data.ReadFloat(brightBuffer) || !data.ReadInt64(interval) ||
-                !data.ReadInt32(rangeSize)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_POINTER_COLOR_INVERSION_CONFIG read parcel failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            int32_t status = SetPointerColorInversionConfig(darkBuffer, brightBuffer, interval, rangeSize);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_POINTER_COLOR_INVERSION_CONFIG Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POINTER_COLOR_INVERSION_ENABLED): {
-            bool enable { false };
-            if (!data.ReadBool(enable)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_POINTER_COLOR_INVERSION_ENABLED read enable failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            int32_t status = SetPointerColorInversionEnabled(enable);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::SET_POINTER_COLOR_INVERSION_ENABLED Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::REGISTER_POINTER_LUMINANCE_CALLBACK): {
-            auto remoteObject = data.ReadRemoteObject();
-            if (remoteObject == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            sptr<RSIPointerLuminanceChangeCallback> cb = iface_cast<RSIPointerLuminanceChangeCallback>(remoteObject);
-            if (cb == nullptr) {
-                ret = ERR_NULL_OBJECT;
-                break;
-            }
-            int32_t status = RegisterPointerLuminanceChangeCallback(cb);
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::REGISTER_POINTER_LUMINANCE_CALLBACK Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-        case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::UNREGISTER_POINTER_LUMINANCE_CALLBACK): {
-            int32_t status = UnRegisterPointerLuminanceChangeCallback();
-            if (!reply.WriteInt32(status)) {
-                RS_LOGE("RSClientToServiceConnectionStub::UNREGISTER_POINTER_LUMINANCE_CALLBACK Write status failed!");
-                ret = ERR_INVALID_REPLY;
-            }
-            break;
-        }
-#endif
         case static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_SCREEN_ACTIVE_MODE): {
             ScreenId id{INVALID_SCREEN_ID};
             uint32_t modeId{0};

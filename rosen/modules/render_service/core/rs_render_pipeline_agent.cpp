@@ -97,13 +97,13 @@ ErrCode RSRenderPipelineAgent::CommitTransaction(pid_t callingPid, bool isTokenT
         return ERR_INVALID_VALUE;
     }
     if (transactionData && transactionData->GetDVSyncUpdate()) {
-        rsRenderPipeline_->mainThread_->DVSyncUpdate(transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
+        rsRenderPipeline_->GetMainThread()->DVSyncUpdate(transactionData->GetDVSyncTime(), transactionData->GetTimestamp());
     }
-    bool isProcessBySingleFrame = rsRenderPipeline_->mainThread_->IsNeedProcessBySingleFrameComposer(transactionData);
+    bool isProcessBySingleFrame = rsRenderPipeline_->GetMainThread()->IsNeedProcessBySingleFrameComposer(transactionData);
     if (isProcessBySingleFrame) {
-        rsRenderPipeline_->mainThread_->ProcessDataBySingleFrameComposer(transactionData);
+        rsRenderPipeline_->GetMainThread()->ProcessDataBySingleFrameComposer(transactionData);
     } else {
-        rsRenderPipeline_->mainThread_->RecvRSTransactionData(transactionData);
+        rsRenderPipeline_->GetMainThread()->RecvRSTransactionData(transactionData);
     }
     return ERR_OK;
 }
@@ -119,7 +119,7 @@ ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSy
     auto isTimeout = std::make_shared<bool>(0);
     std::weak_ptr<bool> isTimeoutWeak = isTimeout;
     std::chrono::nanoseconds span(std::min(task->GetTimeout(), MAX_TIME_OUT_NS));
-    rsRenderPipeline_->ScheduleMainThreadTask([task, mainThread = rsRenderPipeline_->mainThread_, isTimeoutWeak] {
+    rsRenderPipeline_->ScheduleMainThreadTask([task, mainThread = rsRenderPipeline_->GetMainThread(), isTimeoutWeak] {
         if (task == nullptr || mainThread == nullptr || isTimeoutWeak.expired()) {
             return;
         }
@@ -137,14 +137,14 @@ ErrCode RSRenderPipelineAgent::CreateNode(const RSDisplayNodeConfig& displayNode
         return ERR_INVALID_VALUE;
     }
     auto node = DisplayNodeCommandHelper::CreateWithConfigInRS(
-        rsRenderPipeline_->mainThread_->GetContext(), nodeId, displayNodeConfig);
+        rsRenderPipeline_->GetMainThread()->GetContext(), nodeId, displayNodeConfig);
     if (node == nullptr) {
         RS_LOGE("RSRenderPipelineAgent::CreateDisplayNode fail");
         success = false;
         return ERR_INVALID_VALUE;
     }
     std::function<void()> registerNode = [renderPipeline = rsRenderPipeline_, nodeId, node, &displayNodeConfig]() {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
         nodeMap.TraverseScreenNodes([&node, id = node->GetScreenId()](auto& screenNode) {
@@ -168,8 +168,8 @@ ErrCode RSRenderPipelineAgent::ForceRefreshOneFrameWithNextVSync()
     }
     auto task = [renderPipeline = rsRenderPipeline_]() -> void {
         RS_LOGI("ForceRefreshOneFrameWithNextVSync, setDirtyflag, forceRefresh in mainThread");
-        renderPipeline->mainThread_->SetDirtyFlag();
-        renderPipeline->mainThread_->RequestNextVSync();
+        renderPipeline->GetMainThread()->SetDirtyFlag();
+        renderPipeline->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -181,7 +181,7 @@ ErrCode RSRenderPipelineAgent::SetAppWindowNum(uint32_t num)
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, num]() -> void {
-        renderPipeline->mainThread_->SetAppWindowNum(num);
+        renderPipeline->GetMainThread()->SetAppWindowNum(num);
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK; 
@@ -194,14 +194,14 @@ ErrCode RSRenderPipelineAgent::CreateNode(const RSSurfaceRenderNodeConfig& confi
         return ERR_INVALID_VALUE;
     }
     std::shared_ptr<RSSurfaceRenderNode> node =
-        SurfaceNodeCommandHelper::CreateWithConfigInRS(config, rsRenderPipeline_->mainThread_->GetContext());
+        SurfaceNodeCommandHelper::CreateWithConfigInRS(config, rsRenderPipeline_->GetMainThread()->GetContext());
     if (node == nullptr) {
         RS_LOGE("RSRenderPipelineAgent::CreateNode fail");
         success = false;
         return ERR_INVALID_VALUE;
     }
     std::function<void()> registerNode = [renderPipeline = rsRenderPipeline_, node]() -> void {
-        renderPipeline->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+        renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     };
     rsRenderPipeline_->PostMainThreadTask(registerNode);
     success = true;
@@ -214,7 +214,7 @@ void RSRenderPipelineAgent::RegisterApplicationAgent(uint32_t pid, sptr<IApplica
         return;
     }
     auto captureTask = [renderPipeline = rsRenderPipeline_, pid, app]() -> void {
-        renderPipeline->mainThread_->RegisterApplicationAgent(pid, app);
+        renderPipeline->GetMainThread()->RegisterApplicationAgent(pid, app);
     };
     rsRenderPipeline_->PostMainThreadTask(captureTask);
 }
@@ -227,7 +227,7 @@ ErrCode RSRenderPipelineAgent::RegisterBufferClearListener(
     }
     auto registerBufferClearListener = [renderPipeline = rsRenderPipeline_, id, callback]() -> bool {
         if (auto node =
-                renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+                renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
             node->RegisterBufferClearListener(callback);
             return true;
         }
@@ -246,7 +246,7 @@ ErrCode RSRenderPipelineAgent::RegisterBufferAvailableListener(
     auto registerBufferAvailableListener = [renderPipeline = rsRenderPipeline_, id, callback,
                                                isFromRenderThread]() -> bool {
         if (auto node =
-                renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
+                renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
             node->RegisterBufferAvailableListener(callback, isFromRenderThread);
             return true;
         }
@@ -262,7 +262,7 @@ ErrCode RSRenderPipelineAgent::SetGlobalDarkColorMode(bool isDark)
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, isDark]() {
-        renderPipeline->mainThread_->SetGlobalDarkColorMode(isDark);
+        renderPipeline->GetMainThread()->SetGlobalDarkColorMode(isDark);
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -276,7 +276,7 @@ ErrCode RSRenderPipelineAgent::SetSystemAnimatedScenes(
         return ERR_INVALID_VALUE;
     }
     RSUifirstManager::Instance().OnProcessAnimateScene(systemAnimatedScenes);
-    success = rsRenderPipeline_->mainThread_->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
+    success = rsRenderPipeline_->GetMainThread()->SetSystemAnimatedScenes(systemAnimatedScenes, isRegularAnimation);
     return ERR_OK;
 }
 
@@ -287,7 +287,7 @@ ErrCode RSRenderPipelineAgent::SetHardwareEnabled(NodeId id, bool isEnabled, Sel
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, id, isEnabled, selfDrawingType, dynamicHardwareEnable]() -> void {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
         if (node) {
             node->SetHardwareEnabled(isEnabled, selfDrawingType, dynamicHardwareEnable);
@@ -304,7 +304,7 @@ ErrCode RSRenderPipelineAgent::SetHidePrivacyContent(NodeId id, bool needHidePri
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, id, needHidePrivacyContent]() -> void {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         auto node = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id);
         if (node) {
             node->SetHidePrivacyContent(needHidePrivacyContent);
@@ -327,7 +327,7 @@ ErrCode RSRenderPipelineAgent::SetFocusAppInfo(const FocusAppInfo& info, int32_t
         return ERR_INVALID_VALUE;
     }
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [info, mainThread = rsRenderPipeline_->mainThread_]() {
+        [info, mainThread = rsRenderPipeline_->GetMainThread()]() {
             // don't use 'this' to get mainThread poninter
             mainThread->SetFocusAppInfo(info);
         }
@@ -429,7 +429,7 @@ void RSRenderPipelineAgent::TakeSurfaceCapture(NodeId id, sptr<RSISurfaceCapture
             }
             return;
         }
-        auto node = renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("TakeSurfaceCapture failed, node is nullptr");
             callback->OnSurfaceCapture(id, captureConfig, nullptr);
@@ -499,13 +499,9 @@ void RSRenderPipelineAgent::TakeSelfSurfaceCapture(NodeId id, sptr<RSISurfaceCap
     if (rsRenderPipeline_ == nullptr) {
         return;
     }
-    if (!rsRenderPipeline_->mainThread_) {
-        RS_LOGE("%{public}s mainThread_ is nullptr", __func__);
-        return;
-    }
     std::function<void()> selfCaptureTask = [renderPipeline = rsRenderPipeline_, id, callback, captureConfig,
                                                 isSystemCalling]() -> void {
-        auto node = renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("TakeSelfSurfaceCapture failed, node is nullptr");
             if (callback) {
@@ -543,7 +539,7 @@ ErrCode RSRenderPipelineAgent::TakeSurfaceCaptureWithAllWindows(NodeId id,
     std::function<void()> takeSurfaceCaptureTask = [renderPipeline = rsRenderPipeline_, id, checkDrmAndSurfaceLock,
                                                        callback, captureConfig, hasPermission]() -> void {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
-            renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+            renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id));
         if (!displayNode) {
             if (callback) {
                 callback->OnSurfaceCapture(id, captureConfig, nullptr);
@@ -551,7 +547,7 @@ ErrCode RSRenderPipelineAgent::TakeSurfaceCaptureWithAllWindows(NodeId id,
             RS_LOGE("%{public}s failed, displayNode is nullptr", __func__);
             return;
         }
-        if (checkDrmAndSurfaceLock && renderPipeline->mainThread_->HasDRMOrSurfaceLockLayer()) {
+        if (checkDrmAndSurfaceLock && renderPipeline->GetMainThread()->HasDRMOrSurfaceLockLayer()) {
             if (callback) {
                 callback->OnSurfaceCapture(id, captureConfig, nullptr);
             }
@@ -578,7 +574,7 @@ ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze)
     RS_TRACE_NAME_FMT("FreezeScreen isFreeze: %d", isFreeze);
     std::function<void()> setScreenFreezeTask = [renderPipeline = rsRenderPipeline_, id, isFreeze]() -> void {
         auto displayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(
-            renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(id));
+            renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id));
         auto screenNode = displayNode == nullptr ? nullptr :
             std::static_pointer_cast<RSScreenRenderNode>(displayNode->GetParent().lock());
         if (!screenNode) {
@@ -589,7 +585,7 @@ ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze)
 
         // cancel previous task, and unfreeze screen after 3 seconds in case unfreeze fail
         std::string taskName(UNFREEZE_SCREEN_TASK_NAME + std::to_string(id));
-        renderPipeline->mainThread_->RemoveTask(taskName);
+        renderPipeline->GetMainThread()->RemoveTask(taskName);
         if (!isFreeze) {
             return;
         }
@@ -597,12 +593,12 @@ ErrCode RSRenderPipelineAgent::FreezeScreen(NodeId id, bool isFreeze)
             RS_LOGW("unfreeze screen[%{public}" PRIu64 "] by timer", screenId);
             RS_TRACE_NAME_FMT("UnfreezeScreen[%lld]", screenId);
             auto screenNode = RSBaseRenderNode::ReinterpretCast<RSScreenRenderNode>(
-                renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(screenId));
+                renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(screenId));
             if (screenNode) {
                 screenNode->SetForceFreeze(false);
             }
         };
-        renderPipeline->mainThread_->PostTask(unfreezeScreenTask, taskName, MAX_FREEZE_SCREEN_TIME,
+        renderPipeline->GetMainThread()->PostTask(unfreezeScreenTask, taskName, MAX_FREEZE_SCREEN_TIME,
             AppExecFwk::EventQueue::Priority::IMMEDIATE);
     };
     rsRenderPipeline_->PostMainThreadTask(setScreenFreezeTask);
@@ -618,7 +614,7 @@ ErrCode RSRenderPipelineAgent::SetWindowFreezeImmediately(NodeId id, bool isFree
     }
     std::function<void()> setWindowFreezeTask = [renderPipeline = rsRenderPipeline_, id, isFreeze, callback,
                                                     captureConfig, blurParam, isSystemCalling]() -> void {
-        auto node = renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(id);
+        auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(id);
         if (node == nullptr) {
             RS_LOGE("SetWindowFreezeImmediately failed, node is nullptr");
             if (callback) {
@@ -693,7 +689,7 @@ ErrCode RSRenderPipelineAgent::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSta
             return;
         }
         std::shared_ptr<RSScreenRenderNode> screenNode = nullptr;
-        auto& nodeMap = renderPipeline->mainThread_->GetContext().GetNodeMap();
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
         nodeMap.TraverseScreenNodes([id, &screenNode](const std::shared_ptr<RSScreenRenderNode>& node) {
             if (node && node->GetScreenId() == id) {
                 screenNode = node;
@@ -707,7 +703,7 @@ ErrCode RSRenderPipelineAgent::GetScreenHDRStatus(ScreenId id, HdrStatus& hdrSta
         resCodeRet = StatusCode::SUCCESS;
     };
     auto span = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::milliseconds(100)); // timeout 100 ms
-    if (rsRenderPipeline_->mainThread_->ScheduleTask(task).wait_for(span) == std::future_status::timeout) {
+    if (rsRenderPipeline_->GetMainThread()->ScheduleTask(task).wait_for(span) == std::future_status::timeout) {
         isTimeout.reset();
     }
     if (isTimeoutWeak.expired() && resCodeRet != StatusCode::SUCCESS) {
@@ -728,7 +724,7 @@ ErrCode RSRenderPipelineAgent::DropFrameByPid(const std::vector<int32_t> pidList
     rsRenderPipeline_->ScheduleMainThreadTask(
         [renderPipeline = rsRenderPipeline_, pidList]() {
             // don't use 'this' directly
-            renderPipeline->mainThread_->AddPidNeedDropFrame(pidList);
+            renderPipeline->GetMainThread()->AddPidNeedDropFrame(pidList);
         }
     );
     return ERR_OK;
@@ -740,7 +736,7 @@ ErrCode RSRenderPipelineAgent::SetAncoForceDoDirect(bool direct, bool& res)
         res = false;
         return ERR_INVALID_VALUE;
     }
-    rsRenderPipeline_->mainThread_->SetAncoForceDoDirect(direct);
+    rsRenderPipeline_->GetMainThread()->SetAncoForceDoDirect(direct);
     res = true;
     return ERR_OK;
 }
@@ -770,7 +766,7 @@ ErrCode RSRenderPipelineAgent::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, nodeId, isTop, zOrder]() -> void {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         auto surfaceNode = context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(nodeId);
         if (surfaceNode == nullptr) {
             return;
@@ -778,8 +774,8 @@ ErrCode RSRenderPipelineAgent::SetLayerTopForHWC(NodeId nodeId, bool isTop, uint
         surfaceNode->SetLayerTop(isTop, false);
         surfaceNode->SetTopLayerZOrder(zOrder);
         // It can be displayed immediately after layer-top changed.
-        renderPipeline->mainThread_->SetDirtyFlag();
-        renderPipeline->mainThread_->RequestNextVSync();
+        renderPipeline->GetMainThread()->SetDirtyFlag();
+        renderPipeline->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -797,7 +793,7 @@ ErrCode RSRenderPipelineAgent::SetWindowContainer(NodeId nodeId, bool value)
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, nodeId, value]() -> void {
-        auto& nodeMap = renderPipeline->mainThread_->GetContext().GetNodeMap();
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
         if (auto node = nodeMap.GetRenderNode<RSCanvasRenderNode>(nodeId)) {
             auto displayNodeId = node->GetLogicalDisplayNodeId();
             if (auto displayNode = nodeMap.GetRenderNode<RSLogicalDisplayRenderNode>(displayNodeId)) {
@@ -849,7 +845,7 @@ int32_t RSRenderPipelineAgent::SubmitCanvasPreAllocatedBuffer(
         bool success = RSCanvasDmaBufferCache::GetInstance().AddPendingBuffer(nodeId, buffer, resetSurfaceIndex);
         return success ? SUCCESS : INVALID_ARGUMENTS;
     };
-    return rsRenderPipeline_->mainThread_->ScheduleTask(task).get();
+    return rsRenderPipeline_->GetMainThread()->ScheduleTask(task).get();
 }
 #endif
 
@@ -859,7 +855,7 @@ ErrCode RSRenderPipelineAgent::SetCurtainScreenUsingStatus(bool isCurtainScreenO
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, isCurtainScreenOn]() -> void {
-        renderPipeline->mainThread_->SetCurtainScreenUsingStatus(isCurtainScreenOn);
+        renderPipeline->GetMainThread()->SetCurtainScreenUsingStatus(isCurtainScreenOn);
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -873,7 +869,7 @@ ErrCode RSRenderPipelineAgent::GetBitmap(NodeId id, Drawing::Bitmap& bitmap, boo
     }
     std::promise<bool> result;
     std::future<bool> future = result.get_future();
-    RSMainThread* mainThread = rsRenderPipeline_->mainThread_;
+    RSMainThread* mainThread = rsRenderPipeline_->GetMainThread();
 #ifdef RS_ENABLE_GPU
     RSUniRenderThread* renderThread = rsRenderPipeline_->uniRenderThread_;
     auto getBitmapTask = [id, &bitmap, mainThread, renderThread, &result]() {
@@ -913,7 +909,7 @@ ErrCode RSRenderPipelineAgent::GetPixelmap(NodeId id, const std::shared_ptr<Medi
     std::promise<bool> result;
     std::future<bool> future = result.get_future();
 #ifdef RS_ENABLE_GPU
-    RSMainThread* mainThread = rsRenderPipeline_->mainThread_;
+    RSMainThread* mainThread = rsRenderPipeline_->GetMainThread();
     RSUniRenderThread* renderThread = rsRenderPipeline_->uniRenderThread_;
     auto getPixelMapTask = [id, pixelmap, rect, drawCmdList, mainThread, renderThread, &result]() {
         auto node = mainThread->GetContext().GetNodeMap().GetRenderNode<RSCanvasDrawingRenderNode>(id);
@@ -968,7 +964,7 @@ ErrCode RSRenderPipelineAgent::SetDiscardJankFrames(bool discardJankFrames)
     if (rsRenderPipeline_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    rsRenderPipeline_->mainThread_->SetDiscardJankFrames(discardJankFrames);
+    rsRenderPipeline_->GetMainThread()->SetDiscardJankFrames(discardJankFrames);
     RSJankStatsRenderFrameHelper::GetInstance().SetDiscardJankFrames(discardJankFrames);
     return ERR_OK;
 }
@@ -990,7 +986,7 @@ ErrCode RSRenderPipelineAgent::ReportEventResponse(DataBaseRs info)
     }
     auto task = [renderPipeline = rsRenderPipeline_, info]() -> void {
         RSJankStats::GetInstance().SetReportEventResponse(info);
-        renderPipeline->mainThread_->SetForceRsDVsync(info.sceneId);
+        renderPipeline->GetMainThread()->SetForceRsDVsync(info.sceneId);
     };
     rsRenderPipeline_->PostUniRenderThreadTask(task);
     RSUifirstManager::Instance().OnProcessEventResponse(info);
@@ -1076,7 +1072,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         return ERR_INVALID_VALUE;
     }
     std::shared_ptr<RSSurfaceRenderNode> node = SurfaceNodeCommandHelper::CreateWithConfigInRS(
-        config, rsRenderPipeline_->mainThread_->GetContext(), unobscured);
+        config, rsRenderPipeline_->GetMainThread()->GetContext(), unobscured);
     if (node == nullptr) {
         RS_LOGE("RSRenderPipeline::CreateNodeAndSurface CreateNode fail");
         return ERR_INVALID_VALUE;
@@ -1101,7 +1097,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
     surface->SetDefaultUsage(defaultUsage | BUFFER_USAGE_MEM_DMA | BUFFER_USAGE_HW_COMPOSER);
     node->GetRSSurfaceHandler()->SetConsumer(surface);
     std::function<void()> registerNode = [node, renderPipeline = rsRenderPipeline_]() -> void {
-        if (auto preNode = renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {
+        if (auto preNode = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(node->GetId())) {
             if (auto preSurfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
                 RS_LOGE("CreateNodeAndSurface same id node:%{public}" PRIu64 ", name:%{public}s, type:%{public}d",
                     node->GetId(), preSurfaceNode->GetName().c_str(), preNode->GetType());
@@ -1113,7 +1109,7 @@ ErrCode RSRenderPipelineAgent::CreateNodeAndSurface(const RSSurfaceRenderNodeCon
         }
         RS_LOGI("CreateNodeAndSurface RegisterRenderNode id:%{public}" PRIu64 ", name:%{public}s", node->GetId(),
             node->GetName().c_str());
-        renderPipeline->mainThread_->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
+        renderPipeline->GetMainThread()->GetContext().GetMutableNodeMap().RegisterRenderNode(node);
     };
     if (config.isSync) {
         rsRenderPipeline_->PostMainThreadSyncTask(registerNode);
@@ -1140,10 +1136,10 @@ int32_t RSRenderPipelineAgent::SetBrightnessInfoChangeCallback(pid_t pid,
         return StatusCode::INVALID_ARGUMENTS;
     }
     auto task = [renderPipeline = rsRenderPipeline_, &callback, &pid]() {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         return context.SetBrightnessInfoChangeCallback(pid, callback);
     };
-    return rsRenderPipeline_->mainThread_->ScheduleTask(task).get();
+    return rsRenderPipeline_->GetMainThread()->ScheduleTask(task).get();
 }
 
 int32_t RSRenderPipelineAgent::GetBrightnessInfo(ScreenId screenId, BrightnessInfo& brightnessInfo)
@@ -1164,7 +1160,7 @@ int32_t RSRenderPipelineAgent::RegisterOcclusionChangeCallback(pid_t pid, sptr<R
         RS_LOGE("RegisterOcclusionChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    rsRenderPipeline_->mainThread_->RegisterOcclusionChangeCallback(pid, callback);
+    rsRenderPipeline_->GetMainThread()->RegisterOcclusionChangeCallback(pid, callback);
     return StatusCode::SUCCESS;
 }
 
@@ -1178,7 +1174,7 @@ int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
         RS_LOGE("RegisterSurfaceOcclusionChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    rsRenderPipeline_->mainThread_->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    rsRenderPipeline_->GetMainThread()->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
     return StatusCode::SUCCESS;
 }
 
@@ -1187,7 +1183,7 @@ int32_t RSRenderPipelineAgent::UnRegisterSurfaceOcclusionChangeCallback(NodeId i
     if (rsRenderPipeline_ == nullptr) {
         return StatusCode::INVALID_ARGUMENTS;
     }
-    rsRenderPipeline_->mainThread_->UnRegisterSurfaceOcclusionChangeCallback(id);
+    rsRenderPipeline_->GetMainThread()->UnRegisterSurfaceOcclusionChangeCallback(id);
     return StatusCode::SUCCESS;
 }
 
@@ -1213,7 +1209,7 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphic(int pid, MemoryGraphic& memoryGr
     if (rsRenderPipeline_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    if (!rsRenderPipeline_->mainThread_->GetContext().GetNodeMap().ContainPid(pid)) {
+    if (!rsRenderPipeline_->GetMainThread()->GetContext().GetNodeMap().ContainPid(pid)) {
         return ERR_INVALID_VALUE;
     }
     if (rsRenderPipeline_->uniRenderThread_->GetRenderEngine() == nullptr ||
@@ -1232,7 +1228,7 @@ void RSRenderPipelineAgent::NotifyPackageEvent(const std::vector<std::string>& p
         return;
     }
     rsRenderPipeline_->PostMainThreadTask([renderPipeline = rsRenderPipeline_, packageList] {
-        renderPipeline->mainThread_->CheckPackageInConfigList(packageList);
+        renderPipeline->GetMainThread()->CheckPackageInConfigList(packageList);
         renderPipeline->imageEnhanceManager_->CheckPackageInConfigList(packageList);
     });
 }
@@ -1243,7 +1239,7 @@ ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool is
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, nodeIdStr, isTop]() -> void {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         context.GetNodeMap().TraverseSurfaceNodes(
             [&nodeIdStr, &isTop](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
                 if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
@@ -1253,8 +1249,8 @@ ErrCode RSRenderPipelineAgent::SetLayerTop(const std::string &nodeIdStr, bool is
                 }
             });
         // It can be displayed immediately after layer-top changed.
-        renderPipeline->mainThread_->SetDirtyFlag();
-        renderPipeline->mainThread_->RequestNextVSync();
+        renderPipeline->GetMainThread()->SetDirtyFlag();
+        renderPipeline->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -1266,7 +1262,7 @@ ErrCode RSRenderPipelineAgent::GetTotalAppMemSize(float& cpuMemSize, float& gpuM
         return ERR_INVALID_VALUE;
     }
 #ifdef RS_ENABLE_GPU
-    rsRenderPipeline_->mainThread_->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
+    rsRenderPipeline_->GetMainThread()->GetAppMemoryInMB(cpuMemSize, gpuMemSize);
     gpuMemSize += RSSubThreadManager::Instance()->GetAppGpuMemoryInMB();
 #endif
     return ERR_OK;
@@ -1277,7 +1273,7 @@ ErrCode RSRenderPipelineAgent::GetMemoryGraphics(std::vector<MemoryGraphic>& mem
     if (rsRenderPipeline_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    const auto& nodeMap = rsRenderPipeline_->mainThread_->GetContext().GetNodeMap();
+    const auto& nodeMap = rsRenderPipeline_->GetMainThread()->GetContext().GetNodeMap();
     std::vector<pid_t> pids;
     nodeMap.TraverseSurfaceNodes([&pids](const std::shared_ptr<RSSurfaceRenderNode>& node) {
         auto pid = ExtractPid(node->GetId());
@@ -1310,12 +1306,12 @@ ErrCode RSRenderPipelineAgent::GetPixelMapByProcessId(std::vector<PixelMapInfo>&
     }
     std::vector<std::tuple<sptr<SurfaceBuffer>, std::string, RectI>> sfBufferInfoVector;
     auto selfDrawingNodeVector =
-        rsRenderPipeline_->mainThread_->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
+        rsRenderPipeline_->GetMainThread()->GetContext().GetMutableNodeMap().GetSelfDrawingNodeInProcess(pid);
     std::function<void()> getSurfaceBufferByPidTask = [renderPipeline = rsRenderPipeline_, &selfDrawingNodeVector,
                                                           &sfBufferInfoVector, pid]() -> void {
         RS_TRACE_NAME_FMT("RSRenderPipelineAgent::GetPixelMapByProcessId getSurfaceBufferByPidTask pid: %d", pid);
         for (auto iter = selfDrawingNodeVector.rbegin(); iter != selfDrawingNodeVector.rend(); ++iter) {
-            auto node = renderPipeline->mainThread_->GetContext().GetNodeMap().GetRenderNode(*iter);
+            auto node = renderPipeline->GetMainThread()->GetContext().GetNodeMap().GetRenderNode(*iter);
             if (auto surfaceNode = node->ReinterpretCastTo<RSSurfaceRenderNode>()) {
                 auto surfaceBuffer = surfaceNode->GetRSSurfaceHandler()->GetBuffer();
                 auto surfaceBufferInfo = std::make_tuple(surfaceBuffer, surfaceNode->GetName(),
@@ -1379,7 +1375,7 @@ ErrCode RSRenderPipelineAgent::SetWatermark(
         success = false;
         return ERR_INVALID_VALUE;
     }
-    rsRenderPipeline_->mainThread_->SetWatermark(callingPid, name, watermark);
+    rsRenderPipeline_->GetMainThread()->SetWatermark(callingPid, name, watermark);
     success = true;
     return ERR_OK;
 }
@@ -1390,9 +1386,9 @@ void RSRenderPipelineAgent::ShowWatermark(const std::shared_ptr<Media::PixelMap>
         return;
     }
     auto task = [renderPipeline = rsRenderPipeline_, watermarkImg, isShow]() -> void {
-        renderPipeline->mainThread_->ShowWatermark(watermarkImg, isShow);
+        renderPipeline->GetMainThread()->ShowWatermark(watermarkImg, isShow);
     };
-    rsRenderPipeline_->mainThread_->PostTask(task);
+    rsRenderPipeline_->GetMainThread()->PostTask(task);
 }
 
 ErrCode RSRenderPipelineAgent::SetForceRefresh(const std::string &nodeIdStr, bool isForceRefresh)
@@ -1401,7 +1397,7 @@ ErrCode RSRenderPipelineAgent::SetForceRefresh(const std::string &nodeIdStr, boo
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, nodeIdStr, isForceRefresh]() -> void {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         context.GetNodeMap().TraverseSurfaceNodes(
             [&nodeIdStr, &isForceRefresh](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
                 if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
@@ -1421,8 +1417,8 @@ int32_t RSRenderPipelineAgent::NotifyScreenRefresh(ScreenId screenId)
         return -1;
     }
     rsRenderPipeline_->PostMainThreadTask([renderPipeline = rsRenderPipeline_]() {
-            renderPipeline->mainThread_->SetForceUpdateUniRenderFlag(true);
-            renderPipeline->mainThread_->RequestNextVSync();
+            renderPipeline->GetMainThread()->SetForceUpdateUniRenderFlag(true);
+            renderPipeline->GetMainThread()->RequestNextVSync();
         });
     return 0;
 }
@@ -1475,7 +1471,7 @@ void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
             return;
         }
         RSSystemProperties::SetBehindWindowFilterEnabled(enabled);
-        auto& nodeMap = renderPipeline->mainThread_->GetContext().GetNodeMap();
+        auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
         bool needRequestNextVSync = false;
         nodeMap.TraverseSurfaceNodes(
             [&needRequestNextVSync](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
@@ -1489,8 +1485,8 @@ void RSRenderPipelineAgent::SetBehindWindowFilterEnabled(bool enabled)
                 needRequestNextVSync = true;
             });
         if (needRequestNextVSync) {
-            renderPipeline->mainThread_->RequestNextVSync();
-            renderPipeline->mainThread_->SetForceUpdateUniRenderFlag(true);
+            renderPipeline->GetMainThread()->RequestNextVSync();
+            renderPipeline->GetMainThread()->SetForceUpdateUniRenderFlag(true);
         }
     };
     rsRenderPipeline_->PostMainThreadTask(task);
@@ -1516,7 +1512,7 @@ int32_t RSRenderPipelineAgent::RegisterUIExtensionCallback(pid_t pid, uint64_t u
         RS_LOGE("RegisterUIExtensionCallback register null callback, failed.");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    rsRenderPipeline_->mainThread_->RegisterUIExtensionCallback(pid, userId, callback, unobscured);
+    rsRenderPipeline_->GetMainThread()->RegisterUIExtensionCallback(pid, userId, callback, unobscured);
     return StatusCode::SUCCESS;
 }
 
@@ -1549,8 +1545,8 @@ void RSRenderPipelineAgent::HgmForceUpdateTask(bool flag, const std::string& fro
         return;
     }
     RS_LOGI("RSRenderPipelineAgent::HgmForceUpdateTask");
-    rsRenderPipeline_->mainThread_->SetForceUpdateUniRenderFlag(flag);
-    rsRenderPipeline_->mainThread_->RequestNextVSync("ltpoForceUpdate");
+    rsRenderPipeline_->GetMainThread()->SetForceUpdateUniRenderFlag(flag);
+    rsRenderPipeline_->GetMainThread()->RequestNextVSync("ltpoForceUpdate");
 }
 
 int32_t RSRenderPipelineAgent::GetPidGpuMemoryInMB(pid_t pid, float &gpuMemInMB)
@@ -1579,8 +1575,8 @@ ErrCode RSRenderPipelineAgent::RepaintEverything()
     RS_LOGI("RepaintEverything start");
     auto task = [renderPipeline = rsRenderPipeline_]() -> void {
         RS_LOGI("RepaintEverything, SetDirtyFlag ForceRefreshForUni");
-        renderPipeline->mainThread_->SetDirtyFlag();
-        renderPipeline->mainThread_->ForceRefreshForUni();
+        renderPipeline->GetMainThread()->SetDirtyFlag();
+        renderPipeline->GetMainThread()->ForceRefreshForUni();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -1595,7 +1591,7 @@ ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
     RS_TRACE_NAME("RSRenderPipelineAgent::CleanResources begin, remotePid: " + std::to_string(pid));
     RsCommandVerifyHelper::GetInstance().RemoveCntWithPid(pid);
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->mainThread_, pid]() {
+        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
             RS_TRACE_NAME_FMT("CleanRenderNodes %d", pid);
             if (mainThread == nullptr) {
                 return;
@@ -1608,12 +1604,12 @@ ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
             nodeMap.FilterNodeByPid(pid);
         }).wait();
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->mainThread_, pid]() {
+        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
             RS_TRACE_NAME_FMT("ClearTransactionDataPidInfo %d", pid);
             mainThread->ClearTransactionDataPidInfo(pid);
         }).wait();
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->mainThread_, pid]() {
+        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
             RS_TRACE_NAME_FMT("UnRegisterCallback %d", pid);
             if (mainThread == nullptr) {
                 return;
@@ -1624,7 +1620,7 @@ ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
         }).wait();
 
     rsRenderPipeline_->ScheduleMainThreadTask(
-        [mainThread = rsRenderPipeline_->mainThread_, pid]() {
+        [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
             if (mainThread == nullptr) {
                 return;
             }
@@ -1632,7 +1628,7 @@ ErrCode RSRenderPipelineAgent::CleanResources(pid_t pid)
         }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         rsRenderPipeline_->ScheduleMainThreadTask(
-            [mainThread = rsRenderPipeline_->mainThread_, pid]() {
+            [mainThread = rsRenderPipeline_->GetMainThread(), pid]() {
                 if (mainThread == nullptr) {
                     return;
                 }
@@ -1651,7 +1647,7 @@ ErrCode RSRenderPipelineAgent::SetColorFollow(const std::string& nodeIdStr, bool
         return ERR_INVALID_VALUE;
     }
     auto task = [renderPipeline = rsRenderPipeline_, nodeIdStr, isColorFollow]() -> void {
-        auto& context = renderPipeline->mainThread_->GetContext();
+        auto& context = renderPipeline->GetMainThread()->GetContext();
         context.GetNodeMap().TraverseSurfaceNodes(
             [&nodeIdStr, &isColorFollow](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
                 if ((surfaceNode != nullptr) && (surfaceNode->GetName() == nodeIdStr) &&
@@ -1660,8 +1656,8 @@ ErrCode RSRenderPipelineAgent::SetColorFollow(const std::string& nodeIdStr, bool
                     return;
                 }
             });
-        renderPipeline->mainThread_->SetDirtyFlag();
-        renderPipeline->mainThread_->RequestNextVSync();
+        renderPipeline->GetMainThread()->SetDirtyFlag();
+        renderPipeline->GetMainThread()->RequestNextVSync();
     };
     rsRenderPipeline_->PostMainThreadTask(task);
     return ERR_OK;
@@ -1674,7 +1670,7 @@ void RSRenderPipelineAgent::GetSurfaceRootNodeId(NodeId &windowNodeId)
     }
     rsRenderPipeline_->ScheduleMainThreadTask([renderPipeline = rsRenderPipeline_, &windowNodeId]() {
         RS_TRACE_NAME("TraverseSurfaceNodes");
-        const auto& nodeMap = renderPipeline->mainThread_->GetContext().GetNodeMap();
+        const auto& nodeMap = renderPipeline->GetMainThread()->GetContext().GetNodeMap();
         nodeMap.TraverseSurfaceNodes(
             [&windowNodeId](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) mutable {
                 if (surfaceNode == nullptr || surfaceNode->GetRSSurfaceHandler() == nullptr ||
@@ -1825,10 +1821,10 @@ void RSRenderPipelineAgent::OnScreenBacklightChanged(ScreenId screenId, uint32_t
     RSLuminanceControl::Get().SetSdrLuminance(screenId, level);
     if (RSLuminanceControl::Get().IsHdrOn(screenId) && level > 0) {
         rsRenderPipeline_->PostMainThreadTask([renderPipeline = rsRenderPipeline_, screenId]() {
-            renderPipeline->mainThread_->SetForceUpdateUniRenderFlag(true);
-            renderPipeline->mainThread_->SetLuminanceChangingStatus(screenId, true);
-            renderPipeline->mainThread_->SetDirtyFlag();
-            renderPipeline->mainThread_->RequestNextVSync();
+            renderPipeline->GetMainThread()->SetForceUpdateUniRenderFlag(true);
+            renderPipeline->GetMainThread()->SetLuminanceChangingStatus(screenId, true);
+            renderPipeline->GetMainThread()->SetDirtyFlag();
+            renderPipeline->GetMainThread()->RequestNextVSync();
         });
         return;
     }
@@ -1846,7 +1842,7 @@ void RSRenderPipelineAgent::SetScreenFrameGravity(ScreenId id, int32_t gravity)
         return;
     }
     auto task = [renderPipeline = rsRenderPipeline_, id, gravity] () -> void {
-        auto &context = renderPipeline->mainThread_->GetContext();
+        auto &context = renderPipeline->GetMainThread()->GetContext();
         context.GetNodeMap().
             TraverseScreenNodes([id, gravity] (const std::shared_ptr<RSScreenRenderNode>& node) {
             if (node && node->GetScreenId() == id) {
@@ -1867,7 +1863,7 @@ uint32_t RSRenderPipelineAgent::SetSurfaceWatermark(pid_t pid, const std::string
     uint32_t res =  SurfaceWatermarkStatusCode::WATER_MARK_RS_CONNECTION_ERROR;
     auto task = [renderPipeline = rsRenderPipeline_, &name, &nodeIdList, &watermark, &watermarkType,
         pid, isSystemCalling, &res]() -> void {
-        res = renderPipeline->mainThread_->SetSurfaceWatermark(pid, name, watermark,
+        res = renderPipeline->GetMainThread()->SetSurfaceWatermark(pid, name, watermark,
             nodeIdList, watermarkType, isSystemCalling);
     };
     rsRenderPipeline_->PostMainThreadSyncTask(task);
@@ -1881,7 +1877,7 @@ void RSRenderPipelineAgent::ClearSurfaceWatermarkForNodes(pid_t pid, const std::
         return;
     }
     auto task = [renderPipeline = rsRenderPipeline_, name, pid, nodeIdList, isSystemCalling]() -> void {
-        renderPipeline->mainThread_->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, isSystemCalling);
+        renderPipeline->GetMainThread()->ClearSurfaceWatermarkForNodes(pid, name, nodeIdList, isSystemCalling);
     };
     rsRenderPipeline_->PostMainThreadTask(task);
 }
@@ -1893,7 +1889,7 @@ void RSRenderPipelineAgent::ClearSurfaceWatermark(pid_t pid,
         return;
     }
     auto task = [renderPipeline = rsRenderPipeline_, name, pid, isSystemCalling]() -> void {
-        renderPipeline->mainThread_->ClearSurfaceWatermark(pid, name, isSystemCalling);
+        renderPipeline->GetMainThread()->ClearSurfaceWatermark(pid, name, isSystemCalling);
     };
     rsRenderPipeline_->PostMainThreadTask(task);
 }

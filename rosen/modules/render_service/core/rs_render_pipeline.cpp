@@ -108,6 +108,15 @@ void RSRenderPipeline::PostMainThreadTask(RSTaskMessage::RSTask task)
     mainThread_->PostTask(task);
 }
 
+void RSRenderPipeline::PostMainThreadTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
+    AppExecFwk::EventQueue::Priority priority)
+{
+    if (mainThread_ == nullptr) {
+        return;
+    }
+    mainThread_->PostTask(task, name, delayTime, priority);
+}
+
 void RSRenderPipeline::PostUniRenderThreadTask(RSTaskMessage::RSTask task)
 {
     if (uniRenderThread_ == nullptr) {
@@ -130,15 +139,6 @@ void RSRenderPipeline::PostUniRenderThreadSyncTask(RSTaskMessage::RSTask task)
         return;
     }
     uniRenderThread_->PostSyncTask(task);
-}
-
-void RSRenderPipeline::PostMainThreadTask(RSTaskMessage::RSTask task, const std::string& name, int64_t delayTime,
-    AppExecFwk::EventQueue::Priority priority)
-{
-    if (mainThread_ == nullptr) {
-        return;
-    }
-    mainThread_->PostTask(task, name, delayTime, priority);
 }
 
 void RSRenderPipeline::OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,

@@ -92,6 +92,11 @@ public:
         return std::move(taskFuture);
     }
 
+    RSMainThread* GetMainThread()
+    {
+        return mainThread_;
+    }
+
     void OnScreenConnected(const sptr<RSScreenProperty>& rsScreenProperty,
         const sptr<IRSRenderToComposerConnection>& renderToComposerConn,
         const sptr<IRSComposerToRenderConnection>& composerToRenderConn,

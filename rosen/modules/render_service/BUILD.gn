@@ -176,7 +176,7 @@ ohos_shared_library("librender_service") {
     "core/transaction/rs_irender_service_ipc_interface_code_access_verifier.cpp",
     "core/transaction/rs_client_to_render_connection.cpp",
     "core/transaction/rs_connect_to_render_process.cpp",
-    "core/transaction/rs_render_pipeline_agent.cpp",
+    "core/rs_render_pipeline_agent.cpp",
     "core/transaction/rs_render_service_security_utils.cpp",
     "core/transaction/rs_unmarshal_thread.cpp",
     "core/transaction/zidl/rs_client_to_render_connection_stub.cpp",

@@ -167,37 +167,6 @@ public:
      */
     void RemoveVirtualScreen(ScreenId id);
 
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-    /**
-     * @brief Sets the parameters for inverting the color of the variable cursor.
-     * @param darkBuffer Dark buffer area.
-     * @param brightBuffer Bright color buffer area Enable cast black list for virtual screen or not.
-     * @param interval Cursor color obtaining interval.
-     * @return 0 means success, others failed.
-     */
-    int32_t SetPointerColorInversionConfig(float darkBuffer, float brightBuffer, int64_t interval, int32_t rangeSize);
-    
-    /**
-     * @brief Indicates whether to enable color inversion of the variable cursor or not.
-     * @param enable enable color inversion of the variable cursor or not.
-     * @return 0 means success, others failed.
-     */
-    int32_t SetPointerColorInversionEnabled(bool enable);
-    
-    /**
-     * @brief Register the callback for changing the color of the cursor.
-     * @param callback callback for changing the color of the cursor.
-     * @return 0 means success, others failed.
-     */
-    int32_t RegisterPointerLuminanceChangeCallback(const PointerLuminanceChangeCallback &callback);
-    
-    /**
-     * @brief UnRegister the callback for changing the color of the cursor.
-     * @return 0 means success, others failed.
-     */
-    int32_t UnRegisterPointerLuminanceChangeCallback();
-#endif
-
     /**
      * @brief Set screen connection status change callback.
      * on the screen connection status is changed.

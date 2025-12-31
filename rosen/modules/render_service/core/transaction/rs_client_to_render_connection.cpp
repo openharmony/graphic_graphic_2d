@@ -57,9 +57,6 @@
 #include "monitor/self_drawing_node_monitor.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_pointer_window_manager.h"
-#ifdef OHOS_BUILD_ENABLE_MAGICCURSOR
-#include "pipeline/magic_pointer_render/rs_magic_pointer_render_manager.h"
-#endif
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -83,7 +80,6 @@
 #include "pipeline/render_thread/rs_uni_render_thread.h"
 #include "screen_manager/rs_screen_manager.h"
 #include "transaction/zidl/rs_client_to_render_connection_stub.h"
-#include "rs_render_pipeline_agent.h"
 
 #ifdef TP_FEATURE_ENABLE
 #include "screen_manager/touch_screen.h"
