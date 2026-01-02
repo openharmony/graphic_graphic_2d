@@ -69,11 +69,10 @@ void RSRenderServiceConnectionTest::TearDown() {}
  */
 HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic001, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
     MemoryGraphic mem1;
     rsRenderServiceConnection->GetMemoryGraphic(123, mem1);
     ASSERT_EQ(mem1.GetGpuMemorySize(), 0);
@@ -90,11 +89,10 @@ HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic001, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceConnectionTest, GetMemoryGraphic002, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(getpid(), nullptr,
-        nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        nullptr, screenManagerAgent_, token->AsObject(), nullptr);
     std::vector<MemoryGraphic> memoryGraphics;
     rsRenderServiceConnection->GetMemoryGraphics(memoryGraphics);
     ASSERT_EQ(memoryGraphics.size(), 0);
@@ -112,7 +110,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetBrightnessInfoChangeCallbackTest, Tes
     // case 1: mainThread null
     {
         sptr<RSClientToServiceConnection> connection =
-            new RSClientToServiceConnection(0, nullptr, nullptr, nullptr, nullptr, token->AsObject(), nullptr);
+            new RSClientToServiceConnection(0, nullptr, nullptr, nullptr, token->AsObject(), nullptr);
         ASSERT_NE(connection->SetBrightnessInfoChangeCallback(nullptr), SUCCESS);
     }
 
@@ -121,7 +119,7 @@ HWTEST_F(RSRenderServiceConnectionTest, SetBrightnessInfoChangeCallbackTest, Tes
         ASSERT_NE(mainThread_, nullptr);
         sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
         auto connection = new RSClientToServiceConnection(
-            0, nullptr, nullptr, mainThread_, screenManagerAgent_, token->AsObject(), nullptr);
+            0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
         ASSERT_EQ(connection->SetBrightnessInfoChangeCallback(nullptr), SUCCESS);
         sptr<MockRSBrightnessInfoChangeCallback> callback = new MockRSBrightnessInfoChangeCallback();
         ASSERT_EQ(connection->SetBrightnessInfoChangeCallback(callback), SUCCESS);
@@ -140,7 +138,7 @@ HWTEST_F(RSRenderServiceConnectionTest, CleanBrightnessInfoChangeCallbacksTest, 
     // case 1: mainThread null
     {
         sptr<RSClientToServiceConnection> connection =
-            new RSClientToServiceConnection(0, nullptr, nullptr, nullptr, nullptr, token->AsObject(), nullptr);
+            new RSClientToServiceConnection(0, nullptr, nullptr, token->AsObject(), nullptr);
         connection->CleanBrightnessInfoChangeCallbacks();
     }
 
@@ -151,7 +149,7 @@ HWTEST_F(RSRenderServiceConnectionTest, CleanBrightnessInfoChangeCallbacksTest, 
             std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
         sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
         auto connection = new RSClientToServiceConnection(
-            0, nullptr, nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+            0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
         connection->CleanBrightnessInfoChangeCallbacks();
         ASSERT_NE(mainThread, nullptr);
         delete mainThread;
@@ -171,7 +169,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
     {
         sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
         sptr<RSClientToServiceConnection> connection = new RSClientToServiceConnection(
-            0, nullptr, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
+            0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
         BrightnessInfo brightnessInfo;
         ASSERT_EQ(connection->GetBrightnessInfo(0, brightnessInfo), SUCCESS);
     }
@@ -183,7 +181,7 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBrightnessInfoTest, TestSize.Level1)
             std::make_shared<OHOS::AppExecFwk::EventHandler>(OHOS::AppExecFwk::EventRunner::Create(true));
         sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
         auto connection = new RSClientToServiceConnection(
-            0, nullptr, nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+            0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
         BrightnessInfo brightnessInfo;
         ASSERT_EQ(connection->GetBrightnessInfo(0, brightnessInfo), SUCCESS);
         ASSERT_EQ(connection->GetBrightnessInfo(INVALID_SCREEN_ID, brightnessInfo), SUCCESS);
@@ -455,11 +453,10 @@ HWTEST_F(RSRenderServiceConnectionTest, CreateNode, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest001, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(
-        0, nullptr, nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
     ASSERT_NE(rsRenderServiceConnection, nullptr);
     auto tf = Drawing::Typeface::MakeDefault();
     uint64_t uniqueId = 1;
@@ -476,11 +473,10 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest001, TestSize.Level1
  */
 HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest002, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(
-        0, nullptr, nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
     ASSERT_NE(rsRenderServiceConnection, nullptr);
     std::vector<char> content;
     LoadBufferFromFile("/system/fonts/Roboto-Regular.ttf", content);
@@ -503,12 +499,10 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterTypefaceTest002, TestSize.Level1
  */
 HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest001, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(
-        0, nullptr, nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     constexpr pid_t testPid = 1234;
     const std::string expectedBundleName = "com.example.app";
@@ -526,12 +520,10 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest001, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
     sptr<RSIConnectionToken> token = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto rsRenderServiceConnection = new RSClientToServiceConnection(
-        0, nullptr, nullptr, mainThread, screenManagerAgent_, token->AsObject(), nullptr);
+        0, nullptr, nullptr, screenManagerAgent_, token->AsObject(), nullptr);
 
     constexpr pid_t testPid = -1;
     const std::string bundleName = rsRenderServiceConnection->GetBundleName(testPid);
@@ -547,14 +539,12 @@ HWTEST_F(RSRenderServiceConnectionTest, GetBundleNameTest002, TestSize.Level1)
  */
 HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, TestSize.Level1)
 {
-    auto mainThread = RSMainThread::Instance();
-    ASSERT_NE(mainThread, nullptr);
 
     pid_t testPid = 12345;
     sptr<RSIConnectionToken> token1 = new IRemoteStub<RSIConnectionToken>();
     sptr<RSScreenManagerAgent> screenManagerAgent_ = new RSScreenManagerAgent(CreateOrGetScreenManager());
     auto clientToServiceConnection = new RSClientToServiceConnection(
-        testPid, nullptr, nullptr, mainThread, screenManagerAgent_, token1->AsObject(), nullptr);
+        testPid, nullptr, nullptr, screenManagerAgent_, token1->AsObject(), nullptr);
     ASSERT_NE(clientToServiceConnection, nullptr);
 
     sptr<RSIConnectionToken> token2 = new IRemoteStub<RSIConnectionToken>();
@@ -583,7 +573,7 @@ HWTEST_F(RSRenderServiceConnectionTest, RegisterCanvasCallbackAndCleanTest, Test
     // Test error handling when mainThread is nullptr
     sptr<RSIConnectionToken> token3 = new IRemoteStub<RSIConnectionToken>();
     auto clientToServiceConnectionWithNullThread = new RSClientToServiceConnection(
-        testPid, nullptr, nullptr, nullptr, screenManagerAgent_, token1->AsObject(), nullptr);
+        testPid, nullptr, nullptr, screenManagerAgent_, token1->AsObject(), nullptr);
     ASSERT_NE(clientToServiceConnectionWithNullThread, nullptr);
 
     sptr<RSIConnectionToken> token4 = new IRemoteStub<RSIConnectionToken>();

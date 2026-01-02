@@ -52,7 +52,6 @@ public:
     }
 
 private:
-    void CleanRenderNodes() noexcept;
     void CleanAll(bool toDelete = false) noexcept;
 
     // IPC RSIRenderServiceConnection Interfaces
@@ -162,6 +161,8 @@ private:
     ErrCode ForceRefreshOneFrameWithNextVSync() override;
 
     ErrCode SetAppWindowNum(uint32_t num) override;
+
+    std::string GetBundleName(pid_t pid) override;
 
     pid_t remotePid_;
     wptr<RSRenderService> renderService_;

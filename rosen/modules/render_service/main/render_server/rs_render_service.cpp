@@ -301,7 +301,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(const sptr<RSIConnectionToken>& token)
 {
-    if (!mainThread_ || !token) {
+    if (!token) {
         RS_LOGE("CreateConnection failed, mainThread or token is nullptr");
         return std::make_pair(nullptr, nullptr);
     }
@@ -314,7 +314,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderProcessManager_);
     sptr<RSIClientToServiceConnection> newConn(new RSClientToServiceConnection(remotePid, renderServiceAgent,
-        renderProcessManagerAgent, mainThread_, screenManagerAgent, tokenObj, appVSyncDistributor_));
+        renderProcessManagerAgent, screenManagerAgent, tokenObj, appVSyncDistributor_));
     sptr<RSRenderPipelineAgent> renderPipelineAgent = new RSRenderPipelineAgent(renderPipeline_);
     sptr<RSIClientToRenderConnection> newRenderConn(
         new RSClientToRenderConnection(remotePid, renderPipelineAgent, tokenObj));
@@ -327,7 +327,7 @@ std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>>
     }
     connections_[tokenObj] = { newConn, newRenderConn };
     lock.unlock();
-    // TODO: 这个AddTransactionDataPidInfo需要移到renderPipeline里面去
+    // TODO: 这个AddTransactionDataPidInfo需要移到renderPipeline里面去 transaction
     mainThread_->AddTransactionDataPidInfo(remotePid);
     return std::make_pair(newConn, newRenderConn);
 }
