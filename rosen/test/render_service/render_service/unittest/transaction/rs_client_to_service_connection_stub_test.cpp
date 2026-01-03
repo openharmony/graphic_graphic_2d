@@ -1079,6 +1079,7 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSRenderServiceConnectionStub0
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(res, ERR_INVALID_STATE);
 }
+
 /**
  * @tc.name: TestRSClientToServiceConnectionStub031
  * @tc.desc: Test
@@ -1096,13 +1097,13 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStu
         int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
         ASSERT_EQ(res, ERR_INVALID_STATE);
     }
- 
+
     {
         EXPECT_EQ(OnRemoteRequestTest(static_cast<uint32_t>(
                       RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID)),
             ERR_INVALID_DATA);
     }
- 
+
     {
         MessageParcel data;
         MessageParcel reply;
@@ -1127,28 +1128,110 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStu
         int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
         ASSERT_EQ(res, ERR_OK);
     }
-    
-    {
-        pid_t newPid = 1002;
-        NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
-        auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
-        RSSurfaceRenderNodeConfig config = {
-            .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
-        };
-        auto node = std::make_shared<RSSurfaceRenderNode>(config);
-        nodeMap.surfaceNodeMap_[nodeId] = node;
- 
-        MessageParcel data;
-        MessageParcel reply;
-        MessageOption option;
-        uint32_t code = static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
-        data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
-        data.WriteInt32(newPid);
-        data.WriteUint64(0);
-        int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
-        nodeMap.surfaceNodeMap_.erase(nodeId);
-        ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: TestRSClientToServiceConnectionStub032
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub032, TestSize.Level1)
+{
+    pid_t newPid = 1002;
+    NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig config = {
+        .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+    };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    nodeMap.surfaceNodeMap_[nodeId] = node;
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(newPid);
+    data.WriteUint64(0);
+    int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    nodeMap.surfaceNodeMap_.erase(nodeId);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: TestRSClientToServiceConnectionStub033
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub033, TestSize.Level1)
+{
+    pid_t newPid = 1002;
+    NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    RSSurfaceRenderNodeConfig config = {
+        .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+    };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    nodeMap.surfaceNodeMap_[nodeId] = node;
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    uint32_t code =
+        static_cast<uint32_t>(RSIRenderServiceConnectionInterfaceCode::GET_REFRESH_INFO_BY_PID_AND_UNIQUEID);
+    data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor());
+    data.WriteInt32(newPid);
+    data.WriteUint64(1000);
+    int res = toServiceConnectionStub_->OnRemoteRequest(code, data, reply, option);
+    nodeMap.surfaceNodeMap_.erase(nodeId);
+    ASSERT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: TestRSClientToServiceConnectionStub034
+ * @tc.desc: Test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStub034, TestSize.Level1)
+{
+    pid_t newPid = 1003;
+    NodeId nodeId = (static_cast<uint64_t>(newPid) << 32) | 0x00001031;
+    sptr<RSClientToServiceConnectionStub> clientToServiceConnectionStub = new RSClientToServiceConnection(
+        0, nullptr, mainThread_, CreateOrGetScreenManager(), token_->AsObject(), nullptr);
+    ASSERT_NE(clientToServiceConnectionStub, nullptr);
+    sptr<RSClientToServiceConnection> clientToServiceConnection =
+        iface_cast<RSClientToServiceConnection>(clientToServiceConnectionStub);
+    ASSERT_NE(clientToServiceConnection, nullptr);
+    auto mainThread = clientToServiceConnection->mainThread_;
+    clientToServiceConnection->mainThread_ = nullptr;
+    std::string res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
+    ASSERT_EQ(res, "");
+
+    auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
+    clientToServiceConnection->mainThread_ = mainThread;
+    RSSurfaceRenderNodeConfig config = {
+        .id = nodeId, .name = "xcompentsurface", .nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE
+    };
+    auto node = std::make_shared<RSSurfaceRenderNode>(config);
+    nodeMap.surfaceNodeMap_[nodeId] = node;
+    auto originRenderType = RSUniRenderJudgement::uniRenderEnabledType_;
+    RSUniRenderJudgement::uniRenderEnabledType_ = UniRenderEnabledType::UNI_RENDER_DISABLED;
+    if (!RSUniRenderJudgement::IsUniRender()) {
+        auto screenMgr = clientToServiceConnection->screenManager_;
+        clientToServiceConnection->screenManager_ = nullptr;
+        res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
+        ASSERT_EQ(res, "");
+
+        clientToServiceConnection->screenManager_ = screenMgr;
+        res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
+        ASSERT_NE(res, "");
     }
+    RSUniRenderJudgement::uniRenderEnabledType_ = originRenderType;
+    nodeMap.surfaceNodeMap_.erase(nodeId);
 }
 
 /**
