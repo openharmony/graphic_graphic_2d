@@ -1208,8 +1208,8 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStu
     ASSERT_NE(clientToServiceConnection, nullptr);
     auto mainThread = clientToServiceConnection->mainThread_;
     clientToServiceConnection->mainThread_ = nullptr;
-    std::string res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
-    ASSERT_EQ(res, "");
+    int res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
+    ASSERT_EQ(res, ERR_INVALID_VALUE);
 
     auto& nodeMap = mainThread->GetContext().GetMutableNodeMap();
     clientToServiceConnection->mainThread_ = mainThread;
@@ -1224,11 +1224,11 @@ HWTEST_F(RSClientToServiceConnectionStubTest, TestRSClientToServiceConnectionStu
         auto screenMgr = clientToServiceConnection->screenManager_;
         clientToServiceConnection->screenManager_ = nullptr;
         res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
-        ASSERT_EQ(res, "");
+        ASSERT_EQ(res, ERR_OK);
 
         clientToServiceConnection->screenManager_ = screenMgr;
         res = clientToServiceConnection->GetRefreshInfoByPidAndUniqueId(newPid, 0);
-        ASSERT_NE(res, "");
+        ASSERT_EQ(res, ERR_OK);
     }
     RSUniRenderJudgement::uniRenderEnabledType_ = originRenderType;
     nodeMap.surfaceNodeMap_.erase(nodeId);
