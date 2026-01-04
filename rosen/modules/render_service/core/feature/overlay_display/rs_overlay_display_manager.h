@@ -48,6 +48,7 @@ private:
     bool LoadLibrary();
     void CloseLibrary();
     void *LoadSymbol(const std::string& symName);
+    bool IsOverlayEnable();
 
     bool isStatusChanged_ = false;
     int32_t mode_ = 0;
