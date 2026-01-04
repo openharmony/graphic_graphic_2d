@@ -391,9 +391,9 @@ HWTEST_F(HgmFrameRateMgrTest, ProcessPendingRefreshRate, Function | SmallTest | 
     frameRateMgr.ProcessPendingRefreshRate(currTime, 0, OLED_60_HZ, true);
 
     frameRateMgr.voterTouchEffective_ = true;
-    std::string surfaceName = "surface0";
     size_t oldSize = frameRateMgr.surfaceData_.size();
-    frameRateMgr.UpdateSurfaceTime(surfaceName, pid, UIFWKType::FROM_UNKNOWN);
+    std::vector<std::tuple<std::string, pid_t>> surfaceData = { {"surface0", pid} };
+    frameRateMgr.UpdateSurfaceTime(surfaceData);
     EXPECT_GE(frameRateMgr.surfaceData_.size(), oldSize);
 }
 

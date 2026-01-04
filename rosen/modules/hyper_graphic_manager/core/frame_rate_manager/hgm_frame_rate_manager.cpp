@@ -301,19 +301,14 @@ void HgmFrameRateManager::ProcessPendingRefreshRate(
     SetChangeGeneratorRateValid(true);
 }
 
-void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, pid_t pid, UIFWKType uiFwkType)
-{
-    HgmEnergyConsumptionPolicy::Instance().StatisticsVideoCallBufferCount(pid, surfaceName);
-    if (!voterTouchEffective_) {
-        return;
-    }
-    surfaceData_.emplace_back(std::tuple<std::string, pid_t, UIFWKType>({ surfaceName, pid, uiFwkType }));
-}
-
 void HgmFrameRateManager::UpdateSurfaceTime(const std::vector<std::tuple<std::string, pid_t>>& surfaceData)
 {
     for (const auto& [surfaceName, nodePid] : surfaceData) {
-        UpdateSurfaceTime(surfaceName, nodePid, UIFWKType::FROM_SURFACE);
+        HgmEnergyConsumptionPolicy::Instance().StatisticsVideoCallBufferCount(nodePid, surfaceName);
+        if (voterTouchEffective_) {
+            surfaceData_.emplace_back(
+                std::tuple<std::string, pid_t, UIFWKType>({ surfaceName, nodePid, UIFWKType::FROM_SURFACE }));
+        }
     }
 }
 
