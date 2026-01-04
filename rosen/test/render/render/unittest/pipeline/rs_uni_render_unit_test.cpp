@@ -132,8 +132,7 @@ HWTEST_F(RSUniRenderUnitTest, SrcRectScaleFit_001, Function | SmallTest | Level2
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleFit(
-        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(params, node.GetRSSurfaceHandler()->GetBuffer(), localBounds);
 }
 
 /*
@@ -149,8 +148,7 @@ HWTEST_F(RSUniRenderUnitTest, SrcRectScaleFit_002, Function | SmallTest | Level2
     RSSurfaceRenderNode& node = static_cast<RSSurfaceRenderNode&>(*(rsSurfaceRenderNode.get()));
     BufferDrawParam params;
     RectF localBounds;
-    RSUniRenderUtil::SrcRectScaleFit(
-        params, node.GetRSSurfaceHandler()->GetBuffer(), node.GetRSSurfaceHandler()->GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(params, node.GetRSSurfaceHandler()->GetBuffer(), localBounds);
 }
 
 /*
@@ -172,8 +170,7 @@ HWTEST_F(RSUniRenderUnitTest, SrcRectScaleFit_003, Function | SmallTest | Level2
     right = 2;
     bottom = 1;
     RectF localBounds = RectF(left, top, right, bottom);
-    RSUniRenderUtil::SrcRectScaleFit(
-        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(params, node->GetRSSurfaceHandler()->GetBuffer(), localBounds);
    
     params.srcRect.SetRight(right);
     params.srcRect.SetBottom(bottom);
@@ -181,8 +178,7 @@ HWTEST_F(RSUniRenderUnitTest, SrcRectScaleFit_003, Function | SmallTest | Level2
     bottom = 2;
     localBounds.SetRight(right);
     localBounds.SetBottom(bottom);
-    RSUniRenderUtil::SrcRectScaleFit(
-        params, node->GetRSSurfaceHandler()->GetBuffer(), node->GetRSSurfaceHandler()->GetConsumer(), localBounds);
+    RSUniRenderUtil::SrcRectScaleFit(params, node->GetRSSurfaceHandler()->GetBuffer(), localBounds);
 }
 
 /*

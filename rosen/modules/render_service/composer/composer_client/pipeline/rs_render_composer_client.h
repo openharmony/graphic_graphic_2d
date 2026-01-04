@@ -59,7 +59,7 @@ public:
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void SetScreenBacklight(uint32_t level);
     static void ConvertScreenInfo(const ScreenInfo& screenInfo, ComposerScreenInfo& composerScreenInfo);
-    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer);
+    void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer);
 
 private:
     bool WaitComposerThreadTaskExecute(std::unique_lock<std::mutex>& lock);

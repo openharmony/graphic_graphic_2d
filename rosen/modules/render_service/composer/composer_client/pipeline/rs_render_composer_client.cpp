@@ -204,7 +204,7 @@ void RSRenderComposerClient::ConvertScreenInfo(const ScreenInfo& screenInfo, Com
     composerScreenInfo.reviseRect = screenInfo.reviseRect;
 }
 
-void RSRenderComposerClient::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
+void RSRenderComposerClient::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     std::lock_guard<std::mutex> lock(clientMutex_);
     if (isPreAllocProtectedFrameBuffer_) {

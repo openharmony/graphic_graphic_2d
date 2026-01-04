@@ -33,7 +33,7 @@ public:
     virtual void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds) = 0;
     virtual void SetScreenBacklight(uint32_t level) = 0;
     virtual void SetComposerToRenderConnection(const sptr<IRSComposerToRenderConnection>& composerToRenderConn) = 0;
-    virtual void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer) = 0;
+    virtual void PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"IRSRenderToComposerConnection");
 
 protected:
