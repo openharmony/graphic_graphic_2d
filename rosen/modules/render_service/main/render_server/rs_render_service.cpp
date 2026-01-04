@@ -230,7 +230,6 @@ void RSRenderService::Run()
 
 void RSRenderService::RegisterRcdMsg()
 {
-#ifdef RS_ENABLE_GPU
     if (RSSingleton<RoundCornerDisplayManager>::GetInstance().GetRcdEnable()) {
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg");
         if (!isRcdServiceRegister_) {
@@ -255,7 +254,6 @@ void RSRenderService::RegisterRcdMsg()
         }
         RS_LOGD("RSSubThreadManager::RegisterRcdMsg Registed rcd renderservice already.");
     }
-#endif
 }
 
 std::pair<sptr<RSIClientToServiceConnection>, sptr<RSIClientToRenderConnection>> RSRenderService::CreateConnection(

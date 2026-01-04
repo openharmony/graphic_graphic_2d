@@ -30,6 +30,7 @@ ohos_unittest("RSRenderServiceClientModifierTest") {
   include_dirs = [
     "$graphic_2d_root/rosen/test/include",
     "$graphic_2d_root/interfaces/inner_api/surface",
+    "$graphic_2d_root/utils/log",
   ]
 
   configs = [
