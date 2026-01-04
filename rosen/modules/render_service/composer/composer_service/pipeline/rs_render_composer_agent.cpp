@@ -12,7 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include "ffrt.h"
+#include "ffrt_inner.h"
 #include "rs_render_composer_agent.h"
 #include "platform/common/rs_log.h"
 #include "rs_layer_transaction_data.h"
