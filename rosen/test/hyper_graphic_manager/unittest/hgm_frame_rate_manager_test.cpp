@@ -627,7 +627,7 @@ HWTEST_F(HgmFrameRateMgrTest, MultiThread001, Function | SmallTest | Level0)
     sptr<Rosen::VSyncController> appController = new VSyncController(vsyncGenerator, offset0);
     sptr<VSyncDistributor> appDistributor = new VSyncDistributor(appController, "connection");
     frameRateMgr.Init(rsController, appController, vsyncGenerator, appDistributor);
-    frameRateMgr.forceUpdateCallback_ = [](bool forceUpdate) { return; };
+    frameRateMgr.forceUpdateCallback_ = [](bool forceUpdate) {};
     auto& touchManager = frameRateMgr.GetTouchManager();
     touchManager.ChangeState(TouchState::DOWN_STATE);
     touchManager.ChangeState(TouchState::UP_STATE);
@@ -1004,7 +1004,7 @@ HWTEST_F(HgmFrameRateMgrTest, HandleFrameRateChangeForLTPO, Function | SmallTest
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     frameRateMgr->forceUpdateCallback_ = nullptr;
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
-    frameRateMgr->forceUpdateCallback_ = [](bool forceUpdate) { return; };
+    frameRateMgr->forceUpdateCallback_ = [](bool forceUpdate) {};
     frameRateMgr->HandleFrameRateChangeForLTPO(0, false, true);
     EXPECT_EQ(frameRateMgr->isNeedUpdateAppOffset_, false);
     hgmCore.lowRateToHighQuickSwitch_.store(true);
