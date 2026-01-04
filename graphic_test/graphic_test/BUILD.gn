@@ -135,6 +135,7 @@ rs_func_feature_sources = [
   "rs_func_feature/surface_capture/surface_capture_demo.cpp",
   "rs_func_feature/surface_capture/self_surface_capture_demo.cpp",
   "rs_func_feature/solonode_surface_capture/solonode_surface_capture_demo.cpp",
+  "rs_func_feature/ui_capture_in_range/ui_capture_in_range_demo.cpp",
   "rs_func_feature/window_freeze_immediately/window_freeze_immediately_demo.cpp",
   "rs_func_feature/watermark/watermark.cpp",
   "rs_func_feature/accessibility/curtain_screen_test.cpp",
