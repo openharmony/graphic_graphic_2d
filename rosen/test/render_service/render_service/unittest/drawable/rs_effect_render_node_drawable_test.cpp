@@ -181,12 +181,12 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnCaptureTest002, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue
- * @tc.desc: generate effect when has no effect children and uiCapture is true
+ * @tc.name: GenerateEffectDataOnDemandIsBlurNotRequired
+ * @tc.desc: GenerateEffectDataOnDemand IsBlurNotRequired branch
  * @tc.type: FUNC
  * @tc.require: issueICQL6P
  */
-HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUICaptureIsTrue, TestSize.Level1)
+HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectDataOnDemandIsBlurNotRequired, TestSize.Level1)
 {
     NodeId nodeId = 1;
     auto node = std::make_shared<RSRenderNode>(nodeId);
@@ -195,15 +195,17 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, GenerateEffectWhenNoEffectChildrenAndUI
     int height = 1920;
     Drawing::Canvas canvas(width, height);
     RSPaintFilterCanvas paintFilterCanvas(&canvas);
-    paintFilterCanvas.SetUICapture(true);
     drawable->drawCmdIndex_.backgroundFilterIndex_ = 0;
     drawable->drawCmdIndex_.childrenIndex_ = 0;
-
-    paintFilterCanvas.SetEffectData(std::make_shared<RSPaintFilterCanvas::CachedEffectData>());
     RSEffectRenderParams params(nodeId);
+    paintFilterCanvas.SetUICapture(false);
+    paintFilterCanvas.SetIsParallelCanvas(false);
     params.SetHasEffectChildrenWithoutEmptyRect(false);
     EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
-    EXPECT_NE(paintFilterCanvas.GetEffectData(), nullptr);
+
+    paintFilterCanvas.SetIsParallelCanvas(true);
+    params.SetHasEffectChildren(true);
+    EXPECT_TRUE(drawable->GenerateEffectDataOnDemand(&params, paintFilterCanvas, Drawing::Rect(), &paintFilterCanvas));
 }
 
 /**
@@ -287,5 +289,24 @@ HWTEST_F(RSEffectRenderNodeDrawableTest, OnDraw004, TestSize.Level2)
 
     // restore
     RSUniRenderThread::Instance().Sync(std::make_unique<RSRenderThreadParams>());
+}
+
+/**
+ * @tc.name: IsBlurNotRequired
+ * @tc.desc: IsBlurNotRequired
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectRenderNodeDrawableTest, IsBlurNotRequired, TestSize.Level1)
+{
+    NodeId nodeId = 1;
+    auto node = std::make_shared<RSRenderNode>(nodeId);
+    auto drawable = std::make_shared<RSEffectRenderNodeDrawable>(std::move(node));
+    int width = 1024;
+    int height = 1920;
+    Drawing::Canvas canvas(width, height);
+    RSPaintFilterCanvas paintFilterCanvas(&canvas);
+    RSEffectRenderParams params(nodeId);
+
+    ASSERT_TRUE(drawable->IsBlurNotRequired(&params, &paintFilterCanvas));
 }
 }
