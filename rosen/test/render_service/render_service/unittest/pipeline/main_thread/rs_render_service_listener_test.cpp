@@ -51,7 +51,7 @@ HWTEST_F(RSRenderServiceListenerTest, CreateAndDestroy001, TestSize.Level1)
 {
     // nullptr test
     std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp);
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
     ASSERT_NE(rsListener, nullptr);
 }
 
@@ -65,11 +65,11 @@ HWTEST_F(RSRenderServiceListenerTest, OnTunnelHandleChange001, TestSize.Level1)
 {
     // nullptr test and early return
     std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp);
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
     rsListener->OnTunnelHandleChange();
 
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    rsListener = std::make_shared<RSRenderServiceListener>(node);
+    rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
     rsListener->OnTunnelHandleChange();
     ASSERT_EQ(node->GetTunnelHandleChange(), true);
 }
@@ -84,12 +84,12 @@ HWTEST_F(RSRenderServiceListenerTest, OnCleanCache001, TestSize.Level1)
 {
     // nullptr test and early return
     std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp);
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
     uint32_t bufSeqNum = 0;
     rsListener->OnCleanCache(&bufSeqNum);
     
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    rsListener = std::make_shared<RSRenderServiceListener>(node);
+    rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
     rsListener->OnCleanCache(&bufSeqNum);
     ASSERT_EQ(node->GetRSSurfaceHandler()->GetAvailableBufferCount(), 0);
     ASSERT_TRUE(bufSeqNum >= 0);
@@ -137,11 +137,11 @@ HWTEST_F(RSRenderServiceListenerTest, OnBufferAvailable001, TestSize.Level1)
 {
     // nullptr test and early return
     std::weak_ptr<RSSurfaceRenderNode> wp;
-    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp);
+    std::shared_ptr<RSRenderServiceListener> rsListener = std::make_shared<RSRenderServiceListener>(wp, nullptr);
     rsListener->OnBufferAvailable();
 
     std::shared_ptr<RSSurfaceRenderNode> node = RSTestUtil::CreateSurfaceNode();
-    rsListener = std::make_shared<RSRenderServiceListener>(node);
+    rsListener = std::make_shared<RSRenderServiceListener>(node, nullptr);
     node->SetIsNotifyUIBufferAvailable(false);
     rsListener->OnBufferAvailable();
     ASSERT_EQ(node->IsNotifyUIBufferAvailable(), true);

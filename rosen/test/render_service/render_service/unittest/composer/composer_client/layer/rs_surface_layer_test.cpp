@@ -256,29 +256,17 @@ HWTEST_F(RSSurfaceLayerTest, SurfaceLayer_Setters_NoChange_NoParcel, TestSize.Le
     layer->SetZorder(0);
     layer->SetZorder(0);
 
-    GraphicMatrix m {1,0,0, 0,1,0, 0,0,1};
-    layer->SetMatrix(m);
-    layer->SetMatrix(m);
+    GraphicLayerType type = GRAPHIC_LAYER_TYPE_GRAPHIC;
+    layer->SetType(type);
+    EXPECT_EQ(layer->GetType(), type);
 
-    EXPECT_TRUE(handler->IsEmpty());
-}
+    GraphicTransformType type2 = GRAPHIC_ROTATE_NONE;
+    layer->SetTransform(type2);
+    EXPECT_EQ(layer->GetTransform(), type2);
 
-/**
- * Function: SurfaceLayer_Setters_Change_AddsParcel
- * Type: Function
- * Rank: Important(2)
- * CaseDescription: 1. change properties to new values
- *                  2. expect transaction handler becomes non-empty
- */
-HWTEST_F(RSSurfaceLayerTest, SurfaceLayer_Setters_Change_AddsParcel, TestSize.Level1)
-{
-    auto ctx = std::make_shared<RSLayerContextProbe>();
-    auto layer = RSSurfaceLayer::Create(ctx, 102u);
-    ASSERT_NE(layer, nullptr);
-
-    auto handler = ctx->GetRSLayerTransaction();
-    ASSERT_NE(handler, nullptr);
-    EXPECT_TRUE(handler->IsEmpty());
+    GraphicCompositionType type3 = GRAPHIC_COMPOSITION_CLIENT;
+    layer->SetCompositionType(type3);
+    EXPECT_EQ(layer->GetCompositionType(), type3);
 
     GraphicLayerAlpha alpha {1};
     layer->SetAlpha(alpha);
@@ -411,27 +399,38 @@ HWTEST_F(RSSurfaceLayerTest, SurfaceLayer_TunnelHandle_AddsParcel, TestSize.Leve
 
     sptr<SurfaceTunnelHandle> handle = new SurfaceTunnelHandle();
     layer->SetTunnelHandle(handle);
-    EXPECT_FALSE(handler->IsEmpty());
-}
+    EXPECT_EQ(layer->GetTunnelHandle(), handle);
 
-/**
- * Function: SurfaceLayer_Surface_NoParcel
- * Type: Function
- * Rank: Important(2)
- * CaseDescription: 1. set consumer surface (no parcel should be added)
- */
-HWTEST_F(RSSurfaceLayerTest, SurfaceLayer_Surface_NoParcel, TestSize.Level1)
-{
-    auto ctx = std::make_shared<RSLayerContextProbe>();
-    auto layer = RSSurfaceLayer::Create(ctx, 115u);
-    ASSERT_NE(layer, nullptr);
-    auto handler = ctx->GetRSLayerTransaction();
-    ASSERT_NE(handler, nullptr);
-    EXPECT_TRUE(handler->IsEmpty());
+    layer->SetTunnelLayerId(100);
+    EXPECT_EQ(layer->GetTunnelLayerId(), 100);
 
-    sptr<IConsumerSurface> cs = IConsumerSurface::Create("ut-consumer");
-    layer->SetSurface(cs);
-    EXPECT_TRUE(handler->IsEmpty());
+    layer->SetTunnelLayerProperty(1000);
+    EXPECT_EQ(layer->GetTunnelLayerProperty(), 1000);
+
+    GraphicPresentTimestamp timestamp;
+    timestamp.type = GRAPHIC_DISPLAY_PTS_DELAY;
+    layer->SetPresentTimestamp(timestamp);
+    EXPECT_EQ(layer->GetPresentTimestamp().type, GRAPHIC_DISPLAY_PTS_DELAY);
+
+    layer->SetIsSupportedPresentTimestamp(false);
+    EXPECT_EQ(layer->GetIsSupportedPresentTimestamp(), false);
+
+    layer->SetSdrNit(200);
+    EXPECT_EQ(layer->GetSdrNit(), 200);
+
+    layer->SetDisplayNit(300);
+    EXPECT_EQ(layer->GetDisplayNit(), 300);
+
+    layer->SetBrightnessRatio(300);
+    EXPECT_EQ(layer->GetBrightnessRatio(), 300);
+
+    std::vector<float> layerLinearMatrix;
+    layerLinearMatrix.push_back(100);
+    layer->SetLayerLinearMatrix(layerLinearMatrix);
+    EXPECT_EQ(layer->GetLayerLinearMatrix()[0], 100);
+
+    layer->SetLayerSourceTuning(100);
+    EXPECT_EQ(layer->GetLayerSourceTuning(), 100);
 }
 
 /**
@@ -442,12 +441,25 @@ HWTEST_F(RSSurfaceLayerTest, SurfaceLayer_Surface_NoParcel, TestSize.Level1)
  */
 HWTEST_F(RSSurfaceLayerTest, SurfaceLayer_Zorder_Change_AddsParcel, TestSize.Level1)
 {
-    auto ctx = std::make_shared<RSLayerContextProbe>();
-    auto layer = RSSurfaceLayer::Create(ctx, 116u);
-    ASSERT_NE(layer, nullptr);
-    auto handler = ctx->GetRSLayerTransaction();
-    ASSERT_NE(handler, nullptr);
-    EXPECT_TRUE(handler->IsEmpty());
+    std::vector<std::string> windowsName;
+    windowsName.push_back("window");
+    layer->SetWindowsName(windowsName);
+    EXPECT_EQ(layer->GetWindowsName()[0], "window");
+
+    layer->SetRotationFixed(false);
+    EXPECT_EQ(layer->GetRotationFixed(), false);
+
+    layer->SetLayerArsr(false);
+    EXPECT_EQ(layer->GetLayerArsr(), false);
+
+    layer->SetLayerCopybit(false);
+    EXPECT_EQ(layer->GetLayerCopybit(), false);
+
+    layer->SetNeedBilinearInterpolation(true);
+    EXPECT_EQ(layer->GetNeedBilinearInterpolation(), true);
+
+    layer->SetIsMaskLayer(false);
+    EXPECT_EQ(layer->GetIsMaskLayer(), false);
 
     layer->SetZorder(5);
     EXPECT_FALSE(handler->IsEmpty());

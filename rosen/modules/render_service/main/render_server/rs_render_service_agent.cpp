@@ -14,7 +14,6 @@
  */
 
 #include "rs_render_service_agent.h"
-#include "rs_trace.h"
 #include "hgm_core.h"
 
 #undef LOG_TAG

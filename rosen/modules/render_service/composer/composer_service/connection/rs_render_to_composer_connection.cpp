@@ -95,5 +95,15 @@ void RSRenderToComposerConnection::SetComposerToRenderConnection(
     }
     rsRenderComposerAgent_->SetComposerToRenderConnection(composerToRenderConn);
 }
+
+void RSRenderToComposerConnection::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
+{
+    RS_TRACE_NAME_FMT("RSRenderToComposerConnection::PreAllocProtectedFrameBuffers");
+    if (rsRenderComposerAgent_ == nullptr) {
+        RS_LOGE("RSRenderToComposerConnection::PreAllocProtectedFrameBuffers param illegal");
+        return;
+    }
+    rsRenderComposerAgent_->PreAllocProtectedFrameBuffers(buffer);
+}
 } // namespace Rosen
 } // namespace OHOS

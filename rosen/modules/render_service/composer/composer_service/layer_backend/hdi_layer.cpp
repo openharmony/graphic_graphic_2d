@@ -212,12 +212,12 @@ int32_t HdiLayer::SetLayerSize()
 
 int32_t HdiLayer::SetTransformMode()
 {
-    if (rsLayer_->GetTransformType() == GraphicTransformType::GRAPHIC_ROTATE_BUTT ||
-        (doLayerInfoCompare_ && rsLayer_->GetTransformType() == prevRSLayer_->GetTransformType())) {
+    if (rsLayer_->GetTransform() == GraphicTransformType::GRAPHIC_ROTATE_BUTT ||
+        (doLayerInfoCompare_ && rsLayer_->GetTransform() == prevRSLayer_->GetTransform())) {
         return GRAPHIC_DISPLAY_SUCCESS;
     }
 
-    GraphicTransformType transFormType = rsLayer_->GetTransformType();
+    GraphicTransformType transFormType = rsLayer_->GetTransform();
     int32_t ret = device_->SetTransformMode(screenId_, layerId_, transFormType);
     return ret;
 }

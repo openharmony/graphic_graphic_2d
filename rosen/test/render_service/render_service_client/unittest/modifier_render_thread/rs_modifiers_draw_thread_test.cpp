@@ -49,7 +49,7 @@ public:
     ~RSRenderThreadClientHybridTest() = default;
 
     void CommitTransaction(std::unique_ptr<RSTransactionData>& transactionData,
-        ScreenId screenId = INVALID_SCREEN_ID) override {};
+        ScreenId screenId = INVALID_SCREEN_ID) {};
     void ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) override {};
 };
 class RSModifiersDrawThreadTest : public testing::Test {
@@ -58,16 +58,6 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
-
-    std::unique_ptr<RSIRenderClient> CreateRenderThreadClientHybrid()
-    {
-        return std::make_unique<RSRenderThreadClientHybridTest>();
-    }
-
-    std::shared_ptr<RSIRenderClient> CreateRenderThreadClientHybridSharedPtr()
-    {
-        return std::make_shared<RSRenderThreadClientHybridTest>();
-    }
 };
 
 void RSModifiersDrawThreadTest::SetUpTestCase()
@@ -93,7 +83,7 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction001, TestSize.Level1
 {
     auto transaction = std::make_shared<RSTransactionHandler>();
     uint64_t timestamp = 1;
-    auto renderThreadClient = CreateRenderThreadClientHybrid();
+    auto renderThreadClient = std::make_unique<RSRenderThreadClientHybridTest>();
     ASSERT_NE(renderThreadClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
     NodeId nodeId = 1;
@@ -115,7 +105,7 @@ HWTEST_F(RSModifiersDrawThreadTest, FlushImplicitTransaction002, TestSize.Level1
 {
     auto transaction = std::make_shared<RSTransactionHandler>();
     uint64_t timestamp = 1;
-    auto renderThreadClient = CreateRenderThreadClientHybrid();
+    auto renderThreadClient = std::make_unique<RSRenderThreadClientHybridTest>();
     ASSERT_NE(renderThreadClient, nullptr);
     transaction->SetRenderThreadClient(renderThreadClient);
     NodeId nodeId = 1;
@@ -225,7 +215,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest001, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     modifiersDrawThread.PostSyncTask([&, renderThreadClient]() {
         RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit);
@@ -254,7 +244,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest002, TestSize.Level1)
     auto cmd = std::make_unique<RSCanvasNodeUpdateRecording>(nodeId, cmdList, static_cast<uint16_t>(mType));
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -292,7 +282,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest003, TestSize.Level1)
         nodeId++;
         propertyId++;
     }
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -320,7 +310,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest004, TestSize.Level1)
     auto transactionData = std::make_unique<RSTransactionData>();
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, nullptr, propertyId);
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -354,7 +344,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest005, TestSize.Level1)
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -388,7 +378,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest006, TestSize.Level1)
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -420,7 +410,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest007, TestSize.Level1)
     ASSERT_TRUE(cmdList->AddDrawOp<Drawing::DrawBackgroundOpItem::ConstructorHandle>(brushHandle));
     auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -454,7 +444,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest008, TestSize.Level1)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });
@@ -488,7 +478,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest009, TestSize.Level1)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::SetIsFirstFrame(true);
     RSModifiersDrawThread::Instance().PostSyncTask(
@@ -523,7 +513,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest010, TestSize.Level1)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::SetIsFirstFrame(false);
     RSModifiersDrawThread::Instance().PostSyncTask(
@@ -558,7 +548,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest011, TestSize.Level1)
         auto cmd = std::make_unique<RSUpdatePropertyDrawCmdListNG>(nodeId, cmdList, propertyId);
         transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
     }
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::SetIsFirstFrame(false);
     RSModifiersDrawThread::Instance().PostSyncTask(
@@ -608,7 +598,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest012, TestSize.Level2)
     transactionData->AddCommand(std::move(cmd1), nodeId, FollowType::NONE);
     transactionData->AddCommand(std::move(cmd2), nodeId, FollowType::NONE);
 
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::SetIsFirstFrame(false);
     RSModifiersDrawThread::Instance().PostSyncTask(
@@ -640,7 +630,7 @@ HWTEST_F(RSModifiersDrawThreadTest, ConvertTransactionTest013, TestSize.Level2)
     auto transactionData = std::make_unique<RSTransactionData>();
     transactionData->AddCommand(std::move(cmd), nodeId, FollowType::NONE);
 
-    auto renderThreadClient = CreateRenderThreadClientHybridSharedPtr();
+    auto renderThreadClient = std::make_shared<RSRenderThreadClientHybridTest>();
     bool isNeedCommit = true;
     RSModifiersDrawThread::Instance().PostSyncTask(
         [&]() { RSModifiersDrawThread::ConvertTransaction(transactionData, renderThreadClient, isNeedCommit); });

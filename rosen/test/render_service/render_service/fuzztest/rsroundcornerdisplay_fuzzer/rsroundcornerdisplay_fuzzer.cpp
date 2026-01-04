@@ -267,7 +267,7 @@ bool RSRoundCornerAPIsTest(
     Rosen::RSContext context;
     auto topLayer = std::make_shared<Rosen::rs_rcd::RoundCornerLayer>();
     auto bottomLayer = std::make_shared<Rosen::rs_rcd::RoundCornerLayer>();
-    auto uniProcessor = Rosen::RSProcessorFactory::CreateProcessor(Rosen::CompositeType::UNI_RENDER_COMPOSITE);
+    auto uniProcessor = Rosen::RSProcessorFactory::CreateProcessor(Rosen::CompositeType::UNI_RENDER_COMPOSITE, nullptr);
 
     topLayer->offsetX = GetData<int>();
     topLayer->offsetY = GetData<int>();

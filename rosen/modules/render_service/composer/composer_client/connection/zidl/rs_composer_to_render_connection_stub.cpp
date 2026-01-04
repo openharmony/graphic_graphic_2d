@@ -27,69 +27,18 @@
 
 namespace OHOS {
 namespace Rosen {
+static constexpr size_t RELEASE_LAYER_MAX_SIZE = 1000; // upper bound of parcel capacity
 int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
 {
     int ret = COMPOSITOR_ERROR_OK;
     switch (code) {
         case ICOMPOSER_TO_RENDER_COMPOSER_RELEASE_LAYER_BUFFERS: {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSComposerToRenderConnectionStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            ReleaseLayerBuffersInfo releaseLayerInfo;
-            releaseLayerInfo.screenId = data.ReadUint64();
-            auto vecSize = data.ReadUint32();
-            for (uint32_t i = 0; i < vecSize; i++) {
-                auto layerId = data.ReadUint64();
-                bool IsSupportedPresentTimestamp = data.ReadBool();
-                GraphicPresentTimestamp timestamp;
-                timestamp.type = static_cast<GraphicPresentTimestampType>(data.ReadUint32());
-                timestamp.time = data.ReadInt64();
-                releaseLayerInfo.timestampVec.push_back(std::tuple(layerId, IsSupportedPresentTimestamp, timestamp));
-            }
-            vecSize = data.ReadUint32();
-            for (uint32_t i = 0; i < vecSize; i++) {
-                auto layerId = data.ReadUint64();
-                uint32_t sequence;
-                sptr<SurfaceBuffer> buffer = nullptr;
-                bool hasBuffer = data.ReadBool();
-                if (hasBuffer) {
-                    auto readSafeFdFunc = [](OHOS::MessageParcel& parcel, std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
-                        return parcel.ReadFileDescriptor();
-                    };
-                    ret = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
-                    if (ret != GSERROR_OK) {
-                        ret = ERR_INVALID_DATA;
-                        break;
-                    }
-                }
-                sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(data);
-                releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(layerId, buffer, fence));
-            }
-            data.ReadInt64(releaseLayerInfo.lastSwapBufferTime);
-            auto replyMessage = ReleaseLayerBuffers(releaseLayerInfo);
-            reply.WriteInt32(replyMessage);
+            ret = ReleaseLayerBuffersStub(data, reply, option);
             break;
         }
         case NOTIFY_LPP_LAYER_TO_RENDER: {
-            auto interfaceToken = data.ReadInterfaceToken();
-            if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
-                RS_LOGE("RSComposerToRenderConnectionStub::CREATE_CONNECTION Read interfaceToken failed!");
-                ret = ERR_INVALID_DATA;
-                break;
-            }
-            uint64_t vsyncId = data.ReadUint64();
-            int32_t size = data.ReadInt32();
-            std::set<uint64_t> lppNodeIds;
-            for (int32_t i = 0; i < size; i++) {
-                uint64_t nodeId = data.ReadUint64();
-                lppNodeIds.insert(nodeId);
-            }
-            auto replyMessage = NotifyLppLayerToRender(vsyncId, lppNodeIds);
-            reply.WriteInt32(replyMessage);
+            ret = NotifyLppLayerToRenderStub(data, reply, option);
             break;
         }
 
@@ -100,5 +49,75 @@ int32_t RSComposerToRenderConnectionStub::OnRemoteRequest(
     return ret;
 }
 
+int32_t RSComposerToRenderConnectionStub::ReleaseLayerBuffersStub(MessageParcel& data,
+    MessageParcel& reply, MessageOption& option)
+{
+    auto interfaceToken = data.ReadInterfaceToken();
+    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
+        RS_LOGE("Read interfaceToken failed!");
+        return ERR_INVALID_DATA;
+    }
+    ReleaseLayerBuffersInfo releaseLayerInfo;
+    releaseLayerInfo.screenId = data.ReadUint64();
+    auto vecSize = data.ReadUint32();
+    if (vecSize > RELEASE_LAYER_MAX_SIZE) {
+        RS_LOGE("Release layer size invalid: %{public}d", vecSize);
+        return ERR_INVALID_DATA;
+    }
+    for (uint32_t i = 0; i < vecSize; i++) {
+        auto layerId = data.ReadUint64();
+        bool isSupportedPresentTimestamp = data.ReadBool();
+        GraphicPresentTimestamp timestamp;
+        timestamp.type = static_cast<GraphicPresentTimestampType>(data.ReadUint32());
+        timestamp.time = data.ReadInt64();
+        releaseLayerInfo.timestampVec.push_back(std::tuple(layerId, isSupportedPresentTimestamp, timestamp));
+    }
+    vecSize = data.ReadUint32();
+    if (vecSize > RELEASE_LAYER_MAX_SIZE) {
+        RS_LOGE("Release layer size invalid: %{public}d", vecSize);
+        return ERR_INVALID_DATA;
+    }
+    for (uint32_t i = 0; i < vecSize; i++) {
+        auto layerId = data.ReadUint64();
+        uint32_t sequence;
+        sptr<SurfaceBuffer> buffer = nullptr;
+        bool hasBuffer = data.ReadBool();
+        if (hasBuffer) {
+            auto readSafeFdFunc = [](OHOS::MessageParcel& parcel, std::function<int(OHOS::MessageParcel&)> readFdDefaultFunc) -> int {
+                return parcel.ReadFileDescriptor();
+            };
+            auto ret = ReadSurfaceBufferImpl(data, sequence, buffer, readSafeFdFunc);
+            if (ret != GSERROR_OK) {
+                return ERR_INVALID_DATA;
+            }
+        }
+        sptr<SyncFence> fence = SyncFence::ReadFromMessageParcel(data);
+        releaseLayerInfo.releaseBufferFenceVec.push_back(std::tuple(layerId, buffer, fence));
+    }
+    data.ReadInt64(releaseLayerInfo.lastSwapBufferTime);
+    auto replyMessage = ReleaseLayerBuffers(releaseLayerInfo);
+    reply.WriteInt32(replyMessage);
+    return COMPOSITOR_ERROR_OK;
+}
+
+int32_t RSComposerToRenderConnectionStub::NotifyLppLayerToRenderStub(MessageParcel& data,
+    MessageParcel& reply, MessageOption& option)
+{
+    auto interfaceToken = data.ReadInterfaceToken();
+    if (interfaceToken != IRSComposerToRenderConnection::GetDescriptor()) {
+        RS_LOGE("RSComposerToRenderConnectionStub::CREATE_CONNECTION Read interfaceToken failed!");
+        return ERR_INVALID_DATA;
+    }
+    uint64_t vsyncId = data.ReadUint64();
+    int32_t size = data.ReadInt32();
+    std::set<uint64_t> lppNodeIds;
+    for (int32_t i = 0; i < size; i++) {
+        uint64_t nodeId = data.ReadUint64();
+        lppNodeIds.insert(nodeId);
+    }
+    auto replyMessage = NotifyLppLayerToRender(vsyncId, lppNodeIds);
+    reply.WriteInt32(replyMessage);
+    return COMPOSITOR_ERROR_OK;
+}
 } // namespace Rosen
 } // namespace OHOS

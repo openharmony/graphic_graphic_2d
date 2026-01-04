@@ -77,7 +77,7 @@ public:
     static std::shared_ptr<RSScreenRenderNode> GetAndInitScreenRenderNode();
     static void ChangeHardwareEnabledNodesBufferData(
         std::vector<std::shared_ptr<RSSurfaceRenderNode>>& hardwareEnabledNodes);
-    sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
+    static sptr<RSScreenManager> screenManager_ = sptr<RSScreenManager>::MakeSptr();
 
 private:
     static inline BufferRequestConfig requestConfig = {

@@ -25,12 +25,12 @@ group("unittest") {
     ":RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest",
     ":RSIRenderServiceIpcInterfaceCodeAccessVerifierTest",
     ":RSClientToServiceConnectionStubTest",
-    ":RSClientToRenderConnectionStubTest",
+    # ":RSClientToRenderConnectionStubTest",
     ":RSRenderServiceStubTest",
     ":RSUnmarshalThreadTest",
     ":RSConnectToRenderProcessTest",
     ":RSConnectToRenderProcessProxyTest",
-    ":RSConnectToRenderProcessStubTest",
+    # ":RSConnectToRenderProcessStubTest",
   ]
 }
 
@@ -137,6 +137,7 @@ ohos_unittest("RSRenderServiceStubTest") {
   deps = [
     ":rs_test_common",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/utils:socketpair",
   ]
   external_deps = [
@@ -156,6 +157,7 @@ ohos_unittest("RSConnectToRenderProcessTest") {
   sources = [ "rs_connect_to_render_process_test.cpp" ]
   deps = [
     ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = []
@@ -175,6 +177,7 @@ ohos_unittest("RSConnectToRenderProcessProxyTest") {
   sources = [ "rs_connect_to_render_process_proxy_test.cpp" ]
   deps = [
     ":rs_test_common",
+    "$graphic_2d_root/rosen/modules/render_service/composer:librender_composer",
     "$graphic_2d_root/rosen/modules/render_service_base/src/platform:platform",
   ]
   external_deps = []

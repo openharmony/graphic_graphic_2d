@@ -17,7 +17,8 @@
 #define RENDER_SERVICE_MAIN_RENDER_PROCESS_TRANSACTION_RS_SERVICE_TO_RENDER_CONNECTION_H
 
 #include "render_server/rs_render_service_agent.h"
-#include "rs_render_pipeline_agent.h"
+#include "core/rs_render_pipeline_agent.h"
+
 #include "zidl/rs_service_to_render_connection_stub.h"
 
 namespace OHOS {

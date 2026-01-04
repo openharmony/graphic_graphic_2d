@@ -508,9 +508,8 @@ private:
             renderService->screenManager_ = sptr<RSScreenManager>::MakeSptr();
         }
         if (renderService->mainThread_) {
-            renderService->mainThread_->runner_ = AppExecFwk::EventRunner::Create(true);
             renderService->mainThread_->handler_ =
-                std::make_shared<AppExecFwk::EventHandler>(renderService->mainThread_->runner_);
+                std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create(true));
         }
         return renderService;
     }

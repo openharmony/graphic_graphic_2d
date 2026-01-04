@@ -34,8 +34,9 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSRenderServiceAgent> rsAgent_ = nullptr;
+sptr<RSRenderServiceAgent> g_rsAgent = nullptr;
 }
+
 class RenderServiceAgentTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -49,7 +50,7 @@ void RenderServiceAgentTest::SetUpTestCase()
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    rsAgent_ = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
+    g_rsAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
 }
 
 void RenderServiceAgentTest::TearDownTestCase() {}
@@ -66,8 +67,8 @@ HWTEST_F(RenderServiceAgentTest, HandleTouchEventTest, TestSize.Level1)
 {
     int32_t touchStatus = 1;
     int32_t touchCnt = 1;
-    rsAgent_->HandleTouchEvent(touchStatus, touchCnt);
-    ASSERT_TRUE(rsAgent_);
+    g_rsAgent->HandleTouchEvent(touchStatus, touchCnt);
+    ASSERT_TRUE(g_rsAgent);
 }
 
 /**
@@ -80,10 +81,9 @@ HWTEST_F(RenderServiceAgentTest, ProcessHgmFrameRateTest, TestSize.Level1)
 {
     int32_t timeStamp = 1;
     int32_t vsyncId = 1;
-    std::unordered_set<ScreenId> screenIds = {1, 2, 3};
     sptr<HgmProcessToServiceInfo> processToServiceInfo = sptr<HgmProcessToServiceInfo>::MakeSptr();
     sptr<HgmServiceToProcessInfo> serviceToProcessInfo = sptr<HgmServiceToProcessInfo>::MakeSptr();
-    rsAgent_->ProcessHgmFrameRate(timeStamp, vsyncId, screenIds, processToServiceInfo, serviceToProcessInfo);
-    ASSERT_TRUE(rsAgent_);
+    g_rsAgent->ProcessHgmFrameRate(timeStamp, vsyncId, processToServiceInfo, serviceToProcessInfo);
+    ASSERT_TRUE(g_rsAgent);
 }
 } // namespace OHOS::Rosen

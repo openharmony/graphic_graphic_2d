@@ -28,7 +28,6 @@
 using namespace testing;
 using namespace testing::ext;
 
-
 namespace OHOS::Rosen {
 class RSServiceToRenderConnectionProxyTest : public testing::Test {
 public:

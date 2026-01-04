@@ -113,7 +113,7 @@ HWTEST_F(RSUniRenderComposerAdapterTest, InitTest, TestSize.Level1)
     auto composerToRenderConn = nullptr;
     auto rsVsyncManagerAgent = nullptr;
     auto composerClient2 =
-        RSRenderComposerClient::Create(false, renderToComposerConn, composerToRenderConn, rsVsyncManagerAgent);
+        RSRenderComposerClient::Create(renderToComposerConn, composerToRenderConn, rsVsyncManagerAgent);
     composerAdapter_->Init(info, offsetX, offsetY, composerClient2);
     EXPECT_NE(composerAdapter_->composerClient_, nullptr);
 }

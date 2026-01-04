@@ -425,7 +425,7 @@ HWTEST_F(RSPointerWindowManagerTest, HardCursorCreateLayer001, TestSize.Level1)
 
     auto& rsPointerWindowManager = RSPointerWindowManager::Instance();
     ASSERT_NE(rsPointerWindowManager.GetHardCursorDrawable(screenId), nullptr);
-    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE);
+    auto processor = RSProcessorFactory::CreateProcessor(CompositeType::HARDWARE_COMPOSITE, nullptr);
     rsPointerWindowManager.HardCursorCreateLayer(processor, screenId);
 }
 

@@ -224,10 +224,8 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
     auto renderFrame =
         renderEngine->RequestFrame(std::static_pointer_cast<RSSurfaceOhos>(rsSurface), bufferConfig, false, isHebc);
     if (!renderFrame) {
-        RS_LOGE("yt release RSScreenRenderNodeDrawable::RequestFrame renderEngine requestFrame is null");
         return nullptr;
     }
-    RS_LOGE("yt release RSScreenRenderNodeDrawable::RequestFrame renderEngine requestFrame ok");
 
     return renderFrame;
 }
@@ -652,7 +650,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     }
 
     std::shared_ptr<RSRenderComposerClient> composerClient = RSUniRenderThread::Instance().GetRSRenderComposerClient(paramScreenId);
-    RS_LOGE("yt GetRSRenderComposerClient[%{public}d]", composerClient != nullptr);
     auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), composerClient);
     if (!processor) {
         SetDrawSkipType(DrawSkipType::CREATE_PROCESSOR_FAIL);
@@ -677,6 +674,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         RS_LOGE("composerClient->UpdatePipelineParam failed!");
     }
 
+    RSUniRenderThread::BufferManagerGuard bufferGuard;
     RSUniRenderThread::Instance().SetEnableVisibleRect(false);
     auto mirroredDrawable = params->GetMirrorSourceDrawable().lock();
     auto mirroredRenderParams =
@@ -715,20 +713,13 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                     RS_LOGE("RSScreenRenderNodeDrawable::OnDraw DrawingSurface is null");
                     return;
                 }
-                RSUniRenderThread::Instance().OnDrawStart();
                 curCanvas_ = std::make_shared<RSPaintFilterCanvas>(drSurface.get());
                 RSRenderNodeDrawable::OnDraw(*curCanvas_);
                 expandRenderFrame_->Flush();
-
-                sptr<SyncFence> expandAcquireFence = expandRenderFrame_->GetAcquireFence();
-                if (!expandAcquireFence || !expandAcquireFence->IsValid()) {
-                    expandAcquireFence = SyncFence::InvalidFence();
-                }
-                RSUniRenderThread::Instance().OnDrawEnd(expandAcquireFence);
-
                 processor->ProcessScreenSurfaceForRenderThread(*this);
                 RSPointerWindowManager::Instance().HardCursorCreateLayer(processor, GetId());
                 processor->PostProcess();
+                bufferGuard.SetAcquireFence(expandRenderFrame_->GetAcquireFence());
                 expandRenderFrame_ = nullptr;
                 return;
             }
@@ -737,14 +728,12 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw virtualProcessor is null!");
                 return;
             }
-            RSUniRenderThread::Instance().OnDrawStart();
             curCanvas_ = virtualProcessor->GetCanvas();
             RSRenderNodeDrawable::OnDraw(*curCanvas_);
             if (virtualProcessor->GetDisplaySkipInMirror()) {
                 RS_TRACE_NAME("skip in virtual screen and cancelbuffer");
                 virtualProcessor->SetDisplaySkipInMirror(false);
                 virtualProcessor->CancelCurrentFrame();
-                RSUniRenderThread::Instance().OnDrawEnd(SyncFence::InvalidFence());
                 return;
             }
             params->ResetVirtualExpandAccumulatedParams();
@@ -758,7 +747,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
                 RS_LOGE("RSScreenRenderNodeDrawable::OnDraw expandProcessor is null!");
                 return;
             }
-            RSUniRenderThread::Instance().OnDrawStart();
             RSDirtyRectsDfx rsDirtyRectsDfx(*this);
             std::vector<RectI> damageRegionRects;
             RSUniDirtyComputeUtil::MergeVirtualExpandScreenAccumulatedDirtyRegions(*this, *params);
@@ -803,6 +791,10 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
         }
         DrawCurtainScreen();
         processor->PostProcess();
+        auto virtualProcessor = RSProcessor::ReinterpretCast<RSUniRenderVirtualProcessor>(processor);
+        if (virtualProcessor) {
+            bufferGuard.SetAcquireFence(virtualProcessor->GetFrameAcquireFence());
+        }
         SetDrawSkipType(DrawSkipType::MIRROR_DRAWABLE_SKIP);
         return;
     }
@@ -914,8 +906,6 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
 #endif
     UpdateSurfaceDrawRegion(curCanvas_, params);
 
-    RSUniRenderThread::Instance().OnDrawStart();
-
     // canvas draw
     {
         {
@@ -995,12 +985,7 @@ void RSScreenRenderNodeDrawable::OnDraw(Drawing::Canvas& canvas)
     Drawing::GPUResourceTag::SetCurrentNodeId(GetId());
 
     renderFrame->Flush();
-    sptr<SyncFence> acquireFence = renderFrame->GetAcquireFence();
-
-    if (!acquireFence || !acquireFence->IsValid()) {
-        acquireFence = SyncFence::InvalidFence();
-    }
-    RSUniRenderThread::Instance().OnDrawEnd(acquireFence);
+    bufferGuard.SetAcquireFence(renderFrame->GetAcquireFence());
     RS_TRACE_END();
 
 #ifdef SUBTREE_PARALLEL_ENABLE

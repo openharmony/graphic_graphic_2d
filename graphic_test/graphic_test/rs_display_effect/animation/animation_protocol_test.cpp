@@ -42,7 +42,7 @@ private:
     }
 };
 
-std::shared_ptr<RSUIContext> GetRSUIContext()
+static std::shared_ptr<RSUIContext> GetRSUIContext()
 {
     static std::shared_ptr<RSUIContext> rsUIContext = nullptr;
     if (rsUIContext == nullptr) {

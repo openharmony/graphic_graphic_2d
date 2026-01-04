@@ -1677,8 +1677,8 @@ void RSMainThread::ConsumeAndUpdateAllNodes()
                     surfaceNode->SetProtectedLayer(true);
                 }
                 const auto& instanceNode = surfaceNode->GetInstanceRootNode();
-                if (instanceNode && instanceNode->IsOnTheTree()) {
-                    RSDrmUtil::CollectDrmNodes(surfaceNode);
+                if (instanceNode && instanceNode->IsOnTheTree() && surfaceHandler->GetBuffer()) {
+                    RSDrmUtil::DealWithDRMNodes(surfaceNode, surfaceHandler->GetBuffer());
                 }
             }
 #endif
@@ -5412,9 +5412,7 @@ void RSMainThread::HandleScreenPropertyChange(const sptr<RSScreenProperty>& prop
             }
         });
     });
-    HgmTaskHandleThread::Instance().PostTask([id, refreshRate = property->GetRefreshRate()] {
-        RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, refreshRate);
-    });
+    RSRealtimeRefreshRateManager::Instance().UpdateScreenRefreshRate(id, property->GetRefreshRate());
 }
 
 void RSMainThread::HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& lastProperty,

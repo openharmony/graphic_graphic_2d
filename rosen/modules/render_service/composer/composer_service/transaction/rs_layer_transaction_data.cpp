@@ -198,11 +198,9 @@ bool RSLayerTransactionData::UnmarshallingRsLayerParcel(OHOS::MessageParcel& par
     uint8_t hasRsLayerParcel = 0;
     uint16_t rsLayerParcelType = 0;
 
-    size_t readableSize = parcel.GetReadableBytes();
     size_t len = static_cast<size_t>(payloadSize);
-    if (len > readableSize || len > payload_.max_size()) {
-        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel fail read vector, size:%{public}zu,"
-            " readableSize:%{public}zu", len, readableSize);
+    if (len > PARCEL_MAX_CPACITY) {
+        RS_LOGE("RSLayerTransactionData::UnmarshallingRsLayerParcel fail read vector, size:%{public}zu", len);
         return false;
     }
     std::unique_lock<std::mutex> payloadLock(rsLayerParcelMutex_, std::defer_lock);

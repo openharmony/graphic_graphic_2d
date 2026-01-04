@@ -2118,29 +2118,6 @@ HWTEST_F(RSScreenTest, SetMainScreenVisibleRect_001, testing::ext::TestSize.Leve
 }
 
 /*
- * Function: SetHasProtectedLayer
- * Type: Function
- * Rank: Important(1)
- * EnvConditions: N/A
- * CaseDescription: 1. preSetup: create RSScreen
- *                  2. operation: SetHasProtectedLayer and GetHasProtectedLayer
- *                  3. result: return hasProtectedLayer
- */
-HWTEST_F(RSScreenTest, SetHasProtectedLayer_001, testing::ext::TestSize.Level1)
-{
-    auto rsScreen = std::make_shared<RSScreen>(0);
-    ASSERT_NE(nullptr, rsScreen);
-    rsScreen->property_.SetIsVirtual(true);
-
-    rsScreen->SetHasProtectedLayer(true);
-    auto ret = rsScreen->GetHasProtectedLayer();
-    ASSERT_EQ(ret, true);
-    rsScreen->SetHasProtectedLayer(false);
-    ret = rsScreen->GetHasProtectedLayer();
-    ASSERT_EQ(ret, false);
-}
-
-/*
  * @tc.name: SetSecurityMaskTest
  * @tc.desc: SetSecurityMask Test with virtualScreenId
  * @tc.type: FUNC

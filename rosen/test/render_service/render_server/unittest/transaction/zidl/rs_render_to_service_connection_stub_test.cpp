@@ -31,7 +31,7 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSRenderToServiceConnectionStub> connectionStub_ = nullptr;
+sptr<RSRenderToServiceConnectionStub> g_connectionStub = nullptr;
 }
 
 class RSRenderToServiceConnectionStubTest : public testing::Test {
@@ -50,9 +50,9 @@ void RSRenderToServiceConnectionStubTest::SetUpTestCase()
     sptr<RSRenderServiceAgent> rsRenderServiceAgent = sptr<RSRenderServiceAgent>::MakeSptr(renderService);
     sptr<RSRenderProcessManagerAgent> renderProcessManagerAgent =
         sptr<RSRenderProcessManagerAgent>::MakeSptr(renderService.renderProcessManager_);
-    auto rsScreenManager = RSScreenManager::GetInstance();
+    auto rsScreenManager = sptr<RSScreenManager>::MakeSptr();
     sptr<RSScreenManagerAgent> screenManagerAgent = sptr<RSScreenManagerAgent>::MakeSptr(rsScreenManager);
-    connectionStub_ = sptr<RSRenderToServiceConnection>::MakeSptr(rsRenderServiceAgent,
+    g_connectionStub = sptr<RSRenderToServiceConnection>::MakeSptr(rsRenderServiceAgent,
         renderProcessManagerAgent, screenManagerAgent);
 }
 void RSRenderToServiceConnectionStubTest::TearDownTestCase() {}
@@ -82,7 +82,7 @@ HWTEST_F(RSRenderToServiceConnectionStubTest, TestRSRenderToServiceConnectionStu
     for (uint64_t i = 0; i < sizes; ++i) {
         data.WriteUint64(i);
     }
-    connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_TRUE(connectionStub_);
+    g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_TRUE(g_connectionStub);
 }
 } // namespace OHOS::Rosen

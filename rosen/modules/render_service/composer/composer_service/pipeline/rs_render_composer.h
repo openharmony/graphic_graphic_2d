@@ -133,7 +133,7 @@ private:
     GSError ClearFrameBuffersInner(bool isNeedResetContext = true);
     void ClearRedrawGPUCompositionCache(const std::set<uint64_t>& bufferIds);
     void OnScreenVBlankIdleCallback(ScreenId screenId, uint64_t timestamp);
-    void UpdateForSurfaceFps(PipelineParam&);
+    void UpdateForSurfaceFps(const PipelineParam&);
     void AddSolidColorLayer(std::vector<std::shared_ptr<RSLayer>>& layers);
     void SetScreenBacklight(uint32_t level);
     void SetScreenPowerOnChanged(bool flag);
@@ -161,7 +161,6 @@ private:
     ExceptionCheck exceptionCheck_;
     sptr<IRSComposerToRenderConnection> composerToRenderConnection_;
     ComposerScreenInfo composerScreenInfo_;
-    PipelineParam pipelineParam_;
     sptr<RSVsyncManagerAgent> rsVsyncManagerAgent_ = nullptr;
     bool isDisconnected_ = false;
     bool isHwcDead_ = false;

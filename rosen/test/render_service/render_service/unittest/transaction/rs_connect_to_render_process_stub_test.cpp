@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,8 +29,9 @@ using namespace testing::ext;
 namespace OHOS::Rosen {
 namespace {
 RSRenderService renderService;
-static inline sptr<RSConnectToRenderProcessStub> connectionStub_ = nullptr;
+sptr<RSConnectToRenderProcessStub> g_connectionStub = nullptr;
 }
+
 class RSConnectToRenderProcessStubTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -44,7 +45,7 @@ void RSConnectToRenderProcessStubTest::SetUpTestCase()
     OHOS::system::SetParameter("bootevent.samgr.ready", "false");
     renderService.Init();
     RSUniRenderThread::Instance().uniRenderEngine_ = nullptr;
-    connectionStub_ = sptr<RSConnectToRenderProcessStub>::MakeSptr();
+    g_connectionStub = sptr<RSConnectToRenderProcessStub>::MakeSptr();
 }
 void RSConnectToRenderProcessStubTest::TearDownTestCase() {}
 void RSConnectToRenderProcessStubTest::SetUp() {}
@@ -66,9 +67,9 @@ HWTEST_F(RSConnectToRenderProcessStubTest, TestRSConnectionToRenderProcessStub00
     }
     option.SetFlags(MessageOption::TF_SYNC);
     uint32_t code = static_cast<uint32_t>(
-        RSIConnectToRenderProcessInterfaceCode::FORK_CONNECTION);
+        RSIConnectToRenderProcessInterfaceCode::CREATE_CONNECTION);
     sptr<RSIConnectionToken> token1 = new IRemoteStub<RSIConnectionToken>();
-    connectionStub_->OnRemoteRequest(code, data, reply, option);
-    ASSERT_TRUE(connectionStub_);
+    g_connectionStub->OnRemoteRequest(code, data, reply, option);
+    ASSERT_TRUE(g_connectionStub);
 }
 } // namespace OHOS::Rosen
