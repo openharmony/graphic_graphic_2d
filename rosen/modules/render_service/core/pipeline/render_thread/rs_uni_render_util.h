@@ -73,10 +73,8 @@ public:
         RSScreenRenderParams& screenParams, bool isSecScreen = false);
     // This is used for calculate matrix from buffer coordinate to window's relative coordinate
     static Drawing::Matrix GetMatrixOfBufferToRelRect(const RSSurfaceRenderNode& node);
-    static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
-        const sptr<IConsumerSurface>& surface, RectF& localBounds);
-    static void SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer,
-        const sptr<IConsumerSurface>& surface, RectF& localBounds);
+    static void SrcRectScaleDown(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds);
+    static void SrcRectScaleFit(BufferDrawParam& params, const sptr<SurfaceBuffer>& buffer, RectF& localBounds);
     static BufferDrawParam CreateBufferDrawParam(const RSSurfaceRenderNode& node,
         bool forceCPU, uint32_t threadIndex = UNI_RENDER_THREAD_INDEX, bool useRenderParams = false);
     static BufferDrawParam CreateBufferDrawParam(const RSScreenRenderNode& node, bool forceCPU);

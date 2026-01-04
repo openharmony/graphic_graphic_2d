@@ -205,7 +205,7 @@ void RSComposerContext::CleanLayerBufferBySurfaceId(uint64_t surfaceId)
     rsComposerConnection_->CleanLayerBufferBySurfaceId(surfaceId);
 }
 
-void RSComposerContext::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer> buffer)
+void RSComposerContext::PreAllocProtectedFrameBuffers(const sptr<SurfaceBuffer>& buffer)
 {
     std::unique_lock<std::recursive_mutex> lock(rsLayerTransMutex_);
     if (rsComposerConnection_ == nullptr) {
