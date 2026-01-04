@@ -24,14 +24,12 @@
 
 namespace OHOS::Rosen {
 namespace Drawing {
-const char* ANI_CLASS_TYPEFACE_NAME = "@ohos.graphics.drawing.drawing.Typeface";
 const std::string G_SYSTEM_FONT_DIR = "/system/fonts";
 
 ani_status AniTypeface::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_TYPEFACE_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().typeface;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_TYPEFACE_NAME);
         return ANI_NOT_FOUND;
     }
@@ -57,7 +55,7 @@ ani_status AniTypeface::AniInit(ani_env *env)
         ani_native_function { "getTypefaceAddr", nullptr, reinterpret_cast<void*>(GetTypefaceAddr) },
     };
 
-    ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail: %{public}s ret: %{public}d", ANI_CLASS_TYPEFACE_NAME, ret);
         return ANI_NOT_FOUND;
@@ -75,7 +73,8 @@ ani_status AniTypeface::AniInit(ani_env *env)
 void AniTypeface::Constructor(ani_env* env, ani_object obj)
 {
     AniTypeface* aniTypeface = new AniTypeface(GetZhCnTypeface());
-    if (ANI_OK != env->Object_SetFieldByName_Long(obj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+    if (ANI_OK != env->Object_SetField_Long(
+        obj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
         ROSEN_LOGE("AniTypeface::Constructor failed create aniTypeface");
         delete aniTypeface;
         return;
@@ -84,7 +83,7 @@ void AniTypeface::Constructor(ani_env* env, ani_object obj)
 
 ani_string AniTypeface::GetFamilyName(ani_env* env, ani_object obj)
 {
-    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj, AniGlobalField::GetInstance().typefaceNativeObj);
     if (aniTypeface == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return ani_string{};
@@ -101,8 +100,10 @@ ani_string AniTypeface::GetFamilyName(ani_env* env, ani_object obj)
 ani_object AniTypeface::CreateAniTypeface(ani_env* env, std::shared_ptr<Typeface> typeface)
 {
     AniTypeface* aniTypeface = new AniTypeface(typeface);
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+        AniGlobalMethod::GetInstance().typefaceCtor);
+    if (ANI_OK != env->Object_SetField_Long(
+        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
         delete aniTypeface;
         ROSEN_LOGE("AniTypeface::CreateAniTypeface failed create aniTypeface");
         return CreateAniUndefined(env);
@@ -141,7 +142,8 @@ ani_object AniTypeface::MakeFromFileWithArguments(ani_env* env, ani_object obj, 
     ani_object argumentsObj)
 {
     std::string filePath = CreateStdString(env, aniFilePath);
-    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, argumentsObj);
+    auto aniTypefaceArguments = GetNativeFromObj<AniTypefaceArguments>(env, argumentsObj,
+        AniGlobalField::GetInstance().typefaceArgumentsNativeObj);
     if (aniTypefaceArguments == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params. ");
         return CreateAniUndefined(env);
@@ -203,8 +205,10 @@ ani_object AniTypeface::MakeFromRawFile(ani_env* env, ani_object obj, ani_object
             return CreateAniUndefined(env);
         }
     }
-    ani_object aniObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniObj, NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+    ani_object aniObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+        AniGlobalMethod::GetInstance().typefaceCtor);
+    if (ANI_OK != env->Object_SetField_Long(
+        aniObj, AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
         delete aniTypeface;
         ROSEN_LOGE("AniTypeface::MakeFromRawFile failed create aniTypeface");
         return CreateAniUndefined(env);
@@ -234,9 +238,10 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
     }
 
     auto aniTypeface = new AniTypeface(jsTypeface->GetTypeface());
-    ani_object aniTypefaceObj = CreateAniObject(env, ANI_CLASS_TYPEFACE_NAME, nullptr);
-    if (ANI_OK != env->Object_SetFieldByName_Long(aniTypefaceObj,
-        NATIVE_OBJ, reinterpret_cast<ani_long>(aniTypeface))) {
+    ani_object aniTypefaceObj = CreateAniObject(env, AniGlobalClass::GetInstance().typeface,
+        AniGlobalMethod::GetInstance().typefaceCtor);
+    if (ANI_OK != env->Object_SetField_Long(aniTypefaceObj,
+        AniGlobalField::GetInstance().typefaceNativeObj, reinterpret_cast<ani_long>(aniTypeface))) {
         ROSEN_LOGE("AniTypeface::TypefaceTransferStatic failed create aniTypeface");
         delete aniTypeface;
         return CreateAniUndefined(env);
@@ -246,7 +251,7 @@ ani_object AniTypeface::TypefaceTransferStatic(ani_env* env, [[maybe_unused]]ani
 
 ani_boolean AniTypeface::IsBold(ani_env* env, ani_object obj)
 {
-    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj, AniGlobalField::GetInstance().typefaceNativeObj);
     if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return false;
@@ -256,7 +261,7 @@ ani_boolean AniTypeface::IsBold(ani_env* env, ani_object obj)
 
 ani_boolean AniTypeface::IsItalic(ani_env* env, ani_object obj)
 {
-    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj);
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, obj, AniGlobalField::GetInstance().typefaceNativeObj);
     if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid params.");
         return false;
@@ -266,7 +271,7 @@ ani_boolean AniTypeface::IsItalic(ani_env* env, ani_object obj)
 
 ani_long AniTypeface::GetTypefaceAddr(ani_env* env, [[maybe_unused]]ani_object obj, ani_object input)
 {
-    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, input);
+    auto aniTypeface = GetNativeFromObj<AniTypeface>(env, input, AniGlobalField::GetInstance().typefaceNativeObj);
     if (aniTypeface == nullptr || aniTypeface->GetTypeface() == nullptr) {
         ROSEN_LOGE("AniTypeface::GetTypefaceAddr aniTypeface is null");
         return 0;

@@ -32,10 +32,10 @@ public:
     static ani_object Bounds(ani_env* env, ani_object obj, ani_object aniRectObj);
     static ani_long UniqueID(ani_env* env, ani_object obj);
     static ani_object MakeFromPosText(ani_env* env, ani_object obj, ani_string aniText, ani_int len,
-        ani_object aniPoints, ani_object aniFontObj);
+        ani_array pointArray, ani_object aniFontObj);
     static ani_object MakeFromString(ani_env* env, ani_object obj, ani_string aniText, ani_object aniFontObj,
         ani_enum_item aniEncoding);
-    static ani_object MakeFromRunBuffer(ani_env* env, ani_object obj, ani_object posArray, ani_object aniFontObj,
+    static ani_object MakeFromRunBuffer(ani_env* env, ani_object obj, ani_array posArray, ani_object aniFontObj,
         ani_object aniRectObj);
 
     std::shared_ptr<TextBlob> GetTextBlob();
@@ -45,7 +45,7 @@ private:
     static ani_object GetTextBlobObj(ani_env* env, const char* buffer, size_t bufferLen, const Point points[],
         const std::shared_ptr<Font>& font);
     static ani_object CreateTextBlobObj(ani_env* env, const std::shared_ptr<TextBlob> textBlob);
-    static bool MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, ani_object posArray);
+    static bool MakeRunBuffer(ani_env* env, TextBlobBuilder::RunBuffer& runBuffer, uint32_t size, ani_array posArray);
     std::shared_ptr<TextBlob> textBlob_ = nullptr;
 };
 } // namespace Drawing

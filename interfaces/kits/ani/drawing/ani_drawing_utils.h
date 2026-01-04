@@ -17,7 +17,6 @@
 #define OHOS_ANI_DRAWING_UTILS_H
 
 #include <ani.h>
-#include <hilog/log.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -28,26 +27,9 @@
 #include "text/font_types.h"
 #include "utils/point.h"
 #include "utils/rect.h"
-
-#ifdef ROSEN_OHOS
-
-#undef LOG_DOMAIN
-#define LOG_DOMAIN 0xD001400
-
-#undef LOG_TAG
-#define LOG_TAG "AniDrawing"
-
-#define ROSEN_LOGI(format, ...)              \
-    HILOG_INFO(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGD(format, ...)               \
-    HILOG_DEBUG(LOG_CORE, format, ##__VA_ARGS__)
-#define ROSEN_LOGE(format, ...)               \
-    HILOG_ERROR(LOG_CORE, format, ##__VA_ARGS__)
-#else
-#define ROSEN_LOGI(format, ...)
-#define ROSEN_LOGD(format, ...)
-#define ROSEN_LOGE(format, ...)
-#endif
+#include "ani_drawing_cache_utils.h"
+#include "ani_drawing_log.h"
+#include "ani_drawing_common.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -68,7 +50,6 @@ struct RectPropertyConfig {
     ani_double& result;
 };
 
-constexpr char NATIVE_OBJ[] = "nativeObj";
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -82,11 +63,6 @@ constexpr size_t ARGC_NINE = 9;
 constexpr int MAX_PAIRS_PATHVERB = 4;
 constexpr int MAX_ELEMENTSIZE = 3000 * 3000;
 constexpr int RGBA_MAX = 255;
-constexpr const char* ANI_DOUBLE_STRING = "std.core.Double";
-constexpr const char* ANI_INT_STRING = "std.core.Int";
-constexpr const char* ANI_CLASS_MATRIX_NAME = "@ohos.graphics.drawing.drawing.Matrix";
-constexpr const char* ANI_CLASS_COLORFILTER_NAME = "@ohos.graphics.drawing.drawing.ColorFilter";
-constexpr const char* ANI_CLASS_PATH_NAME = "@ohos.graphics.drawing.drawing.Path";
 
 ani_status AniThrowError(ani_env* env, const std::string& message);
 
@@ -115,11 +91,16 @@ inline std::string CreateStdString(ani_env* env, ani_string aniStr)
 ani_status CreateStdStringUtf16(ani_env* env, const ani_string& str, std::u16string& utf16Str);
 
 template<typename T>
-T* GetNativeFromObj(ani_env* env, ani_object obj)
+T* GetNativeFromObj(ani_env* env, ani_object obj, ani_field nativeObjField)
 {
+    if (nativeObjField == nullptr) {
+        ROSEN_LOGE("nativeObjField is null");
+        return nullptr;
+    }
     ani_long nativeObj {};
-    if (env->Object_GetFieldByName_Long(obj, NATIVE_OBJ, &nativeObj) != ANI_OK) {
-        ROSEN_LOGE("[ANI] Object_GetField_Long fetch failed");
+    ani_status ret = env->Object_GetField_Long(obj, nativeObjField, &nativeObj);
+    if (ret != ANI_OK) {
+        ROSEN_LOGE("Failed to get native obj, ret %{public}d", ret);
         return nullptr;
     }
     T *object = reinterpret_cast<T*>(nativeObj);
@@ -132,45 +113,44 @@ T* GetNativeFromObj(ani_env* env, ani_object obj)
 
 ani_object CreateAniUndefined(ani_env* env);
 
-ani_object CreateAniObject(ani_env* env, const char* className, const char* methodSig, ...);
+ani_object CreateAniObject(ani_env* env, const ani_class cls, const ani_method ctor, ...);
 
 ani_object CreateAniNull(ani_env* env);
 
-bool CreateAniEnumByEnumIndex(ani_env* env, const char* enumDescripter, ani_size index, ani_enum_item& enumItem);
+bool CreateAniEnumByEnumIndex(ani_env* env, const ani_enum enumType, ani_size index, ani_enum_item& enumItem);
 
-bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
+bool CreateAniEnumByEnumName(
+    ani_env* env, const ani_enum enumType, const std::string itemName, ani_enum_item& enumItem);
 
 template<typename T>
-ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
+ani_object CreateAniObjectStatic(
+    ani_env* env, ani_class cls, const ani_method ctor, const ani_method bindNativePtr, T* obj)
 {
     if (obj == nullptr) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic obj is nullptr");
         return CreateAniUndefined(env);
     }
-    ani_class aniClass;
-    if (env->FindClass(className, &aniClass) != ANI_OK) {
+    if (cls == nullptr) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic FindClass failed");
         return CreateAniUndefined(env);
     }
 
-    ani_method aniConstructor;
-    if (env->Class_FindMethod(aniClass, "<ctor>", nullptr, &aniConstructor) != ANI_OK) {
+    if (ctor == nullptr) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod constructor failed");
         return CreateAniUndefined(env);
     }
 
     ani_object aniObject;
-    if (env->Object_New(aniClass, aniConstructor, &aniObject) != ANI_OK) {
+    if (env->Object_New(cls, ctor, &aniObject) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Object_New failed");
         return CreateAniUndefined(env);
     }
 
-    ani_method innerMethod;
-    if (env->Class_FindMethod(aniClass, "bindNativePtr", "l:", &innerMethod) != ANI_OK) {
+    if (bindNativePtr == nullptr) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Class_FindMethod bindNativePtr failed");
         return CreateAniUndefined(env);
     }
-    if (env->Object_CallMethod_Void(aniObject, innerMethod, reinterpret_cast<ani_long>(obj)) != ANI_OK) {
+    if (env->Object_CallMethod_Void(aniObject, bindNativePtr, reinterpret_cast<ani_long>(obj)) != ANI_OK) {
         ROSEN_LOGE("[Drawing] CreateAniObjectStatic Object_CallMethod_Void failed");
         return CreateAniUndefined(env);
     }
@@ -178,9 +158,7 @@ ani_object CreateAniObjectStatic(ani_env* env, const char* className, T* obj)
     return aniObject;
 }
 
-bool GetPointFromAniPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
-
-ani_object CreateAniArrayWithSize(ani_env* env, size_t size);
+ani_array CreateAniArrayWithSize(ani_env* env, size_t size);
 
 bool GetColorQuadFromParam(ani_env* env, ani_object obj, Drawing::ColorQuad &color);
 
@@ -194,7 +172,7 @@ ani_status CreateRectObj(ani_env* env, const Drawing::Rect& rect, ani_object& ob
 
 ani_status GetPointFromPointObj(ani_env* env, ani_object obj, Drawing::Point& point);
 
-bool ConvertFromAniPointsArray(ani_env* env, ani_object aniPointArray, Drawing::Point* points, uint32_t pointSize);
+bool ConvertFromAniPointsArray(ani_env* env, ani_array aniPointArray, Drawing::Point* points, uint32_t pointSize);
 
 ani_status CreatePointObj(ani_env* env, const Drawing::Point& point, ani_object& obj);
 
@@ -202,7 +180,7 @@ bool CreatePointObjAndCheck(ani_env* env, const Drawing::Point& point, ani_objec
 
 bool GetPoint3FromPoint3dObj(ani_env* env, ani_object obj, Drawing::Point3& point3d);
 
-bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_object& pointArray, uint32_t index);
+bool SetPointToAniPointArrayWithIndex(ani_env* env, Drawing::Point& point, ani_array& pointArray, uint32_t index);
 
 inline bool CheckDoubleOutOfRange(ani_double val, double lowerBound, double upperBound)
 {
@@ -214,13 +192,28 @@ inline bool CheckInt32OutOfRange(ani_int val, int32_t lowerBound, int32_t upperB
     return val < lowerBound || val > upperBound;
 }
 
-inline void DrawingRectConvertToAniRect(ani_env* env, ani_object obj, const Drawing::Rect& rect)
+inline bool IsUndefined(ani_env* env, ani_ref ref)
 {
-    env->Object_SetPropertyByName_Double(obj, "left", rect.GetLeft());
-    env->Object_SetPropertyByName_Double(obj, "top", rect.GetTop());
-    env->Object_SetPropertyByName_Double(obj, "right", rect.GetRight());
-    env->Object_SetPropertyByName_Double(obj, "bottom", rect.GetBottom());
+    ani_boolean isUndefined = ANI_FALSE;
+    env->Reference_IsUndefined(ref, &isUndefined);
+    return isUndefined;
 }
+
+inline bool IsNull(ani_env* env, ani_ref ref)
+{
+    ani_boolean isNull = ANI_FALSE;
+    env->Reference_IsNull(ref, &isNull);
+    return isNull;
+}
+
+inline bool IsReferenceValid(ani_env* env, ani_ref ref)
+{
+    return !IsUndefined(env, ref) && !IsNull(env, ref);
+}
+
+bool DrawingPointConvertToAniPoint(ani_env* env, ani_object obj, const Drawing::Point& point);
+
+bool DrawingRectConvertToAniRect(ani_env* env, ani_object obj, const Drawing::Rect& rect);
 
 std::shared_ptr<Font> GetThemeFont(std::shared_ptr<Font> font);
 

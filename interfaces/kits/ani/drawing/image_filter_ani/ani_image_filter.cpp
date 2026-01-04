@@ -20,13 +20,10 @@
 namespace OHOS::Rosen {
 namespace Drawing {
 
-const char* ANI_CLASS_IMAGEFILTER_NAME = "@ohos.graphics.drawing.drawing.ImageFilter";
-
 ani_status AniImageFilter::AniInit(ani_env *env)
 {
-    ani_class cls = nullptr;
-    ani_status ret = env->FindClass(ANI_CLASS_IMAGEFILTER_NAME, &cls);
-    if (ret != ANI_OK) {
+    ani_class cls = AniGlobalClass::GetInstance().imageFilter;
+    if (cls == nullptr) {
         ROSEN_LOGE("[ANI] can't find class: %{public}s", ANI_CLASS_IMAGEFILTER_NAME);
         return ANI_NOT_FOUND;
     }
@@ -36,7 +33,7 @@ ani_status AniImageFilter::AniInit(ani_env *env)
         ani_native_function { "createBlurImageFilter", nullptr, reinterpret_cast<void*>(CreateBlurImageFilter) },
     };
 
-    ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
+    ani_status ret = env->Class_BindStaticNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {
         ROSEN_LOGE("[ANI] bind methods fail. ret %{public}d %{public}s", ret, ANI_CLASS_IMAGEFILTER_NAME);
         return ANI_NOT_FOUND;
@@ -48,19 +45,17 @@ ani_status AniImageFilter::AniInit(ani_env *env)
 ani_object AniImageFilter::CreateFromColorFilter(
     ani_env* env, [[maybe_unused]]ani_object obj, ani_object aniColorFilterObj, ani_object aniImageFilterObj)
 {
-    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, aniColorFilterObj);
+    auto aniColorFilter = GetNativeFromObj<AniColorFilter>(env, aniColorFilterObj,
+        AniGlobalField::GetInstance().colorFilterNativeObj);
     if (aniColorFilter == nullptr) {
         ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param colorFilter.");
         return CreateAniUndefined(env);
     }
 
-    ani_boolean isImageFilterNull;
-    ani_boolean isImageFilterUndefined;
-    env->Reference_IsNull(aniImageFilterObj, &isImageFilterNull);
-    env->Reference_IsUndefined(aniImageFilterObj, &isImageFilterUndefined);
     AniImageFilter* aniImageFilter = nullptr;
-    if (!isImageFilterNull && !isImageFilterUndefined) {
-        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj);
+    if (!IsNull(env, aniImageFilterObj) && !IsUndefined(env, aniImageFilterObj)) {
+        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj,
+            AniGlobalField::GetInstance().imageFilterNativeObj);
         if (aniImageFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
             return CreateAniUndefined(env);
@@ -68,10 +63,10 @@ ani_object AniImageFilter::CreateFromColorFilter(
     }
     AniImageFilter* imageFilter = new AniImageFilter(ImageFilter::CreateColorFilterImageFilter(
         *(aniColorFilter->GetColorFilter()), aniImageFilter ? aniImageFilter->GetImageFilter() : nullptr));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_IMAGEFILTER_NAME, imageFilter);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().imageFilter,
+        AniGlobalMethod::GetInstance().imageFilterCtor, AniGlobalMethod::GetInstance().imageFilterBindNative,
+        imageFilter);
+    if (IsUndefined(env, aniObj)) {
         delete imageFilter;
         ROSEN_LOGE("AniImageFilter::CreateFromColorFilter failed cause aniObj is undefined");
     }
@@ -81,13 +76,10 @@ ani_object AniImageFilter::CreateFromColorFilter(
 ani_object AniImageFilter::CreateBlurImageFilter(ani_env* env, [[maybe_unused]]ani_object obj,
     ani_double sigmaX, ani_double sigmaY, ani_enum_item aniTileMode, ani_object aniImageFilterObj)
 {
-    ani_boolean isImageFilterNull;
-    ani_boolean isImageFilterUndefined;
-    env->Reference_IsNull(aniImageFilterObj, &isImageFilterNull);
-    env->Reference_IsUndefined(aniImageFilterObj, &isImageFilterUndefined);
     AniImageFilter* aniImageFilter = nullptr;
-    if (!isImageFilterNull && !isImageFilterUndefined) {
-        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj);
+    if (!IsNull(env, aniImageFilterObj) && !IsUndefined(env, aniImageFilterObj)) {
+        aniImageFilter = GetNativeFromObj<AniImageFilter>(env, aniImageFilterObj,
+            AniGlobalField::GetInstance().imageFilterNativeObj);
         if (aniImageFilter == nullptr) {
             ThrowBusinessError(env, DrawingErrorCode::ERROR_INVALID_PARAM, "Invalid param imageFilter.");
             return CreateAniUndefined(env);
@@ -104,10 +96,10 @@ ani_object AniImageFilter::CreateBlurImageFilter(ani_env* env, [[maybe_unused]]a
     AniImageFilter* imageFilter = new AniImageFilter(ImageFilter::CreateBlurImageFilter(
         sigmaX, sigmaY, static_cast<TileMode>(tMode),
         aniImageFilter ? aniImageFilter->GetImageFilter() : nullptr, ImageBlurType::GAUSS));
-    ani_object aniObj = CreateAniObjectStatic(env, ANI_CLASS_IMAGEFILTER_NAME, imageFilter);
-    ani_boolean isUndefined;
-    env->Reference_IsUndefined(aniObj, &isUndefined);
-    if (isUndefined) {
+    ani_object aniObj = CreateAniObjectStatic(env, AniGlobalClass::GetInstance().imageFilter,
+        AniGlobalMethod::GetInstance().imageFilterCtor, AniGlobalMethod::GetInstance().imageFilterBindNative,
+        imageFilter);
+    if (IsUndefined(env, aniObj)) {
         delete imageFilter;
         ROSEN_LOGE("AniImageFilter::CreateBlurImageFilter failed cause aniObj is undefined");
     }

@@ -39,7 +39,7 @@ public:
     static ani_object CreateLightingColorFilter(
         ani_env* env, ani_object obj, ani_double aniMultiplyColor, ani_double addColor);
 
-    static ani_object CreateMatrixColorFilter(ani_env* env, ani_object obj, ani_object aniMatrixArrayObj);
+    static ani_object CreateMatrixColorFilter(ani_env* env, ani_object obj, ani_array aniMatrixArrayObj);
 
     static ani_object CreateComposeColorFilter(
     ani_env* env, ani_object obj, ani_object aniOuterColorFilterObj, ani_object aniInnerColorFilterObj);
