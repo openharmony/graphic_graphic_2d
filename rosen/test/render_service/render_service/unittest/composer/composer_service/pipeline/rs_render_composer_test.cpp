@@ -1176,6 +1176,7 @@ HWTEST_F(RsRenderComposerTest, ComputeTargetColorGamut004, TestSize.Level1)
     layers.emplace_back(l1);
     auto colorGamut = rsRenderComposer_->ComputeTargetColorGamut(layers);
     EXPECT_EQ(colorGamut, GRAPHIC_COLOR_GAMUT_SRGB);
+    cSurface->UnregisterConsumerListener();
 }
 
 /**
