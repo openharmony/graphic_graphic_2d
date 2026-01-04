@@ -27,6 +27,7 @@
 #include "param/sys_param.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
+#include "product_feature/fold/rs_foldable_screen_manager.h"
 #include "rs_screen.h"
 #include "rs_trace.h"
 
@@ -36,11 +37,6 @@
 namespace OHOS {
 namespace Rosen {
 namespace {
-constexpr float ANGLE_MIN_VAL = 0.0F;
-constexpr float ANGLE_MAX_VAL = 180.0F;
-constexpr float HALF_FOLDED_MAX_THRESHOLD = 140.0F;
-constexpr float OPEN_HALF_FOLDED_MIN_THRESHOLD = 25.0F;
-constexpr uint32_t WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT = 1000;
 constexpr uint32_t WAIT_FOR_STATUS_TASK_TIMEOUT = 1000; // 1000ms
 constexpr uint32_t MAX_VIRTUAL_SCREEN_NUM = 64;
 constexpr uint32_t MAX_VIRTUAL_SCREEN_WIDTH = 65536;
@@ -82,98 +78,24 @@ void RSScreenManager::UnRegisterAgentListener(const sptr<RSIScreenManagerAgentLi
 bool RSScreenManager::Init(const std::shared_ptr<AppExecFwk::EventHandler>& mainHandler) noexcept
 {
     isFoldScreenFlag_ = system::GetParameter("const.window.foldscreen.type", "") != "";
-    preprocessor_ = std::make_unique<RSScreenPreprocessor>(
+    preprocessor_ = std::make_shared<RSScreenPreprocessor>(
         wptr<RSScreenManager>(this), callbackMgr_, mainHandler, isFoldScreenFlag_);
+    if (isFoldScreenFlag_) {
+        foldScreenManager_ = std::make_unique<RSFoldableScreenManager>(preprocessor_);
+    }
     if (!preprocessor_->Init()) {
         return false;
     }
-
+    if (foldScreenManager_) {
+        foldScreenManager_->Init();
+    }
     return true;
 }
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-void RSScreenManager::HandleSensorData(float angle)
-{
-    if (std::isless(angle, ANGLE_MIN_VAL) || std::isgreater(angle, ANGLE_MAX_VAL)) {
-        RS_LOGE("%{public}s Invalid angle value, angle is %{public}f.", __func__, angle);
-    }
-    std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
-    FoldState foldState = TransferAngleToScreenState(angle);
-    if (foldState == FoldState::FOLDED) {
-        if (activeScreenId_ != externalScreenId_ || !isPostureSensorDataHandled_) {
-            RS_LOGI("%{public}s: foldState is FoldState::FOLDED, angle is %{public}.2f.", __func__, angle);
-        }
-        if (activeScreenId_ != externalScreenId_) {
-            activeScreenId_ = externalScreenId_;
-            NotifyActiveScreenIdChanged(activeScreenId_);
-        }
-    } else {
-        if (activeScreenId_ != innerScreenId_ || !isPostureSensorDataHandled_) {
-            RS_LOGI("%{public}s: foldState is not FoldState::FOLDED, angle is %{public}.2f.", __func__, angle);
-        }
-        if (activeScreenId_ != innerScreenId_) {
-            activeScreenId_ = innerScreenId_;
-            NotifyActiveScreenIdChanged(activeScreenId_);
-        }
-    }
-    isPostureSensorDataHandled_ = true;
-    activeScreenIdAssignedCV_.notify_one();
-}
-
-void RSScreenManager::NotifyActiveScreenIdChanged(ScreenId activeScreenId)
-{
-    if (!callbackMgr_) {
-        RS_LOGE("%{public}s: callbackMgr is nullptr", __func__);
-        return;
-    }
-    callbackMgr_->NotifyActiveScreenIdChanged(activeScreenId);
-}
-
-FoldState RSScreenManager::TransferAngleToScreenState(float angle)
-{
-    if (std::isless(angle, ANGLE_MIN_VAL)) {
-        RS_LOGD("%{public}s: angle isless ANGLE_MIN_VAL.", __func__);
-        return FoldState::FOLDED;
-    }
-    if (std::isgreaterequal(angle, HALF_FOLDED_MAX_THRESHOLD)) {
-        RS_LOGD("%{public}s: angle isgreaterequal HALF_FOLDED_MAX_THRESHOLD.", __func__);
-        return FoldState::EXPAND;
-    }
-    FoldState state;
-    if (std::islessequal(angle, OPEN_HALF_FOLDED_MIN_THRESHOLD)) {
-        RS_LOGD("%{public}s: angle islessequal OPEN_HALF_FOLDED_MIN_THRESHOLD.", __func__);
-        state = FoldState::FOLDED;
-    } else {
-        RS_LOGD("%{public}s: angle isgreater HALF_FOLDED_MAX_THRESHOLD.", __func__);
-        state = FoldState::EXPAND;
-    }
-    return state;
-}
-
 ScreenId RSScreenManager::GetActiveScreenId()
 {
-    std::unique_lock<std::mutex> lock(activeScreenIdAssignedMutex_);
-    if (!isFoldScreenFlag_) {
-        RS_LOGW("%{public}s: !isFoldScreenFlag_.", __func__);
-        return INVALID_SCREEN_ID;
-    }
-    if (isPostureSensorDataHandled_) {
-        RS_LOGW("%{public}s: activeScreenId: %{public}" PRIu64, __func__, activeScreenId_);
-        return activeScreenId_;
-    }
-    activeScreenIdAssignedCV_.wait_until(lock, std::chrono::system_clock::now() +
-        std::chrono::milliseconds(WAIT_FOR_ACTIVE_SCREEN_ID_TIMEOUT), [this]() {
-            return isPostureSensorDataHandled_;
-        });
-    HILOG_COMM_WARN("GetActiveScreenId activeScreenId: %{public}" PRIu64, activeScreenId_);
-    return activeScreenId_;
+    return foldScreenManager_ ? foldScreenManager_->GetActiveScreenId() : INVALID_SCREEN_ID;
 }
-#else
-ScreenId RSScreenManager::GetActiveScreenId()
-{
-    return INVALID_SCREEN_ID;
-}
-#endif
 
 void RSScreenManager::OnHwcDeadEvent(std::map<ScreenId, std::shared_ptr<RSScreen>>& retScreens)
 {
@@ -262,13 +184,9 @@ void RSScreenManager::ProcessScreenConnected(ScreenId id)
         defaultScreenId = id;
     }
     defaultScreenId_ = defaultScreenId;
-
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    if (isFoldScreenFlag_ && id != 0) {
-        RS_LOGI("%{public}s The externalScreenId_ is set %{public}" PRIu64 ".", __func__, id);
-        externalScreenId_ = id;
+    if (foldScreenManager_ && id != 0) {
+        foldScreenManager_->SetExternalScreenId(id);
     }
-#endif
     std::lock_guard<std::mutex> connectLock(hotPlugAndConnectMutex_);
     pendingConnectedIds_.emplace_back(id);
     mipiCheckInFirstHotPlugEvent_ = true;

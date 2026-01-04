@@ -5393,13 +5393,13 @@ void RSMainThread::HandleScreenPropertyRefreshOneFrame(const RSScreenProperty& l
         PostTask([this]() {
             SetDirtyFlag();
         });
-        ForceRefreshForUni();
         RS_OPTIONAL_TRACE_NAME_FMT(
             "RSMainThread::%{public}s: renderSizeChanged:%d, surfaceChanged:%d, gamutMapChanged:%d", __func__,
             renderSizeChanged, surfaceChanged, gamutMapChanged);
         RS_LOGI("RSMainThread::%{public}s: renderSizeChanged:%{public}d, surfaceChanged:%{public}d,"
                 "gamutMapChanged:%{public}d",
                 __func__, renderSizeChanged, surfaceChanged, gamutMapChanged);
+        ForceRefreshForUni();
     }
 }
 

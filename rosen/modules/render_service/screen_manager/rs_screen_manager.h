@@ -43,16 +43,11 @@
 #include <screen_manager/rs_screen_info.h>
 #include <screen_manager/rs_screen_property.h>
 #include "rs_screen_preprocessor.h"
+#include "product_feature/fold/rs_fold_screen_manager.h"
 
 namespace OHOS {
 namespace Rosen {
 class RSScreen;
-enum class FoldState : uint32_t {
-    UNKNOW,
-    FOLDED,
-    EXPAND
-};
-
 // This class can be only created by RSRenderService to manager screen.
 class RSScreenManager : public RefBase {
 public:
@@ -204,12 +199,6 @@ private:
     void ProcessScreenDisConnected(ScreenId id);
     void HandleDefaultScreenDisConnected();
 
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    void HandleSensorData(float angle);
-    FoldState TransferAngleToScreenState(float angle);
-    void NotifyActiveScreenIdChanged(ScreenId activeScreenId);
-#endif
-
     sptr<RSScreenProperty> QueryScreenProperty(ScreenId id) const; // Only for internal use by ScreenManager
     std::shared_ptr<RSScreen> GetScreen(ScreenId id) const;
     void NotifySwitchingCallback(bool status) const;
@@ -261,14 +250,7 @@ private:
     std::atomic<bool> isScreenSwitching_ = false;
 
     bool isFoldScreenFlag_ = false;
-#ifdef RS_SUBSCRIBE_SENSOR_ENABLE
-    ScreenId innerScreenId_ = 0;
-    ScreenId externalScreenId_ = INVALID_SCREEN_ID;
-    ScreenId activeScreenId_ = 0;
-    bool isPostureSensorDataHandled_ = false;
-    std::condition_variable activeScreenIdAssignedCV_;
-    mutable std::mutex activeScreenIdAssignedMutex_;
-#endif
+    std::unique_ptr<RSFoldScreenManager> foldScreenManager_;
     struct FoldScreenStatus {
         bool isConnected;
         bool isPowerOn;
@@ -276,7 +258,7 @@ private:
     std::unordered_map<uint64_t, FoldScreenStatus> foldScreenIds_; // screenId, FoldScreenStatus
 
     const std::shared_ptr<RSScreenCallbackManager> callbackMgr_ = std::make_shared<RSScreenCallbackManager>();
-    std::unique_ptr<RSScreenPreprocessor> preprocessor_;
+    std::shared_ptr<RSScreenPreprocessor> preprocessor_;
 
     friend class RSScreenPreprocessor;
 };
