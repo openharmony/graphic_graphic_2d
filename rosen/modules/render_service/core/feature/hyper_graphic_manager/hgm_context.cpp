@@ -49,8 +49,8 @@ void HgmContext::InitHgmTaskHandleThread(
     const sptr<VSyncController>& rsVSyncController, const sptr<VSyncController>& appVSyncController,
     const sptr<VSyncGenerator>& vsyncGenerator)
 {
-    auto forceUpdateTask = [this](bool idleTimerExpired, bool forceUpdate) {
-        renderServiceHandler_->PostTask([this, idleTimerExpired, forceUpdate] {
+    auto forceUpdateTask = [this](bool forceUpdate) {
+        renderServiceHandler_->PostTask([this, forceUpdate] {
             RS_TRACE_NAME_FMT("HgmForceUpdateTask forceUpdateFlag: %d", forceUpdate);
             if (GetLastForceUpdateVsyncId() != GetCurrVsyncId()) {
                 SetLastForceUpdateVsyncId(GetCurrVsyncId());
@@ -122,9 +122,7 @@ void HgmContext::HandleHgmProcessInfo(const sptr<HgmProcessToServiceInfo>& info)
         appVSyncDistributor_);
 
     rsCurrRange_ = info->rsCurrRange;
-    for (const auto& [surfaceName, nodePid] : info->surfaceData) {
-        frameRateManager_->UpdateSurfaceTime(surfaceName, nodePid, UIFWKType::FROM_SURFACE);
-    }
+    frameRateManager_->UpdateSurfaceTime(info->surfaceData);
     frameRateManager_->SetIsGameNodeOnTree(info->isGameNodeOnTree);
 }
 

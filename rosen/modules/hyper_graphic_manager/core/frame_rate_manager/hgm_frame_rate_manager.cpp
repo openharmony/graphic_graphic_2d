@@ -310,6 +310,13 @@ void HgmFrameRateManager::UpdateSurfaceTime(const std::string& surfaceName, pid_
     surfaceData_.emplace_back(std::tuple<std::string, pid_t, UIFWKType>({ surfaceName, pid, uiFwkType }));
 }
 
+void HgmFrameRateManager::UpdateSurfaceTime(const std::vector<std::tuple<std::string, pid_t>>& surfaceData)
+{
+    for (const auto& [surfaceName, nodePid] : surfaceData) {
+        UpdateSurfaceTime(surfaceName, nodePid, UIFWKType::FROM_SURFACE);
+    }
+}
+
 void HgmFrameRateManager::UpdateAppSupportedState()
 {
     PolicyConfigData::StrategyConfig config;
@@ -417,7 +424,7 @@ void HgmFrameRateManager::UniProcessDataForLtpo(uint64_t timestamp,
     UpdateSoftVSync(true);
 }
 
-void HgmFrameRateManager::SetForceUpdateCallback(std::function<void(bool, bool)> forceUpdateCallback)
+void HgmFrameRateManager::SetForceUpdateCallback(std::function<void(bool)> forceUpdateCallback)
 {
     forceUpdateCallback_ = std::move(forceUpdateCallback);
 }
@@ -1488,7 +1495,7 @@ void HgmFrameRateManager::CheckNeedUpdateAppOffset(uint32_t refreshRate, uint32_
 void HgmFrameRateManager::CheckForceUpdateCallback(uint32_t refreshRate)
 {
     if (needForceUpdateUniRender_ && refreshRate != currRefreshRate_.load() && forceUpdateCallback_) {
-        forceUpdateCallback_(false, true);
+        forceUpdateCallback_(true);
     }
 }
 
@@ -1508,13 +1515,13 @@ void HgmFrameRateManager::CheckRefreshRateChange(
         (frameRateChanged || (appOffsetChange && !CreateVSyncGenerator()->IsUiDvsyncOn()))) {
         HandleFrameRateChangeForLTPO(timestamp_.load(), followRs, isNeedDvsyncDelay);
         if (needChangeDssRefreshRate && forceUpdateCallback_ != nullptr) {
-            forceUpdateCallback_(false, true);
+            forceUpdateCallback_(true);
         }
     } else {
         std::lock_guard<std::mutex> lock(pendingMutex_);
         pendingRefreshRate_ = std::make_shared<uint32_t>(currRefreshRate_);
         if (needChangeDssRefreshRate && forceUpdateCallback_ != nullptr) {
-            forceUpdateCallback_(false, true);
+            forceUpdateCallback_(true);
         }
         if (frameRateChanged) {
             softVSyncManager_.SetQosVSyncRate(currRefreshRate_, appFrameRateLinkers_);
