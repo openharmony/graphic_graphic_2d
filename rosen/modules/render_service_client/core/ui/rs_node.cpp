@@ -2943,7 +2943,7 @@ void RSNode::ClearAllModifiers()
 
 void RSNode::LoadRenderNodeIfNeed() const
 {
-    std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+    std::unique_lock<std::recursive_mutex> lock(lazyLoadMutex_);
     if (!lazyLoad_) {
         return;
     }
@@ -4168,7 +4168,7 @@ bool RSNode::AddCommand(std::unique_ptr<RSCommand>& command, bool isRenderServic
     FollowType followType, NodeId nodeId) const
 {
     {
-        std::unique_lock<std::recursive_mutex> lock(propertyMutex_);
+        std::unique_lock<std::recursive_mutex> lock(lazyLoadMutex_);
         if (lazyLoad_) {
             constexpr size_t maxLazyCommandSize{8};
             if (IsLazyLoadCommand(*command) && lazyLoadCommands_.size() < maxLazyCommandSize) {
