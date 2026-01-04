@@ -879,6 +879,16 @@ public:
         isOcclusionVisibleWithoutFilter_ = visible;
     }
 
+    void SetIsParticipateInOcclusion(bool isParticipate)
+    {
+        isParticipateInOcclusion_ = isParticipate;
+    }
+
+    bool GetIsParticipateInOcclusion() const
+    {
+        return isParticipateInOcclusion_;
+    }
+
     const Occlusion::Region& GetVisibleRegion() const
     {
         return visibleRegion_;
@@ -1816,6 +1826,7 @@ private:
     bool isRefresh_ = false;
     bool isOcclusionVisible_ = true;
     bool isOcclusionVisibleWithoutFilter_ = true;
+    bool isParticipateInOcclusion_ = true;
     bool dstRectChanged_ = false;
     uint8_t abilityBgAlpha_ = 0;
     bool alphaChanged_ = false;

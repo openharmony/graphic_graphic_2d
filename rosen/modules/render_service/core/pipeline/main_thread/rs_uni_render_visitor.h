@@ -245,6 +245,8 @@ private:
     void UpdateHwcNodeDirtyRegionForApp(std::shared_ptr<RSSurfaceRenderNode>& appNode,
         std::shared_ptr<RSSurfaceRenderNode>& hwcNode);
 
+    void SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(
+        const RSSurfaceRenderNode& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const;
     void AccumulateSurfaceDirtyRegion(
         std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const;
     void CheckMergeDisplayDirtyByCrossDisplayWindow(RSSurfaceRenderNode& surfaceNode) const;

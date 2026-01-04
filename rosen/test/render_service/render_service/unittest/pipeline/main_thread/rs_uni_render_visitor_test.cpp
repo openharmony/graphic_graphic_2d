@@ -7510,4 +7510,109 @@ HWTEST_F(RSUniRenderVisitorTest, DisableOccludedHwcNodeInSkippedSubTreeTest001, 
     RSRenderNode node(0);
     rsUniRenderVisitor->DisableOccludedHwcNodeInSkippedSubTree(node);
 }
+
+/**
+ * @tc.name: SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion001
+ * @tc.desc: IsFirstLevelCrossNode == true
+ * @tc.type: FUNC
+ * @tc.require: issue21439
+ */
+HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion001, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto screenNode = std::make_shared<RSScreenRenderNode>(0, 0, rsContext);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    rsUniRenderVisitor->curScreenNode_->isFirstVisitCrossNodeDisplay_ = true;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    surfaceNode->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(surfaceNode->dirtyManager_, nullptr);
+    surfaceNode->isFirstLevelCrossNode_ = true;
+    surfaceNode->opaqueRegion_ = Occlusion::Region(RectI(0, 0, 5, 5));
+
+    Occlusion::Region origin = Occlusion::Region(RectI(0, 0, 10, 10));
+    Occlusion::Region accumulatedDirtyRegion = origin;
+    rsUniRenderVisitor->SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(*surfaceNode, accumulatedDirtyRegion);
+    EXPECT_EQ(accumulatedDirtyRegion.GetRegionInfo(), origin.GetRegionInfo());
+}
+
+/**
+ * @tc.name: SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion002
+ * @tc.desc: IsFirstLevelCrossNode == false, IsMainWindowType == false
+ * @tc.type: FUNC
+ * @tc.require: issue21439
+ */
+HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion002, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    surfaceNode->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(surfaceNode->dirtyManager_, nullptr);
+    surfaceNode->isFirstLevelCrossNode_ = false;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    surfaceNode->opaqueRegion_ = Occlusion::Region(RectI(0, 0, 5, 5));
+
+    Occlusion::Region origin = Occlusion::Region(RectI(0, 0, 10, 10));
+    Occlusion::Region accumulatedDirtyRegion = origin;
+    rsUniRenderVisitor->SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(*surfaceNode, accumulatedDirtyRegion);
+    EXPECT_EQ(accumulatedDirtyRegion.GetRegionInfo(), origin.GetRegionInfo());
+}
+
+/**
+ * @tc.name: SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion003
+ * @tc.desc: IsFirstLevelCrossNode == false, IsMainWindowType == true, GetIsParticipateInOcclusion == false
+ * @tc.type: FUNC
+ * @tc.require: issue21439
+ */
+HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion003, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    surfaceNode->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(surfaceNode->dirtyManager_, nullptr);
+    surfaceNode->isFirstLevelCrossNode_ = false;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceNode->isParticipateInOcclusion_ = false;
+    surfaceNode->opaqueRegion_ = Occlusion::Region(RectI(0, 0, 5, 5));
+
+    Occlusion::Region origin = Occlusion::Region(RectI(0, 0, 10, 10));
+    Occlusion::Region accumulatedDirtyRegion = origin;
+    rsUniRenderVisitor->SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(*surfaceNode, accumulatedDirtyRegion);
+    EXPECT_EQ(accumulatedDirtyRegion.GetRegionInfo(), origin.GetRegionInfo());
+}
+
+/**
+ * @tc.name: SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion004
+ * @tc.desc: IsFirstLevelCrossNode == false, IsMainWindowType == true, GetIsParticipateInOcclusion == true
+ * @tc.type: FUNC
+ * @tc.require: issue21439
+ */
+HWTEST_F(RSUniRenderVisitorTest, SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion004, TestSize.Level2)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    EXPECT_NE(rsUniRenderVisitor, nullptr);
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(1, rsContext);
+    surfaceNode->renderProperties_.boundsGeo_ = std::make_shared<RSObjAbsGeometry>();
+    surfaceNode->dirtyManager_ = std::make_shared<RSDirtyRegionManager>();
+    EXPECT_NE(surfaceNode->dirtyManager_, nullptr);
+    surfaceNode->isFirstLevelCrossNode_ = false;
+    surfaceNode->nodeType_ = RSSurfaceNodeType::APP_WINDOW_NODE;
+    surfaceNode->isParticipateInOcclusion_ = true;
+    surfaceNode->opaqueRegion_ = Occlusion::Region(RectI(0, 0, 5, 5));
+
+    Occlusion::Region origin = Occlusion::Region(RectI(0, 0, 10, 10));
+    Occlusion::Region accumulatedDirtyRegion = origin;
+    rsUniRenderVisitor->SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(*surfaceNode, accumulatedDirtyRegion);
+    origin.SubSelf(surfaceNode->opaqueRegion_);
+    EXPECT_EQ(accumulatedDirtyRegion.GetRegionInfo(), origin.GetRegionInfo());
+}
 } // OHOS::Rosen

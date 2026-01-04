@@ -1676,6 +1676,7 @@ CM_INLINE void RSUniRenderVisitor::CalculateOpaqueAndTransparentRegion(RSSurface
     hasSkipLayer_ = hasSkipLayer_ || node.GetSpecialLayerMgr().Find(SpecialLayerType::SKIP);
     bool isParticipateInOcclusion = IsParticipateInOcclusion(node);
     CollectTopOcclusionSurfacesInfo(node, isParticipateInOcclusion);
+    node.SetIsParticipateInOcclusion(isParticipateInOcclusion);
     if (isParticipateInOcclusion) {
         RS_TRACE_NAME_FMT("Occlusion: surface node[%s] participate in occlusion with opaque region: [%s]",
             node.GetName().c_str(), node.GetOpaqueRegion().GetRegionInfo().c_str());
@@ -2590,6 +2591,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
                 RS_LOGE("RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty surfaceNode is nullptr");
                 return;
             }
+            SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(*surfaceNode, accumulatedDirtyRegion);
             accumulatedDirtyRegion.OrSelf(
                 curScreenNode_->GetDisappearedSurfaceRegionBelowCurrent(surfaceNode->GetId()));
             auto dirtyManager = surfaceNode->GetDirtyManager();
@@ -3086,6 +3088,16 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRen
     }
 }
 
+void RSUniRenderVisitor::SubSurfaceOpaqueRegionFromAccumulatedDirtyRegion(
+    const RSSurfaceRenderNode& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const
+{
+    if (surfaceNode.IsFirstLevelCrossNode() || !surfaceNode.IsMainWindowType() ||
+        !surfaceNode.GetIsParticipateInOcclusion()) {
+        return;
+    }
+    accumulatedDirtyRegion.SubSelf(surfaceNode.GetOpaqueRegion());
+}
+
 void RSUniRenderVisitor::AccumulateSurfaceDirtyRegion(
     std::shared_ptr<RSSurfaceRenderNode>& surfaceNode, Occlusion::Region& accumulatedDirtyRegion) const
 {
@@ -3099,9 +3111,7 @@ void RSUniRenderVisitor::AccumulateSurfaceDirtyRegion(
             surfaceNode->GetCrossNodeSkipDisplayConversionMatrix(curScreenNode_->GetId()));
     }
     auto surfaceDirtyRegion = Occlusion::Region{ Occlusion::Rect{ surfaceDirtyRect } };
-    auto surfaceVisibleDirtyRegion = surfaceNode->IsMainWindowType() ?
-        surfaceDirtyRegion.And(surfaceNode->GetVisibleRegion()) : surfaceDirtyRegion;
-    accumulatedDirtyRegion.OrSelf(surfaceVisibleDirtyRegion);
+    accumulatedDirtyRegion.OrSelf(surfaceDirtyRegion);
 }
 
 void RSUniRenderVisitor::UpdateDisplayDirtyAndExtendVisibleRegion()

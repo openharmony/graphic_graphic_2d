@@ -463,5 +463,20 @@ HWTEST_F(RSSurfaceRenderNodeFourTest, GetChildBlurBehindWindow, TestSize.Level1)
     surfaceNode->childrenBlurBehindWindow_.emplace(id);
     EXPECT_TRUE(!surfaceNode->GetChildBlurBehindWindow().empty());
 }
+
+/**
+ * @tc.name: SetIsParticipateInOcclusion
+ * @tc.desc: Test SetIsParticipateInOcclusion
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeFourTest, SetIsParticipateInOcclusion, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(0, rsContext);
+    
+    surfaceNode->SetIsParticipateInOcclusion(true);
+    ASSERT_TRUE(surfaceNode->isParticipateInOcclusion_);
+    ASSERT_TRUE(surfaceNode->GetIsParticipateInOcclusion());
+}
 } // namespace Rosen
 } // namespace OHOS
