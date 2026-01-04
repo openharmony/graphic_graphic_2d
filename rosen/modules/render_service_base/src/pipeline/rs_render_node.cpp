@@ -2760,12 +2760,8 @@ void RSRenderNode::UpdateFilterCacheWithSelfDirty()
             }
         }
     };
-    if (properties.GetMaterialFilter()) {
-        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
-    }
-    if (properties.GetBackgroundFilter()) {
-        RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
-    }
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER, invokeFunc);
+    RSRenderNode::InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER, invokeFunc);
     auto filterDrawable = GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
     if (filterDrawable != nullptr) {
         auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegionInfo().defaultFilterRegion_);
@@ -3756,7 +3752,7 @@ void RSRenderNode::CalVisibleFilterRect(const RectI& absRect, const Drawing::Mat
         auto filterDrawable = std::static_pointer_cast<DrawableV2::RSFilterDrawable>(drawable);
         filterDrawable->CalVisibleRect(matrix, clipRect, boundsRect);
         GetFilterRegionInfo().filterRegion_ = GetFilterRegionInfo().filterRegion_.
-            JoinRect(filterDrawable->GetVisibleTotalRegion(absRect));
+            JoinRect(filterDrawable->GetVisibleTotalRegion(GetFilterRegionInfo().defaultFilterRegion_));
     }
 }
 
