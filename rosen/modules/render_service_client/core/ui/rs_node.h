@@ -2188,6 +2188,7 @@ private:
 
     std::recursive_mutex animationMutex_;
     mutable std::recursive_mutex propertyMutex_;
+    mutable std::recursive_mutex lazyLoadMutex_;
 
     bool isOnTheTree_ = false;
     bool isOnTheTreeInit_ = false;
