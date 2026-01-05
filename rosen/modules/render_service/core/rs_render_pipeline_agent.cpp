@@ -122,7 +122,7 @@ void RSRenderPipelineAgent::CleanBrightnessInfoChangeCallbacks(pid_t remotePid) 
 void RSRenderPipelineAgent::CleanRenderNodes(pid_t remotePid) noexcept
 {
     if (rsRenderPipeline_ == nullptr || rsRenderPipeline_->GetMainThread() == nullptr) {
-        RS_LOGW("RSRenderPipelineAgent::CleanRenderNode: rsRenderPipeline_ or mainThread_ is null!");
+        RS_LOGW("RSRenderPipelineAgent::CleanRenderNode: rsRenderPipeline_ or mainThread is null!");
     }
     auto& context = rsRenderPipeline_->GetMainThread()->GetContext();
     auto& nodeMap = context.GetMutableNodeMap();
@@ -147,13 +147,13 @@ void RSRenderPipelineAgent::CleanCanvasCallbacksAndPendingBuffer(pid_t remotePid
 void RSRenderPipelineAgent::UnRegisterApplicationAgent(sptr<IApplicationAgent> app)
 {
     if (rsRenderPipeline_ == nullptr) {
-        // RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent rsRenderPipeline_ or  is null!");
+        RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent rsRenderPipeline_ or  is null!");
         return;
     }
 
     rsRenderPipeline_->ScheduleMainThreadTask([mainThread = rsRenderPipeline_->GetMainThread(), app]() {
         if (mainThread == nullptr) {
-            // RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent mainThread or is null!");
+            RS_LOGE("RSRenderPipelineAgent::UnRegisterApplicationAgent mainThread or is null!");
             return;
         }
         mainThread->UnRegisterApplicationAgent(app);
@@ -163,7 +163,7 @@ void RSRenderPipelineAgent::UnRegisterApplicationAgent(sptr<IApplicationAgent> a
 ErrCode RSRenderPipelineAgent::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
 {
     if (task == nullptr || rsRenderPipeline_ == nullptr) {
-        // RS_LOGE("ExecuteSynchronousTask, task or RenderPipeline is null!");
+        RS_LOGW("ExecuteSynchronousTask, task or RenderPipeline is null!");
         return ERR_INVALID_VALUE;
     }
     // After a synchronous task times out, it will no longer be executed.
@@ -1678,7 +1678,7 @@ void RSRenderPipelineAgent::CleanAll(pid_t pid)
             if (mainThread == nullptr) {
                 return;
             }
-            mainThread->ClearSurfaceWatermark(pid); // Special adaptation
+            mainThread->ClearSurfaceWatermark(pid);
         }).wait();
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
         rsRenderPipeline_->ScheduleMainThreadTask(
@@ -1690,8 +1690,8 @@ void RSRenderPipelineAgent::CleanAll(pid_t pid)
                 monitor.UnRegisterRectChangeCallback(pid);
             }).wait();
     }
-    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid); // Instance
-    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid); // Instance
+    RSSurfaceBufferCallbackManager::Instance().UnregisterSurfaceBufferCallback(pid);
+    RSTypefaceCache::Instance().RemoveDrawingTypefacesByPid(pid);
     {
         std::lock_guard<std::mutex> lock(pidToBundleMutex_);
         pidToBundleName_.clear();
