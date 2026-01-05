@@ -527,7 +527,10 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
         parentTestNode->SetCornerRadius(50);
         parentTestNode->SetClipToBounds(true);
  
-        auto childTestNode = SetUpNodeBgImage("/data/local/tmp/Images/AllWhite.jpg", { 0, 0, nodeSize[i], nodeSize[i] });
+        auto childTestNode = SetUpNodeBgImage(
+            "/data/local/tmp/Images/AllWhite.jpg",
+            { 0, 0, nodeSize[i], nodeSize[i] }
+        );
         parentTestNode->RSNode::AddChild(childTestNode);
         RegisterNode(childTestNode);
     }
@@ -542,7 +545,10 @@ GRAPHIC_TEST(GeometryTest, CONTENT_DISPLAY_TEST, Geometry_CornerRadius_ApplyType
         parentTestNode->SetClipToBounds(true);
         parentTestNode->SetCornerApplyType(RSCornerApplyType::OFFSCREEN);
  
-        auto childTestNode = SetUpNodeBgImage("/data/local/tmp/Images/AllWhite.jpg", { 0, 0, nodeSize[i], nodeSize[i] });
+        auto childTestNode = SetUpNodeBgImage(
+            "/data/local/tmp/Images/AllWhite.jpg",
+            { 0, 0, nodeSize[i], nodeSize[i] }
+        );
         parentTestNode->RSNode::AddChild(childTestNode);
         RegisterNode(childTestNode);
     }
