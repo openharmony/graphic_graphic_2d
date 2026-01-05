@@ -14,5 +14,5 @@
 group("safuzztest") {
   testonly = true
 
-  deps = []
+  deps = [ "rs_ipc_dos_simulator:safuzztest" ]
 }
